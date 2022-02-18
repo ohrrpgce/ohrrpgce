@@ -18,20 +18,20 @@ struct float2 {
 		};
 	};
 
-	float2() : x(0), y(0) {}
-	float2(float X, float Y) : x(X), y(Y) {}
-	float2 operator+(const float2& rhs) const {float2 tmp(x+rhs.x, y+rhs.y); return tmp;}
-	float2 operator-(const float2& rhs) const {float2 tmp(x-rhs.x, y-rhs.y); return tmp;}
-	float2 operator*(const float2& rhs) const {float2 tmp(x*rhs.x, y*rhs.y); return tmp;}
-	float2 operator/(const float2& rhs) const {float2 tmp(x/rhs.x, y/rhs.y); return tmp;}
+	//float2() : x(0), y(0) {}
+	//float2(float X, float Y) : x(X), y(Y) {}
+	float2 operator+(const float2& rhs) const {return float2{x+rhs.x, y+rhs.y};}
+	float2 operator-(const float2& rhs) const {return float2{x-rhs.x, y-rhs.y};}
+	float2 operator*(const float2& rhs) const {return float2{x*rhs.x, y*rhs.y};}
+	float2 operator/(const float2& rhs) const {return float2{x/rhs.x, y/rhs.y};}
 	float2& operator+=(const float2& rhs) {x += rhs.x; y += rhs.y; return *this;}
 	float2& operator-=(const float2& rhs) {x -= rhs.x; y -= rhs.y; return *this;}
 	float2& operator*=(const float2& rhs) {x *= rhs.x; y *= rhs.y; return *this;}
 	float2& operator/=(const float2& rhs) {x /= rhs.x; y /= rhs.y; return *this;}
-	float2 operator+(float rhs) const {float2 tmp(x+rhs, y+rhs); return tmp;}
-	float2 operator-(float rhs) const {float2 tmp(x-rhs, y-rhs); return tmp;}
-	float2 operator*(float rhs) const {float2 tmp(x*rhs, y*rhs); return tmp;}
-	float2 operator/(float rhs) const {float2 tmp(x/rhs, y/rhs); return tmp;}
+	float2 operator+(float rhs) const {return float2{x+rhs, y+rhs};}
+	float2 operator-(float rhs) const {return float2{x-rhs, y-rhs};}
+	float2 operator*(float rhs) const {return float2{x*rhs, y*rhs};}
+	float2 operator/(float rhs) const {return float2{x/rhs, y/rhs};}
 	float2& operator+=(float rhs) {x += rhs; y += rhs; return *this;}
 	float2& operator-=(float rhs) {x -= rhs; y -= rhs; return *this;}
 	float2& operator*=(float rhs) {x *= rhs; y *= rhs; return *this;}
@@ -47,16 +47,26 @@ struct float3x3 {
 	      _21, _22, _23,
 	      _31, _32, _33;
 };
-struct SURFACE_RECT {   //TODO: replace with SurfaceRect
-   int left, top, right, bottom;
+
+union AffineTransform {
+	struct {
+		float2 bottomleft;
+		float2 topleft;
+		float2 topright;
+		//float2 bottomright;
+	};
+	float2 vertices[3];
 };
+
 
 extern "C" {
 
 void matrixLocalTransform( float3x3* pMatrixOut, float angle, const float2& scale, const float2& position );
-void matrixMultiply( float3x3* pMatrixOut, const float3x3& A, const float3x3& B );
-void vec3Transform( float3* pVec3ArrayOut, int destSize, const float3* pVec3ArrayIn, int srcSize, const float3x3& transformMatrix );
-void vec3GenerateCorners( float3* pVecArrayOut, int destSize, const SURFACE_RECT& surfaceRect );
+//void matrixMultiply( float3x3* pMatrixOut, const float3x3& A, const float3x3& B );
+void vec2Transform( float2* pVec2ArrayOut, int destSize, const float2* pVec2ArrayIn, int srcSize, const float3x3& transformMatrix );
+//void vec3Transform( float3* pVec3ArrayOut, int destSize, const float3* pVec3ArrayIn, int srcSize, const float3x3& transformMatrix );
+void vec2GenerateCorners( float2* pVecArrayOut, int destSize, const float2& size, const float2& center );
+//void vec3GenerateCorners( float3* pVecArrayOut, int destSize, const float& size, const float2& center );
 
 }
 

@@ -7,7 +7,7 @@
 #IFNDEF MATRIX_MATH_BI
 #DEFINE MATRIX_MATH_BI
 
-#include "config.bi" 
+#include "config.bi"
 #include "util.bi"  'Contains actual Float2 type
 
 ' TYPE Float2
@@ -27,12 +27,15 @@ TYPE Float3x3
   _31 as single : _32 as single : _33 as single
 END TYPE
 
-TYPE Rect
-  left as integer
-  top as integer
-  right as integer
-  bottom as integer
-END TYPE
+UNION AffineTransform
+	TYPE
+		bottomleft as Float2
+		topleft as Float2
+		topright as Float2
+		'bottomright as Float2
+	END TYPE
+	vertices(2) as Float2
+END UNION
 
 EXTERN "C"
 
@@ -42,11 +45,17 @@ DECLARE SUB matrixLocalTransform( byval pMatrixOut as float3x3 ptr, byval angle 
 'multiplies matrices together; pMatrixOut = A x B
 DECLARE SUB matrixMultiply( byval pMatrixOut as float3x3 ptr, byref A as float3x3, byref B as float3x3 )
 
-'transforms all the vectors in pVec3ArrayIn into pVec3ArrayOut by the "transformMatrix"
-DECLARE SUB vec3Transform( byval pVec3ArrayOut as float3 ptr, byval destSize as integer, byval pVec3ArrayIn as float3 ptr, byval srcSize as integer, byref transformMatrix as float3x3 )
+'Transforms all the vectors in pVec2ArrayIn into pVec2ArrayOut by an affine transform matrix
+'(i.e. only the top-left 2x3 elements are used).
+DECLARE SUB vec2Transform( byval pVec2ArrayOut as float2 ptr, byval destSize as integer, byval pVec2ArrayIn as float2 ptr, byval srcSize as integer, byref transformMatrix as float3x3 )
 
-'generates the local coordinate corners of a quad based on the width and height of the passed in "surfaceRect"; to be used as input to vec3Transform
-DECLARE SUB vec3GenerateCorners( byval pVecArrayOut as float3 ptr, byval destSize as integer, byref surfaceRect as Rect )
+'Transforms all the vectors in pVec3ArrayIn into pVec3ArrayOut by `transformMatrix`
+'DECLARE SUB vec3Transform( byval pVec3ArrayOut as float3 ptr, byval destSize as integer, byval pVec3ArrayIn as float3 ptr, byval srcSize as integer, byref transformMatrix as float3x3 )
+
+'Generates the local coordinate corners (relative a center) of a quad, to be used
+'as input to vec2Transform/vec3Transform
+DECLARE SUB vec2GenerateCorners( byval pVecArrayOut as Float2 ptr, byval destSize as integer, byref size as Float2, byref center as Float2)
+'DECLARE SUB vec3GenerateCorners( byval pVecArrayOut as Float3 ptr, byval destSize as integer, byref size as Float3, byref center as Float3)
 
 END EXTERN
 

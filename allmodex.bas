@@ -13,6 +13,7 @@
 #include "allmodex.bi"
 #include "gfx.bi"
 #include "surface.bi"
+#include "matrixMath.bi"
 #include "lib/gif.bi"
 #include "lib/lodepng.bi"
 #include "lib/ujpeg.bi"
@@ -10090,6 +10091,16 @@ sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palet
 	frame_draw_internal src, masterpal(), pal, x, y, trans, dest, opts
 end sub
 
+private function surface_shim(src as Frame ptr, temp_surface as Surface ptr) as Surface ptr
+	if src->surf then return src->surf
+	'Correct but slower:
+	'dim src_surface as Surface ptr
+	'if gfx_surfaceCreateFrameView(src, @src_surface) then return
+	'Kludgy but faster, avoid a slow allocation:
+	if surfaceFrameShim(src, temp_surface) then return NULL
+	return temp_surface
+end function
+
 local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
 
 	if (src->surf andalso src->surf->format <> SF_8bit) orelse _
@@ -10098,31 +10109,17 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 
 		BUG_IF(opts.scale <> 1, "scale not supported with 32-bit Frames")
 
-		dim src_surface as Surface ptr
-		dim dest_surface as Surface ptr
-		dim tempsrc_surface as Surface = any
-		dim tempdest_surface as Surface = any
-		if src->surf then
-			src_surface = src->surf
-		else
-			'Correct but slower:
-			'if gfx_surfaceCreateFrameView(src, @src_surface) then return
-			'Kludgy but faster, avoid a slow allocation:
-			src_surface = @tempsrc_surface
-			if surfaceFrameShim(src, src_surface) then return
-		end if
-		if dest->surf then
-			dest_surface = dest->surf
-		else
-			dest_surface = @tempdest_surface
-			if surfaceFrameShim(dest, dest_surface) then return
-		end if
+		dim as Surface tempsrc_surface = any, tempdest_surface = any
+		dim src_surface as Surface ptr = surface_shim(src, @tempsrc_surface)
+		dim dest_surface as Surface ptr = surface_shim(dest, @tempdest_surface)
+		if src_surface = 0 orelse dest_surface = 0 then return
 
 		/'
 		dim master_pal as RGBPalette ptr
 		if src_surface->format = SF_8bit then
 			' From 8 -> 32 bit
 			' This is slow, performs an allocation and copy!
+			' (Can use masterpal_to_gfxpal instead)
 			if gfx_paletteFromRGB(@masterpal(0), @master_pal) then
 				debug "gfx_paletteFromRGB failed"
 				goto cleanup
@@ -10150,6 +10147,67 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 		end if
 	end if
 end sub
+
+#ifdef USE_RASTERIZER
+
+' Draw a Frame with position and transformation specified by an AffineTransform.
+' opts currently unused
+sub frame_draw_transformed(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, transf as AffineTransform, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
+	BUG_IF(dest->surf = 0 orelse dest->surf->format = SF_8bit, "32-bit dest required")
+
+	dim vertices(3) as VertexPT
+	'Clockwise from bottom-left
+	vertices(0).tex.u = 0
+	vertices(0).tex.v = 1
+	vertices(1).tex.u = 0
+	vertices(1).tex.v = 0
+	vertices(2).tex.u = 1
+	vertices(2).tex.v = 0
+	vertices(3).tex.u = 1
+	vertices(3).tex.v = 1
+	with transf
+		vertices(0).pos = .bottomleft
+		vertices(1).pos = .topleft
+		vertices(2).pos = .topright
+		'vertices(3).pos = .bottomright
+		vertices(3).pos = XYF(.bottomleft.x + (.topright.x - .topleft.x), .bottomleft.y + (.topright.y - .topleft.y))
+	end with
+
+	'Get Surface shims around Frames as needed
+	dim as Surface tempsrc_surface = any, tempdest_surface = any
+	dim src_surface as Surface ptr = surface_shim(src, @tempsrc_surface)
+	dim dest_surface as Surface ptr = surface_shim(dest, @tempdest_surface)
+	if src_surface = 0 orelse dest_surface = 0 then return
+
+	'Convert from pal (which may be NULL) to a 256-color palette
+	dim gfxpal as RGBPalette ptr = unrollPalette16(pal, @masterpal(0))
+
+	dim byref cliprect as ClipState = get_cliprect(dest)
+	dim destrect as SurfaceRect = (cliprect.l, cliprect.t, cliprect.r, cliprect.b)
+
+	gfx_renderQuadTexture(@vertices(0), src_surface, gfxpal, trans, @destrect, dest_surface)
+end sub
+
+'Calculate an AffineTransform of a slice of given 'size' by first stretching by 'zoom',
+'then rotating `angle` degrees clockwise about `center` (defaults of center of `size`),
+'then translating by `pos`. (Does NOT support RelPosXY)
+'This can achieve any affine transform.
+'(The Float2 args are passed byref but not modified)
+sub rotozoom_transform(byref result as AffineTransform, size as XYPair, center as Float2 ptr = NULL, pos as Float2, angle as double, zoom as Float2)
+	dim _center as Float2 = any
+	if center = NULL then
+		_center = XYF(size.x / 2, size.y / 2)
+		center = @_center
+	end if
+	dim vertices(3) as Float2
+	vec2GenerateCorners @vertices(0), 4, size, *center
+	dim matrix as Float3x3
+	matrixLocalTransform @matrix, angle * -3.1415926535 / 180, zoom, pos
+	'Only first 3 vertices
+	vec2Transform @result.vertices(0), 3, @vertices(0), 3, matrix
+end sub
+
+#endif
 
 'Return a copy of a single Frame or a Frame array, each frame clipped or extended.
 'Extended portions are filled with bgcol.
@@ -10591,6 +10649,8 @@ function default_dissolve_time(style as integer, w as integer, h as integer) as 
 	end select
 end function
 
+'Returns a scaled+rotated copy.
+'See also rotozoom_transform + frame_draw_transformed.
 'Note: Frame masks are not supported, so can't rotate a dissolved sprite
 function frame_rotozoom(src as Frame ptr, pal as Palette16 ptr = NULL, angle as double, zoomx as double, zoomy as double, smooth as integer = 0) as Frame ptr
 	dim as Surface ptr in_surf, out_surf

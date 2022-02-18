@@ -1578,19 +1578,13 @@ SUB quad_transforms_menu ()
  DIM need_update as bool = YES
  DIM spritemode as SpriteType = -1 'sprTypeHero '-1 to show master palette
  DIM spriteid as integer
-
  DIM sprpair as GraphicPair
 
- DIM vertices(3) as Float3
-
- DIM angle as single = 180
- DIM scale as Float2 = (1.0, 1.0)
+ DIM angle as single = 45
+ DIM scale as Float2 = (3.0, 3.0)
  DIM position as Float2 = (vpages(vpage)->w / 2, vpages(vpage)->h / 2)
 
  switch_to_32bit_vpages()
-
- DIM spriteSurface as Surface ptr
- DIM gfxpal as RGBPalette ptr
 
  DIM as SmoothedTimer normdrawtime, qdrawtime, mathtime
 
@@ -1606,24 +1600,9 @@ SUB quad_transforms_menu ()
      FOR i as integer = 0 TO 255
       putpixel sprpair.sprite, (i MOD 16), (i \ 16), i
      NEXT
-     gfxpal = masterpal_to_gfxpal(master())
     case else
      load_sprite_and_pal sprpair, spritemode, spriteid
-     'Convert from sprite palette (which may be NULL) to a 256-color palette, as needed by render API
-     gfxpal = unrollPalette16(sprpair.pal, @master(0))
    end select
-
-   gfx_surfaceDestroy( @spriteSurface )
-   gfx_surfaceCreateFrameView( sprpair.sprite, @spriteSurface )
-
-   DIM testframesize as Rect
-   WITH testframesize
-    .top = 0
-    .left = 0
-    .right = spriteSurface->width - 1
-    .bottom = spriteSurface->height - 1
-   END WITH
-   vec3GenerateCorners @vertices(0), 4, testframesize
 
    need_update = NO
   end if
@@ -1651,29 +1630,12 @@ SUB quad_transforms_menu ()
   normdrawtime.stop()
 
   mathtime.start()
-  DIM matrix as Float3x3
-  matrixLocalTransform @matrix, angle * 3.1416 / 180, scale, position
-  DIM trans_vertices(3) as Float3
-  vec3Transform @trans_vertices(0), 4, @vertices(0), 4, matrix
-
-  'may have to reorient the tex coordinates
-  DIM pt_vertices(3) as VertexPT
-  pt_vertices(0).tex.u = 0
-  pt_vertices(0).tex.v = 0
-  pt_vertices(1).tex.u = 1
-  pt_vertices(1).tex.v = 0
-  pt_vertices(2).tex.u = 1
-  pt_vertices(2).tex.v = 1
-  pt_vertices(3).tex.u = 0
-  pt_vertices(3).tex.v = 1
-  FOR i as integer = 0 TO 3
-   pt_vertices(i).pos.x = trans_vertices(i).x
-   pt_vertices(i).pos.y = trans_vertices(i).y
-  NEXT
+  dim transf as AffineTransform
+  rotozoom_transform transf, sprpair.sprite->size, , position, angle, scale
   mathtime.stop()
 
   qdrawtime.start()
-  gfx_renderQuadTexture( @pt_vertices(0), spriteSurface, gfxpal, YES, NULL, vpages(vpage)->surf )
+  frame_draw_transformed sprpair.sprite, master(), sprpair.pal, transf, YES, vpages(vpage)
   qdrawtime.stop()
 
   wrapprint strprintf(!"Spritetype %d spriteid %d scale %.1f,%.1f angle %.0f \nNormal draw: %dus, quad draw: %dus, math in %.1fus", _
@@ -1686,8 +1648,6 @@ SUB quad_transforms_menu ()
  setkeys
  unload_sprite_and_pal sprpair
  switch_to_8bit_vpages()
- gfx_surfaceDestroy(@spriteSurface)
- gfx_paletteDestroy(@gfxpal)
 END SUB
 
 #ELSE
