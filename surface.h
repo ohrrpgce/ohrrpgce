@@ -117,6 +117,10 @@ typedef struct
 	// If false, all blending/modulation options are ignored. Used as an early-out
 	bool with_blending;
 
+	// gfx_render* API only (TODO: implement for gfx_surfaceCopy): whether to use
+	// the alpha channel of 32-bit source textures
+	bool alpha_channel;
+
 	enum BlendMode blend_mode;
 
 	// Multiply each component of the source.
@@ -124,6 +128,8 @@ typedef struct
 	// Default 0xffffffff.
 	RGBcolor argbModifier;
 
+	// Redundant to argbModifier.a, but is supported by frame_draw. (TODO: should
+	// probably remove)
 	float opacity;
 } DrawOptions;
 
@@ -195,7 +201,7 @@ extern "C"
 	int surfaceFrameShim( Frame* pFrameIn, Surface* pSurfaceOut );
 
 	// In blend.h
-	//RGBcolor alpha_blend( RGBcolor src, RGBcolor dest, int alpha, enum BlendMode mode );
+	//RGBcolor alpha_blend( RGBcolor src, RGBcolor dest, int alpha, enum BlendMode mode, bool channel_alpha = false );
 
 	// In blit.c
 	int nearcolor_faster(RGBcolor searchcol);

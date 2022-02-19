@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <cmath>
 #include "rasterizer.hpp"
+#include "blend.h"
 #include "errorlog.h"
 
 using std::abs;
@@ -219,29 +220,6 @@ inline TexCoord texel_coord(const DrawingRange<T_VertexType> &range, int x, floa
 	return texel;
 }
 
-inline Color blend_colors(Color srcColor, Color destColor)
-{
-	Color finalColor;
-	//floating point method of blending
-	//red =	( (float)srcColor.r * (float)srcColor.a + (float)destColor.r * (255.0f - (float)srcColor.a) ) / 255.0f;
-	//green =	( (float)srcColor.g * (float)srcColor.a + (float)destColor.g * (255.0f - (float)srcColor.a) ) / 255.0f;
-	//blue =	( (float)srcColor.b * (float)srcColor.a + (float)destColor.b * (255.0f - (float)srcColor.a) ) / 255.0f;
-	//finalColor.r = (int)red;
-	//finalColor.g = (int)green;
-	//finalColor.b = (int)blue;
-
-	//integer method of blending
-	finalColor.r = ( srcColor.r * srcColor.a + destColor.r * (255 - srcColor.a) ) / 255;//(int)red;
-	finalColor.g = ( srcColor.g * srcColor.a + destColor.g * (255 - srcColor.a) ) / 255;//(int)green;
-	finalColor.b = ( srcColor.b * srcColor.a + destColor.b * (255 - srcColor.a) ) / 255;//(int)blue;
-
-	//failed attempt at combining integer method of blending
-	//finalColor.dw = ( (srcColor.dw & 0x00ffffff) * srcColor.a + (destColor.dw & 0x00ffffff) * (255-srcColor.a) ) / 255;
-
-	finalColor.a = (srcColor.a + destColor.a) > 255 ? 255 : (srcColor.a + destColor.a);
-	return finalColor;
-}
-
 void TriRasterizer::rasterColor(const DrawingRange<VertexPC> &range, Surface *pSurfaceDest, DrawOptions *pOpts)
 {
 	float length = range.greatest.pos.x - range.least.pos.x + 1.0f;
@@ -257,12 +235,17 @@ void TriRasterizer::rasterColor(const DrawingRange<VertexPC> &range, Surface *pS
 		weight = 255.0f*(finish-i) / length;
 		srcColor = range.least.col;
 		srcColor.scale(range.greatest.col, weight);
-		destColor = *pDest;
-		*pDest = blend_colors(srcColor, destColor);
+		if (pOpts->with_blending) {
+			destColor = *pDest;
+			// alpha is always 256 because already multiplied into srcColor.a
+			*pDest = alpha_blend(srcColor, destColor, 256, pOpts->blend_mode, pOpts->alpha_channel).col;
+		} else {
+			*pDest = srcColor;
+		}
 	}
 }
 
-void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest, DrawOptions *pOpts)
+void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest, DrawOptions *pOpts, int alpha)
 {
 	//assumed that if source is 8bit, a palette was passed in
 
@@ -290,8 +273,12 @@ void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Sur
 			srcColor = Color(pPalette->col[index]);
 		}
 
-		destColor = *pDest;
-		*pDest = blend_colors(srcColor, destColor);
+		if (pOpts->with_blending) {
+			destColor = *pDest;
+			*pDest = alpha_blend(srcColor, destColor, alpha, pOpts->blend_mode, pOpts->alpha_channel).col;
+		} else {
+			*pDest = srcColor;
+		}
 	}
 }
 
@@ -327,15 +314,22 @@ void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, con
 		vertexColor.scale(range.greatest.col, 255.0f * weightFirst);
 		srcColor.scale(vertexColor);
 
-		destColor = *pDest;
-		*pDest = blend_colors(srcColor, destColor);
+		if (pOpts->with_blending) {
+			destColor = *pDest;
+			// alpha is always 256 because the global alpha (pOpts->opacity) is already
+			// multiplied into the vertex alphas which is multipled into srcColor
+			*pDest = alpha_blend(srcColor, destColor, 256, pOpts->blend_mode, pOpts->alpha_channel).col;
+		} else {
+			*pDest = srcColor;
+		}
+
 	}
 }
 
 
 //Returns false if the entire draw is clipped
 template <class T_VertexType>
-bool TriRasterizer::drawSetup(T_VertexType *pTriangle, SurfaceRect *pRectDest, Surface *pSurfaceDest, std::queue< DrawingRange< T_VertexType > > &rasterLines)
+bool TriRasterizer::drawSetup(T_VertexType *pTriangle, SurfaceRect *pRectDest, Surface *pSurfaceDest, std::queue< DrawingRange< T_VertexType > > &rasterLines, DrawOptions &opts, int &alpha)
 {
 	//determine rasterizing region
 	ClippingRectF clipRgn = {(float)pRectDest->left, (float)pRectDest->top, (float)pRectDest->right, (float)pRectDest->bottom};
@@ -351,6 +345,16 @@ bool TriRasterizer::drawSetup(T_VertexType *pTriangle, SurfaceRect *pRectDest, S
 	if(triangleRgn.left > clipRgn.right || triangleRgn.right < clipRgn.left || triangleRgn.top > clipRgn.bottom || triangleRgn.bottom < clipRgn.top)
 		return false;
 
+	alpha = 256;
+	//bool with_blending = opts.with_blending;
+	if (opts.with_blending) {
+		alpha = opts.opacity * 256;
+		if (opts.opacity <= 0. || opts.argbModifier.a == 0)
+			return false;  //TODO: remove this if write_mask is implemented!
+		if (opts.opacity >= 1. && opts.blend_mode == blendModeNormal && !opts.alpha_channel)
+			opts.with_blending = false;
+	}
+
 	calculateRasterPixels(pSurfaceDest, pTriangle, clipRgn, triangleRgn, rasterLines);
 
 	return true;
@@ -361,17 +365,25 @@ void TriRasterizer::drawTriangleColor(VertexPC *pTriangle, SurfaceRect *pRectDes
 	if(pSurfaceDest == NULL || pTriangle == NULL || pOpts == NULL)
 		return;
 
+	DrawOptions opts = *pOpts;  //Local modifications
+	int alpha;
 	std::queue< DrawingRange< VertexPC > > rasterLines;
-	if (!drawSetup(pTriangle, pRectDest, pSurfaceDest, rasterLines))
+	if (!drawSetup(pTriangle, pRectDest, pSurfaceDest, rasterLines, opts, alpha))
 		return;
 
 	//apply color modifier
+	Color argbModifier = opts.argbModifier;
+	argbModifier.a *= opts.opacity;  //Deal with the redundancy
 	for (int i = 0; i < 3; i++)
-		pTriangle[i].col.scale(pOpts->argbModifier);
+		pTriangle[i].col.scale(argbModifier);
+
+	if ((pTriangle[0].col.a & pTriangle[1].col.a & pTriangle[2].col.a) == 255)
+		//No use of alpha channel, nor opts.opacity nor opts.argbModifier.a
+		opts.alpha_channel = false;
 
 	//rasterize the polygon
 	while (!rasterLines.empty()) {
-		rasterColor(rasterLines.front(), pSurfaceDest, pOpts);
+		rasterColor(rasterLines.front(), pSurfaceDest, &opts);
 		rasterLines.pop();
 	}
 }
@@ -388,13 +400,17 @@ void TriRasterizer::drawTriangleTexture(VertexPT *pTriangle, const Surface *pTex
 	if(pTexture->format == SF_32bit && pOpts->color_key0)
 		return; //Not supported
 
+	DrawOptions opts = *pOpts;  //Local modifications
+	int alpha;
 	std::queue< DrawingRange< VertexPT > > rasterLines;
-	if (!drawSetup(pTriangle, pRectDest, pSurfaceDest, rasterLines))
+	if (!drawSetup(pTriangle, pRectDest, pSurfaceDest, rasterLines, opts, alpha))
 		return;
+
+	//opts.argbModifier is not supported, drawTriangleTextureColor must be used for it.
 
 	//rasterize the polygon
 	while (!rasterLines.empty()) {
-		rasterTexture(rasterLines.front(), pTexture, pPalette, pSurfaceDest, pOpts);
+		rasterTexture(rasterLines.front(), pTexture, pPalette, pSurfaceDest, &opts, alpha);
 		rasterLines.pop();
 	}
 }
@@ -411,17 +427,21 @@ void TriRasterizer::drawTriangleTextureColor(VertexPTC *pTriangle, const Surface
 	if(pTexture->format == SF_32bit && pOpts->color_key0)
 		return; //Not supported
 
+	DrawOptions opts = *pOpts;  //Local modifications
+	int alpha;
 	std::queue< DrawingRange< VertexPTC > > rasterLines;
-	if (!drawSetup(pTriangle, pRectDest, pSurfaceDest, rasterLines))
+	if (!drawSetup(pTriangle, pRectDest, pSurfaceDest, rasterLines, opts, alpha))
 		return;
 
 	//apply color modifier
+	Color argbModifier = opts.argbModifier;
+	argbModifier.a *= opts.opacity;  //Deal with the redundancy
 	for (int i = 0; i < 3; i++)
-		pTriangle[i].col.scale(pOpts->argbModifier);
+		pTriangle[i].col.scale(argbModifier);
 
 	//rasterize the polygon
 	while (!rasterLines.empty()) {
-		rasterTextureColor(rasterLines.front(), pTexture, pPalette, pSurfaceDest, pOpts);
+		rasterTextureColor(rasterLines.front(), pTexture, pPalette, pSurfaceDest, &opts);
 		rasterLines.pop();
 	}
 }

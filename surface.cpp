@@ -529,7 +529,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
 					if (srcp32->col != colorkey.col)
-						*destp32 = alpha_blend(*srcp32, *destp32, alpha, pOpts->blend_mode);
+						*destp32 = alpha_blend(*srcp32, *destp32, alpha, pOpts->blend_mode, false);
 					srcp32++;
 					destp32++;
 				}
@@ -568,7 +568,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 			for (int itX = 0; itX < itX_max; itX++) {
 				RGBcolor destcol;
 				if (with_blending)
-					destcol = alpha_blend(*srcp32++, pPalette[*destp8], alpha, pOpts->blend_mode);
+					destcol = alpha_blend(*srcp32++, pPalette[*destp8], alpha, pOpts->blend_mode, false);
 				else
 					destcol = *srcp32++;
 				*destp8 = nearcolor_faster(destcol);
@@ -630,7 +630,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 				for (int itX = 0; itX < itX_max; itX++) {
 					if (*maskp) {
 						if (with_blending)
-							*destp32 = alpha_blend(pal32[*srcp8], *destp32, alpha, pOpts->blend_mode);
+							*destp32 = alpha_blend(pal32[*srcp8], *destp32, alpha, pOpts->blend_mode, false);
 						else
 							*destp32 = pal32[*srcp8];
 					}
@@ -646,7 +646,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 			for (int itY = 0; itY < itY_max; itY++) {
 				for (int itX = 0; itX < itX_max; itX++) {
 					if (with_blending)
-						*destp32 = alpha_blend(pal32[*srcp8], *destp32, alpha, pOpts->blend_mode);
+						*destp32 = alpha_blend(pal32[*srcp8], *destp32, alpha, pOpts->blend_mode, false);
 					else
 						*destp32 = pal32[*srcp8];
 					srcp8++;

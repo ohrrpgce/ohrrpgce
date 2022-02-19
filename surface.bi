@@ -102,7 +102,7 @@ Type BlendAlgo as integer
 'frame_draw additional draw options
 Type DrawOptions
 	' Size multiplier.
-	' (Not implemented for Surfaces)
+	' (Not implemented for Surfaces or render API and never will be)
 	scale as integer = 1
 
 	' gfx_render* and gfx_surfaceCopy API ONLY, all other functions take
@@ -118,10 +118,18 @@ Type DrawOptions
 	' If false, all blending/modulation options are ignored. Used as an early-out
 	with_blending as boolean
 
+	' gfx_render* API only (TODO: implement for gfx_surfaceCopy): whether to use
+	' the alpha channel of 32-bit source textures
+	alpha_channel as boolean
+
 	blend_mode as BlendMode
 
+	' gfx_render* API only: modulates the vertex colors (including alpha); hence
+	' not supported by drawQuadTexture/drawTriangleTexture
 	argbModifier as RGBcolor = (&hffffffff)
 
+	' Redundant to argbModifier.a, but is supported by frame_draw. (TODO: should
+	' probably remove)
 	opacity as single = 1.
 
 	declare constructor (scale as integer = 1)

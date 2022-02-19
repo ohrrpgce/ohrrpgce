@@ -111,7 +111,7 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 					srcc = curmasterpal[*srcp];
 
 				// Blend source and dest pixels in 24-bit colour space (.a ignored for now)
-				RGBcolor blended = alpha_blend(srcc, destc, alpha, opts->blend_mode);
+				RGBcolor blended = alpha_blend(srcc, destc, alpha, opts->blend_mode, false);
 
 				// Convert back to master palette, possibly performing error diffusion.
 				int res;
