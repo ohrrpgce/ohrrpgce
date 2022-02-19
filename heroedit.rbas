@@ -997,14 +997,17 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
    append_menu_item menu, "Previous menu...", edbatmenu_EXIT
 
    ' Kind-specific options
+   DIM auto_okay as bool = NO
    k = edit_node."kind".ptr
    IF k."weapon".exists THEN
     append_menu_item menu, "Kind: Weapon's Attack", edbatmenu_KIND
+    auto_okay = YES
    ELSEIF k."attack".exists THEN
     append_menu_item menu, "Kind: Specific Attack", edbatmenu_KIND
     v = k."attack".integer
     append_menu_item menu, "Attack: " & v & " " & readattackname(v), edbatmenu_ATTACK
     menu.last->dataptr = k."attack".ptr
+    auto_okay = YES
    ELSEIF k."spells".exists THEN
     append_menu_item menu, "Kind: Spell List", edbatmenu_KIND
     v = k."spells".integer
@@ -1013,6 +1016,7 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
     menu.last->dataptr = k."spells".ptr
     menu.last->extra(0) = 0
     menu.last->extra(1) = 3
+    auto_okay = YES
    ELSEIF k."items".exists THEN
     append_menu_item menu, "Kind: Items Menu", edbatmenu_KIND
    ELSEIF k."skip".exists THEN
@@ -1033,6 +1037,12 @@ SUB edit_battle_menu_item (hero as HeroDef, byval edit_node as NodePtr)
    menu.last->dataptr = edit_node."enable_tag2".ptr
    append_menu_item menu, "When disabled: " & IIF(edit_node."hide_disabled", "Hidden", "Unusable"), edbatmenu_NUM
    menu.last->dataptr = edit_node."hide_disabled".ptr
+   menu.last->extra(0) = 0
+   menu.last->extra(1) = 1
+   DIM captmp as string = IIF(edit_node."exclude_auto_battle", "Exclude this menu item", "Can use this menu item")
+   IF NOT auto_okay THEN captmp = "N/A"
+   append_menu_item menu, "Auto Battle: " & captmp, edbatmenu_NUM
+   menu.last->dataptr = edit_node."exclude_auto_battle".ptr
    menu.last->extra(0) = 0
    menu.last->extra(1) = 1
 

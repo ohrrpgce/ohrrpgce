@@ -7550,6 +7550,7 @@ SUB upgrade_hero_battle_menu_item(bmenu as NodePtr)
  IF bmenu."enable_tag1".exists = NO THEN SetChildNode(bmenu, "enable_tag1", 0)
  IF bmenu."enable_tag2".exists = NO THEN SetChildNode(bmenu, "enable_tag2", 0)
  IF bmenu."hide_disabled".exists = NO THEN SetChildNode(bmenu, "hide_disabled", NO)
+ IF bmenu."exclude_auto_battle".exists = NO THEN SetChildNode(bmenu, "exclude_auto_battle", NO)
 END SUB
 
 FUNCTION add_hero_battle_menu_item(byval parent as NodePtr, kind as string, byval value as integer = 0) as NodePtr

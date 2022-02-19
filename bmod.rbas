@@ -1701,29 +1701,29 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
     atk_id = itembuf(48) - 1
     IF atk_id < 0 THEN atk_id = 0
     caption = readattackname(atk_id)
-    mitem = append_menu_item(menu, caption, batmenu_ATTACK, atk_id)
+    mitem = append_menu_item(menu, caption, batmenu_ATTACK, atk_id, m)
    ELSEIF k."attack".exists THEN
     atk_id = k."attack".integer
     caption = readattackname(atk_id)
-    mitem = append_menu_item(menu, caption, batmenu_ATTACK, atk_id)
+    mitem = append_menu_item(menu, caption, batmenu_ATTACK, atk_id, m)
    ELSEIF k."spells".exists THEN
     spells_id = k."spells".integer
     caption = hero.list_name(spells_id)
     IF LEN(caption) > 0 THEN
      '--only add the spell list if it is non-empty or if the bitset says we don't care if it is empty
      IF readbit(hero.bits(),0,26) = 0 ORELSE count_available_spells(hero_id, spells_id) THEN
-      mitem = append_menu_item(menu, caption, batmenu_SPELLS, spells_id)
+      mitem = append_menu_item(menu, caption, batmenu_SPELLS, spells_id, m)
      END IF
     END IF
    ELSEIF k."items".exists THEN
     caption = readglobalstring(34, "Item", 10)
     IF LEN(caption) > 0 THEN
-     mitem = append_menu_item(menu, caption, batmenu_ITEMS)
+     mitem = append_menu_item(menu, caption, batmenu_ITEMS, , m)
     END IF
    ELSEIF k."skip".exists THEN
     caption = readglobalstring(332, "Skip Turn", 20)
     IF LEN(caption) > 0 THEN
-     mitem = append_menu_item(menu, caption, batmenu_SKIPTURN)
+     mitem = append_menu_item(menu, caption, batmenu_SKIPTURN, , m)
     END IF
    ELSE
     debug "Unknown battle menu item kind"
@@ -2732,6 +2732,8 @@ SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id a
  FOR i as integer = 0 TO bspr.batmenu.numitems - 1
   WITH *bspr.batmenu.items[i]
    IF NOT .disabled THEN
+    DIM node as NodePtr = .dataptr
+    IF GetChildNodeBool(node, "exclude_auto_battle") THEN CONTINUE FOR
     SELECT CASE .t
      CASE batmenu_ATTACK:
       v_append valid_for_ai, .sub_t
