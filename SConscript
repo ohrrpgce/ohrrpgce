@@ -1210,7 +1210,7 @@ common_modules += ['rotozoom.c',
                    'lib/jo_jpeg.cpp',
                    'lib/ujpeg.c']
 
-if 'raster' in ARGUMENTS:
+if int(ARGUMENTS.get('raster', 1)):
     common_modules += ['rasterizer.cpp',
                        'matrixMath.cpp']
     commonenv['FBFLAGS'] += ['-d', 'USE_RASTERIZER']
@@ -1696,7 +1696,7 @@ Options:
                       check library dependencies.
 
 Optional features:
-  raster=1            Include software triangle rasterizer (rasterizer.cpp).
+  raster=1 (default)  Include software triangle rasterizer (rasterizer.cpp).
                       Not used for anything!
 
 The following environmental variables are also important:
