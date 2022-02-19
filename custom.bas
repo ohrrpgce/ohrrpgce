@@ -1573,13 +1573,19 @@ SUB quad_transforms_menu ()
      !"Arrows: scale X and Y\n" _
      !"<, >: change angle\n" _
      !"[, ]: change spritetype\n" _
-     !"N/M: change sprite\n"
+     !"N/M: change sprite\n" _
+     !"T: toggle blending\n" _
+     !"O/P: adjust opacity\n" _
+     !"B: cycle blend mode\n" _
 
  DIM need_update as bool = YES
  DIM spritemode as SpriteType = -1 'sprTypeHero '-1 to show master palette
  DIM spriteid as integer
  DIM sprpair as GraphicPair
 
+ DIM drawopts as DrawOptions
+ drawopts.with_blending = yes
+ drawopts.opacity = 0.5
  DIM angle as single = 45
  DIM scale as Float2 = (3.0, 3.0)
  DIM position as Float2 = (vpages(vpage)->w / 2, vpages(vpage)->h / 2)
@@ -1619,8 +1625,12 @@ SUB quad_transforms_menu ()
   IF keyval(scRightBracket) > 1 THEN loopvar spritemode, -1, sprTypeBackdrop, 1: need_update = YES
   IF keyval(scN) > 1 THEN loopvar spriteid, 0, sprite_sizes(spritemode).lastrec, -1: need_update = YES
   IF keyval(scM) > 1 THEN loopvar spriteid, 0, sprite_sizes(spritemode).lastrec, 1: need_update = YES
+  IF keyval(scO) > 1 THEN drawopts.opacity -= 0.05
+  IF keyval(scP) > 1 THEN drawopts.opacity += 0.05
+  IF keyval(scB) > 1 THEN loopvar drawopts.blend_mode, 0, blendModeLAST
+  IF keyval(scT) > 1 THEN drawopts.with_blending xor= true
 
-  clearpage vpage
+  draw_background vpages(vpage)
   wrapprint info, 0, 0, , vpage
   DIM opts as DrawOptions
   'opts.scale = 2  'Not supported for 32-bit frames
@@ -1635,11 +1645,11 @@ SUB quad_transforms_menu ()
   mathtime.stop()
 
   qdrawtime.start()
-  frame_draw_transformed sprpair.sprite, master(), sprpair.pal, transf, YES, vpages(vpage)
+  frame_draw_transformed sprpair.sprite, master(), sprpair.pal, transf, YES, vpages(vpage), drawopts
   qdrawtime.stop()
 
-  wrapprint strprintf(!"Spritetype %d spriteid %d scale %.1f,%.1f angle %.0f \nNormal draw: %dus, quad draw: %dus, math in %.1fus", _
-                      spritemode, spriteid, scale.x, scale.y, angle, cint(normdrawtime.smoothtime * 1e6), cint(qdrawtime.smoothtime * 1e6), mathtime.smoothtime * 1e6), _
+  wrapprint strprintf(!"Spritetype %d spriteid %d scale %.1f,%.1f angle %.0f opacity %d%% \nNormal draw: %dus, quad draw: %dus, math in %.1fus", _
+                      spritemode, spriteid, scale.x, scale.y, angle, cint(drawopts.opacity * 100), cint(normdrawtime.smoothtime * 1e6), cint(qdrawtime.smoothtime * 1e6), mathtime.smoothtime * 1e6), _
             0, pBottom, , vpage
 
   setvispage vpage
