@@ -42,32 +42,31 @@ struct DrawingRange
 class LineSegment
 {
 private:
+public:
 	float m_slope;
 	float m_dx;
 	float m_dy;
-	bool m_isFunctionOfX;
-	union
-	{
-		float m_yIntercept;
-		float m_xIntercept;
-	};
+	bool m_isFunctionOfX;  //More horizontal than vertical
+	Position m_origin;     //One end of the line
 	float m_leastX, m_leastY, m_greatestX, m_greatestY;
 public:
 	LineSegment() 
-		: m_slope(0.0f), m_dx(0.0f), m_dy(0.0f), m_isFunctionOfX(false), m_yIntercept(0.0f), m_leastX(0.0f), m_leastY(0.0f), m_greatestX(0.0f), m_greatestY(0.0f) {}
+		: m_slope(0.0f), m_dx(0.0f), m_dy(0.0f), m_isFunctionOfX(false), m_origin{}, m_leastX(0.0f), m_leastY(0.0f), m_greatestX(0.0f), m_greatestY(0.0f) {}
 	void calculateLineSegment(const Position& A, const Position& B);
 	bool intersects(float* pIntersection, float YIntercept);
 
-	float slope() const {return m_slope;}
 	float dx() const {return m_dx;}
 	float dy() const {return m_dy;}
 	bool isFunctionOfX() const {return m_isFunctionOfX;}
+	/*
+	float slope() const {return m_slope;}
 	float xIntercept() const {return m_xIntercept;}
 	float yIntercept() const {return m_yIntercept;}
 	float leastX() const {return m_leastX;}
 	float leastY() const {return m_leastY;}
 	float greatestX() const {return m_greatestX;}
 	float greatestY() const {return m_greatestY;}
+	*/
 };
 
 class TriRasterizer

@@ -41,18 +41,25 @@ void LineSegment::calculateLineSegment(const Position &A, const Position &B)
 	m_dx = A.x - B.x;
 	m_dy = A.y - B.y;
 
-	if(abs(m_dx) > abs(m_dy))
+	if(m_dy == 0.)
 	{
 		m_isFunctionOfX = true;
-		m_slope = m_dy / m_dx;
-		m_yIntercept = A.y - m_slope * A.x;
+		m_slope = 0.;
 	}
 	else
 	{
-		m_isFunctionOfX = false;
+		m_isFunctionOfX = (abs(m_dx) > abs(m_dy));
 		m_slope = m_dx / m_dy;
-		m_xIntercept = A.x - m_slope * A.y;
 	}
+
+	// Use one end of the segment as the origin. Either will do, but
+	// should be consistent when A and B are swapped, so that rounding
+	// errors are consistent along a shared edge of two abutting polygons.
+	if (A.x < B.x)
+		m_origin = A;
+	else
+		m_origin = B;
+
 	m_leastX    = min(A.x, B.x);
 	m_greatestX = max(A.x, B.x);
 	m_leastY    = min(A.y, B.y);
@@ -64,19 +71,12 @@ bool LineSegment::intersects(float *pIntersection, float YIntercept)
 	if(YIntercept >= m_greatestY || YIntercept < m_leastY)
 		return false;
 
-	if(pIntersection == 0)
-		return true;
-
-	if(m_isFunctionOfX)
-	{
-		if(m_slope == 0.0f || m_slope == -0.0f)
+	if(pIntersection) {
+		if(m_isFunctionOfX && m_slope == 0.)
 			*pIntersection = m_leastX;
 		else
-			*pIntersection = (YIntercept - m_yIntercept) / m_slope;
+			*pIntersection = m_origin.x + m_slope * (YIntercept - m_origin.y);
 	}
-	else
-		*pIntersection = m_slope * YIntercept + m_xIntercept;
-
 	return true;
 }
 
@@ -149,7 +149,7 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurfaceDest, const T_V
 		}
 		leftVertex = pTriangle[leftMostIndex];
 		leftVertex.interpolateComponents( pTriangle[(leftMostIndex+1)%3], scale );
-		leftVertex.pos.x = xIntersection[leftMostIndex];
+		leftVertex.pos.x = xIntersection[leftMostIndex];  //Avoid rounding error
 		leftVertex.pos.y = row;
 		// It's necessary that U/V 0.0 is the first texel in the texture but U/V 1.0 is the
 		// last one rather than wrapping, because the polygon edge may fall directly on a pixel
@@ -172,7 +172,7 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurfaceDest, const T_V
 		}
 		rightVertex = pTriangle[rightMostIndex];
 		rightVertex.interpolateComponents( pTriangle[(rightMostIndex+1)%3], scale );
-		rightVertex.pos.x = xIntersection[rightMostIndex];
+		rightVertex.pos.x = xIntersection[rightMostIndex];  //Avoid rounding error
 		rightVertex.pos.y = row;
 		rightVertex.scaleDownUV();
 
@@ -185,14 +185,14 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurfaceDest, const T_V
 			scale = (clipRgn.left - leftVertex.pos.x) / (rightVertex.pos.x - leftVertex.pos.x);
 			leftVertex.interpolateComponents( rightVertex, 1-scale );
 			leftVertex.pos.x = clipRgn.left;
-			//leftVertex.pos.y = row;
+			//leftVertex.pos.y = row;  //Not used
 		}
 		if(rightVertex.pos.x > clipRgn.right)
 		{
 			scale = (clipRgn.right - rightVertex.pos.x) / (leftVertex.pos.x - rightVertex.pos.x);
 			rightVertex.interpolateComponents( leftVertex, 1-scale );
 			rightVertex.pos.x = clipRgn.right;
-			//rightVertex.pos.y = row;
+			//rightVertex.pos.y = row;  //Not used
 		}
 
 		//push the data onto the raster queue
