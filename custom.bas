@@ -1570,6 +1570,7 @@ END SUB
 
 SUB quad_transforms_menu ()
  DIM info as string = _
+     !"F3: switch 8/32 bit, F4: cycle dither algo\n" _
      !"Arrows: scale X and Y\n" _
      !"<, >: change angle\n" _
      !"[, ]: change spritetype\n" _
@@ -1578,6 +1579,7 @@ SUB quad_transforms_menu ()
      !"O/P: adjust opacity\n" _
      !"B: cycle blend mode\n" _
 
+ blend_algo = gen(gen8bitBlendAlgo)
  DIM need_update as bool = YES
  DIM spritemode as SpriteType = -1 'sprTypeHero '-1 to show master palette
  DIM spriteid as integer
@@ -1615,6 +1617,8 @@ SUB quad_transforms_menu ()
 
   setkeys
   IF keyval(ccCancel) > 1 THEN EXIT DO
+  IF keyval(scF3) > 1 THEN toggle_32bit_vpages
+  IF keyval(scF4) > 1 THEN loopvar blend_algo, 0, blendAlgoLAST
   IF keyval(ccLeft)  THEN scale.x -= 0.1
   IF keyval(ccRight) THEN scale.x += 0.1
   IF keyval(ccUp)    THEN scale.y -= 0.1
@@ -1636,7 +1640,7 @@ SUB quad_transforms_menu ()
   'opts.scale = 2  'Not supported for 32-bit frames
 
   normdrawtime.start()
-  frame_draw sprpair.sprite, sprpair.pal, 20, 50, , vpages(vpage), opts
+  frame_draw sprpair.sprite, sprpair.pal, 20, 50, , vpages(vpage), drawopts
   normdrawtime.stop()
 
   mathtime.start()
@@ -1648,8 +1652,12 @@ SUB quad_transforms_menu ()
   frame_draw_transformed sprpair.sprite, master(), sprpair.pal, transf, YES, vpages(vpage), drawopts
   qdrawtime.stop()
 
-  wrapprint strprintf(!"Spritetype %d spriteid %d scale %.1f,%.1f angle %.0f opacity %d%% \nNormal draw: %dus, quad draw: %dus, math in %.1fus", _
-                      spritemode, spriteid, scale.x, scale.y, angle, cint(drawopts.opacity * 100), cint(normdrawtime.smoothtime * 1e6), cint(qdrawtime.smoothtime * 1e6), mathtime.smoothtime * 1e6), _
+  wrapprint strprintf(!"Spritetype %d spriteid %d scale %.1f,%.1f angle %.0f opacity %d%% \n" _
+                      !"Normal draw: %dus, quad draw: %dus, math in %.1fus\n" _
+                      !"%d-bit display ditheralgo %d blending %d blendmode %d\n", _
+                      spritemode, spriteid, scale.x, scale.y, angle, cint(drawopts.opacity * 100), _
+                      cint(normdrawtime.smoothtime * 1e6), cint(qdrawtime.smoothtime * 1e6), mathtime.smoothtime * 1e6, _
+                      iif(vpages_are_32bit, 32, 8), blend_algo, drawopts.with_blending, drawopts.blend_mode), _
             0, pBottom, , vpage
 
   setvispage vpage

@@ -21,8 +21,8 @@ class Tex2DSampler
 {
 public:
 	//Color sample(const Surface* pTexture, FPInt u, FPInt v) const {return ( (pTexture->format == SF_8bit) ? sample8bit(pTexture, u, v) : sample32bit(pTexture, u, v) );}
-	uint8_t sample8bit(const Surface* pTexture, FPInt u, FPInt v) const;
-	Color sample32bit(const Surface* pTexture, FPInt u, FPInt v) const;
+	static uint8_t sample8bit(const Surface* pTexture, FPInt u, FPInt v);
+	static Color sample32bit(const Surface* pTexture, FPInt u, FPInt v);
 };
 
 struct ClippingRectF
@@ -72,7 +72,7 @@ public:
 class TriRasterizer
 {
 protected:
-	Tex2DSampler m_sampler;
+	//Tex2DSampler m_sampler;
 	template <class T_VertexType>
 	void calculateTriangleRect(const T_VertexType* pTriangle, ClippingRectF& clipOut);
 	template <class T_VertexType>

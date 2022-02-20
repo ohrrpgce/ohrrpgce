@@ -23,20 +23,6 @@ enum BlendAlgo blend_algo = blendAlgoDither;
 uint8_t nearcolor_cache[65536] = {0};
 
 
-// Memoize nearcolor_fast, dropping 3 least-significant bits red & blue, 2 from green.
-int nearcolor_faster(RGBcolor searchcol) {
-	int idx = ((searchcol.r >> 3) << 11) | ((searchcol.g >> 2) << 5) | (searchcol.b >> 3);
-	int res = nearcolor_cache[idx];
-	if (!res) {
-		searchcol.r = (searchcol.r & 0xf8) + 3;
-		searchcol.g = (searchcol.g & 0xfc) + 1;
-		searchcol.b = (searchcol.b & 0xf8) + 3;
-		res = nearcolor_fast(searchcol);  // Never returns 0
-		nearcolor_cache[idx] = res;
-	}
-	return res;
-}
-
 static inline int get_frame_buf(Frame *spr, uint8_t *restrict *srcpp, uint8_t *restrict *maskpp) {
 	if (spr->surf) {
 		if (spr->surf->format != SF_8bit) {
@@ -94,7 +80,7 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 			goto no_draw;
 
 		for (i = starty; i <= endy; i++) {
-			int errr = 0, errg = 0, errb = 0;
+			struct RGBerrors rgberr = {};
 			for (j = endx - startx; j >= 0; j--) {
 				tog ^= 1;
 				if (trans && *maskp == 0) {
@@ -113,51 +99,7 @@ void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int st
 				// Blend source and dest pixels in 24-bit colour space (.a ignored for now)
 				RGBcolor blended = alpha_blend(srcc, destc, alpha, opts->blend_mode, false);
 
-				// Convert back to master palette, possibly performing error diffusion.
-				int res;
-				/* if (blend_algo == -1) {
-					res = *destp;
-				} else */
-				if (blend_algo == blendAlgoNoDither) {
-					// Use faster lookup, because you don't care about color accuracy
-					// anyway if you're using this.
-					res = nearcolor_faster(blended);
-				} else {
-					int r = blended.r + errr;
-					int g = blended.g + errg;
-					int b = blended.b + errb;
-					if (r > 255) r = 255;
-					else if (r < 0) r = 0;
-					if (g > 255) g = 255;
-					else if (g < 0) g = 0;
-					if (b > 255) b = 255;
-					else if (b < 0) b = 0;
-
-					RGBcolor searchcol = {{b, g, r, 0}};
-					res = nearcolor_faster(searchcol);
-
-					// blendAlgoDither is a chequered dither where we wipe the
-					// error every 2nd pixel, propagate just 1/2 the error from 1/4
-					// of the pixelsand propagate 3/4 from the other 1/4.
-					// This creates quarter-dither patterns so that as opacity
-					// is faded there are smaller, smoother steps. The low amount
-					// of error propagation reduces grain and artifacts at the cost
-					// of color accuracy, which is unimportant.
-					if (tog) {  // (i^j)&1
-						errr = errg = errb = 0;
-					} else {
-						int m;
-						if (blend_algo == blendAlgoDither)
-							m = 2 + ((i&j)&1);  // 2 or 3
-						else // blendAlgoLessDither
-							m = 1;
-						errr = m * (r - curmasterpal[res].r) / 4;
-						errg = m * (g - curmasterpal[res].g) / 4;
-						errb = m * (b - curmasterpal[res].b) / 4;
-					}
-				}
-
-				destp[0] = res;
+				destp[0] = map_rgb_to_masterpal(blended, &rgberr, tog, (i&j));
 				destp++;
 				maskp++;
 				srcp++;

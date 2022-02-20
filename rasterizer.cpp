@@ -16,7 +16,7 @@ using std::max;
 using std::min;
 
 
-uint8_t Tex2DSampler::sample8bit(const Surface* pTexture, FPInt u, FPInt v) const
+uint8_t Tex2DSampler::sample8bit(const Surface* pTexture, FPInt u, FPInt v)
 {
 	// Keep fractional part only; this tiles the texture across the polygon
 	u.whole = 0;
@@ -26,7 +26,7 @@ uint8_t Tex2DSampler::sample8bit(const Surface* pTexture, FPInt u, FPInt v) cons
 	v *= pTexture->height;
 	return pTexture->pPaletteData[v.whole * pTexture->pitch + u.whole];
 }
-Color Tex2DSampler::sample32bit(const Surface* pTexture, FPInt u, FPInt v) const
+Color Tex2DSampler::sample32bit(const Surface* pTexture, FPInt u, FPInt v)
 {
 	u.whole = 0;
 	u *= pTexture->width;
@@ -226,87 +226,155 @@ inline void calculateRangeIncrements(const DrawingRange<T_VertexType> &range, in
 
 void TriRasterizer::rasterColor(const DrawingRange<VertexPC> &range, Surface *pSurfaceDest, DrawOptions *pOpts)
 {
-	int start, finish;
+	Color srcColor, destColor, finalColor;
+	int startx, finishx, y;
 	VertexPC::IncType point, pointInc;
-	calculateRangeIncrements(range, start, finish, point, pointInc);
-	uint32_t *pDest = &pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->pitch + start];
+	calculateRangeIncrements(range, startx, finishx, point, pointInc);
+	y = (int)range.least.pos.y;
+	// alpha is always 256 because already multiplied into srcColor.a
+	const int alpha = 256;
 
-	for (int i = start; i <= finish; i++, pDest++, point += pointInc) {
-		Color srcColor, destColor;
-		srcColor = point.col;
+	if (pSurfaceDest->format == SF_32bit) {
+		uint32_t *pDest = &pSurfaceDest->pColorData[y * pSurfaceDest->pitch + startx];
 
-		if (pOpts->with_blending) {
-			destColor = *pDest;
-			// alpha is always 256 because already multiplied into srcColor.a
-			*pDest = alpha_blend(srcColor, destColor, 256, pOpts->blend_mode, pOpts->alpha_channel).col;
-		} else {
-			*pDest = srcColor;
+		for (int x = startx; x <= finishx; x++, pDest++, point += pointInc) {
+			srcColor = point.col;
+
+			if (pOpts->with_blending) {
+				destColor = *pDest;
+				finalColor = alpha_blend(srcColor, destColor, alpha, pOpts->blend_mode, pOpts->alpha_channel).col;
+			} else
+				finalColor = srcColor;
+			*pDest = finalColor;
+		}
+
+	} else {
+		uint8_t *pDest8 = &pSurfaceDest->pPaletteData[y * pSurfaceDest->pitch + startx];
+		int tog = (startx ^ y) & 1; //FIXME: need x,y relative to topleft of the quad instead
+		RGBerrors rgberr = {};
+
+		for (int x = startx; x <= finishx; x++, pDest8++, point += pointInc) {
+			tog ^= 1;
+			srcColor = point.col;
+
+			if (pOpts->with_blending) {
+				destColor = curmasterpal[*pDest8];
+				finalColor = alpha_blend(srcColor, destColor, alpha, pOpts->blend_mode, pOpts->alpha_channel).col;
+			} else
+				finalColor = srcColor;
+			*pDest8 = map_rgb_to_masterpal(finalColor, &rgberr, tog, (x & y));
 		}
 	}
+
+}
+
+//Read a texel from the texture, return false to discard it
+inline bool readTexel(Color &srcColor, const Surface *pTexture, const TexCoord &texel, const RGBPalette *pPalette, int colorKey) {
+	if (pTexture->format == SF_32bit)
+		srcColor = Tex2DSampler::sample32bit(pTexture, texel.u, texel.v);
+	else {
+		uint8_t index = Tex2DSampler::sample8bit(pTexture, texel.u, texel.v);
+		if (index == colorKey)
+			return false;
+		srcColor = Color(pPalette->col[index]);
+	}
+	return true;
 }
 
 //Assumes that if pTexture is 8bit a palette is passed in
 void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest, DrawOptions *pOpts, int alpha)
 {
-	int start, finish;
+	Color srcColor, destColor, finalColor;
+	int startx, finishx, y;
 	VertexPT::IncType point, pointInc;
-	calculateRangeIncrements(range, start, finish, point, pointInc);
-	uint32_t *pDest = &pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->pitch + start];
-
-	bool is_32bit = (pTexture->format == SF_32bit);
+	calculateRangeIncrements(range, startx, finishx, point, pointInc);
+	y = (int)range.least.pos.y;
 	int colorKey = pOpts->color_key0 ? 0 : -1;
 
-	for (int i = start; i <= finish; i++, pDest++, point += pointInc) {
-		Color srcColor, destColor;
-		if (is_32bit)
-			srcColor = m_sampler.sample32bit(pTexture, point.tex.u, point.tex.v);
-		else {
-			uint8_t index = m_sampler.sample8bit(pTexture, point.tex.u, point.tex.v);
-			if (index == colorKey)
+	if (pSurfaceDest->format == SF_32bit) {
+		uint32_t *pDest = &pSurfaceDest->pColorData[y * pSurfaceDest->pitch + startx];
+
+		for (int x = startx; x <= finishx; x++, pDest++, point += pointInc) {
+			if (!readTexel(srcColor, pTexture, point.tex, pPalette, colorKey))
 				continue;
-			srcColor = Color(pPalette->col[index]);
+
+			if (pOpts->with_blending) {
+				destColor = *pDest;
+				finalColor = alpha_blend(srcColor, destColor, alpha, pOpts->blend_mode, pOpts->alpha_channel).col;
+			} else
+				finalColor = srcColor;
+			*pDest = finalColor;
 		}
 
-		if (pOpts->with_blending) {
-			destColor = *pDest;
-			*pDest = alpha_blend(srcColor, destColor, alpha, pOpts->blend_mode, pOpts->alpha_channel).col;
-		} else {
-			*pDest = srcColor;
+	} else {
+		uint8_t *pDest8 = &pSurfaceDest->pPaletteData[y * pSurfaceDest->pitch + startx];
+		int tog = (startx ^ y) & 1; //Ideally would use x,y relative to topleft of the quad instead
+		RGBerrors rgberr = {};
+
+		for (int x = startx; x <= finishx; x++, pDest8++, point += pointInc) {
+			tog ^= 1;
+			if (!readTexel(srcColor, pTexture, point.tex, pPalette, colorKey))
+				continue;
+
+			if (pOpts->with_blending) {
+				destColor = curmasterpal[*pDest8];
+				finalColor = alpha_blend(srcColor, destColor, alpha, pOpts->blend_mode, pOpts->alpha_channel).col;
+			} else
+				finalColor = srcColor;
+			*pDest8 = map_rgb_to_masterpal(finalColor, &rgberr, tog, (x & y));
 		}
 	}
 }
 
+//Same as rasterTexture except it does "srcColor.scale(point.col);" and has fixed alpha=256 and uses VertexPTC
 //Assumes that if source is 8bit a palette is passed in
 void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest, DrawOptions *pOpts)
 {
-	int start, finish;
+	Color srcColor, destColor, finalColor;
+	int startx, finishx, y;
 	VertexPTC::IncType point, pointInc;
-	calculateRangeIncrements(range, start, finish, point, pointInc);
-	uint32_t *pDest = &pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->pitch + start];
-
-	bool is_32bit = (pTexture->format == SF_32bit);
+	calculateRangeIncrements(range, startx, finishx, point, pointInc);
+	y = (int)range.least.pos.y;
 	int colorKey = pOpts->color_key0 ? 0 : -1;
+	// alpha is always 256 because the global alpha (pOpts->opacity) is already
+	// multiplied into the vertex alphas which is multipled into srcColor
+	const int alpha = 256;
 
-	for (int i = start; i <= finish; i++, pDest++, point += pointInc) {
-		Color srcColor, destColor;
-		if (is_32bit)
-			srcColor = m_sampler.sample32bit(pTexture, point.tex.u, point.tex.v);
-		else {
-			uint8_t index = m_sampler.sample8bit(pTexture, point.tex.u, point.tex.v);
-			if (index == colorKey)
+	if (pSurfaceDest->format == SF_32bit) {
+		uint32_t *pDest = &pSurfaceDest->pColorData[y * pSurfaceDest->pitch + startx];
+
+		for (int x = startx; x <= finishx; x++, pDest++, point += pointInc) {
+			if (!readTexel(srcColor, pTexture, point.tex, pPalette, colorKey))
 				continue;
-			srcColor = Color(pPalette->col[index]);
+
+			srcColor.scale(point.col);
+
+			if (pOpts->with_blending) {
+				destColor = *pDest;
+				finalColor = alpha_blend(srcColor, destColor, alpha, pOpts->blend_mode, pOpts->alpha_channel).col;
+			} else
+				finalColor = srcColor;
+			*pDest = finalColor;
 		}
 
-		srcColor.scale(point.col);
+	} else {
+		uint8_t *pDest8 = &pSurfaceDest->pPaletteData[y * pSurfaceDest->pitch + startx];
+		int tog = (startx ^ y) & 1; //Ideally would use x,y relative to topleft of the quad instead
+		RGBerrors rgberr = {};
 
-		if (pOpts->with_blending) {
-			destColor = *pDest;
-			// alpha is always 256 because the global alpha (pOpts->opacity) is already
-			// multiplied into the vertex alphas which is multipled into srcColor
-			*pDest = alpha_blend(srcColor, destColor, 256, pOpts->blend_mode, pOpts->alpha_channel).col;
-		} else {
-			*pDest = srcColor;
+		for (int x = startx; x <= finishx; x++, pDest8++, point += pointInc) {
+			tog ^= 1;
+			if (!readTexel(srcColor, pTexture, point.tex, pPalette, colorKey))
+				continue;
+
+			srcColor.scale(point.col);
+
+			if (pOpts->with_blending) {
+				destColor = curmasterpal[*pDest8];
+				finalColor = alpha_blend(srcColor, destColor, alpha, pOpts->blend_mode, pOpts->alpha_channel).col;
+			} else
+				finalColor = srcColor;
+			*pDest8 = map_rgb_to_masterpal(finalColor, &rgberr, tog, (x & y));
 		}
 	}
 }

@@ -10154,8 +10154,6 @@ end sub
 
 ' Draw a Frame with position and transformation specified by an AffineTransform.
 sub frame_draw_transformed(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, transf as AffineTransform, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
-	BUG_IF(dest->surf = 0 orelse dest->surf->format = SF_8bit, "32-bit dest required")
-
 	dim vertices(3) as VertexPT
 	'Clockwise from bottom-left
 	vertices(0).tex.u = 0

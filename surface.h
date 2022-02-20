@@ -133,18 +133,18 @@ typedef struct
 	float opacity;
 } DrawOptions;
 
+
+//interfaces
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // In blit.c
 extern enum BlendAlgo blend_algo;
 extern uint8_t nearcolor_cache[65536];
 
 // In allmodex.bas
 extern DrawOptions def_drawoptions;
-
-//interfaces
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 	// Software implementation
 	int gfx_debugSurfaces_SW( );

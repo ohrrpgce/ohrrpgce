@@ -4585,7 +4585,7 @@ function SmoothedTimer.stop() as bool
     if smoothtime > times[4] * 4/3 orelse smoothtime < times[4] * 3/4 then
       smoothtime = times[4]   'Reset
     else
-      smoothtime = smoothtime * 0.8 + 0.2 * times[4]
+      smoothtime = smoothtime * 0.6 + 0.4 * times[4]
     end if
     v_new times  'Clear buffer
     return YES
