@@ -18,35 +18,22 @@ using std::min;
 
 uint8_t Tex2DSampler::sample8bit(const Surface* pTexture, FPInt u, FPInt v) const
 {
-	FPInt minuteScale;
-	minuteScale.fraction = 0xffff; //same as 65535/65536
-
-	u *= /*0.99999f;*/minuteScale; //scale from (0.0)-(1.0) to (0.0)-(0.99999...)
-	u.whole = 0; //remove all whole numbers and negative references, keeping fraction
-	u *= pTexture->width;//FPInt(pTexture->width); //scale from (0.0)-(0.9999...) to (0)-(texture.width-1)
-
-	v *= /*0.99999f;*/minuteScale; //scale from (0.0)-(1.0) to (0.0)-(0.99999...)
-	v.whole = 0; //remove all whole numbers and negative references, keeping fraction
-	v *= pTexture->height;//FPInt(pTexture->height); //scale from (0.0)-(0.9999...) to (0)-(texture.width-1)
-
+	// Keep fractional part only; this tiles the texture across the polygon
+	u.whole = 0;
+	// Scale from real-valued [0, 1) to integer-valued [0-texture.width)
+	u *= pTexture->width;
+	v.whole = 0;
+	v *= pTexture->height;
 	return pTexture->pPaletteData[v.whole * pTexture->pitch + u.whole];
 }
 Color Tex2DSampler::sample32bit(const Surface* pTexture, FPInt u, FPInt v) const
 {
-	FPInt minuteScale;
-	minuteScale.fraction = 0xffff; //same as 65535/65536
-
-	u *= /*0.99999f;*/minuteScale; //scale from (0.0)-(1.0) to (0.0)-(0.99999...)
-	u.whole = 0; //remove all whole numbers and negative references, keeping fraction
-	u *= pTexture->width;//FPInt(pTexture->width); //scale from (0.0)-(0.9999...) to (0)-(texture.width-1)
-
-	v *= /*0.99999f;*/minuteScale; //scale from (0.0)-(1.0) to (0.0)-(0.99999...)
-	v.whole = 0; //remove all whole numbers and negative references, keeping fraction
-	v *= pTexture->height;//FPInt(pTexture->height); //scale from (0.0)-(0.9999...) to (0)-(texture.width-1)
-
+	u.whole = 0;
+	u *= pTexture->width;
+	v.whole = 0;
+	v *= pTexture->height;
 	return pTexture->pColorData[v.whole * pTexture->pitch + u.whole];
 }
-
 
 
 void LineSegment::calculateLineSegment(const Position &A, const Position &B)
@@ -116,7 +103,7 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurfaceDest, const T_V
 	float leftMost, rightMost;
 	int leftMostIndex, rightMostIndex;
 	float scale;
-	T_VertexType leftVertex, rightVertex;
+	typename T_VertexType::IncType leftVertex, rightVertex;
 	// Each integral y value in the half-open interval [top, bottom)
 	int row = max(clipRgn.top, triangleRgn.top);
 	int rowEnd = (int)ceil(min(clipRgn.bottom, triangleRgn.bottom)) - 1;
@@ -164,6 +151,10 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurfaceDest, const T_V
 		leftVertex.interpolateComponents( pTriangle[(leftMostIndex+1)%3], scale );
 		leftVertex.pos.x = xIntersection[leftMostIndex];
 		leftVertex.pos.y = row;
+		// It's necessary that U/V 0.0 is the first texel in the texture but U/V 1.0 is the
+		// last one rather than wrapping, because the polygon edge may fall directly on a pixel
+		// center, so scale U/V by 0.9999. This seems like an unavoidable hack.
+		leftVertex.scaleDownUV();
 
 		if(segments[rightMostIndex].isFunctionOfX())
 		{
@@ -183,6 +174,7 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurfaceDest, const T_V
 		rightVertex.interpolateComponents( pTriangle[(rightMostIndex+1)%3], scale );
 		rightVertex.pos.x = xIntersection[rightMostIndex];
 		rightVertex.pos.y = row;
+		rightVertex.scaleDownUV();
 
 		//perform horizontal clipping
 		if(leftVertex.pos.x > clipRgn.right || rightVertex.pos.x < clipRgn.left)
@@ -209,32 +201,40 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurfaceDest, const T_V
 }
 
 template <class T_VertexType>
-inline TexCoord texel_coord(const DrawingRange<T_VertexType> &range, int x, float length, float &weightFirst)
+inline void calculateRangeIncrements(const DrawingRange<T_VertexType> &range, int &start, int &finish, typename T_VertexType::IncType &point, typename T_VertexType::IncType &pointInc)
 {
-	float weightSecond;
-	weightFirst = (range.greatest.pos.x - x) / length;
-	weightSecond = 1 - weightFirst;
-	TexCoord texel;
-	texel.u = weightFirst * range.least.tex.u + weightSecond * range.greatest.tex.u;
-	texel.v = weightFirst * range.least.tex.v + weightSecond * range.greatest.tex.v;
-	return texel;
+	float length = range.greatest.pos.x - range.least.pos.x;
+	if (length <= 0) length = 1.;
+
+	// X range [start, finish] of pixels to render (inclusive), selecting
+	// each if its center is in the half-open range [least, greatest).
+	// Already clamped to the clip region, don't need to repeat that
+	start = (int)ceil(range.least.pos.x - .5);
+	finish = (int)ceil(range.greatest.pos.x - .5) - 1;
+
+	// Note: point.pos won't actually be used for anything. Hopefully the compiler optimises it away
+	float startCenter = (start + .5) - range.least.pos.x;
+	point = range.greatest;
+	point.interpolateComponents(range.least, startCenter / length);
+
+	// Equivalent to pointInc = (range.greatest - range.least) / length
+	pointInc = range.greatest - range.least;
+	typename T_VertexType::IncType zero = {0};
+	pointInc.interpolateComponents(zero, 1. / length);
 }
+
 
 void TriRasterizer::rasterColor(const DrawingRange<VertexPC> &range, Surface *pSurfaceDest, DrawOptions *pOpts)
 {
-	float length = range.greatest.pos.x - range.least.pos.x + 1.0f;
-	float weight;
-
-	int start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
-	int finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
-
-	Color srcColor, destColor;
+	int start, finish;
+	VertexPC::IncType point, pointInc;
+	calculateRangeIncrements(range, start, finish, point, pointInc);
 	uint32_t *pDest = &pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->pitch + start];
 
-	for (int i = start; i <= finish; i++, pDest++) {
-		weight = 255.0f*(finish-i) / length;
-		srcColor = range.least.col;
-		srcColor.scale(range.greatest.col, weight);
+	for (int i = start; i <= finish; i++, pDest++, point += pointInc) {
+		Color srcColor, destColor;
+		srcColor = point.col;
+
 		if (pOpts->with_blending) {
 			destColor = *pDest;
 			// alpha is always 256 because already multiplied into srcColor.a
@@ -245,29 +245,23 @@ void TriRasterizer::rasterColor(const DrawingRange<VertexPC> &range, Surface *pS
 	}
 }
 
+//Assumes that if pTexture is 8bit a palette is passed in
 void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest, DrawOptions *pOpts, int alpha)
 {
-	//assumed that if source is 8bit, a palette was passed in
-
-	float length = range.greatest.pos.x - range.least.pos.x + 1.0f;
-	float weightFirst;
-
-	int start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
-	int finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
-
-	Color srcColor, destColor;
+	int start, finish;
+	VertexPT::IncType point, pointInc;
+	calculateRangeIncrements(range, start, finish, point, pointInc);
 	uint32_t *pDest = &pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->pitch + start];
 
 	bool is_32bit = (pTexture->format == SF_32bit);
 	int colorKey = pOpts->color_key0 ? 0 : -1;
 
-	for (int i = start; i <= finish; i++, pDest++) {
-		TexCoord texel = texel_coord(range, i, length, weightFirst);
-
+	for (int i = start; i <= finish; i++, pDest++, point += pointInc) {
+		Color srcColor, destColor;
 		if (is_32bit)
-			srcColor = m_sampler.sample32bit(pTexture, texel.u, texel.v);
+			srcColor = m_sampler.sample32bit(pTexture, point.tex.u, point.tex.v);
 		else {
-			uint8_t index = m_sampler.sample8bit(pTexture, texel.u, texel.v);
+			uint8_t index = m_sampler.sample8bit(pTexture, point.tex.u, point.tex.v);
 			if (index == colorKey)
 				continue;
 			srcColor = Color(pPalette->col[index]);
@@ -282,37 +276,29 @@ void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Sur
 	}
 }
 
+//Assumes that if source is 8bit a palette is passed in
 void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest, DrawOptions *pOpts)
 {
-	//assumed that if source is 8bit, a palette was passed in
-
-	float length = range.greatest.pos.x - range.least.pos.x + 1.0f;
-	float weightFirst;
-
-	int start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
-	int finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
-
-	Color srcColor, destColor, vertexColor;
+	int start, finish;
+	VertexPTC::IncType point, pointInc;
+	calculateRangeIncrements(range, start, finish, point, pointInc);
 	uint32_t *pDest = &pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->pitch + start];
 
 	bool is_32bit = (pTexture->format == SF_32bit);
 	int colorKey = pOpts->color_key0 ? 0 : -1;
 
-	for (int i = start; i <= finish; i++, pDest++) {
-		TexCoord texel = texel_coord(range, i, length, weightFirst);
-
+	for (int i = start; i <= finish; i++, pDest++, point += pointInc) {
+		Color srcColor, destColor;
 		if (is_32bit)
-			srcColor = m_sampler.sample32bit(pTexture, texel.u, texel.v);
+			srcColor = m_sampler.sample32bit(pTexture, point.tex.u, point.tex.v);
 		else {
-			uint8_t index = m_sampler.sample8bit(pTexture, texel.u, texel.v);
+			uint8_t index = m_sampler.sample8bit(pTexture, point.tex.u, point.tex.v);
 			if (index == colorKey)
 				continue;
 			srcColor = Color(pPalette->col[index]);
 		}
 
-		vertexColor = range.least.col;
-		vertexColor.scale(range.greatest.col, 255.0f * weightFirst);
-		srcColor.scale(vertexColor);
+		srcColor.scale(point.col);
 
 		if (pOpts->with_blending) {
 			destColor = *pDest;
@@ -322,7 +308,6 @@ void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, con
 		} else {
 			*pDest = srcColor;
 		}
-
 	}
 }
 
@@ -348,7 +333,7 @@ bool TriRasterizer::drawSetup(T_VertexType *pTriangle, SurfaceRect *pRectDest, S
 	alpha = 256;
 	//bool with_blending = opts.with_blending;
 	if (opts.with_blending) {
-		alpha = opts.opacity * 256;
+		alpha = min(256, (int)(opts.opacity * 256));
 		if (opts.opacity <= 0. || opts.argbModifier.a == 0)
 			return false;  //TODO: remove this if write_mask is implemented!
 		if (opts.opacity >= 1. && opts.blend_mode == blendModeNormal && !opts.alpha_channel)
@@ -393,7 +378,6 @@ void TriRasterizer::drawTriangleTexture(VertexPT *pTriangle, const Surface *pTex
 	if(pSurfaceDest == NULL || pTriangle == NULL || pTexture == NULL || pOpts == NULL)
 		return;
 
-	//palette check
 	if(pTexture->format == SF_8bit && !pPalette)
 		return; //need a palette to convert
 
@@ -420,7 +404,6 @@ void TriRasterizer::drawTriangleTextureColor(VertexPTC *pTriangle, const Surface
 	if(pSurfaceDest == NULL || pTriangle == NULL || pTexture == NULL || pOpts == NULL)
 		return;
 
-	//palette check
 	if(pTexture->format == SF_8bit && !pPalette)
 		return; //need a palette to convert
 
@@ -451,7 +434,7 @@ void TriRasterizer::drawTriangleTextureColor(VertexPTC *pTriangle, const Surface
 template <class T_VertexType>
 void QuadRasterizer::generateTriangles(const T_VertexType* pQuad, T_VertexType* pTriangles)
 {
-	T_VertexType center1, center2;
+	typename T_VertexType::IncType center1, center2;
 
 	center1 = pQuad[0];
 	center2 = pQuad[2];

@@ -16,8 +16,6 @@ typedef float2 Position;
 typedef float2 TexCoord;
 
 //argb dword
-// Was also used for storing an 8 bit palette index in 'b', but
-// that seems to be a bad idea.
 struct Color
 {
 	union
@@ -30,17 +28,16 @@ struct Color
 			uint8_t r : 8;
 			uint8_t a : 8;
 		};
+		uint8_t comp[4];
 	};
 	Color& operator= (uint32_t rhs) {dw = rhs; return *this;}
 	Color& operator= (const Color& rhs) {dw = rhs.dw; return *this;}
 	operator uint32_t () const {return dw;}
-	// operator uint8_t () const {return b;}
 	Color() : dw(0) {}
 	Color(uint32_t col) : dw(col) {}
 	Color(RGBcolor col) : dw(col.col) {}
 	Color(uint8_t A, uint8_t R, uint8_t G, uint8_t B) : dw(0) {a=A;r=R;g=G;b=B;}
 	operator RGBcolor() const { return RGBcolor{.col=dw}; }
-	// Color(uint8_t palette) : dw(0) {b=palette;}
 	void scale(Color argbModifier)
 	{
 		a = a * argbModifier.a / 255;
@@ -57,42 +54,130 @@ struct Color
 	}
 };
 
+// Color with signed 16-bit components, for measuring small increments
+struct Color16
+{
+	int16_t comp[4];
+	Color16() {}
+	Color16(Color col) {
+		for (int i = 0; i < 4; i++)
+			comp[i] = col.comp[i] * 128;
+
+	}
+	operator Color() const {
+		return Color(comp[0]/128, comp[1]/128, comp[2]/128, comp[3]/128);
+	}
+	Color16& operator+=(const Color16 &c2) {
+		for (int i = 0; i < 4; i++)
+			comp[i] += c2.comp[i];
+		return *this;
+	}
+	Color16 operator-(const Color16 &c2) const {
+		Color16 ret;
+		for (int i = 0; i < 4; i++)
+			ret.comp[i] = comp[i] - c2.comp[i];
+		return ret;
+	}
+	// weight isn't multiplied by 255, unlike Color
+	void scale(Color16 c2, float weight) {
+		for (int i = 0; i < 4; i++)
+			comp[i] = (comp[i]*weight + c2.comp[i]*(1.-weight));
+	}
+};
+
 struct VertexPC
 {
 	Position pos;
 	Color col;
+
+	// For measuring small increments in VertexPC
+	struct VertexPC16 {
+		Position pos;
+		Color16 col;
+		//VertexPC16(VertexPC v) : pos(v.pos), col(v.col) {}
+
+		void interpolateComponents(const VertexPC16& v2, float scale) {
+			float invScale(-scale + 1.0f);
+			pos = pos * scale + v2.pos * invScale;
+			col.scale(v2.col, scale);
+		}
+		void scaleDownUV() {}
+		VertexPC16 &operator+=(const VertexPC16& v2) {
+			pos += v2.pos;
+			col += v2.col;
+			return *this;
+		}
+		VertexPC16 operator-(const VertexPC16& v2) const {
+			return VertexPC16{pos - v2.pos, col - v2.col};
+		}
+	};
+	typedef VertexPC16 IncType;
+
 	VertexPC() : pos(), col() {}
-	void interpolateComponents(const VertexPC& v2, float scale) {
-		float invScale(-scale + 1.0f);
-		pos = pos * scale + v2.pos * invScale;
-		col.scale(v2.col, 255.0f*scale);
-	}
+	VertexPC(IncType v) : pos(v.pos), col(v.col) {}
+	operator IncType() const { return VertexPC16{pos, col}; }
 };
+
 struct VertexPT
 {
 	Position pos;
 	TexCoord tex;
-	VertexPT() : pos(), tex() {}
+	typedef VertexPT IncType;
+
+	//VertexPT() : pos(), tex() {}
 	void interpolateComponents(const VertexPT& v2, float scale) {
 		float invScale(-scale + 1.0f);
 		pos = pos * scale + v2.pos * invScale;
 		tex.u = scale * tex.u + invScale * v2.tex.u;
 		tex.v = scale * tex.v + invScale * v2.tex.v;
 	}
+	void scaleDownUV() { tex *= 65535./65536.; }
+	VertexPT &operator+=(const VertexPT& v2) {
+		pos += v2.pos;
+		tex += v2.tex;
+		return *this;
+	}
+	IncType operator-(const VertexPT& v2) const {
+		return VertexPT{pos - v2.pos, tex - v2.tex};
+	}
 };
+
 struct VertexPTC
 {
 	Position pos;
 	TexCoord tex;
 	Color col;
+
+	// For measuring small increments in VertexPTC
+	struct VertexPTC16 {
+		Position pos;
+		TexCoord tex;
+		Color16 col;
+		//VertexPTC16(VertexPTC v) : pos(v.pos), tex(v.tex), col(v.col) {}
+
+		void interpolateComponents(const VertexPTC16& v2, float scale) {
+			float invScale(-scale + 1.0f);
+			pos = pos * scale + v2.pos * invScale;
+			tex.u = scale * tex.u + invScale * v2.tex.u;
+			tex.v = scale * tex.v + invScale * v2.tex.v;
+			col.scale(v2.col, scale);
+		}
+		void scaleDownUV() { tex *= 65535./65536.; }
+		VertexPTC16 &operator+=(const VertexPTC16& v2) {
+			pos += v2.pos;
+			tex += v2.tex;
+			col += v2.col;
+			return *this;
+		}
+		VertexPTC16 operator-(const VertexPTC16& v2) const {
+			return VertexPTC16{pos - v2.pos, tex - v2.tex, col - v2.col};
+		}
+	};
+	typedef VertexPTC16 IncType;
+
 	VertexPTC() : pos(), tex(), col() {}
-	void interpolateComponents(const VertexPTC& v2, float scale) {
-		float invScale(-scale + 1.0f);
-		pos = pos * scale + v2.pos * invScale;
-		tex.u = scale * tex.u + invScale * v2.tex.u;
-		tex.v = scale * tex.v + invScale * v2.tex.v;
-		col.scale(v2.col, 255.0f*scale);
-	}
+	VertexPTC(IncType v) : pos(v.pos), tex(v.tex), col(v.col) {}
+	operator IncType() const { return VertexPTC16{pos, tex, col}; }
 };
 
 //The following interface is implemented in surface.cpp

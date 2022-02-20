@@ -35,8 +35,8 @@ struct ClippingRectF
 template <class T_VertexType>
 struct DrawingRange
 {
-	T_VertexType least, greatest;
-	DrawingRange(const T_VertexType& Least, const T_VertexType& Greatest) : least(Least), greatest(Greatest) {}
+	typename T_VertexType::IncType least, greatest;
+	DrawingRange(const typename T_VertexType::IncType& Least, const typename T_VertexType::IncType& Greatest) : least(Least), greatest(Greatest) {}
 };
 
 class LineSegment
