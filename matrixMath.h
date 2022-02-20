@@ -20,18 +20,18 @@ struct float2 {
 
 	//float2() : x(0), y(0) {}
 	//float2(float X, float Y) : x(X), y(Y) {}
-	float2 operator+(const float2& rhs) const {return float2{x+rhs.x, y+rhs.y};}
-	float2 operator-(const float2& rhs) const {return float2{x-rhs.x, y-rhs.y};}
-	float2 operator*(const float2& rhs) const {return float2{x*rhs.x, y*rhs.y};}
-	float2 operator/(const float2& rhs) const {return float2{x/rhs.x, y/rhs.y};}
+	float2 operator+(const float2& rhs) const {return float2{{{x+rhs.x, y+rhs.y}}};}
+	float2 operator-(const float2& rhs) const {return float2{{{x-rhs.x, y-rhs.y}}};}
+	float2 operator*(const float2& rhs) const {return float2{{{x*rhs.x, y*rhs.y}}};}
+	float2 operator/(const float2& rhs) const {return float2{{{x/rhs.x, y/rhs.y}}};}
 	float2& operator+=(const float2& rhs) {x += rhs.x; y += rhs.y; return *this;}
 	float2& operator-=(const float2& rhs) {x -= rhs.x; y -= rhs.y; return *this;}
 	float2& operator*=(const float2& rhs) {x *= rhs.x; y *= rhs.y; return *this;}
 	float2& operator/=(const float2& rhs) {x /= rhs.x; y /= rhs.y; return *this;}
-	float2 operator+(float rhs) const {return float2{x+rhs, y+rhs};}
-	float2 operator-(float rhs) const {return float2{x-rhs, y-rhs};}
-	float2 operator*(float rhs) const {return float2{x*rhs, y*rhs};}
-	float2 operator/(float rhs) const {return float2{x/rhs, y/rhs};}
+	float2 operator+(float rhs) const {return float2{{{x+rhs, y+rhs}}};}
+	float2 operator-(float rhs) const {return float2{{{x-rhs, y-rhs}}};}
+	float2 operator*(float rhs) const {return float2{{{x*rhs, y*rhs}}};}
+	float2 operator/(float rhs) const {return float2{{{x/rhs, y/rhs}}};}
 	float2& operator+=(float rhs) {x += rhs; y += rhs; return *this;}
 	float2& operator-=(float rhs) {x -= rhs; y -= rhs; return *this;}
 	float2& operator*=(float rhs) {x *= rhs; y *= rhs; return *this;}

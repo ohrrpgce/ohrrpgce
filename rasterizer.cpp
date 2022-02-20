@@ -219,7 +219,7 @@ inline void calculateRangeIncrements(const DrawingRange<T_VertexType> &range, in
 
 	// Equivalent to pointInc = (range.greatest - range.least) / length
 	pointInc = range.greatest - range.least;
-	typename T_VertexType::IncType zero = {0};
+	typename T_VertexType::IncType zero{};
 	pointInc.interpolateComponents(zero, 1. / length);
 }
 

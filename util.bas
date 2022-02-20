@@ -277,6 +277,43 @@ OPERATOR Float2.CAST () as string
   RETURN x & "," & y
 END OPERATOR
 
+OPERATOR Float2.+= (rhs as Float2)
+  x += rhs.x
+  y += rhs.y
+END OPERATOR
+
+OPERATOR + (lhs as Float2, rhs as Float2) as Float2
+  RETURN TYPE(lhs.x + rhs.x, lhs.y + rhs.y)
+END OPERATOR
+
+OPERATOR + (lhs as Float2, rhs as double) as Float2
+  RETURN TYPE(lhs.x + rhs, lhs.y + rhs)
+END OPERATOR
+
+OPERATOR - (lhs as Float2, rhs as Float2) as Float2
+  RETURN TYPE(lhs.x - rhs.x, lhs.y - rhs.y)
+END OPERATOR
+
+OPERATOR - (lhs as Float2, rhs as double) as Float2
+  RETURN TYPE(lhs.x - rhs, lhs.y - rhs)
+END OPERATOR
+
+OPERATOR * (lhs as Float2, rhs as Float2) as Float2
+  RETURN TYPE(lhs.x * rhs.x, lhs.y * rhs.y)
+END OPERATOR
+
+OPERATOR * (lhs as Float2, rhs as double) as Float2
+  RETURN TYPE(lhs.x * rhs, lhs.y * rhs)
+END OPERATOR
+
+OPERATOR / (lhs as Float2, rhs as Float2) as Float2
+  RETURN TYPE(lhs.x / rhs.x, lhs.y / rhs.y)
+END OPERATOR
+
+OPERATOR / (lhs as Float2, rhs as double) as Float2
+  RETURN TYPE(lhs.x / rhs, lhs.y / rhs)
+END OPERATOR
+
 
 OPERATOR = (lhs as RectType, rhs as RectType) as bool
   RETURN memcmp(@lhs, @rhs, sizeof(RectType)) = 0

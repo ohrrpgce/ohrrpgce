@@ -550,7 +550,17 @@ UNION Float2
   END TYPE
   DECLARE OPERATOR CAST () as string
   'DECLARE OPERATOR CAST () as XYPair
+  DECLARE OPERATOR += (rhs as Float2)
 END UNION
+DECLARE OPERATOR + (lhs as Float2, rhs as Float2) as Float2
+DECLARE OPERATOR + (lhs as Float2, rhs as double) as Float2
+DECLARE OPERATOR - (lhs as Float2, rhs as Float2) as Float2
+DECLARE OPERATOR - (lhs as Float2, rhs as double) as Float2
+DECLARE OPERATOR * (lhs as Float2, rhs as Float2) as Float2
+DECLARE OPERATOR * (lhs as Float2, rhs as double) as Float2
+DECLARE OPERATOR / (lhs as Float2, rhs as Float2) as Float2
+DECLARE OPERATOR / (lhs as Float2, rhs as double) as Float2
+
 
 ' Don't use this directly.
 TYPE XYSimple
