@@ -10167,9 +10167,12 @@ sub frame_draw_transformed(src as Frame ptr, masterpal() as RGBcolor, pal as Pal
 	vertices(3).tex.u = 1
 	vertices(3).tex.v = 1
 	with transf
-		vertices(0).pos = .bottomleft
-		vertices(1).pos = .topleft
-		vertices(2).pos = .topright
+		'Shift vertices slightly to avoid almost-horizontal or -vertical edges
+		'cutting through going exactly through a row/column of pixel centers,
+		'which causes artifacts (not a rasterizer bug, will happen in OpenGL too)
+		vertices(0).pos = .bottomleft - 0.01
+		vertices(1).pos = .topleft - 0.01
+		vertices(2).pos = .topright - 0.01
 		'vertices(3).pos = .bottomright
 		vertices(3).pos = XYF(.bottomleft.x + (.topright.x - .topleft.x), .bottomleft.y + (.topright.y - .topleft.y))
 	end with
@@ -10205,7 +10208,7 @@ sub rotozoom_transform(byref result as AffineTransform, size as XYPair, center a
 	dim vertices(3) as Float2
 	vec2GenerateCorners @vertices(0), 4, size, *center
 	dim matrix as Float3x3
-	matrixLocalTransform @matrix, angle * -3.1415926535 / 180, zoom, pos
+	matrixLocalTransform @matrix, angle * -M_PI / 180, zoom, pos
 	'Only first 3 vertices
 	vec2Transform @result.vertices(0), 3, @vertices(0), 3, matrix
 end sub
