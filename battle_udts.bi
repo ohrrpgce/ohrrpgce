@@ -87,6 +87,7 @@ TYPE BattleSprite
                  ' or any attack with "always hides attacker" bitset. Not targetable until unhidden
                  ' if true, excluded from all targetting except for attacks with attBaacker animation
                  ' "Land" or "Run In" or any attack with the "always unhide attacker" bit
+  flipped as bool 
 
   '--stats
   stat as BattleStats

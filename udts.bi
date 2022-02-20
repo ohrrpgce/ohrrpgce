@@ -772,6 +772,7 @@ Type AttackData
 	change_control as integer
 	change_turncoat as integer
 	change_defector as integer
+	change_flipped as integer
 	'----Bitsets----
 	cure_instead_of_harm as bool
 	divide_spread_damage as bool

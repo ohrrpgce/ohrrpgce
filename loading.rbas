@@ -3133,6 +3133,7 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .change_control = buf(348)
   .change_turncoat = buf(349)
   .change_defector = buf(350)
+  .change_flipped = buf(351)
   '----Chaining----
   loadattackchain .chain, buf(), 12, 13, 101, 102, 103, 104
   loadattackchain .elsechain, buf(), 105, 107, 106, 108, 109, 110

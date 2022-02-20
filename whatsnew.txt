@@ -49,6 +49,8 @@ WHAT IS NEW?
     * Map editor setting to label only NPCs near the cursor with ID/copy [Ralph]
     * New available battle menu item "Skip Turn" [James]
     * You can use a custom menu as a template for the Battle Menu [James]
+    * Attacks can now cause a target's sprite to flip backwards (or unflip)
+      [James]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

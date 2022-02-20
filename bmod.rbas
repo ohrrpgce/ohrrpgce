@@ -690,6 +690,19 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
      bslot(targ).defector_target = bslot(targ).enemy.defector_target
     END IF
   END SELECT
+
+  SELECT CASE attack.change_flipped
+   CASE 1: 'Flipped
+    bslot(targ).flipped = YES
+   CASE 2: 'Not flipped
+    bslot(targ).flipped = NO
+   CASE 3: 'Set to default
+    IF is_hero(targ) THEN
+     bslot(targ).flipped = NO
+    ELSEIF is_enemy(targ) THEN
+     bslot(targ).flipped = NO
+    END IF
+  END SELECT
   
  ELSE
   'Miss or Fail
@@ -1523,6 +1536,7 @@ SUB update_battle_slices(bslot() as BattleSprite)
     .sl->Visible = YES
 
     DIM fliph as bool = .d <> 0
+    IF .flipped THEN fliph = NOT fliph
     ChangeSpriteSlice .sprite, , , , , fliph
 
     IF is_enemy(i) andalso .appeartype >= 0 andalso .dissolve_appear <= .appeartime then
