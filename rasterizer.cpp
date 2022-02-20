@@ -104,10 +104,10 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurfaceDest, const T_V
 	int leftMostIndex, rightMostIndex;
 	float scale;
 	typename T_VertexType::IncType leftVertex, rightVertex;
-	// Each integral y value in the half-open interval [top, bottom)
-	int row = max(clipRgn.top, triangleRgn.top);
-	int rowEnd = (int)ceil(min(clipRgn.bottom, triangleRgn.bottom)) - 1;
-	for (; row <= rowEnd; row++) {
+	// Iterate over each row of pixels whose centers are inside triangleRgn.
+	double row = ceil(max(clipRgn.top, triangleRgn.top) + .5) - .5;
+	double rowEnd = min(clipRgn.bottom, triangleRgn.bottom);
+	for (; row < rowEnd; row += 1.0) {
 		leftMost = triangleRgn.right + 1.0f;
 		leftMostIndex = -1;
 		rightMost = triangleRgn.left - 1.0f;
