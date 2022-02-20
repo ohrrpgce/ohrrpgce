@@ -61,7 +61,7 @@ void LineSegment::calculateLineSegment(const Position &A, const Position &B)
 
 bool LineSegment::intersects(float *pIntersection, float YIntercept)
 {
-	if(YIntercept > m_greatestY || YIntercept < m_leastY)
+	if(YIntercept >= m_greatestY || YIntercept < m_leastY)
 		return false;
 
 	if(pIntersection == 0)
