@@ -384,12 +384,12 @@ void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, con
 template <class T_VertexType>
 bool TriRasterizer::drawSetup(T_VertexType *pTriangle, SurfaceRect *pRectDest, Surface *pSurfaceDest, std::queue< DrawingRange< T_VertexType > > &rasterLines, DrawOptions &opts, int &alpha)
 {
-	//determine rasterizing region
-	ClippingRectF clipRgn = {(float)pRectDest->left, (float)pRectDest->top, (float)pRectDest->right, (float)pRectDest->bottom};
-	if(clipRgn.left < 0.0f) clipRgn.left = 0.0f;
-	if(clipRgn.top < 0.0f) clipRgn.top = 0.0f;
-	if(clipRgn.right >= pSurfaceDest->width) clipRgn.right = pSurfaceDest->width-1;
-	if(clipRgn.bottom >= pSurfaceDest->height) clipRgn.bottom = pSurfaceDest->width-1;
+	// Determine rasterizing region. Note SurfaceRect bounds are inclusive
+	// but integer valued
+	ClippingRectF clipRgn;	clipRgn.left = max((float)pRectDest->left, 0.4f);
+	clipRgn.top = max((float)pRectDest->top, 0.4f);
+	clipRgn.right = min((float)pRectDest->right + 1.0f, pSurfaceDest->width - 0.4f);
+	clipRgn.bottom = min((float)pRectDest->bottom + 1.0f, pSurfaceDest->height - 0.4f);
 
 	ClippingRectF triangleRgn;
 	calculateTriangleRect(pTriangle, triangleRgn);
