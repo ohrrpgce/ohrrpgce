@@ -224,7 +224,7 @@ inline void calculateRangeIncrements(const DrawingRange<T_VertexType> &range, in
 }
 
 
-void TriRasterizer::rasterColor(const DrawingRange<VertexPC> &range, Surface *pSurfaceDest, DrawOptions *pOpts)
+void TriRasterizer::rasterColor(const DrawingRange<VertexPC> &range, Surface *restrict pSurfaceDest, DrawOptions *restrict pOpts)
 {
 	Color srcColor, destColor, finalColor;
 	int startx, finishx, y;
@@ -281,7 +281,7 @@ inline bool readTexel(Color &srcColor, const Surface *pTexture, const TexCoord &
 }
 
 //Assumes that if pTexture is 8bit a palette is passed in
-void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest, DrawOptions *pOpts, int alpha)
+void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Surface *restrict pTexture, const RGBPalette *restrict pPalette, Surface *restrict pSurfaceDest, DrawOptions *restrict pOpts, int alpha)
 {
 	Color srcColor, destColor, finalColor;
 	int startx, finishx, y;
@@ -336,7 +336,7 @@ void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Sur
 
 //Same as rasterTexture except it does "srcColor.scale(point.col);" and has fixed alpha=256 and uses VertexPTC
 //Assumes that if source is 8bit a palette is passed in
-void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, const Surface *pTexture, const RGBPalette *pPalette, Surface *pSurfaceDest, DrawOptions *pOpts)
+void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, const Surface *restrict pTexture, const RGBPalette *restrict pPalette, Surface *restrict pSurfaceDest, DrawOptions *restrict pOpts)
 {
 	Color srcColor, destColor, finalColor;
 	int startx, finishx, y;
