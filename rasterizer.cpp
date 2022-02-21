@@ -390,11 +390,12 @@ void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, con
 
 //Returns false if the entire draw is clipped
 template <class T_VertexType>
-bool TriRasterizer::drawSetup(T_VertexType *pTriangle, SurfaceRect *pRectDest, Surface *pSurfaceDest, std::queue< DrawingRange< T_VertexType > > &rasterLines, DrawOptions &opts, int &alpha)
+bool TriRasterizer::drawSetup(T_VertexType *pTriangle, SurfaceRect *pRectDest, Surface *pSurfaceDest, std::queue< DrawingRange< T_VertexType > > &rasterLines)
 {
 	// Determine rasterizing region. Note SurfaceRect bounds are inclusive
 	// but integer valued
-	ClippingRectF clipRgn;	clipRgn.left = max((float)pRectDest->left, 0.4f);
+	ClippingRectF clipRgn;
+	clipRgn.left = max((float)pRectDest->left, 0.4f);
 	clipRgn.top = max((float)pRectDest->top, 0.4f);
 	clipRgn.right = min((float)pRectDest->right + 1.0f, pSurfaceDest->width - 0.4f);
 	clipRgn.bottom = min((float)pRectDest->bottom + 1.0f, pSurfaceDest->height - 0.4f);
@@ -406,21 +407,24 @@ bool TriRasterizer::drawSetup(T_VertexType *pTriangle, SurfaceRect *pRectDest, S
 	if(triangleRgn.left > clipRgn.right || triangleRgn.right < clipRgn.left || triangleRgn.top > clipRgn.bottom || triangleRgn.bottom < clipRgn.top)
 		return false;
 
+	calculateRasterPixels(pSurfaceDest, pTriangle, clipRgn, triangleRgn, rasterLines);
+	return true;
+}
+
+bool TriRasterizer::simplifyDrawOptions(DrawOptions &opts, int &alpha) {
 	alpha = 256;
-	//bool with_blending = opts.with_blending;
 	if (opts.with_blending) {
 		alpha = min(256, (int)(opts.opacity * 256));
 		if (opts.opacity <= 0. || opts.argbModifier.a == 0)
 			return false;  //TODO: remove this if write_mask is implemented!
-		if (opts.opacity >= 1. && opts.blend_mode == blendModeNormal && !opts.alpha_channel)
+		if (opts.opacity >= 1. && opts.argbModifier.a == 255 && opts.blend_mode == blendModeNormal && !opts.alpha_channel)
 			opts.with_blending = false;
 	}
-
-	calculateRasterPixels(pSurfaceDest, pTriangle, clipRgn, triangleRgn, rasterLines);
 
 	return true;
 }
 
+// FIXME: Modifies pTriangle!
 void TriRasterizer::drawTriangleColor(VertexPC *pTriangle, SurfaceRect *pRectDest, Surface *pSurfaceDest, DrawOptions *pOpts)
 {
 	if(pSurfaceDest == NULL || pTriangle == NULL || pOpts == NULL)
@@ -428,19 +432,23 @@ void TriRasterizer::drawTriangleColor(VertexPC *pTriangle, SurfaceRect *pRectDes
 
 	DrawOptions opts = *pOpts;  //Local modifications
 	int alpha;
-	std::queue< DrawingRange< VertexPC > > rasterLines;
-	if (!drawSetup(pTriangle, pRectDest, pSurfaceDest, rasterLines, opts, alpha))
-		return;
 
-	//apply color modifier
-	Color argbModifier = opts.argbModifier;
-	argbModifier.a *= opts.opacity;  //Deal with the redundancy
+	// Apply color modifier and opacity before generating lines
+	opts.argbModifier.a *= max(0.0f, min(1.0f, opts.opacity));  //Deal with the redundancy
 	for (int i = 0; i < 3; i++)
-		pTriangle[i].col.scale(argbModifier);
-
-	if ((pTriangle[0].col.a & pTriangle[1].col.a & pTriangle[2].col.a) == 255)
-		//No use of alpha channel, nor opts.opacity nor opts.argbModifier.a
+		pTriangle[i].col.scale(opts.argbModifier);
+	if ((pTriangle[0].col.a & pTriangle[1].col.a & pTriangle[2].col.a) != 255) {
+		opts.alpha_channel = true;
+		//opts.with_blending = true;  //Allow the user to turn it off if wanted
+	} else {
+		// No use of vertex alpha, nor opts.opacity nor opts.argbModifier.a
 		opts.alpha_channel = false;
+	}
+
+	std::queue< DrawingRange< VertexPC > > rasterLines;
+	if (!simplifyDrawOptions(opts, alpha) ||
+	    !drawSetup(pTriangle, pRectDest, pSurfaceDest, rasterLines))
+		return;
 
 	//rasterize the polygon
 	while (!rasterLines.empty()) {
@@ -449,6 +457,8 @@ void TriRasterizer::drawTriangleColor(VertexPC *pTriangle, SurfaceRect *pRectDes
 	}
 }
 
+// pOpts->argbModifier is not supported, drawTriangleTextureColor must be used for it
+// (maybe a fast path should be added for it?)
 void TriRasterizer::drawTriangleTexture(VertexPT *pTriangle, const Surface *pTexture, const RGBPalette *pPalette, SurfaceRect *pRectDest, Surface *pSurfaceDest, DrawOptions *pOpts)
 {
 	if(pSurfaceDest == NULL || pTriangle == NULL || pTexture == NULL || pOpts == NULL)
@@ -457,16 +467,16 @@ void TriRasterizer::drawTriangleTexture(VertexPT *pTriangle, const Surface *pTex
 	if(pTexture->format == SF_8bit && !pPalette)
 		return; //need a palette to convert
 
-	if(pTexture->format == SF_32bit && pOpts->color_key0)
-		return; //Not supported
+	// Not supported, but may as well draw
+	//if(pTexture->format == SF_32bit && pOpts->color_key0)
+	//	return;
 
 	DrawOptions opts = *pOpts;  //Local modifications
 	int alpha;
 	std::queue< DrawingRange< VertexPT > > rasterLines;
-	if (!drawSetup(pTriangle, pRectDest, pSurfaceDest, rasterLines, opts, alpha))
+	if (!simplifyDrawOptions(opts, alpha) ||
+	    !drawSetup(pTriangle, pRectDest, pSurfaceDest, rasterLines))
 		return;
-
-	//opts.argbModifier is not supported, drawTriangleTextureColor must be used for it.
 
 	//rasterize the polygon
 	while (!rasterLines.empty()) {
@@ -475,6 +485,8 @@ void TriRasterizer::drawTriangleTexture(VertexPT *pTriangle, const Surface *pTex
 	}
 }
 
+// Doesn't support pOpts->alpha_channel = false when using opacity/argbModifier.a or vertex alpha.
+// FIXME: Modifies pTriangle!
 void TriRasterizer::drawTriangleTextureColor(VertexPTC *pTriangle, const Surface *pTexture, const RGBPalette *pPalette, SurfaceRect *pRectDest, Surface *pSurfaceDest, DrawOptions *pOpts)
 {
 	if(pSurfaceDest == NULL || pTriangle == NULL || pTexture == NULL || pOpts == NULL)
@@ -483,20 +495,26 @@ void TriRasterizer::drawTriangleTextureColor(VertexPTC *pTriangle, const Surface
 	if(pTexture->format == SF_8bit && !pPalette)
 		return; //need a palette to convert
 
-	if(pTexture->format == SF_32bit && pOpts->color_key0)
-		return; //Not supported
+	// Not supported, but may as well draw
+	//if(pTexture->format == SF_32bit && pOpts->color_key0)
+	//	return;
 
 	DrawOptions opts = *pOpts;  //Local modifications
 	int alpha;
-	std::queue< DrawingRange< VertexPTC > > rasterLines;
-	if (!drawSetup(pTriangle, pRectDest, pSurfaceDest, rasterLines, opts, alpha))
-		return;
 
-	//apply color modifier
-	Color argbModifier = opts.argbModifier;
-	argbModifier.a *= opts.opacity;  //Deal with the redundancy
+	// Apply color modifier and opacity before generating lines
+	opts.argbModifier.a *= max(0.0f, min(1.0f, opts.opacity));  //Deal with the redundancy
 	for (int i = 0; i < 3; i++)
-		pTriangle[i].col.scale(argbModifier);
+		pTriangle[i].col.scale(opts.argbModifier);
+	if ((pTriangle[0].col.a & pTriangle[1].col.a & pTriangle[2].col.a) != 255) {
+		opts.alpha_channel = true;
+		//opts.with_blending = true;  //Allow the user to turn it off if wanted
+	}
+
+	std::queue< DrawingRange< VertexPTC > > rasterLines;
+	if (!simplifyDrawOptions(opts, alpha) ||
+		!drawSetup(pTriangle, pRectDest, pSurfaceDest, rasterLines))
+		return;
 
 	//rasterize the polygon
 	while (!rasterLines.empty()) {
