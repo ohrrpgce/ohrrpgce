@@ -1230,6 +1230,22 @@ script,set dead heroes gain experience,hsd:bit=1,begin
   write preference bit(19, hsd:bit)
 end
 
+script, set turn based battle mode,begin
+  write general(192, 1)
+end
+
+script, get turn based battle mode,begin
+  exit returning(read general(192) == 1)
+end
+
+script, set active time battle mode,begin
+  write general(192, 0)
+end
+
+script, get active time battle mode,begin
+  exit returning(read general(192) == 0)
+end
+
 script,set active battle pause for animations,hsd:bit=1,begin
   write preference bit(23, hsd:bit)
 end

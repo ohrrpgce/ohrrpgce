@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-01-30)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-02-21)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -829,6 +829,7 @@ function toggleContent(target) {
 		<a href="#about-gainherostat">gain hero stat (who, stat, amount, reset to max)</a><br>
 		<a href="#about-gameover">game over</a><br>
 		<a href="#about-getactivebattlepauseonallmenus">get active battle pause on all menus</a><br>
+		<a href="#about-getactivetimebattlemode">get active time battle mode</a><br>
 		<a href="#about-getambientmusic">get ambient music</a><br>
 		<a href="#about-getattackcaption">get attack caption (ID, attack)</a><br>
 		<a href="#about-readattackname">get attack name</a><br>
@@ -978,6 +979,7 @@ function toggleContent(target) {
 		<a href="#about-gettextcolor">get text color(handle)</a><br>
 		<a href="#about-gettileanimationoffset">get tile animation offset (animation pattern, layer)</a><br>
 		<a href="#about-gettoppadding">get top padding (handle)</a><br>
+		<a href="#about-getturnbasedbattlemode">get turn based battle mode</a><br>
 		<a href="#about-getuicolor">get ui color (color, autotoggle)</a><br>
 		<a href="#about-getvertalign">get vert align (handle)</a><br>
 		<a href="#about-getvertanchor">get vert anchor (handle)</a><br>
@@ -1296,6 +1298,7 @@ function toggleContent(target) {
 		<a href="#about-selectmenuitem">select menu item(menu item handle)</a><br>
 		<a href="#about-sendemail">send email (save slot, subject string id, message string id)</a><br>
 		<a href="#about-setactivebattlepauseonallmenus">set active battle pause on all menus (value)</a><br>
+		<a href="#about-setactivetimebattlemode">set active time battle mode</a><br>
 		<a href="#about-setambientmusic">set ambient music (song)</a><br>
 		<a href="#about-setbattlecountdown">set battle countdown (value)</a><br>
 		<a href="#about-setbattlewaitmode">set battle wait mode (state)</a><br>
@@ -1454,6 +1457,7 @@ function toggleContent(target) {
 		<a href="#about-settimer">set timer (id, count, speed, trigger, string, flags)</a><br>
 		<a href="#about-settimerargs">set timer args (id, args...)</a><br>
 		<a href="#about-settoppadding">set top padding (handle, pixels)</a><br>
+		<a href="#about-setturnbasedbattlemode">set turn based battle mode</a><br>
 		<a href="#about-setuicolor">set ui color (color, palette index)</a><br>
 		<a href="#about-setvariable">variable := value</a><br>
 		<a href="#about-setvertalign">set vert align (handle, edge)</a><br>
@@ -3973,8 +3977,15 @@ resume player</pre>
 			<a name="about-teleporttomap"></a>
 				<h4>teleport to map (map, x, y)</h4>
 <p>
-			An alternative to <a href="#about-usedoor" class="ref">use door</a>, teleport to map moves you to a given x,y position on the specified map without the need to create a door-link on the map. Teleport to map does not fade to black. <div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.</div>
+			
+				An alternative to <a href="#about-usedoor" class="ref">use door</a>, teleport to map moves you to a given x,y position (in tiles)
+				on the specified map without the need to create a door-link on the map.
+				Teleport to map does not fade to black.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.
+				</div>
+			
 			
 			
 			
@@ -11486,6 +11497,7 @@ end</pre>
 					<li>menubit:advance text box when menu closes</li>
 					<li>menubit:highlight selection background</li>
 					<li>menubit:remember selection</li>
+					<li>menubit:clamp to screen bounds</li>
 				</ul>
 			
 			
@@ -19303,6 +19315,10 @@ end</pre>
 		<a href="#about-setbattlewaitmode">set battle wait mode (state)</a><br>
 		<a href="#about-getactivebattlepauseonallmenus">get active battle pause on all menus</a><br>
 		<a href="#about-setactivebattlepauseonallmenus">set active battle pause on all menus (value)</a><br>
+		<a href="#about-setturnbasedbattlemode">set turn based battle mode</a><br>
+		<a href="#about-getturnbasedbattlemode">get turn based battle mode</a><br>
+		<a href="#about-setactivetimebattlemode">set active time battle mode</a><br>
+		<a href="#about-getactivetimebattlemode">get active time battle mode</a><br>
 		<a href="#about-showbattlereadymeter">show battle ready meter (state)</a><br>
 		<a href="#about-showbattlehealthmeter">show battle health meter (state)</a><br>
 		<a href="#about-setdeadheroesgainexperience">set dead heroes gain experience (state)</a><br>
@@ -19626,6 +19642,86 @@ end</pre>
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getactivebattlepauseonallmenus" class="ref">get active battle pause on all menus</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setturnbasedbattlemode"></a>
+				<h4>set turn based battle mode</h4>
+<p>
+			
+				Changes the battle mode to turn based.
+				This option is not stored in save-games,
+				so changing it only lasts until the game is quit and reloaded.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getturnbasedbattlemode" class="ref">get turn based battle mode</a>, </li>
+<li>
+<a href="#about-setactivetimebattlemode" class="ref">set active time battle mode</a>, </li>
+<li><a href="#about-getactivetimebattlemode" class="ref">get active time battle mode</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getturnbasedbattlemode"></a>
+				<h4>get turn based battle mode</h4>
+<p>
+			
+				Return true if the battle mode is currently turn based.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setturnbasedbattlemode" class="ref">set turn based battle mode</a>, </li>
+<li>
+<a href="#about-setactivetimebattlemode" class="ref">set active time battle mode</a>, </li>
+<li><a href="#about-getactivetimebattlemode" class="ref">get active time battle mode</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setactivetimebattlemode"></a>
+				<h4>set active time battle mode</h4>
+<p>
+			
+				Changes the battle mode to active time.
+				This option is not stored in save-games,
+				so changing it only lasts until the game is quit and reloaded.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setturnbasedbattlemode" class="ref">set turn based battle mode</a>, </li>
+<li>
+<a href="#about-getturnbasedbattlemode" class="ref">get turn based battle mode</a>, </li>
+<li><a href="#about-getactivetimebattlemode" class="ref">get active time battle mode</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getactivetimebattlemode"></a>
+				<h4>get active time battle mode</h4>
+<p>
+			
+				Return true if the battle mode is currently active time.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setturnbasedbattlemode" class="ref">set turn based battle mode</a>, </li>
+<li>
+<a href="#about-getturnbasedbattlemode" class="ref">get turn based battle mode</a>, </li>
+<li><a href="#about-setactivetimebattlemode" class="ref">set active time battle mode</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -21580,7 +21676,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 916 commands (of which 12 are aliases), 27 constants and 12 definitions of types and other terms in this file.</p>
+<p>Stats: There are 920 commands (of which 12 are aliases), 27 constants and 12 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

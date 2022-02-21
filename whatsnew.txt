@@ -60,6 +60,8 @@ WHAT IS NEW?
       out of, for 15 years already, but it wasn't documented [Ralph]
     * When a slice command shows an error you can jump to the slice in the slice
       debugger/editor [Ralph]
+    * "get/set turn based battle mode" and "get/set active time battle mode"
+      [James]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

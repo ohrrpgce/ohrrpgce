@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-01-30">
+<plotscript version="wip" datecode="2022-02-21">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -11406,6 +11406,58 @@ end</example>
 				so changing it only lasts until the game is quit and reloaded.
 			</description>
 			<seealso><ref>getactivebattlepauseonallmenus</ref></seealso>
+		</command>
+		<command id="setturnbasedbattlemode">
+			<canon>set turn based battle mode</canon>
+			<shortname>set turn based battle mode</shortname>
+			<description>
+				Changes the battle mode to turn based.
+				This option is not stored in save-games,
+				so changing it only lasts until the game is quit and reloaded.
+			</description>
+			<seealso>
+				<ref>getturnbasedbattlemode</ref>
+				<ref>setactivetimebattlemode</ref>
+				<ref>getactivetimebattlemode</ref>
+			</seealso>
+		</command>
+		<command id="getturnbasedbattlemode">
+			<canon>get turn based battle mode</canon>
+			<shortname>get turn based battle mode</shortname>
+			<description>
+				Return true if the battle mode is currently turn based.
+			</description>
+			<seealso>
+				<ref>setturnbasedbattlemode</ref>
+				<ref>setactivetimebattlemode</ref>
+				<ref>getactivetimebattlemode</ref>
+			</seealso>
+		</command>
+		<command id="setactivetimebattlemode">
+			<canon>set active time battle mode</canon>
+			<shortname>set active time battle mode</shortname>
+			<description>
+				Changes the battle mode to active time.
+				This option is not stored in save-games,
+				so changing it only lasts until the game is quit and reloaded.
+			</description>
+			<seealso>
+				<ref>setturnbasedbattlemode</ref>
+				<ref>getturnbasedbattlemode</ref>
+				<ref>getactivetimebattlemode</ref>
+			</seealso>
+		</command>
+		<command id="getactivetimebattlemode">
+			<canon>get active time battle mode</canon>
+			<shortname>get active time battle mode</shortname>
+			<description>
+				Return true if the battle mode is currently active time.
+			</description>
+			<seealso>
+				<ref>setturnbasedbattlemode</ref>
+				<ref>getturnbasedbattlemode</ref>
+				<ref>setactivetimebattlemode</ref>
+			</seealso>
 		</command>
 		<command id="showbattlereadymeter">
 			<canon>show battle ready meter (state)</canon>
