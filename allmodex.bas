@@ -10153,7 +10153,13 @@ end sub
 #ifdef USE_RASTERIZER
 
 ' Draw a Frame with position and transformation specified by an AffineTransform.
-sub frame_draw_transformed(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, transf as AffineTransform, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
+' Supports 8 & 32-bit Frames, including alpha channels. (Respects opts.alpha_channel.)
+' Supports opts.with_blending, opts.blend_mode, and opts.argbModifier in addition to opts.opacity.
+' Does not support masks on 8-bit Frames, or color_key0 on 32-bit Frames.
+' Does not support opts.alpha_channel=NO when using opacity/argbModifier.a or vertex alpha.
+' Optionally, can pass in an array of 4 colours (clockwise from bottomleft) to interpolate
+' colour (and alpha) modulation across the image.
+sub frame_draw_transformed(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, transf as AffineTransform, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions, vertex_cols as RGBcolor ptr = NULL)
 	dim vertices(3) as VertexPT
 	'Clockwise from bottom-left
 	vertices(0).tex.u = 0
@@ -10171,7 +10177,7 @@ sub frame_draw_transformed(src as Frame ptr, masterpal() as RGBcolor, pal as Pal
 		vertices(0).pos = .bottomleft - 0.01
 		vertices(1).pos = .topleft - 0.01
 		vertices(2).pos = .topright - 0.01
-		'vertices(3).pos = .bottomright
+		'vertices(3).pos = .bottomright - 0.01
 		vertices(3).pos = XYF(.bottomleft.x + (.topright.x - .topleft.x), .bottomleft.y + (.topright.y - .topleft.y))
 	end with
 
@@ -10188,8 +10194,56 @@ sub frame_draw_transformed(src as Frame ptr, masterpal() as RGBcolor, pal as Pal
 	dim destrect as SurfaceRect = (cliprect.l, cliprect.t, cliprect.r, cliprect.b)
 
 	opts.color_key0 = trans  'Clobbers def_drawoptions.color_key0
-	gfx_renderQuadTexture(@vertices(0), src_surface, gfxpal, @destrect, dest_surface, @opts)
+
+	if opts.with_blending andalso opts.argbModifier.col <> -1 andalso vertex_cols = NULL then
+		'gfx_renderQuadTexture doesn't support argbModifier
+		static white(3) as RGBcolor = {(-1), (-1), (-1), (-1)}
+		vertex_cols = @white(0)
+		'(Possible optimisation: if only argbModifier.a is set, set opts.opacity instead)
+	end if
+
+	if vertex_cols then
+		dim ptcvertices(3) as VertexPTC
+		for i as integer = 0 to 3
+			ptcvertices(i).tex = vertices(i).tex
+			ptcvertices(i).pos = vertices(i).pos
+			ptcvertices(i).col = vertex_cols[i]
+		next
+		gfx_renderQuadTextureColor(@ptcvertices(0), src_surface, gfxpal, @destrect, dest_surface, @opts)
+	else
+		gfx_renderQuadTexture(@vertices(0), src_surface, gfxpal, @destrect, dest_surface, @opts)
+	end if
 	def_drawoptions.color_key0 = NO
+end sub
+
+' Draw a paralleogram with a colour gradient between its corners.
+' Supports opts.with_blending, opts.blend_mode, and opts.argbModifier in addition to opts.opacity
+' opts.alpha_channel ignored.
+sub rectangle_transformed(cols() as RGBcolor, transf as AffineTransform, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
+	BUG_IF(ubound(cols) <> 3, "expect 4 colors")
+
+	dim vertices(3) as VertexPC
+	'Clockwise from bottom-left
+	with transf
+		vertices(0).pos = .bottomleft - 0.01
+		vertices(1).pos = .topleft - 0.01
+		vertices(2).pos = .topright - 0.01
+		'vertices(3).pos = .bottomright - 0.01
+		vertices(3).pos = XYF(.bottomleft.x + (.topright.x - .topleft.x), .bottomleft.y + (.topright.y - .topleft.y))
+	end with
+	for i as integer = 0 to 3
+		vertices(i).col = cols(i)
+	next
+
+	'Get Surface shims around Frames as needed
+	dim as Surface tempdest_surface = any
+	dim dest_surface as Surface ptr = surface_shim(dest, @tempdest_surface)
+	if dest_surface = 0 then return
+
+	dim byref cliprect as ClipState = get_cliprect(dest)
+	dim destrect as SurfaceRect = (cliprect.l, cliprect.t, cliprect.r, cliprect.b)
+
+	gfx_renderQuadColor(@vertices(0), @destrect, dest_surface, @opts)
 end sub
 
 'Calculate an AffineTransform of a slice of given 'size' by first stretching by 'zoom',
