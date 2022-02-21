@@ -19,18 +19,18 @@ using std::min;
 uint8_t Tex2DSampler::sample8bit(const Surface* pTexture, FPInt u, FPInt v)
 {
 	// Keep fractional part only; this tiles the texture across the polygon
-	u.whole = 0;
+	u.fractionOnly();
 	// Scale from real-valued [0, 1) to integer-valued [0-texture.width)
 	u *= pTexture->width;
-	v.whole = 0;
+	v.fractionOnly();
 	v *= pTexture->height;
 	return pTexture->pPaletteData[v.whole * pTexture->pitch + u.whole];
 }
 Color Tex2DSampler::sample32bit(const Surface* pTexture, FPInt u, FPInt v)
 {
-	u.whole = 0;
+	u.fractionOnly();
 	u *= pTexture->width;
-	v.whole = 0;
+	v.fractionOnly();
 	v *= pTexture->height;
 	return pTexture->pColorData[v.whole * pTexture->pitch + u.whole];
 }

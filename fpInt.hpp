@@ -12,6 +12,7 @@
 #define FPINT_H
 
 #include <stdint.h>
+#include "matrixMath.h"
 
 struct FPInt
 {
@@ -24,6 +25,8 @@ struct FPInt
 			int32_t whole : 16;     //high word
 		};
 	};
+	// Equivalent to but far faster than whole = 0;, which optimising compilers hate
+	void fractionOnly() { raw &= 0xffff; }
 
 	//math operators
 	FPInt operator+ (const FPInt& rhs) const {FPInt ret; ret.raw = raw + rhs.raw; return ret;}
@@ -37,6 +40,11 @@ struct FPInt
 		long long n = (long long)raw * (long long)rhs.raw; 
 		FPInt ret; 
 		ret.raw = (int32_t)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
+		return ret;
+	}
+	FPInt operator* (int rhs) const {
+		FPInt ret;
+		ret.raw = raw * rhs;
 		return ret;
 	}
 	FPInt operator/ (const FPInt& rhs) const {
@@ -66,6 +74,7 @@ struct FPInt
 		raw = (int32_t)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
 		return *this;
 	}
+	FPInt& operator*= (int rhs) {raw *= rhs; return *this;}
 	FPInt& operator/= (const FPInt& rhs) {
 		long long n = ((long long)raw) << 16; //shift first item up by 16 bits
 		n /= (long long)rhs.raw;
@@ -133,5 +142,18 @@ struct FPInt
 	FPInt(unsigned int n) : raw(0) {whole = n;}
 	FPInt(unsigned long long n) : raw(0) {whole = n;}
 };
+
+// Unused. Just enough methods to use as TexCoord
+struct FPInt2 {
+	FPInt u,v;
+	FPInt2() : u(0), v(0) {}
+	FPInt2(FPInt U, FPInt V) : u(U), v(V) {}
+	FPInt2(const float2& coord) : u(coord.u), v(coord.v) {}
+	operator float2() const {return float2{{{u, v}}};}
+	FPInt2 operator- (const FPInt2& rhs) const {return FPInt2{u - rhs.u, v - rhs.v};}
+	FPInt2& operator+= (const FPInt2& rhs) {u += rhs.u; v += rhs.v; return *this;}
+	FPInt2& operator*= (float rhs) {u *= rhs; v *= rhs; return *this;}
+};
+
 
 #endif

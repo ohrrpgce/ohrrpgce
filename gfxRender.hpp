@@ -40,11 +40,19 @@ struct Color
 	operator RGBcolor() const { return RGBcolor{.col=dw}; }
 	void scale(Color argbModifier)
 	{
+		
+		// a = (a * argbModifier.a + 255) / 256;
+		// r = (r * argbModifier.r + 255) / 256;
+		// g = (g * argbModifier.g + 255) / 256;
+		// b = (b * argbModifier.b + 255) / 256;
+
 		a = a * argbModifier.a / 255;
 		r = r * argbModifier.r / 255;
 		g = g * argbModifier.g / 255;
 		b = b * argbModifier.b / 255;
 	}
+	//void scale(Color16 argbModifier);
+
 	void scale(Color c2, uint8_t weight)
 	{
 		a = (a*weight + c2.a*(255-weight)) / 255;
@@ -65,7 +73,7 @@ struct Color16
 
 	}
 	operator Color() const {
-		return Color(comp[0]/128, comp[1]/128, comp[2]/128, comp[3]/128);
+		return Color(comp[0]>>7, comp[1]>>7, comp[2]>>7, comp[3]>>7);
 	}
 	Color16& operator+=(const Color16 &c2) {
 		for (int i = 0; i < 4; i++)
@@ -84,6 +92,15 @@ struct Color16
 			comp[i] = (comp[i]*weight + c2.comp[i]*(1.-weight));
 	}
 };
+
+/* This overload slows down most code paths a little, though did speed up rasterTextureColor in clang
+inline void Color::scale(Color16 argbModifier)	{
+	b = b * argbModifier.comp[0] >> 15;
+	g = g * argbModifier.comp[1] >> 15;
+	r = r * argbModifier.comp[2] >> 15;
+	a = a * argbModifier.comp[3] >> 15;
+}
+*/
 
 struct VertexPC
 {
