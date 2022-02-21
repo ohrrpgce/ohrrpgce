@@ -11,9 +11,22 @@
 #include <stdint.h>
 #include "matrixMath.h"
 #include "surface.h"
+#include "fpInt.hpp"
 
 typedef float2 Position;
 typedef float2 TexCoord;
+
+#if INTPTR_MAX == INT64_MAX
+// 64 bit target.
+// GCC 10 and Clang 12 both produce significantly faster code for x86_64 (see commit)
+// using fixed precision texel coords. But at least on x86 with GCC, this is a lot slower.
+typedef FPInt TexInc;
+typedef FPInt2 TexCoordInc;
+#else
+// 32 bit.
+typedef float TexInc;
+typedef float2 TexCoordInc;
+#endif
 
 //argb dword
 struct Color
@@ -139,24 +152,32 @@ struct VertexPT
 {
 	Position pos;
 	TexCoord tex;
-	typedef VertexPT IncType;
+	struct VertexPTInc {
+		Position pos;
+		TexCoordInc tex;
 
-	//VertexPT() : pos(), tex() {}
-	void interpolateComponents(const VertexPT& v2, float scale) {
-		float invScale(-scale + 1.0f);
-		pos = pos * scale + v2.pos * invScale;
-		tex.u = scale * tex.u + invScale * v2.tex.u;
-		tex.v = scale * tex.v + invScale * v2.tex.v;
-	}
-	void scaleDownUV() { tex *= 65535./65536.; }
-	VertexPT &operator+=(const VertexPT& v2) {
-		pos += v2.pos;
-		tex += v2.tex;
-		return *this;
-	}
-	IncType operator-(const VertexPT& v2) const {
-		return VertexPT{pos - v2.pos, tex - v2.tex};
-	}
+		void interpolateComponents(const VertexPTInc& v2, float scale) {
+			float invScale(1.0f - scale);
+			pos = pos * scale + v2.pos * invScale;
+			tex.u = (TexInc)scale * tex.u + (TexInc)invScale * v2.tex.u;
+			tex.v = (TexInc)scale * tex.v + (TexInc)invScale * v2.tex.v;
+		}
+		void scaleDownUV() { tex.u *= 65535./65536.; tex.v *= 65535./65536.; }
+		VertexPTInc &operator+=(const VertexPTInc& v2) {
+			pos += v2.pos;
+			tex += v2.tex;
+			return *this;
+		}
+		VertexPTInc operator-(const VertexPTInc& v2) const {
+			return VertexPTInc{pos - v2.pos, tex - v2.tex};
+		}
+	};
+	typedef VertexPTInc IncType;
+
+	VertexPT() : pos(), tex() {}
+	VertexPT(IncType v) : pos(v.pos), tex(v.tex) {}
+	operator IncType() const { return IncType{pos, tex}; }
+
 };
 
 struct VertexPTC
@@ -168,18 +189,21 @@ struct VertexPTC
 	// For measuring small increments in VertexPTC
 	struct VertexPTC16 {
 		Position pos;
-		TexCoord tex;
+		TexCoordInc tex;
 		Color16 col;
 		//VertexPTC16(VertexPTC v) : pos(v.pos), tex(v.tex), col(v.col) {}
 
 		void interpolateComponents(const VertexPTC16& v2, float scale) {
-			float invScale(-scale + 1.0f);
+			float invScale(1.0f - scale);
 			pos = pos * scale + v2.pos * invScale;
-			tex.u = scale * tex.u + invScale * v2.tex.u;
-			tex.v = scale * tex.v + invScale * v2.tex.v;
+			tex.u = (TexInc)scale * tex.u + (TexInc)invScale * v2.tex.u;
+			tex.v = (TexInc)scale * tex.v + (TexInc)invScale * v2.tex.v;
 			col.scale(v2.col, scale);
 		}
-		void scaleDownUV() { tex *= 65535./65536.; }
+		void scaleDownUV() { tex.u *= 65535./65536.; tex.v *= 65535./65536.; }
+
+		//void scaleDownUV() { tex *= 65535./65536.; }
+//		void scaleDownUV() { tex *= FPInt{65535}; }
 		VertexPTC16 &operator+=(const VertexPTC16& v2) {
 			pos += v2.pos;
 			tex += v2.tex;
@@ -194,7 +218,7 @@ struct VertexPTC
 
 	VertexPTC() : pos(), tex(), col() {}
 	VertexPTC(IncType v) : pos(v.pos), tex(v.tex), col(v.col) {}
-	operator IncType() const { return VertexPTC16{pos, tex, col}; }
+	operator IncType() const { return IncType{pos, tex, col}; }
 };
 
 //The following interface is implemented in surface.cpp

@@ -269,7 +269,7 @@ void TriRasterizer::rasterColor(const DrawingRange<VertexPC> &range, Surface *re
 }
 
 //Read a texel from the texture, return false to discard it
-inline bool readTexel(Color &srcColor, const Surface *pTexture, const TexCoord &texel, const RGBPalette *pPalette, int colorKey) {
+inline bool readTexel(Color &srcColor, const Surface *pTexture, const TexCoordInc &texel, const RGBPalette *pPalette, int colorKey) {
 	if (pTexture->format == SF_8bit) {
 		uint8_t index = Tex2DSampler::sample8bit(pTexture, texel.u, texel.v);
 		if (index == colorKey)
