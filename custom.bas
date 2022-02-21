@@ -24,6 +24,7 @@
 #include "distribmenu.bi"
 #include "thingbrowser.bi"
 #include "plankmenu.bi"
+#include "editorkit.bi"
 #include "custom.bi"
 
 #IFDEF USE_RASTERIZER
@@ -1568,16 +1569,44 @@ END SUB
 
 #IFDEF USE_RASTERIZER
 
+TYPE RGBAEditor EXTENDS Editorkit
+ DECLARE SUB define_items()
+ DECLARE SUB edit_byte(title as string, byref byt as ubyte)
+ col as RGBcolor ptr
+END TYPE
+
+SUB RGBAEditor.edit_byte(title as string, byref byt as ubyte)
+ defitem title
+ DIM temp as integer = byt
+ edit_int temp, 0, 255
+ byt = temp
+ finish_defitem  'Because temp falls out of scope, get rid of pointer to it
+END SUB
+
+SUB RGBAEditor.define_items()
+ edit_byte "R:", col->r
+ edit_byte "G:", col->g
+ edit_byte "B:", col->b
+ edit_byte "Alpha:", col->a
+END SUB
+
+
 SUB quad_transforms_menu ()
  DIM info as string = _
      !"F3: switch 8/32 bit, F4: cycle dither algo\n" _
+     !"D: cycle draw type\n" _
      !"Arrows: scale X and Y\n" _
      !"<, >: change angle\n" _
-     !"[, ]: change spritetype\n" _
-     !"N/M: change sprite\n" _
-     !"T: toggle blending\n" _
+     !"-, +: change spritetype\n" _
+     !"[, ]: change spriteset\n" _
      !"O/P: adjust opacity\n" _
+     !"T: toggle blending\n" _
      !"B: cycle blend mode\n" _
+     !"1-4: set vertex colors\n" _
+     !"5: set shared colormod\n" _
+
+ DIM drawnames(2) as zstring ptr = {@"Texture", @"TextureColor", @"Color"}
+ DIM blendnames(blendModeLAST) as zstring ptr = {@"Normal", @"Add", @"Multply"}
 
  blend_algo = gen(gen8bitBlendAlgo)
  DIM need_update as bool = YES
@@ -1586,15 +1615,20 @@ SUB quad_transforms_menu ()
  DIM sprpair as GraphicPair
 
  DIM drawopts as DrawOptions
- drawopts.with_blending = yes
+ drawopts.with_blending = YES
  drawopts.opacity = 0.5
  DIM angle as single = 45
- DIM scale as Float2 = (3.0, 3.0)
+ DIM scale as Float2 = (7, 7)
  DIM position as Float2 = (vpages(vpage)->w / 2, vpages(vpage)->h / 2)
 
  switch_to_32bit_vpages()
 
  DIM as SmoothedTimer normdrawtime, qdrawtime, mathtime
+
+ DIM drawmode as integer
+ DIM cols(3) as RGBcolor = {(-1), (-1), (-1), (-1)}
+ DIM rgba_edit as RGBAEditor
+
 
  DO
   setwait 55
@@ -1625,22 +1659,30 @@ SUB quad_transforms_menu ()
   IF keyval(ccDown)  THEN scale.y += 0.1
   IF keyval(scLeftCaret)  THEN angle -= 5
   IF keyval(scRightCaret) THEN angle += 5
-  IF keyval(scLeftBracket) > 1 THEN loopvar spritemode, -1, sprTypeBackdrop, -1: need_update = YES
-  IF keyval(scRightBracket) > 1 THEN loopvar spritemode, -1, sprTypeBackdrop, 1: need_update = YES
-  IF keyval(scN) > 1 THEN loopvar spriteid, 0, sprite_sizes(spritemode).lastrec, -1: need_update = YES
-  IF keyval(scM) > 1 THEN loopvar spriteid, 0, sprite_sizes(spritemode).lastrec, 1: need_update = YES
+  IF keyval(scD) > 1 THEN loopvar drawmode, 0, 2
+  IF keyval(scMinus) > 1 THEN loopvar spritemode, -1, sprTypeBackdrop, -1: need_update = YES
+  IF keyval(scPlus) > 1 THEN loopvar spritemode, -1, sprTypeBackdrop, 1: need_update = YES
+  IF keyval(scLeftBracket) > 1 THEN loopvar spriteid, 0, sprite_sizes(spritemode).lastrec, -1: need_update = YES
+  IF keyval(scRightBracket) > 1 THEN loopvar spriteid, 0, sprite_sizes(spritemode).lastrec, 1: need_update = YES
+  IF keyval(scN) > 1 THEN loopvar drawopts.scale, 0, 10, -1
+  IF keyval(scM) > 1 THEN loopvar drawopts.scale, 0, 10, 1
   IF keyval(scO) > 1 THEN drawopts.opacity -= 0.05
   IF keyval(scP) > 1 THEN drawopts.opacity += 0.05
   IF keyval(scB) > 1 THEN loopvar drawopts.blend_mode, 0, blendModeLAST
   IF keyval(scT) > 1 THEN drawopts.with_blending xor= true
+  'IF keyval(scA) > 1 THEN drawopts.alpha_channel xor= true  'Does nothing without a Frame with alpha channel
+  IF keyval(sc1) > 1 THEN rgba_edit.col = @cols(0) : rgba_edit.run()
+  IF keyval(sc2) > 1 THEN rgba_edit.col = @cols(1) : rgba_edit.run()
+  IF keyval(sc3) > 1 THEN rgba_edit.col = @cols(2) : rgba_edit.run()
+  IF keyval(sc4) > 1 THEN rgba_edit.col = @cols(3) : rgba_edit.run()
+  IF keyval(sc5) > 1 THEN rgba_edit.col = @drawopts.argbModifier : rgba_edit.run()
 
   draw_background vpages(vpage)
+  textcolor uilook(uiText), 0
   wrapprint info, 0, 0, , vpage
-  DIM opts as DrawOptions
-  'opts.scale = 2  'Not supported for 32-bit frames
 
   normdrawtime.start()
-  frame_draw sprpair.sprite, sprpair.pal, 20, 50, , vpages(vpage), drawopts
+  frame_draw sprpair.sprite, sprpair.pal, pCentered + 30, 50, , vpages(vpage), drawopts
   normdrawtime.stop()
 
   mathtime.start()
@@ -1649,15 +1691,22 @@ SUB quad_transforms_menu ()
   mathtime.stop()
 
   qdrawtime.start()
-  frame_draw_transformed sprpair.sprite, master(), sprpair.pal, transf, YES, vpages(vpage), drawopts
+  select case drawmode
+   case 0:
+    frame_draw_transformed sprpair.sprite, master(), sprpair.pal, transf, YES, vpages(vpage), drawopts
+   case 1:
+    frame_draw_transformed sprpair.sprite, master(), sprpair.pal, transf, YES, vpages(vpage), drawopts, @cols(0)
+   case 2:
+    rectangle_transformed cols(), transf, vpages(vpage), drawopts
+  end select
   qdrawtime.stop()
 
-  wrapprint strprintf(!"Spritetype %d spriteid %d scale %.1f,%.1f angle %.0f opacity %d%% \n" _
+  wrapprint strprintf(!"%s Sprite: type %d id %d; scale %.1f,%.1f angle %.0f opacity %d%% \n" _
                       !"Normal draw: %dus, quad draw: %dus, math in %.1fus\n" _
-                      !"%d-bit display ditheralgo %d blending %d blendmode %d\n", _
-                      spritemode, spriteid, scale.x, scale.y, angle, cint(drawopts.opacity * 100), _
+                      !"%d-bit display ditheralgo %d blending %d %s\n", _
+                      drawnames(drawmode), spritemode, spriteid, scale.x, scale.y, angle, cint(drawopts.opacity * 100), _
                       cint(normdrawtime.smoothtime * 1e6), cint(qdrawtime.smoothtime * 1e6), mathtime.smoothtime * 1e6, _
-                      iif(vpages_are_32bit, 32, 8), blend_algo, drawopts.with_blending, drawopts.blend_mode), _
+                      iif(vpages_are_32bit, 32, 8), blend_algo, drawopts.with_blending, blendnames(drawopts.blend_mode)), _
             0, pBottom, , vpage
 
   setvispage vpage

@@ -161,7 +161,6 @@ type EditorKit extends ModularMenu
 	declare function each_tick() as bool
 	declare sub draw_overlays()
 	declare sub run_phase(which_phase as Phases)
-	declare sub finish_defitem()
 	declare sub write_value()
 
   public:
@@ -200,6 +199,8 @@ type EditorKit extends ModularMenu
 	declare sub defbool overload(title as zstring ptr, byref datum as boolean)
 	declare sub defbitset(title as zstring ptr, bitwords() as integer, wordnum as integer = 0, bitnum as integer)
 	declare sub defstr(title as zstring ptr, byref datum as string, maxlen as integer = 0)
+
+	declare sub finish_defitem()
 
 	'---- Captions
 	declare sub set_caption(caption as zstring ptr)
