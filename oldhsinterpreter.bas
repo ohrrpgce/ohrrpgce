@@ -238,7 +238,7 @@ DO
          pushstack(scrst, 2)
          pushstack(scrst, 0) '-- dummy value
         ELSEIF .depth < 0 THEN
-         showbug "continue used outside of a do(), script will be exited"
+         scripterr "continue used outside of a do(), script will be exited", serrBadOp
         ELSEIF NOT (curcmd->kind = tyflow AND (curcmd->value = flowfor OR curcmd->value = flowwhile)) THEN
          '--if this do isn't a for's or while's, then just repeat it, discarding the returned value
          scrst.pos -= 1
