@@ -270,14 +270,13 @@ void TriRasterizer::rasterColor(const DrawingRange<VertexPC> &range, Surface *pS
 
 //Read a texel from the texture, return false to discard it
 inline bool readTexel(Color &srcColor, const Surface *pTexture, const TexCoord &texel, const RGBPalette *pPalette, int colorKey) {
-	if (pTexture->format == SF_32bit)
-		srcColor = Tex2DSampler::sample32bit(pTexture, texel.u, texel.v);
-	else {
+	if (pTexture->format == SF_8bit) {
 		uint8_t index = Tex2DSampler::sample8bit(pTexture, texel.u, texel.v);
 		if (index == colorKey)
 			return false;
 		srcColor = Color(pPalette->col[index]);
-	}
+	} else
+		srcColor = Tex2DSampler::sample32bit(pTexture, texel.u, texel.v);
 	return true;
 }
 
@@ -305,23 +304,32 @@ void TriRasterizer::rasterTexture(const DrawingRange<VertexPT> &range, const Sur
 				finalColor = srcColor;
 			*pDest = finalColor;
 		}
-
 	} else {
 		uint8_t *pDest8 = &pSurfaceDest->pPaletteData[y * pSurfaceDest->pitch + startx];
-		int tog = (startx ^ y) & 1; //Ideally would use x,y relative to topleft of the quad instead
-		RGBerrors rgberr = {};
 
-		for (int x = startx; x <= finishx; x++, pDest8++, point += pointInc) {
-			tog ^= 1;
-			if (!readTexel(srcColor, pTexture, point.tex, pPalette, colorKey))
-				continue;
+		if (pTexture->format == SF_8bit && !pOpts->with_blending) {
+			// Fast path: can copy 8-bit indices without going to 32-bit and back
+			for (int x = startx; x <= finishx; x++, pDest8++, point += pointInc) {
+				uint8_t index = Tex2DSampler::sample8bit(pTexture, point.tex.u, point.tex.v);
+				if (index != colorKey)
+					*pDest8 = index;
+			}
+		} else {
+			int tog = (startx ^ y) & 1; //Ideally would use x,y relative to topleft of the quad instead
+			RGBerrors rgberr = {};
 
-			if (pOpts->with_blending) {
-				destColor = curmasterpal[*pDest8];
-				finalColor = alpha_blend(srcColor, destColor, alpha, pOpts->blend_mode, pOpts->alpha_channel).col;
-			} else
-				finalColor = srcColor;
-			*pDest8 = map_rgb_to_masterpal(finalColor, &rgberr, tog, (x & y));
+			for (int x = startx; x <= finishx; x++, pDest8++, point += pointInc) {
+				tog ^= 1;
+				if (!readTexel(srcColor, pTexture, point.tex, pPalette, colorKey))
+					continue;
+
+				if (pOpts->with_blending) {
+					destColor = curmasterpal[*pDest8];
+					finalColor = alpha_blend(srcColor, destColor, alpha, pOpts->blend_mode, pOpts->alpha_channel).col;
+				} else
+					finalColor = srcColor;
+				*pDest8 = map_rgb_to_masterpal(finalColor, &rgberr, tog, (x & y));
+			}
 		}
 	}
 }
