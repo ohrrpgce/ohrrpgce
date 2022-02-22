@@ -1626,10 +1626,34 @@ SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as B
   IF bspr.ready = YES THEN col = uiTimeBarFull * -1 - 1
   RecursivelyUpdateColor ready_meter, col, uiTimeBar * -1 - 1, uiTimeBarFull * -1 - 1
   'Update meter percent
-  DIM meter_body as Slice Ptr = LookupSlice(SL_BATTLE_READY_METER_PANEL, sl)
+  DIM meter_body as Slice Ptr = LookupSlice(SL_BATTLE_READY_METER_PANEL, ready_meter)
   IF meter_body THEN
    IF meter_body->SliceType = slPanel THEN
     ChangePanelSlice meter_body, , , , bspr.ready_meter / 1000
+   END IF
+  END IF
+ END IF
+ 
+ DIM hp_meter as Slice Ptr = LookupSlice(SL_BATTLE_HP_METER, sl)
+ IF hp_meter THEN
+  DIM hidehp as bool = NO
+  IF is_hero(bspr.index) THEN hidehp = should_hide_hero_stat(gam.hero(bspr.index).id, statHP)
+  hp_meter->Visible = (prefbit(7) = NO ANDALSO hidehp = NO)
+  'FIXME: The old update_stat_meter function can be cleaned up when the old meter drawing code goes away
+  'Lifemeter length of 87 is what the old drawing code used, can change it when that code is removed
+  'last two color arguments don't matter as we re-do them right afterwards
+  update_stat_meter bat, bspr.lifemeter, 87, bspr.stat.cur.hp, bspr.stat.max.hp, uiHealthBar, col
+  'Update color for real
+  col = uiHealthBar * -1 - 1
+  IF bspr.lifemeter = 87 ANDALSO bspr.stat.cur.hp > bspr.stat.max.hp ANDALSO bat.menu_mode = batMENUHERO ANDALSO bat.tog <> 0 THEN
+   col = uiHealthBarFlash * -1 - 1
+  END IF
+  RecursivelyUpdateColor hp_meter, col, uiHealthBar * -1 - 1, uiHealthBarFlash * -1 - 1
+  'Update meter percent
+  DIM meter_body as Slice Ptr = LookupSlice(SL_BATTLE_HP_METER_PANEL, hp_meter)
+  IF meter_body THEN
+   IF meter_body->SliceType = slPanel THEN
+    ChangePanelSlice meter_body, , , , bspr.lifemeter / 87
    END IF
   END IF
  END IF

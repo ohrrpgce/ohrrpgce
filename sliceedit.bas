@@ -2605,6 +2605,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   append_simplemenu_item menu, "battle_ready_meter_panel", , , -200104
   append_simplemenu_item menu, "battle_hp_meter", , , -200105
   append_simplemenu_item menu, "battle_hp_meter_panel", , , -200106
+  append_simplemenu_item menu, "battle_text_selected_player", , , -200107
 '</SLICE LOOKUP NAMES>
 
  END IF

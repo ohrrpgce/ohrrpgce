@@ -458,6 +458,7 @@ FUNCTION SliceLookupCodename (byval code as integer, use_default as bool = YES) 
   CASE SL_BATTLE_READY_METER_PANEL: RETURN "battle ready meter panel"
   CASE SL_BATTLE_HP_METER: RETURN "battle hp meter"
   CASE SL_BATTLE_HP_METER_PANEL: RETURN "battle hp meter panel"
+  CASE SL_BATTLE_TEXT_SELECTED_PLAYER: RETURN "battle text selected player"
 '</SLICE LOOKUP NAMES>
   CASE IS > 0
    'TODO: cache slicelookup() in memory.
