@@ -109,6 +109,7 @@ DECLARE FUNCTION find_attack_in_spell_menu(byval seek_atk_id as integer, bat as 
 DECLARE FUNCTION create_default_battle_ui_layer() as Slice Ptr
 DECLARE FUNCTION create_default_battle_ready_area() as Slice Ptr
 DECLARE FUNCTION create_default_battle_hp_area() as Slice Ptr
+DECLARE SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
@@ -1593,21 +1594,45 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
   
   FOR i as integer = 0 TO 3 '--for each hero
    '--Get the child slice for this hero slot
-   ch = SliceChildByIndex(area, i + 1)
+   ch = SliceChildByIndex(area, i)
    IF ch THEN
     DIM hero_present as bool = gam.hero(i).id >= 0'--FIXME: should use some battle state instead of global state to
                                '--determine if the hero is present.
     ch->Visible = hero_present
+    
+    IF hero_present THEN
+      update_battle_hero_info_slice ch, bat, bslot(i)
+    END IF
    
    END IF
   NEXT i
   
   area = LookupSlice(SL_BATTLE_HERO_INFO_AREA, ui_layer, , area)
  LOOP
- 
 
  'FIXME: temporarily only show when test_future is on
  ui_layer->Visible = bat.test_future
+END SUB
+
+SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
+ IF sl = 0 THEN EXIT SUB 
+ DIM col as integer
+ 
+ DIM ready_meter as Slice Ptr = LookupSlice(SL_BATTLE_READY_METER, sl)
+ IF ready_meter THEN
+  ready_meter->Visible = (prefbit(6) = NO) '"Hide ready-meter" off
+  'Update TimeBar colors
+  col = uiTimeBar * -1 - 1
+  IF bspr.ready = YES THEN col = uiTimeBarFull * -1 - 1
+  RecursivelyUpdateColor ready_meter, col, uiTimeBar * -1 - 1, uiTimeBarFull * -1 - 1
+  'Update meter percent
+  DIM meter_body as Slice Ptr = LookupSlice(SL_BATTLE_READY_METER_PANEL, sl)
+  IF meter_body THEN
+   IF meter_body->SliceType = slPanel THEN
+    ChangePanelSlice meter_body, , , , bspr.ready_meter / 1000
+   END IF
+  END IF
+ END IF
  
 END SUB
 
