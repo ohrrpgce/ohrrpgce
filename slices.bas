@@ -4267,6 +4267,44 @@ Function FindTextSliceStringRecursively(sl as slice ptr, query as string) as Sli
  return 0
 End Function
 
+Sub RecursivelyUpdateColor(sl as Slice Ptr, newcol as integer, oldcol1 as integer, oldcol2 as integer)
+ UpdateColor sl, newcol, oldcol1, oldcol2
+ dim ch as Slice Ptr = sl->FirstChild
+ do while ch
+  if not ShouldSkipSlice(ch, YES) then
+   'Only bother with visible non-template slices
+   RecursivelyUpdateColor ch, newcol, oldcol1, oldcol2
+  end if
+  ch = ch->NextSibling
+ loop
+End Sub
+
+Sub UpdateColor (sl as Slice Ptr, newcol as integer, oldcol1 as integer, oldcol2 as integer)
+ if sl->SliceType = slRectangle then
+  with *sl->RectData
+   if .fgcol = oldcol1 or .fgcol = oldcol2 then .fgcol = newcol
+   if .bgcol = oldcol1 or .bgcol = oldcol2 then .bgcol = newcol
+  end with
+ end if
+ if sl->SliceType = slLine then
+  with *sl->LineData
+   if .col = oldcol1 or .col = oldcol2 then .col = newcol
+  end with
+ end if
+ if sl->SliceType = slText then
+  with *sl->TextData
+   if .col = oldcol1 or .col = oldcol2 then .col = newcol
+   if .bgcol = oldcol1 or .bgcol = oldcol2 then .bgcol = newcol
+  end with
+ end if
+ if sl->SliceType = slEllipse then
+  with *sl->EllipseData
+   if .bordercol = oldcol1 or .bordercol = oldcol2 then .bordercol = newcol
+   if .fillcol = oldcol1 or .fillcol = oldcol2 then .fillcol = newcol
+  end with
+ end if
+End Sub
+
 '==Slice cloning===============================================================
 
 Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_special as bool = YES) as Slice ptr

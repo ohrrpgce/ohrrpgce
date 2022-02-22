@@ -663,6 +663,9 @@ DECLARE Sub CalcSliceContentsSize(sl as Slice ptr, byref min as XYPair, byref ma
 
 DECLARE Function FindTextSliceStringRecursively(sl as slice ptr, query as string) as Slice Ptr
 
+DECLARE Sub RecursivelyUpdateColor(sl as Slice Ptr, newcol as integer, oldcol1 as integer, oldcol2 as integer)
+DECLARE Sub UpdateColor (sl as Slice Ptr, newcol as integer, oldcol1 as integer, oldcol2 as integer)
+
 End Extern
 
 'Declare any overloaded functions here. Overloaded functions can't be accessed from C/C++
@@ -790,7 +793,7 @@ DECLARE Sub SelectSliceNext(byval sl as Slice ptr, byval can_loop as bool=YES)
 
 DECLARE Function NewPanelSlice(byval parent as Slice ptr, byref dat as PanelSliceData) as slice ptr
 DECLARE Sub ChangePanelSlice(byval sl as slice ptr,_
-                      byval vertical as integer=-2,_ 'verical is actually bool, use -2 to signal no change
+                      byval vertical as integer=-2,_ 'vertical is actually bool, use -2 to signal no change
                       byval primary as integer=-1,_
                       byval pixels as integer=-1,_
                       byval percent as double=-1.0,_
