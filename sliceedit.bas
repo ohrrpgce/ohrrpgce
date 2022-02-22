@@ -2598,6 +2598,13 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   append_simplemenu_item menu, "shop_buy_info_panel", , , -102027
   append_simplemenu_item menu, "status_hide_if_no_hp", , , -102028
   append_simplemenu_item menu, "pathfind_dest_display", , , -102100
+  append_simplemenu_item menu, "battle_ui_layer", , , -200100
+  append_simplemenu_item menu, "battle_hero_info_area", , , -200101
+  append_simplemenu_item menu, "battle_hero_info_template", , , -200102
+  append_simplemenu_item menu, "battle_ready_meter", , , -200103
+  append_simplemenu_item menu, "battle_ready_meter_panel", , , -200104
+  append_simplemenu_item menu, "battle_hp_meter", , , -200105
+  append_simplemenu_item menu, "battle_hp_meter_panel", , , -200106
 '</SLICE LOOKUP NAMES>
 
  END IF

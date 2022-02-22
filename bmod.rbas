@@ -44,6 +44,7 @@ DECLARE SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState,
 DECLARE SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
 DECLARE SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
 DECLARE SUB update_battle_slices(bslot() as BattleSprite)
+DECLARE SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB draw_damage_text(bslot() as BattleSprite, page as integer)
 DECLARE FUNCTION battle_time_can_pass(byref bat as BattleState) as bool
 DECLARE FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSprite) as bool
@@ -105,6 +106,9 @@ DECLARE FUNCTION should_victory_advance(byref bat as BattleState) as bool
 DECLARE SUB append_enemy_attacks_to_battle_menu(ai_attack_list() as integer, byref bspr as BattleSprite)
 DECLARE FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer, st() as HeroDef, byval respect_costs as bool=YES, byval auto_battle as bool=NO) as integer
 DECLARE FUNCTION find_attack_in_spell_menu(byval seek_atk_id as integer, bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer, st() as HeroDef, byval respect_costs as bool) as integer
+DECLARE FUNCTION create_default_battle_ui_layer() as Slice Ptr
+DECLARE FUNCTION create_default_battle_ready_area() as Slice Ptr
+DECLARE FUNCTION create_default_battle_hp_area() as Slice Ptr
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
@@ -170,16 +174,16 @@ FUNCTION battle (byval form as integer) as bool
   IF always_enable_debug_keys <> 0 OR prefbit(8) = NO THEN '"Disable debugging keys" off
    check_battle_debug_keys bat, bslot(), formdata
 
-   /' Currently unused...
-   IF keyval(scF12) > 1 THEN
+   '--This will be disabled when it is no longer needed. If Ctrl/Shift+F10 is needed
+   '--for something more important don't hesitate to claim it
+   IF (keyval(scSHIFT) > 0 OR keyval(scCTRL) > 0) AND keyval(scF10) > 1 THEN
     loopvar bat.test_view_mode, 0, 2
     SELECT CASE bat.test_view_mode
-     CASE 0: bat.test_future = NO : debuginfo "bat.test_view_mode Classic"
-     CASE 1: debuginfo "bat.test_view_mode Flicker"
-     CASE 2: bat.test_future = YES : debuginfo "bat.test_view_mode Future"
+     CASE 0: bat.test_future = NO : notification "bat.test_view_mode Classic"
+     CASE 1: notification "bat.test_view_mode Flicker"
+     CASE 2: bat.test_future = YES : notification "bat.test_view_mode Future"
     END SELECT
    END IF
-   '/
   END IF
 
   IF keyval(scPause) > 1 THEN battle_pause
@@ -244,6 +248,7 @@ FUNCTION battle (byval form as integer) as bool
   '--display the backdrop and BattleSprites
   UpdateRootSliceSize bat.root_sl, page  'Match size of page, not vpage
   update_battle_slices bslot()
+  update_battle_ui_slices bat, bslot()
   DrawSlice bat.root_sl, page
   'Not converted to slices yet
   draw_damage_text bslot(), page
@@ -1055,6 +1060,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
  DIM col as integer
  DIM bgcol as integer
  IF bat.vic.state = vicNONE THEN 'only display interface till you win
+  IF NOT bat.test_future THEN
   FOR i = 0 TO 3 '--for each hero
    IF gam.hero(i).id >= 0 THEN '--FIXME: should use some battle state instead of global state to
                        '--determine if the hero is present.
@@ -1124,6 +1130,7 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     END WITH
    END IF
   NEXT i
+  END IF 'test_future off
 
   '--Display caption and count-down time
   IF bat.caption_time > 0 THEN
@@ -1561,6 +1568,117 @@ SUB update_battle_slices(bslot() as BattleSprite)
   END WITH
  NEXT i
 END SUB
+
+
+SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
+ DIM ui_layer as Slice Ptr
+ ui_layer = LookupSlice(SL_BATTLE_UI_LAYER, bat.root_sl)
+ IF ui_layer = 0 THEN
+  ui_layer = create_default_battle_ui_layer()
+  SetSliceParent ui_layer, bat.root_sl
+ END IF 
+
+ DIM area as Slice Ptr = 0
+ area = LookupSlice(SL_BATTLE_HERO_INFO_AREA, ui_layer)
+ DO WHILE area '--For each hero info area
+  
+  '--Make sure the children exist
+  DIM templ as Slice Ptr = LookupSlice(SL_BATTLE_HERO_INFO_TEMPLATE, area)
+  DIM ch as Slice Ptr
+  IF templ THEN
+   DO WHILE SliceGetNumChildren(area) <= 4
+    ch = CloneTemplate(templ)
+   LOOP
+  END IF
+  
+  FOR i as integer = 0 TO 3 '--for each hero
+   '--Get the child slice for this hero slot
+   ch = SliceChildByIndex(area, i + 1)
+   IF ch THEN
+    DIM hero_present as bool = gam.hero(i).id >= 0'--FIXME: should use some battle state instead of global state to
+                               '--determine if the hero is present.
+    ch->Visible = hero_present
+   
+   END IF
+  NEXT i
+  
+  area = LookupSlice(SL_BATTLE_HERO_INFO_AREA, ui_layer, , area)
+ LOOP
+ 
+
+ 'FIXME: temporarily only show when test_future is on
+ ui_layer->Visible = bat.test_future
+ 
+END SUB
+
+FUNCTION create_default_battle_ui_layer() as Slice Ptr
+ DIM layer as Slice Ptr = NewSliceOfType(slContainer, ,SL_BATTLE_UI_LAYER)
+ layer->Fill = YES
+ DIM area as Slice Ptr
+ area = create_default_battle_ready_area()
+ SetSliceParent area, layer
+ area = create_default_battle_hp_area()
+ SetSliceParent area, layer
+ RETURN layer
+END FUNCTION
+
+FUNCTION create_default_battle_ready_area() as Slice Ptr
+ DIM area as Slice Ptr = NewSliceOfType(slGrid, , SL_BATTLE_HERO_INFO_AREA)
+ ChangeGridSlice area, 4, 1
+ area->Pos = XY(1, 4)
+ area->Size = XY(132, 40)
+ DIM templ as Slice Ptr = NewSliceOfType(slContainer, area, SL_BATTLE_HERO_INFO_TEMPLATE)
+ templ->Template = YES
+ templ->Fill = YES
+ DIM meter_box as Slice Ptr = NewSliceOfType(slRectangle, templ, SL_BATTLE_READY_METER)
+ meter_box->Fill = YES
+ meter_box->FillMode = sliceFillHoriz
+ meter_box->Height = 11
+ meter_box->PaddingTop = 1
+ meter_box->PaddingRight = 1
+ meter_box->PaddingBottom = 1
+ meter_box->PaddingLeft = 1
+ ChangeRectangleSlice meter_box, 0, , , borderLine, transFuzzy
+ DIM meter_body as Slice Ptr = NewSliceOfType(slPanel, meter_box, SL_BATTLE_READY_METER_PANEL)
+ meter_body->Fill = YES
+ DIM meter_filled as Slice Ptr = NewSliceOfType(slRectangle, meter_body)
+ meter_filled->Fill = YES
+ ChangeRectangleSlice meter_filled, 1, uiTimeBarFull * -1 - 1, , borderNone, transOpaque
+ DIM name_txt as Slice Ptr = NewSliceOfType(slText, templ, SL_BATTLE_TEXT_SELECTED_PLAYER)
+ ChangeTextSlice name_txt, "${NAME}", uiMenuItem * -1 - 1, YES
+ name_txt->AlignHoriz = alignRight
+ name_txt->AnchorHoriz = alignRight
+ name_txt->Pos = XY(-4, 1)
+ RETURN area
+END FUNCTION
+
+FUNCTION create_default_battle_hp_area() as Slice Ptr
+ DIM area as Slice Ptr = NewSliceOfType(slGrid, , SL_BATTLE_HERO_INFO_AREA)
+ ChangeGridSlice area, 4, 1
+ area->Pos = XY(136, 4)
+ area->Size = XY(89, 40)
+ DIM templ as Slice Ptr = NewSliceOfType(slContainer, area, SL_BATTLE_HERO_INFO_TEMPLATE)
+ templ->Template = YES
+ templ->Fill = YES
+ DIM meter_box as Slice Ptr = NewSliceOfType(slRectangle, templ, SL_BATTLE_HP_METER)
+ meter_box->Fill = YES
+ meter_box->FillMode = sliceFillHoriz
+ meter_box->Height = 11
+ meter_box->PaddingTop = 1
+ meter_box->PaddingRight = 1
+ meter_box->PaddingBottom = 1
+ meter_box->PaddingLeft = 1
+ ChangeRectangleSlice meter_box, 0, , , borderLine, transFuzzy
+ DIM meter_body as Slice Ptr = NewSliceOfType(slPanel, meter_box, SL_BATTLE_HP_METER_PANEL)
+ meter_body->Fill = YES
+ DIM meter_filled as Slice Ptr = NewSliceOfType(slRectangle, meter_body)
+ meter_filled->Fill = YES
+ ChangeRectangleSlice meter_filled, , uiHealthBar * -1 - 1, , borderNone, transOpaque
+ DIM hp_txt as Slice Ptr = NewSliceOfType(slText, templ, SL_BATTLE_TEXT_SELECTED_PLAYER)
+ ChangeTextSlice hp_txt, "${HP}/${MAXHP}", uiMenuItem * -1 - 1, YES
+ hp_txt->Pos = XY(0, 1)
+ RETURN area
+END FUNCTION
 
 SUB draw_damage_text(bslot() as BattleSprite, page as integer)
  FOR i as integer = 0 TO 11

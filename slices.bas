@@ -451,6 +451,13 @@ FUNCTION SliceLookupCodename (byval code as integer, use_default as bool = YES) 
   CASE SL_SHOP_BUY_INFO_PANEL: RETURN "shop buy info panel"
   CASE SL_STATUS_HIDE_IF_NO_HP: RETURN "status hide if no hp"
   CASE SL_PATHFIND_DEST_DISPLAY: RETURN "pathfind dest display"
+  CASE SL_BATTLE_UI_LAYER: RETURN "battle ui layer"
+  CASE SL_BATTLE_HERO_INFO_AREA: RETURN "battle hero info area"
+  CASE SL_BATTLE_HERO_INFO_TEMPLATE: RETURN "battle hero info template"
+  CASE SL_BATTLE_READY_METER: RETURN "battle ready meter"
+  CASE SL_BATTLE_READY_METER_PANEL: RETURN "battle ready meter panel"
+  CASE SL_BATTLE_HP_METER: RETURN "battle hp meter"
+  CASE SL_BATTLE_HP_METER_PANEL: RETURN "battle hp meter panel"
 '</SLICE LOOKUP NAMES>
   CASE IS > 0
    'TODO: cache slicelookup() in memory.
