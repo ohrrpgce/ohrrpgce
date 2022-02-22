@@ -4268,40 +4268,45 @@ Function FindTextSliceStringRecursively(sl as slice ptr, query as string) as Sli
  return 0
 End Function
 
-Sub RecursivelyUpdateColor(sl as Slice Ptr, newcol as integer, oldcol1 as integer, oldcol2 as integer)
- UpdateColor sl, newcol, oldcol1, oldcol2
+Sub RecursivelyUpdateColor(sl as Slice Ptr, newcol as integer, oldcol1 as integer, oldcol2 as integer, oldcol3 as integer=-9999999, lookup_code as integer=0)
+ 'Recursively replace any color codes that match specific old values
+ 'Normally this would be used for the negative ui constants, not for positive palette indexes
+ 'The optional lookup code restricts the changes only to slices that have that code
+ if lookup_code = 0 orelse sl->Lookup = lookup_code then
+  UpdateColor sl, newcol, oldcol1, oldcol2, oldcol3
+ end if
  dim ch as Slice Ptr = sl->FirstChild
  do while ch
   if not ShouldSkipSlice(ch, YES) then
    'Only bother with visible non-template slices
-   RecursivelyUpdateColor ch, newcol, oldcol1, oldcol2
+   RecursivelyUpdateColor ch, newcol, oldcol1, oldcol2, oldcol3, lookup_code
   end if
   ch = ch->NextSibling
  loop
 End Sub
 
-Sub UpdateColor (sl as Slice Ptr, newcol as integer, oldcol1 as integer, oldcol2 as integer)
+Sub UpdateColor (sl as Slice Ptr, newcol as integer, oldcol1 as integer, oldcol2 as integer, oldcol3 as integer=-9999999)
  if sl->SliceType = slRectangle then
   with *sl->RectData
-   if .fgcol = oldcol1 or .fgcol = oldcol2 then .fgcol = newcol
-   if .bgcol = oldcol1 or .bgcol = oldcol2 then .bgcol = newcol
+   if .fgcol = oldcol1 or .fgcol = oldcol2 or .fgcol = oldcol3 then .fgcol = newcol
+   if .bgcol = oldcol1 or .bgcol = oldcol2 or .bgcol = oldcol3 then .bgcol = newcol
   end with
  end if
  if sl->SliceType = slLine then
   with *sl->LineData
-   if .col = oldcol1 or .col = oldcol2 then .col = newcol
+   if .col = oldcol1 or .col = oldcol2 or .col = oldcol3 then .col = newcol
   end with
  end if
  if sl->SliceType = slText then
   with *sl->TextData
-   if .col = oldcol1 or .col = oldcol2 then .col = newcol
-   if .bgcol = oldcol1 or .bgcol = oldcol2 then .bgcol = newcol
+   if .col = oldcol1 or .col = oldcol2 or .col = oldcol3 then .col = newcol
+   if .bgcol = oldcol1 or .bgcol = oldcol2 or .bgcol = oldcol3 then .bgcol = newcol
   end with
  end if
  if sl->SliceType = slEllipse then
   with *sl->EllipseData
-   if .bordercol = oldcol1 or .bordercol = oldcol2 then .bordercol = newcol
-   if .fillcol = oldcol1 or .fillcol = oldcol2 then .fillcol = newcol
+   if .bordercol = oldcol1 or .bordercol = oldcol2 or .bordercol = oldcol3 then .bordercol = newcol
+   if .fillcol = oldcol1 or .fillcol = oldcol2 or .fillcol = oldcol3 then .fillcol = newcol
   end with
  end if
 End Sub

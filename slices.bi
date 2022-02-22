@@ -663,8 +663,8 @@ DECLARE Sub CalcSliceContentsSize(sl as Slice ptr, byref min as XYPair, byref ma
 
 DECLARE Function FindTextSliceStringRecursively(sl as slice ptr, query as string) as Slice Ptr
 
-DECLARE Sub RecursivelyUpdateColor(sl as Slice Ptr, newcol as integer, oldcol1 as integer, oldcol2 as integer)
-DECLARE Sub UpdateColor (sl as Slice Ptr, newcol as integer, oldcol1 as integer, oldcol2 as integer)
+DECLARE Sub RecursivelyUpdateColor(sl as Slice Ptr, newcol as integer, oldcol1 as integer, oldcol2 as integer, oldcol3 as integer=-9999999, lookup_code as integer=0)
+DECLARE Sub UpdateColor (sl as Slice Ptr, newcol as integer, oldcol1 as integer, oldcol2 as integer, oldcol3 as integer=-9999999)
 
 End Extern
 

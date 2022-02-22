@@ -1665,7 +1665,11 @@ SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as B
  
  'Update strings
  embedslicetree sl, , YES, @ExpandTextBattleSprite, @bspr
-
+ col = uiMenuItem * -1 - 1
+ IF bspr.index = bat.player_turn ANDALSO bat.menu_mode = batMENUHERO THEN
+  col = (uiSelectedItem + bat.tog) * -1 - 1
+ END IF
+ RecursivelyUpdateColor sl, col, uiMenuItem * -1 - 1, uiSelectedItem * -1 - 1, (uiSelectedItem+1) * -1 - 1, SL_BATTLE_TEXT_SELECTED_PLAYER
  
  
 END SUB
