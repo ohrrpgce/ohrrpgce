@@ -632,6 +632,8 @@ SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as FnE
  'Starting with children of the given container slice, iterate through
  ' all children and expand any ${} codes found in any TextSlice
  ' Do not descend into child slices marked with SL_PLANK_HOLDER because planks are responsible for their own text codes
+ '
+ ' See also embedslicetree() which does something very similar in game, but not exactly the same
  BUG_IF(sl = NULL, "null slice ptr")
  DIM ch as Slice Ptr = sl->FirstChild
  DIM dat as TextSliceData Ptr

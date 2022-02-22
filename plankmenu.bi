@@ -25,9 +25,6 @@ TYPE FnPlankSetState as Sub(byval sl as Slice Ptr, byval state as PlankItemState
 
 DECLARE SUB set_plank_state_default_callback (byval sl as Slice Ptr, byval state as PlankItemState)
 
-' Used by embed_text_codes to try to expand unknown codes
-TYPE FnEmbedCode as Sub(code as string, result as string, arg0 as any ptr, arg1 as any ptr, arg2 as any ptr)
-
 TYPE PlankState
  m as Slice Ptr                    'Container for the whole plank menu
  cur as Slice Ptr                  'Currently selected plank

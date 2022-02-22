@@ -70,19 +70,6 @@ SUB embedtext (text as string, byval limit as integer=0, byval saveslot as integ
  END IF
 END SUB
 
-SUB embedslicetree (byval sl as Slice Ptr, byval saveslot as integer=-1)
- IF sl->SliceType = slText THEN
-  DIM text as string = sl->TextData->s
-  text = embed_text_codes(text, saveslot)
-  ChangeTextSlice sl, text
- END IF
- DIM ch as Slice Ptr = sl->FirstChild
- DO WHILE ch
-  embedslicetree ch, saveslot
-  ch = ch->NextSibling
- LOOP
-END SUB
-
 FUNCTION embed_text_codes (text_in as string, byval saveslot as integer=-1, byval callback as FnEmbedCode=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0) as string
 ' Expand embed codes like ${H0}.
 ' The optional callback can be passed to process additional codes.

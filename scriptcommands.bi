@@ -6,7 +6,6 @@
 #define SCRIPTCOMMANDS_BI
 
 #include "slices.bi"
-#include "plankmenu.bi"  'For FnEmbedCode (this could probably be avoided)
 #include "udts.bi"
 
 DECLARE FUNCTION checksaveslot (slot as integer) as integer

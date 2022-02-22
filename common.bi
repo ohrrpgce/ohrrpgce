@@ -19,6 +19,9 @@ USING RELOAD
 'Have to avoid circular slices.bi dependency
 TYPE SliceFwd as Slice
 
+' Used by embed_text_codes to try to expand unknown codes
+TYPE FnEmbedCode as Sub(code as string, result as string, arg0 as any ptr, arg1 as any ptr, arg2 as any ptr)
+
 DECLARE FUNCTION common_setoption(opt as string, arg as string) as integer
 
 DECLARE SUB fadein (fadems as integer = 500)

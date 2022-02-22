@@ -110,6 +110,7 @@ DECLARE FUNCTION create_default_battle_ui_layer() as Slice Ptr
 DECLARE FUNCTION create_default_battle_ready_area() as Slice Ptr
 DECLARE FUNCTION create_default_battle_hp_area() as Slice Ptr
 DECLARE SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
+DECLARE SUB ExpandTextBattleSprite (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
@@ -1083,7 +1084,9 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     WITH bslot(i)
      DIM hidehp as bool = should_hide_hero_stat(gam.hero(i).id, statHP)
      IF prefbit(7) = NO ANDALSO hidehp = NO THEN  '"Hide health meter" off
-      update_stat_meter bat, .lifemeter, 87, .stat.cur.hp, .stat.max.hp, uiHealthBar, col
+      IF NOT bat.test_future THEN
+       update_stat_meter bat, .lifemeter, 87, .stat.cur.hp, .stat.max.hp, uiHealthBar, col
+      END IF
       edgeboxstyle 136, 4 + i * 10, 89, 11, 0, page, YES, YES
       rectangle 137, 5 + i * 10, .lifemeter, 9, col, page
      END IF
@@ -1642,7 +1645,9 @@ SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as B
   'FIXME: The old update_stat_meter function can be cleaned up when the old meter drawing code goes away
   'Lifemeter length of 87 is what the old drawing code used, can change it when that code is removed
   'last two color arguments don't matter as we re-do them right afterwards
-  update_stat_meter bat, bspr.lifemeter, 87, bspr.stat.cur.hp, bspr.stat.max.hp, uiHealthBar, col
+  IF bat.test_future THEN
+   update_stat_meter bat, bspr.lifemeter, 87, bspr.stat.cur.hp, bspr.stat.max.hp, uiHealthBar, col
+  END IF
   'Update color for real
   col = uiHealthBar * -1 - 1
   IF bspr.lifemeter = 87 ANDALSO bspr.stat.cur.hp > bspr.stat.max.hp ANDALSO bat.menu_mode = batMENUHERO ANDALSO bat.tog <> 0 THEN
@@ -1658,6 +1663,26 @@ SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as B
   END IF
  END IF
  
+ 'Update strings
+ embedslicetree sl, , YES, @ExpandTextBattleSprite, @bspr
+
+ 
+ 
+END SUB
+
+SUB ExpandTextBattleSprite (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+
+ DIM bspr as BattleSprite Ptr = CAST(BattleSprite ptr, arg0)
+
+ WITH *bspr
+
+  SELECT CASE UCASE(code)
+   CASE "NAME": result = .name
+   CASE "HP": result = STR(.stat.cur.hp)
+   CASE "MAXHP": result = STR(.stat.max.hp)
+  END SELECT
+
+ END WITH 
 END SUB
 
 FUNCTION create_default_battle_ui_layer() as Slice Ptr
@@ -1697,7 +1722,7 @@ FUNCTION create_default_battle_ready_area() as Slice Ptr
  ChangeTextSlice name_txt, "${NAME}", uiMenuItem * -1 - 1, YES
  name_txt->AlignHoriz = alignRight
  name_txt->AnchorHoriz = alignRight
- name_txt->Pos = XY(-4, 1)
+ name_txt->Pos = XY(-5, 1)
  RETURN area
 END FUNCTION
 

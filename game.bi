@@ -168,6 +168,8 @@ DECLARE SUB check_pathfinding_for_map_change()
 
 DECLARE SUB heromove_walk_ahead(byval rank as integer)
 
+DECLARE SUB embedslicetree (byval sl as Slice Ptr, byval saveslot as integer=-1, repeatable as bool=NO, byval callback as FnEmbedCode=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+
 'Note: Game-specific global variables are in gglobals.bi
 
 #ENDIF

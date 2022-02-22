@@ -5366,3 +5366,23 @@ SUB debug_mouse_state()
  gam.showtext_ticks = 1
 END SUB
 
+SUB embedslicetree (byval sl as Slice Ptr, byval saveslot as integer=-1, repeatable as bool=NO, byval callback as FnEmbedCode=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+ IF sl->SliceType = slText THEN
+  DIM text as string
+  IF repeatable THEN
+   'This is intended to be called over and over, perhaps every tick, and is expected to re-expand the strings each time
+   IF sl->TextData->s_orig = "" THEN sl->TextData->s_orig = sl->TextData->s
+   text = sl->TextData->s_orig
+  ELSE
+   'This is intended to be called just once after the slice tree is loaded, and the expansions remain static afterwards
+   text = sl->TextData->s
+  END IF
+  text = embed_text_codes(text, saveslot, callback, arg0, arg1, arg2)
+  ChangeTextSlice sl, text
+ END IF
+ DIM ch as Slice Ptr = sl->FirstChild
+ DO WHILE ch
+  embedslicetree ch, saveslot, repeatable, callback, arg0, arg1, arg2
+  ch = ch->NextSibling
+ LOOP
+END SUB
