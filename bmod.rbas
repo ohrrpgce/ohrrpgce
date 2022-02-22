@@ -1613,8 +1613,12 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
   area = LookupSlice(SL_BATTLE_HERO_INFO_AREA, ui_layer, , area)
  LOOP
 
+ ui_layer->Visible = YES
+ 
  'FIXME: temporarily only show when test_future is on
  ui_layer->Visible = bat.test_future
+ 
+ IF bat.vic.state <> vicNONE THEN ui_layer->Visible = NO
 END SUB
 
 SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
