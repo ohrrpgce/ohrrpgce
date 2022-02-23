@@ -1092,7 +1092,9 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
      END IF
 
      IF prefbit(49) ANDALSO should_hide_hero_stat(gam.hero(i).id, statMP) = NO THEN  '"Show MP meter"
-      update_stat_meter bat, .mpmeter, 87, .stat.cur.mp, .stat.max.mp, uiMPBar, col
+      IF NOT bat.test_future THEN
+       update_stat_meter bat, .mpmeter, 87, .stat.cur.mp, .stat.max.mp, uiMPBar, col
+      END IF
       rectangle 137, 12 + i * 10, .mpmeter, 2, col, page  'Overlaps the HP meter
       'Move the hp text up a pixel so that it doesn't completely cover the MP meter
       hp_text_y -= 1
@@ -1592,6 +1594,7 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
   IF templ THEN
    DO WHILE SliceGetNumChildren(area) <= 4
     ch = CloneTemplate(templ)
+    ch->Lookup = SL_BATTLE_HERO_INFO_INSTANCE
    LOOP
   END IF
   
@@ -1666,7 +1669,31 @@ SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as B
    END IF
   END IF
  END IF
- 
+  
+ 'Update MP meter
+ DIM mp_meter as Slice Ptr = LookupSlice(SL_BATTLE_MP_METER, sl)
+ IF mp_meter THEN
+  DIM hidemp as bool = NO
+  IF is_hero(bspr.index) THEN hidemp = should_hide_hero_stat(gam.hero(bspr.index).id, statMP)
+  mp_meter->Visible = (prefbit(49) = YES ANDALSO hidemp = NO)
+  IF bat.test_future THEN
+   update_stat_meter bat, bspr.mpmeter, 87, bspr.stat.cur.mp, bspr.stat.max.mp, uiMPBar, col
+  END IF
+  'Update color for real
+  col = uiMPBar * -1 - 1
+  IF bspr.mpmeter = 87 ANDALSO bspr.stat.cur.mp > bspr.stat.max.mp ANDALSO bat.menu_mode = batMENUHERO ANDALSO bat.tog <> 0 THEN
+   col = uiMPBarFlash * -1 - 1
+  END IF
+  RecursivelyUpdateColor mp_meter, col, uiMPBar * -1 - 1, uiMPBarFlash * -1 - 1
+  'Update meter percent
+  DIM mp_body as Slice Ptr = LookupSlice(SL_BATTLE_MP_METER_PANEL, mp_meter)
+  IF mp_body THEN
+   IF mp_body->SliceType = slPanel THEN
+    ChangePanelSlice mp_body, , , , bspr.mpmeter / 87
+   END IF
+  END IF
+ END IF
+
  'Update strings
  embedslicetree sl, , YES, @ExpandTextBattleSprite, @bspr
  col = uiMenuItem * -1 - 1
@@ -1674,7 +1701,8 @@ SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as B
   col = (uiSelectedItem + bat.tog) * -1 - 1
  END IF
  RecursivelyUpdateColor sl, col, uiMenuItem * -1 - 1, uiSelectedItem * -1 - 1, (uiSelectedItem+1) * -1 - 1, SL_BATTLE_TEXT_SELECTED_PLAYER
- 
+
+ 'Update status icons
  
 END SUB
 
@@ -1756,9 +1784,28 @@ FUNCTION create_default_battle_hp_area() as Slice Ptr
  DIM meter_filled as Slice Ptr = NewSliceOfType(slRectangle, meter_body)
  meter_filled->Fill = YES
  ChangeRectangleSlice meter_filled, , uiHealthBar * -1 - 1, , borderNone, transOpaque
+ 'MP meter
+ DIM mp_meter as Slice Ptr = NewSliceOfType(slContainer, templ, SL_BATTLE_MP_METER)
+ mp_meter->Fill = YES
+ mp_meter->FillMode = sliceFillHoriz
+ mp_meter->Height = 2
+ mp_meter->AnchorVert = alignBottom
+ mp_meter->AlignVert = alignBottom
+ mp_meter->PaddingLeft = 1
+ mp_meter->PaddingRight = 1
+ DIM mp_body as Slice Ptr = NewSliceOfType(slPanel, mp_meter, SL_BATTLE_MP_METER_PANEL)
+ mp_body->Fill = Yes
+ DIM mp_filled as Slice Ptr = NewSliceOfType(slRectangle, mp_body)
+ mp_filled->Fill = YES
+ ChangeRectangleSlice mp_filled, , uiMPBar * -1 - 1, , borderNone, transOpaque
+
+ 'FIXME: status indicators go here
+ 
+ 'HP text
  DIM hp_txt as Slice Ptr = NewSliceOfType(slText, templ, SL_BATTLE_TEXT_SELECTED_PLAYER)
  ChangeTextSlice hp_txt, "${HP}/${MAXHP}", uiMenuItem * -1 - 1, YES
- hp_txt->Pos = XY(0, 1)
+ hp_txt->Pos = XY(0, 0)
+
  RETURN area
 END FUNCTION
 
