@@ -110,6 +110,7 @@ DECLARE FUNCTION create_default_battle_ui_layer() as Slice Ptr
 DECLARE FUNCTION create_default_battle_ready_area() as Slice Ptr
 DECLARE FUNCTION create_default_battle_hp_area() as Slice Ptr
 DECLARE SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
+DECLARE SUB update_indicator_slice (sl as Slice Ptr, lookup_code as integer, active as bool, indicator_string as string="", sort_index as integer=0)
 DECLARE SUB ExpandTextBattleSprite (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
@@ -1056,8 +1057,7 @@ END SUB
 
 SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, page as integer)
  'display:
- '--this sub currently draws the user-interface. In the future it will update
- '--user interface slices
+ 'FIXME: this sub currently draws the user-interface. It will be removed soon, because update_battle_ui_slices() replaces it
  DIM i as integer
  DIM col as integer
  DIM bgcol as integer
@@ -1575,7 +1575,6 @@ SUB update_battle_slices(bslot() as BattleSprite)
  NEXT i
 END SUB
 
-
 SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
  DIM ui_layer as Slice Ptr
  ui_layer = LookupSlice(SL_BATTLE_UI_LAYER, bat.root_sl)
@@ -1631,17 +1630,23 @@ SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as B
  DIM ready_meter as Slice Ptr = LookupSlice(SL_BATTLE_READY_METER, sl)
  IF ready_meter THEN
   ready_meter->Visible = (prefbit(6) = NO) '"Hide ready-meter" off
-  'Update TimeBar colors
+  'Prepare TimeBar colors
   col = uiTimeBar * -1 - 1
   IF bspr.ready = YES THEN col = uiTimeBarFull * -1 - 1
-  RecursivelyUpdateColor ready_meter, col, uiTimeBar * -1 - 1, uiTimeBarFull * -1 - 1
   'Update meter percent
   DIM meter_body as Slice Ptr = LookupSlice(SL_BATTLE_READY_METER_PANEL, ready_meter)
   IF meter_body THEN
    IF meter_body->SliceType = slPanel THEN
-    ChangePanelSlice meter_body, , , , bspr.ready_meter / 1000
+    DIM meter_val as double = bspr.ready_meter / 1000
+    IF blocked_by_attack(bat, bspr.index) ORELSE bspr.attack > 0 ORELSE (bat.atk.id >= 0 ANDALSO bat.acting = bspr.index) THEN
+     meter_val = 1.0
+     col = uiTimeBar * -1 - 1
+    END IF
+    ChangePanelSlice meter_body, , , , meter_val
    END IF
   END IF
+  'Update TimeBar colors
+  RecursivelyUpdateColor ready_meter, col, uiTimeBar * -1 - 1, uiTimeBarFull * -1 - 1
  END IF
  
  DIM hp_meter as Slice Ptr = LookupSlice(SL_BATTLE_HP_METER, sl)
@@ -1696,13 +1701,45 @@ SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as B
 
  'Update strings
  embedslicetree sl, , YES, @ExpandTextBattleSprite, @bspr
+
+ 'Update status icons
+ DIM indicator_area as Slice Ptr = LookupSlice(SL_BATTLE_INDICATOR_AREA, sl)
+ IF indicator_area THEN
+  update_indicator_slice indicator_area, SL_BATTLE_REGEN_INDICATOR,  bspr.stat.cur.regen  < bspr.stat.max.regen,  CHR(gen(genRegenChar)),  1
+  update_indicator_slice indicator_area, SL_BATTLE_MUTE_INDICATOR,   bspr.stat.cur.mute   < bspr.stat.max.mute,   CHR(gen(genMuteChar)),   2
+  update_indicator_slice indicator_area, SL_BATTLE_STUN_INDICATOR,   bspr.stat.cur.stun   < bspr.stat.max.stun,   CHR(gen(genStunChar)),   3
+  update_indicator_slice indicator_area, SL_BATTLE_POISON_INDICATOR, bspr.stat.cur.poison < bspr.stat.max.poison, CHR(gen(genPoisonChar)), 4
+ END IF
+
+ 'Update string color for selected player name/hp/indicators
  col = uiMenuItem * -1 - 1
  IF bspr.index = bat.player_turn ANDALSO bat.menu_mode = batMENUHERO THEN
   col = (uiSelectedItem + bat.tog) * -1 - 1
  END IF
  RecursivelyUpdateColor sl, col, uiMenuItem * -1 - 1, uiSelectedItem * -1 - 1, (uiSelectedItem+1) * -1 - 1, SL_BATTLE_TEXT_SELECTED_PLAYER
 
- 'Update status icons
+END SUB
+
+SUB update_indicator_slice (sl as Slice Ptr, lookup_code as integer, active as bool, indicator_string as string="", sort_index as integer=0)
+ DIM ind_sl as Slice Ptr = LookupSlice(lookup_code, sl)
+ IF NOT active ORELSE indicator_string = "" ORELSE indicator_string = " " THEN
+  IF ind_sl <> 0 THEN DeleteSlice @ind_sl
+ ELSE
+  IF ind_sl = 0 THEN ind_sl = NewSliceOfType(slText, sl, lookup_code)
+  ind_sl->AlignHoriz = alignCenter
+  ind_sl->AlignVert = alignCenter
+  ind_sl->AnchorHoriz = alignCenter
+  ind_sl->AnchorVert = alignCenter
+  ChangeTextSlice ind_sl, indicator_string, uiMenuItem * -1 - 1, YES
+  ind_sl->Sorter = sort_index
+ END IF
+ 
+ 'FIXME: want to support slLayout also, after they are supported in the slice collection editor
+ IF sl->SliceType = slGrid THEN
+  sl->AutoSort = slAutoSortCustom
+  ChangeGridSlice sl, 1, sl->NumChildren
+  sl->Size = XY(8 * sl->NumChildren, 8)
+ END IF
  
 END SUB
 
@@ -1799,12 +1836,16 @@ FUNCTION create_default_battle_hp_area() as Slice Ptr
  mp_filled->Fill = YES
  ChangeRectangleSlice mp_filled, , uiMPBar * -1 - 1, , borderNone, transOpaque
 
- 'FIXME: status indicators go here
- 
  'HP text
  DIM hp_txt as Slice Ptr = NewSliceOfType(slText, templ, SL_BATTLE_TEXT_SELECTED_PLAYER)
  ChangeTextSlice hp_txt, "${HP}/${MAXHP}", uiMenuItem * -1 - 1, YES
  hp_txt->Pos = XY(0, 0)
+
+ 'Status indicators box
+ DIM indicator_area as Slice Ptr = NewSliceOfType(slGrid, templ, SL_BATTLE_INDICATOR_AREA)
+ indicator_area->AlignHoriz = alignRight
+ indicator_area->AnchorHoriz = alignRight
+ indicator_area->Pos = XY(0, 1)
 
  RETURN area
 END FUNCTION
