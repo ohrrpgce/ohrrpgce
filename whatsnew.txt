@@ -112,6 +112,9 @@ WHAT IS NEW?
       Mike, Simon, David, Yuriy, Jay, Matthias, Adam, Lakan, Taoki,
       Daniel, SwordPlay, zzo38]
     * FreeBASIC 1.04+ now required to compile
+    * UI in Battle (Hero names, meters, HP, status icons) are now all
+      slice-based instead of hardcoded. It still looks the same by
+      default! [James]
 
 
 September 13 2021 [Hróðvitnir]

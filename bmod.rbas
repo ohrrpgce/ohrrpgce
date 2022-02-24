@@ -140,6 +140,11 @@ FUNCTION battle (byval form as integer) as bool
  clear_attack_queue()
  DIM bslot(24) as BattleSprite
 
+ 'FIXME: This is turned on temporarily. Turn it back off when the old ready meter & hp meter code is
+ ' removed from battle_display()
+ bat.test_future = YES
+ bat.test_view_mode = 2
+
  SELECT CASE gen(genBattleMode)
   CASE 0:
    bat.turn.mode = turnACTIVE
@@ -1057,11 +1062,13 @@ END SUB
 
 SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, page as integer)
  'display:
- 'FIXME: this sub currently draws the user-interface. It will be removed soon, because update_battle_ui_slices() replaces it
+ 'This sub historically draws the user-interface, and still handles some parts of it
+ 'FIXME: It will be removed piece by piece
  DIM i as integer
  DIM col as integer
  DIM bgcol as integer
  IF bat.vic.state = vicNONE THEN 'only display interface till you win
+  'FIXME: This section being replaced by update_battle_ui_slices()
   IF NOT bat.test_future THEN
   FOR i = 0 TO 3 '--for each hero
    IF gam.hero(i).id >= 0 THEN '--FIXME: should use some battle state instead of global state to
