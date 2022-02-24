@@ -1576,15 +1576,23 @@ SUB update_battle_slices(bslot() as BattleSprite)
 END SUB
 
 SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
+
+ STATIC last_warning as double=0.0
+ DIM warnings as string = ""
+
  DIM ui_layer as Slice Ptr
  ui_layer = LookupSlice(SL_BATTLE_UI_LAYER, bat.root_sl)
  IF ui_layer = 0 THEN
+  warnings &= !"Creating battle UI layer\n"
   ui_layer = create_default_battle_ui_layer()
   SetSliceParent ui_layer, bat.root_sl
  END IF 
 
  DIM area as Slice Ptr = 0
  area = LookupSlice(SL_BATTLE_HERO_INFO_AREA, ui_layer)
+ IF area = 0 THEN
+  warnings &= !"SL_BATTLE_HERO_INFO_AREA not found\n"
+ END IF
  DO WHILE area '--For each hero info area
   
   '--Make sure the children exist
@@ -1595,6 +1603,8 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
     ch = CloneTemplate(templ)
     ch->Lookup = SL_BATTLE_HERO_INFO_INSTANCE
    LOOP
+  ELSE
+   warnings &= !"SL_BATTLE_HERO_INFO_TEMPLATE not found\n"
   END IF
   
   FOR i as integer = 0 TO 3 '--for each hero
@@ -1621,6 +1631,15 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
  ui_layer->Visible = bat.test_future
  
  IF bat.vic.state <> vicNONE THEN ui_layer->Visible = NO
+ 
+ IF warnings <> "" ANDALSO (last_warning = 0.0 ORELSE TIMER - last_warning > 600.0) THEN
+  'Only bother to log warnings if we haven't logged them for the past 10 minutes
+  'It might be perfectly normal for a customized battle ui to exclude some expected lookup codes
+  'This is a compromise to know about that without having too much logspam if it was intentional
+  debug warnings
+  last_warning = TIMER
+ END IF
+ 
 END SUB
 
 SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
