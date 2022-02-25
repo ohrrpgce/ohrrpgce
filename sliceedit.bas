@@ -2614,6 +2614,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   append_simplemenu_item menu, "battle_regen_indicator", , , -200113
   append_simplemenu_item menu, "battle_stun_indicator", , , -200114
   append_simplemenu_item menu, "battle_mute_indicator", , , -200115
+  append_simplemenu_item menu, "battle_general_area", , , -200116
 '</SLICE LOOKUP NAMES>
 
  END IF

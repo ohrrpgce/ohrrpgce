@@ -109,9 +109,11 @@ DECLARE FUNCTION find_attack_in_spell_menu(byval seek_atk_id as integer, bat as 
 DECLARE FUNCTION create_default_battle_ui_layer() as Slice Ptr
 DECLARE FUNCTION create_default_battle_ready_area() as Slice Ptr
 DECLARE FUNCTION create_default_battle_hp_area() as Slice Ptr
+DECLARE FUNCTION create_default_battle_caption_area () as Slice Ptr
 DECLARE SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
 DECLARE SUB update_indicator_slice (sl as Slice Ptr, lookup_code as integer, active as bool, indicator_string as string="", sort_index as integer=0)
 DECLARE SUB ExpandTextBattleSprite (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+DECLARE SUB ExpandTextBattleState (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
@@ -1143,7 +1145,6 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     END WITH
    END IF
   NEXT i
-  END IF 'test_future off
 
   '--Display caption and count-down time
   IF bat.caption_time > 0 THEN
@@ -1155,6 +1156,8 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     edgeprint bat.caption, pCentered, rBottom - 19, uilook(uiText), page
    END IF
   END IF
+
+  END IF 'test_future off
 
   '--Draw menus for a hero that is currently taking a turn
   IF bat.player_turn >= 0 THEN
@@ -1590,7 +1593,7 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
  DIM ui_layer as Slice Ptr
  ui_layer = LookupSlice(SL_BATTLE_UI_LAYER, bat.root_sl)
  IF ui_layer = 0 THEN
-  warnings &= !"Creating battle UI layer\n"
+  ' Creating battle UI layer
   ui_layer = create_default_battle_ui_layer()
   SetSliceParent ui_layer, bat.root_sl
  END IF 
@@ -1630,6 +1633,28 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
   NEXT i
   
   area = LookupSlice(SL_BATTLE_HERO_INFO_AREA, ui_layer, , area)
+ LOOP
+
+ area = LookupSlice(SL_BATTLE_GENERAL_AREA, ui_layer)
+ IF area = 0 THEN
+  warnings &= !"SL_BATTLE_GENERAL_AREA not found\n"
+ END IF
+ DO WHILE area '--For each caption area
+  
+  'Update strings
+  embedslicetree area, , YES, @ExpandTextBattleState, @bat
+  
+  area->Visible = NO
+  IF bat.caption_time > 0 THEN
+   bat.caption_time -= 1
+   IF bat.caption_delay > 0 THEN
+    bat.caption_delay -= 1
+   ELSE
+    area->Visible = YES
+   END IF
+  END IF
+
+  area = LookupSlice(SL_BATTLE_GENERAL_AREA, ui_layer, , area)
  LOOP
 
  ui_layer->Visible = YES
@@ -1769,7 +1794,23 @@ SUB update_indicator_slice (sl as Slice Ptr, lookup_code as integer, active as b
  
 END SUB
 
+SUB ExpandTextBattleState (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+'General battle text that is not associated with a specific hero or enemy
+'arg0 must be a BattleState instance
+ DIM bat as BattleState Ptr = CAST(BattleState ptr, arg0)
+
+ WITH *bat
+
+  SELECT CASE UCASE(code)
+   CASE "CAPTION": result = .caption
+  END SELECT
+
+ END WITH 
+END SUB
+
 SUB ExpandTextBattleSprite (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+'Battle text that is specific to a hero or enemy.
+'arg0 must be a BattleSprite instance
 
  DIM bspr as BattleSprite Ptr = CAST(BattleSprite ptr, arg0)
 
@@ -1791,6 +1832,8 @@ FUNCTION create_default_battle_ui_layer() as Slice Ptr
  area = create_default_battle_ready_area()
  SetSliceParent area, layer
  area = create_default_battle_hp_area()
+ SetSliceParent area, layer
+ area = create_default_battle_caption_area()
  SetSliceParent area, layer
  RETURN layer
 END FUNCTION
@@ -1873,6 +1916,24 @@ FUNCTION create_default_battle_hp_area() as Slice Ptr
  indicator_area->AnchorHoriz = alignRight
  indicator_area->Pos = XY(0, 1)
 
+ RETURN area
+END FUNCTION
+
+FUNCTION create_default_battle_caption_area () as Slice Ptr
+ DIM area as Slice Ptr = NewSliceOfType(slRectangle, , SL_BATTLE_GENERAL_AREA)
+ area->AnchorHoriz = alignCenter
+ area->AnchorVert = alignCenter
+ area->AlignHoriz = alignCenter
+ area->AlignVert = alignBottom
+ area->Pos = XY(0, -14)
+ area->Size = XY(310, 16)
+ ChangeRectangleSlice area, 0
+ DIM cap_txt as Slice Ptr = NewSliceOfType(slText, area)
+ cap_txt->AnchorHoriz = alignCenter
+ cap_txt->AnchorVert = alignCenter
+ cap_txt->AlignHoriz = alignCenter
+ cap_txt->AlignVert = alignCenter
+ ChangeTextSlice cap_txt, "${CAPTION}", uiText * -1 - 1, YES
  RETURN area
 END FUNCTION
 

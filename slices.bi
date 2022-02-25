@@ -141,6 +141,7 @@ CONST SL_BATTLE_POISON_INDICATOR     = -200112  'Hide
 CONST SL_BATTLE_REGEN_INDICATOR      = -200113  'Hide
 CONST SL_BATTLE_STUN_INDICATOR       = -200114  'Hide
 CONST SL_BATTLE_MUTE_INDICATOR       = -200115  'Hide
+CONST SL_BATTLE_GENERAL_AREA         = -200116  'Hide
 '</SLICE LOOKUP CODES>
 
 #define edsl(lookupcode_suffix, parent)  LookupSlice(_CONCAT(EDSL_PREFIX, lookupcode_suffix), parent)
