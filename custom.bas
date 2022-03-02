@@ -27,10 +27,6 @@
 #include "editorkit.bi"
 #include "custom.bi"
 
-#IFDEF USE_RASTERIZER
- #include "matrixMath.bi"
-#ENDIF
-
 
 '''' Local function and type declarations
 
@@ -1567,8 +1563,6 @@ SUB condition_test_menu ()
  setkeys
 END SUB
 
-#IFDEF USE_RASTERIZER
-
 TYPE RGBAEditor EXTENDS Editorkit
  DECLARE SUB define_items()
  DECLARE SUB edit_byte(title as string, byref byt as ubyte)
@@ -1664,8 +1658,8 @@ SUB quad_transforms_menu ()
   IF keyval(scPlus) > 1 THEN loopvar spritemode, -1, sprTypeBackdrop, 1: need_update = YES
   IF keyval(scLeftBracket) > 1 THEN loopvar spriteid, 0, sprite_sizes(spritemode).lastrec, -1: need_update = YES
   IF keyval(scRightBracket) > 1 THEN loopvar spriteid, 0, sprite_sizes(spritemode).lastrec, 1: need_update = YES
-  IF keyval(scN) > 1 THEN loopvar drawopts.scale, 0, 10, -1
-  IF keyval(scM) > 1 THEN loopvar drawopts.scale, 0, 10, 1
+  'IF keyval(scN) > 1 THEN loopvar drawopts.scale, 0, 10, -1
+  'IF keyval(scM) > 1 THEN loopvar drawopts.scale, 0, 10, 1
   IF keyval(scO) > 1 THEN drawopts.opacity -= 0.05
   IF keyval(scP) > 1 THEN drawopts.opacity += 0.05
   IF keyval(scB) > 1 THEN loopvar drawopts.blend_mode, 0, blendModeLAST
@@ -1717,13 +1711,6 @@ SUB quad_transforms_menu ()
  switch_to_8bit_vpages()
 END SUB
 
-#ELSE
-
-SUB quad_transforms_menu ()
- notification "Compile with 'scons raster=1' to enable."
-END SUB
-
-#ENDIF
 
 'smooth is 0, 1 or 2
 FUNCTION rotozoom_test_with (img as GraphicPair, rotate as double, zoomx as double, zoomy as double, smooth as integer, raster as bool = NO, trans as bool = NO, reftime as double = 0.) as double
@@ -1753,12 +1740,10 @@ FUNCTION rotozoom_test_with (img as GraphicPair, rotate as double, zoomx as doub
   DIM cnt as integer = 0
   WHILE TIMER - rztime < 3e-3
    IF raster THEN
-    #IFDEF USE_RASTERIZER
-     DIM position as Float2 = (vpages(vpage)->w / 2, vpages(vpage)->h / 2 - 50)
-     DIM transf as AffineTransform
-     rotozoom_transform transf, img.sprite->size, , position, rotate, XYF(zoomx, zoomy)
-     frame_draw_transformed img.sprite, master(), img.pal, transf, trans, vpages(vpage)
-    #ENDIF
+    DIM position as Float2 = (vpages(vpage)->w / 2, vpages(vpage)->h / 2 - 50)
+    DIM transf as AffineTransform
+    rotozoom_transform transf, img.sprite->size, , position, rotate, XYF(zoomx, zoomy)
+    frame_draw_transformed img.sprite, master(), img.pal, transf, trans, vpages(vpage)
 
    ELSE
     gfx_surfaceDestroy(@out_surf)
@@ -1812,31 +1797,23 @@ SUB rotozoom_tests ()
  DIM img as GraphicPair
  load_sprite_and_pal img, sprTypeBackdrop, 1
  reftime = rotozoom_test_with(img, 45, 1.2, 1.2, 0)
- #ifdef USE_RASTERIZER
-  rotozoom_test_with(img, 45, 1.2, 1.2, 0, YES, , reftime)
- #endif
+ rotozoom_test_with(img, 45, 1.2, 1.2, 0, YES, , reftime)
  rotozoom_test_with(img, 45, 1.2, 1.2, 1, , , reftime)
  rotozoom_test_with(img, 0, 1.2, 1.2, 2, , , reftime)
- #ifdef USE_RASTERIZER
-  reftime = rotozoom_test_with(img, 0, 1.2, 1.2, 0, YES)
-  frame_assign @img.sprite, frame_duplicate(img.sprite)
-  frame_convert_to_32bit(img.sprite, master(), img.pal)
-  palette16_unload @img.pal
-  rotozoom_test_with(img, 0, 1.2, 1.2, 0, YES, , reftime)
- #endif
+ reftime = rotozoom_test_with(img, 0, 1.2, 1.2, 0, YES)
+ frame_assign @img.sprite, frame_duplicate(img.sprite)
+ frame_convert_to_32bit(img.sprite, master(), img.pal)
+ palette16_unload @img.pal
+ rotozoom_test_with(img, 0, 1.2, 1.2, 0, YES, , reftime)
 
  unload_sprite_and_pal img
 
  load_sprite_and_pal img, sprTypeLargeEnemy, 1
  FOR zoom as double = 0.5 TO 6.501 STEP 2.
   reftime = rotozoom_test_with(img, 136, zoom, zoom, 0)
-  #ifdef USE_RASTERIZER
-   rotozoom_test_with(img, 136, zoom, zoom, 0, YES, , reftime)
-  #endif
+  rotozoom_test_with(img, 136, zoom, zoom, 0, YES, , reftime)
   reftime = rotozoom_test_with(img, 136, zoom, zoom, 0, , YES)
-  #ifdef USE_RASTERIZER
-   rotozoom_test_with(img, 136, zoom, zoom, 0, YES, YES, reftime)
-  #endif
+  rotozoom_test_with(img, 136, zoom, zoom, 0, YES, YES, reftime)
  NEXT
  unload_sprite_and_pal img
 

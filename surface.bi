@@ -195,8 +195,6 @@ extern "C"
 	extern gfx_paletteDestroy as function ( byval ppPaletteIn as RGBPalette ptr ptr ) as integer
 	extern gfx_paletteUpdate as function ( byval pPaletteIn as RGBPalette ptr ) as integer
 
-	#ifdef USE_RASTERIZER
-
 	extern gfx_renderQuadColor as sub ( byval pQuad as VertexPC ptr, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byval pOpts as DrawOptions ptr )
 	extern gfx_renderQuadTexture as sub ( byval pQuad as VertexPT ptr, byval pTexture as Surface ptr, byval pPalette as RGBPalette ptr, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byval pOpts as DrawOptions ptr )
 	extern gfx_renderQuadTextureColor as sub ( byval pQuad as VertexPTC ptr, byval pTexture as Surface ptr, byval pPalette as RGBPalette ptr, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byval pOpts as DrawOptions ptr )
@@ -204,8 +202,6 @@ extern "C"
 	extern gfx_renderTriangleColor as sub ( byval pTriangle as VertexPC ptr, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byval pOpts as DrawOptions ptr )
 	extern gfx_renderTriangleTexture as sub ( byval pTriangle as VertexPT ptr, byval pTexture as Surface ptr, byval pPalette as RGBPalette ptr, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byval pOpts as DrawOptions ptr )
 	extern gfx_renderTriangleTextureColor as sub ( byval pTriangle as VertexPTC ptr, byval pTexture as Surface ptr, byval pPalette as RGBPalette ptr, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr, byval pOpts as DrawOptions ptr )
-
-	#endif
 
 	' Only for surface_from_pixels
 	Type PixelFormat as integer

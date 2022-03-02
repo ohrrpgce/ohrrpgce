@@ -1205,17 +1205,12 @@ game_modules = ['game',
 # The following are built only once and linked into Game and Custom
 common_modules += ['rotozoom.c',
                    'blit.c',
+                   'matrixMath.cpp',
+                   'rasterizer.cpp',
                    'surface.cpp',
                    'lib/gif.cpp',
                    'lib/jo_jpeg.cpp',
                    'lib/ujpeg.c']
-
-if int(ARGUMENTS.get('raster', 1)):
-    common_modules += ['rasterizer.cpp',
-                       'matrixMath.cpp']
-    commonenv['FBFLAGS'] += ['-d', 'USE_RASTERIZER']
-    commonenv['CFLAGS'] += ['-DUSE_RASTERIZER']
-    commonenv['CXXFLAGS'] += ['-DUSE_RASTERIZER']
 
 
 ################ Generate files containing Version/build info
@@ -1694,10 +1689,6 @@ Options:
                       library compiled for the target platform.
   portable=1          (For Linux and BSD) Try to build portable binaries, and
                       check library dependencies.
-
-Optional features:
-  raster=1 (default)  Include software triangle rasterizer (rasterizer.cpp).
-                      Not used for anything!
 
 The following environmental variables are also important:
   FBFLAGS             Pass more flags to fbc

@@ -10150,8 +10150,6 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 	end if
 end sub
 
-#ifdef USE_RASTERIZER
-
 ' Draw a Frame with position and transformation specified by an AffineTransform.
 ' Supports 8 & 32-bit Frames, including alpha channels. (Respects opts.alpha_channel.)
 ' Supports opts.with_blending, opts.blend_mode, and opts.argbModifier in addition to opts.opacity.
@@ -10264,8 +10262,6 @@ sub rotozoom_transform(byref result as AffineTransform, size as XYPair, center a
 	'Only first 3 vertices
 	vec2Transform @result.vertices(0), 3, @vertices(0), 3, matrix
 end sub
-
-#endif
 
 'Return a copy of a single Frame or a Frame array, each frame clipped or extended.
 'Extended portions are filled with bgcol.

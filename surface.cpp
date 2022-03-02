@@ -24,10 +24,8 @@ void clampRectToSurface( SurfaceRect* inRect, SurfaceRect* outRect, Surface* pSu
 
 #define bound(x, low, high)  std::max(std::min(x, high), low)
 
-#ifdef USE_RASTERIZER
 // g_rasterizer has no state, so is threadsafe
 QuadRasterizer g_rasterizer;
-#endif
 
 // Access to g_surfaces and g_palettes is gated by surfaceMutex
 std::list< Surface* > g_surfaces;
@@ -708,8 +706,6 @@ int gfx_paletteUpdate_SW( RGBPalette* pPaletteIn )
 	return 0;
 }
 
-#ifdef USE_RASTERIZER
-
 void gfx_renderQuadColor_SW( VertexPC* pQuad, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
 	g_rasterizer.drawQuadColor(pQuad, pRectDest, pSurfaceDest, pOpts);
 }
@@ -733,5 +729,3 @@ void gfx_renderTriangleTexture_SW( VertexPT* pTriangle, Surface* pTexture, RGBPa
 void gfx_renderTriangleTextureColor_SW( VertexPTC* pTriangle, Surface* pTexture, RGBPalette* pPalette, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* pOpts ) {
 	g_rasterizer.drawTriangleTextureColor(pTriangle, pTexture, pPalette, pRectDest, pSurfaceDest, pOpts);
 }
-
-#endif
