@@ -8485,7 +8485,7 @@ SUB init_text_box_slices(byref txtsl as Slice ptr, box as TextBox, parent as Sli
  DIM text_sl as Slice Ptr
  text_sl = NewSliceOfType(slText, text_box, SL_TEXTBOX_TEXT)
  text_sl->Fill = YES
- ChangeTextSlice text_sl, s, col, YES, NO
+ ChangeTextSlice text_sl, s, col, YES, YES
 
  IF revealed = NO THEN
   '--start the displayed lines as all hidden. They will be revealed in update_textbox
