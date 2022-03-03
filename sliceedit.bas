@@ -2128,6 +2128,10 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    a_append menu(), " Clamp vert.: " & clamp_caption(.ClampVert, YES)
    sliceed_rule_enum rules(), "clamp", @.ClampVert, 0, 3
   END IF
+  IF .ClampVert > 0 ORELSE .ClampHoriz > 0 THEN
+   a_append menu(), " Clamp to: " & IIF(.ClampToScreen, "Screen", "Parent")
+   sliceed_rule_tog rules(), "clamp", @.ClampToScreen
+  END IF
  END IF
 
  sliceed_header menu(), rules(), "[Padding]", @ses.expand_padding

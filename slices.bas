@@ -142,6 +142,7 @@ DECLARE Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childi
 DECLARE Function SliceXAlign(sl as Slice Ptr, supportw as integer) as integer
 DECLARE Function SliceYAlign(sl as Slice Ptr, supporth as integer) as integer
 DECLARE Sub RefreshChild(ch as Slice ptr, support as RectType)
+DECLARE Sub RefreshChildClamp(ch as Slice ptr, support as RectType)
 DECLARE Sub ApplySliceVelocity(byval s as Slice ptr)
 DECLARE Sub SeekSliceTarg(byval s as Slice ptr)
 
@@ -233,6 +234,32 @@ Sub RefreshChild(ch as Slice ptr, support as RectType)
  with *ch
   .ScreenX = .X + support.x + SliceXAlign(ch, support.wide) - SliceXAnchor(ch)
   .ScreenY = .Y + support.y + SliceYAlign(ch, support.high) - SliceYAnchor(ch)
+  if .ClampToScreen then
+   dim scr_rect as RectType = any
+   dim root_sl as slice Ptr = FindRootSlice(ch)
+   scr_rect.xy = root_sl->ScreenPos + XY(root_sl->paddingLeft, root_sl->paddingTop)
+   scr_rect.wide = root_sl->Width - root_sl->paddingLeft - root_sl->paddingRight
+   scr_rect.high = root_sl->Height - root_sl->paddingTop - root_sl->paddingBottom
+   RefreshChildClamp ch, scr_rect
+  else
+   'Clamp to parent
+   RefreshChildClamp ch, support
+  end if
+  if .Fill then
+   if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillHoriz then
+    .ScreenX = support.x
+    .Width = support.wide
+   end if
+   if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillVert then
+    .ScreenY = support.y
+    .Height = support.high
+   end if
+  end if
+ end with
+End sub
+
+Sub RefreshChildClamp(ch as Slice ptr, support as RectType)
+ with *ch
   select case .ClampHoriz
    case alignLeft:   .ScreenX = large(.ScreenX, support.x)
    case alignRight:  .ScreenX = small(.ScreenX, support.x + support.wide - .Width)
@@ -269,19 +296,8 @@ Sub RefreshChild(ch as Slice ptr, support as RectType)
      .ScreenY = small(.ScreenY, support.y + support.high - .Height)
     end if
   end select
-
-  if .Fill then
-   if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillHoriz then
-    .ScreenX = support.x
-    .Width = support.wide
-   end if
-   if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillVert then
-    .ScreenY = support.y
-    .Height = support.high
-   end if
-  end if
  end with
-End sub
+End Sub
 
 Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
  'NOTE: we don't bother to null check s here because this sub is only
@@ -4409,6 +4425,9 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
   .PaddingRight = sl->PaddingRight
   .PaddingBottom = sl->PaddingBottom
   .CoverChildren = sl->CoverChildren
+  .ClampHoriz = sl->ClampHoriz
+  .ClampVert = sl->ClampVert
+  .ClampToScreen = sl->ClampToScreen
   .Fill = sl->Fill
   .FillMode = sl->FillMode
   .AutoSort = sl->AutoSort
@@ -4515,6 +4534,7 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  SaveProp node, "anchorv", sl->AnchorVert
  if sl->ClampHoriz <> alignNone then SavePropAlways node, "clamph", sl->ClampHoriz
  if sl->ClampVert  <> alignNone then SavePropAlways node, "clampv", sl->ClampVert
+ SaveProp node, "clamptoscreen", sl->ClampToScreen
  SaveProp node, "padt", sl->PaddingTop
  SaveProp node, "padl", sl->PaddingLeft
  SaveProp node, "padr", sl->PaddingRight
@@ -4630,6 +4650,7 @@ Function SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_h
  sl->AnchorVert = LoadProp(node, "anchorv")
  sl->ClampHoriz = LoadProp(node, "clamph", alignNone)
  sl->ClampVert = LoadProp(node, "clampv", alignNone)
+ sl->ClampToScreen = LoadProp(node, "clamptoscreen")
  sl->PaddingTop = LoadProp(node, "padt")
  sl->PaddingLeft = LoadProp(node, "padl")
  sl->PaddingRight = LoadProp(node, "padr")

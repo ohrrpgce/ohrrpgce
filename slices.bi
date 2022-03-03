@@ -358,6 +358,7 @@ Type Slice
   AnchorVert as AlignType  'Relative to self. Only used when not filling
   ClampHoriz as AlignType  'alignNone for no clamping. Only used when not filling
   ClampVert as AlignType  'alignNone for no clamping. Only used when not filling
+  ClampToScreen as bool 'NO means clamp to parent, YES means clamp to screen
 
   as integer PaddingTop, PaddingLeft, PaddingRight, PaddingBottom
 
