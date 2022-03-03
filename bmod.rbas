@@ -118,6 +118,8 @@ DECLARE SUB update_indicator_slice (sl as Slice Ptr, lookup_code as integer, act
 DECLARE SUB update_battle_toggle_bounce (bat as BattleState, sl as Slice Ptr)
 DECLARE SUB update_battle_targetting_slices (layer as Slice Ptr, bat as BattleState, bspr as BattleSprite)
 DECLARE SUB instantiate_battle_targetting_slices (layer as Slice Ptr)
+DECLARE SUB update_battle_targ_hover_slices (layer as Slice Ptr, bat as BattleState, bspr as BattleSprite)
+DECLARE SUB instantiate_battle_targ_hover_slices (layer as Slice Ptr)
 DECLARE SUB ExpandTextBattleSprite (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 DECLARE SUB ExpandTextBattleState (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 
@@ -1699,6 +1701,19 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
 
   area = LookupSlice(SL_BATTLE_PLAYER_TURN_OVERLAY, ui_layer, , area)
  LOOP
+
+ '--Update mouse hover when targetting areas
+ area = LookupSlice(SL_BATTLE_TARG_HOVER_LAYER, ui_layer)
+ IF area = 0 THEN
+  warnings &= !"SL_BATTLE_TARG_HOVER_LAYER not found\n"
+ END IF
+ DO WHILE area '--For each hover targetting layer
+  instantiate_battle_targ_hover_slices area
+  FOR i as integer = 0 to 11
+   update_battle_targ_hover_slices area, bat, bslot(i)
+  NEXT i
+  area = LookupSlice(SL_BATTLE_TARG_HOVER_LAYER, ui_layer, , area)
+ LOOP
  
  '--Update targetting areas
  area = LookupSlice(SL_BATTLE_TARGETTING_LAYER, ui_layer)
@@ -1873,6 +1888,7 @@ SUB instantiate_battle_targetting_slices (layer as Slice Ptr)
  DIM sl as Slice Ptr
  DO WHILE layer->NumChildren < 12 + 1 '12 slots + the template
   sl = CloneTemplate(templ)
+  sl->Lookup = SL_BATTLE_TARGETTING_OVERLAY
  LOOP
 END SUB
 
@@ -1891,7 +1907,38 @@ SUB update_battle_targetting_slices (layer as Slice Ptr, bat as BattleState, bsp
    sl->Visible = YES
   END IF
  END WITH
- 
+END SUB
+
+SUB instantiate_battle_targ_hover_slices (layer as Slice Ptr)
+ IF layer = 0 THEN EXIT SUB
+ DIM templ as Slice Ptr = LookupSlice(SL_BATTLE_TARG_HOVER_TEMPLATE, layer)
+ IF templ = 0 THEN EXIT SUB
+ DIM sl as Slice Ptr
+ DO WHILE layer->NumChildren < 12 + 1 '12 slots + the template
+  sl = CloneTemplate(templ)
+  sl->Lookup = SL_BATTLE_TARG_HOVER_OVERLAY
+ LOOP
+END SUB
+
+SUB update_battle_targ_hover_slices (layer as Slice Ptr, bat as BattleState, bspr as BattleSprite)
+ DIM sl as Slice Ptr = SliceChildByIndex(layer, bspr.index)
+ IF sl = 0 THEN EXIT SUB
+ sl->Visible = NO
+ WITH bspr
+  IF .sl <> 0 THEN
+   sl->Pos = .sl->Pos
+   sl->Size = .sl->Size
+   'Targetting hover area also functions as a hero or enemy info area
+   update_battle_hero_or_enemy_info_slice sl, bat, bspr
+  END IF
+  IF bat.targ.mode > targNONE ANDALSO bat.targ.hover = .index THEN
+   sl->Visible = YES
+  END IF
+  DIM sel as Slice Ptr = LookupSlice(SL_BATTLE_TARG_HOVER_SELECT, sl)
+  IF sel THEN
+   ChangeSelectSlice sel, IIF(bat.targ.mask(.index),1, 0)
+  END IF
+ END WITH
 END SUB
 
 SUB ExpandTextBattleState (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
@@ -1936,6 +1983,8 @@ FUNCTION create_default_battle_ui_layer() as Slice Ptr
  area = create_default_battle_caption_area()
  SetSliceParent area, layer
  area = create_default_player_turn_overlay_area()
+ SetSliceParent area, layer
+ area = create_default_targ_hover_overlay_area()
  SetSliceParent area, layer
  area = create_default_targetting_overlay_area()
  SetSliceParent area, layer
