@@ -1630,7 +1630,7 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
     ch->Visible = hero_present
     
     IF hero_present THEN
-      update_battle_hero_info_slice ch, bat, bslot(i)
+     update_battle_hero_info_slice ch, bat, bslot(i)
     END IF
    
    END IF
@@ -1675,6 +1675,8 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
      area->Visible = YES
      area->Pos = .sl->Pos
      area->Size = .sl->Size
+     'Player overlay area also functions as a hero info area
+     update_battle_hero_info_slice area, bat, bslot(bat.player_turn)
     END IF
    END WITH
   ELSE
@@ -1687,7 +1689,8 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
 
   area = LookupSlice(SL_BATTLE_PLAYER_TURN_OVERLAY, ui_layer, , area)
  LOOP
-
+ 
+ '--Update layer visibility
  ui_layer->Visible = YES
  
  'FIXME: temporarily only show when test_future is on
