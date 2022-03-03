@@ -110,8 +110,10 @@ DECLARE FUNCTION create_default_battle_ui_layer() as Slice Ptr
 DECLARE FUNCTION create_default_battle_ready_area() as Slice Ptr
 DECLARE FUNCTION create_default_battle_hp_area() as Slice Ptr
 DECLARE FUNCTION create_default_battle_caption_area () as Slice Ptr
+DECLARE FUNCTION create_default_player_turn_overlay_area () as Slice Ptr
 DECLARE SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
 DECLARE SUB update_indicator_slice (sl as Slice Ptr, lookup_code as integer, active as bool, indicator_string as string="", sort_index as integer=0)
+DECLARE SUB update_battle_toggle_bounce (bat as BattleState, sl as Slice Ptr)
 DECLARE SUB ExpandTextBattleSprite (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 DECLARE SUB ExpandTextBattleState (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 
@@ -1167,10 +1169,12 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
     .menust.active = (bat.menu_mode = batMENUHERO)
     draw_menu .batmenu, .menust, page
 
+    IF bat.test_future = NO THEN
     IF bat.targ.mode = targNONE AND prefbit(14) = NO THEN  '"Disable Hero's Battle Cursor" off
      'Show cursor above hero
      edgeprint CHR(24), .x + (.w / 2) - 4, .y - 5 + (bat.tog * 2), uilook(uiSelectedItem + bat.tog), page
     END IF
+    END IF 'test_future off
    END WITH
    IF bat.menu_mode = batMENUSPELL THEN '--draw spell menu
     edgeboxstyle 5, 6, 310, 95, 0, page
@@ -1657,6 +1661,33 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
   area = LookupSlice(SL_BATTLE_GENERAL_AREA, ui_layer, , area)
  LOOP
 
+ area = LookupSlice(SL_BATTLE_PLAYER_TURN_OVERLAY, ui_layer)
+ IF area = 0 THEN
+  warnings &= !"SL_BATTLE_PLAYER_TURN_OVERLAY not found\n"
+ END IF
+ DO WHILE area '--For each player turn overlay area
+  
+  IF bat.player_turn >= 0 ANDALSO bat.targ.mode = targNONE ANDALSO prefbit(14) = NO THEN
+   'Player turn is happening, but is not targetting
+   '"Disable Hero's Battle Cursor" off
+   WITH bslot(bat.player_turn)
+    IF .sl <> 0 THEN
+     area->Visible = YES
+     area->Pos = .sl->Pos
+     area->Size = .sl->Size
+    END IF
+   END WITH
+  ELSE
+   area->Visible = NO
+   area->Pos = XY(0, 0)
+   area->Size = XY(0, 0)
+  END IF
+  
+  update_battle_toggle_bounce bat, area
+
+  area = LookupSlice(SL_BATTLE_PLAYER_TURN_OVERLAY, ui_layer, , area)
+ LOOP
+
  ui_layer->Visible = YES
  
  'FIXME: temporarily only show when test_future is on
@@ -1672,6 +1703,21 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
   last_warning = TIMER
  END IF
  
+END SUB
+
+SUB update_battle_toggle_bounce (bat as BattleState, sl as Slice Ptr)
+ DIM bounce as Slice Ptr
+ bounce = LookupSlice(SL_BATTLE_TOGGLE_BOUNCE, sl)
+ DO WHILE bounce '--For each bouncer
+  IF bounce->SliceType = slSelect THEN
+   DIM n as integer = bounce->SelectData->index
+   IF bounce->NumChildren > 1 THEN
+    loopvar n, 0, bounce->NumChildren - 1
+    ChangeSelectSlice bounce, n
+   END IF
+  END IF
+  bounce = LookupSlice(SL_BATTLE_TOGGLE_BOUNCE, sl, , bounce)
+ LOOP
 END SUB
 
 SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
@@ -1835,6 +1881,8 @@ FUNCTION create_default_battle_ui_layer() as Slice Ptr
  SetSliceParent area, layer
  area = create_default_battle_caption_area()
  SetSliceParent area, layer
+ area = create_default_player_turn_overlay_area()
+ SetSliceParent area, layer
  RETURN layer
 END FUNCTION
 
@@ -1934,6 +1982,29 @@ FUNCTION create_default_battle_caption_area () as Slice Ptr
  cap_txt->AlignHoriz = alignCenter
  cap_txt->AlignVert = alignCenter
  ChangeTextSlice cap_txt, "${CAPTION}", uiText * -1 - 1, YES
+ RETURN area
+END FUNCTION
+
+FUNCTION create_default_player_turn_overlay_area () as Slice Ptr
+ 'A slice with the SL_BATTLE_PLAYER_TURN_OVERLAY lookup code is magical.
+ 'It will change size and position to match the hero or enemy
+ 'who is currently taking a player-controlled turn
+ 'Or it will become invisible if not taking a turn
+ DIM area as Slice Ptr = NewSliceOfType(slContainer, , SL_BATTLE_PLAYER_TURN_OVERLAY)
+ DIM cursor_area as Slice Ptr = NewSliceOfType(slSelect, area, SL_BATTLE_TOGGLE_BOUNCE)
+ cursor_area->Size = XY(8, 10)
+ cursor_area->Pos = XY(0, 5)
+ cursor_area->AnchorHoriz = alignCenter
+ cursor_area->AlignHoriz = alignCenter
+ cursor_area->AnchorVert = alignBottom
+ cursor_area->AlignVert = alignTop
+ DIM cursor as Slice Ptr
+ cursor = NewSliceOfType(slText, cursor_area)
+ cursor->Pos = XY(0, 0)
+ ChangeTextSlice cursor, CHR(24), uiSelectedItem2 * -1 - 1, YES
+ cursor = NewSliceOfType(slText, cursor_area)
+ cursor->Pos = XY(0, 2)
+ ChangeTextSlice cursor, CHR(24), uiSelectedItem2 * -1 - 1, YES
  RETURN area
 END FUNCTION
 

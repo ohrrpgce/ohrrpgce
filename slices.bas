@@ -468,6 +468,8 @@ FUNCTION SliceLookupCodename (byval code as integer, use_default as bool = YES) 
   CASE SL_BATTLE_STUN_INDICATOR: RETURN "battle stun indicator"
   CASE SL_BATTLE_MUTE_INDICATOR: RETURN "battle mute indicator"
   CASE SL_BATTLE_GENERAL_AREA: RETURN "battle general area"
+  CASE SL_BATTLE_PLAYER_TURN_OVERLAY: RETURN "battle player turn overlay"
+  CASE SL_BATTLE_TOGGLE_BOUNCE: RETURN "battle toggle bounce"
 '</SLICE LOOKUP NAMES>
   CASE IS > 0
    'TODO: cache slicelookup() in memory.
