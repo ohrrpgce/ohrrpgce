@@ -2125,12 +2125,18 @@ FUNCTION create_default_targetting_overlay_area () as Slice Ptr
  curs->AlignHoriz = alignCenter
  curs->AnchorVert = alignBottom
  curs->AlignVert = alignTop
+ curs->ClampHoriz = alignBoth
+ curs->ClampVert = alignBoth
+ curs->ClampToScreen = YES
  ChangeTextSlice curs, CHR(24), uiSelectedItem2 * -1 - 1, YES
  DIM targname as Slice Ptr = NewSliceOfType(slText, templ)
  targname->AnchorHoriz = alignCenter
  targname->AlignHoriz = alignCenter
  targname->AnchorVert = alignBottom
  targname->AlignVert = alignTop
+ targname->ClampHoriz = alignBoth
+ targname->ClampVert = alignBoth
+ targname->ClampToScreen = YES
  ChangeTextSlice targname, "${NAME}", uiSelectedItem2 * -1 - 1, YES
  targname->Pos = XY(-3, -6)
  RETURN layer
@@ -2149,6 +2155,9 @@ FUNCTION create_default_targ_hover_overlay_area () as Slice Ptr
  hov_select->AlignHoriz = alignCenter
  hov_select->AnchorVert = alignBottom
  hov_select->AlignVert = alignTop
+ hov_select->ClampHoriz = alignBoth
+ hov_select->ClampVert = alignBoth
+ hov_select->ClampToScreen = YES
  'Child 0 is for invalid targets, child 1 is for valid targets
  DIM hov_curs as Slice Ptr
  hov_curs = NewSliceOfType(slText, hov_select)
