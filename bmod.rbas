@@ -111,7 +111,7 @@ DECLARE FUNCTION create_default_battle_ready_area() as Slice Ptr
 DECLARE FUNCTION create_default_battle_hp_area() as Slice Ptr
 DECLARE FUNCTION create_default_battle_caption_area () as Slice Ptr
 DECLARE FUNCTION create_default_player_turn_overlay_area () as Slice Ptr
-DECLARE SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
+DECLARE SUB update_battle_hero_or_enemy_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
 DECLARE SUB update_indicator_slice (sl as Slice Ptr, lookup_code as integer, active as bool, indicator_string as string="", sort_index as integer=0)
 DECLARE SUB update_battle_toggle_bounce (bat as BattleState, sl as Slice Ptr)
 DECLARE SUB ExpandTextBattleSprite (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
@@ -1630,7 +1630,7 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
     ch->Visible = hero_present
     
     IF hero_present THEN
-     update_battle_hero_info_slice ch, bat, bslot(i)
+     update_battle_hero_or_enemy_info_slice ch, bat, bslot(i)
     END IF
    
    END IF
@@ -1676,7 +1676,7 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
      area->Pos = .sl->Pos
      area->Size = .sl->Size
      'Player overlay area also functions as a hero info area
-     update_battle_hero_info_slice area, bat, bslot(bat.player_turn)
+     update_battle_hero_or_enemy_info_slice area, bat, bslot(bat.player_turn)
     END IF
    END WITH
   ELSE
@@ -1723,7 +1723,7 @@ SUB update_battle_toggle_bounce (bat as BattleState, sl as Slice Ptr)
  LOOP
 END SUB
 
-SUB update_battle_hero_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
+SUB update_battle_hero_or_enemy_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
  IF sl = 0 THEN EXIT SUB 
  DIM col as integer
  
