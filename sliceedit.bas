@@ -235,14 +235,16 @@ DECLARE SUB sliceed_rule_none (rules() as EditRule, helpkey as string, group as 
 
 '==============================================================================
 
-DIM HorizCaptions(2) as string
+DIM HorizCaptions(3) as string
 HorizCaptions(0) = "Left"
 HorizCaptions(1) = "Center"
 HorizCaptions(2) = "Right"
-DIM VertCaptions(2) as string
+HorizCaptions(3) = "Both" 'Only for clamp
+DIM VertCaptions(3) as string
 VertCaptions(0) = "Top"
 VertCaptions(1) = "Center"
 VertCaptions(2) = "Bottom"
+VertCaptions(3) = "Both" 'Only for clamp
 REDIM SHARED BorderCaptions(-2 TO -1) as string
 BorderCaptions(-2) = "None"
 BorderCaptions(-1) = "Line"
@@ -2118,15 +2120,13 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    a_append menu(), " Anchor vert.  at: " & VertCaptions(.AnchorVert)
    sliceed_rule_enum rules(), "anchor", @.AnchorVert, 0, 2
   END IF
-  IF ses.privileged THEN
-   IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
-    a_append menu(), " Clamp horiz.: " & clamp_caption(.ClampHoriz, NO)
-    sliceed_rule_enum rules(), "clamp", @.ClampHoriz, 0, 2
-   END IF
-   IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
-    a_append menu(), " Clamp vert.: " & clamp_caption(.ClampVert, YES)
-    sliceed_rule_enum rules(), "clamp", @.ClampVert, 0, 2
-   END IF
+  IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
+   a_append menu(), " Clamp horiz.: " & clamp_caption(.ClampHoriz, NO)
+   sliceed_rule_enum rules(), "clamp", @.ClampHoriz, 0, 3
+  END IF
+  IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
+   a_append menu(), " Clamp vert.: " & clamp_caption(.ClampVert, YES)
+   sliceed_rule_enum rules(), "clamp", @.ClampVert, 0, 3
   END IF
  END IF
 

@@ -236,10 +236,38 @@ Sub RefreshChild(ch as Slice ptr, support as RectType)
   select case .ClampHoriz
    case alignLeft:   .ScreenX = large(.ScreenX, support.x)
    case alignRight:  .ScreenX = small(.ScreenX, support.x + support.wide - .Width)
+   case alignBoth:
+    if .Width > support.wide then
+     select case .AnchorHoriz
+      case alignLeft:
+        .ScreenX = small(.ScreenX, support.x + support.wide - .Width)
+        .ScreenX = large(.ScreenX, support.x)
+      case alignRight:
+        .ScreenX = large(.ScreenX, support.x)
+        .ScreenX = small(.ScreenX, support.x + support.wide - .Width)
+     end select
+    else
+     .ScreenX = large(.ScreenX, support.x)
+     .ScreenX = small(.ScreenX, support.x + support.wide - .Width)
+    end if
   end select
   select case .ClampVert
    case alignTop:    .ScreenY = large(.ScreenY, support.y)
    case alignBottom: .ScreenY = small(.ScreenY, support.y + support.high - .Height)
+   case alignBoth:
+    if .Height > support.high then
+     select case .AnchorVert
+      case alignTop:
+       .ScreenY = small(.ScreenY, support.y + support.high - .Height)
+       .ScreenY = large(.ScreenY, support.y)
+      case alignBottom:
+       .ScreenY = large(.ScreenY, support.y)
+       .ScreenY = small(.ScreenY, support.y + support.high - .Height)
+     end select
+    else
+     .ScreenY = large(.ScreenY, support.y)
+     .ScreenY = small(.ScreenY, support.y + support.high - .Height)
+    end if
   end select
 
   if .Fill then

@@ -711,6 +711,7 @@ Enum AlignType
   alignNone = 1   'Only used by slice clamp options
   alignRight = 2
   alignBottom = 2
+  alignBoth = 3   'Only used by slice clamp options
 End Enum
 
 CONST _rFactor = 10100000

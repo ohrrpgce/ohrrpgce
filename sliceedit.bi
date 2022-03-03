@@ -18,7 +18,7 @@ DECLARE FUNCTION anchor_and_align_grabber(byref anchor as AlignType, byref align
 DECLARE FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
 
 'Globals
-EXTERN HorizCaptions(2) as string
-EXTERN VertCaptions(2) as string
+EXTERN HorizCaptions(3) as string
+EXTERN VertCaptions(3) as string
 
 #ENDIF
