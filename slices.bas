@@ -467,9 +467,16 @@ FUNCTION SliceLookupCodename (byval code as integer, use_default as bool = YES) 
   CASE SL_BATTLE_REGEN_INDICATOR: RETURN "battle regen indicator"
   CASE SL_BATTLE_STUN_INDICATOR: RETURN "battle stun indicator"
   CASE SL_BATTLE_MUTE_INDICATOR: RETURN "battle mute indicator"
-  CASE SL_BATTLE_GENERAL_AREA: RETURN "battle general area"
+  CASE SL_BATTLE_CAPTION_AREA: RETURN "battle caption area"
   CASE SL_BATTLE_PLAYER_TURN_OVERLAY: RETURN "battle player turn overlay"
   CASE SL_BATTLE_TOGGLE_BOUNCE: RETURN "battle toggle bounce"
+  CASE SL_BATTLE_TARGETTING_LAYER: RETURN "battle targetting layer"
+  CASE SL_BATTLE_TARGETTING_TEMPLATE: RETURN "battle targetting template"
+  CASE SL_BATTLE_TARGETTING_OVERLAY: RETURN "battle targetting overlay"
+  CASE SL_BATTLE_TARG_HOVER_LAYER: RETURN "battle targ hover layer"
+  CASE SL_BATTLE_TARG_HOVER_TEMPLATE: RETURN "battle targ hover template"
+  CASE SL_BATTLE_TARG_HOVER_OVERLAY: RETURN "battle targ hover overlay"
+  CASE SL_BATTLE_TARG_HOVER_SELECT: RETURN "battle targ hover select"
 '</SLICE LOOKUP NAMES>
   CASE IS > 0
    'TODO: cache slicelookup() in memory.

@@ -2614,9 +2614,16 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   append_simplemenu_item menu, "battle_regen_indicator", , , -200113
   append_simplemenu_item menu, "battle_stun_indicator", , , -200114
   append_simplemenu_item menu, "battle_mute_indicator", , , -200115
-  append_simplemenu_item menu, "battle_general_area", , , -200116
+  append_simplemenu_item menu, "battle_caption_area", , , -200116
   append_simplemenu_item menu, "battle_player_turn_overlay", , , -200117
   append_simplemenu_item menu, "battle_toggle_bounce", , , -200118
+  append_simplemenu_item menu, "battle_targetting_layer", , , -200119
+  append_simplemenu_item menu, "battle_targetting_template", , , -200120
+  append_simplemenu_item menu, "battle_targetting_overlay", , , -200121
+  append_simplemenu_item menu, "battle_targ_hover_layer", , , -200122
+  append_simplemenu_item menu, "battle_targ_hover_template", , , -200123
+  append_simplemenu_item menu, "battle_targ_hover_overlay", , , -200124
+  append_simplemenu_item menu, "battle_targ_hover_select", , , -200125
 '</SLICE LOOKUP NAMES>
 
  END IF
