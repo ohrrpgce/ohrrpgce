@@ -1208,6 +1208,9 @@ FUNCTION is_foe_of(target as integer, attacker as integer, bslot() as BattleSpri
  'This function could be simpler, but this complexity may be
  'needed when extra bits are added?
 
+ 'If this prefbit is on, turncoat and defector always consider themselves to be an ally
+ IF prefbit(55) ANDALSO attacker = target THEN RETURN NO
+
  DIM attacker_as_hero as bool = is_hero(attacker)
  DIM attacker_as_enemy as bool = is_enemy(attacker)
  IF bslot(attacker).turncoat_attacker THEN
