@@ -933,7 +933,7 @@ FUNCTION chkOOBtarg (byval attacker as integer, byval target as integer, byval a
   'Other target classes are treated equivalent to "Ally (not dead)", or
   'to Ally-including-dead if they can hit dead.
 
-  IF hp <= 0 THEN RETURN attack_can_hit_dead(0, attack)  'Fake attacker 0, indicating a hero
+  IF hp <= 0 THEN RETURN attack_can_hit_dead(attack)
  ELSE
   IF hp <= 0 THEN RETURN NO
  END IF

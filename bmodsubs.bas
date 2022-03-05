@@ -358,7 +358,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
  'stored targs
  IF attack.store_targ THEN
   attacker.stored_targs(targetslot) = YES
-  attacker.stored_targs_can_be_dead = attack_can_hit_dead(attackerslot, attack)
+  attacker.stored_targs_can_be_dead = attack_can_hit_dead(attack)
  END IF
  IF attack.delete_stored_targs THEN
   FOR i as integer = 0 TO UBOUND(attacker.stored_targs)
@@ -1626,33 +1626,25 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
 
 END SUB
 
-FUNCTION attack_can_hit_dead(attacker as integer, atk_id as integer, stored_targs_can_be_dead as bool=NO) as bool
+FUNCTION attack_can_hit_dead(atk_id as integer, stored_targs_can_be_dead as bool=NO) as bool
  DIM attack as AttackData
  loadattackdata attack, atk_id
- RETURN attack_can_hit_dead(attacker, attack, stored_targs_can_be_dead)
+ RETURN attack_can_hit_dead(attack, stored_targs_can_be_dead)
 END FUNCTION
 
-FUNCTION attack_can_hit_dead(attacker as integer, attack as AttackData, stored_targs_can_be_dead as bool=NO) as bool
- 'AFAICT, the reason for the is_hero/is_enemy checks here is to ensure that
- 'check_for_unhittable_invisible_foe only cancels attacks against dead enemies,
- 'not dead heroes. Which is obtuse.
- 'FIXME: this needs to be updated for Turncoat and Defector
+FUNCTION attack_can_hit_dead(attack as AttackData, stored_targs_can_be_dead as bool=NO) as bool
 
  SELECT CASE attack.targ_class
   CASE 4 'ally-including-dead (hero only)
-   IF is_hero(attacker) THEN RETURN YES
+   RETURN YES
   CASE 9 'stored targets
-   IF is_hero(attacker) THEN
-    IF stored_targs_can_be_dead THEN RETURN YES
-   END IF
+   IF stored_targs_can_be_dead THEN RETURN YES
   CASE 10 'dead-ally (hero only)
-   'Is this really necessary? Can't we just RETURN YES?
-   IF is_hero(attacker) THEN RETURN YES
+   RETURN YES
   CASE 14 'all-including-dead
    RETURN YES
   CASE 15, 16 'dead foe (enemy only), foe-incluidng-dead
-   'As above, just RETURN YES?
-   IF is_enemy(attacker) THEN RETURN YES
+   RETURN YES
  END SELECT
 
  RETURN NO

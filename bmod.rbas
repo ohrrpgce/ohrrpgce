@@ -4046,7 +4046,7 @@ END FUNCTION
 'Return true if target is unhittable and invisible
 FUNCTION check_for_unhittable_invisible_foe(attacker as integer, target as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
  IF bslot(target).vis THEN RETURN NO
- IF attack_can_hit_dead(attacker, attack, bslot(attacker).stored_targs_can_be_dead) THEN RETURN NO 'Attack can hit dead targets
+ IF bslot(target).stat.cur.hp <= 0 ANDALSO attack_can_hit_dead(attack, bslot(attacker).stored_targs_can_be_dead) THEN RETURN NO 'Attack can hit dead targets
  IF bslot(attacker).self_bequesting THEN
   'This is a self-bequest attack
   IF attacker = target THEN RETURN NO 'Bequesting attacker is always allowed to hit self
@@ -4701,7 +4701,7 @@ SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
  loadattackdata bat.targ.atk, bslot(bat.player_turn).attack - 1
 
  get_valid_targs bat.targ.mask(), bat.player_turn, bat.targ.atk, bslot()
- bat.targ.hit_dead = attack_can_hit_dead(bat.player_turn, bat.targ.atk, bslot(bat.player_turn).stored_targs_can_be_dead)
+ bat.targ.hit_dead = attack_can_hit_dead(bat.targ.atk, bslot(bat.player_turn).stored_targs_can_be_dead)
 
  '--attacks that can target all/all-including-dead should default to the first enemy
  IF bat.targ.atk.targ_class = 3 OR bat.targ.atk.targ_class = 14 THEN
@@ -5304,7 +5304,7 @@ SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
       clear_attack_queue_slot i
       CONTINUE FOR
      END IF
-     IF bslot(.t(0)).stat.cur.hp <= 0 AND NOT attack_can_hit_dead(.attacker, .attack, bslot(.attacker).stored_targs_can_be_dead) THEN
+     IF bslot(.t(0)).stat.cur.hp <= 0 AND NOT attack_can_hit_dead(.attack, bslot(.attacker).stored_targs_can_be_dead) THEN
       IF .t(0) = .attacker ANDALSO bslot(.attacker).bequesting THEN
        'If a bequesting attacker is targetting itself, we don't care that it is dead
       ELSE
@@ -5464,7 +5464,7 @@ END SUB
 FUNCTION check_has_remaining_targets(bat as BattleState, bslot() as BattleSprite, targs() as integer) as bool
  'Returns whether a multihit attack should continue: either it can hit dead targets, or
  'any of the targets are alive, or dying but have not finished dying yet.
- IF attack_can_hit_dead(bat.acting, bat.atk.id, YES) THEN RETURN YES
+ IF attack_can_hit_dead(bat.atk.id, YES) THEN RETURN YES
  FOR i as integer = 0 TO UBOUND(targs)
   IF targs(i) > -1 THEN
    IF bslot(targs(i)).stat.cur.hp > 0 ORELSE bslot(targs(i)).vis THEN RETURN YES
@@ -5490,7 +5490,7 @@ SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as Battl
     'next j
     'if showdebug then debug s
     
-    IF NOT attack_can_hit_dead(.attacker, .attack, bslot(.attacker).stored_targs_can_be_dead) THEN
+    IF NOT attack_can_hit_dead(.attack, bslot(.attacker).stored_targs_can_be_dead) THEN
      battle_sort_away_dead_t_target deadguy, .t()
     END IF
     IF .t(0) = -1 THEN
