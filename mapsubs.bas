@@ -6741,7 +6741,9 @@ DO
  state.tog = state.tog XOR 1
  IF keyval(ccCancel) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"
- intgrabber state.pt, -1, state.last, , , , NO  'use_clipboard=NO
+ IF keyval(scDelete) = 0 THEN
+  intgrabber state.pt, -1, state.last, , , , NO  'use_clipboard=NO
+ END IF
  corners_to_rect XY(0,0), vpages(dpage)->size, state.rect
  usemenu state
  IF enter_space_click(state) THEN
