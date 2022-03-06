@@ -3721,7 +3721,7 @@ FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite,
    loadattackdata atk, atkid
    IF auto_battle ANDALSO atk.exclude_from_hero_auto_battle THEN CONTINUE FOR
    DIM list_type as integer = st(bspr.index).list_type(spell_list_id)
-   IF atk.useable_inside_battle ANDALSO (respect_costs ORELSE atkallowed(atk, bspr.index, list_type, i \ 3, bspr)) THEN v_append spells, atkid
+   IF atk.useable_inside_battle ANDALSO (respect_costs = NO ORELSE atkallowed(atk, bspr.index, list_type, i \ 3, bspr)) THEN v_append spells, atkid
   END IF
  NEXT i
  

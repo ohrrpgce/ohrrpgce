@@ -312,7 +312,7 @@ SUB edit_backcompat_bitsets()
  IF gen(genBattleMode) = 1 THEN  'turn-based
   bitname(50) = "!Non-turn attack delays can also cause turn delays"
  END IF
- bitname(54) = "!Disable cost checking for random spell lists"
+ bitname(54) = "!Disable cost checking for autotarget spells in random spell lists"
  edit_global_bitsets bitname(), "share_general_game_backcompat_bitsets"
 END SUB
 
