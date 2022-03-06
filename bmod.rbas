@@ -108,6 +108,8 @@ DECLARE FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as Battl
 DECLARE FUNCTION spell_menu_is_usable(bat as BattleState, bspr as BattleSprite, spell_list_id as integer, st() as HeroDef, respect_costs as bool=YES) as bool
 DECLARE FUNCTION find_attack_in_spell_menu(byval seek_atk_id as integer, bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer, st() as HeroDef, byval respect_costs as bool) as integer
 DECLARE FUNCTION items_menu_is_usable(bspr as BattleSprite) as bool
+DECLARE SUB remove_auto_added_skip_turn_from_battle_menu (bspr as BattleSprite)
+DECLARE SUB auto_add_skip_turn_to_battle_menu (bspr as BattleSprite)
 DECLARE FUNCTION create_default_battle_ui_layer() as Slice Ptr
 DECLARE FUNCTION create_default_battle_ready_area() as Slice Ptr
 DECLARE FUNCTION create_default_battle_hp_area() as Slice Ptr
@@ -2424,8 +2426,13 @@ FUNCTION does_battle_menu_have_targets(byref bspr as BattleSprite, bslot() as Ba
        RETURN YES
       END IF
      CASE batmenu_SKIPTURN:
-      'Always usable
-      RETURN YES
+      IF .sub_t = 1 THEN
+       'This menu item was auto_added. The whole point of the does_battle_menu_have_targets()
+       'function is to decide if we want to add it, so don't count this auto-added skip turn menu item
+      ELSE
+       'Always usable
+       RETURN YES
+      END IF
      CASE batmenu_SPELLS:
       'Don't attempt to support prefbit(54) for autotarget attacks in random spell lists here.
       'If that prefbit is on, the random spell menu might still be usable even if we find here that it isn't, but that is okay
@@ -2466,11 +2473,43 @@ SUB update_battle_menu (bspr as BattleSprite, bslot() as BattleSprite, bat as Ba
   NEXT i
 
   IF NOT does_battle_menu_have_targets(bspr, bslot(), bat, st()) THEN
-   append_menu_item(bspr.batmenu, readglobalstring(332, "Skip Turn", 20), batmenu_SKIPTURN)
+   auto_add_skip_turn_to_battle_menu bspr
+  ELSE
+   remove_auto_added_skip_turn_from_battle_menu bspr
   END IF
 
   ' Update selection, etc
   init_menu_state .menust, .batmenu
+ END WITH
+END SUB
+
+SUB auto_add_skip_turn_to_battle_menu (bspr as BattleSprite)
+ DIM already as bool = NO
+ WITH bspr
+  FOR i as integer = 0 TO .batmenu.numitems - 1
+   WITH *.batmenu.items[i]
+    IF .t = batmenu_SKIPTURN ANDALSO .sub_t = 1 THEN
+     'sub_t=1 means this item was auto-added. sub_t will be =0 for manually added skip turn
+     already = YES
+    END IF
+   END WITH
+  NEXT i
+ END WITH
+ IF NOT already THEN
+  append_menu_item(bspr.batmenu, readglobalstring(332, "Skip Turn", 20), batmenu_SKIPTURN, 1) 'Skip turn subtype 1 means auto-added
+ END IF
+END SUB
+
+SUB remove_auto_added_skip_turn_from_battle_menu (bspr as BattleSprite)
+ WITH bspr
+  FOR i as integer = 0 TO .batmenu.numitems - 1
+   WITH *.batmenu.items[i]
+    IF .t = batmenu_SKIPTURN ANDALSO .sub_t = 1 THEN
+     'sub_t=1 means this item was auto-added. sub_t will be =0 for manually added skip turn
+     remove_menu_item bspr.batmenu, i
+    END IF
+   END WITH
+  NEXT i
  END WITH
 END SUB
 
