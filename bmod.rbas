@@ -97,7 +97,7 @@ DECLARE FUNCTION hero_or_enemy_can_take_a_turn (byval who as integer, bat as Bat
 DECLARE SUB cancel_blocking_attacks_for_hero_or_enemy(byval who as integer)
 DECLARE SUB update_turn_delays_in_attack_queue (byval who as integer)
 DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as bool
-DECLARE SUB update_battle_menu (bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB update_battle_menu (bat as BattleState, bspr as BattleSprite, bslot() as BattleSprite)
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE FUNCTION enemy_is_weak(byref bspr as BattleSprite) as bool
 DECLARE FUNCTION check_for_unhittable_invisible_foe(attacker as integer, target as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
@@ -242,13 +242,17 @@ FUNCTION battle (byval form as integer) as bool
     END IF
    END IF
    IF bat.player_turn >= 0 ANDALSO is_hero(bat.player_turn) ANDALSO bslot(bat.player_turn).under_player_control = NO THEN
+    update_battle_menu bat, bslot(bat.player_turn), bslot()
     hero_ai bat, bslot(bat.player_turn), bat.player_turn, bslot(), st()
     bat.player_turn = -1
    END IF
    IF bat.player_turn >= 0 AND bat.targ.mode = targNONE THEN
     IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, bslot()
     IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, st(), bslot()
-    IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), st()
+    IF bat.menu_mode = batMENUHERO  THEN
+     update_battle_menu bat, bslot(bat.player_turn), bslot()
+     heromenu bat, bslot(), st()
+    END IF
    END IF
    IF bat.player_turn >= 0 AND bat.targ.mode > targNONE THEN battle_targetting bat, bslot()
   END IF
@@ -1171,7 +1175,6 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
   IF bat.player_turn >= 0 THEN
 
    WITH bslot(bat.player_turn)
-    update_battle_menu bat, bslot()
     .menust.active = (bat.menu_mode = batMENUHERO)
     draw_menu .batmenu, .menust, page
 
@@ -2437,8 +2440,8 @@ FUNCTION does_battle_menu_have_targets(byref bspr as BattleSprite, bslot() as Ba
 END FUNCTION
 
 ' Updates which menu items are enabled
-SUB update_battle_menu (bat as BattleState, bslot() as BattleSprite)
- WITH bslot(bat.player_turn)
+SUB update_battle_menu (bat as BattleState, bspr as BattleSprite, bslot() as BattleSprite)
+ WITH bspr
   DIM atk as AttackData
   FOR i as integer = 0 TO .batmenu.numitems - 1
    WITH *.batmenu.items[i]
@@ -2447,7 +2450,7 @@ SUB update_battle_menu (bat as BattleState, bslot() as BattleSprite)
      loadattackdata atk, .sub_t
      ' FIXME: isn't this bitset misnamed, since it affects all battle menu attacks?
      IF atk.check_costs_as_weapon THEN
-      IF atkallowed(atk, bat.player_turn, 0, 0, bslot(bat.player_turn)) = 0 THEN
+      IF atkallowed(atk, bspr.index, 0, 0, bspr) = 0 THEN
        .disabled = YES
       END IF
      END IF
