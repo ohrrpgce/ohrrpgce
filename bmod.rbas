@@ -107,6 +107,7 @@ DECLARE SUB append_enemy_attacks_to_battle_menu(ai_attack_list() as integer, byr
 DECLARE FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite, spell_list_id as integer, st() as HeroDef, respect_costs as bool=YES, byval auto_battle as bool=NO) as integer
 DECLARE FUNCTION spell_menu_is_usable(bat as BattleState, bspr as BattleSprite, spell_list_id as integer, st() as HeroDef, respect_costs as bool=YES) as bool
 DECLARE FUNCTION find_attack_in_spell_menu(byval seek_atk_id as integer, bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer, st() as HeroDef, byval respect_costs as bool) as integer
+DECLARE FUNCTION items_menu_is_usable(bspr as BattleSprite) as bool
 DECLARE FUNCTION create_default_battle_ui_layer() as Slice Ptr
 DECLARE FUNCTION create_default_battle_ready_area() as Slice Ptr
 DECLARE FUNCTION create_default_battle_hp_area() as Slice Ptr
@@ -2429,6 +2430,8 @@ FUNCTION does_battle_menu_have_targets(byref bspr as BattleSprite, bslot() as Ba
       'Don't attempt to support prefbit(54) for autotarget attacks in random spell lists here.
       'If that prefbit is on, the random spell menu might still be usable even if we find here that it isn't, but that is okay
       IF spell_menu_is_usable(bat, bspr, .sub_t, st(), YES) THEN RETURN YES
+     CASE batmenu_ITEMS:
+      IF items_menu_is_usable(bspr) THEN RETURN YES
      CASE ELSE
       'an unsupported menu item was found (item menu)
       'so assume the menu is usable
@@ -3714,6 +3717,32 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
   END IF
  END IF
 END SUB
+
+FUNCTION items_menu_is_usable(bspr as BattleSprite) as bool
+ 'Returns YES if at least one item in the items menu is usable
+ 'Iterate through the iuse() bitfield and mark any items that are usable
+ DIM itembuf(dimbinsize(binITM)) as integer
+ DIM attack as AttackData
+
+ FOR i as integer = 0 TO inventoryMax
+  IF inventory(i).used THEN
+   loaditemdata itembuf(), inventory(i).id
+   IF itembuf(47) > 0 THEN ' This item is usable in battle
+    loadattackdata attack, itembuf(47) - 1
+    IF attack.check_costs_as_item THEN
+     '--This attack has the bitset that requires cost checking when used from an item
+     IF atkallowed(attack, bspr.index, 0, 0, bspr) THEN
+      RETURN YES
+     END IF
+    ELSE
+     '--No cost checking for this item
+     RETURN YES
+    END IF
+   END IF
+  END IF
+ NEXT i
+ RETURN NO
+END FUNCTION
 
 FUNCTION spell_menu_is_usable(bat as BattleState, bspr as BattleSprite, spell_list_id as integer, st() as HeroDef, respect_costs as bool=YES) as bool
  'Returns YES if at least one attack in the spell list is usable
