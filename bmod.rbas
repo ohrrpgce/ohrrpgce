@@ -2418,15 +2418,17 @@ FUNCTION does_battle_menu_have_targets(byref bspr as BattleSprite, bslot() as Ba
  END IF
  FOR i as integer = 0 TO bspr.batmenu.numitems - 1
   WITH *bspr.batmenu.items[i]
-   IF .t = batmenu_ATTACK THEN
-    DIM atk_id as integer = .sub_t
-    IF has_valid_targs(bspr.index, atk_id, bslot()) THEN
+   IF NOT.disabled THEN
+    IF .t = batmenu_ATTACK THEN
+     DIM atk_id as integer = .sub_t
+     IF has_valid_targs(bspr.index, atk_id, bslot()) THEN
+      RETURN YES
+     END IF
+    ELSE
+     'an unsupported menu item was found (spell list, item menu)
+     'so assume the menu is usable
      RETURN YES
     END IF
-   ELSE
-    'an unsupported menu item was found (spell list, item menu)
-    'so assume the menu is usable
-    RETURN YES
    END IF
   END WITH
  NEXT i
