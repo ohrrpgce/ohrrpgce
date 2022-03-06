@@ -97,14 +97,15 @@ DECLARE FUNCTION hero_or_enemy_can_take_a_turn (byval who as integer, bat as Bat
 DECLARE SUB cancel_blocking_attacks_for_hero_or_enemy(byval who as integer)
 DECLARE SUB update_turn_delays_in_attack_queue (byval who as integer)
 DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as bool
-DECLARE SUB update_battle_menu (bspr as BattleSprite, bslot() as BattleSprite)
+DECLARE SUB update_battle_menu (bspr as BattleSprite, bslot() as BattleSprite, bat as BattleState, st() as HeroDef)
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE FUNCTION enemy_is_weak(byref bspr as BattleSprite) as bool
 DECLARE FUNCTION check_for_unhittable_invisible_foe(attacker as integer, target as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE FUNCTION is_among_targets(byval slot as integer, t() as integer) as bool
 DECLARE FUNCTION should_victory_advance(byref bat as BattleState) as bool
 DECLARE SUB append_enemy_attacks_to_battle_menu(ai_attack_list() as integer, byref bspr as BattleSprite)
-DECLARE FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer, st() as HeroDef, byval respect_costs as bool=YES, byval auto_battle as bool=NO) as integer
+DECLARE FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite, spell_list_id as integer, st() as HeroDef, respect_costs as bool=YES, byval auto_battle as bool=NO) as integer
+DECLARE FUNCTION spell_menu_is_usable(bat as BattleState, bspr as BattleSprite, spell_list_id as integer, st() as HeroDef, respect_costs as bool=YES) as bool
 DECLARE FUNCTION find_attack_in_spell_menu(byval seek_atk_id as integer, bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer, st() as HeroDef, byval respect_costs as bool) as integer
 DECLARE FUNCTION create_default_battle_ui_layer() as Slice Ptr
 DECLARE FUNCTION create_default_battle_ready_area() as Slice Ptr
@@ -242,7 +243,7 @@ FUNCTION battle (byval form as integer) as bool
     END IF
    END IF
    IF bat.player_turn >= 0 ANDALSO is_hero(bat.player_turn) ANDALSO bslot(bat.player_turn).under_player_control = NO THEN
-    update_battle_menu bslot(bat.player_turn), bslot()
+    update_battle_menu bslot(bat.player_turn), bslot(), bat, st()
     hero_ai bat, bslot(bat.player_turn), bat.player_turn, bslot(), st()
     bat.player_turn = -1
    END IF
@@ -250,7 +251,7 @@ FUNCTION battle (byval form as integer) as bool
     IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, bslot()
     IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, st(), bslot()
     IF bat.menu_mode = batMENUHERO  THEN
-     update_battle_menu bslot(bat.player_turn), bslot()
+     update_battle_menu bslot(bat.player_turn), bslot(), bat, st()
      heromenu bat, bslot(), st()
     END IF
    END IF
@@ -2405,7 +2406,7 @@ SUB append_enemy_attacks_to_battle_menu(ai_attack_list() as integer, byref bspr 
  v_free already
 END SUB
 
-FUNCTION does_battle_menu_have_targets(byref bspr as BattleSprite, bslot() as BattleSprite) as bool
+FUNCTION does_battle_menu_have_targets(byref bspr as BattleSprite, bslot() as BattleSprite, bat as BattleState, st() as HeroDef) as bool
  'Currently only really useful for player controlled enemies.
  'Does not attempt to check spell menus or items menu
  IF bspr.batmenu.numitems = 0 THEN
@@ -2415,16 +2416,24 @@ FUNCTION does_battle_menu_have_targets(byref bspr as BattleSprite, bslot() as Ba
  FOR i as integer = 0 TO bspr.batmenu.numitems - 1
   WITH *bspr.batmenu.items[i]
    IF NOT.disabled THEN
-    IF .t = batmenu_ATTACK THEN
-     DIM atk_id as integer = .sub_t
-     IF has_valid_targs(bspr.index, atk_id, bslot()) THEN
+    SELECT CASE .t
+     CASE batmenu_ATTACK:
+      DIM atk_id as integer = .sub_t
+      IF has_valid_targs(bspr.index, atk_id, bslot()) THEN
+       RETURN YES
+      END IF
+     CASE batmenu_SKIPTURN:
+      'Always usable
       RETURN YES
-     END IF
-    ELSE
-     'an unsupported menu item was found (spell list, item menu)
-     'so assume the menu is usable
-     RETURN YES
-    END IF
+     CASE batmenu_SPELLS:
+      'Don't attempt to support prefbit(54) for autotarget attacks in random spell lists here.
+      'If that prefbit is on, the random spell menu might still be usable even if we find here that it isn't, but that is okay
+      IF spell_menu_is_usable(bat, bspr, .sub_t, st(), YES) THEN RETURN YES
+     CASE ELSE
+      'an unsupported menu item was found (item menu)
+      'so assume the menu is usable
+      RETURN YES
+    END SELECT
    END IF
   END WITH
  NEXT i
@@ -2433,7 +2442,7 @@ FUNCTION does_battle_menu_have_targets(byref bspr as BattleSprite, bslot() as Ba
 END FUNCTION
 
 ' Updates which menu items are enabled
-SUB update_battle_menu (bspr as BattleSprite, bslot() as BattleSprite)
+SUB update_battle_menu (bspr as BattleSprite, bslot() as BattleSprite, bat as BattleState, st() as HeroDef)
  WITH bspr
   DIM atk as AttackData
   FOR i as integer = 0 TO .batmenu.numitems - 1
@@ -2453,7 +2462,7 @@ SUB update_battle_menu (bspr as BattleSprite, bslot() as BattleSprite)
    END WITH
   NEXT i
 
-  IF NOT does_battle_menu_have_targets(bspr, bslot()) THEN
+  IF NOT does_battle_menu_have_targets(bspr, bslot(), bat, st()) THEN
    append_menu_item(bspr.batmenu, readglobalstring(332, "Skip Turn", 20), batmenu_SKIPTURN)
   END IF
 
@@ -3706,7 +3715,25 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
  END IF
 END SUB
 
-FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite, byval spell_list_id as integer, st() as HeroDef, byval respect_costs as bool=YES, byval auto_battle as bool=NO) as integer
+FUNCTION spell_menu_is_usable(bat as BattleState, bspr as BattleSprite, spell_list_id as integer, st() as HeroDef, respect_costs as bool=YES) as bool
+ 'Returns YES if at least one attack in the spell list is usable
+ IF NOT is_hero(bspr.index) THEN RETURN NO 'only heroes have spell lists
+ '-- loop through the spell searching for usable attacks
+ DIM atk as AttackData
+ FOR i as integer = 0 TO UBOUND(bat.spell.slot)
+  DIM atkid as integer = gam.hero(bspr.index).spells(spell_list_id, i) - 1
+  IF atkid >= 0 THEN
+   loadattackdata atk, atkid
+   DIM list_type as integer = st(bspr.index).list_type(spell_list_id)
+   IF atk.useable_inside_battle ANDALSO (respect_costs=NO ORELSE atkallowed(atk, bspr.index, list_type, i \ 3, bspr)) THEN
+    RETURN YES
+   END IF
+  END IF
+ NEXT i
+ RETURN NO
+END FUNCTION
+
+FUNCTION random_attack_from_spell_menu(bat as BattleState, bspr as BattleSprite, spell_list_id as integer, st() as HeroDef, respect_costs as bool=YES, byval auto_battle as bool=NO) as integer
  'Returns a random attack from a spell list or -1 if none was found
 
  IF NOT is_hero(bspr.index) THEN RETURN -1 'only heroes have spell lists

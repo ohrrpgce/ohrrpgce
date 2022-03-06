@@ -84,6 +84,6 @@ DECLARE FUNCTION attack_placement_over_target(attack as AttackData, targslot as 
 
 DECLARE SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, hero as HeroDef)
 DECLARE SUB populate_battle_menu_menudef_for_enemy (byref bat as BattleState, bslot() as BattleSprite, bspr as BattleSprite)
-DECLARE FUNCTION does_battle_menu_have_targets(byref bspr as BattleSprite, bslot() as BattleSprite) as bool
+DECLARE FUNCTION does_battle_menu_have_targets(byref bspr as BattleSprite, bslot() as BattleSprite, bat as BattleState, st() as HeroDef) as bool
 
 #ENDIF
