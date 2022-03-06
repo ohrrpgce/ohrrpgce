@@ -2372,24 +2372,17 @@ SUB populate_battle_menu_menudef_for_enemy (byref bat as BattleState, bslot() as
 
  'Which attack list to use
  DIM ai as EnemyAIEnum = pick_enemy_attack_list(bat.enemy_turn, bslot())
- 'if no valid ai set is available, the enemy loses its turn
- IF ai = aiNone THEN
-  IF bat.player_turn = bat.enemy_turn THEN bat.player_turn = -1
-  bat.enemy_turn = -1
-  EXIT SUB
- END IF
+ IF ai <> aiNone THEN
 
- SELECT CASE ai
-  CASE aiNormal:
-   append_enemy_attacks_to_battle_menu bspr.enemy.regular_ai(), bspr
-  CASE aiWeak:
-   append_enemy_attacks_to_battle_menu bspr.enemy.desperation_ai(), bspr
-  CASE aiAlone:
-   append_enemy_attacks_to_battle_menu bspr.enemy.alone_ai(), bspr
- END SELECT
- 
- IF NOT does_battle_menu_have_targets(bspr, bslot()) THEN
-  append_menu_item(bspr.batmenu, readglobalstring(332, "Skip Turn", 20), batmenu_SKIPTURN)
+  SELECT CASE ai
+   CASE aiNormal:
+    append_enemy_attacks_to_battle_menu bspr.enemy.regular_ai(), bspr
+   CASE aiWeak:
+    append_enemy_attacks_to_battle_menu bspr.enemy.desperation_ai(), bspr
+   CASE aiAlone:
+    append_enemy_attacks_to_battle_menu bspr.enemy.alone_ai(), bspr
+  END SELECT
+
  END IF
 
 END SUB
@@ -2459,6 +2452,10 @@ SUB update_battle_menu (bat as BattleState, bspr as BattleSprite, bslot() as Bat
     IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
    END WITH
   NEXT i
+
+  IF NOT does_battle_menu_have_targets(bspr, bslot()) THEN
+   append_menu_item(bspr.batmenu, readglobalstring(332, "Skip Turn", 20), batmenu_SKIPTURN)
+  END IF
 
   ' Update selection, etc
   init_menu_state .menust, .batmenu
