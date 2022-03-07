@@ -43,7 +43,7 @@ DECLARE SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
 DECLARE SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
-DECLARE SUB update_battle_slices(bslot() as BattleSprite)
+DECLARE SUB update_battle_slices(bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB draw_damage_text(bslot() as BattleSprite, page as integer)
 DECLARE FUNCTION battle_time_can_pass(byref bat as BattleState) as bool
@@ -273,7 +273,7 @@ FUNCTION battle (byval form as integer) as bool
   clearpage vpage
   '--display the backdrop and BattleSprites
   UpdateRootSliceSize bat.root_sl, page  'Match size of page, not vpage
-  update_battle_slices bslot()
+  update_battle_slices bat, bslot()
   update_battle_ui_slices bat, bslot()
   DrawSlice bat.root_sl, page
   'Not converted to slices yet
@@ -1569,7 +1569,7 @@ SUB setup_enemy_slice(byref bspr as BattleSprite, bat as BattleState, keep_exist
  END WITH
 END SUB
 
-SUB update_battle_slices(bslot() as BattleSprite)
+SUB update_battle_slices(bat as BattleState, bslot() as BattleSprite)
  FOR i as integer = 0 TO 24
   WITH bslot(i)
    IF .sl = NULL THEN CONTINUE FOR  'Empty slot
@@ -1578,7 +1578,10 @@ SUB update_battle_slices(bslot() as BattleSprite)
     .sl->Visible = YES
 
     DIM fliph as bool = .d <> 0
-    IF .flipped THEN fliph = NOT fliph
+    IF (is_hero(i) ANDALSO bat.flee <= 4) ORELSE (is_enemy(i) ANDALSO .fleeing = NO) THEN
+     'Flipped only applies when not running
+     IF .flipped THEN fliph = NOT fliph
+    END IF
     ChangeSpriteSlice .sprite, , , , , fliph
 
     IF is_enemy(i) andalso .appeartype >= 0 andalso .dissolve_appear <= .appeartime then
