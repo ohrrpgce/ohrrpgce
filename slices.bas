@@ -267,11 +267,13 @@ Sub RefreshChildClamp(ch as Slice ptr, support as RectType)
     if .Width > support.wide then
      select case .AnchorHoriz
       case alignLeft:
-        .ScreenX = small(.ScreenX, support.x + support.wide - .Width)
-        .ScreenX = large(.ScreenX, support.x)
+       .ScreenX = small(.ScreenX, support.x + support.wide - .Width)
+       .ScreenX = large(.ScreenX, support.x)
       case alignRight:
-        .ScreenX = large(.ScreenX, support.x)
-        .ScreenX = small(.ScreenX, support.x + support.wide - .Width)
+       .ScreenX = large(.ScreenX, support.x)
+       .ScreenX = small(.ScreenX, support.x + support.wide - .Width)
+      case alignCenter:
+       .ScreenX = support.x + support.wide / 2 - .Width / 2
      end select
     else
      .ScreenX = large(.ScreenX, support.x)
@@ -290,6 +292,8 @@ Sub RefreshChildClamp(ch as Slice ptr, support as RectType)
       case alignBottom:
        .ScreenY = large(.ScreenY, support.y)
        .ScreenY = small(.ScreenY, support.y + support.high - .Height)
+      case alignCenter:
+       .ScreenY = support.y + support.high / 2 - .Height / 2
      end select
     else
      .ScreenY = large(.ScreenY, support.y)
