@@ -1,0 +1,10 @@
+Clamping is a convenient way to make sure a slice always stays within boundaries of its parent slice (or the screen).
+
+Clamp Horiz: controls clamping on the left and/or right of the slice
+Clamp Vert: controls clamping on the top and/or bottom of the slice
+
+Valid values are: No, Left, Right, and Both.
+
+Note that if your slice is set to clamp on "Both" sides, but the parent slice is smaller than the slice itself, then the slice's Anhor will be used to tie-break and determine which side gets clamped.
+
+You can chose whether the clamping will keep the slice within the bounds of its parent, or within the bounds of the screen.
