@@ -72,8 +72,8 @@ def is_script(f):
 def lumpbasename(name, rpg):
     "Returns the archinym-independent part of a lump name, eg. ohrrpgce.gen -> gen"
     name = os.path.basename(name)
-    if name.startswith(rpg.archinym.prefix):
-        name = name[len(rpg.archinym.prefix)+1:]
+    if name.startswith(rpg.lumpname_prefix):
+        name = name[len(rpg.lumpname_prefix)+1:]
     return name
 
 def md5_add_file(md5, fname):

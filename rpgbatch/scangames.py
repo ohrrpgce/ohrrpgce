@@ -49,9 +49,20 @@ for rpg, gameinfo, zipinfo in rpgs:
     rpgidx = np.append(rpgidx, gameinfo)
 
     # Fixed length lumps -- everything else is harder
+
+    try:
+        mas_lump = rpg.data('mas', shape = 1)  # Ignore overlong lumps
+    except OSError:  # Not found
+        mas_lump = np.zeros(1, dtype = dt.get('mas'))
+
+    try:
+        fnt_lump = rpg.data('fnt', shape = 1)
+    except OSError:  # Not found
+        fnt_lump = np.zeros(1, dtype = dt.get('fnt'))
+
     gen = np.append(gen, rpg.general)
-    mas = np.append(mas, rpg.data('mas', shape = 1))  # Ignore overlong lumps
-    fnt = np.append(fnt, rpg.data('fnt', shape = 1))
+    mas = np.append(mas, mas_lump)
+    fnt = np.append(fnt, fnt_lump)
     if rpg.has_lump('fixbits.bin'):
         # Read into a buffer so it can be pickled.
         # rpg.data() on fixbits doesn't work due to variable file length.
