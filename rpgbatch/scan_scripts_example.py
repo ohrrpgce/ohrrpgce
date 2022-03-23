@@ -10,7 +10,7 @@ class ScrScanExample(ScriptScanner):
         # cmd_logging: Script commands to be logged and printed.
         # You can also add standard (plotscr.hsd) script names to this, eg. 'minutesofplay':''
 
-        if True:
+        if False:
             # noop, stringfromtextbox, initmouse, readgeneral, writegeneral, readgmap, writegmap, readenemydata, writeenemydata
             self.cmd_logging = {0:'', 240:'', 159:'', 147:'', 148:'', 178:'', 179:'', 230:'', 231:''}
 
@@ -27,6 +27,9 @@ class ScrScanExample(ScriptScanner):
             self.cmd_logging = {}
             for i in range(159,164+1) + [492,601,602]:
                 self.cmd_logging[i] = ''
+
+        self.cmd_logging = {692:'', 703:'', 707:'', 678:'', 'getenemyrewards':'', 633:'', 600:'', 242:'', 243:'', 1999:''}
+
 
         # A list of script names, either standard or not. Every version of a script matching this name
         # will be decompiled and dumped
@@ -47,6 +50,7 @@ class ScrScanExample(ScriptScanner):
 
     def print_duplicate_scripts(self):
         "Print list of all scripts that were duplicated"
+        print
         dups = 0
         almost_dup = 0
         for md5, scripts in self.scripthashes.iteritems():

@@ -79,7 +79,7 @@ class ScriptScanner(object):
         self.scripthashes = {}
 
         self.standardscrs = {'names': [], 'versions':[], 'games':[]}
-        self.standardindex = {}
+        self.standardindex = {}  # index of each script name in standardscrs['names']
 
         self.parse_args()  # Loads standardscrs from plotscr.hs, if on the commandline
 
@@ -94,16 +94,20 @@ class ScriptScanner(object):
                 stdnames.append(name)
         self.commands_info.update(scriptset.commands_info)
         del scriptset
-        print "Read", len(stdnames), "standard scripts from", filename
-        self.standardscrs['versions'] = [0 for x in stdnames]
-        self.standardscrs['games'] = [[] for x in stdnames]
 
         # A few special cases for scripts which were removed from plotscr.hsd
         # (all of these were in fact replaced with builtin commands)
-        for n in ('setstring', 'appendstring', 'suspendmapmusic', 'resumemapmusic', 'setenemyrewards', 'getenemyrewards'):
-            if n not in stdnames:
+        # This list isn't complete, since you can pass multiple versions of plotscr.hs
+        # instead to fill in removed commands.
+        for name in ('setstring', 'appendstring', 'suspendmapmusic', 'resumemapmusic',
+                     'setenemyrewards', 'getenemyrewards', 'getenemyname', 'setenemyname'):
+            if name not in stdnames:
                 self.standardindex[name] = len(stdnames)
-                stdnames.append(n)
+                stdnames.append(name)
+
+        self.standardscrs['versions'] = [0 for x in stdnames]
+        self.standardscrs['games'] = [[] for x in stdnames]
+        print "Read", len(stdnames), "standard scripts from", filename
 
     def parse_args(self):
         if len(sys.argv) < 2:
@@ -168,7 +172,7 @@ class ScriptScanner(object):
                 id_to_standardindex = {}
                 for script_id, name in scriptset.scriptnames.iteritems():
                     idx = self.standardindex.get(name)
-                    if idx:
+                    if idx is not None:
                         id_to_standardindex[script_id] = idx
 
                 if hasattr(self, 'process_game_with_scripts'):
@@ -219,7 +223,7 @@ class ScriptScanner(object):
                             elif kind == kScript:
                                 # Count standard script usage
                                 idx = id_to_standardindex.get(node.id)
-                                if idx:
+                                if idx is not None:
                                     script.cmdusage[2000 + idx] += 1
                                     # Ignore occurrences in standard scripts
                                     if not is_standard_script:
@@ -252,7 +256,9 @@ class ScriptScanner(object):
         for cmdid, log in self.cmd_logging.iteritems():
             if isinstance(cmdid, int):
                 name = self.commandname(cmdid)
-            print "--- All uses of %s (aside from standard scripts) ---" % name
+            else:
+                name = cmdid
+            print "--- All logged uses of %s (excludes plotscr.hsd) ---" % name
             print log
 
     def print_source_stats(self):
@@ -283,9 +289,14 @@ class ScriptScanner(object):
         "Print table of the usage counts for all script commands and plotscr.hsd scripts"
 
         for scripts in self.scripthashes.itervalues():
-            idx = self.standardindex.get(scripts[0].name)
-            if idx:
-                self.standardscrs['versions'][idx] += 1
+            for script in scripts:
+                # Some standard scripts may have been duplicated/reimplemented by someone
+                # with a different name, so check name of each copy.
+                # (Presume no standard scripts are dups of each other.)
+                idx = self.standardindex.get(script.name)
+                if idx is not None:
+                    self.standardscrs['versions'][idx] += 1
+                    break
 
         print
         cmdsums = self.cmdcounts.sum(axis=0)
