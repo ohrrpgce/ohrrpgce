@@ -168,13 +168,19 @@ class RPGIterator(object):
                 else:
                     for node in os.listdir(arg):
                         self._addfile(path.join(arg, node), cur_src)
-            elif path.isfile(arg):
-                if not self._addfile(arg, cur_src):
-                    print("Unrecognised file '%s'" % arg)
             else:
-                print("Unrecognised argument", arg)
+                if not self._addfile(arg, cur_src):
+                    print("Unrecognised argument/nonexistent file", arg)
 
     def _addfile(self, node, src):
+        "Returns true if handled the file including already printed an error"
+        if os.path.islink(node):
+            # Checks for broken links
+            if not os.path.exists(node):
+                print("Error: broken symlink", node)
+                return True
+        if not os.path.isfile(node):
+            return False
         if node.lower().endswith(".zip"):
             self.zipfiles.append((path.abspath(node), src))
             self.num_zips += 1
