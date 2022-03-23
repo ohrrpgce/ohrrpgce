@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Find .exe files in zips
 from rpgbatch import scantools

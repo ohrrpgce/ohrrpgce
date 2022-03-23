@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Adaptable example of using ScriptScanner to find uses of script commands, or decompile certain scripts."""
 
@@ -25,7 +25,7 @@ class ScrScanExample(ScriptScanner):
             # 601,unhidemousecursor,0       # unhides the OS mouse cursor
             # 602,hidemousecursor,0         # hides the OS mouse cursor
             self.cmd_logging = {}
-            for i in range(159,164+1) + [492,601,602]:
+            for i in list(range(159, 164+1)) + [492, 601, 602]:
                 self.cmd_logging[i] = ''
 
         self.cmd_logging = {692:'', 703:'', 707:'', 678:'', 'getenemyrewards':'', 633:'', 600:'', 242:'', 243:'', 1999:''}
@@ -44,16 +44,16 @@ class ScrScanExample(ScriptScanner):
                         already_decompiled = True
                         break
             if not already_decompiled:
-                print
-                print script
-                print
+                print()
+                print(script)
+                print()
 
     def print_duplicate_scripts(self):
         "Print list of all scripts that were duplicated"
-        print
+        print()
         dups = 0
         almost_dup = 0
-        for md5, scripts in self.scripthashes.iteritems():
+        for md5, scripts in self.scripthashes.items():
             if len(scripts) > 1 and scripts[0].name not in self.standardindex:
                 dups += 1
                 games = []
@@ -66,9 +66,9 @@ class ScrScanExample(ScriptScanner):
                     if len(set(script.gamename for script in scripts)) == 1:
                         almost_dup += 1
                     else:
-                        print "Script duplicated", len(games), "times:", duptext
-        print
-        print "%d sets of duplicate scripts. %d were from same game or different versions of it, not printed" % (dups, almost_dup)
+                        print("Script duplicated", len(games), "times:", duptext)
+        print()
+        print("%d sets of duplicate scripts. %d were from same game or different versions of it, not printed" % (dups, almost_dup))
 
     def print_results(self):
         self.print_source_stats()

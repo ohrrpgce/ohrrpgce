@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Script to scan for attacks assigned to
 # an enemy which cost gold
@@ -24,20 +24,20 @@ for rpg, gameinfo, zipinfo in rpgs:
     gameinfo.archinym = rpg.archinym.prefix
     gameinfo.arch_version = rpg.archinym.version
 
-    print "Processing RPG ", gameinfo.id, "from", gameinfo.src
-    print " > ", gameinfo.longname, " --- ", gameinfo.aboutline
+    print("Processing RPG ", gameinfo.id, "from", gameinfo.src)
+    print(" > ", gameinfo.longname, " --- ", gameinfo.aboutline)
 
     try:
         attacks = rpg.data('attack.full')
     except () as e: #(ValueError, AssertionError) as e:
-        print "Ex1: ", e
+        print("Ex1: ", e)
         games_w_badattacks += 1
         continue
 
     try:
         enemies = rpg.flexidata('dt1')
     except () as e:#(ValueError, AssertionError) as e:
-        print "Ex2:", e
+        print("Ex2:", e)
         games_w_badenemies += 1
         continue
 
@@ -52,7 +52,7 @@ for rpg, gameinfo, zipinfo in rpgs:
 
     def process_enemy_attack(attackid):
         if attackid in costing_gold:
-            print "Enemy %d uses gold-costing attack %d %s" % (enemyid, attackid, get_str16(attacks[attackid]['name']))
+            print("Enemy %d uses gold-costing attack %d %s" % (enemyid, attackid, get_str16(attacks[attackid]['name'])))
             return 1
         return 0
 
@@ -74,8 +74,8 @@ for rpg, gameinfo, zipinfo in rpgs:
 
 rpgs.print_summary()
 
-print "COUNTS:"
-print "games with: bad attack data:", games_w_badattacks, " bad enemy data:", games_w_badenemies
-print "num attacks:", totalattacks, "attacks costing gold:", attacks_costing_gold, " num enemies:", totalenemies
-print "enemies_costing_gold", enemies_costing_gold
-print "affected games:", games_w_enemies_costing_gold
+print("COUNTS:")
+print("games with: bad attack data:", games_w_badattacks, " bad enemy data:", games_w_badenemies)
+print("num attacks:", totalattacks, "attacks costing gold:", attacks_costing_gold, " num enemies:", totalenemies)
+print("enemies_costing_gold", enemies_costing_gold)
+print("affected games:", games_w_enemies_costing_gold)

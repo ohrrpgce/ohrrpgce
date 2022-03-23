@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Script to scan for strings in .rpgs. It isn't complete. Strings in the following
 # are scanned:
@@ -15,7 +15,7 @@ import re
 import os
 import sys
 import time
-import cPickle as pickle
+import pickle
 import numpy as np
 from nohrio.ohrrpgce import *
 from nohrio.dtypes import dt
@@ -97,7 +97,7 @@ for rpg, gameinfo, zipinfo in rpgs:
     try:
         tbs = rpg.flexidata('say')
     except (ValueError, AssertionError, IOError) as e:
-        print "SAY:", e
+        print("SAY:", e)
         badtextboxes += 1
 
     if tbs is not None:
@@ -112,7 +112,7 @@ for rpg, gameinfo, zipinfo in rpgs:
     try:
         attacks = rpg.data('attack.full')
     except (ValueError, AssertionError, IOError) as e:
-        print "ATTACKS:", e
+        print("ATTACKS:", e)
         badattacks += 1
 
     if attacks is not None:
@@ -127,7 +127,7 @@ for rpg, gameinfo, zipinfo in rpgs:
     try:
         items = rpg.flexidata('itm')
     except (ValueError, AssertionError, IOError) as e:
-        print "ITM;", e
+        print("ITM;", e)
         baditems += 1
 
     if items is not None:
@@ -139,18 +139,18 @@ for rpg, gameinfo, zipinfo in rpgs:
     try:
         names, invalid = nohrio.stt.stt_strings(rpg)
         if invalid:
-            print "INVALID:", invalid
-        for strid, text in names.iteritems():
+            print("INVALID:", invalid)
+        for strid, text in names.items():
             process_text(text, "{STT%d}" % strid)
     except (ValueError, AssertionError, IOError) as e:
-        print "STT:", e
+        print("STT:", e)
         badglobalstrings += 1
 
     hspfile = rpg.lump_path('.hsp')
     gameinfo.has_scripts = os.path.isfile(hspfile)
     if gameinfo.has_scripts:
         scriptset = HSScripts(hspfile)
-        for script_id in scriptset.scriptnames.iterkeys():
+        for script_id in scriptset.scriptnames.keys():
             script = scriptset.script(script_id)
             if not script:
                 continue
@@ -171,30 +171,30 @@ for rpg, gameinfo, zipinfo in rpgs:
 
     if thisgame:
         affectedgames += 1
-        hitslist.append((gameinfo.id, thisgame.values()))
+        hitslist.append((gameinfo.id, list(thisgame.values())))
 
 rpgs.print_summary()
 del rpgs
 
-print "MARKUP OCCURRENCES:"
-print
+print("MARKUP OCCURRENCES:")
+print()
 for game in hitslist:
-    print game[0]
+    print(game[0])
     for line in game[1]:
-        print line
+        print(line)
 
-print "SUBSEQUENCE OCCURRENCES:"
+print("SUBSEQUENCE OCCURRENCES:")
 for (name, lst) in zip((r'[:', r'[.', r'[!', '<.', '<!'), (found_escape1, found_escape2, found_escape3, found_escape4, found_escape5)):
-    print
-    print name
-    print
+    print()
+    print(name)
+    print()
     for line in lst:
-        print line
+        print(line)
 
 
-print "COUNTS:"
-print "num textboxes:", totaltextboxes, "attacks:", totalattacks, "items:", totalitems
-print "bad textboxes:", badtextboxes, "attacks:", badattacks, "items:", baditems
-print "num scripts: ", scriptnum, "with strings:", scripts_with_strings, "strings:", script_strings
-print "[[./]foo] hits:", hits_sq, " <[./]foo> hits:", hits_ang
-print "games with [[./]foo] or <[./]foo>:", affectedgames
+print("COUNTS:")
+print("num textboxes:", totaltextboxes, "attacks:", totalattacks, "items:", totalitems)
+print("bad textboxes:", badtextboxes, "attacks:", badattacks, "items:", baditems)
+print("num scripts: ", scriptnum, "with strings:", scripts_with_strings, "strings:", script_strings)
+print("[[./]foo] hits:", hits_sq, " <[./]foo> hits:", hits_ang)
+print("games with [[./]foo] or <[./]foo>:", affectedgames)

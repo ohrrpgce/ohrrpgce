@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Script to scan attacks for garbage in unused fields
 
 import os
 import sys
 import time
-import cPickle as pickle
+import pickle
 import numpy as np
 from nohrio.ohrrpgce import *
 from nohrio.dtypes import dt
@@ -47,7 +47,7 @@ for rpg, gameinfo, zipinfo in rpgs:
             try:
                 attack_bin8 = rpg.data('attack.bin', dtype = (np.uint8, rpg.binsize.attack))
             except Exception as e:
-                print gameinfo.id, "threw exception when memmapping attack.bin:", e
+                print(gameinfo.id, "threw exception when memmapping attack.bin:", e)
                 games.bad += 1
             else:
                 if fixNumElements:
@@ -58,15 +58,15 @@ for rpg, gameinfo, zipinfo in rpgs:
                 attackgarbage = attack_bin8[:, 53:endbyte].any(axis=1)
                 if attackgarbage.any():
                     games.bitgarbage += 1
-                    print gameinfo.id, "contains garbage in unused bits for attacks", attackgarbage.nonzero()[0]
+                    print(gameinfo.id, "contains garbage in unused bits for attacks", attackgarbage.nonzero()[0])
                     sumbits = np.zeros(endbyte - 53, dtype = np.uint8)
                     for atk in attack_bin8:
                         sumbits |= atk[53:endbyte]
-                    print "with bitmask", sumbits
+                    print("with bitmask", sumbits)
 
         elif rpg.binsize.attack != 120 or rpg.binsize.stf < 64:
             games.bad += 1
-            print gameinfo.id, "had unexpected binsizes", rpg.binsize.attack, rpg.binsize.stf
+            print(gameinfo.id, "had unexpected binsizes", rpg.binsize.attack, rpg.binsize.stf)
 
         else:
             # scan attack data
@@ -82,23 +82,23 @@ for rpg, gameinfo, zipinfo in rpgs:
                 begin = 53
 
             try:
-                attack_bin16 = rpg.data('attack.bin', dtype = (np.uint16, rpg.binsize.attack / 2))
+                attack_bin16 = rpg.data('attack.bin', dtype = (np.uint16, rpg.binsize.attack // 2))
             except Exception as e:
-                print gameinfo.id, "threw exception when memmapping attack.bin:", e
+                print(gameinfo.id, "threw exception when memmapping attack.bin:", e)
                 games.bad += 1
             else:
                 scanrange = attack_bin16[:, begin:60]
                 attackgarbage = scanrange.any(axis=1)
                 if attackgarbage.any():
                     games.garbage += 1
-                    print gameinfo.id, "contains garbage in attacks", attackgarbage.nonzero()[0], "at offsets"
-                    print scanrange.any(axis=0).nonzero()[0] + begin
+                    print(gameinfo.id, "contains garbage in attacks", attackgarbage.nonzero()[0], "at offsets")
+                    print(scanrange.any(axis=0).nonzero()[0] + begin)
                     #for atk in attackgarbage.nonzero()[0]:
                     #    print "  attack", atk, scanrange[atk]
 
-print
+print()
 rpgs.print_summary()
-print "Of the %d newest games, %d had garbage in the unused attack bits" % (games.newest, games.bitgarbage)
-print "Of %d early-2006 games, %d had attack.bin garbage" % (games.early2006, games.early2006_garbage)
-print "Of %d older games with attack.bin, %d had attack.bin garbage" % (games.older, games.garbage)
-print "Of the remaining, %d did not have attack.bin, %d were bad" % (games.tooold, games.bad)
+print("Of the %d newest games, %d had garbage in the unused attack bits" % (games.newest, games.bitgarbage))
+print("Of %d early-2006 games, %d had attack.bin garbage" % (games.early2006, games.early2006_garbage))
+print("Of %d older games with attack.bin, %d had attack.bin garbage" % (games.older, games.garbage))
+print("Of the remaining, %d did not have attack.bin, %d were bad" % (games.tooold, games.bad))

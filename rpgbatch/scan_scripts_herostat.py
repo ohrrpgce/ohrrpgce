@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Look for uses of get/setherostat with undocumented stat IDs: to get/set the hero level or gained levels
 (and previously more)."""

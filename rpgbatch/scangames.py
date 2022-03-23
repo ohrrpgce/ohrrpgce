@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 An rpgbatch example.
 Collects a random selection of data and saves it to gamedata.bin:
@@ -12,8 +12,8 @@ but mainly this just an example.
 import os
 import sys
 import time
-import cPickle as pickle
-import StringIO
+import pickle
+import io
 import numpy as np
 from nohrio.ohrrpgce import *
 from nohrio.dtypes import dt
@@ -40,7 +40,7 @@ for rpg, gameinfo, zipinfo in rpgs:
         gameinfo.scripts = zipinfo.scripts
         if len(zipinfo.scripts):
             withscripts += 1
-        print "scripts:", zipinfo.scripts
+        print("scripts:", zipinfo.scripts)
     else:
         gameinfo.scripts = []
     gameinfo.lumplist = [(lumpbasename(name, rpg), os.stat(name).st_size) for name in rpg.manifest]
@@ -55,14 +55,14 @@ for rpg, gameinfo, zipinfo in rpgs:
     if rpg.has_lump('fixbits.bin'):
         # Read into a buffer so it can be pickled.
         # rpg.data() on fixbits doesn't work due to variable file length.
-        stringfile = StringIO.StringIO(file(rpg.lump_path('fixbits.bin')).read())
-        fixbits.append(fixBits(stringfile))
+        bitsbuffer = io.BytesIO(open(rpg.lump_path('fixbits.bin'), 'rb').read())
+        fixbits.append(fixBits(bitsbuffer))
     else:
         fixbits.append(None)
 
     # This is just a dumb example
-    print "Processing RPG ", gameinfo.id, "from", gameinfo.src
-    print " > ", gameinfo.longname, " --- ", gameinfo.aboutline
+    print("Processing RPG ", gameinfo.id, "from", gameinfo.src)
+    print(" > ", gameinfo.longname, " --- ", gameinfo.aboutline)
     #print "mod time =", time.ctime(gameinfo.mtime)
     #print "maps =", int(rpg.general.maxmap) + 1
     #print "format ver =", int(rpg.general.version)
@@ -81,9 +81,9 @@ with open('gamedata.bin', 'wb') as f:
 
 
 # Continuing the dumb example
-print withscripts, "games had script source"
-print
+print(withscripts, "games had script source")
+print()
 
 data.sort()
 for t, v, gameid in data:
-    print time.ctime(t), " Format", v, gameid
+    print(time.ctime(t), " Format", v, gameid)

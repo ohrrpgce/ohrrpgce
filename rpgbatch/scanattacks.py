@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Example of a script that scan attacks
 
-from __future__ import print_function
+
 import time
 from nohrio.ohrrpgce import *
 from rpgbatch.rpgbatch import readbit

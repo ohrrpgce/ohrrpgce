@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """rpgbatch script to look for script identifiers (currently just script names)
 which contain unusual characters."""
@@ -17,9 +17,9 @@ class ScrScanIdentifiers(ScriptScanner):
 
     def print_results(self):
         if len(self.strange_names):
-            print "Saw script names containing unusual characters:"
+            print("Saw script names containing unusual characters:")
             for name, game in self.strange_names:
-                print "\"" + name + "\" in " + game
+                print("\"" + name + "\" in " + game)
 
 
 ScrScanIdentifiers().run()

@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Script to scan menus and menu items for some data
 
 import os
 import sys
 import time
-import cPickle as pickle
+import pickle
 import numpy as np
 from nohrio.ohrrpgce import *
 from nohrio.dtypes import dt
@@ -33,26 +33,26 @@ for rpg, gameinfo, zipinfo in rpgs:
     gameinfo.archinym = rpg.archinym.prefix
     gameinfo.arch_version = rpg.archinym.version
 
-    print "Processing RPG ", gameinfo.id, "from", gameinfo.src
-    print " > ", gameinfo.longname, " --- ", gameinfo.aboutline
+    print("Processing RPG ", gameinfo.id, "from", gameinfo.src)
+    print(" > ", gameinfo.longname, " --- ", gameinfo.aboutline)
 
     try:
         if rpg.lump_size('menus.bin') == 0:  #Otherwise get a ValueError
             raise IOError
         menus = rpg.flexidata('menus.bin')
     except (ValueError, AssertionError) as e:
-        print e
+        print(e)
         badmenus += 1
         continue
     except IOError as e:
-        print e
+        print(e)
         missingmenus += 1
         continue
 
     try:
         menuitems = rpg.flexidata('menuitem.bin')
-    except (ValueError, AssertionError,IOError) as e:
-        print e
+    except (ValueError, AssertionError, IOError) as e:
+        print(e)
         badmenuitems += 1
         continue
 
@@ -80,18 +80,18 @@ for rpg, gameinfo, zipinfo in rpgs:
 rpgs.print_summary()
 del rpgs
 
-print
-print len(using_toggletag), "games using toggletag:"
+print()
+print(len(using_toggletag), "games using toggletag:")
 for gameinfo, menus in using_toggletag.items():
-    print gameinfo, menus
+    print(gameinfo, menus)
 
-print
-print "COUNTS:"
-print "num menus:", totalmenus, "menu items:", totalmenuitems, "missing menus.bin", missingmenus, "bad menus.bin:", badmenus, "bad menuitem.bin:", badmenuitems
-print "menus: allowing gameplay:", allowing, "and also suspending player:", suspending
-for field,count in counts.items():
-    print field, count
-print "Menu maxrows:"
-for rows,count in sorted(maxrows.items()):
-    print "maxrows=%d: %d" % (rows, count)
+print()
+print("COUNTS:")
+print("num menus:", totalmenus, "menu items:", totalmenuitems, "missing menus.bin", missingmenus, "bad menus.bin:", badmenus, "bad menuitem.bin:", badmenuitems)
+print("menus: allowing gameplay:", allowing, "and also suspending player:", suspending)
+for field, count in counts.items():
+    print(field, count)
+print("Menu maxrows:")
+for rows, count in sorted(maxrows.items()):
+    print("maxrows=%d: %d" % (rows, count))
 

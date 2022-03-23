@@ -29,7 +29,7 @@ def proc_lump(path, expect_size = None):
         wide = i16(dat, 7)
         high = i16(dat, 9)
         tile_len = wide * high
-        if len(set([file_len, bsave_len + 7, tile_len + 11])) > 1:
+        if len({file_len, bsave_len + 7, tile_len + 11}) > 1:
             if is_bsave:
                 extra = ""
                 if file_len != bsave_len + 7:

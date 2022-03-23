@@ -2,11 +2,11 @@
 Wrappers around rpgbatch for counting stuff.
 """
 
-from __future__ import print_function
+
 import sys
 import os
 from collections import defaultdict
-import rpgbatch
+from . import rpgbatch
 
 
 class Tabulator:
@@ -73,17 +73,17 @@ class Tabulator:
 
         # Print occurrences
         print()
-        for field in self.fields.itervalues():
+        for field in self.fields.values():
             if len(field.counts) and field.print_each and print_summary(field):
                 print("-" * 79)
-                for context, count in field.counts.iteritems():
+                for context, count in field.counts.items():
                     print("%d in %s" % (count, context))
                     for item in field.occurrences[context]:
                         print("  ", item)
                 print()
 
         # Repeat the summary, including zeroes
-        for field in self.fields.itervalues():
+        for field in self.fields.values():
             print_summary(field)
         print()
 

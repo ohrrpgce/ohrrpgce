@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """A ScriptScanner class for iterating over each script of each game, using rpgbatch+nohrio."""
 
@@ -9,7 +9,7 @@ import re
 from nohrio.ohrrpgce import *
 from nohrio.wrappers import OhrData
 from nohrio.scripts import *
-from rpgbatch import RPGIterator, RPGInfo
+from .rpgbatch import RPGIterator, RPGInfo
 
 
 def iter_script_tree2(root):
@@ -107,17 +107,17 @@ class ScriptScanner(object):
 
         self.standardscrs['versions'] = [0 for x in stdnames]
         self.standardscrs['games'] = [[] for x in stdnames]
-        print "Read", len(stdnames), "standard scripts from", filename
+        print("Read", len(stdnames), "standard scripts from", filename)
 
     def parse_args(self):
         if len(sys.argv) < 2:
-            print "Usage:"
-            print " " + sys.argv[0] + " [plotscr.hs]* [src:identifier] locations ..."
-            print "Optionally pass one or more copies of plotscr.hs (plotscr.hsd compiled)"
-            print "as the first argument to identify the standard scripts."
-            print "More advanced options are available only by writing a script."
-            print "Specify .rpg files, .rpgdir directories, .zip files, or directories containing"
-            print "any of these as arguments."
+            print("Usage:")
+            print(" " + sys.argv[0] + " [plotscr.hs]* [src:identifier] locations ...")
+            print("Optionally pass one or more copies of plotscr.hs (plotscr.hsd compiled)")
+            print("as the first argument to identify the standard scripts.")
+            print("More advanced options are available only by writing a script.")
+            print("Specify .rpg files, .rpgdir directories, .zip files, or directories containing")
+            print("any of these as arguments.")
             sys.exit()
 
         rpgsources = sys.argv[1:]
@@ -170,7 +170,7 @@ class ScriptScanner(object):
 
                 # Map script IDs to standardscrs indices
                 id_to_standardindex = {}
-                for script_id, name in scriptset.scriptnames.iteritems():
+                for script_id, name in scriptset.scriptnames.items():
                     idx = self.standardindex.get(name)
                     if idx is not None:
                         id_to_standardindex[script_id] = idx
@@ -178,7 +178,7 @@ class ScriptScanner(object):
                 if hasattr(self, 'process_game_with_scripts'):
                     self.process_game_with_scripts(rpg, gameinfo, zipinfo, scriptset)
 
-                for script_id in scriptset.scriptnames.iterkeys():
+                for script_id in scriptset.scriptnames.keys():
                     script = scriptset.script(script_id)
                     if not script:
                         continue
@@ -244,22 +244,22 @@ class ScriptScanner(object):
 
         self.rpgidx = self.rpgidx.view(OhrData)
 
-        print
+        print()
         rpgs.print_summary()
-        print "Scanned %d unique scripts totalling %.2f MB (%.2f MB nonunique)" % (scriptuniquenum, scriptuniquebytes / 2.**20, scriptbytes / 2.**20)
+        print("Scanned %d unique scripts totalling %.2f MB (%.2f MB nonunique)" % (scriptuniquenum, scriptuniquebytes / 2.**20, scriptbytes / 2.**20))
 
         self.print_results()
 
     def print_logged_commands(self):
         "Print usage of commands/scripts listed in self.cmd_logging"
-        print
-        for cmdid, log in self.cmd_logging.iteritems():
+        print()
+        for cmdid, log in self.cmd_logging.items():
             if isinstance(cmdid, int):
                 name = self.commandname(cmdid)
             else:
                 name = cmdid
-            print "--- All logged uses of %s (excludes plotscr.hsd) ---" % name
-            print log
+            print("--- All logged uses of %s (excludes plotscr.hsd) ---" % name)
+            print(log)
 
     def print_source_stats(self):
         "Print table of stats about source code availability in scanned games"
@@ -274,21 +274,21 @@ class ScriptScanner(object):
 
         tally = tally.sum(axis=0)
 
-        print
-        print "%d/%d games had imported scripts:" % (tally[1].sum(), len(self.rpgidx))
+        print()
+        print("%d/%d games had imported scripts:" % (tally[1].sum(), len(self.rpgidx)))
         tally = tally[1]
-        print "                no backup   |   source.txt   |   source.lumped"
-        print "no src in zip      %3d             %3d                %3d" % tuple(tally[0])
-        print "with src in zip    %3d             %3d                %3d" % tuple(tally[1])
+        print("                no backup   |   source.txt   |   source.lumped")
+        print("no src in zip      %3d             %3d                %3d" % tuple(tally[0]))
+        print("with src in zip    %3d             %3d                %3d" % tuple(tally[1]))
 
         total = tally.sum()
-        print
-        print "in sum %d/%d games had script source available" % (total - tally[0][0].sum(), total)
+        print()
+        print("in sum %d/%d games had script source available" % (total - tally[0][0].sum(), total))
 
     def print_command_usage(self):
         "Print table of the usage counts for all script commands and plotscr.hsd scripts"
 
-        for scripts in self.scripthashes.itervalues():
+        for scripts in self.scripthashes.values():
             for script in scripts:
                 # Some standard scripts may have been duplicated/reimplemented by someone
                 # with a different name, so check name of each copy.
@@ -298,10 +298,10 @@ class ScriptScanner(object):
                     self.standardscrs['versions'][idx] += 1
                     break
 
-        print
+        print()
         cmdsums = self.cmdcounts.sum(axis=0)
         cmdgamecounts = (self.cmdcounts > 0).sum(axis=0)
-        for i in xrange(len(cmdsums)):
+        for i in range(len(cmdsums)):
             if cmdsums[i] or self.cmdcounts_in_plotscrhsd[i] or (i in self.commands_info) or i >= 2000:
                 if i >= 2000:
                     header = self.standardscrs['names'][i - 2000] + " (%d versions)" % self.standardscrs['versions'][i - 2000]
@@ -309,13 +309,13 @@ class ScriptScanner(object):
                     header =  "%-3s%s" % (str(i) + ':', self.commandname(i))
                 mark = ''
                 header += ' ' * max(1, 41 - len(header) - len(str(cmdsums[i])))
-                print "%s%d uses in %3d games + %2d in plotscr.hsd" % (header, cmdsums[i], cmdgamecounts[i], self.cmdcounts_in_plotscrhsd[i])
+                print("%s%d uses in %3d games + %2d in plotscr.hsd" % (header, cmdsums[i], cmdgamecounts[i], self.cmdcounts_in_plotscrhsd[i]))
 
     def delete_script_refs(self):
         "Delete weakrefs from ascripts so that they are pickleable"
-        for scripts in self.scripthashes.itervalues():
+        for scripts in self.scripthashes.values():
             for script in scripts:
                 if hasattr(script, 'scriptset'):
                     if script.scriptset() != None:
-                        print "WARNING: undeleted HSScripts object"
+                        print("WARNING: undeleted HSScripts object")
                     del script.scriptset

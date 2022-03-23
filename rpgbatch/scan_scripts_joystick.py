@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Find all uses of joystick access commands,
 (and previously more)."""

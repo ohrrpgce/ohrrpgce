@@ -32,6 +32,9 @@ def is_script(f):
     #with filename_or_handle(f, 'r') as f:
     # Read up to the first top level token, ignoring # comments
     for line in f:
+        # ZipExtFiles are always binary, lines are bytes
+        if isinstance(line, bytes):
+            line = line.decode()
         match = re.search('[,()#]', line)
         if match:
             line = line[:match.start()]
@@ -64,20 +67,21 @@ def safe_extract(archive, srcfile, destfile):
         shutil.copyfileobj(source, target)
     source.close()
 
-def escape_string(s):
-    return s
+def escape_string(s: bytes) -> str:
+    return s.decode('latin-1')
+
     ret = ''
     for c in s:
         if ord(c) >= 32 and ord(c) < 128:
-            ret += c
+            ret += chr(ord(c))
         else:
             ret += "\\x%02X" % ord(c)
-    print "RESULT :", ret
+    print("RESULT :", ret)
     return ret
 
 def readbit(array, bitnum, offset = 0):
     assert array.itemsize == 1
-    return array[offset + bitnum / 8] & (1 << (bitnum % 8)) != 0
+    return array[offset + bitnum // 8] & (1 << (bitnum % 8)) != 0
 
 
 class RPGInfo(object):
@@ -166,9 +170,9 @@ class RPGIterator(object):
                         self._addfile(path.join(arg, node), cur_src)
             elif path.isfile(arg):
                 if not self._addfile(arg, cur_src):
-                    print "Unrecognised file '%s'" % arg
+                    print("Unrecognised file '%s'" % arg)
             else:
-                print "Unrecognised argument", arg
+                print("Unrecognised argument", arg)
 
     def _addfile(self, node, src):
         if node.lower().endswith(".zip"):
@@ -184,7 +188,7 @@ class RPGIterator(object):
         md5 = hashlib.md5()
         if path.isdir(fname):
             for node in sorted(os.listdir(fname), key=(lambda filename: filename.lower())):
-                md5.update(node)
+                md5.update(node.encode('utf-8'))
                 md5_add_file(md5, path.join(fname, node))
         else:
             md5_add_file(md5, fname)
@@ -226,8 +230,6 @@ class RPGIterator(object):
             self._print("%s is corrupt, skipped: %s" % (game_identifier, e))
             self.num_badrpgs += 1
             gameinfo.error = str(e)
-            # Clear last exception: it holds onto local variables in stack frames
-            sys.exc_clear()
 
     def _cleanup(self):
         self.current_rpg = None
@@ -237,7 +239,7 @@ class RPGIterator(object):
 
     def _print(self, msg):
         self.messages += msg + '\n'
-        print msg
+        print(msg)
 
     def __iter__(self):
         timer = time.time()
@@ -380,16 +382,16 @@ class RPGIterator(object):
                 shutil.rmtree(self.tmpdir)
             except:
                 traceback.print_exc(1, sys.stderr)
-                print
+                print()
         timer = time.time() - timer
         self.timings.append("Run %d: Finished in %.2f s" % (len(self.timings) + 1, timer))
 
     def print_summary(self):
-        print '\n'.join(self.timings)
-        print "Scanned %d zips (%d bad, %d unsupported)" % (self.num_zips, self.num_badzips, self.num_unsupported_zips)
-        print "Found %d RPGS, %d corrupt, (%d unique, totalling %.1f MB)" % (self.num_rpgs, self.num_badrpgs, self.num_uniquerpgs, self.bytes / 2.**20)
-        print 
-        for gameids in self.hashs.itervalues():
+        print('\n'.join(self.timings))
+        print("Scanned %d zips (%d bad, %d unsupported)" % (self.num_zips, self.num_badzips, self.num_unsupported_zips))
+        print("Found %d RPGS, %d corrupt, (%d unique, totalling %.1f MB)" % (self.num_rpgs, self.num_badrpgs, self.num_uniquerpgs, self.bytes / 2.**20))
+        print() 
+        for gameids in self.hashs.values():
             if len(gameids) > 1:
-                print "The following are identical:", ', '.join(gameids)
-        print
+                print("The following are identical:", ', '.join(gameids))
+        print()
