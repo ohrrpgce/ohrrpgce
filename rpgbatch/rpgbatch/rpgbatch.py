@@ -14,6 +14,7 @@ import time
 import traceback
 import re
 import zlib
+import io
 
 path = os.path
 
@@ -24,23 +25,48 @@ def is_rpg(name):
     return file_ext_in(name, 'rpg', 'rpgdir', 'bak')
 
 top_level = ["defineconstant", "definetrigger", "defineoperator", 
-             "globalvariable", "definefunction", "definescript", "include"]
+             "globalvariable", "definefunction", "definescript", "include",
+             "script", "plotscript"]
+
+def encoding_from_BOM(text: bytes, default):
+    """Check for a BOM mark indicating text encoding, otherwise use default.
+    Returns (encoding, BOM-size) pair."""
+    if text[:4] == b'\x00\x00\xfe\xff':
+        return 'utf-32-be', 4
+    if text[:4] == b'\xff\xfe\x00\x00':
+        return 'utf-32-le', 4
+    if text[:2] == b'\xfe\xff':
+        return 'utf-16-be', 2
+    if text[:2] == b'\xff\xfe':
+        return 'utf-16-le', 2
+    if text[:3] == b'\xef\xbb\xbf':
+        return 'utf-8', 3
+    return default, 0
 
 def is_script(f):
     "Given a (text) file try to determine whether it contains hamsterspeak scripts"
 
-    #with filename_or_handle(f, 'r') as f:
-    # Read up to the first top level token, ignoring # comments
-    for line in f:
+    if isinstance(f.read(0), bytes):
         # ZipExtFiles are always binary, lines are bytes
-        if isinstance(line, bytes):
-            line = line.decode()
-        match = re.search('[,()#]', line)
-        if match:
-            line = line[:match.start()]
-        line = line.lower().strip().replace(' ', '')
-        if line:
-            return line in top_level
+        # HS source can be in any encoding supported by HSpeak (UTF 8/16/32 or Latin-1),
+        # which autodetects it. We can just treat UTF-8 as Latin-1, and attempt to
+        # detect the others from BOM, but don't go to the lengths that HSpeak does.
+        encoding, start = encoding_from_BOM(f.read(4), 'latin-1')
+        f.seek(start)
+        f = io.TextIOWrapper(f, encoding = encoding)
+        #print("encoding", encoding)
+
+    try:
+        # Read up to the first top level token, ignoring # comments
+        for line in f:
+            match = re.search('[,()#]', line)
+            if match:
+                line = line[:match.start()]
+            line = line.lower().strip().replace(' ', '')
+            if line:
+                return line in top_level
+    except UnicodeDecodeError as e:
+        print('is_script failed:', e)
     return False
 
 def lumpbasename(name, rpg):
