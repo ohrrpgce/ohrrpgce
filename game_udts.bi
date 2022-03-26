@@ -146,7 +146,7 @@ TYPE VirtualGamePadState
   being_shown as bool
 END TYPE
 
-ENUM HeroPathingMode
+ENUM HeroPathingMode EXPLICIT
  NONE
  NPC
  POS

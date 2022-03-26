@@ -624,7 +624,7 @@ END SUB
 'unselectable: whether this item is unselectable
 FUNCTION menu_item_color(state as MenuState, itemno as integer, disabled as bool = NO, unselectable as bool = NO, c_normal as integer = 0, c_disabled as integer = 0, def_normal as integer = -uiMenuItem-1, def_disabled as integer = -uiDisabledItem-1) as integer
  DIM col as integer
- IF .disabled THEN
+ IF disabled THEN
   IF state.pt = itemno AND state.active THEN
    col = uilook(uiSelectedDisabled + state.tog)
   ELSE

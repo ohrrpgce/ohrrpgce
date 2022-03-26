@@ -278,7 +278,7 @@ TYPE NPCPool
   npcs(any) as NPCType
 END TYPE
 
-ENUM NPCOverrideMove
+ENUM NPCOverrideMove EXPLICIT
  NONE
  NPC
  POS

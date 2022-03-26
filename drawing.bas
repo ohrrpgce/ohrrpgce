@@ -3972,7 +3972,7 @@ END SUB
 SUB spriteedit_strait_line(byref ss as SpriteEditState)
  writeundospr ss
  spriteedit_clip ss
- drawline ss.sprite, ss.x, .ss.y, ss.holdpos.x, ss.holdpos.y, ss.palindex
+ drawline ss.sprite, ss.x, ss.y, ss.holdpos.x, ss.holdpos.y, ss.palindex
 END SUB
 
 SUB spriteedit_reset_tool(byref ss as SpriteEditState)
