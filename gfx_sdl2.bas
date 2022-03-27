@@ -1238,7 +1238,8 @@ SUB gfx_sdl2_process_events()
           IF windowedmode THEN set_viewport windowedmode
 
           IF resizable THEN
-            'Round upwards
+            'Round upwards. TODO: This results in cut-off pixels around the screen edge,
+            'and ideally we would resize the window to a multiple of the resolution.
             resize_request.w = (evnt.window.data1 + zoom - 1) \ zoom
             resize_request.h = (evnt.window.data2 + zoom - 1) \ zoom
 

@@ -136,9 +136,7 @@ END FUNCTION
 '--attackerslot = bslot() index of hero or enemy who is attacking
 '--spclass  = 0 for normal attacks, 1 for level-MP spells
 '--lmplev   = which level-MP level to use
-FUNCTION atkallowed (attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer, bspr as BattleSprite) as bool
-
- DIM byref attacker as BattleSprite = bspr
+FUNCTION atkallowed (attack as AttackData, attackerslot as integer, spclass as integer, lmplev as integer, attacker as BattleSprite) as bool
 
  '--check for mutedness
  IF attack.mutable AND attacker.stat.cur.mute < attacker.stat.max.mute THEN
