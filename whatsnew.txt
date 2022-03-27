@@ -105,6 +105,8 @@ WHAT IS NEW?
     * Random spell lists now respect attack costs, but for old games you
       must enable this fix in the backcompat bits to avoid breaking games
       that relied on it. [James]
+    * In games wider than 320px, in the Items menu the Left key would go
+      up-left to Exit or Sort [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license
