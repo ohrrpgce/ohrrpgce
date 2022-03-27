@@ -260,6 +260,7 @@ SUB subtract_attack_costs(attack as AttackData, attackerslot as integer, byref b
     END IF
     'Update tags when items have changed because it could affect chain conditionals
     evalitemtags
+    tag_updates
    END IF
   END WITH
  NEXT i
@@ -302,6 +303,7 @@ ELSE
 END IF
 'Update tags, this may matter for attack chaining
 evalitemtags
+tag_updates
 END FUNCTION
 
 'Count number of attacks in one of an enemy's attack lists which it can currently use.

@@ -761,6 +761,7 @@ END IF
 queue_fade_in
 'DEBUG debug "pre-call update_heroes"
 evalherotags
+tag_updates
 update_heroes(YES)
 setkeys
 

@@ -764,6 +764,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
      setbit bat.iuse(), 0, .consume_item, 0  'Update this in case Items menu happens to be open
      'Note that subtract_attack_costs already updated tags, so we only do it again in this case
      evalitemtags
+     tag_updates
     END IF
     .consume_item = -1
    END IF
@@ -2430,6 +2431,7 @@ SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot()
  IF dead_heroes = 4 THEN bat.death_mode = deathHEROES
  export_battle_hero_stats bslot()
  evalherotags
+ tag_updates
 END SUB
 
 SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
@@ -2626,6 +2628,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
      .item_name = readitemname(pickedup.id)
      '--actually acquire the item
      getitem pickedup.id, pickedup.num
+     'tag_updates called when exiting battle() to handle all at once
     END IF
     '--if the present item is gotten, show the caption
     IF pickedup.num = 1 THEN
@@ -2797,7 +2800,7 @@ SUB checkTagCond (byref t as AttackDataTag, byval check as AttackTagConditionEnu
    IF NOT istag(t.tagcheck, 0) THEN EXIT SUB
   END IF
   settag t.tag  'Set the original damned tag!
-  tag_updates NO  'npc_visibility=NO
+  tag_updates
  END IF
 END SUB
 

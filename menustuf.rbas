@@ -222,10 +222,6 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
 
  DeleteSlice @(buyst.root_sl)
  FreeDocument stuff_doc
-
- evalitemtags
- party_change_updates
-
 END SUB
 
 SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval thing_slot as integer)
@@ -289,6 +285,7 @@ SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval th
  'purchaseability of other items
  evalherotags
  evalitemtags
+ tag_updates
 END SUB
 
 'thing is either "hero" or "item" node of a shop thing, in the new RELOAD respresentation of STF
@@ -1760,6 +1757,7 @@ DO
    consumeitem ic
    'UPDATE ITEM POSESSION TAGS--------
    evalitemtags
+   tag_updates
    'REFRESH DISPLAY--------
    sellstuff_refresh storebuf(16), recordsize, permask(), price(), b()
    sellstuff_infostr ic, info, b(), permask(), price(), storebuf(16), recordsize
@@ -4060,6 +4058,9 @@ SUB spells_menu_control_pick_spell(sp as SpellsMenuState)
    IF menu_attack_targ_picker(sp.spell(sp.cursor).id, -1, sp.hero, TRIM(sp.spell(sp.cursor).name), 36) THEN
     '--attack was actually used
     subtract_attack_costs atk, sp.hero, sp.lists(sp.listnum).magic_type, lmplev
+    evalitemtags
+    evalherotags
+    tag_updates
 
     spells_menu_refresh_hero sp
     sp.re_use = YES
@@ -4118,9 +4119,6 @@ SUB old_spells_menu (byval who as integer)
  freepage holdscreen
 
  checkfatal = YES
- evalherotags
- evalitemtags
- tag_updates
 END SUB
 
 SUB spells_menu_paint (byref sp as SpellsMenuState)
