@@ -2431,6 +2431,7 @@ SUB item_screen_cancel_action (byref st as ItemScreenState)
  END IF
 END SUB
 
+'Updates autoset tags
 SUB item_screen_usable_item_action (byref st as ItemScreenState)
  IF st.ps.cur = 0 THEN debug "item_screen_usable_item_action: no cursor ptr" : EXIT SUB
  DIM slot as integer = st.ps.cur->Extra(0)
@@ -2441,6 +2442,9 @@ SUB item_screen_usable_item_action (byref st as ItemScreenState)
    DIM consumed as bool = NO ' FIXME: can probably get rid of this later
    IF use_item_in_slot(slot, st.textbox, consumed) THEN
     st.re_use = YES
+    evalitemtags
+    evalherotags
+    tag_updates
    END IF
   END IF
   st.need_update = YES
@@ -2449,6 +2453,7 @@ SUB item_screen_usable_item_action (byref st as ItemScreenState)
  END IF
 END SUB
 
+'Updates autoset tags
 SUB item_screen_use_action (byref st as ItemScreenState)
  IF st.ps.cur = 0 THEN debug "item_screen_use_action: no cursor ptr" : EXIT SUB
  DIM slot as integer = st.ps.cur->Extra(0)
@@ -3438,7 +3443,7 @@ SUB equip_menu_stat_bonus(byref st as EquipMenuState)
  NEXT i
 END SUB
 
-FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, byref consumed as bool = NO) as integer
+FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, byref consumed as bool = NO) as bool
  '--slot is the index in your inventory
  
  '--trigger_box is used to communicate when an item has triggered a text box (note, box 0 can't be triggered)
@@ -3446,6 +3451,8 @@ FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, b
  '--consumed optionally communicates whether the item was actually consumed
  
  '--return value is YES when an item is used, and NO when it is not used.
+
+ '--Does not update autoset tags!
 
  consumed = NO
  IF inventory(slot).used = NO THEN RETURN NO
@@ -3473,7 +3480,7 @@ FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, b
  RETURN NO
 END FUNCTION
 
-FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, name_override as string="") as integer
+FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, name_override as string="") as bool
  '--item_id is the actual ID number, not offset.
 
  '--trigger_box communicates the box id if this item triggerd a text box.
@@ -3491,7 +3498,9 @@ FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, 
 
  '--This sub does not care if you actually own the item in question,
  '   nor will it consume items from your inventory even if the item is a consuming item.
- 
+
+ '--Does not update autoset tags!
+
  DIM itemdata(dimbinsize(binITM)) as integer
  loaditemdata itemdata(), item_id
 
@@ -3534,6 +3543,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  '(FIXME: should move to separate function! Why not just use pickhero for learning spells??)
  'attacker == -1 when not using an attack from a spell list. In that case, use party's avg stats
  'Returns true if the attack/spell was actually used/learned
+ 'Doesn't update tags, caller must.
  
  'FIXME: x_offset should probably go away in favor of a slice template at some point in the future
  

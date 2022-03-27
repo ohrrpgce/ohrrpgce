@@ -3583,6 +3583,10 @@ SUB advance_text_box ()
  IF istag(txt.box.item_tag, 0) THEN
   IF txt.box.item > 0 THEN getitem txt.box.item - 1
   IF txt.box.item < 0 THEN delitem (-txt.box.item) - 1
+  IF txt.box.item THEN
+   evalitemtags
+   tag_updates NO  'npc_visibility=NO
+  END IF
  END IF
  '---SHOP/INN/SAVE/ETC------------
  IF istag(txt.box.shop_tag, 0) THEN

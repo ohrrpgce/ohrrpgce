@@ -184,9 +184,9 @@ FUNCTION averagelev () as integer
  RETURN average
 END FUNCTION
 
+'Subtracts one of an item in an inventory slot.
+'Returns true if the item slot is depleted, else false.
 FUNCTION consumeitem (byval invslot as integer) as bool
- '--Subtracts one of an item at a location. If the item is depleted, returns true. If there are some of the item left, it returns false
- '--Argument is the inventory slot index, not the item ID
  consumeitem = 0
  inventory(invslot).num -= 1
  IF inventory(invslot).num <= 0 THEN

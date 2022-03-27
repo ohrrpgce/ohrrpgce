@@ -1131,6 +1131,8 @@ SUB script_functions(byval cmdid as integer)
    IF use_item_by_id(retvals(0), gam.want.box) THEN
     scriptret = 1
    END IF
+   evalitemtags
+   tag_updates
    IF immediate_showtextbox ANDALSO gam.want.box > 0 THEN loadsay gam.want.box: gam.want.box = 0
   END IF
  CASE 491'--use item in slot (slot)
@@ -1140,6 +1142,7 @@ SUB script_functions(byval cmdid as integer)
     scriptret = 1
    END IF
    evalitemtags
+   tag_updates
    IF immediate_showtextbox ANDALSO gam.want.box > 0 THEN loadsay gam.want.box: gam.want.box = 0
   END IF
  CASE 517'--menu item by true slot

@@ -762,6 +762,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
     IF consumeitem(.consume_item) THEN
      'Finished the item stack
      setbit bat.iuse(), 0, .consume_item, 0  'Update this in case Items menu happens to be open
+     'Note that subtract_attack_costs already updated tags, so we only do it again in this case
      evalitemtags
     END IF
     .consume_item = -1

@@ -107,6 +107,13 @@ WHAT IS NEW?
       that relied on it. [James]
     * In games wider than 320px, in the Items menu the Left key would go
       up-left to Exit or Sort [Ralph]
+    * Item and hero autoset tags didn't update immediately (until something
+      else did so) due to:
+      -using items (including attacks and item consumption) outside of battle
+      -the "use item" command (also, "use item in slot" updated tags but
+       didn't update visible NPCs)
+      -gaining/losing items from a textbox, until the textbox chain ended
+      [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license
