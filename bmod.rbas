@@ -1354,7 +1354,7 @@ SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata as F
    c = uilook(uiSelectedDisabled)
    IF is_hero(i) THEN c = uilook(uiSelectedItem)
    rectangle 0, 80 + (i * 10), .ready_meter / 10, 4, c, page
-   info = "hp" & .stat.cur.hp & " tm" & bat.targ.mask(i) & " sr" & (.stat.cur.stun < .stat.max.stun) & " dz" & .dissolve & " a" & .attack & " r" & .ready 
+   info = "hp" & .stat.cur.hp & " tm" & bat.targ.mask(i) & " sr" & (.stat.cur.stun < .stat.max.stun) & " dz" & .dissolve & " a" & .attack & " r" & .ready & " v" & .vis & " h" & .hidden
    IF is_enemy(i) THEN info &= " fm" & formdata.slots(i-4).id
    edgeprint info, 10, 80 + i * 10, c, page
   END WITH
@@ -4027,6 +4027,7 @@ END FUNCTION
 
 'Return true if target is unhittable and invisible
 FUNCTION check_for_unhittable_invisible_foe(attacker as integer, target as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
+ IF bslot(target).hidden THEN RETURN YES
  IF bslot(target).vis THEN RETURN NO
  IF bslot(target).stat.cur.hp <= 0 ANDALSO attack_can_hit_dead(attack, bslot(attacker).stored_targs_can_be_dead) THEN RETURN NO 'Attack can hit dead targets
  IF bslot(attacker).self_bequesting THEN
