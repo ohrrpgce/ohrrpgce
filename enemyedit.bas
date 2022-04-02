@@ -696,7 +696,7 @@ clip_box->Fill = YES
 
 'The preview backdrop + 1, or none if 0
 DIM byref preview_backdrop_id as integer = gen(genPreviewBackdrop)
-preview_backdrop_id = small(preview_backdrop_id, gen(genNumBackdrops) - 1)
+preview_backdrop_id = small(preview_backdrop_id, gen(genNumBackdrops))
 DIM preview_backdrop as Slice Ptr
 preview_backdrop = NewSliceOfType(slSprite, clip_box)
 preview_backdrop->Visible = (preview_backdrop_id > 0)
