@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-02-21">
+<plotscript version="wip" datecode="2022-04-03">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1802,15 +1802,16 @@ end</example>
 				<ref>globalnpcreference</ref>
 			</seealso>
 		</command>
-		<command id="globalnpc">
-			<alias>globalnpcreference</alias>
-			<shortname>global NPC</shortname>
-		</command>
 		<command id="globalnpcreference">
 			<canon>global NPC reference (ID, copy, allow disabled?)</canon>
 			<shortname>global NPC reference</shortname>
+			<altcommand id="globalnpc">
+				<canon>global NPC (ID, copy, allow disabled?)</canon>
+				<shortname>global NPC</shortname>
+			</altcommand>
 			<description>
-				This command is the same as <ref>npcreference</ref> except that it will always assume that you are using a global NPC ID number instead of a local NPC ID number. If there is no copy of the global NPC ID on the current map, it will return false. This command cannot get references to NPCs located on different maps, and the NPC reference it returns is only valid on the current map.
+				This command is the same as <ref>npcreference</ref> except that it takes a global NPC ID number instead of a local NPC ID number. If there is no copy of the global NPC ID on the current map, it will return false. This command cannot get references to NPCs located on different maps, and the NPC reference it returns is only valid on the current map.<lb/>
+				<tt>global NPC</tt> is an alias for <tt>global NPC reference</tt>
 			</description>
 			<seealso>
 				<ref>npcreference</ref>

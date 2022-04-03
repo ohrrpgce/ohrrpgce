@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-02-21)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-04-03)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -988,7 +988,7 @@ function toggleContent(target) {
 		<a href="#about-getzoneextra">get zone extra (zone id, extra num)</a><br>
 		<a href="#about-getzonename">get zone name (string id, zone id)</a><br>
 		<a href="#about-giveexperience">give experience (hero, amount)</a><br>
-		<a href="#about-globalnpcreference">global NPC</a><br>
+		<a href="#about-globalnpc">global NPC (ID, copy, allow disabled?)</a><br>
 		<a href="#about-globalnpcreference">global NPC reference (ID, copy, allow disabled?)</a><br>
 		<a href="#about-globalstostring">globals to string(ID, starting global, length)</a><br>
 		<a href="#about-globalvariable">global variable (id,name)</a><br>
@@ -4142,8 +4142,8 @@ resume player</pre>
 <button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul>
 <div class="content-shown">
 		<a href="#about-npcreference">NPC reference (ID, copy, allow disabled?, pool)</a><br>
-		<a href="#about-globalnpcreference">global NPC</a><br>
 		<a href="#about-globalnpcreference">global NPC reference (ID, copy, allow disabled?)</a><br>
+		<a href="#about-globalnpc">global NPC (ID, copy, allow disabled?)</a><br>
 		<a href="#about-nextnpcreference">next NPC reference (npcref)</a><br>
 		<a href="#about-npcatspot">NPC at spot (x, y, number)</a><br>
 		<a href="#about-npcatpixel">NPC at pixel (x, y, number)</a><br>
@@ -4291,16 +4291,15 @@ end</pre>
 		</p>
 </div>
 		<div class="command">
-			<a name="about-globalnpc"></a>
-				<h4>global NPC</h4>
-				An alias for <a href="#about-globalnpcreference">global NPC reference</a>.
-			</div>
-		<div class="command">
 			<a name="about-globalnpcreference"></a>
+			<a name="about-globalnpc"></a>
 				<h4>global NPC reference (ID, copy, allow disabled?)</h4>
+			<div class="notetext">Alias:</div>
+			<h4>global NPC (ID, copy, allow disabled?)</h4>
 <p>
 			
-				This command is the same as <a href="#about-npcreference" class="ref">NPC reference</a> except that it will always assume that you are using a global NPC ID number instead of a local NPC ID number. If there is no copy of the global NPC ID on the current map, it will return false. This command cannot get references to NPCs located on different maps, and the NPC reference it returns is only valid on the current map.
+				This command is the same as <a href="#about-npcreference" class="ref">NPC reference</a> except that it takes a global NPC ID number instead of a local NPC ID number. If there is no copy of the global NPC ID on the current map, it will return false. This command cannot get references to NPCs located on different maps, and the NPC reference it returns is only valid on the current map.<br>
+				<span class="code">global NPC</span> is an alias for <span class="code">global NPC reference</span>
 			
 			
 			
@@ -21676,7 +21675,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 920 commands (of which 12 are aliases), 27 constants and 12 definitions of types and other terms in this file.</p>
+<p>Stats: There are 919 commands (of which 11 are aliases), 27 constants and 12 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
