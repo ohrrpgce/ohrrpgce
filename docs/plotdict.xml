@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-04-03">
+<plotscript version="wip" datecode="2022-04-04">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -5057,7 +5057,8 @@ end
 					For example, ignore values between -50 and 50.
 					Also, if you push a stick diagonally (e.g. up-right) it probably won't reach 100,-100.
 					<lb/>
-					If possible, use the <tt>joy:Up, joy:Down, joy:Left, joy:Right</tt> or
+					If possible (if you don't need to know how far or precisely what angle the stick is pushed),
+					use the <tt>joy:Up, joy:Down, joy:Left, joy:Right</tt> or
 					<tt>joy:RStick Up, joy:RStick Down, joy:RStick Left, joy:RStick Right</tt>
 					buttons with <ref>keyispressed</ref> instead.
 					These allow 8-directional movement and have a proper circular dead zone.

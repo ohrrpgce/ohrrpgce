@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-04-03)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-04-04)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -9455,7 +9455,8 @@ end
 					For example, ignore values between -50 and 50.
 					Also, if you push a stick diagonally (e.g. up-right) it probably won't reach 100,-100.
 					<br>
-					If possible, use the <span class="code">joy:Up, joy:Down, joy:Left, joy:Right</span> or
+					If possible (if you don't need to know how far or precisely what angle the stick is pushed),
+					use the <span class="code">joy:Up, joy:Down, joy:Left, joy:Right</span> or
 					<span class="code">joy:RStick Up, joy:RStick Down, joy:RStick Left, joy:RStick Right</span>
 					buttons with <a href="#about-keyispressed" class="ref">key is pressed</a> instead.
 					These allow 8-directional movement and have a proper circular dead zone.
