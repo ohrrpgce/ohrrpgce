@@ -114,6 +114,8 @@ WHAT IS NEW?
        didn't update visible NPCs)
       -gaining/losing items from a textbox, until the textbox chain ended
       [Ralph]
+    * Crash reporting on Windows stopped working for a while, aside from the
+      manual email fallback [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

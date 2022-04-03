@@ -142,19 +142,19 @@ boolint crashrpt_setup(const char *libpath, const char *appname, const char *ver
 	info.pszAppName = appname;
 	info.pszAppVersion = version;
 	info.pszEmailSubject = "Crash Report";
-	info.pszEmailTo = "ohrrpgce-crash@HamsterRepublic.com";
-	info.pszUrl = "http://rpg.hamsterrepublic.com/crashrpt/";
+	info.pszEmailTo = "ohrrpgce-crash@HamsterRepublic.com"; // Possible to specify multiple addresses separated by ;
+	info.pszUrl = "https://rpg.hamsterrepublic.com/crashrpt/";
 	info.uPriorities[CR_HTTP] = 3;  // Try first
-	info.uPriorities[CR_SMTP] = 0;  // Don't bother, will be blocked by DreamHost, and cause a delay
+	info.uPriorities[CR_SMTP] = 2;  // Surprisingly Dreamhost (and also gmail) don't block SMTP
 	info.uPriorities[CR_SMAPI] = 1; // Try last: Simple MAPI using user's mail client
 	// Install all available exception handlers
 	info.dwFlags |= CR_INST_ALL_POSSIBLE_HANDLERS;
 	info.dwFlags |= CR_INST_APP_RESTART;
 	// This flag gives users the option to send later, queuing until the next run
-	info.dwFlags |= CR_INST_SEND_QUEUED_REPORTS;
+	//info.dwFlags |= CR_INST_SEND_QUEUED_REPORTS;
 	info.dwFlags |= CR_INST_ALLOW_ATTACH_MORE_FILES;
 	// Show user email and description fields immediately instead of starting hidden
-	//info.dwFlags |= CR_INST_SHOW_ADDITIONAL_INFO_FIELDS;
+	info.dwFlags |= CR_INST_SHOW_ADDITIONAL_INFO_FIELDS;
 	info.dwFlags |= CR_INST_AUTO_THREAD_HANDLERS;
 	info.pszRestartCmdLine = "";
 	info.uMiniDumpType = MiniDumpWithHandleData;
