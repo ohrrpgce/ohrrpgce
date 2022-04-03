@@ -125,7 +125,7 @@ def print_matching_line(line, key, regex = None, groupnum = 1):
 
 class NoSymbolsError(ValueError): pass
 
-def symbols_filename_from_build(build):
+def symbols_filename_from_build(build, branch):
     """Work out what the name of the symbols file (as uploaded to SYMBOLS_ARCHIVE_URL)
     for this build is, or raise NoSymbolsError if there is none.
 
@@ -137,6 +137,10 @@ def symbols_filename_from_build(build):
 
     ohrvercode = build.split(' ')[1]  # This is 'wip' for a nightly, or else the version
     backends = build.split(' ')[3]
+
+    if branch is None:
+        # Normally branch == ohrvercode, unless ohrvercode contains non-ascii chars
+        branch = ohrvercode
 
     if 'vampirecell' not in build:
         raise NoSymbolsError("No symbols: not an official build!")
@@ -150,7 +154,7 @@ def symbols_filename_from_build(build):
             buildtag += '-debug'
         date, svnrev = build.split(' ')[2].split('.')
         split_date = '%s-%s-%s' % (date[:4], date[4:6], date[6:])  # e.g 2019-02-09
-        return 'ohrrpgce-symbols-win-%s-r%s-%s-%s.7z' % (buildtag, svnrev, split_date, ohrvercode)
+        return 'ohrrpgce-symbols-win-%s-r%s-%s-%s.7z' % (buildtag, svnrev, split_date, branch)
 
 
 def download_and_extract_symbols(syms_fname, args):
@@ -177,12 +181,12 @@ def download_and_extract_symbols(syms_fname, args):
         subprocess.check_call([exe, 'x', '-o' + cachedir, syms_7z], stdout=stdout)
     return cachedir
 
-def process_minidump(build, reportdir, is_custom, args):
+def process_minidump(build, branch, reportdir, is_custom, args):
     """Read a minidump file (producing .sym files as necessary), print info
     from it, and return a (stacktrace, crash_summary, crash_info) tuple."""
     # Try to determine the symbols .7z archive
     try:
-        syms_fname = symbols_filename_from_build(build)
+        syms_fname = symbols_filename_from_build(build, branch)
         error_note = ""
     except NoSymbolsError as err:
         syms_fname = None
@@ -280,11 +284,15 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
                 summary.description = elmt.text
             print_attr(tagname, elmt.text)
     build = None
+    branch = None
     for x in root.iter('Prop'):
-        print_attr(x.attrib['name'].title(), x.attrib['value'])
-        if x.attrib['name'] == 'build':
-            build = x.attrib['value']
-        if x.attrib['name'] == 'error':  # The BUG message
+        name, val = x.attrib['name'], x.attrib['value']
+        print_attr(name.title(), val)
+        if name == 'build':
+            build = val
+        if name == 'branch':
+            branch = val
+        if name == 'error':  # The BUG message
             summary.error = x.attrib['value']
 
     is_custom = (root.find('AppName').text == 'OHRRPGCE-Custom')
@@ -363,7 +371,7 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
     if args.no_stacktrace:
         stacktrace, summary.crash_summary, crash_info = None, 'N/A', []
     else:
-        stacktrace, summary.crash_summary, crash_info = process_minidump(build, reportdir, is_custom, args)
+        stacktrace, summary.crash_summary, crash_info = process_minidump(build, branch, reportdir, is_custom, args)
     # Print the stacktrace later, at the end
 
     for key, value in crash_info:
