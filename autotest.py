@@ -92,10 +92,10 @@ class Options(object):
         parser = optparse.OptionParser(formatter=BetterHelpFormatter(), usage="%prog [options] filename.rpg", description="""This tool runs OHRRPGCE rpg files in autotest mode. It requires either an svn or git working copy of the OHRRPGCE source. The rpg will be run twice, once for the current local working copy, and once for the revision you want to compare with. You will be alerted of any differences. The purpose of this tool is to detect regressions and unintended side-effects of bugfixes. it is not useful for validating new features or bugfixes that legitimately involve a visible change in behavior. It is only useful for rpg files that run deterministically with no user input.
 
 This script can be used with 'git bisect run': it returns 0 on pass, 1 on fail or error while running Game, and 125 for other errors. For example:
-  ./autotest.py testgame/autotest.rpg -r abc123
+  ./autotest.py testgame/autotest.rpgdir -r abc123
   #...failure
   git bisect start HEAD abc123
-  git run autotest.py testgame/autotest.rpg -a
+  git run autotest.py testgame/autotest.rpgdir -a
 """)
         parser.add_option("-r", dest="rev",
                   help="Revision to test the current working copy against. If you leave this out, it assumes that you want to compare local changes against a clean copy of the currently checked out revision.", default=None)

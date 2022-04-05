@@ -1,4 +1,4 @@
-# HamsterSpeak constant definitions for autotest.rpg
+# HamsterSpeak constant definitions for autotest.rpgdir
 
 define constant, begin
 2,tag:box chain test

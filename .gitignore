@@ -115,6 +115,7 @@ ohr.geany
 *.rpg
 *.rpgdir
 !testgame/**/*.rpg
+!testgame/**/*.rpgdir/
 *.bmp
 *.gif
 *.png

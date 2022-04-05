@@ -1519,7 +1519,13 @@ def RPGWithScripts(rpg, main_script):
         sources += [HSPEAK]
     action = env.Action(CUSTOM.abspath + ' --nowait ' + rpg + ' ' + main_script)
     # Prepending # means relative to rootdir, otherwise this a rule to build a file in build/
-    node = env.Command('#' + rpg, source = sources, action = action)
+    if os.path.isdir(rootdir + rpg):
+        # Hack, you can't rebuild a directory but this seems to work nicely
+        nodefile = '#' + os.path.join(rpg, 'plotscr.lst')
+    else:
+        nodefile = '#' + rpg
+    print(nodefile)
+    node = env.Command(nodefile, source = sources, action = action)
     Precious(node)  # Don't delete the .rpg before "rebuilding" it
     NoClean(node)   # Don't delete the .rpg with -c
     NoCache(node)   # Don't copy the .rpg into build/cache
@@ -1537,9 +1543,9 @@ T = 'testgame/'
 _gfx = sorted(gfx, key=lambda x: x == 'directx')
 test_args = GAME.abspath + ' --gfx ' + _gfx[0] + ' --log . --runfast -z 2 '
 AUTOTEST = Phony ('autotest_rpg',
-                  source = [GAME, RPGWithScripts(T+'autotest.rpg', T+'autotest.hss')],
+                  source = [GAME, RPGWithScripts(T+'autotest.rpgdir', T+'autotest.hss')],
                   action =
-                  [test_args + T+'autotest.rpg',
+                  [test_args + T+'autotest.rpgdir',
                    'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'],
                   buildsource = buildtests)
 env.Alias ('autotest', source = AUTOTEST)
@@ -1746,7 +1752,7 @@ Other targets/actions:
   uninstall           (Unix only.) Removes 'install'ed files. Uses prefix,
                       destdir, dry_run args (must be same as when installing).
   reload              Compile all RELOAD utilities.
-  autotest            Runs autotest.rpg. See autotest.py for a better tool to
+  autotest            Runs autotest.rpgdir. See autotest.py for a better tool to
                       check differences.
   interactivetest     Runs interactivetest.rpg with recorded input.
   test (or tests)     Compile and run all automated tests, including
