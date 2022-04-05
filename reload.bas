@@ -1367,102 +1367,56 @@ end function
 'Return pointer to a child node if it exists, otherwise create it (as a null node)
 Function GetOrCreateChild(byval parent as NodePtr, n as zstring ptr) as NodePtr
 	if parent = NULL then return NULL
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
+
 	'first, check to see if this node already exists
 	dim ret as NodePtr = GetChildByName(parent, n)
-	
+
 	'it doesn't, so add a new one
 	if ret = NULL then
 		ret = CreateNode(parent->doc, n)
 		AddChild(parent, ret)
 	end if
-	
+
 	return ret
 end Function
 
 'Sets the child node of name n to a null value (doesn't affect children). If n doesn't exist, it adds it
 Function SetChildNode(byval parent as NodePtr, n as zstring ptr) as NodePtr
-	if parent = 0 then return 0
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
-	'first, check to see if this node already exists
-	dim ret as NodePtr = GetChildByName(parent, n)
-	
-	'it doesn't, so add a new one
-	if ret = 0 then
-		ret = CreateNode(parent->doc, n)
-		AddChild(parent, ret)
-	end if
-	
+	dim ret as NodePtr = GetOrCreateChild(parent, n)
+	if ret = 0 then return 0
+
 	SetContent(ret)
-	
 	return ret
 end Function
 
 'Sets the child node of name n to an integer value. If n doesn't exist, it adds it
 Function SetChildNode(byval parent as NodePtr, n as zstring ptr, byval val as longint) as NodePtr
-	if parent = 0 then return 0
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
-	'first, check to see if this node already exists
-	dim ret as NodePtr = GetChildByName(parent, n)
-	
-	'it doesn't, so add a new one
-	if ret = 0 then
-		ret = CreateNode(parent->doc, n)
-		AddChild(parent, ret)
-	end if
-	
+	dim ret as NodePtr = GetOrCreateChild(parent, n)
+	if ret = 0 then return 0
+
 	SetContent(ret, val)
-	
 	return ret
 end Function
 
 'Sets the child node of name n to a floating point value. If n doesn't exist, it adds it
 Function SetChildNode(byval parent as NodePtr, n as zstring ptr, byval val as double) as NodePtr
-	if parent = 0 then return 0
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
-	'first, check to see if this node already exists
-	dim ret as NodePtr = GetChildByName(parent, n)
-	
-	'it doesn't, so add a new one
-	if ret = 0 then
-		ret = CreateNode(parent->doc, n)
-		AddChild(parent, ret)
-	end if
-	
+	dim ret as NodePtr = GetOrCreateChild(parent, n)
+	if ret = 0 then return 0
+
 	SetContent(ret, val)
-	
 	return ret
 end Function
 
 'Sets the child node of name n to a string value. If n doesn't exist, it adds it
 Function SetChildNode(byval parent as NodePtr, n as zstring ptr, val as string) as NodePtr
-	if parent = 0 then return 0
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
-	'first, check to see if this node already exists
-	dim ret as NodePtr = GetChildByName(parent, n)
-	
-	'it doesn't, so add a new one
-	if ret = 0 then
-		ret = CreateNode(parent->doc, n)
-		AddChild(parent, ret)
-	end if
-	
+	dim ret as NodePtr = GetOrCreateChild(parent, n)
+	if ret = 0 then return 0
+
 	SetContent(ret, val)
-	
 	return ret
 end Function
 
-'Sets teh child node of name n to a double value. If n doesn't exist, it adds it.
+'Sets the child node of name n to a double value. If n doesn't exist, it adds it.
 'Also, adds a child of n called "str" with a formatted date string
 Function SetChildNodeDate(byval parent as NodePtr, n as zstring ptr, val as double) as NodePtr
 	dim node as NodePtr = SetChildNode(parent, n, val)
@@ -1476,30 +1430,20 @@ end Function
 
 'Toggle a node to a zero/nonzero value (sets it to 0 or 1). Creates the node if it does not exist
 Sub ToggleBoolChildNode(byval parent as NodePtr, n as zstring ptr)
-	if parent = 0 then exit sub
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
-	'first, check to see if this node already exists
-	dim ch as NodePtr = GetChildByName(parent, n)
+	dim ret as NodePtr = GetOrCreateChild(parent, n)
+	if ret = 0 then return  'Invalid parent
 
-	if ch = 0 then
-		'it does not exist, so add it (and toggle it)
-		SetChildNode(parent, n, 1)
-	else
-		SetChildNode(parent, n, iif(GetInteger(ch), 0, 1))
-	end if
+	'Toggle it. If it didn't exist it'll be a Null node (value 0)
+	SetContent(ret, iif(GetInteger(ret), 0, 1))
 end Sub
 
 'If the child node exists, delete it. If it does not exist, create an empty node
 Sub ToggleChildNode(byval parent as NodePtr, n as zstring ptr)
 	if parent = 0 then exit sub
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
+
 	'first, check to see if this node already exists
 	dim ch as NodePtr = GetChildByName(parent, n)
-	
+
 	if ch then
 		'it exists, so remove it... to be safe, also check for duplicates
 		do
@@ -1517,15 +1461,8 @@ end Sub
 
 'If the child node exists, delete it.
 Sub FreeChildNode(byval parent as NodePtr, n as zstring ptr)
-	if parent = 0 then exit sub
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
-	'first, check to see if this node already exists
 	dim ch as NodePtr = GetChildByName(parent, n)
-	
 	if ch then
-		'it exists, so remove it
 		FreeNode ch
 	end if
 end Sub
@@ -1533,111 +1470,72 @@ end Sub
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
 Function GetChildNodeInt(byval parent as NodePtr, n as zstring ptr, byval d as longint) as longint
-	if parent = 0 then return d
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
 	dim nod as NodePtr = GetChildByName(parent, n)
-	
 	if nod = 0 then return d
 	return GetInteger(nod)
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
 Function GetChildNodeFloat(byval parent as NodePtr, n as zstring ptr, byval d as double) as double
-	if parent = 0 then return d
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
 	dim nod as NodePtr = GetChildByName(parent, n)
-	
 	if nod = 0 then return d
 	return GetFloat(nod)
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
 Function GetChildNodeStr(byval parent as NodePtr, n as zstring ptr, d as string) as string
-	if parent = 0 then return d
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
 	dim nod as NodePtr = GetChildByName(parent, n)
-	
 	if nod = 0 then return d
 	return GetString(nod)
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
 Function GetChildNodeBool(byval parent as NodePtr, n as zstring ptr, byval d as integer) as integer
-	if parent = 0 then return d
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
 	dim nod as NodePtr = GetChildByName(parent, n)
-	
 	if nod = 0 then return d
 	return GetInteger(nod) <> 0
 end function
 
 'looks for a child node of the name n, and returns whether it finds it or not. For "flags", etc
 Function GetChildNodeExists(byval parent as NodePtr, n as zstring ptr) as bool
-	if parent = 0 then return NO
-
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
 	dim nod as NodePtr = GetChildByName(parent, n)
-	
 	return nod <> 0
 end function
 
 'Appends a child node of name n with a null value.
 Function AppendChildNode(byval parent as NodePtr, n as zstring ptr) as NodePtr
 	if parent = 0 then return 0
-	
+
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
+
 	dim ret as NodePtr
 	ret = CreateNode(parent->doc, n)
 	AddChild(parent, ret)
-
-	'SetContent(ret)  'Does nothing
 
 	return ret
 end Function
 
 'Appends a child node of name n to with integer value.
 Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, byval val as longint) as NodePtr
-	if parent = 0 then return 0
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
 	dim ret as NodePtr = AppendChildNode(parent, n)
+	if ret = 0 then return 0
 	SetContent(ret, val)
-	
 	return ret
 end Function
 
 'Appends a child node of name n with a floating point value.
 Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, byval val as double) as NodePtr
-	if parent = 0 then return 0
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
 	dim ret as NodePtr = AppendChildNode(parent, n)
+	if ret = 0 then return 0
 	SetContent(ret, val)
-	
 	return ret
 end Function
 
 'Appends a child node of name n with a string value.
 Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, val as string) as NodePtr
-	if parent = 0 then return 0
-	
-	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
-	
 	dim ret as NodePtr = AppendChildNode(parent, n)
+	if ret = 0 then return 0
 	SetContent(ret, val)
-	
 	return ret
 end Function
 
