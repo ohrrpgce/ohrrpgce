@@ -459,7 +459,7 @@ define function, begin
 435,parentslice,1,0           #return a slice's parent
 435,sliceparent,1,0           #alias
 436,childcount,1,0            #return number of children of a slice
-437,lookupslice,2,0,0         #find a slice using a lookup code constant
+437,lookupslice,2,0,0         #find a slice using a lookup code constant (lookup, root)
 438,resetgame,-1              #reset the game (newgame args)
 439,sliceisvalid,1,0          #checks for a real, non-deleted slice handle
 440,iteminslot,1,0            #read inventory by position
@@ -759,7 +759,8 @@ define function, begin
 730,resizesliceextra,2,0,3    # Resize the 'extra array' (slice, length)
 731,sliceextralength,1,0      # The length of the 'extra' array (slice)
 732,appendsliceextra,2,0,0    # Append to the 'extra' array (slice, value)
-
+733,lookupnextslice,3,0,0,0   # Next slice with lookup code (lookupcode, current, root)
+734,nextsliceintree,3,0,0,1   # Next slice (current, root, visit children)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

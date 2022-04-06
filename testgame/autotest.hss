@@ -4555,8 +4555,9 @@ script, slice tests, begin
 
   slice extra tests
   slice collection tests
-  slice find tests
   slice tree tests
+  slice search tests
+  slice collision tests
   slice correspondence tests
   slice blending tests
   slice sort tests
@@ -4929,9 +4930,59 @@ end
 
 ########################################################################
 
+script, slice search tests, begin
+  $0="Slice search tests"
+
+  variable(sl, sl1, sl11, sl111, sl1111, sl1112, sl2)
+  assert(lookup next slice(sl:walkabout sprite component) == lookup slice(sl:walkabout sprite component))
+
+  sl := 0
+  while (true) do (
+    sl := lookup next slice(sl:walkabout sprite component, sl)
+    if (sl == 0) then (break)
+    assert(get sprite type(sl) == spritetype:walkabout)
+  )
+
+  # Build a tree
+  sl1 := create container
+  sl11 := create container, set parent(sl11, sl1)
+  sl111 := create container, set parent(sl111, sl11)
+  set slice lookup(sl111, 14)
+  sl1111 := create container, set parent(sl1111, sl111)
+  sl1112 := create container, set parent(sl1112, sl111)
+  set slice lookup(sl1112, 14)
+  sl2 := create container
+  set slice lookup(sl2, 14)
+
+  sl := 0
+  sl := next slice in tree(sl, sl1),  assert(sl == sl1)
+  sl := next slice in tree(sl, sl1),  assert(sl == sl11)
+  assert(next slice in tree(sl, sl1, false) == 0)  # sl11 has no sibling
+  sl := next slice in tree(sl, sl1),  assert(sl == sl111)
+  sl := next slice in tree(sl, sl1),  assert(sl == sl1111)
+  assert(next slice in tree(sl, sl1, false) == sl1112)
+  sl := next slice in tree(sl, sl1),  assert(sl == sl1112)
+  assert(next slice in tree(sl, sl1, false) == 0)
+  sl := next slice in tree(sl, sl1),  assert(sl == 0)
+
+  sl := next slice in tree(sl1112),  assert(sl == sl2)
+
+  sl := 0
+  sl := lookup next slice(14, sl, sl1), assert(sl == sl111)
+  sl := lookup next slice(14, sl, sl1), assert(sl == sl1112)
+  sl := lookup next slice(14, sl, sl1), assert(sl == 0)
+  sl := lookup next slice(14, sl1112), assert(sl == sl2)
+  sl := lookup next slice(14, sl1111, sl1), assert(sl == sl1112)  # Starting from a slice without lookup 14
+
+  free slice(sl1)
+  free slice(sl2)
+end
+
+########################################################################
+
 # Unfinished tests of findcollidingslice and sliceatpixel
-script, slice find tests, begin
-  $0="Slice find tests"
+script, slice collision tests, begin
+  $0="Slice collision tests"
 
   variable(parent, sl1, sl2, sl3, sl4, sl5, temp)
 

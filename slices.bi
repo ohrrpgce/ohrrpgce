@@ -650,7 +650,7 @@ DECLARE Function LookupSlice(byval lookup_code as integer, byval root_sl as Slic
 DECLARE Function LookupSliceSafe(lookup_code as integer, root_sl as Slice ptr, onlytype as SliceTypes=slInvalid) as Slice ptr
 DECLARE Function LookupSliceOrError(lookup_code as integer, root_sl as Slice ptr, onlytype as SliceTypes = slInvalid, slice_description as zstring ptr = @"slice", errlvl as ErrorLevelEnum = errShowError) as Slice ptr
 DECLARE Function FindRootSlice(slc as Slice ptr) as Slice ptr
-DECLARE Function NextDescendent(desc as Slice ptr, parent as Slice ptr, descend as bool = YES) as Slice ptr
+DECLARE Function NextDescendent(desc as Slice ptr, root_sl as Slice ptr, visit_children as bool = YES) as Slice ptr
 DECLARE Function IsAncestor(byval sl as slice ptr, byval ancestor as slice ptr) as bool
 DECLARE Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as bool
 DECLARE Function CalcContextStack(byval sl as Slice ptr) as SliceContext ptr vector

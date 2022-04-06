@@ -2896,7 +2896,7 @@ SUB script_functions(byval cmdid as integer)
   IF sl THEN
    scriptret = sl->NumChildren
   END IF
- CASE 437'--lookup slice
+ CASE 437'--lookup slice (lookup, root)
   IF retvals(1) = 0 THEN
    '--search the whole slice tree
    scriptret = find_plotslice_handle(LookupSlice(retvals(0), SliceTable.Root))
@@ -5080,6 +5080,35 @@ SUB script_functions(byval cmdid as integer)
     length += 1
    END IF
    scriptret = length
+  END IF
+ CASE 733 '--lookup next slice (lookupcode, current, root)
+  DIM current as Slice ptr
+  DIM root as Slice ptr
+  IF retvals(1) <> 0 THEN current = get_arg_slice(1)
+  IF retvals(2) = 0 THEN
+   root = SliceTable.Root
+  ELSE
+   root = get_arg_slice(2)
+  END IF
+  IF (current ORELSE retvals(1) = 0) ANDALSO (root ORELSE retvals(2) = 0) THEN
+   scriptret = find_plotslice_handle(LookupSlice(retvals(0), root, , current))
+  END IF
+ CASE 734 '--next slice in tree (current, root, visit children)
+  DIM current as Slice ptr
+  DIM root as Slice ptr
+  IF retvals(0) <> 0 THEN current = get_arg_slice(0)
+  IF retvals(1) = 0 THEN
+   root = SliceTable.Root
+  ELSE
+   root = get_arg_slice(1)
+  END IF
+  IF (current ORELSE retvals(0) = 0) ANDALSO (root ORELSE retvals(1) = 0) THEN
+   IF current = NULL THEN
+    sl = root
+   ELSE
+    sl = NextDescendent(current, root, retvals(2) <> 0)
+   END IF
+   scriptret = find_plotslice_handle(sl)
   END IF
 
  CASE ELSE

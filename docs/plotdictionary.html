@@ -1086,7 +1086,8 @@ function toggleContent(target) {
 		<a href="#about-logicalor">value || value</a><br>
 		<a href="#about-logicalxor">value ^^ value</a><br>
 		<a href="#about-lookupcode">Slice lookup codes</a><br>
-		<a href="#about-lookupslice">lookup slice (lookup code, start slice)</a><br>
+		<a href="#about-lookupnextslice">lookup next slice (lookup code, current slice, root slice)</a><br>
+		<a href="#about-lookupslice">lookup slice (lookup code, root slice)</a><br>
 		<a href="#about-losemoney">lose money (amount)</a><br>
 		<a href="#about-mainmenu">main menu</a><br>
 		<a href="#about-mapcure">map cure (attack, target, attacker)</a><br>
@@ -1142,6 +1143,7 @@ function toggleContent(target) {
 		<a href="#about-nextselectsibling">next select sibling (handle)</a><br>
 		<a href="#about-nextsibling">next sibling (handle)</a><br>
 		<a href="#about-nextsiblingoftype">next sibling of type (handle, type)</a><br>
+		<a href="#about-nextsliceintree">next slice in tree (current, start, visit children)</a><br>
 		<a href="#about-nextspritesibling">next sprite sibling (handle)</a><br>
 		<a href="#about-nexttextsibling">next text sibling (handle)</a><br>
 		<a href="#about-none">none</a><br>
@@ -11975,7 +11977,8 @@ set menu on close script(m, @my menu exit handler)
 <a href="#Getting%20Slices">Getting Slices</a><br>
 		<ul class="content-shown">
 		<a href="#about-loadslicecollection">load slice collection (id)</a><br>
-		<a href="#about-lookupslice">lookup slice (lookup code, start slice)</a><br>
+		<a href="#about-lookupslice">lookup slice (lookup code, root slice)</a><br>
+		<a href="#about-lookupnextslice">lookup next slice (lookup code, current slice, root slice)</a><br>
 		<a href="#about-spritelayer">sprite layer</a><br>
 		<a href="#about-getslicelookup">get slice lookup (handle)</a><br>
 		<a href="#about-setslicelookup">set slice lookup (handle, code)</a><br>
@@ -12107,6 +12110,7 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-previoussibling">previous sibling (handle)</a><br>
 		<a href="#about-parentslice">parent slice (handle)</a><br>
 		<a href="#about-sliceparent">slice parent (handle)</a><br>
+		<a href="#about-nextsliceintree">next slice in tree (current, start, visit children)</a><br>
 		<a href="#about-checkparentage">check parentage (handle, ancestor handle)</a><br>
 </ul>
 <ul>
@@ -12750,12 +12754,14 @@ set slice extra(handle, -1, value)   # Index -1 is the last element of the array
 </div>
 		<div class="command">
 			<a name="about-lookupslice"></a>
-				<h4>lookup slice (lookup code, start slice)</h4>
+				<h4>lookup slice (lookup code, root slice)</h4>
 <p>
 			
-				Search for an important slice using a <a href="#about-lookupcode" class="ref">slice lookup code</a>, and return a handle to it, or 0 if it is not found.
-				You can optionally specify a slice for the <span class="param">lookup slice</span> command to start searching from,
-				but if you do not, the whole slice tree will be searched.
+				Search for a slice that's tagged with a <a href="#about-lookupcode" class="ref">slice lookup code</a>, and return a handle to it, or 0 if it is not found.
+				<br>
+				<span class="param">root slice</span> is optional, if you don't specify it the whole slice tree will be searched,
+				otherwise only descendents of that slice (a subtree) will be searched.
+				<span class="param">root slice</span> itself will be returned if it matches.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					You can use a number as a lookup code, but usually you use a builtin code constant, starting with <span class="code">sl:</span>
@@ -12765,8 +12771,18 @@ set slice extra(handle, -1, value)   # Index -1 is the last element of the array
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">Although the user-defined slice lookup codes are always safe to use for any purpose, there is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! Deleting or reparenting special slices generally won't work. You may parent your own slices to these special slices, though.</div>
 				<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">Be aware that when there is more than one slice with the same lookup code, the <span class="param">lookup slice</span> command will only return the first one it finds in a depth-first search. If you need to find multiple slices with the same lookup code, you must search manually using <a href="#about-getslicelookup" class="ref">get slice lookup</a>.</div>
-			You may <a href="#about-setparent" class="ref">set parent</a> a slice to a map layer to make it move with the camera just like heroes and NPCs do.
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					When there is more than one slice with the same lookup code
+					the <span class="param">lookup slice</span> command will only return the first one it finds in a depth-first search.
+					If you need to find multiple slices with the same lookup code,
+					use <a href="#about-lookupnextslice" class="ref">lookup slice</a>.
+					<br>
+					Also, if you want to find a slice based on something other than lookup code,
+					search for it using <a href="#about-nextsliceintree" class="ref">next slice in tree</a>.
+				</div>
+				You may <a href="#about-setparent" class="ref">set parent</a> a slice to a map layer
+				(or to <span class="code">sl:map overlay</span> which is above all map layers)
+				to make it move with the camera just like heroes and NPCs do.
 			
 			
 			<pre>
@@ -12784,7 +12800,7 @@ portrait := lookup slice(sl:textbox portrait)
 if(portrait) then(
   replace portrait sprite(portrait, 5)
 )
-
+</pre><pre>
 # This is a list of special slice lookup codes
 lookup slice(sl:root)
 lookup slice(sl:textbox text)
@@ -12831,9 +12847,47 @@ lookup slice(sl:pathfind dest display)
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-setslicelookup" class="ref">set slice lookup</a>, </li>
-<li><a href="#about-getslicelookup" class="ref">get slice lookup</a></li>
+<li>
+<a href="#about-getslicelookup" class="ref">get slice lookup</a>, </li>
+<li><a href="#about-lookupnextslice" class="ref">lookup slice</a></li>
 </ul>
 </div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-lookupnextslice"></a>
+				<h4>lookup next slice (lookup code, current slice, root slice)</h4>
+<p>
+			
+				Find the next slice after <span class="param">current slice</span> that's tagged with a <a href="#about-lookupcode" class="ref">slice lookup code</a>,
+				and return a handle to it, or 0 if there are no more matching slices.
+				<br>
+				The first matching slice after <span class="param">current slice</span> (in the order that slices are shown in the slice editor/debugger, 
+				called the "depth first search order"), will be returned.
+				<span class="param">current slice</span> is actually optional, if it's <span class="code">0</span> then this command is equivalent to <a href="#about-lookupslice" class="ref">lookup slice</a>.
+				It can be any descendent of <span class="param">root slice</span>, it doesn't have to have the lookup code.
+				<br>
+				<span class="param">root slice</span> is optional, if you don't specify it the whole slice tree will be searched,
+				otherwise only descendents of that slice (a subtree) will be searched.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					You can delete slices while you're iterating over them,
+					as long as you don't pass a handle to a deleted slice to this command.
+				</div>
+			
+			
+			<pre>
+# Suppose you've scripted a slice-based GUI or menu, attached to the sprite layer,
+# tagged every clickable thing with sli:selectable, and now you want to undo any
+# highlighting of text or buttons you might have added previously due to mouse-over.
+variable(sl)
+sl := lookup slice (sli:selectable, sprite layer)
+while (sl) do (
+  if (slice is sprite (sl)) then (set sprite frame (sl, 0))  # Reset button appearances
+  if (slice is text (sl)) then (set text color (sl, 15))  # Reset text highlighting
+  sl := lookup next slice (sli:selectable, sl, sprite layer)
+)</pre>
+			
 		</p>
 </div>
 		<div class="command">
@@ -12864,7 +12918,9 @@ end
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-lookupslice" class="ref">lookup slice</a>, </li>
-<li><a href="#about-setslicelookup" class="ref">set slice lookup</a></li>
+<li>
+<a href="#about-setslicelookup" class="ref">set slice lookup</a>, </li>
+<li><a href="#about-getslicelookupname" class="ref">get slice lookup name</a></li>
 </ul>
 </div>
 		</p>
@@ -14655,15 +14711,26 @@ end
 			<pre>variable(sl)
 sl := first child(sprite layer)
 while (sl) do, begin
- if (slice is sprite(sl)) then, begin
-   # do an operation on each sprite
- end
+ if (slice is sprite(sl)) then (
+   # ...do an operation on each sprite
+ )
  sl := next sibling(sl)
+end
+
+# The above loop can be written more simply as:
+sl := first sprite child(sprite layer)
+while (sl) do, begin
+ # ...do an operation on each sprite
+ sl := next sprite sibling(sl)
 end
 </pre>
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-previoussibling" class="ref">previous sibling</a>, </li>
+<li>
+<a href="#about-parentslice" class="ref">parent slice</a>, </li>
+<li>
+<a href="#about-nextsliceintree" class="ref">next slice in tree</a>, </li>
 <li>
 <a href="#about-nextspritesibling" class="ref">next sprite sibling</a>, </li>
 <li>
@@ -14672,8 +14739,6 @@ end
 <a href="#about-nextcontainersibling" class="ref">next container sibling</a>, </li>
 <li>
 <a href="#about-slicechild" class="ref">slice child</a>, </li>
-<li>
-<a href="#about-freeslice" class="ref">free slice</a>, </li>
 <li>
 <a href="#about-slicetofront" class="ref">slice to front</a>, </li>
 <li>
@@ -14695,17 +14760,7 @@ end
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-nextsibling" class="ref">next sibling</a>, </li>
-<li>
-<a href="#about-slicechild" class="ref">slice child</a>, </li>
-<li>
-<a href="#about-freeslice" class="ref">free slice</a>, </li>
-<li>
-<a href="#about-slicetofront" class="ref">slice to front</a>, </li>
-<li>
-<a href="#about-slicetoback" class="ref">slice to back</a>, </li>
-<li>
-<a href="#about-movesliceabove" class="ref">move slice above</a>, </li>
-<li><a href="#about-moveslicebelow" class="ref">move slice below</a></li>
+<li><a href="#about-slicechild" class="ref">slice child</a></li>
 </ul>
 </div>
 		</p>
@@ -14725,6 +14780,68 @@ end
 <a href="#about-setparent" class="ref">set parent</a>, </li>
 <li>
 <a href="#about-checkparentage" class="ref">check parentage</a>, </li>
+<li><a href="#about-slicechild" class="ref">slice child</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-nextsliceintree"></a>
+				<h4>next slice in tree (current, start, visit children)</h4>
+<p>
+			
+				Returns a slice handle for the slice, following <span class="param">current</span>, in the slice tree.
+				This can be used for iterating over a tree of slices, in the order that they appear
+				in the slice collection editor:
+				first go to the children (the first child) if any, then go across to the next sibling
+				if any, then finally go up and look for an aunt or great-aunt, etc.
+				Each slice in the sub-tree rooted at <span class="param">start</span> is visited exactly once,
+				provided that you don't add, delete, or reorder slices.
+				<span class="param">current</span> can be any slice
+
+
+				Returns <span class="param">false</span> if the given slice is the last sibling of its parent. This is useful when looping through slices.
+
+				<span class="param">start</span> is optional, if omitted then we iterate over the entire slice tree.
+				<span class="param">visit children</span> is optional, defaulting to true. If false, then skip over all the
+				children and descendents of this slice.
+
+			<pre>variable(start, sl)
+start := sprite layer
+sl := start
+# If you want to skip over the start slice itself, write instead:
+#sl := first child(start)
+
+while (sl) do, begin
+  # Reset all text slices to color 15, e.g. to unhighlight all menu items in a slice-based menu
+  if (slice is text(sl)) then (set text color(sl, 15))
+  sl := next slice in tree(sl, start)
+end
+</pre>
+This example shows how to delete slices while you're iterating over them:
+			<pre>variable(start, sl)
+start := sprite layer
+sl := start
+# If you want to skip over the start slice itself, write instead:
+#sl := first child(start)
+
+while (sl) do, begin
+  next := next slice in tree(sl, start)
+  # Reset all text slices to color 15, e.g. to unhighlight all menu items in a slice-based menu
+  if (get slice visible(sl) == false) then (
+    free slice (sl)
+  )
+end
+</pre>
+
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-nextsibling" class="ref">next sibling</a>, </li>
+<li>
+<a href="#about-parentslice" class="ref">parent slice</a>, </li>
 <li><a href="#about-slicechild" class="ref">slice child</a></li>
 </ul>
 </div>
@@ -17717,7 +17834,8 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 				<br>
 				<span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point;
 				the bottom-most one (returned by default) is number 0, next up is 1, etc.
-				slice at pixel returns 0 if <span class="param">number</span> is too large (larger than or equal to the number of overlapping slices).
+				Alternatively, -1 is the topmost one, -2 is the second from the top, etc.
+				slice at pixel returns 0 if <span class="param">number</span> is out of range (<span class="code">number &lt; -count</span> or  larger than or equal to the number of overlapping slices).
 				If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of slices at that pixel is returned instead of a slice handle.
 				<br>
 				<span class="param">check descendants</span> is an optional argument defaulting to true.
@@ -21787,7 +21905,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 922 commands (of which 11 are aliases), 27 constants and 13 definitions of types and other terms in this file.</p>
+<p>Stats: There are 924 commands (of which 11 are aliases), 27 constants and 13 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

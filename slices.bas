@@ -1055,20 +1055,20 @@ Function FindRootSlice(slc as Slice ptr) as Slice ptr
  return root
 End Function
 
-' Implements depth-first pre-order traversal of a slice tree rooted at 'parent'
+' Implements depth-first pre-order traversal of a slice subtree rooted at root_sl
 ' (pre-order meaning a parent is visited before its childen).
-' Initialise 'desc' to 'parent' (or parent->FirstChild to skip the parent),
+' Initialise desc to root_sl (or root_sl->FirstChild to skip the root),
 ' and then call NextDescendent repeatedly to get the next descendent.
 ' Returns NULL after the last one.
-' Pass descend=NO if you want to skip over the children of the current slice.
-Function NextDescendent(desc as Slice ptr, parent as Slice ptr, descend as bool = YES) as Slice ptr
+' Pass visit_children=NO if you want to skip over the children of the current slice.
+Function NextDescendent(desc as Slice ptr, root_sl as Slice ptr, visit_children as bool = YES) as Slice ptr
  if desc = NULL then return NULL
  ' First try to go down, then across, otherwise up as far as needed.
- if desc->FirstChild andalso descend then return desc->FirstChild
- if desc = parent then return NULL  'Only for case parent has no children
+ if desc->FirstChild andalso visit_children then return desc->FirstChild
+ if desc = root_sl then return NULL  'Only for case root_sl has no children
  while desc->NextSibling = NULL
   desc = desc->Parent
-  if desc = parent or desc = NULL then return NULL
+  if desc = root_sl or desc = NULL then return NULL
  wend
  return desc->NextSibling
 End Function
