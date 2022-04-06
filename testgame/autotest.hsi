@@ -155,4 +155,6 @@ define constant, begin
 9,enemy:IceAttacker
 1,sli:Some lookup
 2,sli:my root slice
+3,sli:no extras
+4,sli:lotsa extras
 end

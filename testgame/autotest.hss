@@ -4553,12 +4553,14 @@ script, slice tests, begin
 
   variable (sl)
 
+  slice extra tests
   slice collection tests
   slice find tests
   slice tree tests
   slice correspondence tests
   slice blending tests
   slice sort tests
+  slice clone tests
 
   # slice is valid
   assert(slice is valid(0) == false)
@@ -4572,6 +4574,8 @@ script, slice tests, begin
 
   rect slice tests
   text slice tests
+  ellipse slice tests
+
 end
 
 ########################################################################
@@ -4716,8 +4720,13 @@ script, text slice tests, begin
   $2=""
   $3=""
   free slice(sl)
-  
-  # Ellipse slice
+end
+
+########################################################################
+
+script, ellipse slice tests, begin
+  $0="Ellipse Slice tests"
+  variable(sl)
   sl := create ellipse(10, 10, 15, 0), w
   assert(slice is ellipse(sl))
   assert(get ellipse border col(sl) == 15)
@@ -4731,9 +4740,13 @@ script, text slice tests, begin
   set slice width(sl, 30), w
   set slice height(sl, 30), w
   free slice(sl)
+end
 
+########################################################################
+
+script, slice clone tests, begin
   # Test cloneslice
-  variable(sl2, ch, ch2)
+  variable(sl, sl2, ch, ch2)
   sl := get npc slice(next npc reference)
   set slice extra(sl, extra 2, 42)
   sl2 := clone slice(sl)
@@ -4758,10 +4771,63 @@ script, text slice tests, begin
   sl2 := clone slice(sl, false)  # recurse == false
   assert(child count(sl2) == 0)  # Didn't recurse
   free slice(sl2)
+
+  # More detailed checks that extra arrays are copied
+  sl := create container
+  sl2 := clone slice(sl)  # Copy a default NULL array
+  assert(slice extra length(sl2) == 3)
+  free slice(sl2)
+  resize slice extra(sl, 0)  # Copy a length 0 array
+  sl2 := clone slice(sl)
+  assert(slice extra length(sl2) == 0)
+  free slice(sl2)
+  resize slice extra(sl, 50000)
+  set slice extra(sl, -1, 12345)
+  sl2 := clone slice(sl)  # Copy a large array
+  assert(slice extra length(sl2) == 50000)
+  assert(get slice extra(sl2, 49999) == 12345)
+  # Check the array, not its pointer, is copied
+  set slice extra(sl2, 49998, 16)
+  assert(get slice extra(sl2, 49998) == 16)
+  assert(get slice extra(sl, 49998) == 0)
+  free slice(sl2)
+  free slice(sl)
 end
 
 ########################################################################
 
+script, slice extra tests, begin
+  variable(sl)
+  sl := create line
+  assert(slice extra length(sl) == 3)
+  set slice extra(sl, 0, 100)
+  set slice extra(sl, 2, 102)
+  assert(get slice extra(sl, 2) == 102)
+  assert(get slice extra(sl, -1) == 102)
+  assert(get slice extra(sl, -3) == 100)
+  resize slice extra(sl, 1)
+  assert(slice extra length(sl) == 1)
+  assert(get slice extra(sl, -1) == 100)
+  resize slice extra(sl, 3)
+  assert(get slice extra(sl, -1) == 0)
+  append slice extra(sl, 103)
+  assert(slice extra length(sl) == 4)
+  assert(get slice extra(sl, 3) == 103)
+  resize slice extra(sl, 999999)
+  set slice extra(sl, 999998, 998)
+  assert(get slice extra(sl, -1) == 998)
+  append slice extra(sl, 999)
+  set slice extra(sl, 999999, 999)
+  assert(get slice extra(sl, -1000000) == 100)
+  free slice(sl)
+
+  # Also, loading slice extra data is tested in "slice collection tests"
+  # And clone extra data is tested in "slice clone tests"
+end
+
+########################################################################
+
+# Tests loading slices from file.
 # A lot more could be added to this
 script, slice collection tests, begin
   $0="slice collection tests"
@@ -4791,6 +4857,7 @@ script, slice collection tests, begin
   assert(slice width(sl) == 100)
   assert(slice height(sl) == 50)
   assert(get slice visible(sl) == true)
+  assert(slice extra length(sl) == 3)
   assert(get slice extra(sl, 0) == 10)
   assert(get slice extra(sl, 1) == 20)
   assert(get slice extra(sl, 2) == 30)
@@ -4830,6 +4897,13 @@ script, slice collection tests, begin
   assert(slice screen x(sl2) == 224)
   assert(slice screen y(sl2) == 77)
 
+  sl2 := lookup slice(sli:no extras)
+  assert(slice extra length(sl2) == 0)
+  sl2 := lookup slice(sli:lotsa extras)
+  assert(slice extra length(sl2) == 10000)
+  assert(get slice extra(sl2, 0) == -98)
+  assert(get slice extra(sl2, 9999) == -99)
+
   free slice(sl)
 
   # A simpler collection
@@ -4837,6 +4911,19 @@ script, slice collection tests, begin
   assert(sl)
   assert(get slice visible(sl) == false) # edited
   assert(is filling parent(sl) == true)  # the default
+  free slice(sl)
+
+  # Test loading slice extra from obsolete file format
+  sl := load slice collection(1300)
+  assert(slice extra length(sl) == 3)
+  assert(get slice extra(sl, 0) == 0)
+  assert(get slice extra(sl, 1) == 0)
+  assert(get slice extra(sl, 2) == 0)
+  sl2 := first child(sl)
+  assert(slice extra length(sl) == 3)
+  assert(get slice extra(sl2, 0) == 10)
+  assert(get slice extra(sl2, 1) == 20)
+  assert(get slice extra(sl2, 2) == 30)
   free slice(sl)
 end
 
@@ -6433,7 +6520,6 @@ end
 #set seconds of play (sec)
 #set slice clipping (handle, clip)
 #set slice edge x (handle, edge, value)
-#set slice extra (handle, extra, value)
 #set slice height (handle, height)
 #set slice lookup (handle, code)
 #set slice screen x (handle, x)

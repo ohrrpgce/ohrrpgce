@@ -171,6 +171,9 @@ CONST slgrBROWSESPRITEASSET = 512
 CONST slgrBROWSESPRITEID = 1024
 CONST slgrBROWSEBOXBORDER = 2048
 CONST slgrLAYOUT2NDDIR = 4096
+CONST slgrEXTRALENGTH = 8192
+CONST slgrEXTRAEDITOR = 16384
+CONST slgrEXTRA = 32768
 '--This system won't be able to expand forever ... :(
 
 '==============================================================================
@@ -1656,6 +1659,27 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
    secdir XOR= 2  'Swap dirUp and dirDown, swap dirLeft and dirRight
   END IF
  END IF
+ IF rule.group AND slgrEXTRALENGTH THEN
+  DIM length as integer = IIF(sl->ExtraVec, v_len(sl->ExtraVec), 3)
+  IF intgrabber(length, 0, maxExtraLength) THEN
+   resize_extra sl->ExtraVec, length
+   state.need_update = YES
+  END IF
+ END IF
+ IF rule.group AND slgrEXTRAEDITOR THEN
+  IF enter_space_click(state) THEN
+   extra_data_editor sl->ExtraVec
+   state.need_update = YES
+  END IF
+ END IF
+ IF rule.group AND slgrEXTRA THEN
+  DIM index as integer = rule.lower
+  DIM temp as integer = sl->Extra(index)
+  IF intgrabber(temp, INT_MIN, INT_MAX) THEN
+   sl->Extra(index) = temp
+   state.need_update = YES
+  END IF
+ END IF
 
  ' Special actions to take after some piece of data has been edited
  IF state.need_update THEN
@@ -2148,10 +2172,20 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
 
  sliceed_header menu(), rules(), "[Extra Data]", @ses.expand_extra
  IF ses.expand_extra THEN
-  FOR i as integer = 0 TO 2
-   a_append menu(), " extra" & i & ": " & .Extra(i)
-   sliceed_rule rules(), "extra", erIntgrabber, @.Extra(i), -2147483648, 2147483647
+  DIM length as integer = IIF(sl->ExtraVec, v_len(sl->ExtraVec), 3)
+  a_append menu(), " Length: " & length
+  sliceed_rule_none rules(), "extra_length", slgrEXTRALENGTH
+  FOR i as integer = 0 TO small(10, length) - 1
+   a_append menu(), " extra " & i & ": " & .Extra(i)
+   'Put the index in rule.lower
+   sliceed_rule rules(), "extra", erNone, NULL, i, , slgrEXTRA
   NEXT
+  IF length > 10 THEN
+   a_append menu(), " ..."
+   sliceed_rule_none rules(), ""
+  END IF
+  a_append menu(), " View/edit all extra data..."
+  sliceed_rule_none rules(), "", slgrEXTRAEDITOR
  END IF
 
  sliceed_header menu(), rules(), "[Sorting]", @ses.expand_sort
@@ -2730,6 +2764,78 @@ FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
  'Invalid values still print, but !?
  RETURN n & "(!?)"
 END FUNCTION
+
+'Editor for slice extra data or other integer vectors
+'This menu doesn't use standardmenu, in order to support displaying arbitrarily large arrays
+SUB extra_data_editor(byref extravec as integer vector)
+ IF extravec = NULL THEN v_new extravec, 3
+
+ DIM menupos as XYPair = XY(4, 4)
+ DIM state as MenuState
+ state.top = -2
+ state.first = -2
+ state.last = v_len(extravec)  ' Includes final Append... item
+ state.autosize = YES
+ state.autosize_ignore_pixels = 14
+ calc_menu_rect state, MenuOptions(), menupos  'Needed to make initial state.top = -2 work, not sure why
+
+ DO
+  setwait 55
+  setkeys
+  state.tog XOR= 1
+  IF keyval(ccCancel) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "sliceedit_extradata"
+  IF keyval(scAlt) THEN
+   intgrabber state.pt, 0, state.last
+   correct_menu_state state
+  ELSE
+   usemenu state
+   SELECT CASE state.pt
+    CASE -2:  IF enter_space_click(state) THEN EXIT DO
+    CASE -1
+     IF intgrabber(state.last, 0, maxExtraLength) THEN v_resize extravec, state.last
+    CASE state.last
+     IF enter_space_click(state) THEN
+      v_append extravec, 0
+      state.last += 1
+     END IF
+    CASE ELSE
+     intgrabber extravec[state.pt], INT_MIN, INT_MAX
+   END SELECT
+  END IF
+
+  ' Draw
+  clearpage vpage
+  textcolor uilook(uiDisabledItem), 0
+  printstr "Hold Alt to type index", pLeft + 2, pBottom, vpage
+  calc_menu_rect state, MenuOptions(), menupos  ' Recalcs .size, .rect, .spacing
+  draw_fullscreen_scrollbar state, , vpage
+
+  FOR idx as integer = state.top TO small(state.top + state.size, state.last)
+   DIM drawat as XYPair = menupos + XY(0, (idx - state.top) * state.spacing)
+   DIM text as string
+   IF idx = -2 THEN
+    text = "Previous Menu"
+   ELSEIF idx = -1 THEN
+    text = "Length: " & state.last
+   ELSEIF idx = state.last THEN
+    text = "Append value"
+   ELSE
+    text = rpad(STR(idx), , 2)
+    'While Alt held, highlight the index of the selected item... or index 0
+    IF keyval(scAlt) ANDALSO (idx = state.pt ORELSE (idx = 0 ANDALSO state.pt < 0)) THEN
+     text = bgtag(findrgb(120, 255, 0), text)
+    END IF
+    text &= ": " & extravec[idx]
+   END IF
+   DIM col as integer = menu_item_color(state, idx)
+   textcolor col, 0
+   printstr text, drawat.x, drawat.y, vpage, YES
+  NEXT
+  setvispage vpage
+  dowait
+ LOOP
+END SUB
 
 
 '==========================================================================================

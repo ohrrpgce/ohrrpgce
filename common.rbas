@@ -5878,6 +5878,41 @@ SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context a
  END IF
 END SUB
 
+'Acess extra data vectors, while throwing script errors in the script interpreter or visible_debugs
+'outside it.
+'Currently for slice extra data only, more in future.
+
+FUNCTION get_extra(byref extra as integer vector, index as integer) as integer
+ DIM length as integer = IIF(extra, v_len(extra), 3)
+ IF index < 0 THEN index += length
+ IF bound_arg(index, 0, length - 1, "'extra' index", , serrBadOp) THEN
+  IF extra THEN RETURN extra[index]
+ END IF
+ RETURN 0
+END FUNCTION
+
+SUB set_extra(byref extra as integer vector, index as integer, value as integer)
+ IF extra = NULL THEN
+  v_new extra, 3
+ END IF
+ DIM length as integer = v_len(extra)
+ IF index < 0 THEN index += length
+ IF bound_arg(index, 0, length - 1, "'extra' index", , serrBadOp) THEN
+  extra[index] = value
+ END IF
+END SUB
+
+SUB resize_extra(byref extra as integer vector, length as integer)
+ IF bound_arg(length, 0, maxExtraLength, "'extra' array length", , serrBadOp) THEN
+  IF extra THEN
+   v_resize extra, length
+  ELSE
+   v_new extra, length
+  END IF
+ END IF
+END SUB
+
+
 Constructor HeroTagsCache()
  v_new this.checks
 End Constructor

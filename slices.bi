@@ -350,7 +350,10 @@ Type Slice
   AutoSort as AutoSortModes
   Sorter as integer        'Sort order, used by CustomSortChildSlices. Lower to the bottom.
 
-  Extra(2) as integer
+  ExtraVec as integer vector  'Equal to NULL by default which means a length 3 array [0, 0, 0]
+  'Convenience getter/setter which handles ExtraVec=NULL
+  Declare Property Extra(index as integer) as integer
+  Declare Property Extra(index as integer, newval as integer)
 
   AlignHoriz as AlignType  'Relative to parent. Only used when not filling
   AlignVert as AlignType   'Relative to parent. Only used when not filling

@@ -688,6 +688,7 @@ Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer=0)
  SliceDebugForget sl
 
  delete sl->Context
+ v_free sl->ExtraVec
  delete sl
  *s = 0
 End Sub
@@ -1206,6 +1207,13 @@ Function Slice.FillVert() as bool
  return this.Fill andalso this.FillMode <> sliceFillHoriz
 End Function
 
+Property Slice.Extra(index as integer) as integer
+ return get_extra(ExtraVec, index)
+End Property
+
+Property Slice.Extra(index as integer, newval as integer)
+ set_extra(ExtraVec, index, newval)
+End Property
 
 '=============================================================================
 '                                Slice contexts
@@ -4436,9 +4444,9 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
   .FillMode = sl->FillMode
   .AutoSort = sl->AutoSort
   .Sorter = sl->Sorter
-  for i as integer = 0 to 2
-   .Extra(i) = sl->Extra(i)
-  next
+  if sl->ExtraVec then
+   v_copy .ExtraVec, sl->ExtraVec
+  end if
  end with
  '--clone special properties for this slice type
  sl->Clone(sl, clone)
@@ -4548,9 +4556,16 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  SaveProp node, "fillmode", sl->FillMode
  SaveProp node, "sort", sl->Sorter
  SaveProp node, "autosort", sl->AutoSort
- SaveProp node, "extra0", sl->Extra(0)
- SaveProp node, "extra1", sl->Extra(1)
- SaveProp node, "extra2", sl->Extra(2)
+ if sl->ExtraVec then
+  'If sl->ExtraVec exists then it's actually used so just save the whole array
+  '(Also we must save length 0 arrays since the default length is 3)
+  dim length as integer = v_len(sl->ExtraVec)
+  dim ex_node as Reload.Nodeptr
+  ex_node = Reload.SetChildNode(node, "extra", length)
+  for idx as integer = 0 to length - 1
+   Reload.AppendChildNode(ex_node, "int", sl->ExtraVec[idx])
+  next
+ end if
  SaveProp node, "type", SliceTypeName(sl)
  #IFDEF IS_GAME
   if save_handles then
@@ -4664,9 +4679,45 @@ Function SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_h
  sl->FillMode = LoadProp(node, "fillmode")
  sl->Sorter = LoadProp(node, "sort")
  sl->AutoSort = LoadProp(node, "autosort")
- sl->Extra(0) = LoadProp(node, "extra0")
- sl->Extra(1) = LoadProp(node, "extra1")
- sl->Extra(2) = LoadProp(node, "extra2")
+
+ 'Load extra data
+ dim ex_node as Reload.NodePtr = GetChildByName(node, "extra")
+ if ex_node then
+  dim length as integer = GetInteger(ex_node)
+  if length < 0 orelse length > maxExtraLength orelse length < NumChildren(ex_node) then
+   reporterr "Could not load slice: bad length " & length & ", numchildren=" & NumChildren(ex_node), serrError
+   ret = NO
+  else
+   v_new sl->ExtraVec, length
+   dim ch as Reload.NodePtr = FirstChild(ex_node)
+   dim idx as integer = 0
+   while ch
+    if NodeName(ch) = "int" then
+     sl->ExtraVec[idx] = GetInteger(ch)
+     idx += 1
+    else
+     reporterr "Could not load slice: unknown extra data type " & NodeName(ch), serrError
+     ret = NO
+     exit while
+    end if
+    ch = NextSibling(ch)
+   wend
+   'It's permitted for there to be fewer than 'length' children, the rest are 0
+  end if
+ else
+  'Load from old serialization format for extra data
+  dim extra as integer vector
+  v_new extra, 3
+  extra[0] = LoadProp(node, "extra0")
+  extra[1] = LoadProp(node, "extra1")
+  extra[2] = LoadProp(node, "extra2")
+  if extra[0] or extra[1] or extra[2] then
+   sl->ExtraVec = extra
+  else
+   v_free extra
+  end if
+ end if
+
  #IFDEF IS_GAME
   if load_handles then
    ' This only occurs when loading a saved game.
@@ -4863,9 +4914,12 @@ SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
  s &= " lookup:" & SliceLookupCodename(sl) & " handle:" & sl->TableSlot & " pos:" & sl->Pos & " size:" & sl->Size.wh
  if sl->Template then s &= " template"
  if sl->Visible = NO then s &= " visible:false"
- for idx as integer = 0 to 2
-  if sl->Extra(idx) then s &= " extra" & idx & ":" & sl->Extra(idx)
- next
+ if sl->ExtraVec then
+  s &= " extra(len=" & v_len(sl->ExtraVec) & "): "
+  for idx as integer = 0 to small(10, v_len(sl->ExtraVec)) - 1
+   s &= " " & idx & ":" & sl->ExtraVec[idx]
+  next
+ end if
  debug s
  SliceDebugDumpTree sl->FirstChild, indent + 1
  SliceDebugDumpTree sl->NextSibling, indent

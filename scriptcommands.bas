@@ -2740,20 +2740,13 @@ SUB script_functions(byval cmdid as integer)
   IF sl THEN
    scriptret = sl->Sorter
   END IF
- CASE 410 '--get slice extra (handle, extra)
+ CASE 410 '--get slice extra (sl, extra)
   sl = get_arg_slice(0)
-  IF sl THEN
-   IF retvals(1) >= 0 AND retvals(1) <= 2 THEN
-    scriptret = sl->Extra(retvals(1))
-   END IF
-  END IF
- CASE 411 '--set slice extra (handle, extra, val)
+  'More efficient to call get_extra directly than use sl->Extra wrapper
+  IF sl THEN scriptret = get_extra(sl->ExtraVec, retvals(1))
+ CASE 411 '--set slice extra (sl, extra, val)
   sl = get_arg_slice(0)
-  IF sl THEN
-   IF retvals(1) >= 0 AND retvals(1) <= 2 THEN
-    sl->Extra(retvals(1)) = retvals(2)
-   END IF
-  END IF
+  IF sl THEN set_extra sl->ExtraVec, retvals(1), retvals(2)
  CASE 412 '--get sprite type
   sl = get_arg_slice(0)
   IF sl THEN
@@ -5069,7 +5062,25 @@ SUB script_functions(byval cmdid as integer)
   IF really_valid_hero_party(heronum) THEN
    scriptret = IIF(gam.hero(heronum).auto_battle, 1, 0)
   END IF
-
+ CASE 730 '--resize slice extra (slice, length)
+  sl = get_arg_slice(0)
+  IF sl THEN resize_extra sl->ExtraVec, retvals(1)
+ CASE 731 '--slice extra length (slice)
+  sl = get_arg_slice(0)
+  IF sl THEN scriptret = IIF(sl->ExtraVec, v_len(sl->ExtraVec), 3)
+ CASE 732 '--append slice extra (slice, value)
+  sl = get_arg_slice(0)
+  IF sl THEN
+   IF sl->ExtraVec = NULL THEN v_new sl->ExtraVec, 3
+   DIM length as integer = v_len(sl->ExtraVec)
+   IF length = maxExtraLength THEN
+    scripterr ""
+   ELSE
+    v_append sl->ExtraVec, retvals(1)
+    length += 1
+   END IF
+   scriptret = length
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

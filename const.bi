@@ -329,6 +329,7 @@ CONST maxScriptGlobals = 50000 'Actually the index of the last global  (also "ma
                                'If you update this, also update the default argument to exportglobals in plotscr.hsd
 CONST maxScriptStrings = 99 'ID of last plotstring  (also "maximum string id" in plotscr.hsd)
 CONST numInitialTimers = 16 'Initial number of script timers
+CONST maxExtraLength = 1000000 'Max size of an extra data array
 CONST maxScriptHeap = 8192 'Maximum number of local variables in use by all running scripts
 CONST maxScriptRunning = 128 'Number of scripts which can run at once
 CONST maxScriptNesting = 4 'Maximum subscript nesting depth
@@ -339,7 +340,7 @@ CONST scriptTableSize = 512  'hash table size, power of 2 please
 CONST scriptCheckDelay = 1.1     'How long, in seconds, before the script interpreter becomes interruptable
 CONST scriptCheckInterval = 0.1  'How often, in seconds, that the script interpreter should perform checks
 
-CONST maxScriptCmdID = 729  'Max ID number of any supported script command (checked when saving or loading game)
+CONST maxScriptCmdID = 732  'Max ID number of any supported script command (checked when saving or loading game)
 
 '--- Binary files in BINSIZE.BIN for getbinsize()
 CONST binATTACK = 0

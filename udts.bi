@@ -147,7 +147,7 @@ TYPE MenuState
   last      as integer 'last element (.first - 1 if menu is empty)
   size      as integer 'number of elements to display at a time - 1
   need_update as bool  'menu needs some kind of update
-  tog       as bool    'For flashing cursor
+  tog       as integer 'For flashing cursor. Should alternate between 0 and 1
   autosize  as bool    'Set this to true, and usemenu will auto-update the menu size to
                        'fill the screen vertically.
                        'For standardmenu only! For MenuDef menus, set menu.max_rows=0
