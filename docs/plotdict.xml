@@ -6917,7 +6917,7 @@ set slice extra(handle, -1, value)   # Index -1 is the last element of the array
 				<note>Although the user-defined slice lookup codes are always safe to use for any purpose, there is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! Deleting or reparenting special slices generally won't work. You may parent your own slices to these special slices, though.</note>
 				<note>
 					When there is more than one slice with the same lookup code
-					the <p>lookup slice</p> command will only return the first one it finds in a depth-first search.
+					this command will only return the first one it finds (in depth-first search order).
 					If you need to find multiple slices with the same lookup code,
 					use <ref>lookupnextslice</ref>.
 					<lb/>
@@ -6998,15 +6998,16 @@ lookup slice(sl:pathfind dest display)
 
 		<command id="lookupnextslice">
 			<canon>lookup next slice (lookup code, current slice, root slice)</canon>
-			<shortname>lookup slice</shortname>
+			<shortname>lookup next slice</shortname>
 			<description>
-				Find the next slice after <p>current slice</p> that's tagged with a <ref>lookupcode</ref>,
-				and return a handle to it, or 0 if there are no more matching slices.
+				Find the next slice after <p>current slice</p> that has a certain <ref>lookupcode</ref>
+				and return it, or 0 if there are no more matching slices.
 				<lb/>
 				The first matching slice after <p>current slice</p> (in the order that slices are shown in the slice editor/debugger, 
 				called the "depth first search order"), will be returned.
 				<p>current slice</p> is actually optional, if it's <tt>0</tt> then this command is equivalent to <ref>lookupslice</ref>.
-				It can be any descendent of <p>root slice</p>, it doesn't have to have the lookup code.
+				(In that case, if <p>root slice</p> has the lookup code you're searching for, it's returned first.)
+				<p>current slice</p> can be any descendent of <p>root slice</p>, it doesn't have to have the lookup code.
 				<lb/>
 				<p>root slice</p> is optional, if you don't specify it the whole slice tree will be searched,
 				otherwise only descendents of that slice (a subtree) will be searched.
@@ -7017,14 +7018,22 @@ lookup slice(sl:pathfind dest display)
 			</description>
 			<example>
 # Suppose you've scripted a slice-based GUI or menu, attached to the sprite layer,
-# tagged every clickable thing with sli:selectable, and now you want to undo any
+# and every clickable thing the sli:selectable lookup code, and now you want to undo any
 # highlighting of text or buttons you might have added previously due to mouse-over.
 variable(sl)
 sl := lookup slice (sli:selectable, sprite layer)
 while (sl) do (
   if (slice is sprite (sl)) then (set sprite frame (sl, 0))  # Reset button appearances
-  if (slice is text (sl)) then (set text color (sl, 15))  # Reset text highlighting
+  if (slice is text (sl)) then (set text color (sl, ui:text))  # Reset text highlighting
   sl := lookup next slice (sli:selectable, sl, sprite layer)
+)</example>
+			<example># An alternative way to write the above
+variable(sl)
+while (true) do (
+  sl := lookup next slice (sli:selectable, sl, sprite layer)
+  if (sl == 0) then (break)
+  if (slice is sprite (sl)) then (set sprite frame (sl, 0))  # Reset button appearances
+  if (slice is text (sl)) then (set text color (sl, ui:text))  # Reset text highlighting
 )</example>
 		</command>
 
@@ -8260,61 +8269,63 @@ end
 		</command>
 
 		<command id="nextsliceintree">
-			<canon>next slice in tree (current, start, visit children)</canon>
+			<canon>next slice in tree (current slice, root slice, visit children)</canon>
 			<shortname>next slice in tree</shortname>
 			<description>
-				Returns a slice handle for the slice, following <p>current</p>, in the slice tree.
-				This can be used for iterating over a tree of slices, in the order that they appear
+				Returns the next slice after <p>current slice</p> in the slice tree, or a sub-tree.
+				This can be used for iterating over a tree of slices using a <ref>while</ref> loop, in the order that they appear
 				in the slice collection editor (from top to bottom):
-				first go to the children (the first child) if any, then go across to the next sibling
-				if any, then finally go up and look for an aunt or great-aunt, etc.
-				Each slice in the sub-tree rooted at <p>start</p> is visited exactly once,
-				provided that you don't add, delete, or reorder slices.
-				<p>current</p> can actually be any slice, but
-				should normally be in the subtree defined by <ref>start</ref>.
+				first go to the first child if any, and then any other descendents and children,
+				then go across to the next sibling if any,
+				then finally go up and look for a sibling of the parent, then of the grandparent, etc.
+				Finally, returns <p>false</p> if <p>current slice</p> is the last descendent of <p>root slice</p>.
 				<lb/>
-				Returns <p>false</p> if the given slice is the last sibling of its parent. This is useful when looping through slices.
-
-				<p>start</p> is optional, if omitted then iterate over the entire slice tree.
+				<p>root slice</p> tells the sub-tree to iterate over: every descendent of it starting with <p>root slice</p> itself.
+				<p>root slice</p> is optional, if it's omitted (or <tt>0</tt>) then iterate over the entire slice tree.
+				<lb/>
+				On the first iteration you can pass <tt>0</tt> or <tt>false</tt> as <p>current slice</p>,
+				in which case the return value is <p>root slice</p>.
+				<p>current slice</p> can actually be any slice, but
+				should normally be in the subtree defined by <p>root slice</p>.
+				<lb/>
 				<p>visit children</p> is optional, defaulting to true.
 				If false, then skip over all the children and descendents of this slice.
-
-			<example>variable(start, sl)
-start := sprite layer
-sl := start
-# If you want to skip over the start slice itself, write instead:
-#sl := first child(start)
+				<lb/>
+				Unless you use <tt>visit children = false</tt> each slice in the sub-tree is visited exactly once,
+				provided that you don't add, delete, or reorder slices.
+				<example>variable(root, sl)
+root := sprite layer
+sl := root
+# If you want to skip over the root slice itself, write instead:
+#sl := first child(root)
 
 while (sl) do, begin
-  # Reset all text slices to color 15, e.g. to unhighlight all menu items in a slice-based menu
-  if (slice is text(sl)) then (set text color(sl, 15))
-  sl := next slice in tree(sl, start)
+  # Reset all text slices to default text color, e.g. to unhighlight all menu items in a slice-based menu
+  if (slice is text(sl)) then (set text color(sl, ui:Text))
+  sl := next slice in tree(sl, root)
 end
 </example>
 This example shows how to delete slices while you're iterating over them:
-			<example>variable(start, sl)
-start := sprite layer
-sl := start
-# If you want to skip over the start slice itself, write instead:
-#sl := first child(start)
+			<example>variable(root, sl)
+root := sprite layer
+sl := root
 
 while (sl) do, begin
-  next := next slice in tree(sl, start)
-  # Reset all text slices to color 15, e.g. to unhighlight all menu items in a slice-based menu
+  next := next slice in tree(sl, root)
+  # Delete all the hidden slices
   if (get slice visible(sl) == false) then (
     free slice (sl)
   )
 end
 </example>
-
 			</description>
 			<seealso>
 				<ref>nextsibling</ref>
 				<ref>parentslice</ref>
 				<ref>slicechild</ref>
+				<ref>lookupnextslice</ref>
 			</seealso>
 		</command>
-
 
 		<command id="checkparentage">
 			<canon>check parentage (handle, ancestor handle)</canon>

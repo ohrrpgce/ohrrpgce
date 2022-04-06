@@ -4934,16 +4934,8 @@ script, slice search tests, begin
   $0="Slice search tests"
 
   variable(sl, sl1, sl11, sl111, sl1111, sl1112, sl2)
-  assert(lookup next slice(sl:walkabout sprite component) == lookup slice(sl:walkabout sprite component))
 
-  sl := 0
-  while (true) do (
-    sl := lookup next slice(sl:walkabout sprite component, sl)
-    if (sl == 0) then (break)
-    assert(get sprite type(sl) == spritetype:walkabout)
-  )
-
-  # Build a tree
+  # Build a tree. X1 is the first child of X, X2 is the second child
   sl1 := create container
   sl11 := create container, set parent(sl11, sl1)
   sl111 := create container, set parent(sl111, sl11)
@@ -4954,6 +4946,7 @@ script, slice search tests, begin
   sl2 := create container
   set slice lookup(sl2, 14)
 
+  # next slice in tree
   sl := 0
   sl := next slice in tree(sl, sl1),  assert(sl == sl1)
   sl := next slice in tree(sl, sl1),  assert(sl == sl11)
@@ -4964,15 +4957,29 @@ script, slice search tests, begin
   sl := next slice in tree(sl, sl1),  assert(sl == sl1112)
   assert(next slice in tree(sl, sl1, false) == 0)
   sl := next slice in tree(sl, sl1),  assert(sl == 0)
-
+  # Iterate whole tree
   sl := next slice in tree(sl1112),  assert(sl == sl2)
+  # Starting at the root slice
+  sl := next slice in tree(0, 0),  assert(sl == lookup slice(sl:root))
+  sl := next slice in tree(sl, 0, false),  assert(sl == 0)
+
+  # lookup next slice
+  assert(lookup next slice(sl:walkabout sprite component) == lookup slice(sl:walkabout sprite component))
 
   sl := 0
+  assert(lookup slice(14, sl1) == sl111)
   sl := lookup next slice(14, sl, sl1), assert(sl == sl111)
   sl := lookup next slice(14, sl, sl1), assert(sl == sl1112)
   sl := lookup next slice(14, sl, sl1), assert(sl == 0)
   sl := lookup next slice(14, sl1112), assert(sl == sl2)
   sl := lookup next slice(14, sl1111, sl1), assert(sl == sl1112)  # Starting from a slice without lookup 14
+
+  sl := 0
+  while (true) do (
+    sl := lookup next slice(sl:walkabout sprite component, sl)
+    if (sl == 0) then (break)
+    assert(get sprite type(sl) == spritetype:walkabout)
+  )
 
   free slice(sl1)
   free slice(sl2)

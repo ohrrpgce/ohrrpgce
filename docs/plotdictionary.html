@@ -1143,7 +1143,7 @@ function toggleContent(target) {
 		<a href="#about-nextselectsibling">next select sibling (handle)</a><br>
 		<a href="#about-nextsibling">next sibling (handle)</a><br>
 		<a href="#about-nextsiblingoftype">next sibling of type (handle, type)</a><br>
-		<a href="#about-nextsliceintree">next slice in tree (current, start, visit children)</a><br>
+		<a href="#about-nextsliceintree">next slice in tree (current slice, root slice, visit children)</a><br>
 		<a href="#about-nextspritesibling">next sprite sibling (handle)</a><br>
 		<a href="#about-nexttextsibling">next text sibling (handle)</a><br>
 		<a href="#about-none">none</a><br>
@@ -12110,7 +12110,7 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-previoussibling">previous sibling (handle)</a><br>
 		<a href="#about-parentslice">parent slice (handle)</a><br>
 		<a href="#about-sliceparent">slice parent (handle)</a><br>
-		<a href="#about-nextsliceintree">next slice in tree (current, start, visit children)</a><br>
+		<a href="#about-nextsliceintree">next slice in tree (current slice, root slice, visit children)</a><br>
 		<a href="#about-checkparentage">check parentage (handle, ancestor handle)</a><br>
 </ul>
 <ul>
@@ -12773,9 +12773,9 @@ set slice extra(handle, -1, value)   # Index -1 is the last element of the array
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					When there is more than one slice with the same lookup code
-					the <span class="param">lookup slice</span> command will only return the first one it finds in a depth-first search.
+					this command will only return the first one it finds (in depth-first search order).
 					If you need to find multiple slices with the same lookup code,
-					use <a href="#about-lookupnextslice" class="ref">lookup slice</a>.
+					use <a href="#about-lookupnextslice" class="ref">lookup next slice</a>.
 					<br>
 					Also, if you want to find a slice based on something other than lookup code,
 					search for it using <a href="#about-nextsliceintree" class="ref">next slice in tree</a>.
@@ -12849,7 +12849,7 @@ lookup slice(sl:pathfind dest display)
 <a href="#about-setslicelookup" class="ref">set slice lookup</a>, </li>
 <li>
 <a href="#about-getslicelookup" class="ref">get slice lookup</a>, </li>
-<li><a href="#about-lookupnextslice" class="ref">lookup slice</a></li>
+<li><a href="#about-lookupnextslice" class="ref">lookup next slice</a></li>
 </ul>
 </div>
 		</p>
@@ -12859,13 +12859,14 @@ lookup slice(sl:pathfind dest display)
 				<h4>lookup next slice (lookup code, current slice, root slice)</h4>
 <p>
 			
-				Find the next slice after <span class="param">current slice</span> that's tagged with a <a href="#about-lookupcode" class="ref">slice lookup code</a>,
-				and return a handle to it, or 0 if there are no more matching slices.
+				Find the next slice after <span class="param">current slice</span> that has a certain <a href="#about-lookupcode" class="ref">slice lookup code</a>
+				and return it, or 0 if there are no more matching slices.
 				<br>
 				The first matching slice after <span class="param">current slice</span> (in the order that slices are shown in the slice editor/debugger, 
 				called the "depth first search order"), will be returned.
 				<span class="param">current slice</span> is actually optional, if it's <span class="code">0</span> then this command is equivalent to <a href="#about-lookupslice" class="ref">lookup slice</a>.
-				It can be any descendent of <span class="param">root slice</span>, it doesn't have to have the lookup code.
+				(In that case, if <span class="param">root slice</span> has the lookup code you're searching for, it's returned first.)
+				<span class="param">current slice</span> can be any descendent of <span class="param">root slice</span>, it doesn't have to have the lookup code.
 				<br>
 				<span class="param">root slice</span> is optional, if you don't specify it the whole slice tree will be searched,
 				otherwise only descendents of that slice (a subtree) will be searched.
@@ -12878,14 +12879,21 @@ lookup slice(sl:pathfind dest display)
 			
 			<pre>
 # Suppose you've scripted a slice-based GUI or menu, attached to the sprite layer,
-# tagged every clickable thing with sli:selectable, and now you want to undo any
+# and every clickable thing the sli:selectable lookup code, and now you want to undo any
 # highlighting of text or buttons you might have added previously due to mouse-over.
 variable(sl)
 sl := lookup slice (sli:selectable, sprite layer)
 while (sl) do (
   if (slice is sprite (sl)) then (set sprite frame (sl, 0))  # Reset button appearances
-  if (slice is text (sl)) then (set text color (sl, 15))  # Reset text highlighting
+  if (slice is text (sl)) then (set text color (sl, ui:text))  # Reset text highlighting
   sl := lookup next slice (sli:selectable, sl, sprite layer)
+)</pre><pre># An alternative way to write the above
+variable(sl)
+while (true) do (
+  sl := lookup next slice (sli:selectable, sl, sprite layer)
+  if (sl == 0) then (break)
+  if (slice is sprite (sl)) then (set sprite frame (sl, 0))  # Reset button appearances
+  if (slice is text (sl)) then (set text color (sl, ui:text))  # Reset text highlighting
 )</pre>
 			
 		</p>
@@ -14787,53 +14795,55 @@ end
 </div>
 		<div class="command">
 			<a name="about-nextsliceintree"></a>
-				<h4>next slice in tree (current, start, visit children)</h4>
+				<h4>next slice in tree (current slice, root slice, visit children)</h4>
 <p>
 			
-				Returns a slice handle for the slice, following <span class="param">current</span>, in the slice tree.
-				This can be used for iterating over a tree of slices, in the order that they appear
-				in the slice collection editor:
-				first go to the children (the first child) if any, then go across to the next sibling
-				if any, then finally go up and look for an aunt or great-aunt, etc.
-				Each slice in the sub-tree rooted at <span class="param">start</span> is visited exactly once,
+				Returns the next slice after <span class="param">current slice</span> in the slice tree, or a sub-tree.
+				This can be used for iterating over a tree of slices using a <a href="#about-while" class="ref">while</a> loop, in the order that they appear
+				in the slice collection editor (from top to bottom):
+				first go to the first child if any, and then any other descendents and children,
+				then go across to the next sibling if any,
+				then finally go up and look for a sibling of the parent, then of the grandparent, etc.
+				Finally, returns <span class="param">false</span> if <span class="param">current slice</span> is the last descendent of <span class="param">root slice</span>.
+				<br>
+				<span class="param">root slice</span> tells the sub-tree to iterate over: every descendent of it starting with <span class="param">root slice</span> itself.
+				<span class="param">root slice</span> is optional, if it's omitted (or <span class="code">0</span>) then iterate over the entire slice tree.
+				<br>
+				On the first iteration you can pass <span class="code">0</span> or <span class="code">false</span> as <span class="param">current slice</span>,
+				in which case the return value is <span class="param">root slice</span>.
+				<span class="param">current slice</span> can actually be any slice, but
+				should normally be in the subtree defined by <span class="param">root slice</span>.
+				<br>
+				<span class="param">visit children</span> is optional, defaulting to true.
+				If false, then skip over all the children and descendents of this slice.
+				<br>
+				Unless you use <span class="code">visit children = false</span> each slice in the sub-tree is visited exactly once,
 				provided that you don't add, delete, or reorder slices.
-				<span class="param">current</span> can be any slice
-
-
-				Returns <span class="param">false</span> if the given slice is the last sibling of its parent. This is useful when looping through slices.
-
-				<span class="param">start</span> is optional, if omitted then we iterate over the entire slice tree.
-				<span class="param">visit children</span> is optional, defaulting to true. If false, then skip over all the
-				children and descendents of this slice.
-
-			<pre>variable(start, sl)
-start := sprite layer
-sl := start
-# If you want to skip over the start slice itself, write instead:
-#sl := first child(start)
+				<pre>variable(root, sl)
+root := sprite layer
+sl := root
+# If you want to skip over the root slice itself, write instead:
+#sl := first child(root)
 
 while (sl) do, begin
-  # Reset all text slices to color 15, e.g. to unhighlight all menu items in a slice-based menu
-  if (slice is text(sl)) then (set text color(sl, 15))
-  sl := next slice in tree(sl, start)
+  # Reset all text slices to default text color, e.g. to unhighlight all menu items in a slice-based menu
+  if (slice is text(sl)) then (set text color(sl, ui:Text))
+  sl := next slice in tree(sl, root)
 end
 </pre>
 This example shows how to delete slices while you're iterating over them:
-			<pre>variable(start, sl)
-start := sprite layer
-sl := start
-# If you want to skip over the start slice itself, write instead:
-#sl := first child(start)
+			<pre>variable(root, sl)
+root := sprite layer
+sl := root
 
 while (sl) do, begin
-  next := next slice in tree(sl, start)
-  # Reset all text slices to color 15, e.g. to unhighlight all menu items in a slice-based menu
+  next := next slice in tree(sl, root)
+  # Delete all the hidden slices
   if (get slice visible(sl) == false) then (
     free slice (sl)
   )
 end
 </pre>
-
 			
 			
 			
@@ -14842,7 +14852,9 @@ end
 <a href="#about-nextsibling" class="ref">next sibling</a>, </li>
 <li>
 <a href="#about-parentslice" class="ref">parent slice</a>, </li>
-<li><a href="#about-slicechild" class="ref">slice child</a></li>
+<li>
+<a href="#about-slicechild" class="ref">slice child</a>, </li>
+<li><a href="#about-lookupnextslice" class="ref">lookup next slice</a></li>
 </ul>
 </div>
 		</p>
