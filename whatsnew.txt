@@ -69,6 +69,7 @@ WHAT IS NEW?
       the extra array: "get slice extra(sl, -1)" is the last value, -2 is the
       second last, etc. [Ralph]
     * "lookup next slice", "next slice in tree" [Ralph]
+    * "window is focused" [Ralph]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

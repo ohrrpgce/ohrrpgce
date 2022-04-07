@@ -169,7 +169,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-04-06">
+<plotscript version="wip" datecode="2022-04-07">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -5185,7 +5185,7 @@ end</example>
 		<command id="putmouse">
 			<canon>put mouse (X, Y)</canon>
 			<shortname>put mouse</shortname>
-			<description>Changes the location of the mouse on the screen, in pixels. Note that this function might do nothing, if the game's window is not active. <ref>initmouse</ref> should be called before this command is used.</description>
+			<description>Changes the location of the mouse on the screen, in pixels. Note that this function might do nothing, if the game's window is not active (see <ref>windowisfocused</ref>). <ref>initmouse</ref> should be called before this command is used.</description>
 		</command>
 		<command id="mouseregion">
 			<canon>mouse region (x min, x max, y min, y max)</canon>
@@ -12202,6 +12202,17 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 	</section>		<!-- Advanced Functions-->
 
 	<section title="Platform Specific">
+		<command id="windowisfocused">
+			<canon>window is focused</canon>
+			<shortname>window is focused</shortname>
+			<description>
+				Returns true if the game's window is the currently active (focused) one (or if it's fullscreen and active), or false if the user has switched to a different program.
+				This is always true when running on a smartphone, because when the app is backgrounded the game is
+				paused and scripts don't run.
+				<lb/>
+				Use this command if you want to pause something when the player switches to another program.
+			</description>
+		</command>
 		<command id="runningondesktop">
 			<canon>running on desktop</canon>
 			<shortname>running on desktop</shortname>

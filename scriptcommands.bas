@@ -5110,6 +5110,12 @@ SUB script_functions(byval cmdid as integer)
    END IF
    scriptret = find_plotslice_handle(sl)
   END IF
+ CASE 735 '--window is focused
+  DIM winstate as WindowState ptr
+  winstate = gfx_getwindowstate()
+  IF winstate = NULL ORELSE winstate->focused THEN
+   scriptret = 1
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
