@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3V  2022-04-07 Add showvalueof, and tracevalueof alias
 --3Ug 2021-12-12 Change license to Dual GPL+MIT (with consent of all contributors)
 --3Uf 2020-02-29 Accept non-breaking space as whitespace
 --3Ue 2019-09-09 Windows: fix double-inclusion detection
@@ -185,8 +186,8 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Ug"
-constant COPYRIGHT_DATE="2021"
+constant COMPILER_SUB_VERSION="V "
+constant COPYRIGHT_DATE="2022"
 
 --Known single-character commandline options
 constant VALID_OPTIONS="abcdfjknstwuyz"
@@ -1118,6 +1119,8 @@ procedure init()
           ,{"subscript"     ,{KIND_KEYWORD,0,0}} --subscript is also in flow_list!
           ,{"variable"      ,{KIND_KEYWORD,0,0}}
           ,{"tracevalue"    ,{KIND_MACRO,0,0}}
+          ,{"tracevalueof"  ,{KIND_MACRO,0,0}}
+          ,{"showvalueof"   ,{KIND_MACRO,0,0}}
           ,{"assert"        ,{KIND_MACRO,0,0}}
           -- Stray "$"'s are picked up by the lexer (not totally ideal maybe)
         })
@@ -3479,6 +3482,8 @@ end function
 
 --There are only two, hardcoded, macros right now: tracevalue, assert.
 function expand_macros(NodeList tree)
+  string cmd
+  string tracecmd
   NodeList newtree
   NodeList newargs
   string new_string
@@ -3494,9 +3499,18 @@ function expand_macros(NodeList tree)
       tree[ptr][TREE_BRANCHES]=expand_macros(tree[ptr][TREE_BRANCHES])
     end if
 
-    if equal("tracevalue",tree[ptr][TREE_TRUNK][CMD_TEXT]) then
+    cmd=tree[ptr][TREE_TRUNK][CMD_TEXT]
+
+    if equal(cmd,"tracevalue") or equal(cmd,"tracevalueof") then
+      tracecmd="tracevalueinternal"
+    elsif equal(cmd,"showvalueof") then
+      tracecmd="showvalueofinternal"
+    else
+      tracecmd=""
+    end if
+    if length(tracecmd) then
       newargs={}
-      tree[ptr][TREE_TRUNK][CMD_TEXT]="tracevalueinternal"
+      tree[ptr][TREE_TRUNK][CMD_TEXT]=tracecmd
       pos=tree[ptr][TREE_TRUNK][CMD_POS]
       for i=1 to length(tree[ptr][TREE_BRANCHES]) do
         new_string=tree_original_text(tree[ptr][TREE_BRANCHES][i])
@@ -3507,7 +3521,7 @@ function expand_macros(NodeList tree)
       tree[ptr][TREE_BRANCHES]=newargs
     end if
 
-    if equal("assert",tree[ptr][TREE_TRUNK][CMD_TEXT]) then
+    if equal(cmd,"assert") then
       --assert(condition)  -->  if (not(condition)) then ($assert expression string="condition", assertfailure)
       -- and
       --assert(x == y)  -->  if(_asserteq(x, y, assert expression string, "condition")) then (assertfailure)

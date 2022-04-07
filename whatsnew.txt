@@ -70,6 +70,10 @@ WHAT IS NEW?
       second last, etc. [Ralph]
     * "lookup next slice", "next slice in tree" [Ralph]
     * "window is focused" [Ralph]
+    * "show value" can now show multiple values. Added "show values" as an alias.
+      Added "show value of", a cross between "show value" and "trace value" that
+      shows expressions. Added "trace value of" as an alias to "trace value".
+      [Ralph]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

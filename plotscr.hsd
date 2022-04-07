@@ -97,7 +97,8 @@ define function, begin
 74,setdeathscript,1,0       # changes what script is run when you die
 75,fadescreenout,3,0,0,0    # fade screen out (red,green,blue)
 76,fadescreenin,0           # fade back to color after fade screen out
-77,showvalue,1,0            # display a number in the bottom left corner
+77,showvalue,-1             # display one or more numbers in the bottom left corner
+77,showvalues,-1            # display one or more numbers in the bottom left corner
 78,alterNPC,4,0,0,0,-1      # replaces one of an NPC's stats
 79,shownovalue,0            # hide the number from showvalue
 80,currentmap,0             # returns the number of the current map
@@ -762,6 +763,7 @@ define function, begin
 733,lookupnextslice,3,0,0,0   # Next slice with lookup code (lookupcode, current, root)
 734,nextsliceintree,3,0,0,1   # Next slice (current, root, visit children)
 735,windowisfocused,0         # The game's window is the active one
+736,showvalueofinternal,-1    # "show value of" is translated to this
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

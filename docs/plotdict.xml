@@ -15,7 +15,6 @@
 	<!ELEMENT altcommand (canon*,shortname)>
 	<!ATTLIST altcommand id ID #IMPLIED show-alias CDATA "yes"  alias (show|hide) "show">
 	<!ELEMENT canon      (#PCDATA)>
-	<!ELEMENT altcanon   (#PCDATA)>
 	<!ELEMENT shortname   (#PCDATA)>
 	<!ELEMENT added     (#PCDATA)>
 	<!ELEMENT deprecated     (#PCDATA)>
@@ -2839,10 +2838,35 @@ wait for text box # wait until the player continues</example>
 
 	<section title="Basic Display Commands">
 		<command id="showvalue">
-			<canon>show value (number)</canon>
+			<canon>show value (number, ...)</canon>
+			<canon>show values (number, ...)</canon>
 			<shortname>show value</shortname>
-			<description>Displays the number in the bottom left corner of the screen. Useful for count-down timers, and for debugging complicated scripts. See <ref>tracevalue</ref> for a more powerful debugging tool.</description>
+			<description>
+				Displays one or more numbers at the bottom left corner of the screen.
+				Useful for count-down timers, and for debugging complicated scripts.
+				The number of arguments to this command is variable.
+				See <ref>showvalueof</ref> and <ref>tracevalue</ref> for similar debugging tools.
+				You can't print strings with this command; use <ref>showstring</ref> instead.
+			</description>
+			<example>
+				show value(hero X(me), hero Y(me))   # Shows something like "  3   14" at the bottom of the screen
+			</example>
 		</command>
+		<command id="showvalueof">
+			<canon>show value of (expression, ...)</canon>
+			<shortname>show value of</shortname>
+			<description>
+				Displays one or more expressions and their values at the bottom left corner of the screen.
+				Useful for debugging complicated scripts.
+				The number of arguments to this command is variable;
+				each is printed as source text along with its value.
+				You can't print strings with this command; use <ref>showstring</ref> instead.
+			</description>
+			<example># Shows something like "coins=0, hero X(me)=3, hero Y(me)=14" at the bottom of the screen
+show value(coins, hero X(me), hero Y(me))</example>
+		</command>
+
+
 		<command id="showstring">
 			<canon>show string (ID)</canon>
 			<shortname>show string</shortname>
@@ -12034,8 +12058,16 @@ trace (1) # writes "TRACE: i = ????" to g_debug.txt</example>
 		</command>
 		<command id="tracevalue">
 			<canon>trace value (expression, ...)</canon>
+			<canon>trace value of (expression, ...)</canon>
 			<shortname>trace value</shortname>
-			<description>Prints one or more expressions and their values to "g_debug.txt". The number of arguments to this command is variable; each is printed as source text along with its value. You can't print strings with this command; use <ref>trace</ref> instead.</description>
+			<description>
+				Prints one or more expressions and their values to "g_debug.txt".
+				The number of arguments to this command is variable;
+				each is printed as source text along with its value.
+				You can't print strings with this command; use <ref>trace</ref> instead.
+				<lb/>
+				<p>trace value of</p> is an alias to <p>trace value</p>.
+			</description>
 			<example>variable(i)
 i := random (1, 1000)
 trace value (i)  # writes "TRACE: i = ????" to g_debug.txt

@@ -698,8 +698,13 @@ SUB script_functions(byval cmdid as integer)
  CASE 73'--game over
   gam.quit = YES
   script_start_waiting()
- CASE 77'--show value
-  gam.showstring = STR(retvals(0))
+ CASE 77'--show value/show values
+  DIM result as string
+  FOR i as integer = 0 TO curcmd->argc - 1
+   IF i <> 0 THEN result &= " "
+   result &= strprintf("%3d", retvals(i))
+  NEXT
+  gam.showstring = result
  CASE 78'--alter NPC (npcref, npcstat, value, [pool])
   IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant", , serrBadOp) THEN
    DIM npcid as NPCTypeID
@@ -5116,6 +5121,17 @@ SUB script_functions(byval cmdid as integer)
   IF winstate = NULL ORELSE winstate->focused THEN
    scriptret = 1
   END IF
+ CASE 736 '--show value of internal (string, value, ...)
+  DIM result as string
+  FOR i as integer = 0 TO curcmd->argc - 1
+   IF i MOD 2 = 0 THEN
+    IF i <> 0 THEN result &= ", "
+    result &= script_string_constant(nowscript, retvals(i)) & "="
+   ELSE
+    result &= STR(retvals(i))
+   END IF
+  NEXT
+  gam.showstring = result
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

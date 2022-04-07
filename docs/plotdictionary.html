@@ -1485,7 +1485,8 @@ function toggleContent(target) {
 		<a href="#about-showstring">show string (ID)</a><br>
 		<a href="#about-showstringat">show string at (ID, x, y)</a><br>
 		<a href="#about-showtextbox">show text box (number)</a><br>
-		<a href="#about-showvalue">show value (number)</a><br>
+		<a href="#about-showvalue">show value (number, ...)</a><br>
+		<a href="#about-showvalueof">show value of (expression, ...)</a><br>
 		<a href="#about-showvirtualgamepad">show virtual gamepad</a><br>
 		<a href="#about-sign">sign (number)</a><br>
 		<a href="#about-sliceatpixel">slice at pixel (parent, x, y, number, check descendants, visible only)</a><br>
@@ -5796,7 +5797,8 @@ resume box advance # go back to normal</pre>
 		<a href="#Categories" class="backlink">[Back to top-level index]</a><p></p>
 <div class="select-content-shown" id="Basic Display Commands-index">
 <button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul><div class="content-shown">
-		<a href="#about-showvalue">show value (number)</a><br>
+		<a href="#about-showvalue">show value (number, ...)</a><br>
+		<a href="#about-showvalueof">show value of (expression, ...)</a><br>
 		<a href="#about-showstring">show string (ID)</a><br>
 		<a href="#about-shownovalue">show no value</a><br>
 		<a href="#about-cancelmapnamedisplay">cancel map name display</a><br>
@@ -5806,11 +5808,37 @@ resume box advance # go back to normal</pre>
 </div>
 		<div class="command">
 			<a name="about-showvalue"></a>
-				<h4>show value (number)</h4>
+				<h4>show value (number, ...)</h4>
+				<h4>show values (number, ...)</h4>
 <p>
-			Displays the number in the bottom left corner of the screen. Useful for count-down timers, and for debugging complicated scripts. See <a href="#about-tracevalue" class="ref">trace value</a> for a more powerful debugging tool.
+			
+				Displays one or more numbers at the bottom left corner of the screen.
+				Useful for count-down timers, and for debugging complicated scripts.
+				The number of arguments to this command is variable.
+				See <a href="#about-showvalueof" class="ref">show value of</a> and <a href="#about-tracevalue" class="ref">trace value</a> for similar debugging tools.
+				You can't print strings with this command; use <a href="#about-showstring" class="ref">show string</a> instead.
 			
 			
+			<pre>
+				show value(hero X(me), hero Y(me))   # Shows something like "  3   14" at the bottom of the screen
+			</pre>
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-showvalueof"></a>
+				<h4>show value of (expression, ...)</h4>
+<p>
+			
+				Displays one or more expressions and their values at the bottom left corner of the screen.
+				Useful for debugging complicated scripts.
+				The number of arguments to this command is variable;
+				each is printed as source text along with its value.
+				You can't print strings with this command; use <a href="#about-showstring" class="ref">show string</a> instead.
+			
+			
+			<pre># Shows something like "coins=0, hero X(me)=3, hero Y(me)=14" at the bottom of the screen
+show value(coins, hero X(me), hero Y(me))</pre>
 			
 		</p>
 </div>
@@ -20537,8 +20565,16 @@ trace (1) # writes "TRACE: i = ????" to g_debug.txt</pre>
 		<div class="command">
 			<a name="about-tracevalue"></a>
 				<h4>trace value (expression, ...)</h4>
+				<h4>trace value of (expression, ...)</h4>
 <p>
-			Prints one or more expressions and their values to "g_debug.txt". The number of arguments to this command is variable; each is printed as source text along with its value. You can't print strings with this command; use <a href="#about-trace" class="ref">trace</a> instead.
+			
+				Prints one or more expressions and their values to "g_debug.txt".
+				The number of arguments to this command is variable;
+				each is printed as source text along with its value.
+				You can't print strings with this command; use <a href="#about-trace" class="ref">trace</a> instead.
+				<br>
+				<span class="param">trace value of</span> is an alias to <span class="param">trace value</span>.
+			
 			
 			<pre>variable(i)
 i := random (1, 1000)
@@ -21945,7 +21981,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 925 commands (of which 11 are aliases), 27 constants and 13 definitions of types and other terms in this file.</p>
+<p>Stats: There are 926 commands (of which 11 are aliases), 27 constants and 13 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
