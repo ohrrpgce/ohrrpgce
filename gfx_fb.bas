@@ -608,8 +608,11 @@ sub io_fb_getmouse(byref mx as integer, byref my as integer, byref mwheel as int
 	else
 		window_state.mouse_over = NO
 	end if
-	mx = lastpos.x
-	my = lastpos.y
+	'(At least on X11) when dragging off the window we may see first OFFSCREEN position instead of
+	'last onscreen, due to fbgfx freezing mouse input fractionally late.
+	'All other gfx backends clamp the return value to the window bounds, so do the same here.
+	mx = bound(lastpos.x, 0, framesize.w - 1)
+	my = bound(lastpos.y, 0, framesize.h - 1)
 	mwheel = lastwheel
 	mbuttons = lastbuttons
 end sub

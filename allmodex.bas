@@ -3051,8 +3051,9 @@ sub update_mouse_state ()
 	'gfx_sdl2:Returns last onscreen position when the mouse is outside the window.
 	'         Returns real position if the mouse is over the window even if it
 	'         it isn't focused.
-	'gfx_fb:  (At least on X11) May return first OFFSCREEN position instead of
-	'         last onscreen, due to freezing mouse input fractionally late.
+	'gfx_fb:  Backend returns either the last onscreen position (not necessarly on
+	'         the border), or the first offscreen (due to freezing mouse input
+	'         fractionally late) clamped to the window.
 	'         gfx_getwindowstate->mouse_over always false when the window doesn't
 	'         have focus.
 	'directx: Unknown.
