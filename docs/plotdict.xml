@@ -2842,11 +2842,16 @@ wait for text box # wait until the player continues</example>
 			<canon>show values (number, ...)</canon>
 			<shortname>show value</shortname>
 			<description>
-				Displays one or more numbers at the bottom left corner of the screen.
+				Displays one or more numbers at the bottom left corner of the screen,
+				which remains there until overwritten or <ref>shownovalue</ref> is used.
 				Useful for count-down timers, and for debugging complicated scripts.
 				The number of arguments to this command is variable.
 				See <ref>showvalueof</ref> and <ref>tracevalue</ref> for similar debugging tools.
 				You can't print strings with this command; use <ref>showstring</ref> instead.
+				<note>
+					At most one of <ref>showvalue</ref>, <ref>showstring</ref>, and
+					<ref>showvalueof</ref> can show at once.
+				</note>
 			</description>
 			<example>
 				show value(hero X(me), hero Y(me))   # Shows something like "  3   14" at the bottom of the screen
@@ -2856,17 +2861,20 @@ wait for text box # wait until the player continues</example>
 			<canon>show value of (expression, ...)</canon>
 			<shortname>show value of</shortname>
 			<description>
-				Displays one or more expressions and their values at the bottom left corner of the screen.
+				Displays one or more expressions and their values at the bottom left corner of the screen,
+				which remains there until overwritten or <ref>shownovalue</ref> is used.
 				Useful for debugging complicated scripts.
 				The number of arguments to this command is variable;
 				each is printed as source text along with its value.
 				You can't print strings with this command; use <ref>showstring</ref> instead.
+				<note>
+					At most one of <ref>showvalue</ref>, <ref>showstring</ref>, and
+					<ref>showvalueof</ref> can show at once.
+				</note>
 			</description>
 			<example># Shows something like "coins=0, hero X(me)=3, hero Y(me)=14" at the bottom of the screen
 show value(coins, hero X(me), hero Y(me))</example>
 		</command>
-
-
 		<command id="showstring">
 			<canon>show string (ID)</canon>
 			<shortname>show string</shortname>
@@ -2883,6 +2891,7 @@ show value(coins, hero X(me), hero Y(me))</example>
 			<shortname>show no value</shortname>
 			<description>Gets rid of the number in the bottom left corner of the screen after a <ref>showvalue</ref> or <ref>showstring</ref> command.</description>
 		</command>
+
 		<command id="cancelmapnamedisplay">
 			<canon>cancel map name display</canon>
 			<shortname>cancel map name display</shortname>

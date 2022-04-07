@@ -5812,11 +5812,17 @@ resume box advance # go back to normal</pre>
 				<h4>show values (number, ...)</h4>
 <p>
 			
-				Displays one or more numbers at the bottom left corner of the screen.
+				Displays one or more numbers at the bottom left corner of the screen,
+				which remains there until overwritten or <a href="#about-shownovalue" class="ref">show no value</a> is used.
 				Useful for count-down timers, and for debugging complicated scripts.
 				The number of arguments to this command is variable.
 				See <a href="#about-showvalueof" class="ref">show value of</a> and <a href="#about-tracevalue" class="ref">trace value</a> for similar debugging tools.
 				You can't print strings with this command; use <a href="#about-showstring" class="ref">show string</a> instead.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					At most one of <a href="#about-showvalue" class="ref">show value</a>, <a href="#about-showstring" class="ref">show string</a>, and
+					<a href="#about-showvalueof" class="ref">show value of</a> can show at once.
+				</div>
 			
 			
 			<pre>
@@ -5830,11 +5836,17 @@ resume box advance # go back to normal</pre>
 				<h4>show value of (expression, ...)</h4>
 <p>
 			
-				Displays one or more expressions and their values at the bottom left corner of the screen.
+				Displays one or more expressions and their values at the bottom left corner of the screen,
+				which remains there until overwritten or <a href="#about-shownovalue" class="ref">show no value</a> is used.
 				Useful for debugging complicated scripts.
 				The number of arguments to this command is variable;
 				each is printed as source text along with its value.
 				You can't print strings with this command; use <a href="#about-showstring" class="ref">show string</a> instead.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					At most one of <a href="#about-showvalue" class="ref">show value</a>, <a href="#about-showstring" class="ref">show string</a>, and
+					<a href="#about-showvalueof" class="ref">show value of</a> can show at once.
+				</div>
 			
 			
 			<pre># Shows something like "coins=0, hero X(me)=3, hero Y(me)=14" at the bottom of the screen

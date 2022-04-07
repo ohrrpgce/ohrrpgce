@@ -699,12 +699,15 @@ SUB script_functions(byval cmdid as integer)
   gam.quit = YES
   script_start_waiting()
  CASE 77'--show value/show values
-  DIM result as string
-  FOR i as integer = 0 TO curcmd->argc - 1
-   IF i <> 0 THEN result &= " "
-   result &= strprintf("%3d", retvals(i))
-  NEXT
-  gam.showstring = result
+  IF curcmd->argc = 1 THEN
+   gam.showstring = STR(retvals(0))
+  ELSE
+   gam.showstring = ""
+   FOR i as integer = 0 TO curcmd->argc - 1
+    IF i <> 0 THEN gam.showstring &= " "
+    gam.showstring &= strprintf("%3d", retvals(i))
+   NEXT
+  END IF
  CASE 78'--alter NPC (npcref, npcstat, value, [pool])
   IF bound_arg(retvals(1), 0, maxNPCDataField, "NPCstat: constant", , serrBadOp) THEN
    DIM npcid as NPCTypeID
