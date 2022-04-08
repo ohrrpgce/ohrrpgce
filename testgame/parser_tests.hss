@@ -157,6 +157,11 @@ script, flow tests, dummy, begin
   then()                 # ERROR
   break                  # ERROR  (known failure)
   continue               # ERROR  (known failure)
+  return                 # ERROR
+  return()               # ERROR
+  exitreturning          # ERROR
+  exitreturning(1,2)     # ERROR
+  exit(1,2)              # ERROR
 
   if () then()           # ERROR
   if(dummy,dummy) then() # ERROR
@@ -201,6 +206,9 @@ globalvariable(9,eqstr)          # ERROR
 globalvariable(9,div)            # ERROR
 globalvariable(-1,ok)            # ERROR
 globalvariable(9,script)         # ERROR
+globalvariable(9,return)         # ERROR
+globalvariable(9,exitreturning)  # ERROR
+globalvariable(9,exit)           # ERROR
 
 defineconstant(1,begin)          # ERROR
 

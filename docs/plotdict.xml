@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-04-07">
+<plotscript version="wip" datecode="2022-04-08">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -642,7 +642,8 @@ if (inventory (item:apple)) then (
 			<shortname>return</shortname>
 			<description>
 				<warn>
-					<p>return</p> in HamsterSpeak is very different from <p>return</p> in nearly all other programming languages!
+					<p>return</p> in HamsterSpeak is very different from <p>return</p> in nearly all other programming languages,
+					which is equivalent to <ref>exit</ref> in HamsterSpeak!
 				</warn>
 				Sets the value to be returned by the script.
 				This is only useful when the script has been called as a function from another script.
@@ -681,11 +682,26 @@ end
 				<ref>exitreturning</ref>
 			</seealso>
 		</command>
+		<command id="exit">
+			<canon>exit</canon>
+			<canon>exit(value)</canon>
+			<shortname>exit</shortname>
+			<description>
+				With no argument, is equivalent to <ref>exitscript</ref>. With one argument is equivalent to <ref>exitreturning</ref>.
+				<note>
+					This is the same as the <p>return</p> statement in most other programming languages.
+				</note>
+			</description>
+		</command>
 		<command id="exitreturning">
 			<canon>exit returning(value)</canon>
+			<canon>exit(value)</canon>
 			<shortname>exit returning</shortname>
 			<added>ubersetzung</added>
-			<description>Sets the value to be returned by the script, and exits the script. This is only useful when the script has been called as a function from another script.
+			<description>
+				Sets the value to be returned by the script, and exits the script.
+				Can be written as either <p>exit returning(value)</p> or the new style <p>exit(value)</p>.
+				This is only useful when the script has been called as a function from another script.
 <example>
 script, key wait, ticks, begin
   # Returns true if the wait was cancelled by a keypress.
@@ -708,7 +724,8 @@ plotscript, usage example, begin
    )
 end
 </example>
-The <p>exit returning</p> command works exactly the same as the <ref>return</ref> command followed immediately by <ref>exitscript</ref>. Whether you decide to use <ref>return</ref> or <p>exit returning</p> to set your script's return value is often just a matter of style and taste.
+				The <p>exit returning</p> command works exactly the same as the <ref>return</ref> command followed immediately by <ref>exitscript</ref>.
+				Whether you decide to use <ref>return</ref> or <p>exit returning</p> to set your script's return value is often just a matter of style and taste.
 			</description>
 			<seealso>
 				<ref>return</ref>
@@ -717,10 +734,12 @@ The <p>exit returning</p> command works exactly the same as the <ref>return</ref
 		</command>
 		<command id="exitscript">
 			<canon>exit script</canon>
+			<canon>exit</canon>
 			<shortname>exit script</shortname>
 			<added>ubersetzung</added>
 			<description>
 				Causes the script to end immediately, and return the value set by the most recent <ref>return</ref> statement.
+				Can be written as either <p>exit script</p> or the new style <p>exit</p>.
 			</description>
 			<seealso>
 				<ref>exitreturning</ref>

@@ -156,6 +156,22 @@ script, orphaned blocks, begin
   # assert(happened == 11111)
 end
 
+script, exit tests, begin
+  subscript, return 0, begin
+    exit()
+  end
+  subscript, return 1, begin
+    exit(1)
+  end
+  subscript, return 2, begin
+    return(2)
+    exit
+  end
+  assert(return 0 == 0)
+  assert(return 1 == 1)
+  assert(return 2 == 2)
+end
+
 script, flow tests, begin
   variable(var1)
   # for loop creates some state which can be corrupted
@@ -168,6 +184,7 @@ script, flow tests, begin
   elseif tests
   switch tests
   orphaned blocks
+  exit tests
 end
 
 ########################################################################

@@ -74,6 +74,8 @@ WHAT IS NEW?
       Added "show value of", a cross between "show value" and "trace value" that
       shows expressions. Added "trace value of" as an alias to "trace value".
       [Ralph]
+    * "exit(x)" is short for "exit returning(x)" and "exit" is short for
+      "exit script" [Ralph]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

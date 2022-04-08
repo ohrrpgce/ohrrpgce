@@ -1,6 +1,6 @@
 -- HamsterSpeak Compiler
 
---(C) Copyright 2001-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+--(C) Copyright 2001-2022 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 -- Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 -- This is a compiler for HamsterSpeak scripts used for plotscripting in
@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Va 2022-04-08 Add exit
 --3V  2022-04-07 Add showvalueof, and tracevalueof alias
 --3Ug 2021-12-12 Change license to Dual GPL+MIT (with consent of all contributors)
 --3Uf 2020-02-29 Accept non-breaking space as whitespace
@@ -186,7 +187,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="V "
+constant COMPILER_SUB_VERSION="Va"
 constant COPYRIGHT_DATE="2022"
 
 --Known single-character commandline options
@@ -1115,6 +1116,7 @@ procedure init()
           ,{"foreach"       ,{KIND_UNIMPLEMENTED,0,0}}
           ,{"="             ,{KIND_UNIMPLEMENTED,0,0}}
           ,{"elseif"        ,{KIND_FLOW,-1,0}}  --not in flow_list... shouldn't that be a problem?
+          ,{"exit"          ,{KIND_FLOW,-1,0}}  --not in flow_list
           --keywords have special case handling
           ,{"subscript"     ,{KIND_KEYWORD,0,0}} --subscript is also in flow_list!
           ,{"variable"      ,{KIND_KEYWORD,0,0}}
@@ -3964,6 +3966,18 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
         end if
         tree[ptr][TREE_BRANCHES]=args
 
+      elsif compare("exit",s)=0 then
+        if length(args)>1 then
+          src_error(sprintf_utf(
+                        COLYEL&s&COLRED&" statement has %d arguments. It should have only zero or one."
+                        ,{length(args)}
+                      ),args[2][TREE_TRUNK][CMD_POS])
+        elsif length(args)=1 then
+          tree[ptr][TREE_TRUNK][CMD_TEXT]="exitreturning"
+        elsif length(args)=0 then
+          tree[ptr][TREE_TRUNK][CMD_TEXT]="exitscript"
+        end if
+
       elsif compare("return",s)=0 or compare("exitreturning",s)=0 then
         if length(args)>1 then
           src_error(sprintf_utf(
@@ -3971,7 +3985,7 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
                         ,{length(args)}
                       ),args[2][TREE_TRUNK][CMD_POS])
         elsif length(args)=0 then
-          src_error(sprintf_utf(COLYEL&s&COLRED&" statement has no argument. It should have one. Prehaps you meant to use "&COLYEL&"exit script"&COLRED,{}),pos)
+          src_error(sprintf_utf(COLYEL&s&COLRED&" statement has no argument. It should have one. Prehaps you meant to use "&COLYEL&"exit"&COLRED&" or "&COLYEL&"exit script"&COLRED,{}),pos)
         end if
 
       elsif compare("break",s)=0 or compare("continue",s)=0 then
@@ -3988,7 +4002,7 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
       elsif compare("exitscript",s)=0 then
         if length(args)>0 then
           src_error(sprintf_utf(
-                        COLYEL&s&COLRED&" statement has %d arguments. It should have none. Prehaps you meant to use "&COLYEL&"exit returning"&COLRED
+                        COLYEL&s&COLRED&" statement has %d arguments. It should have none. Prehaps you meant to use "&COLYEL&"exit"&COLRED&" or "&COLYEL&"exit returning"&COLRED
                         ,{length(args)}
                       ),args[1][TREE_TRUNK][CMD_POS])
         end if

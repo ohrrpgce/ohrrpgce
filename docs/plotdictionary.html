@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-04-07)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-04-08)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -783,6 +783,7 @@ function toggleContent(target) {
 		<a href="#about-equal">number == number</a><br>
 		<a href="#about-equipmenu">equip menu (who, allow switching)</a><br>
 		<a href="#about-equipwhere">equip where (hero, item)</a><br>
+		<a href="#about-exit">exit</a><br>
 		<a href="#about-exitreturning">exit returning(value)</a><br>
 		<a href="#about-exitscript">exit script</a><br>
 		<a href="#about-expandstring">expand string(ID, saveslot)</a><br>
@@ -2297,6 +2298,7 @@ y := hero pixel Y(me) + 10 + 20 * dir Y(dir)</pre>
 		<a href="#about-do">do</a><br>
 		<a href="#about-for">for(counter,start,finish,step) do(commands)</a><br>
 		<a href="#about-return">return(value)</a><br>
+		<a href="#about-exit">exit</a><br>
 		<a href="#about-exitreturning">exit returning(value)</a><br>
 		<a href="#about-exitscript">exit script</a><br>
 		<a href="#about-break">break (levels)</a><br>
@@ -2453,7 +2455,8 @@ if (inventory (item:apple)) then (
 			
 				<div class="notice warn">
 <img src="Plotwarn.png" alt="[Warning]" class="icon">
-					<span class="param">return</span> in HamsterSpeak is very different from <span class="param">return</span> in nearly all other programming languages!
+					<span class="param">return</span> in HamsterSpeak is very different from <span class="param">return</span> in nearly all other programming languages,
+					which is equivalent to <a href="#about-exit" class="ref">exit</a> in HamsterSpeak!
 				</div>
 				Sets the value to be returned by the script.
 				This is only useful when the script has been called as a function from another script.
@@ -2495,10 +2498,31 @@ end
 		</p>
 </div>
 		<div class="command">
+			<a name="about-exit"></a>
+				<h4>exit</h4>
+				<h4>exit(value)</h4>
+<p>
+			
+				With no argument, is equivalent to <a href="#about-exitscript" class="ref">exit script</a>. With one argument is equivalent to <a href="#about-exitreturning" class="ref">exit returning</a>.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					This is the same as the <span class="param">return</span> statement in most other programming languages.
+				</div>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 			<a name="about-exitreturning"></a>
 				<h4>exit returning(value)</h4>
+				<h4>exit(value)</h4>
 <p>
-			Sets the value to be returned by the script, and exits the script. This is only useful when the script has been called as a function from another script.
+			
+				Sets the value to be returned by the script, and exits the script.
+				Can be written as either <span class="param">exit returning(value)</span> or the new style <span class="param">exit(value)</span>.
+				This is only useful when the script has been called as a function from another script.
 <pre>
 script, key wait, ticks, begin
   # Returns true if the wait was cancelled by a keypress.
@@ -2521,7 +2545,8 @@ plotscript, usage example, begin
    )
 end
 </pre>
-The <span class="param">exit returning</span> command works exactly the same as the <a href="#about-return" class="ref">return</a> command followed immediately by <a href="#about-exitscript" class="ref">exit script</a>. Whether you decide to use <a href="#about-return" class="ref">return</a> or <span class="param">exit returning</span> to set your script's return value is often just a matter of style and taste.
+				The <span class="param">exit returning</span> command works exactly the same as the <a href="#about-return" class="ref">return</a> command followed immediately by <a href="#about-exitscript" class="ref">exit script</a>.
+				Whether you decide to use <a href="#about-return" class="ref">return</a> or <span class="param">exit returning</span> to set your script's return value is often just a matter of style and taste.
 			
 			
 			
@@ -2536,9 +2561,11 @@ The <span class="param">exit returning</span> command works exactly the same as 
 		<div class="command">
 			<a name="about-exitscript"></a>
 				<h4>exit script</h4>
+				<h4>exit</h4>
 <p>
 			
 				Causes the script to end immediately, and return the value set by the most recent <a href="#about-return" class="ref">return</a> statement.
+				Can be written as either <span class="param">exit script</span> or the new style <span class="param">exit</span>.
 			
 			
 			
@@ -21993,7 +22020,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 926 commands (of which 11 are aliases), 27 constants and 13 definitions of types and other terms in this file.</p>
+<p>Stats: There are 927 commands (of which 11 are aliases), 27 constants and 13 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
