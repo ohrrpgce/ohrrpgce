@@ -2055,7 +2055,8 @@ SUB script_functions(byval cmdid as integer)
   END IF
  CASE 232'--trace
   IF valid_plotstr(retvals(0)) THEN
-   debug "TRACE: " + plotstr(retvals(0)).s
+   IF gam.print_trace THEN PRINT plotstr(retvals(0)).s
+   IF gam.print_trace_only = NO THEN debug "TRACE: " + plotstr(retvals(0)).s
   END IF
  CASE 233'--get song name
   IF valid_plotstr(retvals(0)) AND retvals(1) >= 0 THEN
@@ -3116,7 +3117,8 @@ SUB script_functions(byval cmdid as integer)
     result &= retvals(i)
    END IF
   NEXT
-  debug "TRACE: " & result
+  IF gam.print_trace THEN PRINT result
+  IF gam.print_trace_only = NO THEN debug "TRACE: " & result
  CASE 467 '--map cure  (replaces "outside battle cure")
   IF bound_arg(retvals(0), 1, gen(genMaxAttack)+1, "attack ID") THEN
    IF valid_hero_party(retvals(1)) THEN

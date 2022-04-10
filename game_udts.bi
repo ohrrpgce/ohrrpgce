@@ -218,6 +218,8 @@ TYPE GameState
   showtext as string                 'Used for map names and other alerts
   showtext_ticks as integer          'Remaining number of ticks
   showstring as string               'The text shown by showvalue/showstring commands
+  print_trace as bool                'trace/tracevalue is printed to stdout
+  print_trace_only as bool           'trace/tracevalue is printed to stdout, not to g_debug
   getinputtext_enabled as bool
   timer_offset as double             'Amount to shift TIMER by, used only by the milliseconds command
   script_log as ScriptLoggingState

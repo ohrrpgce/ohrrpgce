@@ -1043,6 +1043,13 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
  ELSEIF opt = "scriptlog" THEN
   gam.script_log.enabled = YES
   RETURN 1
+ ELSEIF opt = "print" THEN
+  gam.print_trace = YES
+  RETURN 1
+ ELSEIF opt = "printonly" THEN
+  gam.print_trace = YES
+  gam.print_trace_only = YES
+  RETURN 1
  ELSEIF opt = "debugkeys" THEN
   'Undocumented
   debuginfo "--debugkeys used"

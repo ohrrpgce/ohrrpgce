@@ -61,6 +61,10 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-autotest           Run quickly and write screenshots on _checkpoints" & LINE_END
 		help = help & "-errlvl [level]     Override script error suppression level (" & serrBound & " default, " & serrSuspicious & " hide warnings, " & serrBadOp & " hide all but corruption/bugs)" & LINE_END
 		help = help & "-scriptlog          Script logging initially turned on (Ctrl+F10 to toggle)" LINE_END
+#IFNDEF __FB_WIN32__   'Can't print to console from a GUI application on Windows
+		help = help & "-print              Print 'trace' and 'trace value' commands also to stdout" LINE_END
+		help = help & "-printonly          Print 'trace' and 'trace value' commands only to stdout" LINE_END
+#ENDIF
                 'Hidden options:
                 'help = help & "-from_Custom channel  IPC channel to use to receive messages from Custom" & LINE_END
                 'help = help & "-debugkeys         Turn on debug keys" & LINE_END
