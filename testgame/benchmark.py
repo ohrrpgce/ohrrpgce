@@ -27,6 +27,10 @@ MICRO_LOOPCOUNT = 1000
 
 ########################################################################
 
+def benchmark_for_loop():
+    for i in range(MICRO_LOOPCOUNT):
+        pass
+
 def benchmark_while_loop():
     i = MICRO_LOOPCOUNT
     while i:
@@ -53,6 +57,54 @@ def benchmark_addition():
       x + y
       x + y
       x + y
+
+def benchmark_increment():
+  x, y = 0, 0
+  for i in range(MICRO_LOOPCOUNT // 10 + 1):
+      x += y
+      x += y
+      x += y
+      x += y
+      x += y
+      x += y
+      x += y
+      x += y
+      x += y
+      x += y
+
+testarray = [0] * MICRO_LOOPCOUNT
+
+def benchmark_array_index():
+    for i in range(MICRO_LOOPCOUNT):
+        testarray[i]
+
+def benchmark_array_foreach():
+    for val in testarray:
+        val
+
+def benchmark_array_foreach_sum():
+    total = 0
+    for val in testarray:
+        total += val
+
+def benchmark_array_append():
+    arr = []
+    for i in range(100):
+        arr.append(i)
+
+def benchmark_string_append():
+    var = ""
+    for i in range(MICRO_LOOPCOUNT // 10 + 1):
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
 
 def empty_script():
     pass
@@ -187,9 +239,27 @@ def benchmark_crappy_sqrt():
     for i in range(0, 81):
         crappy_sqrt(i)
 
+bubbles = None
+
+def benchmark_bubble_fill():
+    global bubbles
+    bubbles = [0] * 50
+    for i in range(len(bubbles)):
+        bubbles[i] = (24461 * i) % 32767
+
+def benchmark_bubble_sort():
+    global bubbles
+    for i in range(1, len(bubbles)):
+        for j in range(0, i):
+            if bubbles[j] > bubbles[i]:
+                bubbles[j], bubbles[i] = bubbles[i], bubbles[j]
+    # for i in range(0, len(bubbles) - 1):
+    #     assert bubbles[i] <= bubbles[i+1]
+
+
 ########################################################################
 
-def run_benchmark(script, loops):
+def run_benchmark(script, loops, scoremult = 1):
     times = timeit.repeat(script, repeat=NUM_RUNS, number=1)
     if hasattr(script, '__name__'):
         print(script.__name__)
@@ -203,7 +273,10 @@ def run_benchmark(script, loops):
         unitname = "microseconds per run"
     print(" best %s: %d" % (unitname, mult * min(times)))
     times = sorted(times)[:len(times)//2 + 1]
-    print(" average %s (excl. outliers): %.2f" % (unitname, mult * sum(times) / len(times)))
+    displayval = mult * sum(times) / len(times)
+    print(" average %s (excl. outliers): %.2f" % (unitname, displayval))
+    global score
+    score += int(displayval * scoremult)
 
 ########################################################################
 
@@ -211,12 +284,24 @@ def run_benchmark(script, loops):
 #     print i, crappy_sqrt(i), i ** 0.5, int(i ** 0.5)
 #     assert crappy_sqrt(i) == int(i ** 0.5 + 0.5)
 
+score = 0
+run_benchmark(benchmark_for_loop, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_while_loop, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_continue_loop, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_addition, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_increment, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_array_index, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_array_foreach, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_array_foreach_sum, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_array_append, 100)
+run_benchmark(benchmark_string_append, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_call_script, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_call_multiarg_script, MICRO_LOOPCOUNT)
+print("\nGeneral benchmarks\n")
 run_benchmark(benchmark_recursive_fibonacci, 1)
 run_benchmark(benchmark_fixedmul, 1)
 run_benchmark(benchmark_string_iter, 1)
 run_benchmark(benchmark_crappy_sqrt, 1)
+run_benchmark(benchmark_bubble_fill, 50)
+run_benchmark(benchmark_bubble_sort, 1)
+print("Total time score: %d" % score)

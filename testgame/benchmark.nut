@@ -39,6 +39,11 @@ function showarray(arr) {
 
 /******************************/
 
+function benchmark_for_loop() {
+    for (local i = 1; i < MICRO_LOOPCOUNT; i++)
+        ;
+}
+
 function benchmark_while_loop() {
     local i = MICRO_LOOPCOUNT
     while (i)
@@ -56,8 +61,8 @@ function benchmark_continue_loop() {
 }
 
 function benchmark_addition() {
-    local x = 0, y = 0
-    for (local i = 0; i < MICRO_LOOPCOUNT / 10; i++) {
+    local x = 0, y = 0, end = MICRO_LOOPCOUNT / 10
+    for (local i = 0; i < end; i++) {
         x + y
         x + y
         x + y
@@ -71,6 +76,64 @@ function benchmark_addition() {
     }
 }
 
+
+function benchmark_increment() {
+    local x = 0, y = 0, end = MICRO_LOOPCOUNT / 10
+    for (local i = 0; i < end; i++) {
+        x += y
+        x += y
+        x += y
+        x += y
+        x += y
+        x += y
+        x += y
+        x += y
+        x += y
+        x += y
+    }
+}
+
+testarray <- array(MICRO_LOOPCOUNT, 0)
+
+function benchmark_array_index() {
+    local size = MICRO_LOOPCOUNT
+    for (local i = 0; i < size; i++)
+        testarray[i]
+}
+
+function benchmark_array_foreach() {
+    foreach (val in testarray)
+        val
+}
+
+function benchmark_array_foreach_sum() {
+    local total = 0
+    foreach (val in testarray)
+        total += val
+}
+
+function benchmark_array_append() {
+    local arr = []
+    for (local i = 0; i < 100; i++)
+        arr.append(i)
+}
+
+function benchmark_string_append() {
+    local var = "", end = MICRO_LOOPCOUNT / 10
+    for (local i = 0; i < end; i++) {
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
+        var += "a"
+    }
+}
+
 /******************************/
 
 function empty_script() {
@@ -80,7 +143,8 @@ function empty_multiarg_script(a, b, c, d) {
 }
 
 function benchmark_call_script() {
-    for (local i = 0; i < MICRO_LOOPCOUNT / 10; i++) {
+    local end = MICRO_LOOPCOUNT / 10
+    for (local i = 0; i < end; i++) {
         empty_script()
         empty_script()
         empty_script()
@@ -235,7 +299,39 @@ function benchmark_crappy_sqrt() {
 
 /******************************/
 
-function run_benchmark(script, loops) {
+bubbles <- null
+
+function benchmark_bubble_fill() {
+    bubbles = array(50)
+    // This version is about the same speed
+    //foreach (i, _ in bubbles)
+    local size = bubbles.len()
+    for (local i = 0; i < size; i++)
+        bubbles[i] = (24461 * i) % 32767
+}
+
+function benchmark_bubble_sort() {
+    local size = bubbles.len()
+    for (local i = 1; i < size; i++) {
+        for (local j = 0; j < i; j++) {
+            if (bubbles[j] > bubbles[i]) {
+                local tmp = bubbles[j]
+                bubbles[j] = bubbles[i]
+                bubbles[i] = tmp
+            }
+        }
+    }
+    // foreach (i, val in bubbles) {
+    //     if (i > 0)
+    //         assert(bubbles[i-1] <= val)
+    // }
+}
+
+
+
+/******************************/
+
+function run_benchmark(script, loops, scoremult = 1) {
     local times = []
     for (local i = 0; i < NUM_RUNS; i++) {
         local timing = clock()
@@ -260,15 +356,29 @@ function run_benchmark(script, loops) {
     printnl(" best " + unitname + ": " + mult * min(times))
     times = times.sort().slice(0, times.len()/2 + 1)
     //printnl(showarray(times))
-    printnl(" average " + unitname + " (excl. outliers): " + mult * sum(times) / times.len())
+    local displayval = mult * sum(times) / times.len()
+    printnl(" average " + unitname + " (excl. outliers): " + displayval)
+    score += (displayval * scoremult).tointeger()
 }
 
+score <- 0
+run_benchmark(benchmark_for_loop, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_while_loop, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_continue_loop, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_addition, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_increment, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_array_index, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_array_foreach, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_array_foreach_sum, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_array_append, 100)
+run_benchmark(benchmark_string_append, MICRO_LOOPCOUNT, 0.25)
 run_benchmark(benchmark_call_script, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_call_multiarg_script, MICRO_LOOPCOUNT)
-run_benchmark(benchmark_recursive_fibonacci, 1)
+printnl("\nGeneral benchmarks\n")
+run_benchmark(benchmark_recursive_fibonacci, 1, 2)
 run_benchmark(benchmark_fixedmul, 1)
 run_benchmark(benchmark_string_iter, 1)
 run_benchmark(benchmark_crappy_sqrt, 1)
+run_benchmark(benchmark_bubble_fill, 50)
+run_benchmark(benchmark_bubble_sort, 1)
+printnl("Total time score: " + score)

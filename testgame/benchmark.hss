@@ -1,6 +1,11 @@
 include, plotscr.hsd
 
 define constant, begin
+  # Whether to run HS-specific benchmarks not ported to other languages
+  false, HSBENCH
+  # Whether to print all times. Else uses same format as benchmarks for other languages
+  false, print all times
+
   100, NUM RUNS
 
   # Number of loops to run micro-benchmarks
@@ -13,13 +18,31 @@ define constant, begin
   
 
   1, BENCHMARK NAME STRING
+  99, ASSERT EXPRESSION STRING
 end
 
+global variable, begin
+  1, flames container
+  2, testarray
+  3, bubbles
+end
+
+
+script, init, begin
+  testarray := create container
+  resize slice extra (testarray, MICRO LOOPCOUNT)
+end
+
+script, assert failure, begin
+  script error(ASSERT EXPRESSION STRING)
+end
 
 plotscript, main, begin
   variable (score, score2, loops)
 
-  wait (50)
+  init
+
+  wait (2)
   $2 = "Micro-benchmarks"
   trace (2)
   $2 = ""
@@ -33,60 +56,81 @@ plotscript, main, begin
   score += run benchmark (@benchmark: while loop, loops)
   $1 = "continue loop"
   score += run benchmark (@benchmark: continue loop, loops)
-  $1 = "if then"
-  score += run benchmark (@benchmark: if then, loops)
-  $1 = "if else"
-  score += run benchmark (@benchmark: if else, loops)
-  $1 = "enter for"
-  score += run benchmark (@benchmark: enter for, loops)
-  $1 = "double break"
-  score += run benchmark (@benchmark: double break, loops)
-  $1 = "trivial switch"
-  score += run benchmark (@benchmark: trivial switch, loops)
-  $1 = "bigger switch"
-  score += run benchmark (@benchmark: bigger switch, loops)
-  $1 = "one arg overhead"
-  score += run benchmark (@benchmark: one arg overhead, loops)
-  $1 = "two arg overhead"
-  score += run benchmark (@benchmark: two arg overhead, loops)
-  $1 = "assignment"
-  score += run benchmark (@benchmark: assignment, loops)
+  if (HSBENCH) then (
+    $1 = "if then"
+    score += run benchmark (@benchmark: if then, loops)
+    $1 = "if else"
+    score += run benchmark (@benchmark: if else, loops)
+    $1 = "enter for"
+    score += run benchmark (@benchmark: enter for, loops)
+    $1 = "double break"
+    score += run benchmark (@benchmark: double break, loops)
+    $1 = "trivial switch"
+    score += run benchmark (@benchmark: trivial switch, loops)
+    $1 = "bigger switch"
+    score += run benchmark (@benchmark: bigger switch, loops)
+    $1 = "one arg overhead"
+    score += run benchmark (@benchmark: one arg overhead, loops)
+    $1 = "two arg overhead"
+    score += run benchmark (@benchmark: two arg overhead, loops)
+    $1 = "assignment"
+    score += run benchmark (@benchmark: assignment, loops)
+  )
   $1 = "addition"
   score += run benchmark (@benchmark: addition, loops)
-  $1 = "string assignment"
-  score += run benchmark (@benchmark: string assignment, loops)
-  $1 = "scriptmisc command overhead"
-  score += run benchmark (@benchmark: scriptmisc command overhead, loops)
-  $1 = "sfunctions command overhead"
-  score += run benchmark (@benchmark: sfunctions command overhead, loops)
-  $1 = "milliseconds"
-  score += run benchmark (@benchmark: milliseconds, loops)
-  $1 = "one arg command"
-  score += run benchmark (@benchmark: one arg command, loops)
-  $1 = "one arg command with variable"
-  score += run benchmark (@benchmark: one arg command with variable, loops)
-  $1 = "more complex one arg command"
-  score += run benchmark (@benchmark: more complex one arg command, loops)
-  $1 = "slice X"
-  score += run benchmark (@benchmark: slice X, loops)
-  $1 = "first child"
-  score += run benchmark (@benchmark: first child, loops)
-  $1 = "creating and deleting slices"
-  score2 += run benchmark (@benchmark: creating and deleting slices, loops)
+  $1 = "increment"
+  score += run benchmark (@benchmark: increment, loops)
+  $1 = "array index"
+  score += run benchmark (@benchmark: array index, loops)
+  if (not(HSBENCH)) then (
+    trace($1="array foreach\n N/A\n N/A")
+  )
+  # Python & Squirrel benchmarks have array_foreach_sum instead, which is comparable
+  $1 = "array index sum"
+  score += run benchmark (@benchmark: array index sum, loops)
+  $1 = "array append"
+  score += run benchmark (@benchmark: array append, 100)
+  if (HSBENCH) then (
+    $1 = "string assignment"
+    score += run benchmark (@benchmark: string assignment, loops)
+  )
+  $1 = "string append"
+  score += run benchmark (@benchmark: string append, loops) / 4
+
+  if (HSBENCH) then (
+    $1 = "sfunctions command overhead"
+    score += run benchmark (@benchmark: sfunctions command overhead, loops)
+    $1 = "milliseconds"
+    score += run benchmark (@benchmark: milliseconds, loops)
+    $1 = "one arg command"
+    score += run benchmark (@benchmark: one arg command, loops)
+    $1 = "one arg command with variable"
+    score += run benchmark (@benchmark: one arg command with variable, loops)
+    $1 = "more complex one arg command"
+    score += run benchmark (@benchmark: more complex one arg command, loops)
+    $1 = "slice X"
+    score += run benchmark (@benchmark: slice X, loops)
+    $1 = "first child"
+    score += run benchmark (@benchmark: first child, loops)
+    $1 = "creating and deleting slices"
+    score2 += run benchmark (@benchmark: creating and deleting slices, loops)
+  )
   $1 = "call script"
   score += run benchmark (@benchmark: call script, loops)
   $1 = "call multiarg script"
   score += run benchmark (@benchmark: call multiarg script, loops)
-  $1 = "run script by id"
-  score += run benchmark (@benchmark: run script by id, loops)
-  $1 = "call and return value"
-  score += run benchmark (@benchmark: call and return value, loops)
-  $1 = "call and exit returning value"
-  score += run benchmark (@benchmark: call and exit returning value, loops)
-  $1 = "read global"
-  score += run benchmark (@benchmark: read global, loops)
-  $1 = "write global"
-  score += run benchmark (@benchmark: write global, loops)
+  if (HSBENCH) then (
+    $1 = "run script by id"
+    score += run benchmark (@benchmark: run script by id, loops)
+    $1 = "call and return value"
+    score += run benchmark (@benchmark: call and return value, loops)
+    $1 = "call and exit returning value"
+    score += run benchmark (@benchmark: call and exit returning value, loops)
+    $1 = "read global"
+    score += run benchmark (@benchmark: read global, loops)
+    $1 = "write global"
+    score += run benchmark (@benchmark: write global, loops)
+  )
 
   $2 = ""
   trace (2)
@@ -105,38 +149,48 @@ plotscript, main, begin
   score += run benchmark (@benchmark: fixedmul, 1)
   $1 = "string iter"
   score += run benchmark (@benchmark: string iter, 1)
-  $1 = "create and delete lotsa slices"
-  score2 += run benchmark (@benchmark: create and delete lotsa slices, 1) * 2 / 3
-  $1 = "eat soap mania"
-  score2 += run benchmark (@benchmark: eat soap mania, 1) * 2
-  $1 = "xor map"
-  score2 += run benchmark (@benchmark: xor map, 1) * 2
+
+  if (HSBENCH) then (
+    $1 = "create and delete lotsa slices"
+    score2 += run benchmark (@benchmark: create and delete lotsa slices, 1) * 2 / 3
+  )
   $1 = "crappy sqrt"
-  score += run benchmark (@benchmark: crappy sqrt, 1) * 2
-  $1 = "DOOM flames recalc"
-  score += run benchmark (@benchmark: DOOM flames recalc, 1) * 2
-  $1 = "DOOM flames create and destroy"
-  score2 += run benchmark (@benchmark: DOOM flames create and destroy, 1) * 2
-  $1 = "DOOM flames update"
-  DOOM initialise flames
-  score += run benchmark (@benchmark: DOOM flames update, 1) * 2
-  free slice (flames container)
+  score += run benchmark (@benchmark: crappy sqrt, 1)
+  $1 = "bubble fill"
+  score += run benchmark (@benchmark: bubble fill, 50)
+  $1 = "bubble sort"
+  score += run benchmark (@benchmark: bubble sort, 1)
 
-  # Benchmarks excluded from the score
+  if (HSBENCH) then (
+    $1 = "eat soap mania"
+    score2 += run benchmark (@benchmark: eat soap mania, 1) * 2
+    $1 = "xor map"
+    score2 += run benchmark (@benchmark: xor map, 1) * 2
+    $1 = "DOOM flames recalc"
+    score += run benchmark (@benchmark: DOOM flames recalc, 1) * 2
+    $1 = "DOOM flames create and destroy"
+    score2 += run benchmark (@benchmark: DOOM flames create and destroy, 1) * 2
+    $1 = "DOOM flames update"
+    DOOM initialise flames
+    score += run benchmark (@benchmark: DOOM flames update, 1) * 2
+    free slice (flames container)
 
-  # The speed of this would depend on state of numlock, how many joysticks are plugged in,
-  # and whether gfx_fb is used
-  $1 = "check all keys"
-  run benchmark (@benchmark: check all keys, 1)
+    # Benchmarks excluded from the score
 
-  # This score doesn't depend on the speed of implementation of any commands
-  $1 = "Benchmark score for interpreter (lower's better):"
-  append number (1, score)
-  trace (1)
-  show string at (1, 0, 180)
+    # The speed of this would depend on state of numlock, how many joysticks are plugged in,
+    # and whether gfx_fb is used
+    $1 = "check all keys"
+    run benchmark (@benchmark: check all keys, 1)
+
+    # This score doesn't depend on the speed of implementation of any commands
+    $1 = "Benchmark time for interpreter (lower's better): "
+    append number (1, score)
+    trace (1)
+    show string at (1, 0, 180)
+  )
 
   score += score2
-  $2 = "Total score:"
+  $2 = "Total time score: "
   append number (2, score)
   trace (2)
   show string (2)
@@ -155,12 +209,12 @@ script, append decimal 100, string, number, begin
 end
 
 script, run benchmark, script id, loops, begin
-  variable (i, j, n, time, best, worst, avg)
+  variable (i, j, n, time, best, worst, avg, displayval)
 
   $2 = "Benchmark: "
   2 $+ 1
   show string (2)
-  wait (1)
+  #wait (1)
 
   for (i, 0, NUM RUNS -- 1) do (
     time := microseconds
@@ -170,18 +224,20 @@ script, run benchmark, script id, loops, begin
   )
 
   2 $= 1
-  $2 + " times:"
+  if (print all times) then ($2 + " times:")
   trace (2)
 
   best := 999999
   $2 = ""
   for (i, 0, NUM RUNS -- 1) do (
     time := read global (TIMES ARRAY + i)
-    $2 + " "
-    append number (2, time)
-    if (time << best) then (best := time)
+    if (print all times) then (
+      $2 + " "
+      append number (2, time)
+    )
+    if (time < best) then (best := time)
   )
-  trace (2)
+  if (print all times) then (trace (2))
 
   if (loops == 1) then (
     # General benchmark
@@ -213,7 +269,7 @@ script, run benchmark, script id, loops, begin
   )
 
   # average
-  
+
   for (j, 0, NUM RUNS -- 1) do (
     time := read global (TIMES ARRAY + j)
     if (time > 0) then (
@@ -226,19 +282,22 @@ script, run benchmark, script id, loops, begin
   if (loops == 1) then (
     # General benchmark
     $2 = " average microseconds per run (excl. outliers): "
-    append decimal 100 (2, avg)
+    displayval := avg
   ) else (
     # Micro-benchmark
     $2 = " average nanoseconds per loop (excl. outliers): "
-    append decimal 100 (2, 1000 * avg / loops)
+    displayval := 1000 * avg / loops
   )
+  append decimal 100 (2, displayval)
   trace (2)
 
-  $2 = ""
-  trace (2)
+  if (print all times) then (
+    $2 = ""
+    trace (2)
+  )
 
   # Return a score (total score is actually just total time spent)
-  return (avg / 100)
+  return (displayval / 100)
 end
 
 
@@ -247,7 +306,7 @@ end
 
 script, benchmark: for loop, begin
   variable (i)
-  for (i, 0, MICRO LOOPCOUNT) do ()
+  for (i, 1, MICRO LOOPCOUNT) do ()
 end
 
 script, benchmark: while loop, begin
@@ -432,8 +491,47 @@ script, benchmark: addition, begin
   )
 end
 
+script, benchmark: increment, begin
+  variable (i, x, y)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    x += y
+    x += y
+    x += y
+    x += y
+    x += y
+    x += y
+    x += y
+    x += y
+    x += y
+    x += y
+  )
+end
+
+script, benchmark: array index, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT -- 1) do (
+    get slice extra(testarray, i)
+  )
+end
+
+script, benchmark: array index sum, begin
+  variable (i, total)
+  for (i, 0, MICRO LOOPCOUNT -- 1) do (
+    total += get slice extra(testarray, i)
+  )
+end
+
+script, benchmark: array append, begin
+  variable (arr, i)
+  arr := create container
+  for (i, 0, 100) do (
+    append slice extra(arr, i)
+  )
+  free slice(arr)
+end
+
 script, benchmark: string assignment, begin
-  variable (i, x)
+  variable (i)
   for (i, 0, MICRO LOOPCOUNT / 10) do (
     $3 = "foo"
     $3 = "foo"
@@ -448,27 +546,28 @@ script, benchmark: string assignment, begin
   )
 end
 
-script, benchmark: scriptmisc command overhead, begin
+script, benchmark: string append, begin
   variable (i)
+  clear string(3)
   for (i, 0, MICRO LOOPCOUNT / 10) do (
-    # a command with trivial implementation, in scriptmisc
-    last formation
-    last formation
-    last formation
-    last formation
-    last formation
-    last formation
-    last formation
-    last formation
-    last formation
-    last formation
+    3 $+ $4="a"
+    3 $+ $4="a"
+    3 $+ $4="a"
+    3 $+ $4="a"
+    3 $+ $4="a"
+    3 $+ $4="a"
+    3 $+ $4="a"
+    3 $+ $4="a"
+    3 $+ $4="a"
+    3 $+ $4="a"
   )
+  clear string(3)
 end
 
 script, benchmark: sfunctions command overhead, begin
   variable (i)
   for (i, 0, MICRO LOOPCOUNT / 10) do (
-    # a command with trivial implementation, in sfunctions
+    # a command with trivial implementation
     current map
     current map
     current map
@@ -902,12 +1001,42 @@ script, benchmark: crappy sqrt, begin
   for (i, 0, 80) do (crappy sqrt (i))
 end
 
+script, benchmark: bubble fill, begin
+  variable (i)
+  if (bubbles) then (free slice (bubbles))
+  bubbles := create container
+  resize slice extra (bubbles, 50)
+  for (i, 0, slice extra length(bubbles) -- 1) do (
+    set slice extra (bubbles, i, (24461 * i) ,mod, 32767)
+  )
+end
+
+script, benchmark: bubble sort, begin
+  variable (size, i, j, tmp)
+  size := slice extra length (bubbles)
+  for (i, 1, size -- 1) do (
+    for (j, 0, i -- 1) do (
+      # This could be written with few function calls, but the intent is to test
+      # the speed of array extra data access
+      if (get slice extra(bubbles, j) > get slice extra(bubbles, i)) then (
+        tmp := get slice extra(bubbles, j)
+        set slice extra (bubbles, j, get slice extra(bubbles, i))
+        set slice extra (bubbles, i, tmp)
+      )
+    )
+  )
+  # variable(total)
+  # for (i, 0, size -- 1) do (
+  #   total += get slice extra (bubbles, i)
+  #   if (i > 0) then (
+  #     assert (get slice extra (bubbles, i--1) <= get slice extra (bubbles, i))
+  #   )
+  # )
+  # trace value of(total)
+end
+
 
 #------------------- some scripts from DoomRPG (stripped down) -----------------------------
-
-global variable, begin
-  1, flames container
-end
 
 define constant, begin
   # Starting ID of a 2D array of FIRE HEIGHT * FIRE WIDTH global variables.
