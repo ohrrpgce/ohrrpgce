@@ -764,6 +764,8 @@ define function, begin
 734,nextsliceintree,3,0,0,1   # Next slice (current, root, visit children)
 735,windowisfocused,0         # The game's window is the active one
 736,showvalueofinternal,-1    # "show value of" is translated to this
+737,resetenemydata,2,0,0      # Reset one element of an enemy's data (enemy id, data index)
+738,resetenemyname,1,0        # Reset enemy name to original (enemy id)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 
@@ -1112,6 +1114,10 @@ end
 
 script,setenemystat,hsd:enemyID,hsd:stat,hsd:value,begin
   writeenemydata(hsd:enemyID,hsd:stat+62,hsd:value)
+end
+
+script,resetenemystat,hsd:enemyID,hsd:stat,begin
+  resetenemydata(hsd:enemyID,hsd:stat+62)
 end
 
 #get/set enemy appearance are now simply wrappers. too much confusion to remove them now
@@ -2121,6 +2127,7 @@ define constant, begin
 -1,getcount
 0,string:outline
 1,string:flat
+# readenemydata constants
 53,Enemy:Picture
 54,Enemy:Palette
 55,Enemy:PictureSize
@@ -2141,6 +2148,7 @@ define constant, begin
 19, StealableItemChance
 20, StealableRareItem
 21, StealableRareItemchance
+# end of readenemydata constants
 0, Crop
 1, Wrap
 2, Defaulttile

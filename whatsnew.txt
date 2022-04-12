@@ -78,6 +78,7 @@ WHAT IS NEW?
       "exit script" [Ralph]
     * (Unix only) --print and --printonly commandline args cause trace/tracevalue
       to print to the terminal as well as/instead of g_debug.txt [Ralph]
+    * "reset enemy data", "reset enemy stat", "reset enemy name" [Ralph]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

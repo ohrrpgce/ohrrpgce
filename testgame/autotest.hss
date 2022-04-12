@@ -3493,6 +3493,11 @@ script, enemy tests, begin
   set enemy name(enemy:Data Read Test, 2)
   get enemy name(enemy:Data Read Test, 1)
   assert(string compare(1, 2))
+  reset enemy name(enemy:Data Read Test)
+  get enemy name(enemy:Data Read Test, 1)
+  $2 = "Data read test"
+  assert(string compare(1, 2))
+
   # Length limit is currently 16, so check at least first 16 chars saved
   $2 = "SeenGoldDuckUponHigh"
   set enemy name(enemy:Data Read Test, 2)
@@ -3505,15 +3510,21 @@ script, enemy tests, begin
   assert(get enemy stat(enemy:Data Read Test, stat:HP) == 13)
   set enemy stat(enemy:Data Read Test, stat:Hits, 6)
   assert(get enemy stat(enemy:Data Read Test, stat:Hits) == 6)
+  reset enemy stat(enemy:Data Read Test, stat:Hits)
+  assert(get enemy stat(enemy:Data Read Test, stat:HP) == 13)
 
   # Other
   set enemy appearance(enemy:Data Read Test, Enemy:PictureSize, EnemySize:large)
   assert(get enemy appearance(enemy:Data Read Test, Enemy:PictureSize) == EnemySize:large)
   assert(get enemy appearance(enemy:Data Read Test, Enemy:Palette) == -1)
   assert(read enemy data(enemy:Data Read Test, Enemy:Item) == 1)
-  assert(read enemy data(enemy:Data Read Test, Enemy:ItemPercent) == 50)
   write enemy data(enemy:Data Read Test, Enemy:RareItem, 2)
   assert(read enemy data(enemy:Data Read Test, Enemy:RareItem) == 2)
+  assert(read enemy data(enemy:Data Read Test, Enemy:ItemPercent) == 50)
+  write enemy data(enemy:Data Read Test, Enemy:ItemPercent, 24)
+  assert(read enemy data(enemy:Data Read Test, Enemy:ItemPercent) == 24)
+  reset enemy data(enemy:Data Read Test, Enemy:ItemPercent)
+  assert(read enemy data(enemy:Data Read Test, Enemy:ItemPercent) == 50)
 end
 
 ########################################################################

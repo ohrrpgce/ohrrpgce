@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-04-08">
+<plotscript version="wip" datecode="2022-04-12">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -4424,7 +4424,7 @@ end</example>
 		<command id="getenemystat">
 			<canon>get enemy stat(enemy, stat)</canon>
 			<shortname>get enemy stat</shortname>
-			<description>Returns the selected stat from the selected enemy. The first argument is the number of the enemy whose stats you want to check. The second argument is the name of the stat that you want to check. The names of the stats are defined in your HSI file in the form stat:name. </description>
+			<description>Returns the selected stat from the selected enemy definition. The first argument is the number of the enemy whose stats you want to check. The second argument is the name of the stat that you want to check. The names of the stats are defined in your HSI file in the form <tt>stat:name</tt>.</description>
 			<seealso>
 				<ref>setenemystat</ref>
 				<ref>enemyelementalresistasint</ref>
@@ -4435,13 +4435,34 @@ end</example>
 		<command id="setenemystat">
 			<canon>set enemy stat(enemy, stat, value)</canon>
 			<shortname>set enemy stat</shortname>
-			<description>Sets the selected stat of the selected enemy to the value you supply. The first argument is the number of the enemy whose stats you want to set. The second argument is the name of the stat that you want to set. The names of the stats are defined in your HSI file in the form stat:name. The third is the new value of the stat.<note>Enemy stat changes are temporary. They are not saved in the game save.</note></description>
+			<description>
+				Sets the selected stat of the selected enemy definition to the value you supply.
+				The first argument is the number of the enemy whose stats you want to set.
+				The second argument is the name of the stat that you want to set.
+				The names of the stats are defined in your HSI file in the form <tt>stat:name</tt>.
+				The third is the new value of the stat.
+				<note>
+					Enemy stat changes are temporary. They are not saved in saved games.
+					If you want to reset them early, use <ref>resetenemystat</ref>.
+				</note>
+			</description>
 			<seealso>
 				<ref>getenemystat</ref>
+				<ref>resetenemystat</ref>
 				<ref>getherostat</ref>
 				<ref>setherostat</ref>
 			</seealso>
 		</command>
+		<command id="resetenemystat">
+			<canon>reset enemy stat(enemy, stat)</canon>
+			<shortname>reset enemy stat</shortname>
+			<description>
+				Resets the selected stat of the selected enemy definition to its original value as set in the editor.
+				<p>enemy</p> is an enemy ID and <p>stat</p> is the name of the stat that you want to check.
+				The names of the stats are defined in your HSI file in the form stat:name.
+			</description>
+		</command>
+
 		<command id="enemyelementalresistasint">
 			<canon>enemy elemental resist as int (enemy, element)</canon>
 			<shortname>enemy elemental resist as int</shortname>
@@ -4471,7 +4492,7 @@ end</example>
 			<canon>set enemy name (enemyid, stringid)</canon>
 			<shortname>set enemy name</shortname>
 			<description>
-				Lets you change an enemy's name from a string.
+				Lets you change an enemy's name to a new name in a string.
 				The string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.
 				<lb/>
 				<p>enemyid</p> is the number of the enemy
@@ -4479,12 +4500,23 @@ end</example>
 				and <p>stringid</p> is the number of the string that you supply the name of the enemy from.
 				<note>
 					Enemy name changes are temporary. They are not saved in saved games.
+					If you want to reset them early, use <ref>resetenemyname</ref>.
 				</note>
 			</description>
 			<seealso>
 				<ref>getenemyname</ref>
+				<ref>resetenemyname</ref>
 			</seealso>
 		</command>
+		<command id="resetenemyname">
+			<canon>reset enemy name (enemyid)</canon>
+			<shortname>reset enemy name</shortname>
+			<description>
+				Resets the name of an enemy to the value originally set in the editor.
+				<p>enemyid</p> is the number of the enemy.
+			</description>
+		</command>
+
 		<command id="getenemyappearance">
 			<canon>get enemy appearance (enemyid, appearance)</canon>
 			<shortname>get enemy appearance</shortname>
@@ -4499,6 +4531,8 @@ end</example>
 				</ul>
 				<lb/>
 				You can compare the values returned for <tt>enemy:picturesize</tt> with the constants <tt>enemysize:small</tt>, <tt>enemysize:medium</tt> and <tt>enemysize:large</tt>.
+				<lb/>
+				This command is just an alias for <ref>readenemydata</ref>.
 			</description>
 			<seealso>
 				<ref>setenemyappearance</ref>
@@ -4519,6 +4553,8 @@ end</example>
 				or palette number when changing palette.
 				<note>
 					Enemy appearance changes are temporary: they are not saved in saved games.
+					If you want to reset them early, use <ref>resetenemydata</ref>,
+					because <p>set enemy appearance</p> is (now) just an alias for <ref>writeenemydata</ref>.
 				</note>
 			</description>
 			<seealso>
@@ -4553,10 +4589,32 @@ end</example>
 		<command id="writeenemydata">
 			<canon>write enemy data (enemyid, data, value)</canon>
 			<shortname>write enemy data</shortname>
-			<description>Lets you set items of an enemy's data. Enemyid is the number of enemy, data is a predefined constant for the data you want to change. Value is the new value given to that setting. Use the same constants as are given at <ref>readenemydata</ref>.<note>Enemy data changes are temporary. They are not saved in saved games.</note></description>
+			<description>
+				Lets you set items of an enemy's data.
+				<p>enemyid</p> is the number of enemy.
+				<p>data</p> is a predefined constant for the data you want to change:
+				use the same constants listed at <ref>readenemydata</ref>.
+				<p>value</p> is the new value given to that setting.
+				<note>
+					Enemy data changes are temporary. They are not saved in saved games.
+					If you want to reset them early, use <ref>resetenemydata</ref>.
+				</note>
+			</description>
 			<seealso>
 				<ref>readenemydata</ref>
+				<ref>resetenemydata</ref>
 			</seealso>
+		</command>
+		<command id="resetenemydata">
+			<canon>reset enemy data (enemyid, data)</canon>
+			<shortname>reset enemy data</shortname>
+			<description>
+				Undoes the effect of <ref>writeenemydata</ref>, resetting one piece of
+				an enemy's data to the original value set in the enemy editor.
+				<p>enemyid</p> is the number of enemy.
+				<p>data</p> is a predefined constant for the data you want to change:
+				use the constants listed at <ref>readenemydata</ref> or <ref>getenemyappearance</ref>.
+			</description>
 		</command>
 
 		<section title="Formations">

@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-04-08)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-04-12)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1251,6 +1251,9 @@ function toggleContent(target) {
 		<a href="#about-replacesubstring">replace substring (in string, replace what, with what, max replacements, case insensitive)</a><br>
 		<a href="#about-replacewalkaboutsprite">replace walkabout sprite (handle, num, palette)</a><br>
 		<a href="#about-replaceweaponsprite">replace weapon sprite (handle, num, palette)</a><br>
+		<a href="#about-resetenemydata">reset enemy data (enemyid, data)</a><br>
+		<a href="#about-resetenemyname">reset enemy name (enemyid)</a><br>
+		<a href="#about-resetenemystat">reset enemy stat(enemy, stat)</a><br>
 		<a href="#about-resetformation">reset formation (formation)</a><br>
 		<a href="#about-resetformationslot">reset formation slot (formation, slot)</a><br>
 		<a href="#about-resetgame">reset game(args...)</a><br>
@@ -8524,13 +8527,16 @@ end</pre>
 <div class="content-shown">
 		<a href="#about-getenemystat">get enemy stat(enemy, stat)</a><br>
 		<a href="#about-setenemystat">set enemy stat(enemy, stat, value)</a><br>
+		<a href="#about-resetenemystat">reset enemy stat(enemy, stat)</a><br>
 		<a href="#about-enemyelementalresistasint">enemy elemental resist as int (enemy, element)</a><br>
 		<a href="#about-getenemyname">get enemy name (enemyid, stringid)</a><br>
 		<a href="#about-setenemyname">set enemy name (enemyid, stringid)</a><br>
+		<a href="#about-resetenemyname">reset enemy name (enemyid)</a><br>
 		<a href="#about-getenemyappearance">get enemy appearance (enemyid, appearance)</a><br>
 		<a href="#about-setenemyappearance">set enemy appearance (enemyid, appearance, value)</a><br>
 		<a href="#about-readenemydata">read enemy data (enemyid, data)</a><br>
 		<a href="#about-writeenemydata">write enemy data (enemyid, data, value)</a><br>
+		<a href="#about-resetenemydata">reset enemy data (enemyid, data)</a><br>
 </div>
 		<li>
 <a href="#Formations">Formations</a><br>
@@ -8562,7 +8568,7 @@ end</pre>
 			<a name="about-getenemystat"></a>
 				<h4>get enemy stat(enemy, stat)</h4>
 <p>
-			Returns the selected stat from the selected enemy. The first argument is the number of the enemy whose stats you want to check. The second argument is the name of the stat that you want to check. The names of the stats are defined in your HSI file in the form stat:name. 
+			Returns the selected stat from the selected enemy definition. The first argument is the number of the enemy whose stats you want to check. The second argument is the name of the stat that you want to check. The names of the stats are defined in your HSI file in the form <span class="code">stat:name</span>.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -8581,18 +8587,44 @@ end</pre>
 			<a name="about-setenemystat"></a>
 				<h4>set enemy stat(enemy, stat, value)</h4>
 <p>
-			Sets the selected stat of the selected enemy to the value you supply. The first argument is the number of the enemy whose stats you want to set. The second argument is the name of the stat that you want to set. The names of the stats are defined in your HSI file in the form stat:name. The third is the new value of the stat.<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">Enemy stat changes are temporary. They are not saved in the game save.</div>
+			
+				Sets the selected stat of the selected enemy definition to the value you supply.
+				The first argument is the number of the enemy whose stats you want to set.
+				The second argument is the name of the stat that you want to set.
+				The names of the stats are defined in your HSI file in the form <span class="code">stat:name</span>.
+				The third is the new value of the stat.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Enemy stat changes are temporary. They are not saved in saved games.
+					If you want to reset them early, use <a href="#about-resetenemystat" class="ref">reset enemy stat</a>.
+				</div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-getenemystat" class="ref">get enemy stat</a>, </li>
 <li>
+<a href="#about-resetenemystat" class="ref">reset enemy stat</a>, </li>
+<li>
 <a href="#about-getherostat" class="ref">get hero stat</a>, </li>
 <li><a href="#about-setherostat" class="ref">set hero stat</a></li>
 </ul>
 </div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-resetenemystat"></a>
+				<h4>reset enemy stat(enemy, stat)</h4>
+<p>
+			
+				Resets the selected stat of the selected enemy definition to its original value as set in the editor.
+				<span class="param">enemy</span> is an enemy ID and <span class="param">stat</span> is the name of the stat that you want to check.
+				The names of the stats are defined in your HSI file in the form stat:name.
+			
+			
+			
+			
 		</p>
 </div>
 		<div class="command">
@@ -8636,7 +8668,7 @@ end</pre>
 				<h4>set enemy name (enemyid, stringid)</h4>
 <p>
 			
-				Lets you change an enemy's name from a string.
+				Lets you change an enemy's name to a new name in a string.
 				The string length cannot be more then 16 characters, if it is more then 16 the name will be truncated.
 				<br>
 				<span class="param">enemyid</span> is the number of the enemy
@@ -8645,12 +8677,30 @@ end</pre>
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					Enemy name changes are temporary. They are not saved in saved games.
+					If you want to reset them early, use <a href="#about-resetenemyname" class="ref">reset enemy name</a>.
 				</div>
 			
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-getenemyname" class="ref">get enemy name</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getenemyname" class="ref">get enemy name</a>, </li>
+<li><a href="#about-resetenemyname" class="ref">reset enemy name</a></li>
+</ul>
 </div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-resetenemyname"></a>
+				<h4>reset enemy name (enemyid)</h4>
+<p>
+			
+				Resets the name of an enemy to the value originally set in the editor.
+				<span class="param">enemyid</span> is the number of the enemy.
+			
+			
+			
+			
 		</p>
 </div>
 		<div class="command">
@@ -8668,6 +8718,8 @@ end</pre>
 				</ul>
 				<br>
 				You can compare the values returned for <span class="code">enemy:picturesize</span> with the constants <span class="code">enemysize:small</span>, <span class="code">enemysize:medium</span> and <span class="code">enemysize:large</span>.
+				<br>
+				This command is just an alias for <a href="#about-readenemydata" class="ref">read enemy data</a>.
 			
 			
 			
@@ -8692,6 +8744,8 @@ end</pre>
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					Enemy appearance changes are temporary: they are not saved in saved games.
+					If you want to reset them early, use <a href="#about-resetenemydata" class="ref">reset enemy data</a>,
+					because <span class="param">set enemy appearance</span> is (now) just an alias for <a href="#about-writeenemydata" class="ref">write enemy data</a>.
 				</div>
 			
 			
@@ -8732,12 +8786,42 @@ end</pre>
 			<a name="about-writeenemydata"></a>
 				<h4>write enemy data (enemyid, data, value)</h4>
 <p>
-			Lets you set items of an enemy's data. Enemyid is the number of enemy, data is a predefined constant for the data you want to change. Value is the new value given to that setting. Use the same constants as are given at <a href="#about-readenemydata" class="ref">read enemy data</a>.<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">Enemy data changes are temporary. They are not saved in saved games.</div>
+			
+				Lets you set items of an enemy's data.
+				<span class="param">enemyid</span> is the number of enemy.
+				<span class="param">data</span> is a predefined constant for the data you want to change:
+				use the same constants listed at <a href="#about-readenemydata" class="ref">read enemy data</a>.
+				<span class="param">value</span> is the new value given to that setting.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Enemy data changes are temporary. They are not saved in saved games.
+					If you want to reset them early, use <a href="#about-resetenemydata" class="ref">reset enemy data</a>.
+				</div>
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-readenemydata" class="ref">read enemy data</a></li></ul>
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-readenemydata" class="ref">read enemy data</a>, </li>
+<li><a href="#about-resetenemydata" class="ref">reset enemy data</a></li>
+</ul>
 </div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-resetenemydata"></a>
+				<h4>reset enemy data (enemyid, data)</h4>
+<p>
+			
+				Undoes the effect of <a href="#about-writeenemydata" class="ref">write enemy data</a>, resetting one piece of
+				an enemy's data to the original value set in the enemy editor.
+				<span class="param">enemyid</span> is the number of enemy.
+				<span class="param">data</span> is a predefined constant for the data you want to change:
+				use the constants listed at <a href="#about-readenemydata" class="ref">read enemy data</a> or <a href="#about-getenemyappearance" class="ref">get enemy appearance</a>.
+			
+			
+			
+			
 		</p>
 </div>
 		<hr>
@@ -22020,7 +22104,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 927 commands (of which 11 are aliases), 27 constants and 13 definitions of types and other terms in this file.</p>
+<p>Stats: There are 930 commands (of which 11 are aliases), 27 constants and 13 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

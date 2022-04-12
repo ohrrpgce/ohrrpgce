@@ -2053,6 +2053,11 @@ SUB script_functions(byval cmdid as integer)
    retvals(2) = bound(retvals(2), -32768, 32767)
    WriteShort(tmpdir & "dt1.tmp", retvals(0) * getbinsize(binDT1) + retvals(1) * 2 + 1, retvals(2))
   END IF
+ CASE 737'--reset enemy data
+  IF valid_enemy(retvals(0)) ANDALSO bound_arg(retvals(1), 0, 106, "data index", , serrBadOp) THEN
+   DIM offset as integer = retvals(0) * getbinsize(binDT1) + retvals(1) * 2 + 1
+   WriteShort(tmpdir & "dt1.tmp", offset, ReadShort(game & ".dt1", offset))
+  END IF
  CASE 232'--trace
   IF valid_plotstr(retvals(0)) THEN
    IF gam.print_trace THEN PRINT plotstr(retvals(0)).s
@@ -4997,6 +5002,10 @@ SUB script_functions(byval cmdid as integer)
  CASE 713 '--set enemy name (enemy, stringid)
   IF valid_enemy(retvals(0)) ANDALSO valid_plotstr(retvals(1)) THEN
    writeenemyname retvals(0), plotstr(retvals(1)).s
+  END IF
+ CASE 738 '--reset enemy name (enemy)
+  IF valid_enemy(retvals(0)) THEN
+   writeenemyname retvals(0), readenemyname(retvals(0), NO)
   END IF
  CASE 714 '--breakpoint
   stop_fibre_timing
