@@ -2036,7 +2036,7 @@ SUB script_functions(byval cmdid as integer)
   'from old games, though)
   'Note: this used to be used by "get enemy name" script to read names, could become
   'a problem when the name storage changes
-  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") AND bound_arg(retvals(1), 0, 106, "data index", , serrBadOp) THEN
+  IF valid_enemy(retvals(0)) ANDALSO bound_arg(retvals(1), 0, 106, "data index", , serrBadOp) THEN
    scriptret = ReadShort(tmpdir & "dt1.tmp", retvals(0) * getbinsize(binDT1) + retvals(1) * 2 + 1)
   END IF
  CASE 231'--write enemy data
@@ -2046,7 +2046,7 @@ SUB script_functions(byval cmdid as integer)
   'Note: writing elemental/enemytype bits no longer works
   'Note: this used to be used by "set enemy name" script to write names, could become
   'a problem when the name storage changes
-  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") AND bound_arg(retvals(1), 0, 106, "data index", , serrBadOp) THEN
+  IF valid_enemy(retvals(0)) ANDALSO bound_arg(retvals(1), 0, 106, "data index", , serrBadOp) THEN
    'Show an error if out of range, but be lenient and continue anyway, capping
    'stats (and other data...) to 32767
    bound_arg(retvals(2), -32768, 32767, "value")
@@ -2208,7 +2208,7 @@ SUB script_functions(byval cmdid as integer)
   scriptret = fmod(((TIMER - gam.timer_offset) * 1000) + 2147483648.0, 4294967296.0) - 2147483648.0
  CASE 308'--add enemy to formation (formation, enemy id, x, y, slot = -1)
   scriptret = -1
-  IF valid_formation(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxEnemy) THEN
+  IF valid_formation(retvals(0)) ANDALSO valid_enemy(retvals(1)) THEN
    DIM form as Formation
    LoadFormation form, retvals(0)
    DIM slot as integer = -1
@@ -2246,7 +2246,7 @@ SUB script_functions(byval cmdid as integer)
    LoadFormation form, retvals(0)
    DIM slot as integer = 0
    scriptret = -1
-   FOR i as integer = 0 TO 7
+   FOR i as integer = 0 TO UBOUND(form.slots)
     IF form.slots(i).id >= 0 AND (retvals(1) = form.slots(i).id OR retvals(1) = -1) THEN
      IF retvals(2) = slot THEN scriptret = i: EXIT FOR
      slot += 1
@@ -3555,7 +3555,7 @@ SUB script_functions(byval cmdid as integer)
   ' bits for microsecond precision.
   scriptret = fmod((TIMER * 1e6) + 2147483648.0, 4294967296.0) - 2147483648.0
  CASE 543 '--enemy elemental resist as int (enemy, element)
-  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy id", , serrBadOp) THEN
+  IF valid_enemy(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
     DIM enemy as EnemyDef
     loadenemydata enemy, retvals(0), YES
@@ -4987,7 +4987,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 712 '--get enemy name (enemy, stringid)
   IF valid_plotstr(retvals(1)) THEN
    WITH plotstr(retvals(1))
-    IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") THEN
+    IF valid_enemy(retvals(0)) THEN
      .s = readenemyname(retvals(0))
     ELSE
      .s = ""
@@ -4995,7 +4995,7 @@ SUB script_functions(byval cmdid as integer)
    END WITH
   END IF
  CASE 713 '--set enemy name (enemy, stringid)
-  IF bound_arg(retvals(0), 0, gen(genMaxEnemy), "enemy ID") ANDALSO valid_plotstr(retvals(1)) THEN
+  IF valid_enemy(retvals(0)) ANDALSO valid_plotstr(retvals(1)) THEN
    writeenemyname retvals(0), plotstr(retvals(1)).s
   END IF
  CASE 714 '--breakpoint
@@ -5680,6 +5680,10 @@ END FUNCTION
 
 FUNCTION valid_attack(byval id_plus_1 as integer) as bool
  RETURN bound_arg(id_plus_1, 1, gen(genMaxAttack) + 1, "attack ID", , serrBadOp)
+END FUNCTION
+
+FUNCTION valid_enemy(byval id as integer) as bool
+ RETURN bound_arg(id, 0, gen(genMaxEnemy), "enemy ID", , serrBadOp)
 END FUNCTION
 
 FUNCTION valid_formation(byval form as integer) as bool

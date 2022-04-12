@@ -80,6 +80,7 @@ DECLARE FUNCTION valid_hero_party(byval who as integer, byval minimum as integer
 DECLARE FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as scriptErrEnum = serrBadOp) as bool
 DECLARE FUNCTION valid_stat(byval statid as integer) as bool
 DECLARE FUNCTION valid_plotstr(byval n as integer, byval errlvl as scriptErrEnum = serrBound) as bool
+DECLARE FUNCTION valid_enemy(byval id as integer) as bool
 DECLARE FUNCTION valid_attack(byval id_plus_1 as integer) as bool
 DECLARE FUNCTION valid_formation(byval form as integer) as bool
 DECLARE FUNCTION valid_formation_slot(byval form as integer, byval slot as integer) as bool
