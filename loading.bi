@@ -174,14 +174,21 @@ DECLARE SUB item_write_equipbit(itembuf() as integer, hero_id as integer, value 
 DECLARE FUNCTION item_is_equippable(itembuf() as integer) as bool
 DECLARE FUNCTION item_is_equippable_in_slot(itembuf() as integer, byval slot as integer) as bool
 
+#IFDEF IS_GAME
+ 'Whether, by default, to load/save enemy data from/to .dt1.tmp, which is a temp copy of .dt1
+ CONST USE_DT1_TMP = YES
+#ELSE
+ CONST USE_DT1_TMP = NO
+#ENDIF
+
 DECLARE FUNCTION backcompat_element_dmg (byval weak as integer, byval strong as integer, byval absorb as integer) as double
 DECLARE FUNCTION loadoldenemyresist (array() as integer, byval element as integer) as single
 DECLARE SUB clearenemydata OVERLOAD (enemy as EnemyDef)
 DECLARE SUB clearenemydata OVERLOAD (buf() as integer)
-DECLARE SUB loadenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as bool = NO)
-DECLARE SUB loadenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as bool = NO)
-DECLARE SUB saveenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as bool = NO)
-DECLARE SUB saveenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as bool = NO)
+DECLARE SUB loadenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as bool = USE_DT1_TMP)
+DECLARE SUB loadenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as bool = USE_DT1_TMP)
+DECLARE SUB saveenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as bool = USE_DT1_TMP)
+DECLARE SUB saveenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as bool = USE_DT1_TMP)
 DECLARE SUB convertenemydata (buf() as integer, enemy as EnemyDef)
 
 DECLARE SUB ClearFormation (form as Formation)

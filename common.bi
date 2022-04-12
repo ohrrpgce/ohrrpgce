@@ -13,6 +13,7 @@
 #include "reload.bi"
 #include "common_base.bi"
 #include "common_menus.bi"
+#include "loading.bi"
 
 USING RELOAD
 
@@ -204,8 +205,8 @@ DECLARE SUB load_gfx_defaults ()
 
 DECLARE FUNCTION readattackname OVERLOAD (byval index as integer) as string
 DECLARE FUNCTION readattackcaption (byval index as integer) as string
-DECLARE FUNCTION readenemyname OVERLOAD (byval index as integer) as string
-DECLARE SUB writeenemyname (byval index as integer, newname as string)
+DECLARE FUNCTION readenemyname OVERLOAD (byval index as integer, byval altfile as bool = USE_DT1_TMP) as string
+DECLARE SUB writeenemyname (byval index as integer, newname as string, byval altfile as bool = USE_DT1_TMP)
 DECLARE FUNCTION readitemname (byval index as integer) as string
 DECLARE FUNCTION readitemdescription (byval index as integer) as string
 DECLARE FUNCTION readshopname (byval shopnum as integer) as string

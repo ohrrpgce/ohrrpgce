@@ -1250,7 +1250,7 @@ SUB guessdefaultpals(byval fileset as SpriteType, poffset() as integer)
   'Inefficient
   DIM enemy as EnemyDef
   FOR j as integer = 0 TO gen(genMaxEnemy)
-   loadenemydata enemy, j
+   loadenemydata enemy, j, NO
    IF enemy.size + 1 = fileset THEN
     IF enemy.pic >= 0 AND enemy.pic <= UBOUND(poffset) THEN poffset(enemy.pic) = enemy.pal
    END IF
@@ -2081,26 +2081,20 @@ FUNCTION readattackcaption (byval index as integer) as string
  RETURN readbinstring(buf(), 73, 38)
 END FUNCTION
 
-#IFDEF IS_GAME
- CONST USE_DT1_TMP = YES  'Enemy data in .dt1.tmp rather than .dt1
-#ELSE
- CONST USE_DT1_TMP = NO
-#ENDIF
-
-FUNCTION readenemyname (byval index as integer) as string
+FUNCTION readenemyname (byval index as integer, byval altfile as bool = USE_DT1_TMP) as string
  DIM enemy as EnemyDef
- loadenemydata enemy, index, USE_DT1_TMP
+ loadenemydata enemy, index, altfile
  RETURN enemy.name
 END FUNCTION
 
-SUB writeenemyname (byval index as integer, newname as string)
+SUB writeenemyname (byval index as integer, newname as string, byval altfile as bool = USE_DT1_TMP)
  'If the enemy data hasn't been upgraded then saving+loading loses data.
  'This SUB is only called by "set enemy name" for games updated since hróðvitnir, this this shouldn't happen
  BUG_IF(getfixbit(fixDefaultDissolveEnemy) = NO ORELSE getfixbit(fixEnemyElementals) = NO, "doesn't support obsolete .rpgs")
  DIM enemy as EnemyDef
- loadenemydata enemy, index, USE_DT1_TMP
+ loadenemydata enemy, index, altfile
  enemy.name = newname
- saveenemydata enemy, index, USE_DT1_TMP
+ saveenemydata enemy, index, altfile
 END SUB
 
 FUNCTION readitemname (byval index as integer) as string
@@ -4324,7 +4318,7 @@ SUB import_enemy_elementals_from_dt1 (copy_enemytypes_from as string)
  DIM enemy as EnemyDef
  FOR enemynum as integer = 0 TO gen(genMaxEnemy)
   loadrecord old_dat(), copy_enemytypes_from, 160, enemynum
-  loadenemydata enemy, enemynum
+  loadenemydata enemy, enemynum, NO
   FOR j as integer = 0 TO UBOUND(enemy.elementals)
    DIM currentval as single = enemy.elementals(j)
    DIM oldval as single = loadoldenemyresist(old_dat(), j)
@@ -4336,7 +4330,7 @@ SUB import_enemy_elementals_from_dt1 (copy_enemytypes_from as string)
     enemy.elementals(j) = oldval
    END IF
   NEXT
-  saveenemydata enemy, enemynum
+  saveenemydata enemy, enemynum, NO
  NEXT
 END SUB
 '/
@@ -4819,11 +4813,11 @@ IF NOT isfile(workingdir + SLASH + "attack.bin") THEN
  '--and while we are at it, clear the old death-string from enemies
  upgrade_message "Re-init recycled enemy data..."
  FOR i as integer = 0 TO gen(genMaxEnemy)
-  loadenemydata buffer(), i
+  loadenemydata buffer(), i, NO
   FOR j as integer = 17 TO 52
    buffer(j) = 0
   NEXT j
-  saveenemydata buffer(), i
+  saveenemydata buffer(), i, NO
  NEXT i
 END IF
 
@@ -5136,8 +5130,8 @@ IF full_upgrade ANDALSO (fixdissolves OR fixelementals) THEN
  ' loadenemydata will upgrade the data when loading. All we have to do is load and save again.
  DIM enemy as EnemyDef
  FOR i as integer = 0 TO gen(genMaxEnemy)
-  loadenemydata enemy, i
-  saveenemydata enemy, i
+  loadenemydata enemy, i, NO
+  saveenemydata enemy, i, NO
  NEXT
  setfixbit(fixDefaultDissolveEnemy, 1)
  setfixbit(fixEnemyElementals, 1)

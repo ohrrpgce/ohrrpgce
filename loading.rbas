@@ -4039,10 +4039,17 @@ SUB clearenemydata (buf() as integer)
  NEXT
 END SUB
 
+'Game makes a temp copy of the .dt1 file to allow modifications. `altfile` can
+'be used to override the default behaviour of whether to read this file, but
+'should be left as its default nearly always.
 'Note that this form of loadenemydata does not do fixEnemyElementals fixes!
 'Don't use this anywhere in Game where those need to be applied! (Of course,
-'you probably would never use this in Game)
-SUB loadenemydata (array() as integer, byval index as integer, byval altfile as bool = NO)
+'you probably would never use this in Game... except "read enemy data")
+SUB loadenemydata (array() as integer, byval index as integer, byval altfile as bool = USE_DT1_TMP)
+ #IFDEF IS_CUSTOM
+  IF altfile THEN showbug "loadenemydata: no .dt1.tmp in Custom"
+  altfile = NO
+ #ENDIF
  DIM filename as string
  IF altfile THEN
   filename = tmpdir & "dt1.tmp"
@@ -4052,7 +4059,7 @@ SUB loadenemydata (array() as integer, byval index as integer, byval altfile as 
  loadrecord array(), filename, getbinsize(binDT1) \ 2, index
 END SUB
 
-SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as bool = NO)
+SUB loadenemydata (enemy as EnemyDef, byval index as integer, byval altfile as bool = USE_DT1_TMP)
  DIM buf(dimbinsize(binDT1)) as integer
  loadenemydata buf(), index, altfile
  convertenemydata buf(), enemy
@@ -4172,7 +4179,14 @@ SUB convertenemydata (buf() as integer, enemy as EnemyDef)
  END WITH
 END SUB
 
-SUB saveenemydata (array() as integer, byval index as integer, byval altfile as bool = NO)
+'Game makes a temp copy of the .dt1 file to allow modifications. `altfile` can
+'be used to override the default behaviour of whether to read this file, but
+'should be left as its default nearly always.
+SUB saveenemydata (array() as integer, byval index as integer, byval altfile as bool = USE_DT1_TMP)
+ #IFDEF IS_CUSTOM
+  IF altfile THEN showbug "saveenemydata: no .dt1.tmp in Custom"
+  altfile = NO
+ #ENDIF
  DIM filename as string
  IF altfile THEN
   filename = tmpdir & "dt1.tmp"
@@ -4182,7 +4196,7 @@ SUB saveenemydata (array() as integer, byval index as integer, byval altfile as 
  storerecord array(), filename, getbinsize(binDT1) \ 2, index
 END SUB
 
-SUB saveenemydata (enemy as EnemyDef, byval index as integer, byval altfile as bool = NO)
+SUB saveenemydata (enemy as EnemyDef, byval index as integer, byval altfile as bool = USE_DT1_TMP)
  DIM buf(dimbinsize(binDT1)) as integer
  WITH enemy
   writebadbinstring(.name, buf(), 0, 16)

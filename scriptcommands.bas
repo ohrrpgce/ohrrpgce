@@ -3558,7 +3558,7 @@ SUB script_functions(byval cmdid as integer)
   IF valid_enemy(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
     DIM enemy as EnemyDef
-    loadenemydata enemy, retvals(0), YES
+    loadenemydata enemy, retvals(0)
     scriptret = 100 * enemy.elementals(retvals(1))  'rounds to nearest int
    END IF
   END IF
