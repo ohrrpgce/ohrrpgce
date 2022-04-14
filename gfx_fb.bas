@@ -35,6 +35,12 @@
 'Use the FB namespace for the types and constants from fbgfx
 USING FB
 
+#ifndef GFX_SCREEN_EXIT
+ 'Added in FB 1.08
+ const as integer GFX_SCREEN_EXIT = &h80000000l
+#endif
+
+
 'a public rtlib function that they seem to have forgotten to expose to FB programs?
 declare function fb_KeyHit alias "fb_KeyHit" () as long
 
@@ -167,7 +173,8 @@ sub gfx_fb_close
 	init_gfx = NO
 	if nogfx then exit sub
 	GFX_ENTER
-	screen 0
+	'GFX_SCREEN_EXIT prevents fbgfx from resetting and clearing the console
+	screen 0, , , GFX_SCREEN_EXIT
 	GFX_EXIT
 end sub
 
