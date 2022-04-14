@@ -111,6 +111,8 @@ declare function channel_write (byref channel as IPCChannel, byval buf as any pt
 declare function channel_write_line (byref channel as IPCChannel, buf as string) as integer
 declare function channel_input_line (byref channel as IPCChannel, line_in as string) as integer
 
+declare function file_ready_to_read(fileno as integer) as boolean
+
 'Networking
 
 type HTTPRequest

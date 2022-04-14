@@ -12,6 +12,7 @@
 #include "allmodex.bi"
 #include "curses.bi"
 #include once "crt.bi"
+#include once "crt/unistd.bi"
 
 #undef raw
 
@@ -144,6 +145,8 @@ function gfx_console_init(byval terminate_signal_handler as sub cdecl (), byval 
 	window_state.zoom = 2
 	window_state.windowsize = XY(640, 400)  'We don't claim to have a resizable window
 
+	init_keymap()
+
 	if curses_mode then
 		retstr = *curses_version()
 
@@ -157,7 +160,6 @@ function gfx_console_init(byval terminate_signal_handler as sub cdecl (), byval 
 			retstr += " (override to xterm-256color)"
 		end if
 
-		init_keymap()
 		if init_gfx = 0 then
 			if initscr() = NULL then
 				retstr &= " ... initscr failed"
@@ -352,16 +354,28 @@ sub io_console_keybits(byval keybd as integer ptr)
 		keybd[i] = 0
 	next
 
-	if curses_mode = NO then exit sub
-
 	'This only supports part of the keyboard, and some
 	'terminals, like linux vttys support even less (no page up/down)
 
 	dim key as integer
 	dim kmkey as integer
 	while 1
-		key = getch()
-		if key = CURSES_ERR then exit while
+		if curses_mode then
+			key = getch()
+			if key = CURSES_ERR then exit while
+		else
+			'This is quite crappy because it doesn't support escape codes for keys like Left, ESC,
+			'so they insert garbage. They should work if you instead use gfx_fb with --nogfx,
+			'so won't also use multikey here and create a dependency on fbgfx.
+			'Also, even without calling ncurses, keypresses still aren't echoed,
+			'apparently the rtlib sets it up that way.
+			if file_ready_to_read(STDIN_FILENO) = NO then exit while  'Don't block
+			key = getchar()
+			if key = EOF_ then  'Shouldn't happen
+				debug "getchar EOF!"
+				exit while
+			end if
+		end if
 		kmkey = key
 		dim tmp as string = ""
 		if key < 256 and key <> 10 and key <> 127 then

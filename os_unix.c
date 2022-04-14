@@ -30,12 +30,13 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/file.h>
+#include <sys/select.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <errno.h>
 #include <stdio.h>
-#include <sys/types.h>
 #include <dirent.h>
 #include <fnmatch.h>
 #include <pthread.h>
@@ -845,6 +846,21 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 }
 //fb_StrAssign(output, -1, buf, strlen(buf), 0);
 //fb_hStrCopy(output->data + outlen, buf, 512);
+
+// Returns true if a file descriptor (presumably a stream) either has data to read, or has been closed
+bool file_ready_to_read(int fd) {
+	struct timeval tv = {0, 0};
+	fd_set read_fds;
+	FD_ZERO(&read_fds);
+	FD_SET(fd, &read_fds);
+	int ret = select(fd + 1, &read_fds, NULL, NULL, &tv);
+	if (ret > 0) {
+		return true;
+	} else if (ret < 0) {
+		perror("file_ready_to_read");
+	}
+	return false;
+}
 
 
 //==========================================================================================

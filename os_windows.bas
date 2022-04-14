@@ -897,6 +897,9 @@ function channel_input_line (byref channel as NamedPipeInfo ptr, line_in as stri
 	loop
 end function
 
+function file_ready_to_read(fileno as integer) as boolean
+	return false  'Not implemented
+end function
 
 '==========================================================================================
 '                                       Processes
