@@ -319,6 +319,9 @@ function gfx_console_setoption(byval opt as zstring ptr, byval arg as zstring pt
 			curses_mode = NO
 			debug_to_console = YES
 			ret = 1
+		elseif *opt = "nogfx" then
+			curses_mode = NO
+			ret = 1
 		elseif *opt = "dontforce256" then
 			force_256_color = NO
 			ret = 1
@@ -331,7 +334,8 @@ function gfx_console_setoption(byval opt as zstring ptr, byval arg as zstring pt
 end function
 
 function gfx_console_describe_options() as zstring ptr
-	return @!"-d -debuglog        Disable curses; print ?_debug log instead. No user input! \n" _
+	return @!"-nogfx              Disable curses, display nothing. Combine with --print or -d\n" _
+	        !"-d -debuglog        Print ?_debug.txt log, implies --nogfx\n" _
                  "-dontforce256       Don't assume that TERM=xterm means TERM=xterm-256color"
 end function
 

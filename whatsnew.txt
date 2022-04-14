@@ -143,6 +143,10 @@ WHAT IS NEW?
     * UI in Battle (Hero names, meters, HP, status icons) are now all
       slice-based instead of hardcoded. It still looks the same by
       default! [James]
+    * EditorKit framework to make creating and modifying editors easy. Several
+      editors have been converted to it. Will allow many UI improvements [Ralph]
+    * gfx_fb and gfx_console take a --nogfx arg, combine with --print to create
+      commandline programs [Ralph]
 
 
 September 13 2021 [Hróðvitnir]

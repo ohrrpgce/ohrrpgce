@@ -44,7 +44,7 @@ extern "C"
 declare sub calculate_and_set_screen_res(fullscreen as bool)
 declare sub update_mouse_visibility()
 
-
+dim shared nogfx as bool = NO
 dim shared screen_buffer_offset as XYPair  'Position of the image on the window/screen, in screen pixels
 dim shared window_state as WindowState
 dim shared want_toggle_fullscreen as bool  'Alt-Enter pressed, change pending
@@ -70,7 +70,11 @@ dim shared truepal(255) as RGBcolor
 
 'Don't bother with gfxmutex in this function, as polling thread hasn't started
 function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
-	if init_gfx = NO then
+	if init_gfx then return 0
+
+	if nogfx then
+		*info_buffer = "nogfx"
+	else
 		#ifdef USE_X11
 			'Xlib will kill the program if most errors occur, such as if OpenGL on the machine is broken
 			'so the window can't be created. We need to install an error handler to prevent that
@@ -87,10 +91,10 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 
 		calculate_and_set_screen_res window_state.fullscreen
 		screenset 1, 0    'Only want one FB video page
-		init_gfx = YES
 		screeninfo w, h, bpp, , , refreshrate, driver
 		*info_buffer = MID(bpp & "bpp, " & refreshrate & "Hz, " & driver & " driver", 1, info_buffer_size)
 	end if
+	init_gfx = YES
 	window_state.structsize = WINDOWSTATE_SZ
 	window_state.focused = YES
 	window_state.minimised = NO
@@ -103,6 +107,7 @@ end function
 
 'calculate_and_set_screen_res should be called instead of this
 local sub gfx_fb_screenres()
+	if nogfx then exit sub
 	debuginfo "screenres " & screensize & " depth=" & depth & " fullscreen=" & window_state.fullscreen
 	'GFX_NO_SWITCH: disable alt+enter to change to/from fullscreen, so we can handle it ourselves,
 	'changing screensize at the same time. Otherwise, fbgfx often fails to switch to fullscreen,
@@ -159,10 +164,11 @@ sub gfx_fb_update_screen_mode()
 end sub
 
 sub gfx_fb_close
+	init_gfx = NO
+	if nogfx then exit sub
 	GFX_ENTER
 	screen 0
 	GFX_EXIT
-	init_gfx = NO
 end sub
 
 function gfx_fb_getversion() as integer
@@ -189,6 +195,7 @@ end sub
 'Called with gfxmutex held
 function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette ptr) as integer
 	dim ret as integer = 0
+	if nogfx then return 0
 
 	dim newdepth as integer = iif(surfaceIn->format = .SF_32bit, 32, 8)
 	if newdepth <> depth orelse surfaceIn->size <> framesize then
@@ -297,6 +304,10 @@ function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as
 			smooth = 0
 		end if
 		ret = 1
+	elseif *opt = "nogfx" then
+		debug "nogfx"
+		nogfx = YES
+		ret = 1
 	end if
 	'all these take an optional numeric argument, so gobble the arg if it is
 	'a number, whether or not it was valid
@@ -392,7 +403,8 @@ end sub
 
 function gfx_fb_describe_options() as zstring ptr
 	return @"-z -zoom [1...16]   Scale screen to 1,2, ... up to 16x normal size (2x default)" LINE_END _
-	        "-s -smooth          Enable smoothing filter for zoom modes (default off)"
+	        "-s -smooth          Enable smoothing filter for zoom modes (default off)" LINE_END _
+		"-nogfx              (Unix only) Don't create a window, commandline only. Combine with --print."
 end function
 
 '------------- IO Functions --------------
