@@ -302,7 +302,7 @@ function benchmark_crappy_sqrt() {
 bubbles <- null
 
 function benchmark_bubble_fill() {
-    bubbles = array(50)
+    bubbles = array(40)
     // This version is about the same speed
     //foreach (i, _ in bubbles)
     local size = bubbles.len()
@@ -331,9 +331,10 @@ function benchmark_bubble_sort() {
 
 /******************************/
 
-function run_benchmark(script, loops, scoremult = 1) {
+function run_benchmark(script, loops, scoremult = 1, init_func = null) {
     local times = []
     for (local i = 0; i < NUM_RUNS; i++) {
+        if (init_func) init_func()
         local timing = clock()
         script()
         times.append(clock() - timing)
@@ -368,7 +369,7 @@ run_benchmark(benchmark_continue_loop, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_addition, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_increment, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_array_index, MICRO_LOOPCOUNT)
-run_benchmark(benchmark_array_foreach, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_array_foreach, MICRO_LOOPCOUNT, 0)  // mult=0 because HS lacks it
 run_benchmark(benchmark_array_foreach_sum, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_array_append, 100)
 run_benchmark(benchmark_string_append, MICRO_LOOPCOUNT, 0.25)
@@ -379,6 +380,6 @@ run_benchmark(benchmark_recursive_fibonacci, 1, 2)
 run_benchmark(benchmark_fixedmul, 1)
 run_benchmark(benchmark_string_iter, 1)
 run_benchmark(benchmark_crappy_sqrt, 1)
-run_benchmark(benchmark_bubble_fill, 50)
-run_benchmark(benchmark_bubble_sort, 1)
+run_benchmark(benchmark_bubble_fill, 40)
+run_benchmark(benchmark_bubble_sort, 1, 1, benchmark_bubble_fill)
 printnl("Total time score: " + score)

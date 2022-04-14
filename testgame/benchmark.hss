@@ -1,8 +1,9 @@
 include, plotscr.hsd
 
 define constant, begin
-  # Whether to run HS-specific benchmarks not ported to other languages
-  false, HSBENCH
+  # Whether to run Plotscripting-specific (as opposed to HS) benchmarks
+  # and others not ported to the benchmarks for other languages
+  false, PSBENCH
   # Whether to print all times. Else uses same format as benchmarks for other languages
   false, print all times
 
@@ -56,7 +57,7 @@ plotscript, main, begin
   score += run benchmark (@benchmark: while loop, loops)
   $1 = "continue loop"
   score += run benchmark (@benchmark: continue loop, loops)
-  if (HSBENCH) then (
+  if (PSBENCH) then (
     $1 = "if then"
     score += run benchmark (@benchmark: if then, loops)
     $1 = "if else"
@@ -82,7 +83,7 @@ plotscript, main, begin
   score += run benchmark (@benchmark: increment, loops)
   $1 = "array index"
   score += run benchmark (@benchmark: array index, loops)
-  if (not(HSBENCH)) then (
+  if (not(PSBENCH)) then (
     trace($1="array foreach\n N/A\n N/A")
   )
   # Python & Squirrel benchmarks have array_foreach_sum instead, which is comparable
@@ -90,14 +91,14 @@ plotscript, main, begin
   score += run benchmark (@benchmark: array index sum, loops)
   $1 = "array append"
   score += run benchmark (@benchmark: array append, 100)
-  if (HSBENCH) then (
+  if (PSBENCH) then (
     $1 = "string assignment"
     score += run benchmark (@benchmark: string assignment, loops)
   )
   $1 = "string append"
   score += run benchmark (@benchmark: string append, loops) / 4
 
-  if (HSBENCH) then (
+  if (PSBENCH) then (
     $1 = "sfunctions command overhead"
     score += run benchmark (@benchmark: sfunctions command overhead, loops)
     $1 = "milliseconds"
@@ -119,7 +120,7 @@ plotscript, main, begin
   score += run benchmark (@benchmark: call script, loops)
   $1 = "call multiarg script"
   score += run benchmark (@benchmark: call multiarg script, loops)
-  if (HSBENCH) then (
+  if (PSBENCH) then (
     $1 = "run script by id"
     score += run benchmark (@benchmark: run script by id, loops)
     $1 = "call and return value"
@@ -150,18 +151,19 @@ plotscript, main, begin
   $1 = "string iter"
   score += run benchmark (@benchmark: string iter, 1)
 
-  if (HSBENCH) then (
+  if (PSBENCH) then (
     $1 = "create and delete lotsa slices"
     score2 += run benchmark (@benchmark: create and delete lotsa slices, 1) * 2 / 3
   )
   $1 = "crappy sqrt"
   score += run benchmark (@benchmark: crappy sqrt, 1)
   $1 = "bubble fill"
-  score += run benchmark (@benchmark: bubble fill, 50)
+  score += run benchmark (@benchmark: bubble fill, 40)
   $1 = "bubble sort"
-  score += run benchmark (@benchmark: bubble sort, 1)
-
-  if (HSBENCH) then (
+  score += run benchmark (@benchmark: bubble sort, 1, @benchmark: bubble fill)
+  if (PSBENCH) then (
+    $1 = "faster bubble sort"
+    score += run benchmark (@benchmark: faster bubble sort, 1, @benchmark: bubble fill)
     $1 = "eat soap mania"
     score2 += run benchmark (@benchmark: eat soap mania, 1) * 2
     $1 = "xor map"
@@ -208,7 +210,7 @@ script, append decimal 100, string, number, begin
   )
 end
 
-script, run benchmark, script id, loops, begin
+script, run benchmark, script id, loops, init func = 0, begin
   variable (i, j, n, time, best, worst, avg, displayval)
 
   $2 = "Benchmark: "
@@ -217,6 +219,7 @@ script, run benchmark, script id, loops, begin
   #wait (1)
 
   for (i, 0, NUM RUNS -- 1) do (
+    if (init func) then (run script by id (init func))
     time := microseconds
     run script by id (script id)
     time := microseconds -- time
@@ -1005,7 +1008,7 @@ script, benchmark: bubble fill, begin
   variable (i)
   if (bubbles) then (free slice (bubbles))
   bubbles := create container
-  resize slice extra (bubbles, 50)
+  resize slice extra (bubbles, 40)
   for (i, 0, slice extra length(bubbles) -- 1) do (
     set slice extra (bubbles, i, (24461 * i) ,mod, 32767)
   )
@@ -1016,8 +1019,8 @@ script, benchmark: bubble sort, begin
   size := slice extra length (bubbles)
   for (i, 1, size -- 1) do (
     for (j, 0, i -- 1) do (
-      # This could be written with few function calls, but the intent is to test
-      # the speed of array extra data access
+      # This could be written with fewer function calls (see faster bubble
+      # sort), but the intent is to test the speed of array extra data access
       if (get slice extra(bubbles, j) > get slice extra(bubbles, i)) then (
         tmp := get slice extra(bubbles, j)
         set slice extra (bubbles, j, get slice extra(bubbles, i))
@@ -1033,6 +1036,23 @@ script, benchmark: bubble sort, begin
   #   )
   # )
   # trace value of(total)
+  # assert(total == 867629)
+end
+
+
+# This is actually hardly faster despite the swap condition being true ~65% of the time
+script, benchmark: faster bubble sort, begin
+  variable (size, i, j)
+  size := slice extra length (bubbles)
+  for (i, 1, size -- 1) do (
+    for (j, 0, i -- 1) do (
+      variable (bi, bj)
+      if ((bj := get slice extra(bubbles, j)) > (bi := get slice extra(bubbles, i))) then (
+        set slice extra (bubbles, j, bi)
+        set slice extra (bubbles, i, bj)
+      )
+    )
+  )
 end
 
 

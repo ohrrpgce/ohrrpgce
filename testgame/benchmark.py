@@ -243,7 +243,7 @@ bubbles = None
 
 def benchmark_bubble_fill():
     global bubbles
-    bubbles = [0] * 50
+    bubbles = [0] * 40
     for i in range(len(bubbles)):
         bubbles[i] = (24461 * i) % 32767
 
@@ -255,12 +255,12 @@ def benchmark_bubble_sort():
                 bubbles[j], bubbles[i] = bubbles[i], bubbles[j]
     # for i in range(0, len(bubbles) - 1):
     #     assert bubbles[i] <= bubbles[i+1]
-
+    # print(sum(bubbles))
 
 ########################################################################
 
-def run_benchmark(script, loops, scoremult = 1):
-    times = timeit.repeat(script, repeat=NUM_RUNS, number=1)
+def run_benchmark(script, loops, scoremult = 1, init_func = ""):
+    times = timeit.repeat(script, repeat=NUM_RUNS, number=1, setup=init_func)
     if hasattr(script, '__name__'):
         print(script.__name__)
     else:
@@ -291,17 +291,17 @@ run_benchmark(benchmark_continue_loop, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_addition, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_increment, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_array_index, MICRO_LOOPCOUNT)
-run_benchmark(benchmark_array_foreach, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_array_foreach, MICRO_LOOPCOUNT, 0)  # mult=0 because HS lacks it
 run_benchmark(benchmark_array_foreach_sum, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_array_append, 100)
-run_benchmark(benchmark_string_append, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_string_append, MICRO_LOOPCOUNT, 0.25)
 run_benchmark(benchmark_call_script, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_call_multiarg_script, MICRO_LOOPCOUNT)
 print("\nGeneral benchmarks\n")
-run_benchmark(benchmark_recursive_fibonacci, 1)
+run_benchmark(benchmark_recursive_fibonacci, 1, 2)
 run_benchmark(benchmark_fixedmul, 1)
 run_benchmark(benchmark_string_iter, 1)
 run_benchmark(benchmark_crappy_sqrt, 1)
-run_benchmark(benchmark_bubble_fill, 50)
-run_benchmark(benchmark_bubble_sort, 1)
+run_benchmark(benchmark_bubble_fill, 40)
+run_benchmark(benchmark_bubble_sort, 1, init_func=benchmark_bubble_fill)
 print("Total time score: %d" % score)
