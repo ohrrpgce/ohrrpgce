@@ -4560,9 +4560,7 @@ end
 script, slice tests, begin
   $0="Slice tests"
 
-  # Extremely unfinished!
-
-  variable (sl)
+  # Highly unfinished!
 
   slice extra tests
   slice collection tests
@@ -4573,8 +4571,20 @@ script, slice tests, begin
   slice blending tests
   slice sort tests
   slice clone tests
+  slice handle tests
+
+  rect slice tests
+  text slice tests
+  ellipse slice tests
+end
+
+########################################################################
+
+script, slice handle tests, begin
+  $0="Slice handle tests"
 
   # slice is valid
+  variable (sl)
   assert(slice is valid(0) == false)
   sl := create container
   assert(slice is valid(sl))
@@ -4582,12 +4592,19 @@ script, slice tests, begin
   assert(slice is valid(sl) == false)
   assert(slice is valid(sprite layer))
   assert(slice is valid(-1) == false)
-  assert(slice is valid(4242) == false)  # May fail
+  assert(slice is valid(4242) == false)
 
-  rect slice tests
-  text slice tests
-  ellipse slice tests
-
+  # Check that slice handles aren't reused quickly
+  # (The actual minimum number of frees before a handle is reused
+  # is currently 256*4000 = 1,024,000)
+  variable(i, sl2)
+  sl := create container
+  free slice(sl)
+  for (i, 0, 5100) do (
+    sl2 := create container
+    assert(sl2 <> sl)
+    free slice(sl2)
+  )
 end
 
 ########################################################################

@@ -1459,7 +1459,8 @@ REDIM timers(numInitialTimers - 1)
 close_persist_reld()
 
 cleanup_game_slices()
-'plotslices() should now be all zeroed out. Rather than checking, check slicedebug() (if enabled)
+'plotslices() should now be all zeroed out (the .handles aren't). Rather than
+'checking, check slicedebug() (if enabled)
 SliceDebugDump YES
 SetupGameSlices
 reset_game_state()

@@ -1,5 +1,5 @@
 'OHRRPGCE - Slices
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2022 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 
@@ -109,9 +109,9 @@
 #include "surface.bi"
 
 #ifdef IS_GAME
- 'For plotslices(), next_slice_handle, num_reusable_slice_handles
+ 'For plotslices(), next_slice_table_slot, num_reusable_slice_table_slots
  #include "gglobals.bi"
- 'For set_plotslice_handle
+ 'For restore_saved_plotslice_handle
  #include "scriptcommands.bi"
 #endif
 
@@ -631,10 +631,10 @@ End Function
   if sl = 0 then return NO
   if sl->TableSlot > 0 then
    if sl->TableSlot <= ubound(plotslices) then
-    if plotslices(sl->TableSlot) = sl then
+    if plotslices(sl->TableSlot).sl = sl then
      return YES
     else
-     showbug "TableSlot mismatch! Slice " & SlicePath(sl) & " slot is " & sl->TableSlot & " which has " & plotslices(sl->TableSlot)
+     showbug "TableSlot mismatch! Slice " & SlicePath(sl) & " slot is " & sl->TableSlot & " which has " & plotslices(sl->TableSlot).sl
     end if
    else
     showbug "TableSlot for " & SlicePath(sl) & " is invalid: " & sl->TableSlot
@@ -667,14 +667,15 @@ Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer=0)
   'SliceDebugLinks sl, NO, "deleting", debugme - 1
   debugme += 1
  end if
- 
+
 #ifdef IS_GAME
- 'unlink this slice from the table of handles
+ 'unlink this slice from the table of handles if it has an assigned slice handle
  if CheckTableSlotOK(sl) then
-  '--zero out the reference to this slice from the table
-  plotslices(sl->TableSlot) = 0
-  if sl->TableSlot > 0 and sl->TableSlot < next_slice_handle then
-   num_reusable_slice_handles += 1
+  'Zero out the reference to this slice from the table, but leave .handle alone so
+  'it will be incremented next time.
+  plotslices(sl->TableSlot).sl = 0
+  if sl->TableSlot < next_slice_table_slot then
+   num_reusable_slice_table_slots += 1
   end if
  end if
 #endif
@@ -3882,6 +3883,7 @@ Sub SetSliceTarg(byval s as Slice ptr, byval x as integer, byval y as integer, b
 end sub
 
 ' Apply slice movement to this slice and descendants
+' TODO: dissolves should also be applied here (but not to hidden slices)
 Sub AdvanceSlice(byval s as Slice ptr)
  if s = 0 then debug "AdvanceSlice null ptr": exit sub
  if s->Paused = NO andalso ShouldSkipSlice(s) = NO then
@@ -4570,7 +4572,9 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  #IFDEF IS_GAME
   if save_handles then
    ' This only occurs when saving a game.
-   SaveProp node, "tableslot_handle", sl->TableSlot
+   if sl->TableSlot then
+    SaveProp node, "tableslot_handle", plotslices(sl->TableSlot).handle
+   end if
   end if
  #ENDIF
  '--Save properties specific to this slice type
@@ -4723,7 +4727,7 @@ Function SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_h
    ' This only occurs when loading a saved game.
    ' Slice handles should never be loaded from a collection in the middle of a game!
    dim tableslot as integer = LoadProp(node, "tableslot_handle")
-   if tableslot then set_plotslice_handle(sl, tableslot)
+   if tableslot then restore_saved_plotslice_handle(sl, tableslot)
   end if
  #ENDIF
  'TODO: create a SliceContext so it can load itself. For now, SliceLoadFromFile gives
@@ -4911,7 +4915,10 @@ SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
   s &= " (P)"
  end if
 
- s &= " lookup:" & SliceLookupCodename(sl) & " handle:" & sl->TableSlot & " pos:" & sl->Pos & " size:" & sl->Size.wh
+ s &= " lookup:" & SliceLookupCodename(sl) & " tableslot:" & sl->TableSlot & " pos:" & sl->Pos & " size:" & sl->Size.wh
+ #ifdef IS_GAME
+  if sl->TableSlot then s &= " handle:" & plotslices(sl->TableSlot).handle
+ #endif
  if sl->Template then s &= " template"
  if sl->Visible = NO then s &= " visible:false"
  if sl->ExtraVec then

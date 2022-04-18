@@ -1,5 +1,5 @@
 'OHRRPGCE CUSTOM - Slice Collection Editor
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2022 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 '
 #include "config.bi"
@@ -12,6 +12,9 @@
 #include "reloadext.bi"
 #ifdef IS_CUSTOM
  #include "custom.bi"
+#endif
+#ifdef IS_GAME
+ #include "gglobals.bi"
 #endif
 
 #include "sliceedit.bi"
@@ -1841,7 +1844,11 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule_none rules(), "lookup"
  END IF
  #IFDEF IS_GAME
-  a_append menu(), "Script handle: " & defaultint(.TableSlot, "None", 0)
+  IF .TableSlot THEN
+   a_append menu(), "Script handle: " & plotslices(.TableSlot).handle & " (slice " &  .TableSlot & ")"
+  ELSE
+   a_append menu(), "Script handle: None"
+  END IF
   sliceed_rule_none rules(), "scripthandle"
  #ENDIF
  IF .Context THEN

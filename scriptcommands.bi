@@ -1,5 +1,5 @@
 'OHRRPGCE GAME - Script command implementations
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2022 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #ifndef SCRIPTCOMMANDS_BI
@@ -7,6 +7,48 @@
 
 #include "slices.bi"
 #include "udts.bi"
+
+'''' Script handles
+
+' Handles are 32-bit ints where the top 5 bits are the HandleType, the rest is
+' "payload" (arbitrary data), so that different types of handles (eg slices,
+' menu items) are in separate ranges.
+
+'There can be up to 31 different types of handles, with possible type values -16 to 15
+enum HandleType explicit
+ NPC       = -1    ' Range -&h7FFFFFF to -1, but only -300 to -1 are used
+ None      = 0
+ 'Menu      = 1
+ 'MenuItem  = 2
+ Slice     = 12    ' Slice handles are spread over four types, to get 2 extra SLICE_HANDLE_CTR_MASK bits
+ Slice2    = 13
+ Slice3    = 14
+ Slice4    = 15
+end enum
+
+#define HANDLE_TYPE_SHIFT       27
+#define HANDLE_TYPE_MASK        &hF8000000  '31 shl HANDLE_TYPE_SHIFT
+#define HANDLE_PAYLOAD_MASK     &h07FFFFFF  '(1 shl HANDLE_TYPE_SHIFT) - 1
+#define get_handle_type(handle)  (CAST(uinteger, handle) SHR HANDLE_TYPE_SHIFT)
+
+'Slice handles point to a slot of plotslices() and have a counter that's incremented every time
+'the slot is reused, so that stale slice handles can be detected with high confidence.
+'Note that slice handles loaded from old .rsav files count from 1, which is equivalent
+'to HandleType = 0 and CTR = 0 but they still work everywhere because we check against .handle in
+'plotslices() rather than checking the type mask.
+#define SLICE_HANDLE_CTR_SHIFT  21
+#define SLICE_HANDLE_CTR_MASK   &h1FE00000  '255 shl CTR_SHIFT. Includes lower 2 bits of HANDLE_TYPE_MASK!
+#define SLICE_HANDLE_SLOT_MASK  &h001FFFFF  '(1 shr CTR_SHIFT) - 1. Max 2.1 million slice handles
+
+'An element of plotslices()
+TYPE SliceHandleSlot
+  sl as Slice ptr     '0 if this slot is unused
+  handle as integer   'The slice handle. If the slot is used then always
+                      '(.handle AND SLICE_HANDLE_SLOT_MASK) = .sl->TableSlot (the plotslices() index).
+                      'If this slot is unused then (.handle AND SLICE_HANDLE_CTR_MASK) is kept as
+                      'the previous ctr value to be incremented, the rest is considered garbage.
+END TYPE
+
 
 DECLARE FUNCTION checksaveslot (slot as integer) as integer
 DECLARE SUB erasesaveslot (slot as integer)
@@ -59,7 +101,7 @@ DECLARE FUNCTION get_slice_drawopts(sl as Slice ptr, required as bool = YES) as 
 
 DECLARE FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE FUNCTION find_plotslice_handle(byval sl as Slice Ptr) as integer
-DECLARE SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
+DECLARE SUB restore_saved_plotslice_handle(byval sl as Slice Ptr, handle as integer)
 
 DECLARE FUNCTION find_menu_id (byval id as integer) as integer
 DECLARE FUNCTION find_menu_handle (byval handle as integer) as integer

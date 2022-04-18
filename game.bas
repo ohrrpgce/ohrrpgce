@@ -188,7 +188,7 @@ DIM heapp as integer ptr
 DIM scratp as OldScriptState ptr
 DIM scriptp as ScriptData ptr ptr
 DIM retvalsp as integer ptr
-DIM plotslicesp as slice ptr ptr
+DIM plotslicesp as SliceHandleSlot ptr
 globalp = @global(0)
 heapp = @heap(0)
 scratp = @scrat(0)
@@ -3833,9 +3833,8 @@ Sub DestroyGameSlices (dumpdebug as bool = NO)
 
  'Correct accounting of these globals is unnecessary! I guess
  'it's good for determinism though
- num_reusable_slice_handles = 0
- highest_used_slice_handle = 0
- next_slice_handle = LBOUND(plotslices)
+ num_reusable_slice_table_slots = 0
+ next_slice_table_slot = LBOUND(plotslices)
 END SUB
 
 

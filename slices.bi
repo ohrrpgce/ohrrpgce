@@ -342,6 +342,7 @@ Type Slice
 
   Context as SliceContext ptr  'NULL if none
   TableSlot as integer 'which slot in plotslices() holds a reference to this slice, or 0 for none
+                       'The script handle is stored at plotslices(.TableSlot).handle.
   Lookup as integer
 
   EditorColor as integer 'Not saved, used only by slice editor. -1 if not overridden

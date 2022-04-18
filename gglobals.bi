@@ -9,6 +9,7 @@
 #include "slices.bi"
 #include "os.bi"
 #include "scripting.bi"
+#include "scriptcommands.bi"
 
 'Misc game globals
 EXTERN savedir as string
@@ -92,7 +93,7 @@ EXTERN heapp as integer ptr
 EXTERN scratp as OldScriptState ptr
 EXTERN scriptp as ScriptData ptr ptr
 EXTERN retvalsp as integer ptr
-EXTERN plotslicesp as slice ptr ptr
+EXTERN plotslicesp as SliceHandleSlot ptr
 
 EXTERN timers() as PlotTimer
 
@@ -114,8 +115,6 @@ EXTERN remembered_menu_pts() as integer
 
 'Slice handles
 EXTERN SliceTable as SliceTableType
-EXTERN plotslices() as Slice ptr
-EXTERN next_slice_handle as integer
-EXTERN highest_used_slice_handle as integer
-EXTERN num_reusable_slice_handles as integer
-
+EXTERN plotslices() as SliceHandleSlot
+EXTERN next_slice_table_slot as integer
+EXTERN num_reusable_slice_table_slots as integer

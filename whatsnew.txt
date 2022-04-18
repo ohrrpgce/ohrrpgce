@@ -81,6 +81,9 @@ WHAT IS NEW?
     * (Unix only) --print and --printonly commandline args cause trace/tracevalue
       to print to the terminal as well as/instead of g_debug.txt [Ralph]
     * "reset enemy data", "reset enemy stat", "reset enemy name" [Ralph]
+    * "slice is valid" can now tell slice handles apart from anything else (e.g.
+      NPCs, menus) and is safe to use: it no longer returns false positives...
+      until you create and delete at least a million slices. Good enough. [Ralph]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.
@@ -89,6 +92,9 @@ WHAT IS NEW?
       Too complex! [Ralph]
     * When you import a slice collection with forbidden slices they are cleaned
       up for you, rather than not importing and telling you to clean it [Ralph]
+    * The number of slices is now limited to 2.1 million because slice handles
+      don't count up from 1, in order to fix "slice is valid". (Handles for
+      slices in old saves still work) [Ralph]
 
   *** Bugfixes
     * Various gfx_sdl2 window size/position/resizing and mouse glitches when

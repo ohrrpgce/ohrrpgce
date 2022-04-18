@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-04-12">
+<plotscript version="wip" datecode="2022-04-17">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -6742,21 +6742,25 @@ set menu on close script(m, @my menu exit handler)
 			</seealso>
 		</command>
 		<command id="sliceisvalid">
-			<canon>slice is valid (id)</canon>
+			<canon>slice is valid (value)</canon>
 			<shortname>slice is valid</shortname>
 			<description>
-				Returns true if the given <p>id</p> is a valid slice handle to some existing slice.
-				However this tells you nothing about whether the slice it points to is the original one.
-				<danger>
-					<b>You should almost never use this command.</b>
-					Just because a slice handle is valid doesn't mean it points to the slice that you expected.
-					After a slice is deleted, its handle can be reused for new slices!
-					If you delete a slice but still have a slice handle to it stored in a variable,
-					you must never access that handle again, because it will either be invalid,
-					causing an error when you use it, or even worse, it will point to some
-					random slice, which is a bug in your script!
-					For alternatives to sliceisvalid, please see the examples.
-				</danger>
+				Returns true if the given <p>value</p> is a valid slice handle to some existing slice,
+				or false if the value isn't a slice handle (e.g. if it's <tt>false</tt> or is any
+				other type of handle such as an NPC reference or menu item handle) or if it refers
+				to a slice that's been deleted.
+				This command never throws an error.
+				<note>
+					Previously this command was considered dangerous because it could return
+					<tt>true</tt> even if the slice had been deleted because its handle
+					could be reused for a different slice.
+					But starting in the <b>ichorescent</b> release this is mostly solved.
+					Now in ichorescent slice handles won't get reused unless you create and
+					delete at least a million slices.
+					If you create millions of slices and want to be sure,
+					set your slice handles to 0 when you delete the slice (see examples)
+					rather than using this command.
+				</note>
 				When you want to check whether the result of a slice command is a valid slice,
 				you can just test whether the handle is <p>false</p>, as this example shows:
 				<example>
@@ -6775,7 +6779,7 @@ if (sl) then (....)
 				<example>
 global variable (1, bullet slice)
 
-###### Suppose we have one script that creates a temporary slice:
+###### Suppose one script creates a slice:
 
 plotscript, fire bullet, begin
 	bullet slice := create rect (3, 3)
@@ -6788,32 +6792,31 @@ end
 	if (slice collide (bullet slice, get hero slice(me))) then (
 		...
 
-		###### Also, the temp slice can be deleted:
 		# Bullet is destroyed
 		free slice (bullet slice)
 	)
 
 ###### Wait! First we need to test if there is a bullet slice at all, or we have an error.
-###### You might be tempted to use sliceisvalid:
+###### You could use sliceisvalid:
 
-	if (slice is valid (bullet slice)) then (     # &lt;--- Sometimes returns WRONG result!
+	if (slice is valid (bullet slice)) then (
 		# Test for collision with the player
 		if (slice collide (bullet slice, get hero slice(me))) then (
 			...
 		)
 	)
 
-###### That's a mistake. Instead, you should make sure to set the variable
-###### bulletslice to 0 in every single place you delete it.
+###### Or you could make sure to set the variable bulletslice to 0 in every single place you delete
+###### it so there are no invalid slice handles.
 ###### Some of other places aren't obvious! They include leaving the map, or loading a saved game!
 
-	if (bullet slice) then (     # &lt;--- Since we do the needed bookkeeping, this is correct
+	if (bullet slice) then (     # &lt;--- This works only because we do the needed bookkeeping
 		# Test for collision with the player
 		if (slice collide (bullet slice, get hero slice(me))) then (
 			...
 			# Bullet is destroyed
 			free slice (bullet slice)
-			bullet slice := 0     # &lt;--- Very important!
+			bullet slice := 0     # &lt;---
 		)
 	)
 				</example>
@@ -6833,8 +6836,8 @@ end
 				(if slice error reporting is enabled, e.g. while testing your game).
 				However, <tt>free slice (0)</tt> is fine, showing no warning.
 				It's good practice to set a variable containing a slice handle to 0
-				after you free it, so that the script can test whether the slice
-				exists or not. (<ref>sliceisvalid</ref> is not reliable.)
+				after you free it, so that the script can easily test whether the slice
+				exists or not without needing to use <ref>sliceisvalid</ref>.
 				<note>
 					You can't delete a protected slice, which includes most
 					slices created by the engine such as NPCs and heroes.

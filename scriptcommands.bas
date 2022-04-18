@@ -1,5 +1,5 @@
 'OHRRPGCE GAME - Script command implementations
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2022 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 '
 ' All script commands are implemented here, arranged in rather random order,
@@ -39,18 +39,16 @@ DECLARE SUB replace_sprite_plotslice(byval slice_argno as integer, byval spritet
 'Script commands in this file need to REDIM plotslices() and timers(), but FB
 'doesn't let you REDIM a global array in a module other than where it is defined!
 
-'Using a lower bound of 1 because 0 is considered an invalid handle
+'Using lower bound 1 since Slice.TableSlot = 0 means the slice isn't in plotslices.
+'plotslices will grow as needed up to SLICE_HANDLE_SLOT_MASK (2.1 million)
 'The size of 64 is just so we won't have to reallocate for a little while
-REDIM plotslices(1 TO 64) as Slice Ptr
+REDIM plotslices(1 TO 64) as SliceHandleSlot
 plotslicesp = @plotslices(1)
 
-'Next slice handle to try assigning (if unused); for linear scans
-DIM next_slice_handle as integer = 1   '== LBOUND(plotslices)
-'Tracks the number of unassigned handles less than next_slice_handle
-DIM num_reusable_slice_handles as integer
-'This tells the largest slice handle that was ever valid. It's only to determine whether
-'"invalid slice handle" or "slice already deleted" is the appropriate error message.
-DIM highest_used_slice_handle as integer = 0
+'Next plotslices() slot to try assigning (if unused), linearly scanned upwards
+DIM next_slice_table_slot as integer = 1   '== LBOUND(plotslices)
+'Tracks the number of unused plotslices() slots less than next_slice_table_slot
+DIM num_reusable_slice_table_slots as integer
 
 REDIM timers(numInitialTimers - 1) as PlotTimer
 
@@ -5290,7 +5288,7 @@ END FUNCTION
 
 
 'For script commands to raise slice errors with information about the slice.
-'message can contain $SL which is replaced with e.g. "sprite slice 11". If $SL isn't used,
+'message can contain $SL which is replaced with e.g. "Sprite slice 11". If $SL isn't used,
 'the slice is instead prepended
 SUB slice_bad_op(sl as Slice ptr, message as zstring ptr, errlev as scriptErrEnum = serrBadOp)
  DIM sliceinfo as string
@@ -5310,19 +5308,22 @@ END SUB
 'Return the Slice ptr for a slice handle, or throw an error
 'and return NULL if not valid
 FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
- IF handle < LBOUND(plotslices) ORELSE handle > highest_used_slice_handle THEN  'catches handle > UBOUND(plotslices)
+ 'It's not necessary to explicitly check handle is >= HandleType.Slice,
+ 'in fact we mustn't, to support obsolete handles in old saves which count up from 1.
+ DIM slot as uinteger = handle AND SLICE_HANDLE_SLOT_MASK
+ IF slot < LBOUND(plotslices) ORELSE slot > UBOUND(plotslices) _
+    ORELSE plotslices(slot).handle <> handle ORELSE plotslices(slot).sl = NULL THEN
   IF errlvl > serrIgnore THEN
-   scripterr current_command_name() & ": invalid slice handle " & handle, errlvl
+   IF (handle AND NOT SLICE_HANDLE_CTR_MASK) = (plotslices(slot).handle AND NOT SLICE_HANDLE_CTR_MASK) THEN
+    'The HandleType is correct so could have been a valid handle to a previously existing slice in this slot
+    scripterr current_command_name() & ": the slice with handle " & handle & " has been deleted", errlvl
+   ELSE
+    scripterr current_command_name() & ": " & handle & " is not a slice handle", errlvl
+   END IF
   END IF
   RETURN NULL
  END IF
- DIM sl as Slice ptr = plotslices(handle)
- IF sl = 0 THEN
-  IF errlvl > serrIgnore THEN
-  scripterr current_command_name() & ": slice handle " & handle & " has already been deleted", errlvl
-  END IF
-  RETURN NULL
- END IF
+ DIM sl as Slice ptr = plotslices(slot).sl
  IF ENABLE_SLICE_DEBUG THEN
   IF SliceDebugCheck(sl) = NO THEN
    showbug SlicePath(sl) & " is not in the slice debug table!"
@@ -5411,72 +5412,80 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
  BUG_IF(sl = 0, "null ptr", 0)
  IF sl->TableSlot <> 0 THEN
   'this should not happen! Call find_plotslice_handle instead.
-  showbug "slice references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot)
+  showbug sl & " slice references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot).sl
   RETURN 0
  END IF
  'If a lot of slices have been deleted, then loop back to the beginning
  'to find reusable slices. We delay doing this so that handles are less likely
- 'to get reused quickly (which we don't actually want).
+ 'to get reused quickly (which we don't actually want), and to amortise the cost of
+ 're-scanning the whole array from the beginning.
+ 'Slice handles won't be reused until at least 256*4000 = 1024000 slices are deleted.
  'In future, new script interpreter's garbage collection will obsolete this.
- IF num_reusable_slice_handles > 5000 THEN
-  next_slice_handle = LBOUND(plotslices)
-  num_reusable_slice_handles = 0
+ IF num_reusable_slice_table_slots > 4000 THEN
+  next_slice_table_slot = LBOUND(plotslices)
+  num_reusable_slice_table_slots = 0
  END IF
 
- DIM i as integer
- FOR i = next_slice_handle to UBOUND(plotslices)
-  IF plotslices(i) = 0 THEN
-   'Store the slice pointer in the handle slot
-   plotslices(i) = sl
-   'Store the handle slot in the slice
-   sl->TableSlot = i
-   next_slice_handle = i + 1
-   IF i > highest_used_slice_handle THEN highest_used_slice_handle = i
-   RETURN i
-  END IF
+ DIM slot as integer
+ FOR slot = next_slice_table_slot TO UBOUND(plotslices)
+  IF plotslices(slot).sl = 0 THEN EXIT FOR
  NEXT
- 'If no room is available, make the array bigger.
- REDIM PRESERVE plotslices(LBOUND(plotslices) TO UBOUND(plotslices) * 1.5 + 32)
- plotslicesp = @plotslices(1)
- 'Store the slice pointer in the handle slot
- plotslices(i) = sl
- 'Store the handle slot in the slice
- sl->TableSlot = i
- next_slice_handle = i + 1
- IF i > highest_used_slice_handle THEN highest_used_slice_handle = i
- RETURN i
+ IF slot > UBOUND(plotslices) THEN
+  'If no room is available, make the array bigger.
+  REDIM PRESERVE plotslices(LBOUND(plotslices) TO UBOUND(plotslices) * 1.5 + 32)
+  plotslicesp = @plotslices(1)
+ END IF
+ IF slot > SLICE_HANDLE_SLOT_MASK THEN
+  'There may in fact be up to 4000 unused table slots
+  scripterr "Max number of slice handles (" & SLICE_HANDLE_SLOT_MASK & ") exceeded!", serrMajor
+  RETURN 0
+ END IF
+
+ WITH plotslices(slot)
+  .sl = sl
+  sl->TableSlot = slot
+  next_slice_table_slot = slot + 1
+  'Increment the previous ctr (already shifted) by 1, looping around to 0
+  DIM ctr as uinteger = (.handle + (1 SHL SLICE_HANDLE_CTR_SHIFT)) AND SLICE_HANDLE_CTR_MASK
+  .handle = (HandleType.Slice SHL HANDLE_TYPE_SHIFT) OR ctr OR slot
+  RETURN .handle
+ END WITH
 END FUNCTION
 
 FUNCTION find_plotslice_handle(byval sl as Slice Ptr) as integer
  IF sl = 0 THEN RETURN 0 ' it would be silly to search for a null pointer
- IF sl->TableSlot THEN RETURN sl->TableSlot
+ IF sl->TableSlot THEN RETURN plotslices(sl->TableSlot).handle
  'slice not in table, so create a new handle for it
  RETURN create_plotslice_handle(sl)
 END FUNCTION
 
-SUB set_plotslice_handle(byval sl as Slice Ptr, handle as integer)
+SUB restore_saved_plotslice_handle(byval sl as Slice Ptr, handle as integer)
  'This function is used to restore handles when loading a slice collection from a saved game.
  'This should ONLY be called when starting a game, before any scripts have run!
  BUG_IF(sl = 0, "null ptr")
- IF sl->TableSlot <> 0 THEN
-  showbug "set_plotslice_handle shouldn't be called on a slice with existing TableSlot"
- END IF
+ BUG_IF(sl->TableSlot <> 0, "shouldn't be called on a slice with existing TableSlot")
 
- IF handle > UBOUND(plotslices) THEN
-  REDIM PRESERVE plotslices(LBOUND(plotslices) TO handle * 1.5 + 32)
+ SELECT CASE get_handle_type(handle)
+   CASE IS >= HandleType.Slice  'OK
+   CASE 0    'Also OK: an obsolete slice handle counting up from 1. We will continue to use it
+   CASE ELSE:
+    reporterr "Invalid saved slice handle " & handle & " in RSAV", serrMajor
+    EXIT SUB
+ END SELECT
+ DIM slot as uinteger = handle AND SLICE_HANDLE_SLOT_MASK
+
+ IF slot > UBOUND(plotslices) THEN
+  REDIM PRESERVE plotslices(LBOUND(plotslices) TO slot * 1.5 + 32)
   plotslicesp = @plotslices(1)
  END IF
 
- IF handle > highest_used_slice_handle THEN highest_used_slice_handle = handle
+ BUG_IF(plotslices(slot).sl, "non-empty plotslices(" & slot & ")")
 
- IF plotslices(handle) <> 0 THEN
-  showbug "set_plotslice_handle: non-empty plotslices(" & handle & ")"
- END IF
- 
  'Store the slice pointer in the handle slot
- plotslices(handle) = sl
+ plotslices(slot).sl = sl
+ plotslices(slot).handle = handle
  'Store the handle slot in the slice
- sl->TableSlot = handle
+ sl->TableSlot = slot
 END SUB
 
 FUNCTION valid_spriteset(spritetype as SpriteType, record as integer) as bool

@@ -1,3 +1,5 @@
 The script handle is the reference number used to refer to this slice in scripts (eg. as returned by `create container'). If no script has ever asked for a handle for this slice, then it won't have one.
 
 The handle can't be changed.
+
+Slice handles are large numbers, but slices also have small identifying numbers which are shown after the handle (e.g. "(slice 2)"). Script error messages usually will quote these, e.g. "Rect slice 2 is not a Sprite". You can't use these numbers for anything.
