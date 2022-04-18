@@ -5294,6 +5294,7 @@ SUB slice_bad_op(sl as Slice ptr, message as zstring ptr, errlev as scriptErrEnu
  DIM sliceinfo as string
  IF sl THEN
   sliceinfo = SliceTypeName(sl) & " slice " & sl->TableSlot
+  IF sl->Lookup THEN sliceinfo &= " (" & SliceLookupCodename(sl) & ")"
  ELSE
   'Normally this sub shouldn't be called with a null ptr
   sliceinfo = "(invalid slice)"

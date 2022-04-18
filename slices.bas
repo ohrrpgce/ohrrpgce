@@ -4851,7 +4851,7 @@ End function
 '                              Slice Debugging
 
 Sub report_slice_type_err(sl as Slice ptr, expected as SliceTypes)
- reporterr "Attempt to treat slice " & SliceTypeName(sl) & " slice (" & SlicePath(sl) & ") " & sl & " as a " & SliceTypeName(expected)
+ reporterr "Attempt to treat " & SliceTypeName(sl) & " slice " & sl->TableSlot & " (at " & SlicePath(sl) & ") as a " & SliceTypeName(expected)
 End Sub
 
 SUB SliceDebugRemember(sl as Slice Ptr)
