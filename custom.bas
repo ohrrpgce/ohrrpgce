@@ -83,6 +83,7 @@ DIM activepalette as integer = -1
 'The following are set from commandline options
 DIM auto_distrib as string 'Which distribution option to package automatically
 DIM option_nowait as bool  'Currently only used when importing scripts from the commandline: don't wait
+DIM option_hsflags as string  'Used when importing scripts from the commandline: extra args to pass
 DIM export_translations_to as string
 
 DIM editing_a_game as bool

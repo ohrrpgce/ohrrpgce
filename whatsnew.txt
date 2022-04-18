@@ -3,8 +3,8 @@ WHAT IS NEW?
 ??? ? 202? [Ichorescent]
 
   *** New Features
-    * From the "Disribute Game" menu, you can upload your game directly
-      to itch.io [James]
+    * From the "Distribute Game" menu, you can upload your game directly to
+      itch.io [James]
     * gfx_fb backend (the one noone uses) supports non 320x200 games now [Ralph]
     * Custom/Game remember the window size when you quit; defaults larger [Ralph]
     * Added "View/edit ohrrpgce_config.ini/gameconfig.ini" options to the F8
@@ -51,6 +51,8 @@ WHAT IS NEW?
     * You can use a custom menu as a template for the Battle Menu [James]
     * Attacks can now cause a target's sprite to flip backwards (or unflip)
       [James]
+    * --hsargs commandline arg to pass extra args to HSpeak when using Custom to
+      import scripts from the commandline [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

@@ -2,7 +2,7 @@
 '(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
-'Many commandline args are handled by individual modules because they access internal data
+'Many commandline args are handled by *_setoption functions in individual modules because they access internal data
 
 #include "config.bi"
 #include "util.bi"
@@ -43,7 +43,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "Usage: " & trimpath(command(0)) & " [options] [.rpg or .rpgdir or initial browser directory]" & LINE_END
 #IFDEF IS_CUSTOM
 		help = help & "   Or: " & trimpath(command(0)) & " [options] <.rpg or .rpgdir> <.hss file>" & LINE_END
-		help = help & "          (Import the scripts and then quit. See also --nowait)" & LINE_END
+		help = help & "          (Import the scripts and then quit. See also --nowait, --hsflags)" & LINE_END
 #ENDIF
 		help &= LINE_END
 		help = help & "If a file named ohrrpgce_arguments.txt exists in the current directory then" & LINE_END
@@ -76,6 +76,8 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "                    Not all formats are available on all platforms." & LINE_END
 		help = help & "                    See c_debug.txt for error messages" & LINE_END
 		help = help & "-nowait             When importing scripts (ignored otherwise) quit immediately on success" & LINE_END
+		help = help & "-hsflags            When importing scripts (ignored otherwise), extra arguments to pass to hspeak" & LINE_END
+		help = help & "                    which should be NOT preceded with -, e.g. ""--hsflags w"" to skip warnings" & LINE_END
 		help = help & "-export-trans file  Export translations to a file (experimental)" & LINE_END
 #ENDIF
 		help = help & "-rawexx             Don't catch -exx fatal errors, let gdbgame/gdbcustom.sh/bat catch them" & LINE_END

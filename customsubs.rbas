@@ -2632,6 +2632,10 @@ FUNCTION custom_setoption(opt as string, arg as string) as integer
  ELSEIF opt = "nowait" THEN
   option_nowait = YES
   RETURN 1
+ ELSEIF opt = "hsflags" THEN
+  'Have to add the - because it won't be recognised as an argument otherwise
+  option_hsflags = "-" & arg
+  RETURN 2
  ELSEIF opt = "export-trans" THEN
   IF LEN(arg) THEN
    export_translations_to = arg

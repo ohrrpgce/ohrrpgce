@@ -1517,7 +1517,7 @@ def RPGWithScripts(rpg, main_script):
     if EUC:
         # Only include hspeak as dependency if Euphoria is installed, otherwise can't run tests
         sources += [HSPEAK]
-    action = env.Action(CUSTOM.abspath + ' --nowait ' + rpg + ' ' + main_script)
+    action = env.Action(CUSTOM.abspath + ' --nowait --hsflags w ' + rpg + ' ' + main_script)  # Ignore warnings
     # Prepending # means relative to rootdir, otherwise this a rule to build a file in build/
     if os.path.isdir(rootdir + rpg):
         # Hack, you can't rebuild a directory but this seems to work nicely

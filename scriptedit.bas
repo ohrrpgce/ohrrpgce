@@ -654,6 +654,7 @@ FUNCTION compilescripts(fname as string, hsifile as string, quickimport as bool 
  END IF
 
  IF quickimport THEN args += " -j"
+ args += " " + option_hsflags
 
  outfile = trimextension(fname) + ".hs"
  safekill outfile
@@ -661,11 +662,18 @@ FUNCTION compilescripts(fname as string, hsifile as string, quickimport as bool 
  'HSpeak returns 1 on an error, 2 on a warning, so ignore exit code
  errmsg = spawn_and_wait(hspeak, args & " " & escape_filename(simplify_path_further(fname)), NO)
  IF LEN(errmsg) THEN
-  visible_debug errmsg + !"\n\nNo scripts were imported."
+  IF option_nowait THEN
+   PRINT errmsg
+   debug errmsg
+  ELSE
+   visible_debug errmsg + !"\n\nNo scripts were imported."
+  END IF
   RETURN ""
  END IF
  IF isfile(outfile) = NO THEN
-  notification !"Compiling failed.\n\nNo scripts were imported."
+  IF option_nowait = NO THEN  'A failure message is printed in custom.bas
+   notification !"Compiling failed.\n\nNo scripts were imported."
+  END IF
   RETURN ""
  END IF
  RETURN outfile
