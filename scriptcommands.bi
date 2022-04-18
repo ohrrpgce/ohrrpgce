@@ -35,6 +35,7 @@ end enum
 
 'Slice handles point to a slot of plotslices() and have a counter that's incremented every time
 'the slot is reused, so that stale slice handles can be detected with high confidence.
+'Slot 0 is never used.
 'Note that slice handles loaded from old .rsav files count from 1, which is equivalent
 'to HandleType = 0 and CTR = 0 but they still work everywhere because we check against .handle in
 'plotslices() rather than checking the type mask.

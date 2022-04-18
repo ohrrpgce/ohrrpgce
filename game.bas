@@ -3834,7 +3834,7 @@ Sub DestroyGameSlices (dumpdebug as bool = NO)
  'Correct accounting of these globals is unnecessary! I guess
  'it's good for determinism though
  num_reusable_slice_table_slots = 0
- next_slice_table_slot = LBOUND(plotslices)
+ next_slice_table_slot = 1  'Slot 0 not used
 END SUB
 
 

@@ -39,14 +39,14 @@ DECLARE SUB replace_sprite_plotslice(byval slice_argno as integer, byval spritet
 'Script commands in this file need to REDIM plotslices() and timers(), but FB
 'doesn't let you REDIM a global array in a module other than where it is defined!
 
-'Using lower bound 1 since Slice.TableSlot = 0 means the slice isn't in plotslices.
+'plotslices(0) isn't used since Slice.TableSlot = 0 means the slice isn't in plotslices.
 'plotslices will grow as needed up to SLICE_HANDLE_SLOT_MASK (2.1 million)
 'The size of 64 is just so we won't have to reallocate for a little while
-REDIM plotslices(1 TO 64) as SliceHandleSlot
-plotslicesp = @plotslices(1)
+REDIM plotslices(0 TO 64) as SliceHandleSlot
+plotslicesp = @plotslices(0)
 
 'Next plotslices() slot to try assigning (if unused), linearly scanned upwards
-DIM next_slice_table_slot as integer = 1   '== LBOUND(plotslices)
+DIM next_slice_table_slot as integer = 1
 'Tracks the number of unused plotslices() slots less than next_slice_table_slot
 DIM num_reusable_slice_table_slots as integer
 
@@ -5377,8 +5377,7 @@ FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum
  'It's not necessary to explicitly check handle is >= HandleType.Slice,
  'in fact we mustn't, to support obsolete handles in old saves which count up from 1.
  DIM slot as uinteger = handle AND SLICE_HANDLE_SLOT_MASK
- IF slot < LBOUND(plotslices) ORELSE slot > UBOUND(plotslices) _
-    ORELSE plotslices(slot).handle <> handle ORELSE plotslices(slot).sl = NULL THEN
+ IF slot > UBOUND(plotslices) ORELSE plotslices(slot).handle <> handle ORELSE plotslices(slot).sl = NULL THEN
   IF errlvl > serrIgnore THEN
    IF (handle AND NOT SLICE_HANDLE_CTR_MASK) = (plotslices(slot).handle AND NOT SLICE_HANDLE_CTR_MASK) THEN
     'The HandleType is correct so could have been a valid handle to a previously existing slice in this slot
@@ -5488,7 +5487,7 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
  'Slice handles won't be reused until at least 256*4000 = 1024000 slices are deleted.
  'In future, new script interpreter's garbage collection will obsolete this.
  IF num_reusable_slice_table_slots > 4000 THEN
-  next_slice_table_slot = LBOUND(plotslices)
+  next_slice_table_slot = 1  'Skip slot 0
   num_reusable_slice_table_slots = 0
  END IF
 
@@ -5498,8 +5497,8 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
  NEXT
  IF slot > UBOUND(plotslices) THEN
   'If no room is available, make the array bigger.
-  REDIM PRESERVE plotslices(LBOUND(plotslices) TO UBOUND(plotslices) * 1.5 + 32)
-  plotslicesp = @plotslices(1)
+  REDIM PRESERVE plotslices(0 TO UBOUND(plotslices) * 1.5 + 32)
+  plotslicesp = @plotslices(0)
  END IF
  IF slot > SLICE_HANDLE_SLOT_MASK THEN
   'There may in fact be up to 4000 unused table slots
@@ -5541,8 +5540,8 @@ SUB restore_saved_plotslice_handle(byval sl as Slice Ptr, handle as integer)
  DIM slot as uinteger = handle AND SLICE_HANDLE_SLOT_MASK
 
  IF slot > UBOUND(plotslices) THEN
-  REDIM PRESERVE plotslices(LBOUND(plotslices) TO slot * 1.5 + 32)
-  plotslicesp = @plotslices(1)
+  REDIM PRESERVE plotslices(0 TO slot * 1.5 + 32)
+  plotslicesp = @plotslices(0)
  END IF
 
  BUG_IF(plotslices(slot).sl, "non-empty plotslices(" & slot & ")")
