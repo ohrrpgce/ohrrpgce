@@ -17,6 +17,14 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
+
+2022-04-18:
+"resize slice extra", "slice extra length", "append slice extra" have been
+replaced with "resize extra", "extra length", "append extra". Existing compiled
+scripts in games will continue to work.
+
+** 2021-09-13 Hróðvitnir Released **
+
 2021-1-20:
 Mac 64-bit builds now also use gfx_sdl2/music_sdl2 instead of gfx_sdl/music_sdl.
 Mac 64-bit gfx_sdl nightlies are no longer available; OHRRPGCE-wip-x86_64.dmg

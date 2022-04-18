@@ -3,7 +3,7 @@ include, plotscr.hsd
 define constant, begin
   # Whether to run Plotscripting-specific (as opposed to HS) benchmarks
   # and others not ported to the benchmarks for other languages
-  false, PSBENCH
+  true, PSBENCH
   # Whether to print all times. Else uses same format as benchmarks for other languages
   false, print all times
 
@@ -31,7 +31,7 @@ end
 
 script, init, begin
   testarray := create container
-  resize slice extra (testarray, MICRO LOOPCOUNT)
+  resize extra (testarray, MICRO LOOPCOUNT)
 end
 
 script, assert failure, begin
@@ -83,14 +83,19 @@ plotscript, main, begin
   score += run benchmark (@benchmark: increment, loops)
   $1 = "array index"
   score += run benchmark (@benchmark: array index, loops)
+  if (PSBENCH) then (
+    $1 = "array index getextra"
+    score += run benchmark (@benchmark: array index getextra, loops)
+  )
   if (not(PSBENCH)) then (
     trace($1="array foreach\n N/A\n N/A")
   )
-  # Python & Squirrel benchmarks have array_foreach_sum instead, which is comparable
-  $1 = "array index sum"
-  score += run benchmark (@benchmark: array index sum, loops)
+  $1 = "array sum"
+  score += run benchmark (@benchmark: array sum, loops)
   $1 = "array append"
   score += run benchmark (@benchmark: array append, 100)
+  $1 = "array length"
+  score += run benchmark (@benchmark: array length, loops)
   if (PSBENCH) then (
     $1 = "string assignment"
     score += run benchmark (@benchmark: string assignment, loops)
@@ -131,6 +136,8 @@ plotscript, main, begin
     score += run benchmark (@benchmark: read global, loops)
     $1 = "write global"
     score += run benchmark (@benchmark: write global, loops)
+    $1 = "read global array"  # Compare to "array index"
+    score += run benchmark (@benchmark: read global array, loops)
   )
 
   $2 = ""
@@ -162,6 +169,8 @@ plotscript, main, begin
   $1 = "bubble sort"
   score += run benchmark (@benchmark: bubble sort, 1, @benchmark: bubble fill)
   if (PSBENCH) then (
+    $1 = "bubble sort extra"
+    score += run benchmark (@benchmark: bubble sort extra, 1, @benchmark: bubble fill)
     $1 = "faster bubble sort"
     score += run benchmark (@benchmark: faster bubble sort, 1, @benchmark: bubble fill)
     $1 = "eat soap mania"
@@ -512,12 +521,37 @@ end
 
 script, benchmark: array index, begin
   variable (i)
-  for (i, 0, MICRO LOOPCOUNT -- 1) do (
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    get slice extra(testarray, i)
+    get slice extra(testarray, i)
+    get slice extra(testarray, i)
+    get slice extra(testarray, i)
+    get slice extra(testarray, i)
+    get slice extra(testarray, i)
+    get slice extra(testarray, i)
+    get slice extra(testarray, i)
+    get slice extra(testarray, i)
     get slice extra(testarray, i)
   )
 end
 
-script, benchmark: array index sum, begin
+script, benchmark: array index getextra, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    get extra(testarray, i)
+    get extra(testarray, i)
+    get extra(testarray, i)
+    get extra(testarray, i)
+    get extra(testarray, i)
+    get extra(testarray, i)
+    get extra(testarray, i)
+    get extra(testarray, i)
+    get extra(testarray, i)
+    get extra(testarray, i)
+  )
+end
+
+script, benchmark: array sum, begin
   variable (i, total)
   for (i, 0, MICRO LOOPCOUNT -- 1) do (
     total += get slice extra(testarray, i)
@@ -528,9 +562,25 @@ script, benchmark: array append, begin
   variable (arr, i)
   arr := create container
   for (i, 0, 100) do (
-    append slice extra(arr, i)
+    append extra(arr, i)
   )
   free slice(arr)
+end
+
+script, benchmark: array length, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    extra length(testarray)
+    extra length(testarray)
+    extra length(testarray)
+    extra length(testarray)
+    extra length(testarray)
+    extra length(testarray)
+    extra length(testarray)
+    extra length(testarray)
+    extra length(testarray)
+    extra length(testarray)
+  )
 end
 
 script, benchmark: string assignment, begin
@@ -807,6 +857,25 @@ script, benchmark: read global, begin
   )
 end
 
+# Comparable to "array index"
+script, benchmark: read global array, begin
+  variable (i, array)
+  array := 0
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    read global (array + i)
+    read global (array + i)
+    read global (array + i)
+    read global (array + i)
+    read global (array + i)
+    read global (array + i)
+    read global (array + i)
+    read global (array + i)
+    read global (array + i)
+    read global (array + i)
+  )
+end
+
+
 script, benchmark: write global, begin
   variable (i)
   for (i, 0, MICRO LOOPCOUNT / 10) do (
@@ -1008,15 +1077,16 @@ script, benchmark: bubble fill, begin
   variable (i)
   if (bubbles) then (free slice (bubbles))
   bubbles := create container
-  resize slice extra (bubbles, 40)
-  for (i, 0, slice extra length(bubbles) -- 1) do (
+  resize extra (bubbles, 40)
+  for (i, 0, extra length(bubbles) -- 1) do (
     set slice extra (bubbles, i, (24461 * i) ,mod, 32767)
   )
 end
 
+# Version using "get/set slice extra"
 script, benchmark: bubble sort, begin
   variable (size, i, j, tmp)
-  size := slice extra length (bubbles)
+  size := extra length (bubbles)
   for (i, 1, size -- 1) do (
     for (j, 0, i -- 1) do (
       # This could be written with fewer function calls (see faster bubble
@@ -1039,11 +1109,25 @@ script, benchmark: bubble sort, begin
   # assert(total == 867629)
 end
 
+# Version using "get/set extra"
+script, benchmark: bubble sort extra, begin
+  variable (size, i, j, tmp)
+  size := extra length (bubbles)
+  for (i, 1, size -- 1) do (
+    for (j, 0, i -- 1) do (
+      if (get extra(bubbles, j) > get extra(bubbles, i)) then (
+        tmp := get extra(bubbles, j)
+        set extra (bubbles, j, get extra(bubbles, i))
+        set extra (bubbles, i, tmp)
+      )
+    )
+  )
+end
 
 # This is actually hardly faster despite the swap condition being true ~65% of the time
 script, benchmark: faster bubble sort, begin
   variable (size, i, j)
-  size := slice extra length (bubbles)
+  size := extra length (bubbles)
   for (i, 1, size -- 1) do (
     for (j, 0, i -- 1) do (
       variable (bi, bj)
@@ -1054,6 +1138,7 @@ script, benchmark: faster bubble sort, begin
     )
   )
 end
+
 
 
 #------------------- some scripts from DoomRPG (stripped down) -----------------------------

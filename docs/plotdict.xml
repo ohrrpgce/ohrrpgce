@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-04-17">
+<plotscript version="wip" datecode="2022-04-18">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -3066,7 +3066,7 @@ if (slot > 0) then (load from slot (slot))</example>
 		<description>
 			See also the <secref>Hero Data</secref> section for inspecting or modifying individual heroes.
 			<note>
-			You should definitely read <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
+			You should definitely read <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
 			Ways to refer to a hero in a script</a> to understand the differences between hero ID numbers
 			(including <tt>hero:name</tt> constants), hero party slots, and walkabout rank!
 			</note>
@@ -3836,7 +3836,7 @@ fade screen in</example>
 			See also <secref>The Party</secref> section for commands for finding, adding, removing or swapping
 			heroes in the party.
 			<note>
-			You should definitely read <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
+			You should definitely read <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
 			Ways to refer to a hero in a script</a> to understand the differences between hero ID numbers
 			(including <tt>hero:name</tt> constants), hero party slots, and walkabout rank!
 			</note>
@@ -5787,7 +5787,83 @@ get hero name (1, find hero (leader))
 
 		</section>     <!-- Obsolete Commands -->
 
-	</section>
+	</section>      <!-- String Functions -->
+
+	<section title="Extra Data Array Functions">
+		<description>
+			These functions act on anything with a resizable "extra data" array, which is currently
+			just slices.
+			Things which have a fixed number of extra data slots (always three) can't yet be used with these commands.
+			Those things are: NPCs, zones, menu items.
+		</description>
+
+		<command id="setextra">
+			<canon>set extra (handle, extra, value)</canon>
+			<shortname>set extra</shortname>
+			<description>
+				Sets one of the extra data variables on the slice <p>handle</p>.
+				By default all slices start have a length 3 extra data array,
+				which has no builtin meaning, it is only for use by scripts.
+				<p>extra</p> is an <ref>extradataindex</ref>, typically a value from 0 to 2.
+				Use <ref>resizeextra</ref> if you want more than 3 extra values.
+				<lb/>
+				This command is a generic alternative to <ref>setsliceextra</ref>.
+			</description>
+			<seealso>
+				<ref>getextra</ref>
+				<ref>appendextra</ref>
+			</seealso>
+		</command>
+		<command id="getextra">
+			<canon>get extra (handle, extra)</canon>
+			<shortname>get extra</shortname>
+			<description>
+				Retrieve an extra data value previously set on a <p>handle</p> with <ref>setextra</ref>.
+				<p>extra</p> is the <ref>extradataindex</ref> to read.
+				<lb/>
+				This command is a generic alternative to <ref>getsliceextra</ref>.
+			</description>
+		</command>
+
+		<command id="appendextra">
+			<canon>append extra (handle, value)</canon>
+			<shortname>append extra</shortname>
+			<description>
+				Increases the length of a slice's extra data array by 1 and puts <p>value</p> in the new slot at the end.
+				<p>handle</p> is the <ref>slicehandle</ref>.
+				<lb/>
+				The return value is the new array length.
+				<lb/>
+				Equivalent to:
+				<example>resize extra(handle, extra length(handle) + 1)
+set extra(handle, -1, value)   # Index -1 is the last element of the array</example>
+			</description>
+		</command>
+		<command id="extralength">
+			<canon>extra length (handle)</canon>
+			<shortname>extra length</shortname>
+			<description>
+				Returns the length of a slice's extra data array.
+				This is 3 by default, and can be changed with <ref>resizeextra</ref>.
+				<p>handle</p> is the <ref>slicehandle</ref>.
+			</description>
+		</command>
+		<command id="resizeextra">
+			<canon>resize extra (handle, length)</canon>
+			<shortname>resize extra</shortname>
+			<description>
+				Changes the length of a slice's extra data array.
+				<p>handle</p> is the <ref>slicehandle</ref>.
+				The new <p>length</p> can be between 0 and 1,000,000.
+				For backwards compatibility it's 3 by default for all newly created slices.
+				Values will either be removed from the end of the array, or zeroes added to the
+				end to meet the new length.
+				The rest of the existing contents of the array will be preserved.
+			</description>
+		</command>
+
+	</section>  <!-- Extra Data Array Functions -->
+
 
 	<section title="Menu Functions">
 		<command id="openmenu">
@@ -6724,7 +6800,7 @@ set menu on close script(m, @my menu exit handler)
 
 	<section title="Slices">
 		<description>
-			To learn what a slice is, read the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices">Slices article</a> on the wiki,
+			To learn what a slice is, read the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Slices">Slices article</a> on the wiki,
 			or one of the other tutorials you can find there.
 			Although there are many commands here for manipulating slices, it's much easier to create slices
 			in the Slice Collection Editor and then use <ref>loadslicecollection</ref>.
@@ -6952,68 +7028,6 @@ end
 			<shortname>reparent to hero</shortname>
 			<description>Reparent a slice <p>handle</p> so that it is attached to an hero's walkabout caterpillar sprite. The <p>hero</p> argument is the hero's rank in the caterpillar party. The slice will be parented to the hero's sprite component. If you want it to be parented to the hero's container slice you should use <ref>setparent</ref>(<p>handle</p>, <ref>getheroslice</ref>(<p>hero</p>)) instead.</description>
 		</command>
-
-		<section title="Extra Data">
-
-		<command id="setsliceextra">
-			<canon>set slice extra (handle, extra, value)</canon>
-			<shortname>set slice extra</shortname>
-			<description>
-				Sets one of the extra data variables on the slice <p>handle</p>.
-				By default all slices start have a length 3 extra data array,
-				which has no builtin meaning, it is only for use by scripts.
-				<p>extra</p> is an <ref>extradataindex</ref>, typically a value from 0 to 2.
-				Use <ref>resizesliceextra</ref> if you want more than 3 extra values.
-			</description>
-			<seealso>
-				<ref>getsliceextra</ref>
-				<ref>appendsliceextra</ref>
-			</seealso>
-		</command>
-		<command id="getsliceextra">
-			<canon>get slice extra (handle, extra)</canon>
-			<shortname>get slice extra</shortname>
-			<description>
-				Retrieve an extra data value previously set on a slice <p>handle</p> with <ref>setsliceextra</ref>.
-				<p>extra</p> is the <ref>extradataindex</ref> to read.
-			</description>
-		</command>
-		<command id="appendsliceextra">
-			<canon>append slice extra (handle, value)</canon>
-			<shortname>append slice extra</shortname>
-			<description>
-				Increases the length of a slice's extra data array by 1 and puts <p>value</p> in the new slot at the end.
-				<p>handle</p> is the <ref>slicehandle</ref>.
-				<lb/>
-				Equivalent to:
-				<example>resize slice extra(handle, slice extra length(handle) + 1)
-set slice extra(handle, -1, value)   # Index -1 is the last element of the array</example>
-			</description>
-		</command>
-		<command id="sliceextralength">
-			<canon>slice extra length (handle)</canon>
-			<shortname>slice extra length</shortname>
-			<description>
-				Returns the length of a slice's extra data array.
-				This is 3 by default, and can be changed with <ref>resizesliceextra</ref>.
-				<p>handle</p> is the <ref>slicehandle</ref>.
-			</description>
-		</command>
-		<command id="resizesliceextra">
-			<canon>resize slice extra (handle, length)</canon>
-			<shortname>resize slice extra</shortname>
-			<description>
-				Changes the length of a slice's extra data array.
-				<p>handle</p> is the <ref>slicehandle</ref>.
-				The new <p>length</p> can be between 0 and 1,000,000.
-				For backwards compatibility it's 3 by default for all newly created slices.
-				Values will either be removed from the end of the array, or zeroes added to the
-				end to meet the new length.
-				The rest of the existing contents of the array will be preserved.
-			</description>
-		</command>
-
-		</section>  <!-- Extra data -->
 
 		<section title="Getting Slices">
 		<description>This section describes commands to find existing slices or load them from a defined slice collection. Commands to create slices are in other sections.</description>
@@ -7612,6 +7626,36 @@ map y := slice screen y(sl) + camera pixel y</example>
 			</seealso>
 		</command>
 		</section>		<!--Positioning Slices-->
+
+		<section title="Extra Data">
+			<description>
+				You can use any of the <secref>Extra Data Array Functions</secref> on slices.
+			</description>
+
+		<command id="setsliceextra">
+			<canon>set slice extra (handle, extra, value)</canon>
+			<shortname>set slice extra</shortname>
+			<description>
+				Sets one of the extra data variables on the slice <p>handle</p>.
+				<p>extra</p> is an <ref>extradataindex</ref>.
+				<lb/>
+				This command is the same as <ref>setextra</ref> but only works on slices
+				and is slightly faster.
+			</description>
+		</command>
+		<command id="getsliceextra">
+			<canon>get slice extra (handle, extra)</canon>
+			<shortname>get slice extra</shortname>
+			<description>
+				Retrieve an extra data value previously set on a slice <p>handle</p> with <ref>setsliceextra</ref>.
+				<p>extra</p> is an <ref>extradataindex</ref>.
+				<lb/>
+				This command is the same as <ref>getextra</ref> but only works on slices
+				and is slightly faster.
+			</description>
+		</command>
+
+		</section>  <!-- Extra data -->
 
 		<section title="Visibility and Clipping">
 		<command id="setslicevisible">
@@ -8907,7 +8951,7 @@ end
 
 		<section title="Slice Types">
 			<description>
-				For a description of the different slice types, see the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
+				For a description of the different slice types, see the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
 				<note>
 					There are two types of slice used by the engine for which there are no commands:
 					'special' slices (such as <ref>spritelayer</ref>),
@@ -13035,7 +13079,7 @@ run key            # Alias for 'flee key'
                                 (hero zero) in any command that takes a caterpillar party rank as an argument.
                                 It is equal to zero.
                                 You can't write <tt>me</tt> where a hero party slot or hero ID is needed!
-                                See <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
+                                See <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
 				Ways to refer to a hero in a script</a>.
                         </description>
 		</command>

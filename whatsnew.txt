@@ -66,10 +66,11 @@ WHAT IS NEW?
       [James]
     * Slice extra data are now variable length arrays defaulting to length 3.
       Maximum length is 1,000,000.
-      Added "resize slice extra", "slice extra length", "append slice extra".
+      Added "resize extra", "extra length", "append extra", as well as
+      "get extra" and "set extra" alternatives to "get/set slice extra".
       Also you can use Python-style negative indexing to read from the back of
-      the extra array: "get slice extra(sl, -1)" is the last value, -2 is the
-      second last, etc. [Ralph]
+      the extra array: "get extra(sl, -1)" is the last value, -2 is the second
+      last, etc. [Ralph]
     * "lookup next slice", "next slice in tree" [Ralph]
     * "window is focused" [Ralph]
     * "show value" can now show multiple values. Added "show values" as an alias.

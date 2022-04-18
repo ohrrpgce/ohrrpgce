@@ -82,7 +82,7 @@ def benchmark_array_foreach():
     for val in testarray:
         val
 
-def benchmark_array_foreach_sum():
+def benchmark_array_sum():
     total = 0
     for val in testarray:
         total += val
@@ -292,7 +292,7 @@ run_benchmark(benchmark_addition, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_increment, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_array_index, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_array_foreach, MICRO_LOOPCOUNT, 0)  # mult=0 because HS lacks it
-run_benchmark(benchmark_array_foreach_sum, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_array_sum, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_array_append, 100)
 run_benchmark(benchmark_string_append, MICRO_LOOPCOUNT, 0.25)
 run_benchmark(benchmark_call_script, MICRO_LOOPCOUNT)

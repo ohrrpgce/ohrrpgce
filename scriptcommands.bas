@@ -602,6 +602,7 @@ SUB script_functions(byval cmdid as integer)
  DIM menuslot as integer = ANY
  DIM mislot as integer = ANY
  DIM sl as Slice ptr = ANY
+ DIM extravec_ptr as integer vector ptr = ANY
  DIM npcref as NPCIndex = ANY
  DIM mi as MenuDefItem ptr = ANY
  DIM i as integer = ANY
@@ -5080,21 +5081,22 @@ SUB script_functions(byval cmdid as integer)
   IF really_valid_hero_party(heronum) THEN
    scriptret = IIF(gam.hero(heronum).auto_battle, 1, 0)
   END IF
- CASE 730 '--resize slice extra (slice, length)
-  sl = get_arg_slice(0)
-  IF sl THEN resize_extra sl->ExtraVec, retvals(1)
- CASE 731 '--slice extra length (slice)
-  sl = get_arg_slice(0)
-  IF sl THEN scriptret = IIF(sl->ExtraVec, v_len(sl->ExtraVec), 3)
- CASE 732 '--append slice extra (slice, value)
-  sl = get_arg_slice(0)
-  IF sl THEN
-   IF sl->ExtraVec = NULL THEN v_new sl->ExtraVec, 3
-   DIM length as integer = v_len(sl->ExtraVec)
+ CASE 730 '--resize extra (handle, length)
+  extravec_ptr = get_arg_extravec(0)
+  IF extravec_ptr THEN resize_extra *extravec_ptr, retvals(1)
+ CASE 731 '--extra length (handle)
+  extravec_ptr = get_arg_extravec(0)
+  IF extravec_ptr THEN scriptret = IIF(*extravec_ptr, v_len(*extravec_ptr), 3)
+ CASE 732 '--append extra (handle, value)
+  extravec_ptr = get_arg_extravec(0)
+  IF extravec_ptr THEN
+   DIM byref extravec as integer vector = *extravec_ptr
+   IF extravec = NULL THEN v_new extravec, 3
+   DIM length as integer = v_len(extravec)
    IF length = maxExtraLength THEN
-    scripterr ""
+    scripterr "Can't expand extra array, reached max length, " & maxExtraLength
    ELSE
-    v_append sl->ExtraVec, retvals(1)
+    v_append extravec, retvals(1)
     length += 1
    END IF
    scriptret = length
@@ -5145,6 +5147,12 @@ SUB script_functions(byval cmdid as integer)
    END IF
   NEXT
   gam.showstring = result
+ CASE 739 '--get extra (handle, index)
+  extravec_ptr = get_arg_extravec(0)
+  IF extravec_ptr THEN scriptret = get_extra(*extravec_ptr, retvals(1))
+ CASE 740 '--set extra (handle, index, value)
+  extravec_ptr = get_arg_extravec(0)
+  IF extravec_ptr THEN set_extra *extravec_ptr, retvals(1), retvals(2)
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
@@ -5189,6 +5197,63 @@ FUNCTION backcompat_sound_id (byval id as integer) as integer
   'Normal playsound mode
   RETURN id
  END IF
+END FUNCTION
+
+
+'==========================================================================================
+'                                  Generic script handles
+'==========================================================================================
+
+
+'Decode a handle to a pointer to an object, returned in ret, and return the type,
+'or else NULL and HandleType.Error.
+'Returns HandleType.Slice for all slice handles, not Slice2/3/4
+FUNCTION decode_handle(byref ret as any ptr, handle as integer, errlvl as scriptErrEnum = serrBadOp) as HandleType
+ 'DIM index as uinteger = cast(uinteger, handle) AND HANDLE_PAYLOAD_MASK
+ DIM htype as HandleType = cast(uinteger, handle) SHR HANDLE_TYPE_SHIFT
+ SELECT CASE htype
+  CASE IS >= HandleType.Slice
+   ret = get_handle_slice(handle)
+   IF ret = NULL THEN
+    RETURN HandleType.Error
+   ELSE
+    RETURN HandleType.Slice
+   END IF
+  CASE HandleType.NPC
+   DIM index as integer = -1 - handle
+   IF index > UBOUND(npc) THEN
+    IF errlvl > serrIgnore THEN
+     scripterr current_command_name() & ": invalid NPC handle " & handle, errlvl
+    END IF
+    RETURN HandleType.Error
+   END IF
+   ret = @npc(index)
+   RETURN HandleType.NPC
+  CASE ELSE
+   scripterr current_command_name() & ": invalid handle " & handle, errlvl
+   RETURN HandleType.Error
+ END SELECT
+END FUNCTION
+
+DIM SHARED handle_type_names(-16 TO 16) as string   'HandleType.Error not valid!
+handle_type_names(HandleType.NPC) = "NPC"
+handle_type_names(HandleType.None) = "unrecognised"
+handle_type_names(HandleType.Slice) = "slice"
+handle_type_names(HandleType.Error) = "ERROR"
+
+'Give a script handle for an object return the pointer to its ExtraVec array if it has one, else an error.
+FUNCTION get_handle_extravec(handle as integer) as integer vector ptr
+ DIM obj as any ptr
+ DIM htype as HandleType = decode_handle(obj, handle)
+ SELECT CASE htype
+  CASE HandleType.Slice
+   RETURN @cast(Slice ptr, obj)->ExtraVec
+  CASE HandleType.Error
+   'Showed an error already
+  CASE ELSE
+   scripterr current_command_name() & ": " & handle_type_names(htype) & "s don't have variable length extra data arrays"
+ END SELECT
+ RETURN NULL
 END FUNCTION
 
 

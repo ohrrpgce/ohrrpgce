@@ -757,15 +757,17 @@ define function, begin
 727,healparty,1,-2            # Restore active party's HP & MP ([revive dead heroes])
 728,setheroautobattle,2,0,0   # Change a hero's auto battle setting
 729,getheroautobattle,1,0     # Return true if the hero is set to auto battle
-730,resizesliceextra,2,0,3    # Resize the 'extra array' (slice, length)
-731,sliceextralength,1,0      # The length of the 'extra' array (slice)
-732,appendsliceextra,2,0,0    # Append to the 'extra' array (slice, value)
+730,resizeextra,2,0,3         # Resize an object's 'extra' array (handle, length)
+731,extralength,1,0           # The length of an object's 'extra' array (handle)
+732,appendextra,2,0,0         # Append to an object's 'extra' array (handle, value)
 733,lookupnextslice,3,0,0,0   # Next slice with lookup code (lookupcode, current, root)
 734,nextsliceintree,3,0,0,1   # Next slice (current, root, visit children)
 735,windowisfocused,0         # The game's window is the active one
 736,showvalueofinternal,-1    # "show value of" is translated to this
 737,resetenemydata,2,0,0      # Reset one element of an enemy's data (enemy id, data index)
 738,resetenemyname,1,0        # Reset enemy name to original (enemy id)
+739,getextra,2,0,0            # Index an object's 'extra' array (handle, index)
+740,setextra,3,0,0,0          # Set element of an object's 'extra' array (handle, index, value)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

@@ -20,10 +20,12 @@ enum HandleType explicit
  None      = 0
  'Menu      = 1
  'MenuItem  = 2
- Slice     = 12    ' Slice handles are spread over four types, to get 2 extra SLICE_HANDLE_CTR_MASK bits
+ Slice     = 12    ' Slice handles are spread over four types, to get 2 extra SLICE_HANDLE_CTR_MASK
+                   ' bits, but decode_handle only returns Slice.
  Slice2    = 13
  Slice3    = 14
  Slice4    = 15
+ Error     = 16
 end enum
 
 #define HANDLE_TYPE_SHIFT       27
@@ -71,6 +73,9 @@ DECLARE SUB wrappedsong (byval songnumber as integer)
 DECLARE SUB stopsong
 DECLARE FUNCTION backcompat_sound_id (byval id as integer) as integer
 
+DECLARE FUNCTION decode_handle(byref ret as any ptr, handle as integer, errlvl as scriptErrEnum = serrBadOp) as HandleType
+DECLARE FUNCTION get_handle_extravec(handle as integer) as integer vector ptr
+
 DECLARE FUNCTION getnpcref (byval seekid as NPCScriptref, byval copynum as integer, byval pool as integer=0) as NPCIndex
 DECLARE FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp, byval pool as integer=0) as NPCIndex
 DECLARE FUNCTION get_valid_npc_id_pool (seekid as NPCScriptref, pool as integer=-1, byref retid as NPCTypeID, byref retpool as integer) as bool
@@ -94,6 +99,8 @@ DECLARE FUNCTION get_handle_typed_slice(byval handle as integer, byval sltype as
 #DEFINE get_arg_selectsl(argno)      get_arg_typed_slice(argno, slSelect)
 #DEFINE get_arg_panelsl(argno)       get_arg_typed_slice(argno, slPanel)
 #DEFINE get_arg_layoutsl(argno)      get_arg_typed_slice(argno, slLayout)
+
+#DEFINE get_arg_extravec(argno)      get_handle_extravec(retvals(argno))
 
 DECLARE SUB slice_bad_op(sl as Slice ptr, message as zstring ptr, errlev as scriptErrEnum = serrBadOp)
 DECLARE FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fill_ok as bool=NO, byval vert_fill_ok as bool=NO) as Slice ptr

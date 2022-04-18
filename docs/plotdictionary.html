@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-04-17)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-04-18)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -433,6 +433,10 @@ function toggleContent(target) {
 </ul>
 </li>
 		<li>
+<a href="#Extra%20Data%20Array%20Functions">Extra Data Array Functions</a><br>
+		<ul></ul>
+</li>
+		<li>
 <a href="#Menu%20Functions">Menu Functions</a><br>
 		<ul>
 		<li>
@@ -454,10 +458,6 @@ function toggleContent(target) {
 <a href="#Slices">Slices</a><br>
 		<ul>
 		<li>
-<a href="#Extra%20Data">Extra Data</a><br>
-		<ul></ul>
-</li>
-		<li>
 <a href="#Getting%20Slices">Getting Slices</a><br>
 		<ul></ul>
 </li>
@@ -467,6 +467,10 @@ function toggleContent(target) {
 </li>
 		<li>
 <a href="#Positioning%20Slices">Positioning Slices</a><br>
+		<ul></ul>
+</li>
+		<li>
+<a href="#Extra%20Data">Extra Data</a><br>
 		<ul></ul>
 </li>
 		<li>
@@ -666,8 +670,8 @@ function toggleContent(target) {
 		<a href="#about-animationstarttile">animation start tile (tile number, layer)</a><br>
 		<a href="#about-anykey">any key</a><br>
 		<a href="#about-appendascii">append ascii (ID, char)</a><br>
+		<a href="#about-appendextra">append extra (handle, value)</a><br>
 		<a href="#about-appendnumber">append number (ID, number, min length, pad with zeros)</a><br>
-		<a href="#about-appendsliceextra">append slice extra (handle, value)</a><br>
 		<a href="#about-asciifromstring">ascii from string (ID, position)</a><br>
 		<a href="#about-assert">assert (expression)</a><br>
 		<a href="#about-autonumber">autonumber</a><br>
@@ -795,6 +799,7 @@ function toggleContent(target) {
 		<a href="#about-extendedscancodesenabled">extended scancodes enabled</a><br>
 		<a href="#about-extractcolor">extract color (color, component)</a><br>
 		<a href="#about-extradataindex">Extra data array index</a><br>
+		<a href="#about-extralength">extra length (handle)</a><br>
 		<a href="#about-fadescreenin">fade screen in</a><br>
 		<a href="#about-fadescreenout">fade screen out (red, green, blue)</a><br>
 		<a href="#about-false">false</a><br>
@@ -866,6 +871,7 @@ function toggleContent(target) {
 		<a href="#about-getenemyappearance">get enemy appearance (enemyid, appearance)</a><br>
 		<a href="#about-getenemyname">get enemy name (enemyid, stringid)</a><br>
 		<a href="#about-getenemystat">get enemy stat(enemy, stat)</a><br>
+		<a href="#about-getextra">get extra (handle, extra)</a><br>
 		<a href="#about-getfootoffset">get foot offset</a><br>
 		<a href="#about-getformationbackground">get formation background (formation)</a><br>
 		<a href="#about-getformationsong">get formation song (formation)</a><br>
@@ -1261,7 +1267,7 @@ function toggleContent(target) {
 		<a href="#about-resetheropicture">reset hero picture (who, type)</a><br>
 		<a href="#about-resetmapstate">reset map state (whichdata)</a><br>
 		<a href="#about-resetpalette">reset palette</a><br>
-		<a href="#about-resizesliceextra">resize slice extra (handle, length)</a><br>
+		<a href="#about-resizeextra">resize extra (handle, length)</a><br>
 		<a href="#about-resumeboxadvance">resume box advance</a><br>
 		<a href="#about-resumecaterpillar">resume catapillar</a><br>
 		<a href="#about-resumecaterpillar">resume caterpillar</a><br>
@@ -1335,6 +1341,7 @@ function toggleContent(target) {
 		<a href="#about-setenemyname">set enemy name (enemyid, stringid)</a><br>
 		<a href="#about-setenemystat">set enemy stat(enemy, stat, value)</a><br>
 		<a href="#about-setexperience">set experience (who, experience, allowforget)</a><br>
+		<a href="#about-setextra">set extra (handle, extra, value)</a><br>
 		<a href="#about-setfootoffset">set foot offset (offset)</a><br>
 		<a href="#about-setformationbackground">set formation background (formation, background, animation frames, animation ticks)</a><br>
 		<a href="#about-setformationsong">set formation song (formation, song)</a><br>
@@ -1501,7 +1508,6 @@ function toggleContent(target) {
 		<a href="#about-slicecontains">slice contains (handle1, handle2)</a><br>
 		<a href="#about-sliceedgex">slice edge x (handle, edge)</a><br>
 		<a href="#about-sliceedgey">slice edge y (handle, edge)</a><br>
-		<a href="#about-sliceextralength">slice extra length (handle)</a><br>
 		<a href="#about-slicehandle">Slice handles</a><br>
 		<a href="#about-sliceheight">slice height (handle)</a><br>
 		<a href="#about-sliceiscontainer">slice is container (handle)</a><br>
@@ -6163,7 +6169,7 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 			See also the <a href="#Hero%20Data" class="ref">Hero Data</a> section for inspecting or modifying individual heroes.
 			<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
-			You should definitely read <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
+			You should definitely read <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
 			Ways to refer to a hero in a script</a> to understand the differences between hero ID numbers
 			(including <span class="code">hero:name</span> constants), hero party slots, and walkabout rank!
 			</div>
@@ -7509,7 +7515,7 @@ fade screen in</pre>
 			heroes in the party.
 			<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
-			You should definitely read <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
+			You should definitely read <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
 			Ways to refer to a hero in a script</a> to understand the differences between hero ID numbers
 			(including <span class="code">hero:name</span> constants), hero party slots, and walkabout rank!
 			</div>
@@ -10628,6 +10634,116 @@ get hero name (1, find hero (leader))
 		<hr>
 		</div>
 		<div class="section">
+<a name="Extra%20Data%20Array%20Functions"></a>
+		<h3>
+<span class="backlink"></span>Extra Data Array Functions</h3>
+		<a href="#Categories" class="backlink">[Back to top-level index]</a><p>
+			These functions act on anything with a resizable "extra data" array, which is currently
+			just slices.
+			Things which have a fixed number of extra data slots (always three) can't yet be used with these commands.
+			Those things are: NPCs, zones, menu items.
+		</p>
+<div class="select-content-shown" id="Extra Data Array Functions-index">
+<button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul><div class="content-shown">
+		<a href="#about-setextra">set extra (handle, extra, value)</a><br>
+		<a href="#about-getextra">get extra (handle, extra)</a><br>
+		<a href="#about-appendextra">append extra (handle, value)</a><br>
+		<a href="#about-extralength">extra length (handle)</a><br>
+		<a href="#about-resizeextra">resize extra (handle, length)</a><br>
+</div></ul>
+</div>
+		<div class="command">
+			<a name="about-setextra"></a>
+				<h4>set extra (handle, extra, value)</h4>
+<p>
+			
+				Sets one of the extra data variables on the slice <span class="param">handle</span>.
+				By default all slices start have a length 3 extra data array,
+				which has no builtin meaning, it is only for use by scripts.
+				<span class="param">extra</span> is an <a href="#about-extradataindex" class="ref">extra array index</a>, typically a value from 0 to 2.
+				Use <a href="#about-resizeextra" class="ref">resize extra</a> if you want more than 3 extra values.
+				<br>
+				This command is a generic alternative to <a href="#about-setsliceextra" class="ref">set slice extra</a>.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getextra" class="ref">get extra</a>, </li>
+<li><a href="#about-appendextra" class="ref">append extra</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getextra"></a>
+				<h4>get extra (handle, extra)</h4>
+<p>
+			
+				Retrieve an extra data value previously set on a <span class="param">handle</span> with <a href="#about-setextra" class="ref">set extra</a>.
+				<span class="param">extra</span> is the <a href="#about-extradataindex" class="ref">extra array index</a> to read.
+				<br>
+				This command is a generic alternative to <a href="#about-getsliceextra" class="ref">get slice extra</a>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-appendextra"></a>
+				<h4>append extra (handle, value)</h4>
+<p>
+			
+				Increases the length of a slice's extra data array by 1 and puts <span class="param">value</span> in the new slot at the end.
+				<span class="param">handle</span> is the <a href="#about-slicehandle" class="ref">slice handle</a>.
+				<br>
+				The return value is the new array length.
+				<br>
+				Equivalent to:
+				<pre>resize extra(handle, extra length(handle) + 1)
+set extra(handle, -1, value)   # Index -1 is the last element of the array</pre>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-extralength"></a>
+				<h4>extra length (handle)</h4>
+<p>
+			
+				Returns the length of a slice's extra data array.
+				This is 3 by default, and can be changed with <a href="#about-resizeextra" class="ref">resize extra</a>.
+				<span class="param">handle</span> is the <a href="#about-slicehandle" class="ref">slice handle</a>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-resizeextra"></a>
+				<h4>resize extra (handle, length)</h4>
+<p>
+			
+				Changes the length of a slice's extra data array.
+				<span class="param">handle</span> is the <a href="#about-slicehandle" class="ref">slice handle</a>.
+				The new <span class="param">length</span> can be between 0 and 1,000,000.
+				For backwards compatibility it's 3 by default for all newly created slices.
+				Values will either be removed from the end of the array, or zeroes added to the
+				end to meet the new length.
+				The rest of the existing contents of the array will be preserved.
+			
+			
+			
+			
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="section">
 <a name="Menu%20Functions"></a>
 		<h3>
 <span class="backlink"></span>Menu Functions</h3>
@@ -12106,7 +12222,7 @@ set menu on close script(m, @my menu exit handler)
 		<h3>
 <span class="backlink"></span>Slices</h3>
 		<a href="#Categories" class="backlink">[Back to top-level index]</a><p>
-			To learn what a slice is, read the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices">Slices article</a> on the wiki,
+			To learn what a slice is, read the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Slices">Slices article</a> on the wiki,
 			or one of the other tutorials you can find there.
 			Although there are many commands here for manipulating slices, it's much easier to create slices
 			in the Slice Collection Editor and then use <a href="#about-loadslicecollection" class="ref">load slice collection</a>.
@@ -12124,17 +12240,6 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-reparenttonpc">reparent to npc (handle, npc)</a><br>
 		<a href="#about-reparenttohero">reparent to hero (handle, hero)</a><br>
 </div>
-		<li>
-<a href="#Extra%20Data">Extra Data</a><br>
-		<ul class="content-shown">
-		<a href="#about-setsliceextra">set slice extra (handle, extra, value)</a><br>
-		<a href="#about-getsliceextra">get slice extra (handle, extra)</a><br>
-		<a href="#about-appendsliceextra">append slice extra (handle, value)</a><br>
-		<a href="#about-sliceextralength">slice extra length (handle)</a><br>
-		<a href="#about-resizesliceextra">resize slice extra (handle, length)</a><br>
-</ul>
-<ul></ul>
-</li>
 		<li>
 <a href="#Getting%20Slices">Getting Slices</a><br>
 		<ul class="content-shown">
@@ -12183,6 +12288,14 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-putslicescreen">put slice screen (handle, x, y)</a><br>
 		<a href="#about-setslicescreenx">set slice screen x (handle, x)</a><br>
 		<a href="#about-setslicescreeny">set slice screen y (handle, y)</a><br>
+</ul>
+<ul></ul>
+</li>
+		<li>
+<a href="#Extra%20Data">Extra Data</a><br>
+		<ul class="content-shown">
+		<a href="#about-setsliceextra">set slice extra (handle, extra, value)</a><br>
+		<a href="#about-getsliceextra">get slice extra (handle, extra)</a><br>
 </ul>
 <ul></ul>
 </li>
@@ -12801,98 +12914,6 @@ end
 				<h4>reparent to hero (handle, hero)</h4>
 <p>
 			Reparent a slice <span class="param">handle</span> so that it is attached to an hero's walkabout caterpillar sprite. The <span class="param">hero</span> argument is the hero's rank in the caterpillar party. The slice will be parented to the hero's sprite component. If you want it to be parented to the hero's container slice you should use <a href="#about-setparent" class="ref">set parent</a>(<span class="param">handle</span>, <a href="#about-getheroslice" class="ref">get hero slice</a>(<span class="param">hero</span>)) instead.
-			
-			
-			
-		</p>
-</div>
-		<hr>
-		</div>
-		<div class="subsection">
-<a name="Extra%20Data"></a>
-		<h3>
-<span class="backlink"><a href="#Slices">Slices</a> →
-			</span>Extra Data</h3>
-		<p></p>
-<ul></ul>
-		<div class="command">
-			<a name="about-setsliceextra"></a>
-				<h4>set slice extra (handle, extra, value)</h4>
-<p>
-			
-				Sets one of the extra data variables on the slice <span class="param">handle</span>.
-				By default all slices start have a length 3 extra data array,
-				which has no builtin meaning, it is only for use by scripts.
-				<span class="param">extra</span> is an <a href="#about-extradataindex" class="ref">extra array index</a>, typically a value from 0 to 2.
-				Use <a href="#about-resizesliceextra" class="ref">resize slice extra</a> if you want more than 3 extra values.
-			
-			
-			
-			<div class="seealso">See also: <ul>
-<li>
-<a href="#about-getsliceextra" class="ref">get slice extra</a>, </li>
-<li><a href="#about-appendsliceextra" class="ref">append slice extra</a></li>
-</ul>
-</div>
-		</p>
-</div>
-		<div class="command">
-			<a name="about-getsliceextra"></a>
-				<h4>get slice extra (handle, extra)</h4>
-<p>
-			
-				Retrieve an extra data value previously set on a slice <span class="param">handle</span> with <a href="#about-setsliceextra" class="ref">set slice extra</a>.
-				<span class="param">extra</span> is the <a href="#about-extradataindex" class="ref">extra array index</a> to read.
-			
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-appendsliceextra"></a>
-				<h4>append slice extra (handle, value)</h4>
-<p>
-			
-				Increases the length of a slice's extra data array by 1 and puts <span class="param">value</span> in the new slot at the end.
-				<span class="param">handle</span> is the <a href="#about-slicehandle" class="ref">slice handle</a>.
-				<br>
-				Equivalent to:
-				<pre>resize slice extra(handle, slice extra length(handle) + 1)
-set slice extra(handle, -1, value)   # Index -1 is the last element of the array</pre>
-			
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-sliceextralength"></a>
-				<h4>slice extra length (handle)</h4>
-<p>
-			
-				Returns the length of a slice's extra data array.
-				This is 3 by default, and can be changed with <a href="#about-resizesliceextra" class="ref">resize slice extra</a>.
-				<span class="param">handle</span> is the <a href="#about-slicehandle" class="ref">slice handle</a>.
-			
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-resizesliceextra"></a>
-				<h4>resize slice extra (handle, length)</h4>
-<p>
-			
-				Changes the length of a slice's extra data array.
-				<span class="param">handle</span> is the <a href="#about-slicehandle" class="ref">slice handle</a>.
-				The new <span class="param">length</span> can be between 0 and 1,000,000.
-				For backwards compatibility it's 3 by default for all newly created slices.
-				Values will either be removed from the end of the array, or zeroes added to the
-				end to meet the new length.
-				The rest of the existing contents of the array will be preserved.
-			
 			
 			
 			
@@ -13703,6 +13724,49 @@ map y := slice screen y(sl) + camera pixel y</pre>
 <li><a href="#about-setslicescreenx" class="ref">set slice screen x</a></li>
 </ul>
 </div>
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="subsection">
+<a name="Extra%20Data"></a>
+		<h3>
+<span class="backlink"><a href="#Slices">Slices</a> →
+			</span>Extra Data</h3>
+		<p>
+				You can use any of the <a href="#Extra%20Data%20Array%20Functions" class="ref">Extra Data Array Functions</a> on slices.
+			</p>
+<ul></ul>
+		<div class="command">
+			<a name="about-setsliceextra"></a>
+				<h4>set slice extra (handle, extra, value)</h4>
+<p>
+			
+				Sets one of the extra data variables on the slice <span class="param">handle</span>.
+				<span class="param">extra</span> is an <a href="#about-extradataindex" class="ref">extra array index</a>.
+				<br>
+				This command is the same as <a href="#about-setextra" class="ref">set extra</a> but only works on slices
+				and is slightly faster.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getsliceextra"></a>
+				<h4>get slice extra (handle, extra)</h4>
+<p>
+			
+				Retrieve an extra data value previously set on a slice <span class="param">handle</span> with <a href="#about-setsliceextra" class="ref">set slice extra</a>.
+				<span class="param">extra</span> is an <a href="#about-extradataindex" class="ref">extra array index</a>.
+				<br>
+				This command is the same as <a href="#about-getextra" class="ref">get extra</a> but only works on slices
+				and is slightly faster.
+			
+			
+			
+			
 		</p>
 </div>
 		<hr>
@@ -15661,7 +15725,7 @@ end
 <span class="backlink"><a href="#Slices">Slices</a> →
 			</span>Slice Types</h3>
 		<p>
-				For a description of the different slice types, see the <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
+				For a description of the different slice types, see the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Slices#Slice_types">Slices</a> article on the wiki.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					There are two types of slice used by the engine for which there are no commands:
@@ -21838,7 +21902,7 @@ run key            # Alias for 'flee key'
                                 (hero zero) in any command that takes a caterpillar party rank as an argument.
                                 It is equal to zero.
                                 You can't write <span class="code">me</span> where a hero party slot or hero ID is needed!
-                                See <a href="http://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
+                                See <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Ways_to_refer_to_a_hero_in_a_script">
 				Ways to refer to a hero in a script</a>.
                         
 			
@@ -22107,7 +22171,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 930 commands (of which 11 are aliases), 27 constants and 13 definitions of types and other terms in this file.</p>
+<p>Stats: There are 932 commands (of which 11 are aliases), 27 constants and 13 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
