@@ -4168,6 +4168,11 @@ as returned by <ref>findhero</ref>.
 				There's not yet any command to make a permanent change (to maximum level MP).
 			</description>
 		</command>
+		<command id="herouseslevelmp">
+			<canon>hero uses level MP (who)</canon>
+			<shortname>hero uses level MP</shortname>
+			<description>Returns true if a hero makes use of level MP (FF1-style MP). The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. This will be true if the hero has at least one named spell list set to use level MP, and that spell list is included in their battle menu. This is the same logic that is used internall to decide if Level MP will be displayed on the Status screen.</description>
+		</command>
 
 		<command id="healparty">
 			<canon>heal party (revive dead heroes)</canon>

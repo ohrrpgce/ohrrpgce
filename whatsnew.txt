@@ -85,6 +85,7 @@ WHAT IS NEW?
     * "slice is valid" can now tell slice handles apart from anything else (e.g.
       NPCs, menus) and is safe to use: it no longer returns false positives...
       until you create and delete at least a million slices. Good enough. [Ralph]
+    * "hero uses level mp" [James]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

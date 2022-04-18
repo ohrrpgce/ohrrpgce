@@ -5153,6 +5153,10 @@ SUB script_functions(byval cmdid as integer)
  CASE 740 '--set extra (handle, index, value)
   extravec_ptr = get_arg_extravec(0)
   IF extravec_ptr THEN set_extra *extravec_ptr, retvals(1), retvals(2)
+ CASE 741 '--hero uses level mp
+  IF valid_hero_party(retvals(0)) THEN
+   scriptret = IIF(hero_uses_lmp(retvals(0)), 1, 0)
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

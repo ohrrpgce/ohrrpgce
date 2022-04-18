@@ -32,5 +32,6 @@ DECLARE FUNCTION item_can_be_discarded (byval item_id as integer) as bool
 DECLARE FUNCTION item_can_be_used_bits (byval item_id as integer) as integer
 DECLARE SUB inventory_autosort()
 DECLARE FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1, prompt as string="") as string
+DECLARE FUNCTION hero_uses_lmp (byval hero_slot as integer) as bool
 
 #endif

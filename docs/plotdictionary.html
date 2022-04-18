@@ -1027,6 +1027,7 @@ function toggleContent(target) {
 		<a href="#about-herorankfromslice">hero rank from slice (handle)</a><br>
 		<a href="#about-heroslotfromslice">hero slot from slice (handle)</a><br>
 		<a href="#about-herototalelementalresistasint">hero total elemental resist as int (who, element)</a><br>
+		<a href="#about-herouseslevelmp">hero uses level MP (who)</a><br>
 		<a href="#about-herowallsaresuspended">hero walls are suspended</a><br>
 		<a href="#about-herox">hero X (who)</a><br>
 		<a href="#about-heroy">hero Y (who)</a><br>
@@ -7569,6 +7570,7 @@ fade screen in</pre>
 		<a href="#about-setherostatcap">set hero stat cap (stat, value)</a><br>
 		<a href="#about-getlevelmp">get level MP (who, mp level slot, type)</a><br>
 		<a href="#about-setlevelmp">set level MP (who, mp level slot, new value)</a><br>
+		<a href="#about-herouseslevelmp">hero uses level MP (who)</a><br>
 		<a href="#about-healparty">heal party (revive dead heroes)</a><br>
 		<a href="#about-herobaseelementalresistasint">hero base elemental resist as int (who, element)</a><br>
 		<a href="#about-setherobaseelementalresist">set hero base elemental resist (who, element, percent)</a><br>
@@ -8126,6 +8128,16 @@ as returned by <a href="#about-findhero" class="ref">find hero</a>.
 				(e.g. by an inn).
 				There's not yet any command to make a permanent change (to maximum level MP).
 			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-herouseslevelmp"></a>
+				<h4>hero uses level MP (who)</h4>
+<p>
+			Returns true if a hero makes use of level MP (FF1-style MP). The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. This will be true if the hero has at least one named spell list set to use level MP, and that spell list is included in their battle menu. This is the same logic that is used internall to decide if Level MP will be displayed on the Status screen.
 			
 			
 			
@@ -22171,7 +22183,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 932 commands (of which 11 are aliases), 27 constants and 13 definitions of types and other terms in this file.</p>
+<p>Stats: There are 933 commands (of which 11 are aliases), 27 constants and 13 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
