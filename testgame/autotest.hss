@@ -1733,6 +1733,12 @@ script, hero stat tests, begin
   assert(get level mp(1, 7) == 99)
   set level mp(1, 7, 0)
 
+  # Check for valid level MP spell lists
+  assert(hero uses level mp(find hero(hero:Frumpy)) == true) # has valid Level MP spell list
+  assert(hero uses level mp(find hero(hero:Olaf)) == false)  # has Level MP spell list, but it is not in the battle menu
+  assert(hero uses level mp(find hero(hero:Freki)) == false) # has other spell list, but not level mp based
+  assert(hero uses level mp(find hero(hero:Helga)) == false) # Has no spell lists
+
   # test heal party
   assert(get hero stat(1, stat:hp, current stat) == 10)  # Precondition
   assert(read preference bit(4) == false)  # Precondition: "Inns don't revive dead heroes" off
