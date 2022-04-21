@@ -134,6 +134,7 @@ type EditorKit extends ModularMenu
 	want_activate as bool      'Cache enter_space_click() result
 	want_exit as bool          'Called exit_menu()
 	initialised as bool        'update() has been called at least once
+	record_id_grabber_called as bool 'Ensure is only called once a tick
 
 	default_helpkey as string  'Default, if an item doesn't call set_helpkey.
 	' Internal state to track the menu item currently being defined, while inside define_items()
@@ -143,15 +144,18 @@ type EditorKit extends ModularMenu
 
 	' For record switching
 	record_id_ptr as integer ptr
+	min_record_id as integer
 	max_record_id_ptr as integer ptr
 	max_record_offset as integer  'Added to *max_record_id_ptr
-	record_name as string
+	max_record_max as integer  'The maximum allowed max_record_id
+
+	record_type_name as string 'The type of data being edited, e.g. "Hero"
 
         '---- Editor setup routines (call before run())
 
 	declare constructor()
 
-	declare sub setup_record_switching(byref record_id as integer, byref max_record as integer, max_record_offset as integer = 0, record_name as string = "record")
+	declare sub setup_record_switching(byref record_id as integer, min_record as integer = 0, byref max_record as integer, max_record_offset_ as integer = 0, record_type_name_ as string = "Record", max_record_max_ as integer = 0)
 
 	' Inherited from ModularMenu
 	'declare sub run()
@@ -183,12 +187,17 @@ type EditorKit extends ModularMenu
 		Preview_Audio
 	end enum
 
+	'---- Other non-menu-item methods
+	declare sub switch_record(newid as integer)
 	declare sub exit_menu()
+	declare function record_id_grabber() as bool
 
 	'---- Non-data menu item types
 	declare sub spacer()
 	declare sub section(title as zstring ptr)
 	declare sub subsection(title as zstring ptr)
+	declare sub def_record_switcher()
+	'No method for adding "Previous Menu", it's automatic
 
 	'---- Adding data menu items
 	declare sub defitem(title as zstring ptr)
@@ -330,8 +339,8 @@ type EditorKit extends ModularMenu
 
   private:
 	' Disable a few ModularMenu methods so they can't be called directly; they wouldn't work.
-	' NOTE: due to FB bug sf#948 if you attempt to call these you'll get the error
-	' "error 255: Ambiguous symbol access, explicit scope resolution required"
+	' NOTE: due to FB bug sf#948 (fixed in FB 1.09) if you attempt to call these you'll get
+	' the error "error 255: Ambiguous symbol access, explicit scope resolution required"
 	' Call section() instead of header()
 	declare sub header()
 	' Call spacer() instead of add_spacer()

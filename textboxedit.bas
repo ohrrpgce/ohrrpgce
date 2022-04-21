@@ -887,7 +887,7 @@ SUB textbox_appearance_editor (byref box as TextBox, byref st as TextboxEditStat
  editor.st = @st
  editor.menuopts.drawbg = YES
  editor.menuopts.edged = YES
- editor.setup_record_switching st.id, gen(genMaxTextBox), , "Text Box"
+ editor.setup_record_switching st.id, 0, gen(genMaxTextBox), , "Text Box"
  editor.run()
  frame_unload @editor.backdrop
 END SUB

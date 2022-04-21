@@ -14,6 +14,15 @@
 ' Then call .run(). Loading, other initialisation, saving, switching records and
 ' submenus are your own responsibility, for now.
 '
+' ==== Saving, loading, and multiple records ====
+' If you overload the load() and save() methods they will be called when
+' run() begins and right before it ends.
+' To switch between multiple records you need to call setup_record_switching before
+' .run() to define what the variable is that holds the current record number.
+' load() and save() are assumed to access this variable (hence they take no args),
+' and they are both called when switching records.
+' Then call def_record_switcher in define_items() to add a <-Foo #-> line.
+'
 ' ==== Adding menu items ====
 ' "Previous Menu" (customisable with prev_menu_text) is added automatically.
 '
@@ -183,6 +192,7 @@ using Reload.Ext
 
 ' Called when entering the menu and after switching records (the record id passed to
 ' setup_record_switching is modified before calling this).
+' NOTE: you should set state.need_update = YES, as it possibly won't be automatically.
 sub Editorkit.load()
 end sub
 
@@ -193,8 +203,9 @@ end sub
 
 ' Used by the Alt quick record switcher, normally the name of the record, or some other
 ' suitable preview text. Shouldn't include the id, it'll be appended.
+' Defaults to name of the record type, e.g. "Textbox".
 function EditorKit.get_record_name(id as integer) as string
-	return record_name
+	return record_type_name
 end function
 
 '===============================================================================
@@ -217,6 +228,7 @@ function EditorKit.each_tick() as bool
 	base.tooltip = ""
 	want_exit = NO
 	want_activate = enter_space_click(state)
+	record_id_grabber_called = NO
 
 	run_phase(Phases.processing)
 
@@ -233,15 +245,10 @@ function EditorKit.each_tick() as bool
 		' On string fields, Alt is for entering special characters.
 		' This also means we have to do this after run_phase
 		if keyval(scAlt) > 0 andalso not using_strgrabber then
-			using_strgrabber = YES  'Disable select-by-typing
+			'Disable select-by-typing, although we don't use text input
+			using_strgrabber = YES
 
-			dim newid as integer = *record_id_ptr
-			if intgrabber(newid, 0, *max_record_id_ptr + max_record_offset) then
-				save()
-				*record_id_ptr = newid
-				load()
-				state.need_update = YES
-			end if
+			record_id_grabber
 		end if
 	end if
 
@@ -347,7 +354,7 @@ private function create_or_delete_default_node(cur_item as EditorKitItem, is_def
 	end with
 end function
 
-' Write a modified value/valuestr/valuefloat back to where it was read from
+' Write a modified value/valuestr/valuefloat back to where it was read from -- called when edited=YES
 sub EditorKit.write_value()
 	with cur_item
 		if .writer = writerNone andalso .dtype = dtypeNone then
@@ -426,15 +433,28 @@ end sub
 '===============================================================================
 '                             Editor setup routines
 
-sub EditorKit.setup_record_switching(byref record_id as integer, byref max_record as integer, max_record_offset_ as integer = 0, record_name_ as string = "record")
+' max_record will only be modified if max_record_max is provided.
+' max_record_max_ is the maximum number of records that can be added. Adding new records is
+'   enabled by providing this value.
+sub EditorKit.setup_record_switching(byref record_id as integer, min_record as integer = 0, byref max_record as integer, max_record_offset_ as integer = 0, record_type_name_ as string = "Record", max_record_max_ as integer = 0)
 	record_id_ptr = @record_id
+	min_record_id = min_record
 	max_record_id_ptr = @max_record
 	max_record_offset = max_record_offset_
-	record_name = record_name_
+	max_record_max = max_record_max_
+	record_type_name = record_type_name_
 end sub
 
+/'
+' Call this to allow deleting records from the end ("cropafter")
+sub EditorKit.setup_cropafter(...)
+	cropafter_lump = lump
+	'Delete when selected, or Shift-Backspace everywhere
+end sub
+'/
+
 '===============================================================================
-'                             Non-menu-item methods
+'                          Other non-menu-item methods
 
 ' User wants to delete this item (e.g. Delete key)
 ' (In future, may cause a clickable delete icon to display)
@@ -453,6 +473,51 @@ end function
 sub EditorKit.exit_menu()
 	want_exit = YES
 end sub
+
+/'
+sub EditorKit.switch_submenu(name as string = "")
+	submenu = name
+	state.need_update = YES
+end sub
+'/
+
+sub EditorKit.switch_record(newid as integer)
+	BUG_IF(record_id_ptr = 0, "Missing setup_record_switching")
+	dim byref id as integer = *record_id_ptr
+	save()
+	id = newid
+	load()
+	state.need_update = YES  'load() is also meant to do this
+end sub
+
+/'
+sub EditorKit.crop_after_record(...)
+end sub
+'/
+
+'Allow typing in/editing the record ID number. Switches record and can also add new records if
+'max_record_max was provided.
+'Returns true if record changed.
+function EditorKit.record_id_grabber() as bool
+	if record_id_grabber_called then return NO
+	record_id_grabber_called = YES
+
+	BUG_IF(record_id_ptr = 0 orelse max_record_id_ptr = 0, "Missing setup_record_switching", NO)
+	dim byref id as integer = *record_id_ptr
+	dim byref maxvar as integer = *max_record_id_ptr
+	dim maxid as integer = maxvar + max_record_offset
+	dim newid as integer = id
+	if max_record_max > 0 then
+		intgrabber_with_addset(newid, 0, maxid, max_record_max, record_type_name)
+		if newid > maxid then
+			maxvar = newid - max_record_offset
+		end if
+	else
+		intgrabber(newid, 0, maxid)
+	end if
+	if newid <> id then switch_record newid
+	return newid <> id
+end function
 
 '===============================================================================
 '                            Non-data menu item types
@@ -478,6 +543,25 @@ sub EditorKit.subsection(title as zstring ptr)
 	' Doesn't count as an item
 	if refresh then base.add_item , , *title, NO, YES
 	cur_item_index += 1
+end sub
+
+sub EditorKit.def_record_switcher()
+	BUG_IF(record_id_ptr = 0, "Missing setup_record_switching")
+	dim id as integer = *record_id_ptr
+
+	defitem chr(27) & record_type_name & " " & id & chr(26)
+	if process then
+		if record_id_grabber() then
+			edited = YES
+		end if
+	end if
+
+	/'
+	'Not using delete_action() because don't allow Backspace
+	if process andalso keyval(scDelete) > 1 then
+		crop_after_record
+	end if
+	'/
 end sub
 
 '===============================================================================
