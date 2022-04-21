@@ -530,7 +530,7 @@ Type ZoneInfo
   name as string
   hidden as bool  'used in the map editor only, not saved
   numtiles as integer  'number of set tiles
-  extra(2) as integer
+  extravec as integer vector 'Equal to NULL by default which means a length 3 array [0, 0, 0]
 End Type
 
 'A set of zones

@@ -3308,12 +3308,14 @@ END SUB
 'No save() needed
 
 SUB ZoneInfoEditor.define_items()
+ DIM byref zinfo as ZoneInfo = *st->cur_zinfo
+
  def_record_switcher
- defunselectable " Contains " & st->cur_zinfo->numtiles & " tiles"
- defstr "Name:", st->cur_zinfo->name, 35
- FOR i as integer = 0 TO 2
-  defint "Extra data " & i & ":", st->cur_zinfo->extra(i), INT_MIN, INT_MAX
- NEXT
+ defunselectable " Contains " & zinfo.numtiles & " tiles"
+ defstr "Name:", zinfo.name, 35
+
+ section "Extra Data"
+ edit_extra_data_vector zinfo.extravec
 END SUB
 
 

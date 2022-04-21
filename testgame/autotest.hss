@@ -144,6 +144,7 @@ script, run tests 1, begin
   timer tests
   pathfinding tests
   vehicle tests
+  obsolete map data tests
   run game tests
   resetgame tests   # Resets the game
   crash
@@ -5435,13 +5436,22 @@ script, zone tests, begin
   assert(zone number of tiles(8) == 0)
   assert(zone number of tiles(9988) == 0)
 
-  # Other zone data commands
+  # Zone name
   get zone name (95, zone:leftedge)
   $96="left edge"
   assert(string compare(95, 96))
+
+  # Zone extra
   assert(get zone extra(5, 0) == 10)
   assert(get zone extra(5, 1) == -2147483648)
   assert(get zone extra(5, 2) == 2147483647)
+  #assert(zone extra length(5) == 0)  # Actually, there' no way to get the length...
+  # A zone with zero length extra
+  #assert(zone extra length(10) == 0)
+  # A zone with more extra
+  #assert(zone extra length(11) == 13)
+  assert(get zone extra(11, 12) == 999)
+
   # A nonexistent zone
   get zone name (95, 9000)
   assert(string length(95) == 0)
@@ -5719,6 +5729,36 @@ script, maptile tests, begin
   # go back to the map we were on before
   teleport to map(rem map, rem x, rem y)
 end
+
+########################################################################
+
+script, obsolete map data tests, begin
+  variable(rem map, rem x, rem y)
+  rem map := current map
+  rem x := hero x(me)
+  rem y := hero y(me)
+
+  teleport to map(map: Obsolete map data DO NOT EDIT, 0, 0)
+  # This map should not be opened in Custom, so that the map lumps aren't loaded and re-saved.
+
+  # Copied from zone tests
+  # Other zone data commands
+  get zone name (95, 5)
+  $96="extra data test"
+  assert(string compare(95, 96))
+  assert(get zone extra(5, 0) == 10)
+  assert(get zone extra(5, 1) == -2147483648)
+  assert(get zone extra(5, 2) == 2147483647)
+  # A nonexistent zone
+  get zone name (95, 9000)
+  assert(string length(95) == 0)
+  assert(get zone extra(9000, 0) == 0)
+  assert(get zone extra(9000, 1) == 0)
+  assert(get zone extra(9000, 2) == 0)
+
+  teleport to map(rem map, rem x, rem y)
+end
+
 
 ########################################################################
 

@@ -88,9 +88,9 @@ END SUB
 'Only creates a node if the extra vector is not default.
 SUB SaveExtraVector(parent as Node ptr, nodename as zstring ptr, extravec as integer vector)
   IF extravec THEN
-    'If extravec exists then it's actually used so just save the whole array without checking for [0,0,0]
-    '(Also we must save length 0 arrays since the default length is 3)
     DIM length as integer = v_len(extravec)
+    'Check whether still the default value, [0,0,0].
+    IF length = 3 ANDALSO (extravec[0] OR extravec[1] OR extravec[2]) = 0 THEN EXIT SUB
     DIM ex_node as Node ptr = SetChildNode(parent, nodename, length)
     FOR idx as integer = 0 TO length - 1
       AppendChildNode(ex_node, "int", extravec[idx])
@@ -101,10 +101,10 @@ END SUB
 'Load a variable-length extra data array into extravec.
 'This extra data encoding is used by slices, but there are other encodings in use!
 'ex_node is Node created by SaveExtraVector.
-FUNCTION LoadExtraVector(ex_node as Node ptr, byref extravec as integer vector, thing as zstring ptr = @"") as bool
+FUNCTION LoadExtraVector(ex_node as Node ptr, byref extravec as integer vector, thing_or_file as zstring ptr = @"") as bool
   DIM length as integer = GetInteger(ex_node)
   IF length < 0 ORELSE length > maxExtraLength ORELSE length < NumChildren(ex_node) THEN
-    reporterr "Could not load " & *thing & ": bad extradata length " & length & ", numchildren=" & NumChildren(ex_node), serrError
+    reporterr strprintf("Could not load %s: bad extradata length %d, numchildren=%d", thing_or_file, length, NumChildren(ex_node)), serrError
     RETURN NO
   ELSE
     v_new extravec, length
@@ -115,7 +115,7 @@ FUNCTION LoadExtraVector(ex_node as Node ptr, byref extravec as integer vector, 
         extravec[idx] = GetInteger(ch)
         idx += 1
       ELSE
-        reporterr "Could not load " & thing & ": unknown extra data type " & NodeName(ch), serrError
+        reporterr strprintf("Could not load %s: unknown extra data type %s", thing_or_file, ch->Name), serrError
         RETURN NO
       END IF
       ch = NextSibling(ch)
@@ -125,6 +125,22 @@ FUNCTION LoadExtraVector(ex_node as Node ptr, byref extravec as integer vector, 
   RETURN YES
 END FUNCTION
 
+'Obsolete format for saving zone extra data 0-2, which used SetKeyValueNode
+'for non-zero extra data.
+SUB LoadExtraKeyValueNodes(parent as Node ptr, byref extravec as integer vector, thing_or_file as zstring ptr = @"")
+  v_free extravec
+  DIM subnode as Node ptr
+  subnode = FirstChild(parent, "extra")
+  WHILE subnode
+    DIM extranum as integer = GetInteger(subnode)
+    IF extranum >= 0 ANDALSO extranum <= 2 THEN
+      set_extra extravec, extranum, subnode."int"
+    ELSE
+      reporterr strprintf("Can't load %s: bad extra %d", thing_or_file, extranum), serrError
+    END IF
+    subnode = NextSibling(subnode, "extra")
+  WEND
+END SUB
 
 '==========================================================================================
 '                                      NPC Definitions
@@ -1344,11 +1360,11 @@ SUB SaveZoneMap(zmap as ZoneMap, filename as string, rsrect as RectType ptr = NU
     FOR i as integer = 0 TO .numzones - 1
       WITH .zones[i]
         node = AppendChildNode(zonesnode, "zone", .id)
+        'Note that the the node will be pruned unless it has children, so we should only
+        'add children when there's non-default data.
         IF .numtiles = 0 THEN MarkProvisional(node)
         IF .name <> "" THEN AppendChildNode(node, "name", .name)
-        FOR j as integer = 0 TO UBOUND(.extra)
-          IF .extra(j) <> 0 THEN SetKeyValueNode(node, "extra", j, .extra(j))
-        NEXT
+        IF .extravec THEN SaveExtraVector node, "extravec", .extravec
       END WITH
     NEXT
 
@@ -1368,7 +1384,7 @@ SUB LoadZoneMap(zmap as ZoneMap, filename as string)
   'DIM as double t = TIMER
 
   DIM as DocPtr doc
-  DIM as NodePtr root, zonesnode, node, subnode
+  DIM as NodePtr root, zonesnode, node
   DIM as integer w, h
   doc = LoadDocument(filename, optNoDelay)
   IF doc = NULL THEN EXIT SUB
@@ -1410,16 +1426,14 @@ SUB LoadZoneMap(zmap as ZoneMap, filename as string)
           .name = GetChildNodeStr(node, "name")
 
           '--extra data
-          subnode = FirstChild(node, "extra")
-          WHILE subnode
-            DIM extranum as integer = GetInteger(subnode)
-            IF extranum >= 0 AND extranum <= 2 THEN
-              .extra(extranum) = GetChildNodeInt(subnode, "int")
-            ELSE
-              debug "LoadZoneMap: " & filename & " - unprocessed extra num " & extranum
-            END IF
-            subnode = NextSibling(subnode, "extra")
-          WEND
+          DIM extra_node as NodePtr = node."extravec".ptr
+          IF extra_node THEN
+            LoadExtraVector extra_node, .extravec, filename
+          ELSE
+            'Obsolete format for saving extra data 0-2, which used SetKeyValueNode
+            'for non-zero extra data.
+            LoadExtraKeyValueNodes node, .extravec, filename
+          END IF
 
         END WITH
       END IF

@@ -3221,12 +3221,12 @@ SUB script_functions(byval cmdid as integer)
    plotstr(retvals(0)).s = GetZoneInfo(zmap, retvals(1))->name
   END IF
  CASE 488'--get zone extra (id, extra)
-  IF valid_zone(retvals(0)) AND bound_arg(retvals(1), 0, 2, "extra data number", , serrBadOp) THEN
-   scriptret = GetZoneInfo(zmap, retvals(0))->extra(retvals(1))
+  IF valid_zone(retvals(0)) THEN
+   scriptret = get_extra(GetZoneInfo(zmap, retvals(0))->extravec, retvals(1))
   END IF
  CASE 489'--set zone extra (id, extra, value)
-  IF valid_zone(retvals(0)) AND bound_arg(retvals(1), 0, 2, "extra data number", , serrBadOp) THEN
-   GetZoneInfo(zmap, retvals(0))->extra(retvals(1)) = retvals(2)
+  IF valid_zone(retvals(0)) THEN
+   set_extra GetZoneInfo(zmap, retvals(0))->extravec, retvals(1), retvals(2)
    lump_reloading.zonemap.dirty = YES
   END IF
  CASE 493'--load backdrop sprite (record)

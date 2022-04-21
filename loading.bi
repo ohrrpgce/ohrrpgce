@@ -19,7 +19,8 @@ declare sub SerSingle (buf() as integer, byval index as integer, byval sing as s
 declare function DeSerSingle (buf() as integer, byval index as integer) as single
 
 declare sub SaveExtraVector(parent as Node ptr, nodename as zstring ptr, extravec as integer vector)
-declare function LoadExtraVector(ex_node as Node ptr, byref extravec as integer vector, thing as zstring ptr = @"") as bool
+declare function LoadExtraVector(ex_node as Node ptr, byref extravec as integer vector, thing_or_file as zstring ptr = @"") as bool
+declare sub LoadExtraKeyValueNodes(parent as Node ptr, byref extravec as integer vector, thing_or_file as zstring ptr = @"")
 
 declare Sub SaveInventory16bit(invent() as InventSlot, byref z as integer, buf() as integer, byval first as integer=0, byval last as integer=-1)
 declare Sub LoadInventory16Bit(invent() as InventSlot, byref z as integer, buf() as integer, byval first as integer=0, byval last as integer=-1)

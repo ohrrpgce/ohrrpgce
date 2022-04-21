@@ -2772,7 +2772,7 @@ FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
  RETURN n & "(!?)"
 END FUNCTION
 
-'Editor for slice extra data or other integer vectors
+'Editor for slice extra data or other integer vectors (used not just by the slice editor).
 'This menu doesn't use standardmenu, in order to support displaying arbitrarily large arrays
 SUB extra_data_editor(byref extravec as integer vector)
  IF extravec = NULL THEN v_new extravec, 3

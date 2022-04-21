@@ -180,6 +180,7 @@
 #include "loading.bi"
 #include "custom.bi"
 #include "customsubs.bi"
+#include "sliceedit.bi"   'extra_data_editor
 #include "thingbrowser.bi"
 
 using Reload.Ext
@@ -1524,3 +1525,27 @@ function EditorKit.edit_as_enemy(byref datum as integer, or_none_flag as EKFlags
 	end if
 	return edited
 end function
+
+'------------------------------ Extra data vectors -----------------------------
+
+'Adds a set of menu items for editing an extra data vector
+sub EditorKit.edit_extra_data_vector(byref extravec as integer vector)
+	dim length as integer = iif(extravec, v_len(extravec), 3)
+	defitem "Length:"
+	if edit_int(length, 0, maxExtraLength) then
+		resize_extra extravec, length
+	end if
+	for i as integer = 0 to small(10, length) - 1
+		defitem "extra " & i & ":"
+		dim datum as integer = get_extra(extravec, i)
+		if edit_int(datum, INT_MIN, INT_MAX) then
+			set_extra extravec, i, datum
+		end if
+	next
+	if length > 10 then
+		defunselectable "..."
+	end if
+	if defitem_act("View/edit all extra data...") then
+		extra_data_editor extravec
+	end if
+end sub
