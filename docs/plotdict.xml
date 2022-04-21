@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-04-18">
+<plotscript version="wip" datecode="2022-04-22">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -10973,12 +10973,19 @@ end</example>
 
 
 		<section title="Zonemaps">
+			<description>
+				<note>
+					All zone commands accept zone handles (returned by <ref>getzone</ref>)
+					in place of zone IDs.
+				</note>
+			</description>
+
 		<command id="writezone">
 			<canon>write zone (zone id, x, y, value)</canon>
 			<shortname>write zone</shortname>
 			<description>
 				Sets whether the tile at (<p>x,y</p>) is part of the specified zone.
-				<p>zone id</p> is a valid ID number (see <ref>readzone</ref>),
+				<p>zone id</p> is a valid ID number (see <ref>readzone</ref>) or zone handle,
 				and <p>value</p> is interpreted as either <p>true</p> (non-zero) or <p>false</p> (zero).
 				<note>
 					Only up to 15 zones may overlap at each tile.
@@ -11003,6 +11010,7 @@ end</example>
 			<description>
 				Returns <ref>true</ref> if the tile at (<p>x,y</p>) is part of the specified zone.
 				The <p>zone id</p> is an ID number from 1 to 9999 for zones defined in the map editor,
+				or a zone handle,
 				or can be the ID one of these special zones:
 				<ul>
 					<li>
@@ -11027,7 +11035,10 @@ end</example>
 				in which case the total number of zones which overlap there is returned.
 				If <p>count</p> too large (greater than or equal to the number of zones),
 				0 (<ref>false</ref>) is returned.
-				<note>The order in which the ID numbers are returned is completely arbitrary.</note>
+				<note>
+					The order in which the ID numbers are returned is completely arbitrary.
+					Also note this returns IDs, not zone handles.
+				</note>
 			</description>
 			<seealso>
 				<ref>readzone</ref>
@@ -11047,7 +11058,7 @@ end</example>
 				Returns the value in one of a zone's "extra data" fields, which you can set in the Zone Info editor.
 				<p>extra num</p> is an <ref>extradataindex</ref>.
 				<lb/>
-				This command is similar to <ref>getextra</ref> but only works on zones.
+				This command is the same as <ref>getextra</ref> but only works on zones, and accepts zone IDs as well as zone handles.
 			</description>
 		</command>
 		<command id="setzoneextra">
@@ -11059,7 +11070,7 @@ end</example>
 				<lb/>
 				Extra data has no builtin meaning or effect, so you're free to use it for whatever you want.
 				<lb/>
-				This command is similar to <ref>setextra</ref> but only works on zones.
+				This command is the same as <ref>setextra</ref> but only works on zones, and accepts zone IDs as well as zone handles.
 				See <ref>appendextra</ref> and <ref>resizeextra</ref> for more ways to
 				modify zone extra data.
 				<note>
@@ -11073,7 +11084,7 @@ end</example>
 			<canon>zone number of tiles (zone id)</canon>
 			<shortname>zone number of tiles</shortname>
 			<description>
-				Given a <p>zone id</p> (from 1 to 9999 or a special id),
+				Given a <p>zone id</p> (from 1 to 9999 or a special id) or zone handle,
 				returns the number of tiles that the zone contains.
 			</description>
 		</command>
@@ -11082,16 +11093,17 @@ end</example>
 			<canon>get zone (zone id)</canon>
 			<shortname>get zone</shortname>
 			<description>
-				Given a <p>zone id</p> (from 1 to 9999 or a special id), returns a "zone handle",
+				Given a <p>zone id</p> (from 1 to 9999 or a special ID), returns a "zone handle",
 				which is a value that can be passed to any of the <secref>Extra Data Array Functions</secref>
 				to access the zone's extra data.
-				It can also be used in place of the zone id in any zone command,
+				It can also be used in place of the zone ID in any zone command,
 				but it does nothing useful in that case.
+				For example, you can also pass a zone handle to this command and it returns it unchanged.
 				<note>
 					Zone handles are just numbers that can be recognised by the engine as referring to a zone --
 					because what is <tt>5</tt>?
 					Is it a zone ID, NPC ID, party slot, map number, ...??
-					There's no way or necessity to destroy a zone handle after use.
+					There's no way to or necessity to destroy a zone handle after use.
 				</note>
 				<example>  # Resize to 5 extra data slots
 resize extra(get zone(10), 5)

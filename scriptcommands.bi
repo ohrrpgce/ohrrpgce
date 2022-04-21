@@ -113,6 +113,9 @@ DECLARE FUNCTION get_handle_typed_slice(byval handle as integer, byval sltype as
 
 #DEFINE get_arg_extravec(argno)      get_handle_extravec(retvals(argno))
 
+#DEFINE get_arg_zoneid(argno)        get_handle_zoneid(retvals(argno))
+
+
 DECLARE SUB slice_bad_op(sl as Slice ptr, message as zstring ptr, errlev as scriptErrEnum = serrBadOp)
 DECLARE FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fill_ok as bool=NO, byval vert_fill_ok as bool=NO) as Slice ptr
 DECLARE FUNCTION get_slice_drawopts(sl as Slice ptr, required as bool = YES) as DrawOptions ptr
@@ -144,7 +147,8 @@ DECLARE FUNCTION valid_enemy(byval id as integer) as bool
 DECLARE FUNCTION valid_attack(byval id_plus_1 as integer) as bool
 DECLARE FUNCTION valid_formation(byval form as integer) as bool
 DECLARE FUNCTION valid_formation_slot(byval form as integer, byval slot as integer) as bool
-DECLARE FUNCTION valid_zone(byval id as integer) as bool
+DECLARE FUNCTION get_handle_zoneid(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as integer
+'DECLARE FUNCTION valid_zone(byval id as integer) as bool
 DECLARE FUNCTION valid_door OVERLOAD (byval id as integer) as bool
 DECLARE FUNCTION valid_door(thisdoor as door, byval id as integer=-1) as bool
 DECLARE FUNCTION valid_map(map_id as integer) as bool

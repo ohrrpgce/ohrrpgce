@@ -5441,9 +5441,20 @@ script, zone tests, begin
   $96="left edge"
   assert(string compare(95, 96))
 
-  # Zone extra
-  variable (zone5, zone10)
+  # Test zone handles (except extra data)
+  variable (zone5)
   zone5 := get zone(5)
+  assert(zone5 && zone5 <> 5)
+  clearstring(95)
+  get zone name (95, get zone(zone:leftedge))
+  assert(string compare(95, 96))
+  assert(read zone(zone5, 16, 16) == 1)
+  write zone(zone5, 16, 16, 0)
+  assert(read zone(5, 16, 16) == 0)
+  write zone(5, 16, 16, 1)
+  assert(zone number of tiles(zone5) == 800)
+
+  # Zone extra
   #assert(get zone(zone 5) == zone 5)  # Meant to be idempotent
   assert(get zone extra(5, 0) == 10)
   assert(get zone extra(5, 1) == -2147483648)
@@ -5454,13 +5465,14 @@ script, zone tests, begin
   assert(get zone extra(5, 1) == 32)
   assert(extra length(zone5) == 3)
   # A zone with zero length extra
+  variable (zone10)
   zone10 := get zone(10)
   assert(extra length(zone10) == 0)
   append extra(zone10, 2)
   assert(extra length(zone10) == 1)
   assert(get extra(zone10, -1) == 2)
   # A zone with more extra
-  assert(extra length(getzone(11)) == 13)
+  assert(extra length(get zone(11)) == 13)
   assert(get zone extra(11, 12) == 999)
 
   # A nonexistent zone

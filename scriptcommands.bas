@@ -599,6 +599,7 @@ END SUB
 ' This entry point is called from the script interpreter.
 SUB script_functions(byval cmdid as integer)
  'These variables are uninitialised for speed
+ DIM id as integer = ANY
  DIM menuslot as integer = ANY
  DIM mislot as integer = ANY
  DIM sl as Slice ptr = ANY
@@ -3173,16 +3174,18 @@ SUB script_functions(byval cmdid as integer)
   END IF
 '/
  CASE 480'--read zone (id, x, y)
-  IF valid_zone(retvals(0)) THEN
+  id = get_arg_zoneid(0)
+  IF id THEN
    IF valid_tile_pos(retvals(1), retvals(2)) THEN
-    scriptret = IIF(CheckZoneAtTile(zmap, retvals(0), retvals(1), retvals(2)), 1, 0)
+    scriptret = IIF(CheckZoneAtTile(zmap, id, retvals(1), retvals(2)), 1, 0)
    END IF
   END IF
  CASE 481'--write zone (id, x, y, value)
-  IF valid_zone(retvals(0)) THEN
+  id = get_arg_zoneid(0)
+  IF id THEN
    IF valid_tile_pos(retvals(1), retvals(2)) THEN
     scriptret = 1
-    IF WriteZoneTile(zmap, retvals(0), retvals(1), retvals(2), retvals(3)) = 0 THEN
+    IF WriteZoneTile(zmap, id, retvals(1), retvals(2), retvals(3)) = 0 THEN
      scriptret = 0
      scripterr "writezone: the maximum number of zones, 15, already overlap at " & XY(retvals(1), retvals(2)) & "; attempt to add another failed"
     END IF
@@ -3202,31 +3205,29 @@ SUB script_functions(byval cmdid as integer)
    END IF
   END IF
  CASE 483'--zone number of tiles (id)
-  IF valid_zone(retvals(0)) THEN
-   scriptret = GetZoneInfo(zmap, retvals(0))->numtiles
+  id = get_arg_zoneid(0)
+  IF id THEN
+   scriptret = GetZoneInfo(zmap, id)->numtiles
   END IF
 /' Unimplemented
  CASE 484'--draw with zone (id, layer)
-  IF valid_zone(retvals(0)) THEN
-  END IF
  CASE 485'--zone next tile x (id, x, y)
-  IF valid_zone(retvals(0)) THEN
-  END IF
  CASE 486'--zone next tile y (id, x, y)
-  IF valid_zone(retvals(0)) THEN
-  END IF
 '/
  CASE 487'--get zone name (string, id)
-  IF valid_plotstr(retvals(0)) AND valid_zone(retvals(1)) THEN
-   plotstr(retvals(0)).s = GetZoneInfo(zmap, retvals(1))->name
+  id = get_arg_zoneid(1)
+  IF id ANDALSO valid_plotstr(retvals(0)) THEN
+   plotstr(retvals(0)).s = GetZoneInfo(zmap, id)->name
   END IF
  CASE 488'--get zone extra (id, extra)
-  IF valid_zone(retvals(0)) THEN
-   scriptret = get_extra(GetZoneInfo(zmap, retvals(0))->extravec, retvals(1))
+  id = get_arg_zoneid(0)
+  IF id THEN
+   scriptret = get_extra(GetZoneInfo(zmap, id)->extravec, retvals(1))
   END IF
  CASE 489'--set zone extra (id, extra, value)
-  IF valid_zone(retvals(0)) THEN
-   set_extra GetZoneInfo(zmap, retvals(0))->extravec, retvals(1), retvals(2)
+  id = get_arg_zoneid(0)
+  IF id THEN
+   set_extra GetZoneInfo(zmap, id)->extravec, retvals(1), retvals(2)
    lump_reloading.zonemap.dirty = YES
   END IF
  CASE 493'--load backdrop sprite (record)
@@ -5158,10 +5159,11 @@ SUB script_functions(byval cmdid as integer)
    scriptret = IIF(hero_uses_lmp(retvals(0)), 1, 0)
   END IF
  CASE 742 '--get zone (zone id)
-  IF valid_zone(retvals(0)) THEN
+  id = get_arg_zoneid(0)
+  IF id THEN
    'If zone id is already a zone handle then this is a noop because the HandleType
-   'gets stripped and re-added. (TODO: but valid_zone doesn't accept zone handles yet)
-   scriptret = make_handle(HandleType.Zone, retvals(0))
+   'gets stripped and re-added.
+   scriptret = make_handle(HandleType.Zone, id)
   END IF
 
  CASE ELSE
@@ -5237,9 +5239,9 @@ FUNCTION decode_handle(byref ret as any ptr, handle as integer, errlvl as script
    ret = @npc(index)
    RETURN HandleType.NPC
   CASE HandleType.Zone
-   DIM index as uinteger = get_handle_payload(handle)
-   IF valid_zone(index) THEN  'errlvl?
-    ret = GetZoneInfo(zmap, index)
+   DIM id as integer = get_handle_zoneid(handle, errlvl)
+   IF id THEN
+    ret = GetZoneInfo(zmap, id)
     RETURN HandleType.Zone
    END IF
   CASE ELSE
@@ -5821,9 +5823,23 @@ FUNCTION valid_formation_slot(byval form as integer, byval slot as integer) as b
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_zone(byval id as integer) as bool
- RETURN bound_arg(id, 1, zoneLASTREADABLE, "zone ID", , serrBadOp)
+'Given a zone handle or zone ID return a zone ID, or 0 (and shows an error) if invalid.
+FUNCTION get_handle_zoneid(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as integer
+ DIM htype as HandleType = get_handle_type(handle)
+ IF htype = HandleType.Zone ORELSE htype = HandleType.None THEN
+  DIM id as integer = get_handle_payload(handle)
+  IF bound_arg(id, 1, zoneLASTREADABLE, "zone ID", , errlvl) THEN RETURN id
+ ELSE
+  scripterr current_command_name() & "Expected zone ID or handle, got " & describe_handle(handle), errlvl
+ END IF
+ RETURN 0
 END FUNCTION
+
+/' Not used
+FUNCTION valid_zone(byval id as integer) as bool
+ RETURN get_handle_zoneid(id) <> 0
+END FUNCTION
+'/
 
 FUNCTION valid_door(byval id as integer) as bool
  IF bound_arg(id, 0, UBOUND(gam.map.door), "door", , serrBadOp) = NO THEN RETURN NO
