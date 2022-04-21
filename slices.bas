@@ -4527,6 +4527,7 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  if Reload.NumChildren(node) <> 0 then debug "SliceSaveToNode non-empty node has " & Reload.NumChildren(node) & " children"
  '--Save standard slice properties
  'NOTE: if something has a non-zero default load value, then you must use SavePropAlways
+ SaveProp node, "type", SliceTypeName(sl)
  SaveProp node, "template", sl->template
  SaveProp node, "lookup", sl->lookup
  SaveProp node, "x", sl->x
@@ -4564,17 +4565,7 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  SaveProp node, "fillmode", sl->FillMode
  SaveProp node, "sort", sl->Sorter
  SaveProp node, "autosort", sl->AutoSort
- if sl->ExtraVec then
-  'If sl->ExtraVec exists then it's actually used so just save the whole array
-  '(Also we must save length 0 arrays since the default length is 3)
-  dim length as integer = v_len(sl->ExtraVec)
-  dim ex_node as Reload.Nodeptr
-  ex_node = Reload.SetChildNode(node, "extra", length)
-  for idx as integer = 0 to length - 1
-   Reload.AppendChildNode(ex_node, "int", sl->ExtraVec[idx])
-  next
- end if
- SaveProp node, "type", SliceTypeName(sl)
+ SaveExtraVector node, "extra", sl->ExtraVec
  #IFDEF IS_GAME
   if save_handles then
    ' This only occurs when saving a game.
@@ -4693,27 +4684,7 @@ Function SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_h
  'Load extra data
  dim ex_node as Reload.NodePtr = GetChildByName(node, "extra")
  if ex_node then
-  dim length as integer = GetInteger(ex_node)
-  if length < 0 orelse length > maxExtraLength orelse length < NumChildren(ex_node) then
-   reporterr "Could not load slice: bad length " & length & ", numchildren=" & NumChildren(ex_node), serrError
-   ret = NO
-  else
-   v_new sl->ExtraVec, length
-   dim ch as Reload.NodePtr = FirstChild(ex_node)
-   dim idx as integer = 0
-   while ch
-    if NodeName(ch) = "int" then
-     sl->ExtraVec[idx] = GetInteger(ch)
-     idx += 1
-    else
-     reporterr "Could not load slice: unknown extra data type " & NodeName(ch), serrError
-     ret = NO
-     exit while
-    end if
-    ch = NextSibling(ch)
-   wend
-   'It's permitted for there to be fewer than 'length' children, the rest are 0
-  end if
+  if LoadExtraVector(ex_node, sl->ExtraVec, "slice") = NO then ret = NO
  else
   'Load from old serialization format for extra data
   dim extra as integer vector

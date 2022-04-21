@@ -83,6 +83,49 @@ SUB SaveCondition (cond as Condition, buf() as integer, offset as integer)
 END SUB
 '/
 
+'Save extravec, a variable-length extra data array, as a child of 'parent' named 'nodename'.
+'This extra data encoding is used by slices, but there are other encodings in use!
+'Only creates a node if the extra vector is not default.
+SUB SaveExtraVector(parent as Node ptr, nodename as zstring ptr, extravec as integer vector)
+  IF extravec THEN
+    'If extravec exists then it's actually used so just save the whole array without checking for [0,0,0]
+    '(Also we must save length 0 arrays since the default length is 3)
+    DIM length as integer = v_len(extravec)
+    DIM ex_node as Node ptr = SetChildNode(parent, nodename, length)
+    FOR idx as integer = 0 TO length - 1
+      AppendChildNode(ex_node, "int", extravec[idx])
+    NEXT
+  END IF
+END SUB
+
+'Load a variable-length extra data array into extravec.
+'This extra data encoding is used by slices, but there are other encodings in use!
+'ex_node is Node created by SaveExtraVector.
+FUNCTION LoadExtraVector(ex_node as Node ptr, byref extravec as integer vector, thing as zstring ptr = @"") as bool
+  DIM length as integer = GetInteger(ex_node)
+  IF length < 0 ORELSE length > maxExtraLength ORELSE length < NumChildren(ex_node) THEN
+    reporterr "Could not load " & *thing & ": bad extradata length " & length & ", numchildren=" & NumChildren(ex_node), serrError
+    RETURN NO
+  ELSE
+    v_new extravec, length
+    DIM ch as Reload.NodePtr = FirstChild(ex_node)
+    DIM idx as integer = 0
+    WHILE ch
+      IF NodeName(ch) = "int" THEN
+        extravec[idx] = GetInteger(ch)
+        idx += 1
+      ELSE
+        reporterr "Could not load " & thing & ": unknown extra data type " & NodeName(ch), serrError
+        RETURN NO
+      END IF
+      ch = NextSibling(ch)
+    WEND
+    'It's permitted for there to be fewer than 'length' children, the rest are 0
+  END IF
+  RETURN YES
+END FUNCTION
+
+
 '==========================================================================================
 '                                      NPC Definitions
 '==========================================================================================
