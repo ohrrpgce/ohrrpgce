@@ -667,7 +667,7 @@ Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer=0)
 
  if debugme = -1 then debugme = 1
  if debugme > 0 then
-  debug string(debugme - 1, " ") & SliceTypeName(sl) & " " & SliceLookupCodename(sl)
+  debug string(debugme - 1, " ") & DescribeSlice(sl)
   'SliceDebugLinks sl, NO, "deleting", debugme - 1
   debugme += 1
  end if
@@ -4827,8 +4827,20 @@ End function
 '==============================================================================
 '                              Slice Debugging
 
+'Return a string like "Sprite slice 11" or "Container slice" or "Rectangle slice (textbox box)"
+FUNCTION DescribeSlice(sl as Slice ptr) as string
+ IF sl THEN
+  DIM sliceinfo as string = SliceTypeName(sl) & " slice"
+  IF sl->TableSlot THEN sliceinfo &= " " & sl->TableSlot
+  IF sl->Lookup THEN sliceinfo &= " (" & SliceLookupCodename(sl) & ")"
+ ELSE
+  'Normally this sub shouldn't be called with a null ptr
+  RETURN "(invalid slice)"
+ END IF
+END FUNCTION
+
 Sub report_slice_type_err(sl as Slice ptr, expected as SliceTypes)
- reporterr "Attempt to treat " & SliceTypeName(sl) & " slice " & sl->TableSlot & " (at " & SlicePath(sl) & ") as a " & SliceTypeName(expected)
+ reporterr "Attempt to treat " & DescribeSlice(sl) & " (at " & SlicePath(sl) & ") as a " & SliceTypeName(expected)
 End Sub
 
 #ifdef ENABLE_SLICE_DEBUG
@@ -4869,7 +4881,7 @@ SUB SliceDebugDump(byval noisy as bool = NO)
  for i as integer = 0 to ubound(SliceDebug)
   if SliceDebug(i) <> 0 then
    sl = SliceDebug(i)
-   debug "[" & i & " Slice " & sl & " " & SliceTypeName(sl) & " " & SliceLookupCodename(sl) & "]"
+   debug "[" & i & " Slice " & sl & " " & DescribeSlice(sl) & "]"
    if noisy then
     debug "parent " & sl->parent
     SliceDebugDumpTree sl

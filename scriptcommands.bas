@@ -5256,6 +5256,35 @@ handle_type_names(HandleType.None) = "unrecognised"
 handle_type_names(HandleType.Slice) = "slice"
 handle_type_names(HandleType.Error) = "ERROR"
 
+'Try to recognise a value as a handle, returning a string for debugging and error messages such
+'as "0" or "1610612736 (Map slice 3 (map layer0))" or "-10 (copy of NPC 3)"
+FUNCTION describe_handle(handle as integer) as string
+ ' DIM htype as HandleType = get_handle_type(handle)
+ 'Call decode_handle to tell apart valid from invalid handles
+ DIM obj as any ptr
+ DIM htype as HandleType = decode_handle(obj, handle, serrIgnore)
+ DIM info as string
+ SELECT CASE htype
+  CASE HandleType.Error, HandleType.None
+   'Treat as not a handle
+  CASE HandleType.Slice
+   info = DescribeSlice(CAST(Slice ptr, obj))
+  CASE HandleType.NPC
+   info = "copy of NPC " & ABS(CAST(NPCInst ptr, obj)->id) - 1
+  CASE ELSE
+   DIM typename as string = handle_type_names(htype)
+   IF LEN(typename) THEN
+    DIM index as integer = get_handle_payload(handle)
+    info = typename & " " & index & " handle"
+   END IF
+ END SELECT
+ IF LEN(info) THEN
+  RETURN handle & " (" & info & ")"
+ ELSE
+  RETURN STR(handle)
+ END IF
+END FUNCTION
+
 'Give a script handle for an object, return the pointer to its ExtraVec array if
 'it has one, else show an error and return NULL.
 FUNCTION get_handle_extravec(handle as integer) as integer vector ptr
@@ -5374,14 +5403,7 @@ END FUNCTION
 'message can contain $SL which is replaced with e.g. "Sprite slice 11". If $SL isn't used,
 'the slice is instead prepended
 SUB slice_bad_op(sl as Slice ptr, message as zstring ptr, errlev as scriptErrEnum = serrBadOp)
- DIM sliceinfo as string
- IF sl THEN
-  sliceinfo = SliceTypeName(sl) & " slice " & sl->TableSlot
-  IF sl->Lookup THEN sliceinfo &= " (" & SliceLookupCodename(sl) & ")"
- ELSE
-  'Normally this sub shouldn't be called with a null ptr
-  sliceinfo = "(invalid slice)"
- END IF
+ DIM sliceinfo as string = DescribeSlice(sl)
  DIM fullmsg as string = *message
  IF replacestr(fullmsg, "$SL", sliceinfo) = 0 THEN
   fullmsg = sliceinfo & " " & fullmsg

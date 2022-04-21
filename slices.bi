@@ -727,6 +727,8 @@ DECLARE Sub SliceSetVisibility( byval s as Slice ptr, byval b as bool )
 DECLARE Sub SliceSetPaused( byval s as Slice ptr, byval b as bool )
 DECLARE Sub SliceSetClipping( byval s as Slice ptr, byval b as bool )
 
+DECLARE FUNCTION DescribeSlice(sl as Slice ptr) as string
+
 #IFDEF ENABLE_SLICE_DEBUG
 DECLARE SUB SliceDebugRemember(sl as Slice Ptr)
 DECLARE SUB SliceDebugForget(sl as Slice Ptr)
