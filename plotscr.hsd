@@ -769,6 +769,7 @@ define function, begin
 739,getextra,2,0,0            # Index an object's 'extra' array (handle, index)
 740,setextra,3,0,0,0          # Set element of an object's 'extra' array (handle, index, value)
 741,herouseslevelmp,1,0       # Returns true if the hero uses level mp
+742,getzone,1,0               # Create a zone handle (zone id)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

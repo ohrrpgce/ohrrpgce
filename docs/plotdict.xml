@@ -5796,23 +5796,32 @@ get hero name (1, find hero (leader))
 
 	<section title="Extra Data Array Functions">
 		<description>
-			These functions act on anything with a resizable "extra data" array, which is currently
-			just slices.
+			Certain types of objects (slices, NPCs, zones, menu items) have "extra data",
+			which are data fields with no builtin meaning which you can use for whatever you want.
+			(Menu item extra data is passed as arguments to any script triggered by the item.)
+			For example you could write a script to randomly play a sound effects while inside a zone,
+			and store the sound effect number in the extra data.
+			<lb/>
+			These functions act on any objects with a resizable "extra data" array, which is currently
+			slices and zones.
+			(To operate on zones you need to use <ref>getzone</ref> to get a zone handle.)
 			Things which have a fixed number of extra data slots (always three) can't yet be used with these commands.
-			Those things are: NPCs, zones, menu items.
+			Those things are: NPCs, menu items.
 		</description>
 
 		<command id="setextra">
 			<canon>set extra (handle, extra, value)</canon>
 			<shortname>set extra</shortname>
 			<description>
-				Sets one of the extra data variables on the slice <p>handle</p>.
-				By default all slices start have a length 3 extra data array,
+				Sets one of the extra data variables on an object.
+				By default all new slices and zones start have a length 3 extra data array,
 				which has no builtin meaning, it is only for use by scripts.
+				<lb/>
+				<p>handle</p> is an <ref>objecthandle</ref>.
 				<p>extra</p> is an <ref>extradataindex</ref>, typically a value from 0 to 2.
 				Use <ref>resizeextra</ref> if you want more than 3 extra values.
 				<lb/>
-				This command is a generic alternative to <ref>setsliceextra</ref>.
+				This command is a generic alternative to <ref>setsliceextra</ref>, <ref>setzoneextra</ref>.
 			</description>
 			<seealso>
 				<ref>getextra</ref>
@@ -5824,9 +5833,11 @@ get hero name (1, find hero (leader))
 			<shortname>get extra</shortname>
 			<description>
 				Retrieve an extra data value previously set on a <p>handle</p> with <ref>setextra</ref>.
+				<lb/>
+				<p>handle</p> is an <ref>objecthandle</ref>.
 				<p>extra</p> is the <ref>extradataindex</ref> to read.
 				<lb/>
-				This command is a generic alternative to <ref>getsliceextra</ref>.
+				This command is a generic alternative to <ref>getsliceextra</ref>, <ref>getzoneextra</ref>.
 			</description>
 		</command>
 
@@ -5834,8 +5845,8 @@ get hero name (1, find hero (leader))
 			<canon>append extra (handle, value)</canon>
 			<shortname>append extra</shortname>
 			<description>
-				Increases the length of a slice's extra data array by 1 and puts <p>value</p> in the new slot at the end.
-				<p>handle</p> is the <ref>slicehandle</ref>.
+				Increases the length of an object's extra data array by 1 and puts <p>value</p> in the new slot at the end.
+				<p>handle</p> is the <ref>objecthandle</ref>.
 				<lb/>
 				The return value is the new array length.
 				<lb/>
@@ -5848,19 +5859,19 @@ set extra(handle, -1, value)   # Index -1 is the last element of the array</exam
 			<canon>extra length (handle)</canon>
 			<shortname>extra length</shortname>
 			<description>
-				Returns the length of a slice's extra data array.
+				Returns the length of an object's extra data array.
 				This is 3 by default, and can be changed with <ref>resizeextra</ref>.
-				<p>handle</p> is the <ref>slicehandle</ref>.
+				<p>handle</p> is the <ref>objecthandle</ref>.
 			</description>
 		</command>
 		<command id="resizeextra">
 			<canon>resize extra (handle, length)</canon>
 			<shortname>resize extra</shortname>
 			<description>
-				Changes the length of a slice's extra data array.
-				<p>handle</p> is the <ref>slicehandle</ref>.
+				Changes the length of an object's extra data array.
+				<p>handle</p> is the <ref>objecthandle</ref>.
 				The new <p>length</p> can be between 0 and 1,000,000.
-				For backwards compatibility it's 3 by default for all newly created slices.
+				For backwards compatibility it's 3 by default for all newly created slices and zones.
 				Values will either be removed from the end of the array, or zeroes added to the
 				end to meet the new length.
 				The rest of the existing contents of the array will be preserved.
@@ -11033,19 +11044,24 @@ end</example>
 			<canon>get zone extra (zone id, extra num)</canon>
 			<shortname>get zone extra</shortname>
 			<description>
-				Returns the value in a zone's "extra data" field numbered <p>extra num</p>,
-				which is a number from 0 to 2.
-				You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them.
-				You can set a zone's extra data in the Zone Info editor.
+				Returns the value in one of a zone's "extra data" fields, which you can set in the Zone Info editor.
+				<p>extra num</p> is an <ref>extradataindex</ref>.
+				<lb/>
+				This command is similar to <ref>getextra</ref> but only works on zones.
 			</description>
 		</command>
 		<command id="setzoneextra">
 			<canon>set zone extra (zone id, extra num, value)</canon>
 			<shortname>set zone extra</shortname>
 			<description>
-				Sets the value of a zone's "extra data" field numbered <p>extra num</p>,
-				which is a number from 0 to 2.
-				You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them.
+				Sets the value of one of a zone's "extra data" fields.
+				<p>extra num</p> is an <ref>extradataindex</ref>.
+				<lb/>
+				Extra data has no builtin meaning or effect, so you're free to use it for whatever you want.
+				<lb/>
+				This command is similar to <ref>setextra</ref> but only works on zones.
+				See <ref>appendextra</ref> and <ref>resizeextra</ref> for more ways to
+				modify zone extra data.
 				<note>
 					Changes to zones are not stored in saved games,
 					and are erased when you leave the map unless "Tile Data State" is saved when
@@ -11061,6 +11077,30 @@ end</example>
 				returns the number of tiles that the zone contains.
 			</description>
 		</command>
+
+		<command id="getzone">
+			<canon>get zone (zone id)</canon>
+			<shortname>get zone</shortname>
+			<description>
+				Given a <p>zone id</p> (from 1 to 9999 or a special id), returns a "zone handle",
+				which is a value that can be passed to any of the <secref>Extra Data Array Functions</secref>
+				to access the zone's extra data.
+				It can also be used in place of the zone id in any zone command,
+				but it does nothing useful in that case.
+				<note>
+					Zone handles are just numbers that can be recognised by the engine as referring to a zone --
+					because what is <tt>5</tt>?
+					Is it a zone ID, NPC ID, party slot, map number, ...??
+					There's no way or necessity to destroy a zone handle after use.
+				</note>
+				<example>  # Resize to 5 extra data slots
+resize extra(get zone(10), 5)
+# Set the last (10th) extra data field to 42
+set extra(get zone(10), -1, 42) # Can also be written as  set zone extra(10, -1, 42)
+				</example>
+			</description>
+		</command>
+
 		</section>		<!--Zone functions-->
 
 
@@ -12577,6 +12617,17 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			</seealso>
 		</command>
 
+		<command id="objecthandle">
+			<canon>Object handles</canon>
+			<shortname>object handle</shortname>
+			<description>
+				An object handle is either a <ref>slicehandle</ref> or a zone handle.
+				They can be passed to <secref>Extra Data Array Functions</secref>.
+				Zone handles are returned by <ref>getzone</ref>.
+				<ref>false</ref> (zero) is never a valid object handle.
+			</description>
+		</command>
+
 		<command id="lookupcode">
 			<canon>Slice lookup codes</canon>
 			<shortname>slice lookup code</shortname>
@@ -12621,15 +12672,15 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<canon>Extra data array index</canon>
 			<shortname>extra array index</shortname>
 			<description>
-				An extra array index is a number telling which element of a slice's extra data array to read/write.
+				An extra array index is a number telling which element of a slice's or zone's extra data array to read/write.
 				(An "array" is a list of values.)
-				The first element of the array is index 0, the second is index 1, etc, up to <tt>slice extra length(handle) -- 1</tt>.
+				The first element of the array is index 0, the second is index 1, etc, up to <tt>extra length(handle) -- 1</tt>.
 				<lb/>
 				For convenience, negative indexing like Python is also supported:
-				the last element is index -1, the second last is index -2, down to <tt>-1 * slice extra length(handle)</tt> which is the first element.
+				the last element is index -1, the second last is index -2, down to <tt>-1 * extra length(handle)</tt> which is the first element.
 				Negative indexing is only supported by commands that explicitly say they accept an array index.
 				<lb/>
-				By default all slices start with a length 3 extra data array, so <p>extra</p> is typically a value from 0 to 2.
+				By default all slices/etc start with a length 3 extra data array, so <p>extra</p> is typically a value from 0 to 2.
 				You may also use the obsolete constants <p>extra 0</p>, <p>extra 1</p>, <p>extra 2</p>
 				which have values 0, 1, 2, if you find them more readable.
 			</description>

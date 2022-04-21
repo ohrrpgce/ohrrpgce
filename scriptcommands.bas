@@ -5157,6 +5157,12 @@ SUB script_functions(byval cmdid as integer)
   IF valid_hero_party(retvals(0)) THEN
    scriptret = IIF(hero_uses_lmp(retvals(0)), 1, 0)
   END IF
+ CASE 742 '--get zone (zone id)
+  IF valid_zone(retvals(0)) THEN
+   'If zone id is already a zone handle then this is a noop because the HandleType
+   'gets stripped and re-added. (TODO: but valid_zone doesn't accept zone handles yet)
+   scriptret = make_handle(HandleType.Zone, retvals(0))
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
@@ -5230,6 +5236,12 @@ FUNCTION decode_handle(byref ret as any ptr, handle as integer, errlvl as script
    END IF
    ret = @npc(index)
    RETURN HandleType.NPC
+  CASE HandleType.Zone
+   DIM index as uinteger = get_handle_payload(handle)
+   IF valid_zone(index) THEN  'errlvl?
+    ret = GetZoneInfo(zmap, index)
+    RETURN HandleType.Zone
+   END IF
   CASE ELSE
    IF htype = 0 ANDALSO handle > 0 THEN RETURN HandleType.None
    scripterr current_command_name() & ": invalid handle " & handle, errlvl
@@ -5237,7 +5249,8 @@ FUNCTION decode_handle(byref ret as any ptr, handle as integer, errlvl as script
  RETURN HandleType.Error
 END FUNCTION
 
-DIM SHARED handle_type_names(-16 TO 16) as string   'HandleType.Error not valid!
+DIM SHARED handle_type_names(-16 TO 16) as string
+handle_type_names(HandleType.Zone) = "zone"
 handle_type_names(HandleType.NPC) = "NPC"
 handle_type_names(HandleType.None) = "unrecognised"
 handle_type_names(HandleType.Slice) = "slice"
@@ -5250,7 +5263,9 @@ FUNCTION get_handle_extravec(handle as integer) as integer vector ptr
  DIM htype as HandleType = decode_handle(obj, handle)
  SELECT CASE htype
   CASE HandleType.Slice
-   RETURN @cast(Slice ptr, obj)->ExtraVec
+   RETURN @(cast(Slice ptr, obj)->ExtraVec)
+  CASE HandleType.Zone
+   RETURN @(cast(ZoneInfo ptr, obj)->extravec)
   CASE HandleType.Error
    'Showed an error already
   CASE ELSE

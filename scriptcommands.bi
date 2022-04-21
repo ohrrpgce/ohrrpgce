@@ -16,6 +16,7 @@
 
 'There can be up to 31 different types of handles (exluding 0), with possible type values -16 to 15
 enum HandleType explicit
+ Zone      = -2    ' Zone ID
  NPC       = -1    ' Range -&h7FFFFFF to -1, but only -300 to -1 are used
  None      = 0     ' Range 1 to &h7FFFFFF. Context-dependent, might be some kind of ID
  'Menu      = 1

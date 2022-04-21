@@ -5442,14 +5442,25 @@ script, zone tests, begin
   assert(string compare(95, 96))
 
   # Zone extra
+  variable (zone5, zone10)
+  zone5 := get zone(5)
+  #assert(get zone(zone 5) == zone 5)  # Meant to be idempotent
   assert(get zone extra(5, 0) == 10)
   assert(get zone extra(5, 1) == -2147483648)
   assert(get zone extra(5, 2) == 2147483647)
-  #assert(zone extra length(5) == 0)  # Actually, there' no way to get the length...
+  assert(get zone extra(5, -1) == 2147483647)
+  assert(get extra(zone5, -1) == 2147483647)
+  set extra(zone5, -2, 32)
+  assert(get zone extra(5, 1) == 32)
+  assert(extra length(zone5) == 3)
   # A zone with zero length extra
-  #assert(zone extra length(10) == 0)
+  zone10 := get zone(10)
+  assert(extra length(zone10) == 0)
+  append extra(zone10, 2)
+  assert(extra length(zone10) == 1)
+  assert(get extra(zone10, -1) == 2)
   # A zone with more extra
-  #assert(zone extra length(11) == 13)
+  assert(extra length(getzone(11)) == 13)
   assert(get zone extra(11, 12) == 999)
 
   # A nonexistent zone
@@ -5746,12 +5757,14 @@ script, obsolete map data tests, begin
   get zone name (95, 5)
   $96="extra data test"
   assert(string compare(95, 96))
+  assert(extra length(get zone(5)) == 3)
   assert(get zone extra(5, 0) == 10)
   assert(get zone extra(5, 1) == -2147483648)
   assert(get zone extra(5, 2) == 2147483647)
   # A nonexistent zone
   get zone name (95, 9000)
   assert(string length(95) == 0)
+  assert(extra length(get zone(9000)) == 3)
   assert(get zone extra(9000, 0) == 0)
   assert(get zone extra(9000, 1) == 0)
   assert(get zone extra(9000, 2) == 0)
