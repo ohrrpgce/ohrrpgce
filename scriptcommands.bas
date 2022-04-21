@@ -5211,18 +5211,15 @@ END FUNCTION
 
 'Decode a handle to a pointer to an object, returned in ret, and return the type,
 'or else NULL and HandleType.Error.
+'Doesn't handle the range 1 to &h7FFFFFF: returns HandleType.None without setting ret.
 'Returns HandleType.Slice for all slice handles, not Slice2/3/4
 FUNCTION decode_handle(byref ret as any ptr, handle as integer, errlvl as scriptErrEnum = serrBadOp) as HandleType
- 'DIM index as uinteger = cast(uinteger, handle) AND HANDLE_PAYLOAD_MASK
- DIM htype as HandleType = cast(uinteger, handle) SHR HANDLE_TYPE_SHIFT
+ 'DIM index as uinteger = get_handle_payload(handle)
+ DIM htype as HandleType = get_handle_type(handle)
  SELECT CASE htype
   CASE IS >= HandleType.Slice
    ret = get_handle_slice(handle)
-   IF ret = NULL THEN
-    RETURN HandleType.Error
-   ELSE
-    RETURN HandleType.Slice
-   END IF
+   IF ret THEN RETURN HandleType.Slice
   CASE HandleType.NPC
    DIM index as integer = -1 - handle
    IF index > UBOUND(npc) THEN
@@ -5234,9 +5231,10 @@ FUNCTION decode_handle(byref ret as any ptr, handle as integer, errlvl as script
    ret = @npc(index)
    RETURN HandleType.NPC
   CASE ELSE
+   IF htype = 0 ANDALSO handle > 0 THEN RETURN HandleType.None
    scripterr current_command_name() & ": invalid handle " & handle, errlvl
-   RETURN HandleType.Error
  END SELECT
+ RETURN HandleType.Error
 END FUNCTION
 
 DIM SHARED handle_type_names(-16 TO 16) as string   'HandleType.Error not valid!
@@ -5245,7 +5243,8 @@ handle_type_names(HandleType.None) = "unrecognised"
 handle_type_names(HandleType.Slice) = "slice"
 handle_type_names(HandleType.Error) = "ERROR"
 
-'Give a script handle for an object return the pointer to its ExtraVec array if it has one, else an error.
+'Give a script handle for an object, return the pointer to its ExtraVec array if
+'it has one, else show an error and return NULL.
 FUNCTION get_handle_extravec(handle as integer) as integer vector ptr
  DIM obj as any ptr
  DIM htype as HandleType = decode_handle(obj, handle)

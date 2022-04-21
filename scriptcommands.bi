@@ -14,10 +14,10 @@
 ' "payload" (arbitrary data), so that different types of handles (eg slices,
 ' menu items) are in separate ranges.
 
-'There can be up to 31 different types of handles, with possible type values -16 to 15
+'There can be up to 31 different types of handles (exluding 0), with possible type values -16 to 15
 enum HandleType explicit
  NPC       = -1    ' Range -&h7FFFFFF to -1, but only -300 to -1 are used
- None      = 0
+ None      = 0     ' Range 1 to &h7FFFFFF. Context-dependent, might be some kind of ID
  'Menu      = 1
  'MenuItem  = 2
  Slice     = 12    ' Slice handles are spread over four types, to get 2 extra SLICE_HANDLE_CTR_MASK
@@ -28,10 +28,19 @@ enum HandleType explicit
  Error     = 16
 end enum
 
-#define HANDLE_TYPE_SHIFT       27
+#define HANDLE_TYPE_BITS        5   '2^5 = 32 different types
+#define HANDLE_TYPE_SHIFT       (32 - HANDLE_TYPE_BITS)
 #define HANDLE_TYPE_MASK        &hF8000000  '31 shl HANDLE_TYPE_SHIFT
 #define HANDLE_PAYLOAD_MASK     &h07FFFFFF  '(1 shl HANDLE_TYPE_SHIFT) - 1
-#define get_handle_type(handle)  (CAST(uinteger, handle) SHR HANDLE_TYPE_SHIFT)
+'Only the bottom 27 bits of payload are used, it can be either an integer in the range 0 to &h07FFFFFF
+'or a signed integer in range -&h04000000 to &h03FFFFFF.
+#define make_handle(type, payload) ((type SHL HANDLE_TYPE_SHIFT) OR (payload AND HANDLE_PAYLOAD_MASK))
+'The handle type is a signed integer -16 to 15
+#define get_handle_type(handle)    (CAST(integer, handle) SHR HANDLE_TYPE_SHIFT)
+'Returns the payload as an unsigned value 0 to &h07FFFFFF
+#define get_handle_payload(handle) (CAST(uinteger, handle) AND HANDLE_PAYLOAD_MASK)
+'Returns the payload as a signed value -&h04000000 to &h03FFFFFF
+#define get_handle_signed_payload(handle) ((CAST(integer, handle) SHL HANDLE_TYPE_BITS) SHR HANDLE_TYPE_BITS)
 
 'Slice handles point to a slot of plotslices() and have a counter that's incremented every time
 'the slot is reused, so that stale slice handles can be detected with high confidence.
