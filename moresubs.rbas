@@ -1461,7 +1461,9 @@ close_persist_reld()
 cleanup_game_slices()
 'plotslices() should now be all zeroed out (the .handles aren't). Rather than
 'checking, check slicedebug() (if enabled)
-SliceDebugDump YES
+#IFDEF ENABLE_SLICE_DEBUG
+ SliceDebugDump YES
+#ENDIF
 SetupGameSlices
 reset_game_state()
 

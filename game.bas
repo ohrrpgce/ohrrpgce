@@ -1020,7 +1020,9 @@ SUB reset_game_final_cleanup()
  unloadtilemap foemap
  DeleteZonemap zmap
  cleanup_game_slices
- SliceDebugDump YES
+ #IFDEF ENABLE_SLICE_DEBUG
+  SliceDebugDump YES
+ #ENDIF
  cleanup_global_reload_doc
  close_general_reld
  clear_binsize_cache

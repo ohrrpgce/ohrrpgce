@@ -9,7 +9,9 @@
 #include "common.bi"
 #include "reload.bi"
 
-CONST ENABLE_SLICE_DEBUG = NO
+'Uncomment to enable double-checking of slice creation and deletion.
+'This is mainly only useful to find leaked slices.
+'#DEFINE ENABLE_SLICE_DEBUG
 
 ' Builtin slice lookup codes
 'These constants also need to be updated in slices.bas and plotscr.hsd
@@ -725,13 +727,15 @@ DECLARE Sub SliceSetVisibility( byval s as Slice ptr, byval b as bool )
 DECLARE Sub SliceSetPaused( byval s as Slice ptr, byval b as bool )
 DECLARE Sub SliceSetClipping( byval s as Slice ptr, byval b as bool )
 
-
+#IFDEF ENABLE_SLICE_DEBUG
 DECLARE SUB SliceDebugRemember(sl as Slice Ptr)
 DECLARE SUB SliceDebugForget(sl as Slice Ptr)
 DECLARE SUB SliceDebugDump(byval noisy as bool = NO)
-DECLARE SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
 DECLARE FUNCTION SliceDebugCheck(sl as Slice Ptr) as integer
-DECLARE SUB SliceDebugLinks(sl as Slice Ptr, recurse as bool = NO, prefix as string = "", indent as integer = 0)
+#ENDIF
+
+DECLARE SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
+'DECLARE SUB SliceDebugLinks(sl as Slice Ptr, recurse as bool = NO, prefix as string = "", indent as integer = 0)
 
 '''' SliceType-specific functions
 

@@ -170,7 +170,9 @@ DIM template_slices_shown as bool
 'ScreenSlice is used by other slices with ->Attach = slScreen
 DIM SHARED ScreenSlice as Slice Ptr
 ScreenSlice = NewSlice()
-SliceDebugForget ScreenSlice '--screen slice is magical, ignore it for debugging purposes
+#ifdef ENABLE_SLICE_DEBUG
+ SliceDebugForget ScreenSlice '--screen slice is magical, ignore it for debugging purposes
+#endif
 WITH *ScreenSlice
  'Note that .Attach is NOT set to slScreen here. slScreen uses this, not the other way around
  .SliceType = slSpecial
@@ -619,8 +621,10 @@ Function NewSlice(byval parent as Slice ptr = 0) as Slice ptr
  ret->ChildrenRefresh = NULL
  ret->ChildDraw = @DefaultChildDraw
 
- SliceDebugRemember ret
- 
+ #ifdef ENABLE_SLICE_DEBUG
+  SliceDebugRemember ret
+ #endif
+
  return ret
 End Function
 
@@ -686,7 +690,9 @@ Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer=0)
  OrphanSlice sl
  DeleteSliceChildren sl, debugme
 
- SliceDebugForget sl
+ #ifdef ENABLE_SLICE_DEBUG
+  SliceDebugForget sl
+ #endif
 
  delete sl->Context
  v_free sl->ExtraVec
@@ -4854,8 +4860,9 @@ Sub report_slice_type_err(sl as Slice ptr, expected as SliceTypes)
  reporterr "Attempt to treat " & SliceTypeName(sl) & " slice " & sl->TableSlot & " (at " & SlicePath(sl) & ") as a " & SliceTypeName(expected)
 End Sub
 
+#ifdef ENABLE_SLICE_DEBUG
+
 SUB SliceDebugRemember(sl as Slice Ptr)
- if ENABLE_SLICE_DEBUG = NO then exit sub
  if sl = 0 then debug "SliceDebugRemember null ptr": exit sub
  for i as integer = 0 to ubound(SliceDebug)
   if SliceDebug(i) = 0 then
@@ -4872,7 +4879,6 @@ SUB SliceDebugRemember(sl as Slice Ptr)
 END SUB
 
 SUB SliceDebugForget(sl as Slice Ptr)
- if ENABLE_SLICE_DEBUG = NO then exit sub
  if sl = 0 then debug "SliceDebugForget null ptr": exit sub
  for i as integer = 0 to ubound(SliceDebug)
   if SliceDebug(i) = sl then
@@ -4886,7 +4892,6 @@ END SUB
 
 'This is used for hunting down leaked slices
 SUB SliceDebugDump(byval noisy as bool = NO)
- if ENABLE_SLICE_DEBUG = NO then exit sub
  debug "===SLICE DEBUG DUMP==="
  dim count as integer = 0
  dim sl as Slice Ptr
@@ -4903,6 +4908,16 @@ SUB SliceDebugDump(byval noisy as bool = NO)
  next i
  debug count & " slices found in the slice debug table"
 END SUB
+
+FUNCTION SliceDebugCheck(sl as Slice Ptr) as integer
+ if sl = 0 then RETURN NO
+ for i as integer = 0 to ubound(SliceDebug)
+  if SliceDebug(i) = sl then RETURN YES
+ next i
+ RETURN NO
+END FUNCTION
+
+#endif
 
 'This is the dump function accessible by an in-game debug key,
 'and is intended for seeing the slice tree, not debugging code
@@ -4950,14 +4965,5 @@ Sub SliceDebugLinks(sl as Slice Ptr, recurse as bool = NO, prefix as string = ""
  end if
 End Sub
 '/
-
-FUNCTION SliceDebugCheck(sl as Slice Ptr) as integer
- if ENABLE_SLICE_DEBUG = NO then debug "SliceDebugCheck not enabled" : RETURN NO
- if sl = 0 then RETURN NO
- for i as integer = 0 to ubound(SliceDebug)
-  if SliceDebug(i) = sl then RETURN YES
- next i
- RETURN NO
-END FUNCTION
 
 End Extern

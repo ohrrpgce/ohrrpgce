@@ -5393,12 +5393,12 @@ FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum
   RETURN NULL
  END IF
  DIM sl as Slice ptr = plotslices(slot).sl
- IF ENABLE_SLICE_DEBUG THEN
+ #IFDEF ENABLE_SLICE_DEBUG
   IF SliceDebugCheck(sl) = NO THEN
    showbug SlicePath(sl) & " is not in the slice debug table!"
    RETURN NO
   END IF
- END IF
+ #ENDIF
  RETURN sl
 END FUNCTION
 
