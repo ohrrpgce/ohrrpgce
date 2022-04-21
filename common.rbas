@@ -5876,10 +5876,16 @@ END SUB
 'outside it.
 'Currently for slice extra data only, more in future.
 
+SUB extra_index_error(index as integer, length as integer)
+  reporterr "Out of range index " & index & " for length " & length & " 'extra' array", serrBadOp
+END SUB
+
 FUNCTION get_extra(byref extra as integer vector, index as integer) as integer
  DIM length as integer = IIF(extra, v_len(extra), 3)
  IF index < 0 THEN index += length
- IF bound_arg(index, 0, length - 1, "'extra' index", , serrBadOp) THEN
+ IF index < 0 ORELSE index > length - 1 THEN
+  extra_index_error index, length
+ ELSE
   IF extra THEN RETURN extra[index]
  END IF
  RETURN 0
@@ -5891,7 +5897,9 @@ SUB set_extra(byref extra as integer vector, index as integer, value as integer)
  END IF
  DIM length as integer = v_len(extra)
  IF index < 0 THEN index += length
- IF bound_arg(index, 0, length - 1, "'extra' index", , serrBadOp) THEN
+ IF index < 0 ORELSE index > length - 1 THEN
+  extra_index_error index, length
+ ELSE
   extra[index] = value
  END IF
 END SUB
