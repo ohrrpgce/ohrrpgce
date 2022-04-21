@@ -15,6 +15,7 @@
 #include "loading.bi"
 #include "common_menus.bi"
 #include "thingbrowser.bi"
+#include "editorkit.bi"
 
 CONST tilew = 20
 CONST tileh = 20
@@ -3285,67 +3286,34 @@ END SUB
 '==========================================================================================
 
 
+TYPE ZoneInfoEditor EXTENDS EditorKit
+ DECLARE SUB define_items()
+ DECLARE SUB load()
+ st as MapEditState ptr
+END TYPE
+
 SUB mapedit_edit_zoneinfo(st as MapEditState)
  'We could first build sorted list of zones, and only show those that actually exist?
+ DIM editor as ZoneInfoEditor
+ editor.st = @st
+ editor.setup_record_switching(st.cur_zone, 1, zoneLASTREADABLE, , "Zone")
+ editor.helpkey = "mapedit_zone_edit"
+ editor.run()
+END SUB
 
- DIM menu(6) as string
- DIM menu_display(6) as string
- DIM enabled(6) as bool
- flusharray enabled(), -1, YES
+SUB ZoneInfoEditor.load()
+ st->cur_zinfo = GetZoneInfo(st->map.zmap, st->cur_zone)
+END SUB
 
- DIM selectst as SelectTypeState
- DIM state as MenuState
- state.last = UBOUND(menu)
- state.size = 24
- state.need_update = YES
+'No save() needed
 
- setkeys YES
- DO
-  setwait 55
-  setkeys YES
-  IF keyval(ccCancel) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "mapedit_zone_edit"
-  usemenu state, enabled()
-  DIM enable_strgrabber as bool = NO
-  IF state.pt = 3 AND selectst.query = "" THEN enable_strgrabber = YES
-  IF enable_strgrabber = NO ANDALSO select_by_typing(selectst, NO) THEN
-   select_on_word_boundary menu(), selectst, state
-  END IF
-
-  SELECT CASE state.pt
-   CASE 0
-    IF enter_space_click(state) THEN EXIT DO
-   CASE 1
-    IF intgrabber(st.cur_zone, 1, zoneLASTREADABLE) THEN
-     state.need_update = YES
-     st.cur_zinfo = GetZoneInfo(st.map.zmap, st.cur_zone)
-    END IF
-   CASE 3
-    IF enable_strgrabber ANDALSO strgrabber(st.cur_zinfo->name, 35) THEN state.need_update = YES
-   CASE 4 TO 6
-    IF intgrabber(st.cur_zinfo->extra(state.pt - 4), -2147483648, 2147483647) THEN state.need_update = YES
-  END SELECT
-
-  IF state.need_update THEN
-   state.need_update = NO
-
-   menu(0) = "Previous Menu"
-   menu(1) = CHR(27) & "Zone " & st.cur_zone & CHR(26)
-   menu(2) = " Contains " & st.cur_zinfo->numtiles & " tiles"
-   enabled(2) = NO
-   menu(3) = "Name:" & st.cur_zinfo->name
-   FOR i as integer = 0 TO 2
-    menu(4 + i) = "Extra data " & i & ":" & st.cur_zinfo->extra(i)
-   NEXT
-  END IF
-
-  clearpage vpage
-  highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, vpage
-  setvispage vpage
-  dowait
- LOOP
- 
+SUB ZoneInfoEditor.define_items()
+ def_record_switcher
+ defunselectable " Contains " & st->cur_zinfo->numtiles & " tiles"
+ defstr "Name:", st->cur_zinfo->name, 35
+ FOR i as integer = 0 TO 2
+  defint "Extra data " & i & ":", st->cur_zinfo->extra(i), INT_MIN, INT_MAX
+ NEXT
 END SUB
 
 
