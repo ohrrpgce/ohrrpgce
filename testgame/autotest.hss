@@ -4840,6 +4840,12 @@ script, slice extra tests, begin
   assert(get slice extra(sl, 2) == 102)
   assert(get slice extra(sl, -1) == 102)
   assert(get slice extra(sl, -3) == 100)
+  assert(get extra(sl, 2) == 102)
+  assert(get extra(sl, -1) == 102)
+  assert(get extra(sl, -3) == 100)
+  set extra(sl, 1, 4242)
+  assert(get slice extra(sl, 1) == 4242)
+  assert(get extra(sl, -2) == 4242)
   resize extra(sl, 1)
   assert(extra length(sl) == 1)
   assert(get slice extra(sl, -1) == 100)
@@ -6370,23 +6376,18 @@ end
 #change tileset (tileset, layer)
 #check NPC wall (who, direction)
 #check parentage (handle, parent handle)
-#check tag (tag)
 #child count (handle)
 #clamp slice (handle1, handle2)
 #clone sprite (handle)
 #concatenate strings (dest, source)
-#continue
 #copy string (dest, source)
 #create container (width, height)
 #create ellipse (width, height, border color, fill color)
 #create grid (width, height, rows, columns)
 #create NPC (ID,X,Y,direction)
-#create rect (width, height, style)
 #create text
-#current map
 #current stat
 #days of play
-#decrement (variable,amount)
 #delete char (ID, position)
 #delete map state (whichdata)
 #delete save (slot)
@@ -6676,7 +6677,6 @@ end
 #system month
 #system second
 #system year
-#teleport to map (map, x, y)
 #trace value (expression, ...)
 #trim string (ID, start, length)
 #tweak palette (red, green, blue, first, last)
