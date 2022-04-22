@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-04-18)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-04-22)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -758,7 +758,7 @@ function toggleContent(target) {
 		<a href="#about-deletehero">delete hero (who)</a><br>
 		<a href="#about-deleteherobyslot">delete hero by slot (slot)</a><br>
 		<a href="#about-deleteitem">delete item (item, number)</a><br>
-		<a href="#about-deletemapstate">delete map state (whichdata)</a><br>
+		<a href="#about-deletemapstate">delete map state (whichdata, custom id)</a><br>
 		<a href="#about-deletemenuitem">delete menu item(menu item handle)</a><br>
 		<a href="#about-destroynpc">delete NPC (reference)</a><br>
 		<a href="#about-deletesave">delete save (slot)</a><br>
@@ -998,6 +998,7 @@ function toggleContent(target) {
 		<a href="#about-getvertanchor">get vert anchor (handle)</a><br>
 		<a href="#about-getvictorymusic">get victory music</a><br>
 		<a href="#about-getwrap">get wrap(handle)</a><br>
+		<a href="#about-getzone">get zone (zone id)</a><br>
 		<a href="#about-getzoneextra">get zone extra (zone id, extra num)</a><br>
 		<a href="#about-getzonename">get zone name (string id, zone id)</a><br>
 		<a href="#about-giveexperience">give experience (hero, amount)</a><br>
@@ -1184,6 +1185,7 @@ function toggleContent(target) {
 		<a href="#about-npcz">NPC Z (who)</a><br>
 		<a href="#about-numberfromstring">number from string (ID, default)</a><br>
 		<a href="#about-numericconstants">Numeric Constants</a><br>
+		<a href="#about-objecthandle">Object handles</a><br>
 		<a href="#about-obstructionissuspended">obstruction is suspended</a><br>
 		<a href="#about-off">off</a><br>
 		<a href="#about-on">on</a><br>
@@ -4414,7 +4416,8 @@ while (npcref) do (
 			
 				This command (along with <a href="#about-npccopynumber" class="ref">NPC copy number</a> and <a href="#about-getnpcpool" class="ref">get NPC pool</a>)
 				is the inverse of <a href="#about-npcreference" class="ref">NPC reference</a>.
-				Returns an NPC's ID. <span class="param">reference</span>If you give <span class="param">get NPC ID</span> an <a href="#about-npcref" class="ref">NPC reference</a> it will return the NPC's ID.
+				Returns an NPC's ID.
+				If you give <span class="param">get NPC ID</span> an <a href="#about-npcref" class="ref">NPC reference</a> it will return the NPC's ID.
 				If the reference is not valid then <span class="param">get NPC ID</span> will return -1.
 				This command can be used on tag-disabled NPCs too, returning their ID number.
 				<div class="notice note">
@@ -5096,7 +5099,15 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 			<a name="about-npcextra"></a>
 				<h4>NPC extra (who, which)</h4>
 <p>
-			Returns the npc instance-specific extra data field requested in <span class="param">which</span>, a number from 0 to 2. You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them. If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.
+			
+				Returns an extra data value previously set on NPC instance <span class="param">who</span> with <a href="#about-setnpcextra" class="ref">set NPC extra</a>.
+				<br>
+				If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.
+				<span class="param">extra</span> is the <a href="#about-extradataindex" class="ref">extra array index</a> to read.
+				<br>
+				This command is like <a href="#about-getextra" class="ref">get extra</a> but only works on NPCs
+				and accepts NPC IDs as well as NPC references.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setnpcextra" class="ref">set NPC extra</a></li></ul>
@@ -5107,7 +5118,15 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 			<a name="about-setnpcextra"></a>
 				<h4>set NPC extra (who, which, value)</h4>
 <p>
-			Sets the npc instance-specific extra data field requested in <span class="param">which</span>, a number from 0 to 2. You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them.  If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.
+			
+				Sets one of the extra data variables on the NPC instance <span class="param">who</span>.
+				If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.
+				<span class="param">extra</span> is an <a href="#about-extradataindex" class="ref">extra array index</a>.
+				<br>
+				This command is like <a href="#about-setextra" class="ref">set extra</a> but only works on NPCs
+				and accepts NPC IDs as well as NPC references.
+				See <a href="#about-appendextra" class="ref">append extra</a> and <a href="#about-resizeextra" class="ref">resize extra</a> for more ways to
+				modify zone extra data.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					Like other NPC instance data, the extra data for NPCs on the current map is not saved in save games!
@@ -10650,10 +10669,16 @@ get hero name (1, find hero (leader))
 		<h3>
 <span class="backlink"></span>Extra Data Array Functions</h3>
 		<a href="#Categories" class="backlink">[Back to top-level index]</a><p>
-			These functions act on anything with a resizable "extra data" array, which is currently
-			just slices.
-			Things which have a fixed number of extra data slots (always three) can't yet be used with these commands.
-			Those things are: NPCs, zones, menu items.
+			Certain types of objects (slices, NPCs, zones, menu items) have "extra data",
+			which are data fields with no builtin meaning which you can use for whatever you want.
+			(Menu item extra data is passed as arguments to any script triggered by the item.)
+			For example you could write a script to randomly play a sound effects while inside a zone,
+			and store the sound effect number in the extra data.
+			<br>
+			These functions act on any objects with a resizable "extra data" array, which is currently
+			slices, npcs and zones.
+			(To operate on zones you need to use <a href="#about-getzone" class="ref">get zone</a> to get a zone handle.)
+			Menu items have a fixed number of extra data slots (three) and can't yet be used with these commands.
 		</p>
 <div class="select-content-shown" id="Extra Data Array Functions-index">
 <button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul><div class="content-shown">
@@ -10669,13 +10694,15 @@ get hero name (1, find hero (leader))
 				<h4>set extra (handle, extra, value)</h4>
 <p>
 			
-				Sets one of the extra data variables on the slice <span class="param">handle</span>.
-				By default all slices start have a length 3 extra data array,
+				Sets one of the extra data variables on an object.
+				By default all new slices and zones start have a length 3 extra data array,
 				which has no builtin meaning, it is only for use by scripts.
+				<br>
+				<span class="param">handle</span> is an <a href="#about-objecthandle" class="ref">object handle</a>.
 				<span class="param">extra</span> is an <a href="#about-extradataindex" class="ref">extra array index</a>, typically a value from 0 to 2.
 				Use <a href="#about-resizeextra" class="ref">resize extra</a> if you want more than 3 extra values.
 				<br>
-				This command is a generic alternative to <a href="#about-setsliceextra" class="ref">set slice extra</a>.
+				This command is a generic alternative to <a href="#about-setsliceextra" class="ref">set slice extra</a>, <a href="#about-setzoneextra" class="ref">set zone extra</a>, <a href="#about-setnpcextra" class="ref">set NPC extra</a>.
 			
 			
 			
@@ -10693,9 +10720,11 @@ get hero name (1, find hero (leader))
 <p>
 			
 				Retrieve an extra data value previously set on a <span class="param">handle</span> with <a href="#about-setextra" class="ref">set extra</a>.
+				<br>
+				<span class="param">handle</span> is an <a href="#about-objecthandle" class="ref">object handle</a>.
 				<span class="param">extra</span> is the <a href="#about-extradataindex" class="ref">extra array index</a> to read.
 				<br>
-				This command is a generic alternative to <a href="#about-getsliceextra" class="ref">get slice extra</a>.
+				This command is a generic alternative to <a href="#about-getsliceextra" class="ref">get slice extra</a>, <a href="#about-getzoneextra" class="ref">get zone extra</a>, <a href="#about-npcextra" class="ref">NPC extra</a>.
 			
 			
 			
@@ -10707,8 +10736,8 @@ get hero name (1, find hero (leader))
 				<h4>append extra (handle, value)</h4>
 <p>
 			
-				Increases the length of a slice's extra data array by 1 and puts <span class="param">value</span> in the new slot at the end.
-				<span class="param">handle</span> is the <a href="#about-slicehandle" class="ref">slice handle</a>.
+				Increases the length of an object's extra data array by 1 and puts <span class="param">value</span> in the new slot at the end.
+				<span class="param">handle</span> is the <a href="#about-objecthandle" class="ref">object handle</a>.
 				<br>
 				The return value is the new array length.
 				<br>
@@ -10726,9 +10755,9 @@ set extra(handle, -1, value)   # Index -1 is the last element of the array</pre>
 				<h4>extra length (handle)</h4>
 <p>
 			
-				Returns the length of a slice's extra data array.
+				Returns the length of an object's extra data array.
 				This is 3 by default, and can be changed with <a href="#about-resizeextra" class="ref">resize extra</a>.
-				<span class="param">handle</span> is the <a href="#about-slicehandle" class="ref">slice handle</a>.
+				<span class="param">handle</span> is the <a href="#about-objecthandle" class="ref">object handle</a>.
 			
 			
 			
@@ -10740,10 +10769,10 @@ set extra(handle, -1, value)   # Index -1 is the last element of the array</pre>
 				<h4>resize extra (handle, length)</h4>
 <p>
 			
-				Changes the length of a slice's extra data array.
-				<span class="param">handle</span> is the <a href="#about-slicehandle" class="ref">slice handle</a>.
+				Changes the length of an object's extra data array.
+				<span class="param">handle</span> is the <a href="#about-objecthandle" class="ref">object handle</a>.
 				The new <span class="param">length</span> can be between 0 and 1,000,000.
-				For backwards compatibility it's 3 by default for all newly created slices.
+				For backwards compatibility it's 3 by default for all newly created slices and zones.
 				Values will either be removed from the end of the array, or zeroes added to the
 				end to meet the new length.
 				The rest of the existing contents of the array will be preserved.
@@ -18441,6 +18470,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 		<a href="#about-getzoneextra">get zone extra (zone id, extra num)</a><br>
 		<a href="#about-setzoneextra">set zone extra (zone id, extra num, value)</a><br>
 		<a href="#about-zonenumberoftiles">zone number of tiles (zone id)</a><br>
+		<a href="#about-getzone">get zone (zone id)</a><br>
 </ul>
 <ul></ul>
 </li>
@@ -18465,7 +18495,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 		<a href="#about-savemapstate">save map state (whichdata, customid)</a><br>
 		<a href="#about-loadmapstate">load map state (whichdata, customid)</a><br>
 		<a href="#about-resetmapstate">reset map state (whichdata)</a><br>
-		<a href="#about-deletemapstate">delete map state (whichdata)</a><br>
+		<a href="#about-deletemapstate">delete map state (whichdata, custom id)</a><br>
 </ul>
 <ul></ul>
 </li>
@@ -18988,7 +19018,13 @@ end</pre>
 		<h3>
 <span class="backlink"><a href="#Tweaking%20Maps">Tweaking Maps</a> →
 			</span>Zonemaps</h3>
-		<p></p>
+		<p>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					All zone commands accept zone handles (returned by <a href="#about-getzone" class="ref">get zone</a>)
+					in place of zone IDs.
+				</div>
+			</p>
 <ul></ul>
 		<div class="command">
 			<a name="about-writezone"></a>
@@ -18996,7 +19032,7 @@ end</pre>
 <p>
 			
 				Sets whether the tile at (<span class="param">x,y</span>) is part of the specified zone.
-				<span class="param">zone id</span> is a valid ID number (see <a href="#about-readzone" class="ref">read zone</a>),
+				<span class="param">zone id</span> is a valid ID number (see <a href="#about-readzone" class="ref">read zone</a>) or zone handle,
 				and <span class="param">value</span> is interpreted as either <span class="param">true</span> (non-zero) or <span class="param">false</span> (zero).
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
@@ -19026,6 +19062,7 @@ end</pre>
 			
 				Returns <a href="#about-true" class="ref">true</a> if the tile at (<span class="param">x,y</span>) is part of the specified zone.
 				The <span class="param">zone id</span> is an ID number from 1 to 9999 for zones defined in the map editor,
+				or a zone handle,
 				or can be the ID one of these special zones:
 				<ul>
 					<li>
@@ -19057,7 +19094,10 @@ end</pre>
 				If <span class="param">count</span> too large (greater than or equal to the number of zones),
 				0 (<a href="#about-false" class="ref">false</a>) is returned.
 				<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">The order in which the ID numbers are returned is completely arbitrary.</div>
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					The order in which the ID numbers are returned is completely arbitrary.
+					Also note this returns IDs, not zone handles.
+				</div>
 			
 			
 			
@@ -19082,10 +19122,10 @@ end</pre>
 				<h4>get zone extra (zone id, extra num)</h4>
 <p>
 			
-				Returns the value in a zone's "extra data" field numbered <span class="param">extra num</span>,
-				which is a number from 0 to 2.
-				You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them.
-				You can set a zone's extra data in the Zone Info editor.
+				Returns the value in one of a zone's "extra data" fields, which you can set in the Zone Info editor.
+				<span class="param">extra num</span> is an <a href="#about-extradataindex" class="ref">extra array index</a>.
+				<br>
+				This command is the same as <a href="#about-getextra" class="ref">get extra</a> but only works on zones, and accepts zone IDs as well as zone handles.
 			
 			
 			
@@ -19097,9 +19137,14 @@ end</pre>
 				<h4>set zone extra (zone id, extra num, value)</h4>
 <p>
 			
-				Sets the value of a zone's "extra data" field numbered <span class="param">extra num</span>,
-				which is a number from 0 to 2.
-				You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them.
+				Sets the value of one of a zone's "extra data" fields.
+				<span class="param">extra num</span> is an <a href="#about-extradataindex" class="ref">extra array index</a>.
+				<br>
+				Extra data has no builtin meaning or effect, so you're free to use it for whatever you want.
+				<br>
+				This command is the same as <a href="#about-setextra" class="ref">set extra</a> but only works on zones, and accepts zone IDs as well as zone handles.
+				See <a href="#about-appendextra" class="ref">append extra</a> and <a href="#about-resizeextra" class="ref">resize extra</a> for more ways to
+				modify zone extra data.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					Changes to zones are not stored in saved games,
@@ -19117,8 +19162,37 @@ end</pre>
 				<h4>zone number of tiles (zone id)</h4>
 <p>
 			
-				Given a <span class="param">zone id</span> (from 1 to 9999 or a special id),
+				Given a <span class="param">zone id</span> (from 1 to 9999 or a special id) or zone handle,
 				returns the number of tiles that the zone contains.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getzone"></a>
+				<h4>get zone (zone id)</h4>
+<p>
+			
+				Given a <span class="param">zone id</span> (from 1 to 9999 or a special ID), returns a "zone handle",
+				which is a value that can be passed to any of the <a href="#Extra%20Data%20Array%20Functions" class="ref">Extra Data Array Functions</a>
+				to access the zone's extra data.
+				It can also be used in place of the zone ID in any zone command,
+				but it does nothing useful in that case.
+				For example, you can also pass a zone handle to this command and it returns it unchanged.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Zone handles are just numbers that can be recognised by the engine as referring to a zone --
+					because what is <span class="code">5</span>?
+					Is it a zone ID, NPC ID, party slot, map number, ...??
+					There's no way to or necessity to destroy a zone handle after use.
+				</div>
+				<pre>  # Resize to 5 extra data slots
+resize extra(get zone(10), 5)
+# Set the last (10th) extra data field to 42
+set extra(get zone(10), -1, 42) # Can also be written as  set zone extra(10, -1, 42)
+				</pre>
 			
 			
 			
@@ -19366,9 +19440,18 @@ end</pre>
 </div>
 		<div class="command">
 			<a name="about-deletemapstate"></a>
-				<h4>delete map state (whichdata)</h4>
+				<h4>delete map state (whichdata, custom id)</h4>
 <p>
-			Deletes temporary map state files for the current map, so that if the map is set to load NPC or tile data it will load the original data from the game files when it is entered. <span class="param">whichdata</span> is a set of bits in the <a href="#about-savemapstate" class="ref">save map state</a> format to determine what exactly to delete. The default is mapstate:all.
+			
+				Deletes temporary map state for the current map saved either with <a href="#about-savemapstate" class="ref">save map state</a>
+				or by leaving a map set to save state.
+				By default, (if both arguments are omitted) if the map is set to load NPC or tile
+				data it will instead load the original data from the game files when it is entered.
+				<br>
+				<span class="param">whichdata</span> is an optional set of bits in the <a href="#about-savemapstate" class="ref">save map state</a> format to determine
+				what exactly to delete. The default is <span class="code">mapstate:all</span>.
+				<span class="param">customid</span> is an optional number between 0 and 31 of a slot in which a custom save was made.
+			
 			
 			
 			
@@ -21182,6 +21265,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		<a href="#about-npcref">NPC references</a><br>
 		<a href="#about-slicehandle">Slice handles</a><br>
 		<a href="#about-blendableslicehandle">Blendable slice handles</a><br>
+		<a href="#about-objecthandle">Object handles</a><br>
 		<a href="#about-lookupcode">Slice lookup codes</a><br>
 		<a href="#about-menuhandle">Menu handles</a><br>
 		<a href="#about-menuitemhandle">Menu item handles</a><br>
@@ -21318,6 +21402,21 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		</p>
 </div>
 		<div class="command">
+			<a name="about-objecthandle"></a>
+				<h4>Object handles</h4>
+<p>
+			
+				An object handle is either a <a href="#about-slicehandle" class="ref">slice handle</a>, an <a href="#about-npcref" class="ref">NPC reference</a> (NOT an NPC ID!) or a zone handle (NOT a zone ID!).
+				They can be passed to <a href="#Extra%20Data%20Array%20Functions" class="ref">Extra Data Array Functions</a>.
+				Zone handles are returned by <a href="#about-getzone" class="ref">get zone</a>.
+				<a href="#about-false" class="ref">false</a> (zero) is never a valid object handle.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 			<a name="about-lookupcode"></a>
 				<h4>Slice lookup codes</h4>
 <p>
@@ -21373,15 +21472,15 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				<h4>Extra data array index</h4>
 <p>
 			
-				An extra array index is a number telling which element of a slice's extra data array to read/write.
+				An extra array index is a number telling which element of a slice's or zone's extra data array to read/write.
 				(An "array" is a list of values.)
-				The first element of the array is index 0, the second is index 1, etc, up to <span class="code">slice extra length(handle) -- 1</span>.
+				The first element of the array is index 0, the second is index 1, etc, up to <span class="code">extra length(handle) -- 1</span>.
 				<br>
 				For convenience, negative indexing like Python is also supported:
-				the last element is index -1, the second last is index -2, down to <span class="code">-1 * slice extra length(handle)</span> which is the first element.
+				the last element is index -1, the second last is index -2, down to <span class="code">-1 * extra length(handle)</span> which is the first element.
 				Negative indexing is only supported by commands that explicitly say they accept an array index.
 				<br>
-				By default all slices start with a length 3 extra data array, so <span class="param">extra</span> is typically a value from 0 to 2.
+				By default all slices/etc start with a length 3 extra data array, so <span class="param">extra</span> is typically a value from 0 to 2.
 				You may also use the obsolete constants <span class="param">extra 0</span>, <span class="param">extra 1</span>, <span class="param">extra 2</span>
 				which have values 0, 1, 2, if you find them more readable.
 			
@@ -22183,7 +22282,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 933 commands (of which 11 are aliases), 27 constants and 13 definitions of types and other terms in this file.</p>
+<p>Stats: There are 934 commands (of which 11 are aliases), 27 constants and 14 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

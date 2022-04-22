@@ -879,8 +879,14 @@ FUNCTION describe_npcinst(npcnum as NPCIndex) as string
     info &= " frame `" & sprite->SpriteData->frame & "`"
    END IF
   END IF
-  info &= !"\nExtra 0:`" & .extra(0) & "` 1:`" & .extra(1) & "` 2:`" & .extra(2) & !"`\n" _
-       & "AI: `" & yesorno(NOT .suspend_ai) _
+  DIM extralen as integer = IIF(.extravec, v_len(.extravec), 3)
+  info &= !"\nExtra (len " & extralen & ") `["
+  FOR i as integer = 0 TO small(10, extralen) - 1
+   IF i > 0 THEN info &= ", "
+   info &= STR(get_extra(.extravec, i))
+  NEXT
+  IF extralen > 10 THEN info &= " ..."
+  info &= !"]`\nAI: `" & yesorno(NOT .suspend_ai) _
        & "` Usable: `" & yesorno(NOT .suspend_use) _
        & "` Walls: `" & yesorno(NOT .ignore_walls) _
        & "` Obstruction: `" & yesorno(NOT .not_obstruction) _

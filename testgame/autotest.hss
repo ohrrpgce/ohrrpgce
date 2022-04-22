@@ -1883,7 +1883,8 @@ script, npc tests, begin
   npc reference tests
   npc movement tests(1)
   npc movement tests(NPC reference(1))
-  npc id tests()
+  npc id tests
+  npc extra tests
   npc tag and onetime tests
   use npc script tests
   alter npc tests
@@ -1976,6 +1977,21 @@ script, npc id tests, begin
   change npc id(n, 2), w(4)
   assert(get npc id(n) == 2)
   change npc id(n, 1), w
+end
+
+script, npc extra tests, begin
+  $0="npc extra tests"
+
+  variable(npc)
+  npc := npc reference(4)
+  assert(extra length(npc) == 3)
+  assert(npc extra(npc, 0) == 0)
+  assert(npc extra(npc, 2) == 0)
+  set npc extra(npc, -1, 999)
+  assert(npc extra(npc, 2) == 999)
+  assert(get extra(npc, 2) == 999)
+  append extra(npc, 1000)
+  assert(get extra(npc, 3) == 1000)
 end
 
 script, npc tag and onetime tests, begin

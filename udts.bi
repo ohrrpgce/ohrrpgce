@@ -332,7 +332,8 @@ TYPE NPCInst
   END UNION
   dir as DirNum     'npcl+900
   wtog as integer   'npcl+1200   tick in walk animation: the frame number is computed from this
-  extra(2) as integer
+  extravec as integer vector  'Equal to NULL by default which means a length 3 array [0, 0, 0]
+
   ignore_walls as bool  'ignore passmap, zones and map edges (but not NPC/hero obstructions)
   not_obstruction as bool 'can walk through npcs+heroes and vice-versa
   suspend_use as bool   'not activatable 

@@ -102,6 +102,8 @@ END SUB
 'This extra data encoding is used by slices, but there are other encodings in use!
 'ex_node is Node created by SaveExtraVector.
 FUNCTION LoadExtraVector(ex_node as Node ptr, byref extravec as integer vector, thing_or_file as zstring ptr = @"") as bool
+  v_free extravec
+  IF ex_node = NULL THEN RETURN NO
   DIM length as integer = GetInteger(ex_node)
   IF length < 0 ORELSE length > maxExtraLength ORELSE length < NumChildren(ex_node) THEN
     reporterr strprintf("Could not load %s: bad extradata length %d, numchildren=%d", thing_or_file, length, NumChildren(ex_node)), serrError
@@ -411,9 +413,7 @@ SUB save_npc_instance (byval parent as NodePtr, byval index as NPCIndex, npc as 
   SetChildNode(n, "fr", .wtog)
   IF .xgo THEN SetChildNode(n, "xgo", .xgo)
   IF .ygo THEN SetChildNode(n, "ygo", .ygo)
-  FOR j as integer = 0 TO 2
-   IF .extra(j) THEN SetKeyValueNode(n, "extra", j, .extra(j))
-  NEXT
+  SaveExtraVector n, "extravec", .extravec
   IF .ignore_walls THEN SetChildNode(n, "ignore_walls")
   IF .not_obstruction THEN SetChildNode(n, "not_obstruction")
   IF .suspend_use THEN SetChildNode(n, "suspend_use")
@@ -468,18 +468,7 @@ SUB load_npc_instance (byval n as NodePtr, npc as NPCInst, map_offset as XYPair 
    .wtog = GetChildNodeInt(n, "fr")
    .xgo = GetChildNodeInt(n, "xgo")
    .ygo = GetChildNodeInt(n, "ygo")
-   flusharray .extra()
-   DIM ex as NodePtr
-   ex = FirstChild(n, "extra")
-   WHILE ex
-    DIM exid as integer = GetInteger(ex)
-    IF exid >= 0 ANDALSO exid <= 2 THEN
-     .extra(exid) = GetChildNodeInt(ex, "int")
-    ELSE
-     debug "bad npc extra " & exid
-    END IF
-    ex = NextSibling(ex, "extra")
-   WEND
+   LoadExtraVector n."extravec".ptr, npc.extravec, "NPC instance"
    .ignore_walls = GetChildNodeExists(n, "ignore_walls")
    .not_obstruction = GetChildNodeExists(n, "not_obstruction")
    .suspend_use = GetChildNodeExists(n, "suspend_use")

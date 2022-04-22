@@ -2354,7 +2354,15 @@ end</example>
 		<command id="npcextra">
 			<canon>NPC extra (who, which)</canon>
 			<shortname>NPC extra</shortname>
-			<description>Returns the npc instance-specific extra data field requested in <p>which</p>, a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them. If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
+			<description>
+				Returns an extra data value previously set on NPC instance <p>who</p> with <ref>setnpcextra</ref>.
+				<lb/>
+				If you use an NPC ID for <p>who</p>, the first instance's data will be used.
+				<p>extra</p> is the <ref>extradataindex</ref> to read.
+				<lb/>
+				This command is like <ref>getextra</ref> but only works on NPCs
+				and accepts NPC IDs as well as NPC references.
+			</description>
 			<seealso>
 				<ref>setnpcextra</ref>
 			</seealso>
@@ -2362,7 +2370,15 @@ end</example>
 		<command id="setnpcextra">
 			<canon>set NPC extra (who, which, value)</canon>
 			<shortname>set NPC extra</shortname>
-			<description>Sets the npc instance-specific extra data field requested in <p>which</p>, a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.
+			<description>
+				Sets one of the extra data variables on the NPC instance <p>who</p>.
+				If you use an NPC ID for <p>who</p>, the first instance's data will be used.
+				<p>extra</p> is an <ref>extradataindex</ref>.
+				<lb/>
+				This command is like <ref>setextra</ref> but only works on NPCs
+				and accepts NPC IDs as well as NPC references.
+				See <ref>appendextra</ref> and <ref>resizeextra</ref> for more ways to
+				modify zone extra data.
 				<note>
 					Like other NPC instance data, the extra data for NPCs on the current map is not saved in save games!
 					However, it is saved in mapstate NPC saves (see <ref>savemapstate</ref>).
@@ -5804,10 +5820,9 @@ get hero name (1, find hero (leader))
 			and store the sound effect number in the extra data.
 			<lb/>
 			These functions act on any objects with a resizable "extra data" array, which is currently
-			slices and zones.
+			slices, npcs and zones.
 			(To operate on zones you need to use <ref>getzone</ref> to get a zone handle.)
-			Things which have a fixed number of extra data slots (always three) can't yet be used with these commands.
-			Those things are: NPCs, menu items.
+			Menu items have a fixed number of extra data slots (three) and can't yet be used with these commands.
 		</description>
 
 		<command id="setextra">
@@ -5822,7 +5837,7 @@ get hero name (1, find hero (leader))
 				<p>extra</p> is an <ref>extradataindex</ref>, typically a value from 0 to 2.
 				Use <ref>resizeextra</ref> if you want more than 3 extra values.
 				<lb/>
-				This command is a generic alternative to <ref>setsliceextra</ref>, <ref>setzoneextra</ref>.
+				This command is a generic alternative to <ref>setsliceextra</ref>, <ref>setzoneextra</ref>, <ref>setnpcextra</ref>.
 			</description>
 			<seealso>
 				<ref>getextra</ref>
@@ -5838,7 +5853,7 @@ get hero name (1, find hero (leader))
 				<p>handle</p> is an <ref>objecthandle</ref>.
 				<p>extra</p> is the <ref>extradataindex</ref> to read.
 				<lb/>
-				This command is a generic alternative to <ref>getsliceextra</ref>, <ref>getzoneextra</ref>.
+				This command is a generic alternative to <ref>getsliceextra</ref>, <ref>getzoneextra</ref>, <ref>npcextra</ref>.
 			</description>
 		</command>
 
@@ -11293,7 +11308,7 @@ end</example>
 			<description>
 				Deletes temporary map state for the current map saved either with <ref>savemapstate</ref>
 				or by leaving a map set to save state.
-				By default, (if both arguments are omitted) if the map is set to load NPC or tile
+				By default (if both arguments are omitted), if the map is set to load NPC or tile
 				data it will instead load the original data from the game files when it is entered.
 				<lb/>
 				<p>whichdata</p> is an optional set of bits in the <ref>savemapstate</ref> format to determine
@@ -12643,10 +12658,10 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<canon>Object handles</canon>
 			<shortname>object handle</shortname>
 			<description>
-				An object handle is either a <ref>slicehandle</ref> or a zone handle.
-				They can be passed to <secref>Extra Data Array Functions</secref>.
-				Zone handles are returned by <ref>getzone</ref>.
+				An object handle is either a <ref>slicehandle</ref>, an <ref>npcref</ref> (NOT an NPC ID!) or a zone handle (returned by <ref>getzone</ref>; NOT a zone ID!).
+				Menu and menu item handles don't (yet) count either.
 				<ref>false</ref> (zero) is never a valid object handle.
+				Object handles can be passed to <secref>Extra Data Array Functions</secref>.
 			</description>
 		</command>
 
@@ -12694,17 +12709,17 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<canon>Extra data array index</canon>
 			<shortname>extra array index</shortname>
 			<description>
-				An extra array index is a number telling which element of a slice's or zone's extra data array to read/write.
+				An extra array index is a number telling which element of an NPC's, slice's or zone's extra data array to read/write.
 				(An "array" is a list of values.)
 				The first element of the array is index 0, the second is index 1, etc, up to <tt>extra length(handle) -- 1</tt>.
+				<lb/>
+				By default all slices/NPCs/etc start with a length 3 extra data array, so <p>extra</p> is typically a value from 0 to 2.
+				You may also use the obsolete constants <p>extra 0</p>, <p>extra 1</p>, <p>extra 2</p>
+				which have values 0, 1, 2, if you find them more readable.
 				<lb/>
 				For convenience, negative indexing like Python is also supported:
 				the last element is index -1, the second last is index -2, down to <tt>-1 * extra length(handle)</tt> which is the first element.
 				Negative indexing is only supported by commands that explicitly say they accept an array index.
-				<lb/>
-				By default all slices/etc start with a length 3 extra data array, so <p>extra</p> is typically a value from 0 to 2.
-				You may also use the obsolete constants <p>extra 0</p>, <p>extra 1</p>, <p>extra 2</p>
-				which have values 0, 1, 2, if you find them more readable.
 			</description>
 		</command>
 

@@ -3878,18 +3878,10 @@ SUB script_functions(byval cmdid as integer)
   IF npcref >= 0 THEN scriptret = wtog_to_frame(npc(npcref).wtog)
  CASE 193'--NPC extra
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN
-   IF retvals(1) >= 0 AND retvals(1) <= 2 THEN
-    scriptret = npc(npcref).extra(retvals(1))
-   END IF
-  END IF
+  IF npcref >= 0 THEN scriptret = get_extra(npc(npcref).extravec, retvals(1))
  CASE 194'--set NPC extra
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN
-   IF retvals(1) >= 0 AND retvals(1) <= 2 THEN
-    npc(npcref).extra(retvals(1)) = retvals(2)
-   END IF
-  END IF
+  IF npcref >= 0 THEN set_extra npc(npcref).extravec, retvals(1), retvals(2)
  CASE 472'--set NPC ignores walls (npc, value)
   npcref = get_valid_npc(retvals(0))
   IF npcref >= 0 THEN
@@ -5300,6 +5292,8 @@ FUNCTION get_handle_extravec(handle as integer) as integer vector ptr
  SELECT CASE htype
   CASE HandleType.Slice
    RETURN @(cast(Slice ptr, obj)->ExtraVec)
+  CASE HandleType.NPC
+   RETURN @(cast(NPCInst ptr, obj)->extravec)
   CASE HandleType.Zone
    RETURN @(cast(ZoneInfo ptr, obj)->extravec)
   CASE HandleType.Error
