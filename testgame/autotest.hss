@@ -5697,7 +5697,7 @@ script, maptile tests, begin
   # Write tilemap
   write map block(3, 2, 255, 1)
   assert(read map block(3, 2, 1) == 255)
-  resetmapstate(mapstate:tilemap)
+  reset map state(mapstate:tilemap)
   assert(read map block(3, 2, 1) == 0)
 
   # Write passmap
@@ -5755,7 +5755,59 @@ end
 
 ########################################################################
 
+script, map state tests, begin
+  $0="map state tests"
+
+  # Preconditions
+  assert(current map == 0)
+
+  # These tests are highly incomplete!
+  # Should test saving data when leaving map
+
+  # Test maptiles and walls, saving to a custom save state file
+  assert(read map block(7, 2, 2) == 42)
+  assert(read pass block(7, 2) == northwall)
+  write map block(7, 2, 11, 2)
+  write pass block(7, 2, eastwall)
+  assert(read map block(7, 2, 2) == 11)
+  assert(read pass block(7, 2) == eastwall)
+  # "load map state" with a custom ID should do nothing if the file doesn't exist
+  load map state(mapstate:tiles, 1)
+  assert(read map block(7, 2, 2) == 11)
+  assert(read pass block(7, 2) == eastwall)
+  # save/reset/load
+  save map state(mapstate:tiles, 1)
+  reset map state(mapstate:tiles)
+  assert(read map block(7, 2, 2) == 42)
+  assert(read pass block(7, 2) == northwall)
+  load map state(mapstate:tiles, 1)
+  assert(read map block(7, 2, 2) == 11)
+  assert(read pass block(7, 2) == eastwall)
+
+  # Test NPC instances
+  variable(npc)
+  npc := npc reference(4, 2)
+  set npc position(npc, 5, 6)
+  # "load map state" with a custom ID should do nothing if the file doesn't exist
+  load map state(mapstate:npcs, 1)
+  assert(npc x(npc) == 5)
+  assert(npc y(npc) == 6)
+  # save/load/reset
+  save map state(mapstate:npcs, 1)
+  reset map state(mapstate:npcs)
+  # NPC references should stay valid if it's the same NPC
+  assert(npc x(npc) == 3)
+  assert(npc y(npc) == 13)
+  load map state(mapstate:npcs, 1)
+  assert(npc x(npc) == 5)
+  assert(npc y(npc) == 6)
+end
+
+########################################################################
+
 script, obsolete map data tests, begin
+  $0="obsolete map data tests"
+
   variable(rem map, rem x, rem y)
   rem map := current map
   rem x := hero x(me)
@@ -5783,7 +5835,6 @@ script, obsolete map data tests, begin
 
   teleport to map(rem map, rem x, rem y)
 end
-
 
 ########################################################################
 
@@ -6427,11 +6478,9 @@ end
 #### (Note: interactive commands should be in interactivetest.hss)
 #allow minimap (setting)
 #allow save anywhere (setting)
-#value,and,value
 #append ascii (ID, char)
 #ascii from string (ID, position)
 #autosave
-#break
 #camera follows hero (who)
 #camera follows NPC (who)
 #camera pixel X
@@ -6441,7 +6490,6 @@ end
 #change tileset (tileset, layer)
 #check NPC wall (who, direction)
 #check parentage (handle, parent handle)
-#child count (handle)
 #clamp slice (handle1, handle2)
 #clone sprite (handle)
 #concatenate strings (dest, source)
@@ -6450,7 +6498,6 @@ end
 #create ellipse (width, height, border color, fill color)
 #create grid (width, height, rows, columns)
 #create NPC (ID,X,Y,direction)
-#create text
 #current stat
 #days of play
 #delete char (ID, position)
@@ -6458,13 +6505,8 @@ end
 #delete save (slot)
 #destroy NPC (reference)
 #dismount vehicle
-#number / number
 #draw NPCs above heroes (setting)
-#number == number
-#exit returning(value)
-#exit script
 #expand string(ID)
-#number ^ power
 #extended scancodes enabled
 #extract color(color, component)
 #fade screen in
@@ -6523,7 +6565,6 @@ end
 #hide battle ready meter (state)
 #horiz flip sprite (handle, flip)
 #hours of play
-#increment (variable,amount)
 #inside battle
 #is filling parent (handle)
 #last child(handle)
@@ -6531,8 +6572,6 @@ end
 #last save slot
 #layer tileset (layer)
 #leader
-#number << number
-#number <= number
 #load attack sprite (num, palette)
 #load backdrop sprite (num)
 #load border sprite (num, palette)
@@ -6546,38 +6585,24 @@ end
 #load tileset (tileset, layer)
 #load walkabout sprite (num, palette)
 #load weapon sprite (num, palette)
-#value && value
-#value || value
-#value ^^ value
-#lookup slice (lookup code, start slice)
 #lose money (amount)
 #map cure (attack, target, attacker)
 #map height (map)
 #map width (map)
 #milliseconds
 #minutes of play
-#number,mod,number
 #move slice above (handle, above what handle)
 #move slice below (handle, below what handle)
 #move slice by (handle, relative x, relative y, ticks)
 #move slice to (handle, x, y, ticks)
-#number * number
 #next container sibling(handle)
 #next rect sibling(handle)
 #next sibling(handle)
 #next sprite sibling(handle)
-#not (value)
-#number <> number
 #NPC at pixel (x, y, number)
 #NPC at spot (x, y, number)
 #NPC direction (who)
-#NPC extra (who, which)
 #NPC frame (who)
-#NPC is walking (who)
-#NPC pixel X (who)
-#NPC pixel Y (who)
-#NPC X (who)
-#NPC Y (who)
 #number from string (ID, default)
 #value,or,value
 #order menu
@@ -6601,7 +6626,6 @@ end
 #read map block (x,y,layer)
 #read NPC (who,NPCstat)
 #read pass block (x,y)
-#read timer (id)
 #realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)
 #replace attack sprite (handle, num, palette)
 #replace backdrop sprite (handle, num)
@@ -6660,7 +6684,6 @@ end
 #set no HP level up restore (state)
 #set no MP level up restore (state)
 #set NPC direction (who, direction)
-#set NPC extra (who, which, value)
 #set NPC frame (who, frame)
 #set NPC ignores walls (who, value)
 #set NPC moves (who, value)
@@ -6708,7 +6731,6 @@ end
 #show map
 #show no value
 #show value (number)
-#slice child (handle, number)
 #slice collide (handle1, handle2)
 #slice collide point (handle, x, y)
 #slice contains (handle1, handle2)
@@ -6726,7 +6748,6 @@ end
 #stop slice (handle)
 #stop timer (id)
 #string to globals (ID, starting global, length)
-#number -- number
 #suspend catapillar
 #suspend map music
 #suspend NPCs
@@ -6759,5 +6780,4 @@ end
 #write color (index, element, value)
 #write map block (x,y,value,layer)
 #write pass block (x,y,value)
-#value,xor,value
 #Y sort children (handle)

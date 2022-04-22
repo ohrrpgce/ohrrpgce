@@ -445,6 +445,7 @@ SUB savemapstate_zonemap(mapnum as integer, prefix as string)
 END SUB
 
 'Used only by the "save map state" command
+'If prefix="state" then mapnum is a custom state ID
 SUB savemapstate_bitmask (mapnum as integer, savemask as integer = 255, prefix as string)
 IF savemask AND 1 THEN
  savemapstate_gmap mapnum, prefix
@@ -484,7 +485,6 @@ SUB loadmapstate_gmap (mapnum as integer, prefix as string, dontfallback as bool
 END SUB
 
 SUB loadmapstate_npcl (mapnum as integer, prefix as string, dontfallback as bool = NO)
- '--new-style
  DIM filename as string
  filename = mapstatetemp(mapnum, prefix) & "_l.reld.tmp"
  IF NOT isfile(filename) THEN
@@ -518,7 +518,7 @@ SUB loadmapstate_tilemap (mapnum as integer, prefix as string, dontfallback as b
   IF dontfallback = NO THEN loadmap_tilemap mapnum
  ELSE
   DIM as TilemapInfo statesize, propersize
-  GetTilemapInfo maplumpname(mapnum, "t"), propersize
+  GetTilemapInfo maplumpname(gam.map.id, "t"), propersize
   GetTilemapInfo filebase + "_t.tmp", statesize
 
   IF statesize.size = propersize.size THEN
@@ -551,7 +551,7 @@ SUB loadmapstate_passmap (mapnum as integer, prefix as string, dontfallback as b
   IF dontfallback = NO THEN loadmap_passmap mapnum
  ELSE
   DIM as TilemapInfo statesize, propersize
-  GetTilemapInfo maplumpname(mapnum, "p"), propersize
+  GetTilemapInfo maplumpname(gam.map.id, "p"), propersize
   GetTilemapInfo filebase + "_p.tmp", statesize
 
   IF statesize.size = propersize.size THEN
@@ -599,6 +599,7 @@ SUB loadmapstate_zonemap (mapnum as integer, prefix as string, dontfallback as b
 END SUB
 
 'This function is used only by the "load map state" command
+'If prefix="state" then mapnum is a custom state ID
 SUB loadmapstate_bitmask (mapnum as integer, loadmask as integer, prefix as string, dontfallback as bool = NO)
 IF loadmask AND 1 THEN
  loadmapstate_gmap mapnum, prefix, dontfallback

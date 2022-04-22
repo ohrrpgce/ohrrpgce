@@ -145,6 +145,8 @@ WHAT IS NEW?
       [Ralph]
     * Crash reporting on Windows stopped working for a while, aside from the
       manual email fallback [Ralph]
+    * "load map state" to load tile & wallmaps from a custom state ID usually
+      wrongly complained about wrong map size [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

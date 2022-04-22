@@ -3217,10 +3217,10 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
   gam.showtext = gam.map.name
   embedtext gam.showtext
   gam.showtext_ticks = gmap(4)
-  IF gmap(17) < 2 THEN
+  IF gmap(17) < 2 THEN  '"load from state file if available" or "load+save state file when leaving"
    loadmapstate_npcd gam.map.id, "map"
    loadmapstate_npcl gam.map.id, "map"
-  ELSE
+  ELSE  '"ignore state files"
    loadmap_npcd gam.map.id
    loadmap_npcl gam.map.id
   END IF
