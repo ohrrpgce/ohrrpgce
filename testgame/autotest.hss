@@ -130,6 +130,7 @@ script, run tests 1, begin
   maptile tests
   wallchecking tests
   zone tests
+  map state tests
   inventory tests
   hero tests
   death tests
@@ -5761,46 +5762,134 @@ script, map state tests, begin
   # Preconditions
   assert(current map == 0)
 
-  # These tests are highly incomplete!
-  # Should test saving data when leaving map
+  # These tests are quite incomplete:
+  # No tests of NPC definition or map settings
+  # No tests of saving/loading data when leaving/entering map
+  # No tests that load/saving/deleting one state doesn't change the others
+  # The RELOAD NPC instance file format is used only by map state, so it should be fully tested somewhere
+
+  variable(mapstate:tilepass)
+  mapstate:tilepass := mapstate:tilemap + mapstate:passmap
 
   # Test maptiles and walls, saving to a custom save state file
-  assert(read map block(7, 2, 2) == 42)
-  assert(read pass block(7, 2) == northwall)
+  assert(read map block(7, 2, 2) == 42)  # Precondition
+  assert(read pass block(7, 2) == northwall)  # Precondition
   write map block(7, 2, 11, 2)
   write pass block(7, 2, eastwall)
   assert(read map block(7, 2, 2) == 11)
   assert(read pass block(7, 2) == eastwall)
   # "load map state" with a custom ID should do nothing if the file doesn't exist
-  load map state(mapstate:tiles, 1)
+  load map state(mapstate:tilepass, 1)
   assert(read map block(7, 2, 2) == 11)
   assert(read pass block(7, 2) == eastwall)
   # save/reset/load
-  save map state(mapstate:tiles, 1)
-  reset map state(mapstate:tiles)
+  save map state(mapstate:tilepass, 1)
+  reset map state(mapstate:tilepass)
   assert(read map block(7, 2, 2) == 42)
   assert(read pass block(7, 2) == northwall)
-  load map state(mapstate:tiles, 1)
+  load map state(mapstate:tilemap, 1)  # Half-hearted test of loading tiles and walls separately
   assert(read map block(7, 2, 2) == 11)
+  assert(read pass block(7, 2) == northwall)
+  load map state(mapstate:passmap, 1)
   assert(read pass block(7, 2) == eastwall)
+  write map block(7, 2, 12, 2)
+  write pass block(7, 2, westwall)
+  # delete state
+  delete map state(mapstate:tilepass, 1)
+  # "load map state" with a custom ID should again do nothing
+  load map state(mapstate:tilepass, 1)
+  assert(read map block(7, 2, 2) == 12)
+  assert(read pass block(7, 2) == westwall)
+  # "load map state" with no ID should default to resetting
+  load map state(mapstate:tilepass)
+  assert(read map block(7, 2, 2) == 42)
+  assert(read pass block(7, 2) == northwall)
+
+  # Test zones
+  assert(read zone(6, 16, 14) == true)  # Precondition
+  assert(read zone(6, 15, 14) == false)  # Precondition
+  assert(get zone extra(5, 0) == 10)  # Precondition
+  write zone(6, 16, 14, false)
+  write zone(6, 15, 14, true)
+  set zone extra(5, 0, 11)
+  write zone(765, 10, 20, true)  # an unused zone
+  assert(read zone(6, 16, 14) == false)
+  assert(read zone(6, 15, 14) == true)
+  assert(read zone(765, 10, 20) == true)
+  # "load map state" with a custom ID should do nothing if the file doesn't exist
+  load map state(mapstate:zonemap, 1)
+  assert(read zone(6, 16, 14) == false)
+  assert(read zone(6, 15, 14) == true)
+  assert(read zone(765, 10, 20) == true)
+  assert(get zone extra(5, 0) == 11)
+  # save/reset/load
+  save map state(mapstate:zonemap, 1)
+  reset map state(mapstate:zonemap)
+  assert(read zone(6, 16, 14) == true)
+  assert(read zone(6, 15, 14) == false)
+  assert(read zone(765, 10, 20) == false)
+  assert(get zone extra(5, 0) == 10)
+  load map state(mapstate:zonemap, 1)
+  assert(read zone(6, 16, 14) == false)
+  assert(read zone(6, 15, 14) == true)
+  assert(read zone(765, 10, 20) == true)
+  assert(get zone extra(5, 0) == 11)
+  write zone(6, 16, 14, true)
+  write zone(6, 15, 14, true)
+  set zone extra(5, 0, 12)
+  # delete state
+  delete map state(mapstate:zonemap, 1)
+  # "load map state" with a custom ID should again do nothing
+  load map state(mapstate:zonemap, 1)
+  assert(read zone(6, 16, 14) == true)
+  assert(read zone(6, 15, 14) == true)
+  assert(read zone(765, 10, 20) == true)
+  assert(get zone extra(5, 0) == 12)
+  # "load map state" with no ID should default to resetting
+  load map state(mapstate:zonemap)
+  assert(read zone(6, 16, 14) == true)
+  assert(read zone(6, 15, 14) == false)
+  assert(read zone(765, 10, 20) == false)
+  assert(get zone extra(5, 0) == 10)
 
   # Test NPC instances
-  variable(npc)
+  variable(npc, newnpc)
   npc := npc reference(4, 2)
+  assert(npc x(npc) == 3 && npc y(npc) == 13)  # Precondition
+  assert(npc copy count(7) == 0)  # Precondition
   set npc position(npc, 5, 6)
+  newnpc := create NPC(7, 1, 2)
+  assert(npc copy count(7) == 1)
   # "load map state" with a custom ID should do nothing if the file doesn't exist
   load map state(mapstate:npcs, 1)
-  assert(npc x(npc) == 5)
-  assert(npc y(npc) == 6)
+  assert(npc x(npc) == 5 && npc y(npc) == 6)
+  assert(npc x(newnpc) == 1 && npc y(newnpc) == 2)
   # save/load/reset
   save map state(mapstate:npcs, 1)
+  # Check deleted NPCs are restored, with same npcref
+  delete NPC(npc)
+  assert(get NPC id(npc) == -1)  # Check the npcref is invalid
   reset map state(mapstate:npcs)
   # NPC references should stay valid if it's the same NPC
-  assert(npc x(npc) == 3)
-  assert(npc y(npc) == 13)
+  assert(npc x(npc) == 3 && npc y(npc) == 13)
+  # Check created NPCs are deleted
+  assert(npc copy count(7) == 0)
+  assert(get NPC id(newnpc) == -1)
   load map state(mapstate:npcs, 1)
-  assert(npc x(npc) == 5)
-  assert(npc y(npc) == 6)
+  assert(npc x(npc) == 5 && npc y(npc) == 6)
+  # Check created NPCs are loaded
+  assert(npc copy count(7) == 1)
+  assert(npc x(newnpc) == 1 && npc y(newnpc) == 2)
+  # delete state
+  delete map state(mapstate:npcs, 1)
+  # "load map state" with a custom ID should again do nothing
+  load map state(mapstate:npcs, 1)
+  assert(npc x(npc) == 5 && npc y(npc) == 6)
+  assert(npc x(newnpc) == 1 && npc y(newnpc) == 2)
+  # "load map state" with no ID should default to resetting
+  load map state(mapstate:npcs)
+  assert(npc x(npc) == 3 && npc y(npc) == 13)
+  assert(get NPC id(newnpc) == -1)
 end
 
 ########################################################################
@@ -6474,8 +6563,9 @@ end
 
 ########################################################################
 #### COMMANDS THAT STILL NEED TESTS
-#### (Actually, this list is totally out of date)
-#### (Note: interactive commands should be in interactivetest.hss)
+#### (Actually, this list is out of date)
+#### (Note: interactive commands should be in interactivetest.hss, and
+#### fundamental HS tests are in hstests.hss)
 #allow minimap (setting)
 #allow save anywhere (setting)
 #append ascii (ID, char)
@@ -6498,10 +6588,8 @@ end
 #create ellipse (width, height, border color, fill color)
 #create grid (width, height, rows, columns)
 #create NPC (ID,X,Y,direction)
-#current stat
 #days of play
 #delete char (ID, position)
-#delete map state (whichdata)
 #delete save (slot)
 #destroy NPC (reference)
 #dismount vehicle
@@ -6520,12 +6608,10 @@ end
 #for(counter,start,finish,step) do(commands)
 #formation probability (formation set, formation)
 #formation set frequency (formation set)
-#free slice (handle)
 #free slice children (handle)
 #free sprite (handle)
 #game over
 #get ambient music
-#get attack name
 #get color(index)
 #get damage cap
 #get each step script
@@ -6557,15 +6643,12 @@ end
 #get victory music
 #get wrap(handle)
 #globals to string(ID, starting global, length)
-#number >> number
-#number >= number
 #greyscale palette (first, last)
 #grid is shown (handle)
 #hide battle health meter (state)
 #hide battle ready meter (state)
 #horiz flip sprite (handle, flip)
 #hours of play
-#inside battle
 #is filling parent (handle)
 #last child(handle)
 #last formation
@@ -6577,7 +6660,6 @@ end
 #load border sprite (num, palette)
 #load hero sprite (num, palette)
 #load large enemy sprite (num, palette)
-#load map state (whichdata, customid)
 #load medium enemy sprite (num, palette)
 #load palette (palette number)
 #load portrait sprite (num, palette)
@@ -6604,9 +6686,7 @@ end
 #NPC direction (who)
 #NPC frame (who)
 #number from string (ID, default)
-#value,or,value
 #order menu
-#outside battle
 #outside battle cure
 #overhead tile
 #pan camera (direction,distance,pixelstep)
@@ -6621,11 +6701,7 @@ end
 #put sprite (handle, x, y)
 #random (lownumber, highnumber)
 #random formation (formation set)
-#read attack name (ID, attack)
 #read color (index, element)
-#read map block (x,y,layer)
-#read NPC (who,NPCstat)
-#read pass block (x,y)
 #realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)
 #replace attack sprite (handle, num, palette)
 #replace backdrop sprite (handle, num)
@@ -6638,7 +6714,6 @@ end
 #replace small enemy sprite (handle, num, palette)
 #replace walkabout sprite (handle, num, palette)
 #replace weapon sprite (handle, num, palette)
-#reset map state (whichdata)
 #reset palette
 #resume map music
 #resume NPCs
@@ -6651,7 +6726,6 @@ end
 #RGB(red, green, blue)
 #run game
 #run script by ID (id, argument1, argument2, argument3...)
-#save map state (whichdata, customid)
 #save menu (reallysave)
 #search string (ID1, ID2, start)
 #seconds of play
@@ -6688,7 +6762,6 @@ end
 #set NPC ignores walls (who, value)
 #set NPC moves (who, value)
 #set NPC obstructs (who, value)
-#set NPC position (who, X, Y)
 #set NPC speed (who, speed)
 #set NPC usable (who, value)
 #set on keypress script (id)
@@ -6763,8 +6836,6 @@ end
 #system month
 #system second
 #system year
-#trace value (expression, ...)
-#trim string (ID, start, length)
 #tweak palette (red, green, blue, first, last)
 #update palette
 #use item (item)
@@ -6778,6 +6849,4 @@ end
 #walk NPC to X (who, X)
 #walk NPC to Y (who, Y)
 #write color (index, element, value)
-#write map block (x,y,value,layer)
-#write pass block (x,y,value)
 #Y sort children (handle)

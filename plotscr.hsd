@@ -270,7 +270,7 @@ define function, begin
 245,savemapstate,2,255,255    #save map data to a temp file (savebits, customid)
 246,loadmapstate,2,255,255    #load map data from a temp file (loadbits, customid)
 247,resetmapstate,1,255       #reload original map data (loadbits)
-248,deletemapstate,1,255      #delete temp map state files (deletebits)
+248,deletemapstate,2,255,255  #delete temp map state files (deletebits, customid)
 249,partymoney,0              #retrieves amount of gold
 250,setmoney,1,0              #sets amount of gold
 251,setstringfromtable,2,0,0  #string support function

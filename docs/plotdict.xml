@@ -2059,7 +2059,8 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 			<description>
 				This command (along with <ref>npccopynumber</ref> and <ref>getnpcpool</ref>)
 				is the inverse of <ref>npcreference</ref>.
-				Returns an NPC's ID. <p>reference</p>If you give <p>get NPC ID</p> an <ref>npcref</ref> it will return the NPC's ID.
+				Returns an NPC's ID.
+				If you give <p>get NPC ID</p> an <ref>npcref</ref> it will return the NPC's ID.
 				If the reference is not valid then <p>get NPC ID</p> will return -1.
 				This command can be used on tag-disabled NPCs too, returning their ID number.
 				<note>
@@ -11287,9 +11288,18 @@ end</example>
 			<description>Reloads original unaltered map data from the RPG file. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to load. It is optional and the default is mapstate:all (which doesn't reset global NPC definitions). This does not remove temp state files for the map, so they could still be loaded instead when you next enter the map, use <ref>deletemapstate</ref> to remove them if wanted.</description>
 		</command>
 		<command id="deletemapstate">
-			<canon>delete map state (whichdata)</canon>
+			<canon>delete map state (whichdata, custom id)</canon>
 			<shortname>delete map state</shortname>
-			<description>Deletes temporary map state files for the current map, so that if the map is set to load NPC or tile data it will load the original data from the game files when it is entered. <p>whichdata</p> is a set of bits in the <ref>savemapstate</ref> format to determine what exactly to delete. The default is mapstate:all.</description>
+			<description>
+				Deletes temporary map state for the current map saved either with <ref>savemapstate</ref>
+				or by leaving a map set to save state.
+				By default, (if both arguments are omitted) if the map is set to load NPC or tile
+				data it will instead load the original data from the game files when it is entered.
+				<lb/>
+				<p>whichdata</p> is an optional set of bits in the <ref>savemapstate</ref> format to determine
+				what exactly to delete. The default is <tt>mapstate:all</tt>.
+				<p>customid</p> is an optional number between 0 and 31 of a slot in which a custom save was made.
+			</description>
 		</command>
 		</section>		<!--Map State-->
 

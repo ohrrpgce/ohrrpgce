@@ -870,7 +870,12 @@ SUB script_functions(byval cmdid as integer)
  CASE 247'--reset map state
   loadmap_bitmask gam.map.id, retvals(0)
  CASE 248'--delete map state
-  deletemapstate gam.map.id, retvals(0), "map"
+  DIM customid as integer = get_optional_arg(1, 255)
+  IF customid > -1 AND customid <= 31 THEN
+   deletemapstate customid, retvals(0), "state"
+  ELSEIF customid = 255 THEN
+   deletemapstate gam.map.id, retvals(0), "map"
+  END IF
  CASE 253'--set tile animation offset
   retvals(2) = get_optional_arg(2, 0)
   IF (retvals(0) = 0 OR retvals(0) = 1) AND valid_map_layer(retvals(2), serrBound) THEN
