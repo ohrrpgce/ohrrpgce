@@ -66,7 +66,7 @@ MAKETYPE_DoubleList(MenuDefItem)
 MAKETYPE_DListItem(MenuDefItem)
 
 TYPE MenuDefItem EXTENDS BasicMenuItem
-  handle    as integer
+  handle    as integer ' Of type HandleType.MenuItem
   caption   as string  ' This is the caption as set in the menu editor/set menu item caption
   trueorder as DListItem(MenuDefItem) ' contains next, prev
   t         as integer ' Item type; of type MenuItemType in-game, except in battles. You're free to assign own meaning.
@@ -90,14 +90,14 @@ DECLARE_VECTOR_OF_TYPE(MenuDefItem, MenuDefItem)
 
 TYPE MenuDef
   record    as integer = -1
-  handle    as integer
+  handle    as integer     ' Of type HandleType.Menu
   name      as string
   boxstyle  as integer
   textcolor as integer  'Default. 0=use uiMenuItem, >0 is color index, <0 is a UI color
   disabled_textcolor as integer  'Default. 0=use uiDisabledItem, >0 is color index, <0 is a UI color
   maxrows   as integer
   edit_mode as bool   'Never hide disabled items, allow selection of unselectable items
-  items     as MenuDefItem Ptr Ptr
+  items     as MenuDefItem Ptr Ptr  'An array of ptrs into itemlist of length .numitems
   'adds first, last, numitems, itemlist members
   INHERITAS_DoubleList(MenuDefItem, itemlist) 'True order of menu items, ignoring sort-invisible-items-to-end
   translucent      as bool ' Bitset 0

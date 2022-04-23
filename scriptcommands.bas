@@ -5216,6 +5216,7 @@ END FUNCTION
 
 'Decode a handle to a pointer to an object, returned in ret, and return the type,
 'or else NULL and HandleType.Error.
+'This is not suitable if you want the index of the object (E.g. NPCIndex, Menu number).
 'Doesn't handle the range 1 to &h7FFFFFF: returns HandleType.None without setting ret.
 'Returns HandleType.Slice for all slice handles, not Slice2/3/4
 FUNCTION decode_handle(byref ret as any ptr, handle as integer, errlvl as scriptErrEnum = serrBadOp) as HandleType
@@ -5223,7 +5224,7 @@ FUNCTION decode_handle(byref ret as any ptr, handle as integer, errlvl as script
  DIM htype as HandleType = get_handle_type(handle)
  SELECT CASE htype
   CASE IS >= HandleType.Slice
-   ret = get_handle_slice(handle)
+   ret = get_handle_slice(handle, errlvl)
    IF ret THEN RETURN HandleType.Slice
   CASE HandleType.NPC
    DIM index as integer = -1 - handle
@@ -5241,9 +5242,24 @@ FUNCTION decode_handle(byref ret as any ptr, handle as integer, errlvl as script
     ret = GetZoneInfo(zmap, id)
     RETURN HandleType.Zone
    END IF
+  CASE HandleType.Menu
+   DIM menuslot as integer
+   IF valid_menu_handle(handle, menuslot, errlvl) THEN
+    ret = @menus(menuslot)
+    RETURN HandleType.Menu
+   END IF
+  CASE HandleType.MenuItem
+   DIM menuslot as integer
+   DIM mislot as integer
+   IF valid_menu_item_handle(handle, menuslot, mislot, errlvl) THEN
+    ret = @menus(menuslot).items[mislot]
+    RETURN HandleType.MenuItem
+   END IF
   CASE ELSE
    IF htype = 0 ANDALSO handle > 0 THEN RETURN HandleType.None
-   scripterr current_command_name() & ": invalid handle " & handle, errlvl
+   IF errlvl > serrIgnore THEN
+    scripterr current_command_name() & ": invalid handle " & handle, errlvl
+   END IF
  END SELECT
  RETURN HandleType.Error
 END FUNCTION
@@ -5253,6 +5269,8 @@ handle_type_names(HandleType.Zone) = "zone"
 handle_type_names(HandleType.NPC) = "NPC"
 handle_type_names(HandleType.None) = "unrecognised"
 handle_type_names(HandleType.Slice) = "slice"
+handle_type_names(HandleType.Menu) = "menu"
+handle_type_names(HandleType.MenuItem) = "menu item"
 handle_type_names(HandleType.Error) = "ERROR"
 
 'Try to recognise a value as a handle, returning a string for debugging and error messages such
@@ -5269,12 +5287,15 @@ FUNCTION describe_handle(handle as integer) as string
   CASE HandleType.Slice
    info = DescribeSlice(CAST(Slice ptr, obj))
   CASE HandleType.NPC
-   info = "copy of NPC " & ABS(CAST(NPCInst ptr, obj)->id) - 1
+   info = "reference for NPC " & ABS(CAST(NPCInst ptr, obj)->id) - 1 & " instance"
+  CASE HandleType.Menu
+   info = "handle for menu " & CAST(MenuDef ptr, obj)->record & " instance"
   CASE ELSE
    DIM typename as string = handle_type_names(htype)
    IF LEN(typename) THEN
-    DIM index as integer = get_handle_payload(handle)
-    info = typename & " " & index & " handle"
+    'DIM index as integer = get_handle_payload(handle)
+    'info = typename & " " & index & " handle"
+    info = typename & " handle"
    END IF
  END SELECT
  IF LEN(info) THEN
@@ -5660,10 +5681,16 @@ FUNCTION find_menu_handle (byval handle as integer) as integer
  RETURN -1 ' Not found
 END FUNCTION
 
-FUNCTION valid_menu_handle (handle as integer, byref found_in_menuslot as integer) as bool
+FUNCTION valid_menu_handle (handle as integer, byref found_in_menuslot as integer, errlvl as scriptErrEnum = serrBadOp) as bool
+ DIM htype as HandleType = get_handle_type(handle)
+ IF htype <> HandleType.Menu THEN
+  scripterr current_command_name() + ": Expected menu handle, got " & describe_handle(handle), errlvl
+  RETURN NO
+ END IF
+
  found_in_menuslot = find_menu_handle(handle)
  IF found_in_menuslot = -1 THEN
-  scripterr current_command_name() + ": Invalid menu handle " & handle
+  scripterr current_command_name() + ": Invalid menu handle " & handle & " (menu already closed)", errlvl
   RETURN NO
  ELSE
   RETURN YES
@@ -5688,10 +5715,16 @@ END FUNCTION
 
 ' If handle is valid, return true and set menuslot and mislot, otherwise show an error and return false
 ' and set to -1,-1.
-FUNCTION valid_menu_item_handle (handle as integer, byref found_in_menuslot as integer, byref found_in_mislot as integer = 0) as bool
+FUNCTION valid_menu_item_handle (handle as integer, byref found_in_menuslot as integer, byref found_in_mislot as integer = 0, errlvl as scriptErrEnum = serrBadOp) as bool
+ DIM htype as HandleType = get_handle_type(handle)
+ IF htype <> HandleType.MenuItem THEN
+  scripterr current_command_name() + ": Expected menu item handle, got " & describe_handle(handle), errlvl
+  RETURN NO
+ END IF
+
  found_in_mislot = find_menu_item_handle(handle, found_in_menuslot)
  IF found_in_mislot = -1 THEN
-  scripterr current_command_name() + ": invalid menu item handle " & handle
+  scripterr current_command_name() + ": invalid menu item handle " & handle & " (menu item already deleted)", errlvl
   RETURN NO
  ELSE
   RETURN YES
@@ -5708,14 +5741,14 @@ FUNCTION valid_menu_item_handle_ptr (handle as integer, byref mi as MenuDefItem 
 END FUNCTION
 
 FUNCTION assign_menu_item_handle (byref mi as MenuDefItem) as integer
- STATIC new_handle as integer = 0
+ STATIC new_handle as integer = make_handle(HandleType.MenuItem, 0)
  new_handle = new_handle + 1
  mi.handle = new_handle
  RETURN new_handle
 END FUNCTION
 
 FUNCTION assign_menu_handles (byref menu as MenuDef) as integer
- STATIC new_handle as integer = 0
+ STATIC new_handle as integer = make_handle(HandleType.Menu, 0)
  new_handle = new_handle + 1
  menus(topmenu).handle = new_handle
  FOR i as integer = 0 TO menu.numitems - 1
