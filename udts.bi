@@ -305,7 +305,6 @@ END TYPE
 
 'Don't forget to update CleanNPCL and load/save_npc_instances when adding to this
 TYPE NPCInst
-  sl as SliceFwd Ptr
   '--stored values
   UNION
     TYPE
@@ -341,6 +340,7 @@ TYPE NPCInst
 
   '' The following aren't saved. (Should they be?)
 
+  sl as SliceFwd Ptr
   curzones as integer vector  'sorted vector of zones this NPC is currently inside
 
   stillticks as integer 'counts the number of ticks that an npc has spent holding still
@@ -532,6 +532,8 @@ Type ZoneInfo
   hidden as bool  'used in the map editor only, not saved
   numtiles as integer  'number of set tiles
   extravec as integer vector 'Equal to NULL by default which means a length 3 array [0, 0, 0]
+
+  DECLARE DESTRUCTOR()
 End Type
 
 'A set of zones

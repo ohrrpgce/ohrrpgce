@@ -362,6 +362,7 @@ END SUB
 
 SUB CleanNPCInst(byref inst as NPCInst)
   v_free inst.curzones
+  v_free inst.extravec
   DeleteSlice @inst.sl
   memset @inst, 0, sizeof(NPCInst)
 END SUB
@@ -892,6 +893,10 @@ END SUB
 'Maybe we'll find some use for an extra couple bits per ID?
 
 CONST DELETED = 65535
+
+DESTRUCTOR ZoneInfo()
+  v_free extravec
+END DESTRUCTOR
 
 'Used both to blank out an existing ZoneMap, or initialise it from zeroed-out memory
 SUB CleanZoneMap(zmap as ZoneMap, byval wide as integer, byval high as integer)

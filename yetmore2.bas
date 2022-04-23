@@ -692,6 +692,8 @@ SUB reloadmap_npcl(merge as bool)
   LoadNPCL tmpdir + "mapbackup.l", npcbase()
 
   FOR i as integer = 0 TO UBOUND(npc)
+   'The .L file format currently doesn't contain extra data, and should never load .curzones or .sl
+   IF npcnew(i).extravec ORELSE npcbase(i).extravec THEN showbug "reload npcl: extravec not implemented"
    IF memcmp(@npcnew(i), @npcbase(i), SIZEOF(NPCInst)) THEN
     'If an NPC was removed in Custom, and meanwhile it's been replaced in-game, then
     'don't overwrite it.
