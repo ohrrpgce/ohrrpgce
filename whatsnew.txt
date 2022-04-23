@@ -64,15 +64,18 @@ WHAT IS NEW?
       debugger/editor [Ralph]
     * "get/set turn based battle mode" and "get/set active time battle mode"
       [James]
-    * NPC, slice and zone extra data are now variable length arrays defaulting to
-      length 3. Maximum length is 1,000,000. The slice & zone editors allow
-      resizing the extra data.
-      Added "resize extra", "extra length", "append extra", as well as "get extra"
-      and "set extra" alternatives to "get/set slice/zone/npc extra". To use these
-      with zones use the new "get zone" command to create a 'zone handle'.
-      Also you can use Python-style negative indexing to read from the back of
-      the extra array: "get extra(sl, -1)" is the last value, -2 is the second
-      last, etc. Works with all extra data commands. [Ralph]
+    * NPC, slice, zone and menu item extra data are now variable length arrays
+      defaulting to length 3. Maximum length is 1,000,000.
+      * The slice & zone editors allow resizing the extra data; the menu editor
+        remains limited to 3 extra data.
+      * "resize extra", "extra length", "append extra", as well as "get extra"
+        and "set extra" alternatives to "get/set slice/zone/... extra". These can
+        be used with any NPC reference/slice/zone/menu item handle.
+      * "get zone" command returns a zone handle.
+      * You can use Python-style negative indexing to read from the back of
+        the extra array: "get extra(sl, -1)" is the last value, -2 is the second
+        last, etc. Works with all extra data commands.
+      [Ralph]
     * "lookup next slice", "next slice in tree" [Ralph]
     * "window is focused" [Ralph]
     * "show value" can now show multiple values. Added "show values" as an alias.

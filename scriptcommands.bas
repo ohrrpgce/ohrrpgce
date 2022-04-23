@@ -5252,7 +5252,7 @@ FUNCTION decode_handle(byref ret as any ptr, handle as integer, errlvl as script
    DIM menuslot as integer
    DIM mislot as integer
    IF valid_menu_item_handle(handle, menuslot, mislot, errlvl) THEN
-    ret = @menus(menuslot).items[mislot]
+    ret = menus(menuslot).items[mislot]
     RETURN HandleType.MenuItem
    END IF
   CASE ELSE
@@ -5317,6 +5317,8 @@ FUNCTION get_handle_extravec(handle as integer) as integer vector ptr
    RETURN @(cast(NPCInst ptr, obj)->extravec)
   CASE HandleType.Zone
    RETURN @(cast(ZoneInfo ptr, obj)->extravec)
+  CASE HandleType.MenuItem
+   RETURN @(cast(MenuDefItem ptr, obj)->extravec)
   CASE HandleType.Error
    'Showed an error already
   CASE ELSE

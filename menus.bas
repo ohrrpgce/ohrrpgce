@@ -1104,6 +1104,10 @@ FUNCTION append_menu_item(byref menu as MenuDef, caption as zstring ptr, byval t
  RETURN menu.numitems - 1
 END FUNCTION
 
+DESTRUCTOR MenuDefItem()
+ v_free extravec
+END DESTRUCTOR
+
 SUB remove_menu_item(byref menu as MenuDef, byval mi as MenuDefItem ptr)
  dlist_remove menu.itemlist, mi
  DELETE mi
@@ -1120,6 +1124,14 @@ SUB swap_menu_items(byref menu1 as MenuDef, byval mislot1 as integer, byref menu
  SortMenuItems menu1
  SortMenuItems menu2
 END SUB
+
+PROPERTY MenuDefItem.extra(index as integer) as integer
+ RETURN get_extra(extravec, index)
+END PROPERTY
+
+PROPERTY MenuDefItem.extra(index as integer, newval as integer)
+ set_extra(extravec, index, newval)
+END PROPERTY
 
 
 '==========================================================================================
@@ -1223,7 +1235,9 @@ SUB LoadMenuItem(byval f as integer, items() as MenuDefItem ptr, byval record as
   .togtag = ReadShort(f)
   bits(0) = ReadShort(f)
   FOR i = 0 TO 2
-   .extra(i) = ReadShort(f)
+   'Don't initialize the extra data vector unless needed
+   DIM temp as integer = ReadShort(f)
+   IF temp THEN .extra(i) = temp
   NEXT i
   .col = ReadShort(f)
   .disabled_col = ReadShort(f)

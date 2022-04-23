@@ -767,7 +767,9 @@ define function, begin
 737,resetenemydata,2,0,0      # Reset one element of an enemy's data (enemy id, data index)
 738,resetenemyname,1,0        # Reset enemy name to original (enemy id)
 739,getextra,2,0,0            # Index an object's 'extra' array (handle, index)
+739,getmenuitemextra,2,0,0    # Used to be a script
 740,setextra,3,0,0,0          # Set element of an object's 'extra' array (handle, index, value)
+740,setmenuitemextra,3,0,0,0  # Used to be a script
 741,herouseslevelmp,1,0       # Returns true if the hero uses level mp
 742,getzone,1,0               # Create a zone handle (zone id)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
@@ -1667,18 +1669,6 @@ script, set menu item bit, hsd:handle, hsd:bit, hsd:value=1, begin
   if(hsd:value) then(hsd:n := hsd:n, or, 2^hsd:bit)
     else(hsd:n := hsd:n, and, (-1, xor, 2^hsd:bit))
   write menu item int(hsd:handle, 28, hsd:n)
-end
-
-script, set menu item extra, hsd:handle, hsd:extra=0, hsd:n=0, begin
-  if(hsd:extra >= 0 && hsd:extra <= 2) then, begin
-    write menu item int(hsd:handle, 29+hsd:extra, hsd:n)
-  end
-end
-
-script, get menu item extra, hsd:handle, hsd:extra=0, begin
-  if(hsd:extra >= 0 && hsd:extra <= 2) then, begin
-    exit returning(read menu item int(hsd:handle, 29+hsd:extra))
-  end
 end
 
 script, set menu item color, hsd:handle, hsd:n=0, begin

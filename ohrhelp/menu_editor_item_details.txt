@@ -144,4 +144,4 @@ Disabled Color: The text color when the menu item is disabled. Each menu has its
 
 *Bitsets - See the help screen in this submenu for details.
 
-*Extra Data - There are 3 pieces of extra data that you can attach to each menu item. These are just numbers. They don't mean anything unless you use them for your own special purposes from a plotscript. They are passed to triggered scripts as additional arguments.
+*Extra Data - There are 3 pieces of extra data that you can attach to each menu item here in the editor (in-game, you can add more extra data using the "resize extra" and "append extra" commands). These are just numbers. They don't mean anything unless you use them for your own special purposes from a plotscript. They are passed to triggered scripts as additional arguments.

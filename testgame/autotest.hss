@@ -2864,12 +2864,23 @@ script, menu tests, begin
     set menu item tag(catbus, 0, i), w
   )
   show no value
-  
+
+  # menu item extra data
+  assert(extra length(buffalo) == 3)
   for(i, 0, 2) do(
-    set menu item extra(buffalo, i, (i + 1) * 10)
-    if(get menu item extra(buffalo, i) <> (i + 1) * 10) then($0="menu item extra readback failed", crash)
+    assert(get menu item extra(buffalo, i) == 0)
+    set menu item extra(buffalo, i, i*10)
+    assert(get menu item extra(buffalo, i) == i*10)
+    assert(get extra(buffalo, i) == i*10)
+    set extra(buffalo, i, 20)
+    assert(get menu item extra(buffalo) == 20)
   )
-  
+  resize extra(buffalo, 0)
+  assert(extra length(buffalo) == 0)
+  append extra(buffalo, 42)
+  assert(extra length(buffalo) == 1)
+  assert(get menu item extra(buffalo, -1) == 42)  # Check negative indices
+
   set menu item type(catbus, menutype: special)
   $0="" # use default caption
   set menu item caption(catbus, 0), w

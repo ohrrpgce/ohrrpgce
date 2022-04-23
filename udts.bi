@@ -75,15 +75,20 @@ TYPE MenuDefItem EXTENDS BasicMenuItem
   tag2      as integer
   settag    as integer
   togtag    as integer
-  extra(2)  as integer
+  extravec  as integer vector 'Equal to NULL by default which means a length 3 array [0, 0, 0]
   hide_if_disabled  as bool
   override_hide as bool 'If true, ignore hide_if_disabled. Not saved. Used by menu editor only.
   close_when_activated as bool
   skip_close_script as bool
   dataptr   as any ptr  'Use this with caution!
 
+  DECLARE DESTRUCTOR()
+
   'Not hidden. (Doesn't say whether currently on-screen!)
   DECLARE FUNCTION visible() as bool
+  'Convenience getter/setter which handles ExtraVec=NULL
+  DECLARE PROPERTY extra(index as integer) as integer
+  DECLARE PROPERTY extra(index as integer, newval as integer)
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(MenuDefItem, MenuDefItem)

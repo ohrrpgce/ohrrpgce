@@ -2888,8 +2888,7 @@ SUB player_menu_keys ()
    mouse_drag_menu mstates(topmenu)
   END IF
   IF mstates(topmenu).pt_valid() = NO THEN EXIT SUB
-  DIM mi as MenuDefItem '--using a copy of the menu item here is safer (in future) because activate_menu_item() can deallocate it
-  mi = *menus(topmenu).items[mstates(topmenu).pt]
+  DIM byref mi as MenuDefItem = *menus(topmenu).items[mstates(topmenu).pt]
   IF mi.disabled THEN EXIT SUB
   ' This is also duplicated in Custom_volume_menu in Custom
   IF mi.t = mtypeSpecial AND (mi.sub_t = spMusicVolume OR mi.sub_t = spVolumeMenu) THEN
@@ -2922,6 +2921,7 @@ SUB player_menu_keys ()
     activate_menu_item mi, topmenu
    END IF
   END IF
+  'WARNING: after calling activate_menu_item, mi may have been deallocated
  END IF
 END SUB
 
@@ -2997,24 +2997,23 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
    CASE mtypeTextBox
     menu_text_box = .sub_t
    CASE mtypeScript
-    DIM numargs as integer = IIF(menus(topmenu).allow_gameplay, 4, 3)
+    DIM numextra as integer = IIF(.extravec, v_len(.extravec), 3)
+    DIM otherargs as integer = IIF(menus(topmenu).allow_gameplay, 1, 0)
+    DIM numargs as integer = small(numextra + otherargs, maxScriptArgs)
     trigger_script .sub_t, numargs, YES, "menuitem", _
                    "item '" & get_menu_item_caption(mi, menus(menuslot)) _
                    & "' in menu " & menus(menuslot).record, mainFibreGroup
     IF menus(topmenu).allow_gameplay THEN
      '0 is passed instead of the menu item handle if it would be invalid
      trigger_script_arg 0, IIF(mi.close_when_activated, 0, .handle), "item handle"
-     trigger_script_arg 1, .extra(0), "extra0"
-     trigger_script_arg 2, .extra(1), "extra1"
-     trigger_script_arg 3, .extra(2), "extra2"
     ELSE
      'but if the topmost menu suspends gameplay, then a handle will always be invalid
      'by the time the script runs, so pass the extra values instead.
      'Sadly, for back-compatibility, leave out the handle instead of passing zero.
-     trigger_script_arg 0, .extra(0), "extra0"
-     trigger_script_arg 1, .extra(1), "extra1"
-     trigger_script_arg 2, .extra(2), "extra2"
     END IF
+    FOR arg as integer = otherargs TO numargs - 1
+     trigger_script_arg arg, .extra(arg - otherargs), "extra"
+    NEXT
   END SELECT
  END WITH
  IF activated THEN
