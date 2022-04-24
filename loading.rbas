@@ -84,7 +84,8 @@ END SUB
 '/
 
 'Save extravec, a variable-length extra data array, as a child of 'parent' named 'nodename'.
-'This extra data encoding is used by slices, but there are other encodings in use!
+'This is the current RELOAD extra data encoding (e.g. slices, zones), but there were formerly two
+'other encodings used.
 'Only creates a node if the extra vector is not default.
 SUB SaveExtraVector(parent as Node ptr, nodename as zstring ptr, extravec as integer vector)
   IF extravec THEN
@@ -92,15 +93,27 @@ SUB SaveExtraVector(parent as Node ptr, nodename as zstring ptr, extravec as int
     'Check whether still the default value, [0,0,0].
     IF length = 3 ANDALSO (extravec[0] OR extravec[1] OR extravec[2]) = 0 THEN EXIT SUB
     DIM ex_node as Node ptr = SetChildNode(parent, nodename, length)
+    DIM last as integer = 0     'Previous value, defaulting to 0
+    DIM repeats as integer = 0  'Length of current run of repeats
     FOR idx as integer = 0 TO length - 1
-      AppendChildNode(ex_node, "int", extravec[idx])
+      DIM value as integer = extravec[idx]
+      IF value = last THEN
+        repeats += 1
+      ELSE
+        IF repeats THEN AppendChildNode(ex_node, "repeat", repeats)
+        repeats = 0
+        AppendChildNode(ex_node, "int", value)
+        last = value
+      END IF
     NEXT
+    IF repeats THEN AppendChildNode(ex_node, "repeat", repeats)
   END IF
 END SUB
 
 'Load a variable-length extra data array into extravec.
-'This extra data encoding is used by slices, but there are other encodings in use!
-'ex_node is Node created by SaveExtraVector.
+'This is the current RELOAD extra data encoding (e.g. for slices, zones), but there
+'were formerly two other encodings used.
+'ex_node is a Node created by SaveExtraVector.
 FUNCTION LoadExtraVector(ex_node as Node ptr, byref extravec as integer vector, thing_or_file as zstring ptr = @"") as bool
   v_free extravec
   IF ex_node = NULL THEN RETURN NO
@@ -111,15 +124,28 @@ FUNCTION LoadExtraVector(ex_node as Node ptr, byref extravec as integer vector, 
   ELSE
     v_new extravec, length
     DIM ch as Reload.NodePtr = FirstChild(ex_node)
+    DIM last as integer = 0
     DIM idx as integer = 0
-    WHILE ch
-      IF NodeName(ch) = "int" THEN
-        extravec[idx] = GetInteger(ch)
-        idx += 1
-      ELSE
-        reporterr strprintf("Could not load %s: unknown extra data type %s", thing_or_file, ch->Name), serrError
-        RETURN NO
-      END IF
+    WHILE ch  'Would use READNODE if it could declare an ELSE case
+      SELECT CASE NodeName(ch)
+        CASE "int"
+          last = GetInteger(ch)
+          extravec[idx] = last
+          idx += 1
+        CASE "repeat"
+          DIM repeats as integer = GetInteger(ch)
+          FOR idx = idx TO idx + repeats - 1
+            IF idx >= maxExtraLength THEN
+              reporterr strprintf("Could not load %s: max extra length exceeded", thing_or_file), serrError
+              RETURN NO
+            ELSE
+              extravec[idx] = last
+            END IF
+          NEXT
+        CASE ELSE
+          reporterr strprintf("Could not load %s: unknown extra data type %s", thing_or_file, ch->Name), serrError
+          RETURN NO
+      END SELECT
       ch = NextSibling(ch)
     WEND
     'It's permitted for there to be fewer than 'length' children, the rest are 0

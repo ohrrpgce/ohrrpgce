@@ -4969,9 +4969,28 @@ script, slice collection tests, begin
 
   sl2 := lookup slice(sli:no extras)
   assert(extra length(sl2) == 0)
+  sl2 := lookup slice(sli:default extras)
+  assert(extra length(sl2) == 3)
+  assert(get slice extra(sl2, 0) == 0)
+  assert(get slice extra(sl2, 1) == 0)
+  assert(get slice extra(sl2, 2) == 0)
+  sl2 := lookup slice(sli:one extra)
+  # Check the length is saved although no non-default values
+  assert(extra length(sl2) == 1)
+  assert(get slice extra(sl2, 0) == 0)
   sl2 := lookup slice(sli:lotsa extras)
   assert(extra length(sl2) == 10000)
-  assert(get slice extra(sl2, 0) == -98)
+  # This tests the encoding of runs of identical values as "repeat" nodes
+  # A "repeat" before any "int" defaults to 0
+  assert(get slice extra(sl2, 0) == 0)
+  assert(get slice extra(sl2, 2) == 0)
+  assert(get slice extra(sl2, 3) == -98)
+  assert(get slice extra(sl2, 4) == -98)
+  assert(get slice extra(sl2, 5) == -98)
+  assert(get slice extra(sl2, 6) == 0)
+  assert(get slice extra(sl2, 9997) == 0)
+  # A run which goes to the end of the array is a special case
+  assert(get slice extra(sl2, 9998) == -99)
   assert(get slice extra(sl2, 9999) == -99)
 
   free slice(sl)

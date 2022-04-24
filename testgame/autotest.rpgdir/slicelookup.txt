@@ -3,4 +3,6 @@ Some lookup
 my root slice
 no extras
 lotsa extras
+default extras
+one extra
 
