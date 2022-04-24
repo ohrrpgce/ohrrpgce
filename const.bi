@@ -5,7 +5,7 @@
 #IFNDEF __CONST_BI__
 #DEFINE __CONST_BI__
 
-CONST CURRENT_RPG_VERSION = 21
+CONST CURRENT_RPG_VERSION = 22
 ' It is a good idea to increment this number each time a major feature
 ' has been added, if opening a new game in an old editor would cause data-loss
 ' Don't be afraid to increment this. Backcompat warnings are a good thing!
@@ -32,11 +32,12 @@ CONST CURRENT_RPG_VERSION = 21
 ' 19 - beelzebufo replaced .DT0 with heroes.reld
 ' 20 - callipygous release. Added general.reld (including new version system) and maxScriptCmdID checking.
 ' 21 - fufluns replaced all .PT# and .MXS with .rgfx
+' 22 - ichorescent switched to extra data vectors in .Z and slicetree_*.reld
 
 CONST CURRENT_RGFX_VERSION = 1
 ' Version number embedded in each .rgfx file.
 
-CONST CURRENT_RSAV_VERSION = 6
+CONST CURRENT_RSAV_VERSION = 7
 ' Increment this number any time that loading and resaving a game in either
 ' new or old versions of Game leads to data-loss, or major new features are
 ' added.
@@ -50,6 +51,7 @@ CONST CURRENT_RSAV_VERSION = 6
 ' 4 - gorgonzola removed hero weapon pic/pal
 ' 5 - hróðvitnir made saving level and damage caps optional
 ' 6 - hróðvitnir stopped saving/loading status icon characters
+' 7 - ichorescent switched to extra data vectors in slices
 
 CONST CURRENT_TESTING_IPC_VERSION = 4
 ' Version of the IPC protocol used when live-previewing
