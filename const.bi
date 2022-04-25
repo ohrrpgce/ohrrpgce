@@ -331,7 +331,7 @@ CONST maxScriptGlobals = 50000 'Actually the index of the last global  (also "ma
                                'If you update this, also update the default argument to exportglobals in plotscr.hsd
 CONST maxScriptStrings = 99 'ID of last plotstring  (also "maximum string id" in plotscr.hsd)
 CONST numInitialTimers = 16 'Initial number of script timers
-CONST maxExtraLength = 1000000 'Max size of an extra data array
+CONST maxExtraLength = 5000000 'Max size of an extra data array
 CONST maxScriptHeap = 8192 'Maximum number of local variables in use by all running scripts
 CONST maxScriptRunning = 128 'Number of scripts which can run at once
 CONST maxScriptNesting = 4 'Maximum subscript nesting depth

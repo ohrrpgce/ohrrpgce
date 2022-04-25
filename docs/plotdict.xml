@@ -5886,7 +5886,7 @@ set extra(handle, -1, value)   # Index -1 is the last element of the array</exam
 			<description>
 				Changes the length of an object's extra data array.
 				<p>handle</p> is the <ref>objecthandle</ref>.
-				The new <p>length</p> can be between 0 and 1,000,000.
+				The new <p>length</p> can be between 0 and 5,000,000.
 				For backwards compatibility it's 3 by default for all newly created slices and zones.
 				Values will either be removed from the end of the array, or zeroes added to the
 				end to meet the new length.
