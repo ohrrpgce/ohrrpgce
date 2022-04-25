@@ -4185,12 +4185,11 @@ FUNCTION findhero (byval id as integer, byval direction as integer = 1, errlvl a
  RETURN -1 'not found
 END FUNCTION
 
-'Returns the slot containing the first hero in the party. Should always succeed.
+'Returns the slot containing the first hero in the party, or -1 if the party is empty (which can happen)
 FUNCTION first_used_slot_in_party() as integer
  FOR i as integer = 0 TO UBOUND(gam.hero)
   IF gam.hero(i).id >= 0 THEN RETURN i
  NEXT
- showbug "Empty hero party! This should never happen"
  RETURN -1
 END FUNCTION
 

@@ -156,7 +156,8 @@ END IF
 
 END SUB
 
-'resetting_game=NO only when cleaning up while resetting/quitting.
+'Deletes a hero, and then (unless resetting) calls forceparty.
+'Pass resetting_game=YES only when cleaning up while resetting/quitting.
 'In that case, the caller should wipe Slice ptrs in herow()!
 SUB deletehero(slot as integer, resetting_game as bool = NO)
  IF resetting_game = NO ANDALSO gen(genRemoveHeroScript) > 0 THEN

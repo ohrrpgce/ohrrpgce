@@ -5016,7 +5016,6 @@ SUB script_functions(byval cmdid as integer)
    IF gam.hero(retvals(0)).id >= 0 THEN
     'slot is occupied
     deletehero retvals(0)
-    IF active_party_size() = 0 THEN forceparty
     scriptret = 0
    ELSE
     ' slot is empty, do nothing
