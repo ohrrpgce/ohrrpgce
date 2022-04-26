@@ -40,7 +40,7 @@ function showarray(arr) {
 /******************************/
 
 function benchmark_for_loop() {
-    for (local i = 1; i < MICRO_LOOPCOUNT; i++)
+    for (local i = 0; i < MICRO_LOOPCOUNT; i++)
         ;
 }
 
@@ -93,12 +93,46 @@ function benchmark_increment() {
     }
 }
 
+function benchmark_array_create_delete() {
+    local arr
+    for (local i = 0; i < MICRO_LOOPCOUNT; i++) {
+        arr = array(8, 0)
+        arr = null
+    }
+}
+
+function benchmark_array_length() {
+    local end = MICRO_LOOPCOUNT / 10
+    for (local i = 0; i < end; i++) {
+        testarray.len()
+        testarray.len()
+        testarray.len()
+        testarray.len()
+        testarray.len()
+        testarray.len()
+        testarray.len()
+        testarray.len()
+        testarray.len()
+        testarray.len()
+    }
+}
+
 testarray <- array(MICRO_LOOPCOUNT, 0)
 
 function benchmark_array_index() {
-    local size = MICRO_LOOPCOUNT
-    for (local i = 0; i < size; i++)
+    local end = MICRO_LOOPCOUNT / 10
+    for (local i = 0; i < end; i++) {
         testarray[i]
+        testarray[i]
+        testarray[i]
+        testarray[i]
+        testarray[i]
+        testarray[i]
+        testarray[i]
+        testarray[i]
+        testarray[i]
+        testarray[i]
+    }
 }
 
 function benchmark_array_foreach() {
@@ -368,6 +402,8 @@ run_benchmark(benchmark_while_loop, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_continue_loop, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_addition, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_increment, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_array_create_delete, MICRO_LOOPCOUNT, 0.2)
+run_benchmark(benchmark_array_length, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_array_index, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_array_foreach, MICRO_LOOPCOUNT, 0)  // mult=0 because HS lacks it
 run_benchmark(benchmark_array_sum, MICRO_LOOPCOUNT)

@@ -81,6 +81,10 @@ plotscript, main, begin
   score += run benchmark (@benchmark: addition, loops)
   $1 = "increment"
   score += run benchmark (@benchmark: increment, loops)
+  $1 = "array create delete"
+  score += run benchmark (@benchmark: array create delete, loops) / 5
+  $1 = "array length"
+  score += run benchmark (@benchmark: array length, loops)
   $1 = "array index"
   score += run benchmark (@benchmark: array index, loops)
   if (PSBENCH) then (
@@ -94,8 +98,6 @@ plotscript, main, begin
   score += run benchmark (@benchmark: array sum, loops)
   $1 = "array append"
   score += run benchmark (@benchmark: array append, 100)
-  $1 = "array length"
-  score += run benchmark (@benchmark: array length, loops)
   if (PSBENCH) then (
     $1 = "string assignment"
     score += run benchmark (@benchmark: string assignment, loops)
@@ -104,6 +106,9 @@ plotscript, main, begin
   score += run benchmark (@benchmark: string append, loops) / 4
 
   if (PSBENCH) then (
+    $1 = "real string append"
+    score += run benchmark (@benchmark: real string append, loops) / 4
+
     $1 = "sfunctions command overhead"
     score += run benchmark (@benchmark: sfunctions command overhead, loops)
     $1 = "milliseconds"
@@ -583,6 +588,16 @@ script, benchmark: array length, begin
   )
 end
 
+# compare to "creating and deleting slices" which is the same except for the resize
+script, benchmark: array create delete, begin
+  variable (i, sl)
+  for (i, 1, MICRO LOOPCOUNT) do (
+    sl := create container
+    resize extra(sl, 8)
+    free slice(sl)
+  )
+end
+
 script, benchmark: string assignment, begin
   variable (i)
   for (i, 0, MICRO LOOPCOUNT / 10) do (
@@ -599,6 +614,8 @@ script, benchmark: string assignment, begin
   )
 end
 
+# This tries to append a string in a way mechanically similar to how appending
+# string literals works in other languages
 script, benchmark: string append, begin
   variable (i)
   clear string(3)
@@ -613,6 +630,24 @@ script, benchmark: string append, begin
     3 $+ $4="a"
     3 $+ $4="a"
     3 $+ $4="a"
+  )
+  clear string(3)
+end
+
+script, benchmark: real string append, begin
+  variable (i)
+  clear string(3)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    $3+"a"
+    $3+"a"
+    $3+"a"
+    $3+"a"
+    $3+"a"
+    $3+"a"
+    $3+"a"
+    $3+"a"
+    $3+"a"
+    $3+"a"
   )
   clear string(3)
 end
@@ -739,8 +774,7 @@ end
 
 script, benchmark: creating and deleting slices, begin
   variable (i, sl)
-  sl := sprite layer
-  for (i, 0, MICRO LOOPCOUNT) do (
+  for (i, 1, MICRO LOOPCOUNT) do (
     # testing the overhead of a slice command returning a slice handle
     sl := create container (0, 0)
     free slice (sl)

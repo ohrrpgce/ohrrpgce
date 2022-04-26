@@ -2,8 +2,6 @@
 #
 # This is a port of a few of the microbenchmarks in benchmark.hss to Python for comparison
 #
-# Runs under MicroPython too if the from __future__ line is commented out
-from __future__ import print_function
 try:
     import timeit
 except:
@@ -12,9 +10,11 @@ except:
 
     class timeit:
         @classmethod
-        def repeat(cls, script, repeat, number=1):
+        def repeat(cls, script, repeat, number=1, setup=None):
             ret = []
             for i in range(repeat):
+                if setup:
+                    setup()
                 timing = time.time()
                 script()
                 timing = time.time() - timing
@@ -72,10 +72,37 @@ def benchmark_increment():
       x += y
       x += y
 
+def benchmark_array_create_delete():
+    for i in range(MICRO_LOOPCOUNT):
+        arr = [0] * 8
+        arr = None
+
+def benchmark_array_length():
+    for i in range(MICRO_LOOPCOUNT // 10 + 1):
+        len(testarray)
+        len(testarray)
+        len(testarray)
+        len(testarray)
+        len(testarray)
+        len(testarray)
+        len(testarray)
+        len(testarray)
+        len(testarray)
+        len(testarray)
+
 testarray = [0] * MICRO_LOOPCOUNT
 
 def benchmark_array_index():
-    for i in range(MICRO_LOOPCOUNT):
+    for i in range(MICRO_LOOPCOUNT // 10 + 1):
+        testarray[i]
+        testarray[i]
+        testarray[i]
+        testarray[i]
+        testarray[i]
+        testarray[i]
+        testarray[i]
+        testarray[i]
+        testarray[i]
         testarray[i]
 
 def benchmark_array_foreach():
@@ -290,6 +317,8 @@ run_benchmark(benchmark_while_loop, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_continue_loop, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_addition, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_increment, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_array_create_delete, MICRO_LOOPCOUNT, 0.2)
+run_benchmark(benchmark_array_length, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_array_index, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_array_foreach, MICRO_LOOPCOUNT, 0)  # mult=0 because HS lacks it
 run_benchmark(benchmark_array_sum, MICRO_LOOPCOUNT)
