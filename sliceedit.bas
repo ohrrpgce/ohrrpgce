@@ -2803,8 +2803,12 @@ SUB extra_data_editor(byref extravec as integer vector)
      IF intgrabber(state.last, 0, maxExtraLength) THEN v_resize extravec, state.last
     CASE state.last
      IF enter_space_click(state) THEN
-      v_append extravec, 0
-      state.last += 1
+      IF v_len(extravec) < maxExtraLength THEN
+       v_append extravec, 0
+       state.last += 1
+      ELSE
+       notification "Can't append, max length reached"
+      END IF
      END IF
     CASE ELSE
      intgrabber extravec[state.pt], INT_MIN, INT_MAX

@@ -118,8 +118,8 @@ FUNCTION LoadExtraVector(ex_node as Node ptr, byref extravec as integer vector, 
   v_free extravec
   IF ex_node = NULL THEN RETURN NO
   DIM length as integer = GetInteger(ex_node)
-  IF length < 0 ORELSE length > maxExtraLength ORELSE length < NumChildren(ex_node) THEN
-    reporterr strprintf("Could not load %s: bad extradata length %d, numchildren=%d", thing_or_file, length, NumChildren(ex_node)), serrError
+  IF length < 0 ORELSE length > maxExtraLength THEN
+    reporterr strprintf("Error loading %s: extra data length %d out of range", thing_or_file, length), serrError
     RETURN NO
   ELSE
     v_new extravec, length
@@ -127,25 +127,27 @@ FUNCTION LoadExtraVector(ex_node as Node ptr, byref extravec as integer vector, 
     DIM last as integer = 0
     DIM idx as integer = 0
     WHILE ch  'Would use READNODE if it could declare an ELSE case
+      DIM repeats as integer
       SELECT CASE NodeName(ch)
         CASE "int"
           last = GetInteger(ch)
-          extravec[idx] = last
-          idx += 1
+          repeats = 1
         CASE "repeat"
-          DIM repeats as integer = GetInteger(ch)
-          FOR idx = idx TO idx + repeats - 1
-            IF idx >= maxExtraLength THEN
-              reporterr strprintf("Could not load %s: max extra length exceeded", thing_or_file), serrError
-              RETURN NO
-            ELSE
-              extravec[idx] = last
-            END IF
-          NEXT
+          repeats = GetInteger(ch)
         CASE ELSE
-          reporterr strprintf("Could not load %s: unknown extra data type %s", thing_or_file, ch->Name), serrError
+          reporterr strprintf("Error loading %s: unknown extra data type %s", thing_or_file, ch->Name), serrError
           RETURN NO
       END SELECT
+
+      FOR idx = idx TO idx + repeats - 1
+        IF idx >= maxExtraLength THEN
+          reporterr strprintf("Error loading %s: max extra data length exceeded", thing_or_file), serrError
+          RETURN NO
+        ELSE
+          extravec[idx] = last
+        END IF
+      NEXT
+
       ch = NextSibling(ch)
     WEND
     'It's permitted for there to be fewer than 'length' children, the rest are 0
