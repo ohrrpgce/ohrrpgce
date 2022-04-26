@@ -9,3 +9,6 @@ Use the Left and Right arrow keys to change numbers.  You can also type in numbe
 Battle Frequency: Change how frequently tiles that are assigned this formation set will trigger a random battle. The number of steps that the formation will take to trigger is displayed, including minimum, maximum and average.
 
 Assign up to 20 battle formations to be included in this set. If you would like certain formations to appear more than others, you should list them more than once in the set.
+
+
+Click or press Enter on an "Empty" line to select a formation. Or press Insert or + to create a new formation while linking to it. You can also hold Ctrl and Click/Enter to open to one of the formations in the formation editor.

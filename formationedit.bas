@@ -189,15 +189,9 @@ FUNCTION formation_set_editor (set_id as integer = -1) as integer
   IF state.pt = 3 THEN tag_grabber formset.tag, state
   IF state.pt >= 4 THEN
    '--have form selected
-   'The form number is not normally offset, but we offset it so 0 is none.
-   form_id = formset.formations(state.pt - 4) + 1
-   IF zintgrabber(form_id, -1, gen(genMaxFormation)) THEN
-    state.need_update = YES
-   ELSEIF enter_space_click(state) THEN
-    form_id = formation_picker_or_none(form_id)
-   END IF
-   form_id -= 1 'Un-offset
-   formset.formations(state.pt - 4) = form_id
+   '-1 is None
+   state.need_update OR= formationgrabber(formset.formations(state.pt - 4), state, 0, -1)
+   form_id = formset.formations(state.pt - 4)
   ELSE
    form_id = -1
   END IF
@@ -209,6 +203,9 @@ FUNCTION formation_set_editor (set_id as integer = -1) as integer
    draw_formation_slices form, rootslice, -1, dpage
   ELSE
    clearpage dpage
+  END IF
+  IF state.pt >= 4 THEN
+   edgeprint THINGGRABBER_TOOLTIP, 0, pBottom, uilook(uiMenuItem), dpage
   END IF
   menu(0) = "Previous Menu"
   menu(1) = CHR(27) & "Formation Set " & set_id & CHR(26)

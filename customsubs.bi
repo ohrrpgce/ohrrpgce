@@ -35,6 +35,7 @@ CONST THINGGRABBER_TOOLTIP = "Ctrl-Enter/Click to edit, +/Insert to add new"
 DECLARE FUNCTION enter_or_add_new(state as MenuState) as bool
 DECLARE FUNCTION attackgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
 DECLARE FUNCTION enemygrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
+DECLARE FUNCTION formationgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
 DECLARE FUNCTION textboxgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as integer
 
 DECLARE SUB ui_color_editor(palnum as integer)

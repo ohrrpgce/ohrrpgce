@@ -976,8 +976,8 @@ END FUNCTION
 'See FnEditor for information about the calling convention.
 'This handles enter/space/click, +/insert, digits, left/right, - and backspace.
 'offset should be 0 or 1, eg:
-' offset=0: datum X means attack X
-' offset=1: datum 0 is none, X+1 is attack X
+' offset=0: datum X means record (eg attack) X
+' offset=1: datum 0 is none, X+1 is record X
 'min is the minimum value of datum. Usually equal to offset if there is no
 '"none" option, or offset-1 if there is. (Not the same as min for zintgrabber!)
 'max_record is the maximum object ID, not the upper range of datum.
@@ -1053,6 +1053,21 @@ FUNCTION enemygrabber (byref datum as integer, state as MenuState, offset as int
   RETURN YES
  ELSE
   RETURN thinggrabber(datum, state, offset, min, gen(genMaxEnemy), intgrab, @enemy_editor, YES)
+ END IF
+END FUNCTION
+
+'Edit a formation ID (possibly offset) numerically or by entering the formation editor.
+'See thinggrabber.
+FUNCTION formationgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as bool
+ IF want_to_enter_browser(state) THEN
+  IF offset = 1 THEN
+   datum = formation_picker_or_none(datum)
+  ELSE
+   datum = formation_picker(datum)
+  END IF
+  RETURN YES
+ ELSE
+  RETURN thinggrabber(datum, state, offset, min, gen(genMaxFormation), intgrab, @individual_formation_editor, YES)
  END IF
 END FUNCTION
 
