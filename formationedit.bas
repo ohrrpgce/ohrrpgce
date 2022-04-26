@@ -251,9 +251,10 @@ END SUB
 '                                   Hero Formation Editor
 '==========================================================================================
 
-'Prompt user how to add a new formation, or cancel, and update hero_form_id
-SUB hero_formation_add_new(byref hero_form_id as integer)
- IF hero_form_id <> last_hero_formation_id() + 1 THEN showbug "Bad hero_formation_add_new call"
+'Prompt user how to add a new formation and update hero_form_id and return true,
+'or return false if cancelled.
+FUNCTION hero_formation_add_new(byref hero_form_id as integer) as bool
+ BUG_IF(hero_form_id <> last_hero_formation_id() + 1, "Bad call", NO)
 
  DIM how as integer
  DIM previewer as FormationPreviewer
@@ -264,7 +265,9 @@ SUB hero_formation_add_new(byref hero_form_id as integer)
  '-- >=0 =Copy
 
  DIM hform as HeroFormation
- IF how = -1 THEN
+ IF how = -2 THEN
+  RETURN NO
+ ELSEIF how = -1 THEN
   default_hero_formation hform
   save_hero_formation hform, hero_form_id
  ELSEIF how >= 0 THEN
@@ -273,7 +276,8 @@ SUB hero_formation_add_new(byref hero_form_id as integer)
  ELSE
   hero_form_id = last_hero_formation_id()
  END IF
-END SUB
+ RETURN YES
+END FUNCTION
 
 SUB hero_formation_editor ()
  DIM hero_form_id as integer = 0
@@ -419,9 +423,10 @@ END SUB
 '                                 Individual Formation editor
 '==========================================================================================
 
-'Prompt user how to add a new formation, or cancel, and update form_id
-SUB formation_add_new(byref form_id as integer)
- IF form_id <= gen(genMaxFormation) THEN showbug "Bad formation_add_new call"
+'Prompt user how to add a new formation, and update form_id and return true,
+'or return false if cancelled.
+FUNCTION formation_add_new(byref form_id as integer) as bool
+ BUG_IF(form_id <> gen(genMaxFormation) + 1, "Bad call", NO)
 
  DIM how as integer
  DIM previewer as FormationPreviewer
@@ -432,7 +437,9 @@ SUB formation_add_new(byref form_id as integer)
  '-- >=0 =Copy
 
  DIM form as Formation
- IF how = -1 THEN
+ IF how = -2 THEN
+  RETURN NO
+ ELSEIF how = -1 THEN
   gen(genMaxFormation) += 1
   ClearFormation form
   SaveFormation form, form_id
@@ -442,7 +449,8 @@ SUB formation_add_new(byref form_id as integer)
   SaveFormation form, form_id
  END IF
  form_id = gen(genMaxFormation)
-END SUB
+ RETURN YES
+END FUNCTION
 
 TYPE FormationEditor EXTENDS ModularMenu
  form_id as integer
@@ -469,14 +477,14 @@ TYPE FormationEditor EXTENDS ModularMenu
  DECLARE SUB each_tick_positioning_mode()
 END TYPE
 
-'form_id: which formation to show. If -1, same as last time. If >= max, adds a new formation (without asking!)
-'Returns the formation number we were last editing.
+'form_id: which formation to show. If -1, same as last time. If >= max, asks to add a new formation
+'Returns the formation number we were last editing, or -1 if cancelled adding a new formation.
 FUNCTION individual_formation_editor (form_id as integer = -1) as integer
  STATIC remember_form_id as integer = 0
  IF form_id < 0 THEN
   form_id = remember_form_id
  ELSEIF form_id > gen(genMaxFormation) THEN
-  formation_add_new form_id
+  IF formation_add_new(form_id) = NO THEN RETURN -1
  END IF
 
  DIM editor as FormationEditor
