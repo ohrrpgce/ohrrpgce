@@ -36,7 +36,7 @@
 #ELSE
  #DEFINE _GSTR
 #ENDIF
-#IF __FB_ERR__
+#IF (__FB_ERR__ AND 7) = 7
  #DEFINE _ESTR " -exx"
 #ELSE
  #DEFINE _ESTR
@@ -70,7 +70,8 @@
 #ELSE
  #DEFINE _BSTR " 32-bit"
 #ENDIF
-CONST build_info as string = "" _GSTR _ESTR _GENSTR _PSTR _BSTR
+#DEFINE STRINGIFY(x) #x  'Equivalent to __FB_QUOTE__, which is FB 1.08+
+CONST build_info as string = _GSTR _ESTR " FB_ERR=" STRINGIFY(__FB_ERR__) _GENSTR _PSTR _BSTR
 
 
 '==================================== OS-specific defines =================================

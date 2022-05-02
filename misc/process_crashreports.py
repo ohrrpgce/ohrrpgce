@@ -123,6 +123,19 @@ def print_matching_line(line, key, regex = None, groupnum = 1):
         return value
     return ''
 
+def fix_build_string(build):
+    """Apply fixes to the build/version string."""
+    if build.split(' ')[4] != 'FreeBASIC':
+        raise Exception("Couldn't parse build string: " + build)
+    fbver = int(build.split(' ')[5].replace('.', ''))  # e.g. 1.08.1 becomes 1081
+
+    if fbver >= 1070 and 'FB_ERR=' not in build:
+        # FB 1.07 changed __FB_ERR__ (which is a bitvector) to also tell whether -g is used,
+        # causing -exx to be falsely added to the buildinfo.
+        # This was fixed at the same time as adding FB_ERR to the build line.
+        build = build.replace(' -exx', '')
+    return build
+
 class NoSymbolsError(ValueError): pass
 
 def symbols_filename_from_build(build, branch):
@@ -289,7 +302,7 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
         name, val = x.attrib['name'], x.attrib['value']
         print_attr(name.title(), val)
         if name == 'build':
-            build = val
+            build = fix_build_string(val)
         if name == 'branch':
             branch = val
         if name == 'error':  # The BUG message
