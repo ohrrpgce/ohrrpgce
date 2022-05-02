@@ -1581,7 +1581,7 @@ Alias ('tests', TESTS)
 
 def packager(target, source, env):
     action = str(target[0])  # eg 'install'
-    if mac or android or not unix:
+    if android or not unix:
         print("The '%s' action is only implemented on Unix systems." % action)
         return 1
     if action == 'install' and dry_run:
