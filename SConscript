@@ -1104,8 +1104,16 @@ for lib in base_libraries:
     env['CXXLINKFLAGS'] += ['-l' + lib]
     env['FBLINKFLAGS'] += ['-l', lib]
 
-for lib in base_libraries + common_libraries:
-    if mac and lib in ('SDL', 'SDL_mixer', 'SDL2', 'SDL2_mixer', 'Cocoa'):
+if mac:
+    frameworks = ARGUMENTS.get('frameworks', 'SDL,SDL_mixer,SDL2,SDL2_mixer')
+    if frameworks in ('0', 'no', ''):
+        frameworks = ()
+    else:
+        frameworks = frameworks.split(',')
+    frameworks += ('Cocoa',)
+
+for lib in common_libraries + base_libraries:
+    if mac and lib in frameworks:
         # Use frameworks rather than normal unix libraries
         # (Note: linkgcc=0 does not work on Mac because the #inclib "SDL" in the
         # SDL headers causes fbc to pass -lSDL to the linker, which can't be
@@ -1654,6 +1662,11 @@ Options:
                       You'll need the relevant SDK installed in /Developer/SDKs
                       and may want to use a copy of FB built against that SDK.
                       Also sets macosx-version-min (defaults to 10.4).
+  frameworks=...      (Mac only) A comma-separated list of frameworks to link to
+                      rather than to .dylibs. By default always uses frameworks.
+                      "frameworks=" links only to .dylibs. Use this if
+                      SDL/SDL_mixer have been installed using a package manager
+                      like MacPorts or Nix. Creates non-distributable binaries.
   prefix=PATH         For 'install' and 'uninstall' actions. Default: '/usr'
   destdir=PATH        For 'install' and 'uninstall' actions. Use if you want to
                       install into a staging area, for a package creation tool.
