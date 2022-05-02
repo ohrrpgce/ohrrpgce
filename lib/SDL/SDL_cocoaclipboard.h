@@ -25,9 +25,11 @@
 #ifndef _SDL_cocoaclipboard_h
 #define _SDL_cocoaclipboard_h
 
+#include <stdbool.h>
+
 extern int Cocoa_SetClipboardText(const char *text);
 extern char *Cocoa_GetClipboardText();
-extern SDL_bool Cocoa_HasClipboardText();
+extern bool Cocoa_HasClipboardText();
 
 #endif /* _SDL_cocoaclipboard_h */
 
