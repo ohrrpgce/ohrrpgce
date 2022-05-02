@@ -836,8 +836,10 @@ if linkgcc:
         else:
             handle_symbols = None
 
-    if mac:
-        # -( -) not supported
+    #if mac:
+        # -( -) are not supported on Mac, and don't seem to work with some other linkers either (e.g. on NixOS)...
+    if True:
+        # ...so never use -( -), to be more portable
         basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS'
     else:
         basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES "-Wl,-(" $CXXLINKFLAGS "-Wl,-)"'
@@ -965,7 +967,7 @@ common_libpaths = []
 
 # OS-specific libraries and options for each backend are added below.
 
-gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'common_libraries': 'fbgfxmt'},
+gfx_map = {'fb': {'shared_modules': 'gfx_fb.bas', 'common_libraries': 'fbgfxmt fbmt'},
            'alleg' : {'shared_modules': 'gfx_alleg.bas', 'common_libraries': 'alleg'},
            'sdl' : {'shared_modules': 'gfx_sdl.bas', 'common_libraries': 'SDL'},
            'sdl2' : {'shared_modules': 'gfx_sdl2.bas', 'common_libraries': 'SDL2'},
@@ -1022,7 +1024,7 @@ if win32:
     base_libraries += ['winmm', 'ole32', 'gdi32', 'shell32', 'advapi32', 'wsock32' if win95 else 'ws2_32']
     if win95:
         env['CFLAGS'] += ['-D', 'USE_WINSOCK1']
-    common_libraries += ['fbgfxmt']   # For display_help_string
+    common_libraries += ['fbgfxmt', 'fbmt']   # For display_help_string
     commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
     commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
     #env['CXXLINKFLAGS'] += ['win32/CrashRpt1403.lib']  # If not linking the .dll w/ LoadLibrary
@@ -1524,7 +1526,6 @@ def RPGWithScripts(rpg, main_script):
         nodefile = '#' + os.path.join(rpg, 'plotscr.lst')
     else:
         nodefile = '#' + rpg
-    print(nodefile)
     node = env.Command(nodefile, source = sources, action = action)
     Precious(node)  # Don't delete the .rpg before "rebuilding" it
     NoClean(node)   # Don't delete the .rpg with -c
