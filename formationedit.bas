@@ -458,6 +458,7 @@ TYPE FormationEditor EXTENDS ModularMenu
  rootslice as Slice ptr
  bgwait as integer
  bgctr as integer
+ remem_pt as integer       'Remember state.pt of top menu while in positioning_mode
 
  preview_music as bool
  last_music as integer = -1
@@ -511,6 +512,8 @@ END SUB
 FUNCTION FormationEditor.try_exit() as bool
  IF positioning_mode THEN
   positioning_mode = NO
+  state.pt = remem_pt
+  state.need_update = YES
   RETURN NO
  END IF
  RETURN YES
@@ -539,6 +542,7 @@ SUB FormationEditor.each_tick_positioning_mode()
  'ccCancel is handled by try_exit()
  IF enter_or_space() ORELSE (readmouse.release AND mouseRight) THEN
   positioning_mode = NO
+  state.pt = remem_pt
   RETURN
  END IF
  DIM as integer movespeed = 1
@@ -643,6 +647,7 @@ FUNCTION FormationEditor.each_tick_menu_mode() as bool
        CASE 0: positioning_mode = YES
        CASE 1: browse_for_enemy = YES
       END SELECT
+      remem_pt = state.pt
      ELSE
       'Empty slot
       browse_for_enemy = YES
