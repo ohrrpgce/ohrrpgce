@@ -272,8 +272,9 @@ def produce_breakpad_symbols_windows(pdb, breakpad_cache_dir, exe = None, from_g
 def get_source_around_line(git_dir, gitrev, filename, lineno, context = 1):
     """Return a few lines of source code around the given line"""
     print('Querying git for source...    ', file=sys.stderr, end='\r')
-    if '\\' in filename and filename == filename.upper():
-        # Some source files have mangled filenames like C:\USERS\JAMES\SRC\OHR\REL\FUFLUNS\CUSTOM_UDTS.BI
+    #if '\\' in filename and filename == filename.upper():
+    if filename == filename.upper():
+        # Some source files have mangled filenames like GAME.BAS, C:\USERS\JAMES\SRC\OHR\REL\FUFLUNS\CUSTOM_UDTS.BI
         # Hard to tell how many directories to trim.
         filename = ntpath.basename(filename).lower()
 
