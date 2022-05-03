@@ -691,7 +691,7 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
      END IF
     END WITH
     IF her.list_type(listnum) = 1 THEN
-     info &= "1 point of level " & INT(mstate.pt / 3) + 1 & " " & readglobalstring(160, "Level MP", 20)
+     info &= "1 point of level " & (mstate.pt \ spellsPerLMP) + 1 & " " & readglobalstring(160, "Level MP", 20)
     END IF
    END IF
    ChangeTextSlice infobox, info

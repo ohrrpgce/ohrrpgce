@@ -3786,14 +3786,14 @@ SUB spells_menu_refresh_list(sp as SpellsMenuState)
     .id = gam.hero(sp.hero).spells(sp.lists(sp.listnum).menu_index, i) - 1
     loadattackdata atk, .id
     IF atk.useable_outside_battle THEN
-     .can_use = atkallowed(atk, sp.hero, sp.lists(sp.listnum).magic_type, i \ 3)
+     .can_use = atkallowed(atk, sp.hero, sp.lists(sp.listnum).magic_type, i \ spellsPerLMP)
      .targt = atk.targ_set
      .tstat = atk.targ_stat
     END IF
 
     .name = atk.name
     .desc = atk.description
-    .cost = hero_attack_cost_info(atk, sp.hero, sp.lists(sp.listnum).magic_type, i \ 3)
+    .cost = hero_attack_cost_info(atk, sp.hero, sp.lists(sp.listnum).magic_type, i \ spellsPerLMP)
    END IF
    .name = rpad(.name, " ", 10)
   END WITH
@@ -4045,7 +4045,7 @@ SUB spells_menu_control_pick_spell(sp as SpellsMenuState)
   IF sp.cursor = 24 THEN sp.mset = 0
   IF sp.spell(sp.cursor).can_use THEN
    '--spell that can be used oob
-   DIM lmplev as integer = sp.cursor \ 3
+   DIM lmplev as integer = sp.cursor \ spellsPerLMP
    
    DIM atk as AttackData
    loadattackdata atk, sp.spell(sp.cursor).id

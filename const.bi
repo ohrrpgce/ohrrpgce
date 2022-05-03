@@ -322,6 +322,7 @@ CONST maxTextboxLines = 8 'Maximum number of lines in a text box
 CONST maplayerMax = 15 'The limit on the highest numbered map layer
 CONST mapTilesMax = 100000 'Maximum map size, in tiles (note also a limit of 32768 tiles wide or high)
 CONST maxMPLevel = 7   'Max level of FF1-style level-MP, 0-based (Note: the spell-list editor shows 1-based levels)
+CONST spellsPerLMP = 3 'Number of spells at each level-MP level
 CONST maxElements = 64 'Maximum selectable number of elements
 CONST maxDoorsPerMap = 99 '0 thru 99
 CONST maxMapHistoryMem = 2000000 'In number of MapEditUndoTiles (8 bytes)

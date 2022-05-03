@@ -3624,8 +3624,8 @@ SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDe
      loadattackdata atk, .atk_id
      .name = atk.name
      .desc = atk.description
-     .cost = bslot_attack_cost_info(bslot(), atk, bat.player_turn, list_type, i \ 3)
-     .enable = atk.useable_inside_battle ANDALSO atkallowed(atk, bat.player_turn, list_type, i \ 3, bslot(bat.player_turn))
+     .cost = bslot_attack_cost_info(bslot(), atk, bat.player_turn, list_type, i \ spellsPerLMP)
+     .enable = atk.useable_inside_battle ANDALSO atkallowed(atk, bat.player_turn, list_type, i \ spellsPerLMP, bslot(bat.player_turn))
     END IF
     .name = rpad(.name, " ", 10)
    END WITH
@@ -3844,7 +3844,7 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
    DIM atk as AttackData
    loadattackdata atk, atk_id
    DIM list_type as integer = st(bat.player_turn).list_type(bat.listslot)
-   DIM lmp as integer = bat.sptr \ 3
+   DIM lmp as integer = bat.sptr \ spellsPerLMP
    IF atk.useable_inside_battle ANDALSO _
       atkallowed(atk, bat.player_turn, list_type, lmp, bslot(bat.player_turn)) THEN
     '--attack is allowed
