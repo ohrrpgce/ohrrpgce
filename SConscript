@@ -1039,9 +1039,11 @@ if win32:
 elif mac:
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
-    common_libraries += ['Cocoa']  # For CoreServices
+    common_libraries += ['Cocoa']  # For CoreServices (linked as a framework)
+    if 'sdl2' not in gfx:
+        common_modules += ['lib/SDL/SDL_cocoaclipboard.m']
     if 'sdl' in gfx:
-        common_modules += ['mac/SDLmain.m', 'lib/SDL/SDL_cocoaclipboard.m']
+        common_modules += ['mac/SDLmain.m']
         commonenv['FBFLAGS'] += ['-entry', 'SDL_main']
         if env.WhereIs('sdl-config'):
             commonenv.ParseConfig('sdl-config --cflags')
