@@ -323,6 +323,10 @@ OPERATOR <> (lhs as RectType, rhs as RectType) as bool
   RETURN memcmp(@lhs, @rhs, sizeof(RectType)) <> 0
 END OPERATOR
 
+OPERATOR + (lhs as RectType, rhs as RectType) as RectType
+  RETURN XYWH(lhs.x + rhs.x, lhs.y + rhs.y, lhs.wide + rhs.wide, lhs.high + rhs.high)
+END OPERATOR
+
 OPERATOR + (lhs as RectType, rhs as XYPair) as RectType
   RETURN XYWH(lhs.x + rhs.x, lhs.y + rhs.y, lhs.wide, lhs.high)
 END OPERATOR
