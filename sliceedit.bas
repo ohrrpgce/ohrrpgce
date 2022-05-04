@@ -134,6 +134,7 @@ TYPE EditRule
   mode as EditRuleMode
   lower as integer    'Interpreted as percent for percent_grabber
   upper as integer    'Interpreted as percent for percent_grabber
+  default as integer  'Currently only supported by erEnumgrabber! Value selected by Delete key
   group as integer    'Marks this rule as a member of a numbered group, the meaning of which is defined in the implementation
   helpkey as string   'actually appended to "sliceedit_" to get the full helpkey
 END TYPE
@@ -232,7 +233,7 @@ DECLARE FUNCTION collection_context(edslice as Slice ptr) as SliceCollectionCont
 'Slice EditRule convenience functions
 DECLARE SUB sliceed_rule (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
 DECLARE SUB sliceed_rule_str (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as string ptr, upper as integer=0, group as integer = 0)
-DECLARE SUB sliceed_rule_enum (rules() as EditRule, helpkey as string, dataptr as ssize_t ptr, lower as integer=0, upper as integer=0, group as integer = 0)
+DECLARE SUB sliceed_rule_enum (rules() as EditRule, helpkey as string, dataptr as ssize_t ptr, lower as integer=0, upper as integer=0, default as integer=0, group as integer = 0)
 DECLARE SUB sliceed_rule_double (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as double ptr, lower as integer=0, upper as integer=100, group as integer = 0)
 DECLARE SUB sliceed_rule_single (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as single ptr, lower as integer=0, upper as integer=100, group as integer = 0)
 DECLARE SUB sliceed_rule_tog overload (rules() as EditRule, helpkey as string, dataptr as bool ptr, group as integer=0)
@@ -1487,7 +1488,10 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuStat
   CASE erEnumgrabber
    ' In 64 bit builds, enums are 64 bit.
    DIM n as ssize_t ptr = rule.dataptr
-   IF intgrabber(*n, cast(ssize_t, rule.lower), cast(ssize_t, rule.upper), , , , , NO) THEN  'Don't autoclamp
+   IF (keyval(scDelete) OR keyval(scBackspace)) > 0 THEN
+    *n = rule.default
+    state.need_update = YES
+   ELSEIF intgrabber(*n, cast(ssize_t, rule.lower), cast(ssize_t, rule.upper), , , , , NO) THEN  'Don't autoclamp
     state.need_update = YES
    END IF
   CASE erToggle
@@ -1762,8 +1766,9 @@ END SUB
 'enums are 64 bit, so to catch errors we shouldn't allow passing them to sliceed_rule
 'by giving it "dataptr as any ptr" argument.
 
-SUB sliceed_rule_enum (rules() as EditRule, helpkey as string, dataptr as ssize_t ptr, lower as integer=0, upper as integer=0, group as integer = 0)
+SUB sliceed_rule_enum (rules() as EditRule, helpkey as string, dataptr as ssize_t ptr, lower as integer=0, upper as integer=0, default as integer=0, group as integer = 0)
  sliceed_rule rules(), helpkey, erEnumgrabber, cast(integer ptr, dataptr), lower, upper, group
+ rules(UBOUND(rules)).default = default
 END SUB
 
 'lower and upper are in percent
@@ -1922,7 +1927,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      sliceed_rule rules(), "rect_raw_box_border", erIntgrabber, @(dat->raw_box_border), 0, gen(genMaxBoxBorder), slgrBROWSEBOXBORDER
     ELSE
      a_append menu(), "   Border Style: " & caption_or_int(BorderCaptions(), dat->border)
-     sliceed_rule_enum rules(), "rect_border", @(dat->border), -2, 14, slgrUPDATERECTCUSTOMSTYLE
+     sliceed_rule_enum rules(), "rect_border", @(dat->border), -2, 14, borderLine, slgrUPDATERECTCUSTOMSTYLE
     END IF
     a_append menu(), " Translucency: " & TransCaptions(dat->translucent)
     sliceed_rule_enum rules(), "rect_trans", @(dat->translucent), 0, transLAST
@@ -1969,7 +1974,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     DIM byref sizeinfo as SpriteSize = sprite_sizes(dat->spritetype)
     a_append menu(), " Type: " & sizeinfo.name
     DIM mintype as SpriteType = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, sprTypeFrame, 0)
-    sliceed_rule_enum rules(), "sprite_type", @(dat->spritetype), mintype, sprTypeLastPickable, slgrUPDATESPRITE
+    sliceed_rule_enum rules(), "sprite_type", @(dat->spritetype), mintype, sprTypeLastPickable, , slgrUPDATESPRITE
     IF dat->spritetype = sprTypeFrame THEN
      IF dat->assetfile = NULL THEN
       a_append menu(), " Raw Frame: " & frame_describe(dat->img.sprite)
@@ -2154,12 +2159,12 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    DIM clamping as bool = NO
    IF fillhoriz = NO THEN
     a_append menu(), " Clamp horiz.: " & clamp_caption(.ClampHoriz, NO)
-    sliceed_rule_enum rules(), "clamp", @.ClampHoriz, 0, 3
+    sliceed_rule_enum rules(), "clamp", @.ClampHoriz, 0, 3, alignNone
     clamping OR= (.ClampHoriz <> alignNone)
    END IF
    IF fillvert = NO THEN
     a_append menu(), " Clamp vert.: " & clamp_caption(.ClampVert, YES)
-    sliceed_rule_enum rules(), "clamp", @.ClampVert, 0, 3
+    sliceed_rule_enum rules(), "clamp", @.ClampVert, 0, 3, alignNone
     clamping OR= (.ClampVert <> alignNone)
    END IF
    IF clamping THEN
