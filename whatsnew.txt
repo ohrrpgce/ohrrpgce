@@ -25,6 +25,7 @@ WHAT IS NEW?
       NPC no matter if they are activatable or not. [James]
     * Slices can be marked as Templates, which makes them hidden and ignored for
       almost all purposes. Intended for use with "clone slice". [Ralph]
+    * Slices can be Clamped within their parents or the screen  [Ralph, James]
     * Text box connection editor can insert boxes with tag contitionals [James]
     * New attacker animations "Run and Hide" and "Run In" which behave the
       same as "Jump" and "Land" [James]

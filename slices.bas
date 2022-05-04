@@ -275,7 +275,7 @@ Sub RefreshChildClamp(ch as Slice ptr, support as RectType)
        .ScreenX = large(.ScreenX, support.x)
        .ScreenX = small(.ScreenX, support.x + support.wide - .Width)
       case alignCenter:
-       .ScreenX = support.x + support.wide / 2 - .Width / 2
+       .ScreenX = support.x + (support.wide - .Width) \ 2
      end select
     else
      .ScreenX = large(.ScreenX, support.x)
@@ -295,7 +295,7 @@ Sub RefreshChildClamp(ch as Slice ptr, support as RectType)
        .ScreenY = large(.ScreenY, support.y)
        .ScreenY = small(.ScreenY, support.y + support.high - .Height)
       case alignCenter:
-       .ScreenY = support.y + support.high / 2 - .Height / 2
+       .ScreenY = support.y + (support.high - .Height) \ 2
      end select
     else
      .ScreenY = large(.ScreenY, support.y)
@@ -4670,7 +4670,7 @@ Function SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_h
  sl->AnchorVert = LoadProp(node, "anchorv")
  sl->ClampHoriz = LoadProp(node, "clamph", alignNone)
  sl->ClampVert = LoadProp(node, "clampv", alignNone)
- sl->ClampToScreen = LoadProp(node, "clamptoscreen")
+ sl->ClampToScreen = LoadPropBool(node, "clamptoscreen")
  sl->PaddingTop = LoadProp(node, "padt")
  sl->PaddingLeft = LoadProp(node, "padl")
  sl->PaddingRight = LoadProp(node, "padr")
