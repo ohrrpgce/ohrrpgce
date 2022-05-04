@@ -1865,14 +1865,14 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
 
  sliceed_header menu(), rules(), "[Dimensions]", @ses.expand_dimensions
  IF ses.expand_dimensions THEN
-  IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
+  IF .FillHoriz = NO THEN
    a_append menu(), " X: " & .X
    sliceed_rule rules(), "pos", erIntgrabber, @.X, -9999, 9999, slgrPICKXY
   ELSE
    'a_append menu(), "X: " & fgtag(uilook(uiDisabledItem), "0 (filling)")
    'sliceed_rule_none rules(), "pos"
   END IF
-  IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
+  IF .FillVert = NO THEN
    a_append menu(), " Y: " & .Y
    sliceed_rule rules(), "pos", erIntgrabber, @.Y, -9999, 9999, slgrPICKXY
   ELSE
@@ -2131,37 +2131,41 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule_tog rules(), "template", @.Template
  END IF
 
- IF .Fill = NO ORELSE .FillMode <> sliceFillFull THEN
+ DIM as bool fillvert = .FillVert(), fillhoriz = .FillHoriz()
+ IF fillhoriz = NO ORELSE fillvert = NO THEN
   sliceed_header menu(), rules(), "[Alignment]", @ses.expand_alignment
- END IF
- IF ses.expand_alignment THEN
-  IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
-   a_append menu(), " Align horiz. to: " & HorizCaptions(.AlignHoriz)
-   sliceed_rule_enum rules(), "align", @.AlignHoriz, 0, 2
-  END IF
-  IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
-   a_append menu(), " Align vert.  to: " & VertCaptions(.AlignVert)
-   sliceed_rule_enum rules(), "align", @.AlignVert, 0, 2
-  END IF
-  IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
-   a_append menu(), " Anchor horiz. at: " & HorizCaptions(.AnchorHoriz)
-   sliceed_rule_enum rules(), "anchor", @.AnchorHoriz, 0, 2
-  END IF
-  IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
-   a_append menu(), " Anchor vert.  at: " & VertCaptions(.AnchorVert)
-   sliceed_rule_enum rules(), "anchor", @.AnchorVert, 0, 2
-  END IF
-  IF .Fill = NO ORELSE .FillMode = sliceFillVert THEN
-   a_append menu(), " Clamp horiz.: " & clamp_caption(.ClampHoriz, NO)
-   sliceed_rule_enum rules(), "clamp", @.ClampHoriz, 0, 3
-  END IF
-  IF .Fill = NO ORELSE .FillMode = sliceFillHoriz THEN
-   a_append menu(), " Clamp vert.: " & clamp_caption(.ClampVert, YES)
-   sliceed_rule_enum rules(), "clamp", @.ClampVert, 0, 3
-  END IF
-  IF .ClampVert > 0 ORELSE .ClampHoriz > 0 THEN
-   a_append menu(), " Clamp to: " & IIF(.ClampToScreen, "Screen", "Parent")
-   sliceed_rule_tog rules(), "clamp", @.ClampToScreen
+  IF ses.expand_alignment THEN
+   IF fillhoriz = NO THEN
+    a_append menu(), " Align horiz. to: " & HorizCaptions(.AlignHoriz)
+    sliceed_rule_enum rules(), "align", @.AlignHoriz, 0, 2
+   END IF
+   IF fillvert = NO THEN
+    a_append menu(), " Align vert.  to: " & VertCaptions(.AlignVert)
+    sliceed_rule_enum rules(), "align", @.AlignVert, 0, 2
+   END IF
+   IF fillhoriz = NO THEN
+    a_append menu(), " Anchor horiz. at: " & HorizCaptions(.AnchorHoriz)
+    sliceed_rule_enum rules(), "anchor", @.AnchorHoriz, 0, 2
+   END IF
+   IF fillvert = NO THEN
+    a_append menu(), " Anchor vert.  at: " & VertCaptions(.AnchorVert)
+    sliceed_rule_enum rules(), "anchor", @.AnchorVert, 0, 2
+   END IF
+   DIM clamping as bool = NO
+   IF fillhoriz = NO THEN
+    a_append menu(), " Clamp horiz.: " & clamp_caption(.ClampHoriz, NO)
+    sliceed_rule_enum rules(), "clamp", @.ClampHoriz, 0, 3
+    clamping OR= (.ClampHoriz <> alignNone)
+   END IF
+   IF fillvert = NO THEN
+    a_append menu(), " Clamp vert.: " & clamp_caption(.ClampVert, YES)
+    sliceed_rule_enum rules(), "clamp", @.ClampVert, 0, 3
+    clamping OR= (.ClampVert <> alignNone)
+   END IF
+   IF clamping THEN
+    a_append menu(), " Clamp to: " & IIF(.ClampToScreen, "Screen", "Parent")
+    sliceed_rule_tog rules(), "clamp", @.ClampToScreen
+   END IF
   END IF
  END IF
 
