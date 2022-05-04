@@ -1,3 +1,7 @@
-Padding is used to add margins around the children of a slice. This is most noticeable for child slices that are set to "Fill", but it applies to all child slices no matter how they are attached to the current slice.
+Padding is used to add margins around the children of a slice. This is most noticeable for child slices that are set to "Fill Parent", but it applies to all child slices no matter how they are attached to the current slice.
 
-Padding is also allowed to be negative, which causes child slices to overflow the parent slice.
+Positive padding reduces the effective size of the slice (and Top/Left padding also moves its effective position down/right) for all purposes of positioning and sizing its children.
+
+Padding is also allowed to be negative, which increases the effective size, causing child slices to overflow the parent slice when set to Fill.
+
+Padding for Grid slices acts slightly differently: padding is added around each grid cell rather than around the outer edges of the grid.

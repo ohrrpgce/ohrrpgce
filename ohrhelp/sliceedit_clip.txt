@@ -1,6 +1,6 @@
 If a slice is configured to clip its children, child slices will be clipped at the edges (shifted by its padding) of the slice if they go over them.
 
-That means that parts (or all) of child slices won't be drawn.
+That means that parts (or all) of child slices won't be drawn. (Another way to prevent children from going out-of-bounds is to Clamp them to their parent.)
 
 When a Panel or Grid slice is set to clip, each child is clipped to its own cell/panel of the Grid/Panel, instead of the whole parent slice.
 

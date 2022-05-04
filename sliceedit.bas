@@ -314,7 +314,7 @@ FUNCTION anchor_and_align_grabber(byref anchor as AlignType, byref align as Alig
 END FUNCTION
 
 FUNCTION clamp_caption(align as AlignType, vertical as bool) as string
- IF align = alignNone THEN RETURN "No"
+ IF align = alignNone THEN RETURN "NO"
  RETURN "to " & IIF(vertical, VertCaptions(align), HorizCaptions(align))
 END FUNCTION
 
@@ -1892,7 +1892,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule_tog rules(), "fill", @.Fill
   IF .Fill THEN
    a_append menu(), "  Fill Type: " & FillModeCaptions(.FillMode)
-   sliceed_rule_enum rules(), "fillmode", @.FillMode, 0, 2
+   sliceed_rule_enum rules(), "fill", @.FillMode, 0, 2
   END IF
  END IF
 

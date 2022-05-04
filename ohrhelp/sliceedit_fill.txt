@@ -1,3 +1,9 @@
 When a slice is marked to Fill its parent, it will be automatically resized to fill the parent slice. If the parent size changes, the child slice changes too.
 
-If the parent slice is a grid, the slice will only fill one cell of the grid.
+If Fill Parent is turned on, the Fill Type setting appears, which lets you apply Fill on only the horizontal or vertical axis, or both ("Full" type).
+
+The size of the parent slice is adjusted (reduced) by the parent's padding, as usual for all alignment settings.
+
+If a slice is set to Fill Parent vertically, horizontally or both then the corresponding Align, Anchor and Clamp options do nothing (they are overridden) and are hidden (in fact the whole 'Alignment' section will be hidden for Full filling).
+
+If the parent slice is a Grid, the slice will only fill one cell of the grid.

@@ -1,10 +1,12 @@
-Clamping is a convenient way to make sure a slice always stays within boundaries of its parent slice (or the screen).
+Clamping is a convenient way to make sure a slice always stays within the boundaries of either its parent slice or of the screen. (The "Clamp to:" settings lets you chose parent or screen.) Clamping potentially changes the screen position of a slice. It overrides rather than changes the X/Y settings. Clamping is different from Clip Children, which cuts off children which are over the boundary.
 
-Clamp Horiz: controls clamping on the left and/or right of the slice
-Clamp Vert: controls clamping on the top and/or bottom of the slice
+The "boundary" of the parent slice is adjusted (reduced) by the parent's padding, as usual for all alignment settings.
 
-Valid values are: No, Left, Right, and Both.
+Clamp Horiz: controls clamping on the left and/or right of the slice.
+Clamp Vert: controls clamping on the top and/or bottom of the slice.
 
-Note that if your slice is set to clamp on "Both" sides, but the parent slice is smaller than the slice itself, then the slice's Anhor will be used to tie-break and determine which side gets clamped.
+Valid values are: No, Left, Right, and Both. For example, when clamping to Left the child won't ever cross the left boundary of the parent. If Both, then it won't cross either Left/Right, or Top/Bottom.
 
-You can chose whether the clamping will keep the slice within the bounds of its parent, or within the bounds of the screen.
+Note that if your slice is set to clamp on "Both" sides, but the parent slice is smaller than the slice itself, then the slice's Horiz/Vert Anchor will be used to tie-break and determine which side gets clamped; if center-anchored then the child is centered.
+
+If a slice is set to Fill Parent vertically, horizontally or both then the corresponding Align, Anchor and Clamp options do nothing (they are overridden) and are hidden.

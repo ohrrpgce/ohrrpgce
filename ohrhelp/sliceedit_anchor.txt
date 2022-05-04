@@ -1,3 +1,5 @@
 The anchor setting controls which corner or edge of this slice is used to position it.
 
 You can imagine that the slice is pinned to its parent with a magic thumbtack at the anchor point.
+
+If a slice is set to Fill Parent vertically, horizontally or both then the corresponding Align, Anchor and Clamp options do nothing (they are overridden) and are hidden.
