@@ -532,7 +532,7 @@ SUB hero_editor_spell_lists_toplevel (her as HeroDef)
   setwait 55
   setkeys YES
   IF keyval(ccCancel) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "hero_spell_menu_types"
+  IF keyval(scF1) > 1 THEN show_help "hero_spell_lists_menu"
   usemenu mstate
   DIM listnum as integer = mstate.pt - 1
   IF mstate.pt >= 1 THEN
