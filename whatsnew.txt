@@ -167,6 +167,7 @@ WHAT IS NEW?
       editors have been converted to it. Will allow many UI improvements [Ralph]
     * gfx_fb and gfx_console take a --nogfx arg, combine with --print to create
       commandline programs [Ralph]
+    * Help pages can include template_name.txt using {{name}} syntax [Ralph]
 
 
 September 13 2021 [Hróðvitnir]

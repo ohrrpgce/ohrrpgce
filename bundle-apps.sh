@@ -108,7 +108,7 @@ rm -Rf OHRRPGCE-Game.app/Contents/Resources/.svn &&
 mkdir -p OHRRPGCE-Game.app/Contents/MacOS &&
 sed -i -e "s/#VERSION#/O.H.R.RPG.C.E version ${CODE} ${TODAY}/g" OHRRPGCE-Game.app/Contents/Info.plist &&
 mkdir -p OHRRPGCE-Game.app/Contents/Resources/ohrhelp &&
-cp -R ohrhelp/game_*.txt ohrhelp/share_*.txt ohrhelp/slice*.txt OHRRPGCE-Game.app/Contents/Resources/ohrhelp &&
+cp -R ohrhelp/game_*.txt ohrhelp/share_*.txt ohrhelp/slice*.txt ohrhelp/template_*.txt OHRRPGCE-Game.app/Contents/Resources/ohrhelp &&
 cp ohrrpgce-game OHRRPGCE-Game.app/Contents/MacOS/ || exit 1
 
 add_frameworks OHRRPGCE-Game.app

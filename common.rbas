@@ -2795,9 +2795,12 @@ SUB advance_incremental_search(text as string, searchstring as string, byref cha
 END SUB
 
 SUB show_help(helpkey as zstring ptr)
+ 'Text without expansions or edits
  DIM original_text as string
  original_text = load_help_file(*helpkey)
- DIM help_str as string = original_text  'The edited version
+ 'The displayed text: includes edits, and if not editing then it has expanded templates.
+ DIM help_str as string = original_text
+ expand_help(help_str, *helpkey)
 
  '--Construct the help UI (This will be hella easier later when the Slice Editor can save/load)
  DIM help_root as Slice Ptr
@@ -2917,7 +2920,7 @@ SUB show_help(helpkey as zstring ptr)
   IF deadkeys = 0 THEN
    IF keyval(ccCancel) > 1 AND (editing OR searchstring = "") THEN
     '--If there are any changes to the help screen, offer to save them
-    IF original_text = help_str THEN
+    IF editing = NO ORELSE original_text = help_str THEN
      EXIT DO
     ELSE
      'Prevent attempt to quit the program, stop and wait for response first
@@ -2976,6 +2979,8 @@ SUB show_help(helpkey as zstring ptr)
    END IF
 
    IF keyval(scCtrl) > 0 AND keyval(scE) > 1 THEN
+    'Edit the help text without template expansion
+    help_str = original_text
     IF diriswriteable(get_help_dir()) THEN
      editing = YES
      'Hide footer
@@ -7326,25 +7331,16 @@ FUNCTION get_help_dir(helpfile as string="") as string
  RETURN app_dir & "ohrhelp"
 END FUNCTION
 
-FUNCTION load_help_file(helpkey as string) as string
+FUNCTION load_help_file(helpkey as string, byref success as bool = NO) as string
  DIM help_dir as string
  help_dir = get_help_dir(helpkey & ".txt")
  IF isdir(help_dir) THEN
   DIM helpfile as string
   helpfile = help_dir & SLASH & helpkey & ".txt"
-  IF isfile(helpfile) THEN
-   DIM fh as integer
-   OPENFILE(helpfile, FOR_INPUT, fh)
-   DIM helptext as string = ""
-   DIM s as string
-   DO WHILE NOT EOF(fh)
-    LINE INPUT #fh, s
-    helptext = helptext & s & CHR(10)
-   LOOP
-   CLOSE #fh
-   RETURN helptext
-  END IF
+  DIM helptext as string = string_from_file(helpfile, NO, success)
+  IF success THEN RETURN helptext
  END IF
+ success = NO
  RETURN "No help found for """ & helpkey & """"
 END FUNCTION
 
@@ -7368,6 +7364,41 @@ SUB save_help_file(helpkey as string, text as string)
  ELSE
   visible_debug "help file """ & helpfile & """ is not writeable."
  END IF
+END SUB
+
+'Expand ohrhelp templates, recursely replacing {{pagename}} with the contents of template_pagename.txt.
+'Modifies helptext in-place.
+'helpkey is the name of the help page, for error messages only.
+SUB expand_help(byref helptext as string, helpkey as string)
+ DIM as integer searchstart = 1, tagstart, tagend
+ DIM count as integer  'Number of replacements performed
+
+ DO
+  tagstart = INSTR(searchstart, helptext, "{{")
+  IF tagstart = 0 THEN EXIT DO
+  tagend = INSTR(tagstart, helptext, "}}")
+  IF tagend = 0 THEN EXIT DO
+  DIM taginner as string = MID(helptext, tagstart + 2, tagend - tagstart - 2)
+  IF taginner <> exclusive(taginner, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 -.:_+%:;?=&'") THEN
+   'Invalid, don't replace
+   searchstart = tagend + 2
+  ELSE
+   DIM success as bool
+   DIM replacement as string = load_help_file("template_" + taginner, success)
+   IF success = NO THEN
+    'Template missing, don't replace
+    searchstart = tagend + 2
+   ELSE
+    helptext = MID(helptext, 1, tagstart - 1) & RTRIM(replacement, !"\n") & MID(helptext, tagend + 2)
+    searchstart = tagstart
+    count += 1
+    IF count = 50 ORELSE LEN(helptext) > 1000000 THEN
+     debug "Excessive replacements or length expanding help file " & helpkey
+     EXIT DO
+    END IF
+   END IF
+  END IF
+ LOOP
 END SUB
 
 'OK, NOW it supports negative n too

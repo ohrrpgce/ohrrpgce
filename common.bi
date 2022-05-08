@@ -339,7 +339,8 @@ DECLARE FUNCTION get_home_dir() as string
 DECLARE FUNCTION get_settings_dir () as string
 DECLARE FUNCTION get_documents_dir() as string
 DECLARE FUNCTION get_help_dir(helpfile as string="") as string
-DECLARE FUNCTION load_help_file(helpkey as string) as string
+DECLARE FUNCTION load_help_file(helpkey as string, byref success as bool = NO) as string
+DECLARE SUB expand_help(byref helptext as string, helpkey as string)
 DECLARE SUB save_help_file(helpkey as string, text as string)
 
 DECLARE SUB show_help(helpkey as zstring ptr)
