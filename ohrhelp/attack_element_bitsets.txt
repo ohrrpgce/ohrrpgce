@@ -1,8 +1,4 @@
-This is a list of attack bitsets - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
-
-Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
-
-Modify bitsets with Left, Right, SPACE and ENTER.
+This is a list of attack bitsets. {{edit_bitsets}}
 
 Turning on any of these bits causes the attack to do elemental damage, which may result in more or less damage depending on how much damage the target takes from that element; see the "Elemental Resistances" submenu in the Hero and Enemy editors.
 

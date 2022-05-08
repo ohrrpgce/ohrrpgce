@@ -1,8 +1,4 @@
-This is a list of menu bitsets - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
-
-Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
-
-Modify bitsets with Left, Right, SPACE, ENTER, or by LEFT-CLICK.
+This is a list of menu bitsets. {{edit_bitsets}}
 
  *"Translucent box" - Makes the backing box/rectangle 'fuzzy'.
 

@@ -1,13 +1,9 @@
-This is a list of bitsets - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
-
-Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
-
-Modify bitsets with Left, Right, SPACE and ENTER.
-
 These settings disable bugfixes and features which break backwards compatibility with previous versions of the OHRRPGCE.
 If one of these bits is ON, then the engine operates in a back-compatible mode.
 
 In newly created games you normally wouldn't change any of these bitsets. When switching to a newer engine version you may want to enable new features or bugfixes by turning OFF options in this menu, but doing so may break something in your game.
+
+{{edit_bitsets}}
 
 
 "Simulate Old Levelup bonus-accretion bug" simulates an ancient bug where equipment bonuses were added to hero stats on levelup. Included for compatibility with games made before 2001!

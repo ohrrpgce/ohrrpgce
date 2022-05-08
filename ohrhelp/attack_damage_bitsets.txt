@@ -1,8 +1,4 @@
-This is a list of attack bitsets affecting damage - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
-
-Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
-
-Modify bitsets with Left, Right, SPACE and ENTER.
+This is a list of attack bitsets affecting damage - simple OFF or ON settings. {{edit_bitsets}}
 
 Some of these bitsets will be hidden if they have no effect, based on other damage settings which override them.
 

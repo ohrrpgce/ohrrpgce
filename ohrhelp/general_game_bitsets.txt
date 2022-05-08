@@ -1,8 +1,4 @@
-This is a list of general game bitsets - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
-
-Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
-
-Modify bitsets with Left, Right, SPACE, ENTER, or by LEFT-CLICK.
+This is a list of general game bitsets. {{edit_bitsets}}
 
 Note: the names and meanings of some options have been flipped, so if you're following an old guide you might need to turn a bit OFF instead of ON or vice-versa.
 

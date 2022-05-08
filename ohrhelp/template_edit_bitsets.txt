@@ -1,0 +1,7 @@
+Bitsets (aka bits) are simple OFF or ON settings.
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) or scroll wheel to navigate the list.
+
+To turn a bitset ON press Right; to turn it OFF press Left, Delete or Backspace. Press Space, Enter or Left-Click to toggle a bitset.
+
+

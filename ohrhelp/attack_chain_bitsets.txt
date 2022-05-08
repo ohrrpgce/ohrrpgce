@@ -1,8 +1,4 @@
-This is a list of attack chaining option bitsets - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
-
-Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
-
-Modify bitsets with Left, Right, SPACE, ENTER, or by LEFT-CLICK.
+This is a list of attack chaining option bitsets. {{edit_bitsets}}
 
 * "Attacker must know chained attack" causes the chain to fail if the attacker doesn't have the attack in any of their attack lists as a normal attack (*not* a counterattack), which means:
 -Enemies must have the attack in the Normal, Desperation or Alone lists. Enemy counter attacks and On-Death Bequest attacks do *not* count as known.

@@ -1,8 +1,4 @@
-This is a list of option bitsets for the battle system - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
-
-Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
-
-Modify bitsets with Left, Right, SPACE, ENTER, or by LEFT-CLICK.
+This is a list of option bitsets for the battle system. {{edit_bitsets}}
 
 Note that there are more bitsets which affect things like stats and hero experience in the Preference Bitsets menu.
 

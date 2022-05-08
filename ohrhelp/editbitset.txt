@@ -1,9 +1,1 @@
-This is a list of bitsets - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
-
-Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
-
-To turn a bitset ON, press the Right arrow.
-
-To turn a bitset OFF, press the Left arrow or Delete or Backspace.
-
-Press SPACE or ENTER to toggle a bitset.
+{{edit_bitsets}}
