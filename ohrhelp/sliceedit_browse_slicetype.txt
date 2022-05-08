@@ -1,5 +1,7 @@
-This is a list of available slice types. See http://rpg.hamsterrepublic.com/ohrrpgce/Slices for a description of each type, or press F1 on the "Slice Type:..." option in the slice editor.
+This is a list of available slice types.
 
 Use the up and down arrow keys to navigate the menu.
 
 Press ENTER or SPACE to choose a slice type.
+
+{{slicetypes}}

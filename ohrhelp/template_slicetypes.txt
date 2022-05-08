@@ -1,0 +1,23 @@
+See https://rpg.hamsterrepublic.com/ohrrpgce/Slices for further description of each type.
+
+Container - An invisible slice used for positioning other slices.
+
+Rectangle - A box which can be give a color and a border-style
+
+Line - A straight line drawn between two opposite corners of the slice.
+
+Sprite - A sprite. Draw sprites in the graphics menu (go back to the main menu to find it)
+
+Text - A string of text. Can optionally wrap as multiple lines.
+
+Grid - A special container with rows and columns. Children of the grid are automatically positioned relative to the grid cells.
+
+Ellipse - An ellipse which can have a fill-color and a border-color
+
+Scroll - A special container that draws scrollbars if its child slices are too big to fit inside it
+
+Select - A special container that manages the visibility of its children. Only one selected child will be visible, and all other children will be hidden
+
+Panel - A special container that only allows 2 children. The panel space will be divided between the two children according to a percentage or a fixed number of pixels.
+
+Layout - A special container which positions its children end-to-end and wrapped onto multiple rows, like words on a page or elements in an HTML document. A good alternative to a Grid if the children are different sizes.
