@@ -161,7 +161,7 @@ declare sub kill_process (byval process as ProcessHandle)
 declare sub cleanup_process (byval process as ProcessHandle ptr)
 
 declare function get_process_id () as integer
-declare function get_process_path (pid as integer) as string
+declare function get_process_name (pid as integer) as string
 
 'WM and screen
 

@@ -980,7 +980,7 @@ END FUNCTION
 SUB write_session_info ()
  DIM text(11) as string
  text(0) = short_version
- text(1) = get_process_path(get_process_id())  'May not match COMMAND(0)
+ text(1) = get_process_name(get_process_id())  'OS-specific meaning. Used to guard against reuse of PIDs
  text(2) = "# Custom pid:"
  text(3) = STR(get_process_id())
  text(4) = "# Editing start (load/save) time:"
@@ -1037,7 +1037,7 @@ FUNCTION get_previous_session_info (workdir as string) as SessionInfo
    exe = text(1)
    ' It's possible that this copy of Custom crashed and another copy was run with the same pid,
    ' but it's incredibly unlikely
-   DIM pid_current_exe as string = get_process_path(ret.pid)
+   DIM pid_current_exe as string = get_process_name(ret.pid)
    debuginfo "pid_current_exe = " & pid_current_exe
    ret.running = (LEN(exe) ANDALSO (pid_current_exe = exe ORELSE exe = "<unknown>"))
    #IFDEF __FB_ANDROID__

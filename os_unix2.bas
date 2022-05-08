@@ -14,9 +14,10 @@ extern "C"
 
 ' This may return either the name that the process was called with, which may have a full, relative, or no path,
 ' or just return the full path to the executable. Not necessarily equal to COMMAND(0).
+' This function is used only to determine whether a process is still running; its meaning is OS-specific.
 ' Returns "" if invalid or don't have permission.
 ' (Should return "<unknown>" if the pid exists but we can't get the path)
-function get_process_path (pid as integer) as string
+function get_process_name (pid as integer) as string
 	dim cmdname as string
 #if defined(__GNU_LINUX__)
 	' With GNU ps, "-o command" and "-o cmd" return the name and arguments it was called with,

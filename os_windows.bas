@@ -1164,15 +1164,15 @@ end function
 'Returns full path to a process given its PID in device form, e.g.
 '\Device\HarddiskVolume1\OHRRPGCE\custom.exe
 'or "" if it doesn't exist, or "<unknown>" if it can't be determined (e.g. we don't have permission, or running Win98).
-'This function is used primarily to determine whether a process is still running
-function get_process_path (pid as integer) as string
+'This function is used only to determine whether a process is still running; its meaning is OS-specific.
+function get_process_name (pid as integer) as string
 	dim proc as HANDLE
 	proc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid)
 	if proc = NULL then
 		dim errcode as integer = GetLastError()
 		' OpenProcess sets "Invalid parameter" error if the pid doesn't exist
 		if errcode <> ERROR_INVALID_PARAMETER then
-			debug "get_process_path: OpenProcess(pid=" & pid & ") err " & errcode & " " & *win_error_str(errcode)
+			debug "get_process_name: OpenProcess(pid=" & pid & ") err " & errcode & " " & *win_error_str(errcode)
 			return "<unknown>"
 		end if
 		return ""
@@ -1184,7 +1184,7 @@ function get_process_path (pid as integer) as string
 		ret = "<unknown>"
 	elseif GetProcessImageFileNameA(proc, ret, 256) = 0 then
 		dim errcode as integer = GetLastError()
-		debug "get_process_path: GetProcessImageFileName err " & errcode & " " & *win_error_str()
+		debug "get_process_name: GetProcessImageFileName err " & errcode & " " & *win_error_str()
 		ret = "<unknown>"
 	elseif len(ret) then
 		'If a process crashes or is killed (but not if it closes normally), Windows apparently keeps some
@@ -1193,7 +1193,7 @@ function get_process_path (pid as integer) as string
 		dim exitcode as DWORD
 		if GetExitCodeProcess(proc, @exitcode) = 0 then
 			dim errcode as integer = GetLastError()
-			debug "get_process_path: GetExitCodeProcess err " & errcode & " " & *win_error_str()
+			debug "get_process_name: GetExitCodeProcess err " & errcode & " " & *win_error_str()
 		end if
 		if exitcode <> STILL_ACTIVE then
 			debuginfo "pid " & pid & " image " & ret & " may have crashed, exitcode " & exitcode
