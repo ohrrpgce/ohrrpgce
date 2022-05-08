@@ -1,0 +1,7 @@
+The length of the 'extra' array, which defaults to 3.
+
+You can set a maximum length of 5,000,000, although I don't know why you'd do that in the slice editor!
+
+If you wan to increase the length without erasing existing values be careful not to press Backspace!
+
+You can also use the "resize slice extra" command to change the length.

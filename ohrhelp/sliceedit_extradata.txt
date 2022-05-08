@@ -1,0 +1,3 @@
+This menu lets you edit or view the extra data array for a slice, since the Slice Editor will only show the first 10 values.
+
+Hold Alt and input an index to jump to a position in a large array.
