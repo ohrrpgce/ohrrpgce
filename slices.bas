@@ -236,16 +236,18 @@ Sub RefreshChild(ch as Slice ptr, support as RectType)
  with *ch
   .ScreenX = .X + support.x + SliceXAlign(ch, support.wide) - SliceXAnchor(ch)
   .ScreenY = .Y + support.y + SliceYAlign(ch, support.high) - SliceYAnchor(ch)
-  if .ClampToScreen then
-   dim scr_rect as RectType = any
-   dim root_sl as slice Ptr = FindRootSlice(ch)
-   scr_rect.xy = root_sl->ScreenPos + XY(root_sl->paddingLeft, root_sl->paddingTop)
-   scr_rect.wide = root_sl->Width - root_sl->paddingLeft - root_sl->paddingRight
-   scr_rect.high = root_sl->Height - root_sl->paddingTop - root_sl->paddingBottom
-   RefreshChildClamp ch, scr_rect
-  else
-   'Clamp to parent
-   RefreshChildClamp ch, support
+  if .ClampHoriz <> alignNone orelse .ClampVert <> alignNone then
+   if .ClampToScreen then
+    dim scr_rect as RectType = any
+    dim root_sl as slice Ptr = FindRootSlice(ch)
+    scr_rect.xy = root_sl->ScreenPos + XY(root_sl->paddingLeft, root_sl->paddingTop)
+    scr_rect.wide = root_sl->Width - root_sl->paddingLeft - root_sl->paddingRight
+    scr_rect.high = root_sl->Height - root_sl->paddingTop - root_sl->paddingBottom
+    RefreshChildClamp ch, scr_rect
+   else
+    'Clamp to parent
+    RefreshChildClamp ch, support
+   end if
   end if
   if .Fill then
    if .FillMode = sliceFillFull ORELSE .FillMode = sliceFillHoriz then
