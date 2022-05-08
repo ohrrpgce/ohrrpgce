@@ -1,5 +1,5 @@
-This menu allows you to choose which of the hero's four spell menus that you want to edit.
+This menu shows a hero's spell lists. Heroes can have up to four.
 
-Use the Up and Down arrow keys to navigate the menu. Press ENTER to begin editing a spell list.
+Use the Up and Down arrow keys to navigate the menu. Press ENTER to begin editing a spell list, or type to name them directly.
 
-You must type a name for a spell list in order to enable it.
+Spell lists with blank names are hidden during play, so you control how many spell lists a hero has by how many you name. Note that you can also edit the hero's battle menu to hide spell lists, or give them attacks that aren't on a spell list.

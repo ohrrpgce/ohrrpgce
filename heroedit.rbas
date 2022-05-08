@@ -527,8 +527,6 @@ SUB hero_editor_spell_lists_toplevel (her as HeroDef)
   .size = 24
  END WITH
 
- DIM hint as string
- 
  setkeys YES
  DO
   setwait 55
@@ -543,9 +541,7 @@ SUB hero_editor_spell_lists_toplevel (her as HeroDef)
   IF menu_click(mstate) ORELSE keyval(scAnyEnter) > 1 THEN  'Avoid enter_space_click
    IF mstate.pt = 0 THEN EXIT DO
    IF mstate.pt >= 1 AND mstate.pt <= 4 THEN
-    IF LEN(her.list_name(listnum)) > 0 THEN
-     hero_editor_edit_spell_list her, listnum
-    END IF
+    hero_editor_edit_spell_list her, listnum
    END IF
   END IF
 
@@ -556,12 +552,7 @@ SUB hero_editor_spell_lists_toplevel (her as HeroDef)
   standardmenu menu(), mstate, 0, 0, dpage
   IF listnum >= 0 THEN
    edgeprint spell_list_types(her.list_type(listnum)), 0, pBottom - 10, uilook(uiSelectedDisabled), dpage
-   IF LEN(her.list_name(listnum)) > 0 THEN
-    hint = "Press ENTER to edit spells in this list."
-   ELSE
-    hint = "Type a name for this spell list."
-   END IF
-   edgeprint hint, 0, pBottom, uilook(uiDisabledItem), dpage
+   edgeprint "Type a name; ENTER to edit spells", 0, pBottom, uilook(uiDisabledItem), dpage
   END IF
   SWAP vpage, dpage
   setvispage vpage
@@ -571,7 +562,8 @@ END SUB
 
 SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
 
- DIM menu(2) as string
+ DIM menu(3) as string
+ DIM selectable(-4 TO 23) as bool
  DIM spellnames(23) as string
  DIM col as integer
  DIM bgcol as integer
@@ -580,12 +572,15 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
  root = NewSliceOfType(slContainer)
  WITH *root
   .Fill = YES
+  .PaddingLeft = 4
+  .PaddingRight = 4
+  .PaddingBottom = 4
  END WITH
  DIM spellbox as Slice Ptr
  spellbox = NewSliceOfType(slRectangle, root)
  WITH *spellbox
-  .x = 6
-  .y = 34
+  .x = 2
+  .y = 44
   .width = 308
   .height = 80
   ChangeRectangleSlice spellbox, 1
@@ -595,7 +590,8 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
  infobox = NewSliceOfType(slText, root)
  ChangeTextSlice infobox, "", , , YES ' make wrapping
  WITH *infobox
-  .Width = root->Width
+  .Fill = YES
+  .FillMode = sliceFillHoriz
   .AlignVert = alignBottom
   .AnchorVert = alignBottom
  END WITH
@@ -604,13 +600,17 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
 
  DIM mstate as MenuState
  WITH mstate
-  .first = -3
-  .pt = -3
-  .top = -3
+  .first = -4
+  .pt = -4
+  .top = -4
   .last = UBOUND(spellnames)
+  .size = 30   'For pageup/down
   .need_update = YES
  END WITH
  menu(0) = "Previous Menu..."
+ menu(3) = "Spells:"
+ flusharray selectable(), , YES
+ selectable(3 - 4) = NO  '"Spells:"
 
  setkeys YES
  DO
@@ -620,12 +620,12 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
   IF keyval(ccCancel) > 1 THEN EXIT DO
   
   IF mstate.pt >= 0 THEN
-   IF usemenu(mstate, ccLeft, ccRight) THEN
+   IF usemenu(mstate, selectable(), ccLeft, ccRight) THEN
     mstate.need_update = YES
    ELSE
     IF keyval(ccUp) > 1 THEN
      mstate.pt -= 3
-     IF mstate.pt < 0 THEN mstate.pt = -1
+     IF mstate.pt < 0 THEN mstate.pt = -2  'Skip over 'Spells:'
      mstate.need_update = YES
     ELSEIF keyval(ccDown) > 1 THEN
      mstate.pt += 3
@@ -634,11 +634,11 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
     END IF
    END IF
   ELSE
-   IF usemenu(mstate) THEN mstate.need_update = YES
+   IF usemenu(mstate, selectable()) THEN mstate.need_update = YES
   END IF
 
   IF enter_space_click(mstate) THEN
-   IF mstate.pt = -3 THEN
+   IF mstate.pt = -4 THEN
     EXIT DO
    END IF
    IF mstate.pt >= 0 THEN
@@ -647,11 +647,11 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
    END IF
   END IF
   
-  IF mstate.pt = -2 THEN
+  IF mstate.pt = -3 THEN
    IF strgrabber(her.list_name(listnum), 10) THEN mstate.need_update = YES
   END IF
 
-  IF mstate.pt = -1 THEN
+  IF mstate.pt = -2 THEN
    IF intgrabber(her.list_type(listnum), 0, 2) THEN mstate.need_update = YES
   END IF
 
@@ -679,6 +679,10 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
     END WITH
    NEXT i
    info = ""
+   IF LEN(her.list_name(listnum)) = 0 THEN
+    info &= !"You must name this spell list or it will be hidden!\n"
+   END IF
+
    IF mstate.pt >= 0 THEN
     WITH her.spell_lists(listnum, mstate.pt)
      IF .attack > 0 THEN
@@ -701,10 +705,10 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
   '--Draw screen
   mstate.tog XOR= 1
   clearpage dpage
-  drawslice root, dpage
-  FOR i as integer = 0 TO 2
+  DrawSlice root, dpage
+  FOR i as integer = 0 TO 3
    col = uiLook(uiMenuItem)
-   IF mstate.pt + 3 = i THEN col = uiLook(uiSelectedItem) + mstate.tog
+   IF mstate.pt + 4 = i THEN col = uiLook(uiSelectedItem) + mstate.tog
    edgeprint menu(i), 0, 10 * i, col, dpage
   NEXT i
   FOR i as integer = 0 TO mstate.last
@@ -715,7 +719,7 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
     bgcol = uilook(uiHighlight)
    END IF
    textcolor col, bgcol
-   printstr spellnames(i), 12 + (i MOD 3) * 104, 40 + (i \ 3) * 8, dpage
+   printstr spellnames(i), 12 + (i MOD 3) * 104, 50 + (i \ 3) * 8, dpage
   NEXT i
 
   SWAP vpage, dpage
