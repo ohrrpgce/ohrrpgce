@@ -3,7 +3,7 @@
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 
-'  ==== Explanation of how slice drawing works ====
+'  ==== Explanation of how slice refreshing & drawing works ====
 'DrawSlice simply calls DrawSliceRecurse, which is the central drawing function.
 '
 'DrawSliceRecurse(sl):
@@ -11,7 +11,7 @@
 '  attach->ChildRefresh(attach, sl)
 '   (attach == parent of sl, except for the root slice, then attach == ScreenSlice.
 '    sl->Attached is currently unused.)
-'   Recomputes sl->ScreenPos from sl->Pos.
+'   Calls RefreshChild() to recomputes sl->ScreenPos from sl->Pos.
 '   (Can also adjust sl->Size (if sl->Fill) and sl->Visible, see ChildRefresh details below.)
 '
 '  If sl->Visible:
@@ -32,12 +32,13 @@
 '        (Recomputes Pos, Size and ScreenPos for each child)
 '      For each child:
 '        Skip if a template slice (and template_slices_shown=NO)
-'        shrinkclip to child's support (size minus padding); usually done once for all children
-'        If not clipped off:
+'        shrinkclip if clipping; usually done once for all children
+'          (clip to parent size minus padding, or to child's support for Grid/Panel)
+'        If the cliprect isn't zero-size (but do continue if the child is totally clipped off):
 '          DrawSliceRecurse(child, page, childindex)
 '            ...draw the child recursively...
 '      Restore cliprect
-'      Maybe draw something over all children (Scroll)
+'      Possibly draw something over all children (Scroll slices)
 '
 '    Pop context_stack
 '
@@ -50,9 +51,10 @@
 ' -If parent->CoverChildren sl->Size/sl->Pos are used to update the parent's size
 'After parent is drawn:
 ' -AutoSortChildren() modifies order amongst siblings
-' -parent->ChildrenRefresh() updates sl->Pos/sl->Size
-' -parent->ChildRefresh() & ChildRefresh() update sl->ScreenPos/sl->Size/sl->Visible
-' If sl->Visible:
+' -parent->ChildrenRefresh() [if present] updates sl->ScreenPos/sl->Size
+' -Skip sl if it's a template or parent sets a zero-size cliprect
+' -parent->ChildRefresh() & RefreshChild() update sl->ScreenPos/sl->Size/sl->Visible
+' -If sl->Visible:
 '   -If sl->CoverChildren, update sl->Size
 '   -push sl->Context onto context_stack
 '   -sl->Draw()
@@ -61,8 +63,9 @@
 '     -sl->ChildrenRefresh()
 '     -For each child:
 '       -Skip if a template slice (and template_slices_shown=NO)
-'       -shrinkclip to child's support (size minus padding); usually done once for all children
-'       -If not clipped off:
+'       -shrinkclip if clipping; usually done once for all children
+'          (clip to parent size minus padding, or to child's support for Grid/Panel)
+'       -If the cliprect isn't zero-size:
 '         -DrawSliceRecurse(child)
 '           -sl->ChildRefresh(child)
 '     -draw scrollbars/etc over children
@@ -77,16 +80,17 @@
 '  ==== Slice refreshing details ====
 '
 'sl->ChildRefresh (called by the slice refresh functions like RefreshSliceScreenPos,
-'and called directly or indirectly in lots of places) is responsible for translating a slice's .Pos
-'to its .ScreenPos (including effects of clamping), and also applying .Fill (which
+'and called directly or indirectly in lots of places) is responsible for translating a slice's
+'.Pos to its .ScreenPos (including effects of clamping), and also applying .Fill (which
 'modifies .Size) -- this is probably in the wrong place!
 'As an exception, SelectChildRefresh also modifies .Visible. (Although this leads to unnecessary
 'refreshes there doesn't seem to a better place for it. See r7792.)
-'All sl->ChildRefresh methods calculate the 'support' rect for a child then call ChildRefresh()
+'All sl->ChildRefresh methods calculate the 'support' rect for a child then call RefreshChild()
 'to do the actual update. Grid and Panel slices have non-standard supports (each child
 'gets its own instead of all sharing the same one).
-'As an exception, if sl->ChildrenRefresh is defined, sl->ChildRefresh isn't (this is probably
-'a mistake, and may be changed.)
+'As an exception, if sl->ChildrenRefresh is defined, sl->ChildRefresh isn't (this may be
+'a mistake, which should be changed). So Layout slices don't have a ChildRefresh and are
+'the only slices that don't call RefreshChild.
 '
 'sl->ChildrenRefresh is used for recomputing child X,Y positions if they are determined
 'by the parent slice. Currently only LayoutChildrenRefresh exists. There are no
@@ -321,7 +325,7 @@ Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
                  .ScreenX + .Width - .paddingRight - 1, _
                  .ScreenY + .Height - .paddingBottom - 1, _
                  vpages(page)) = NO then
-    'All children are clipped
+    'cliprect size is zero, all children are clipped
     get_cliprect() = rememclip
     exit sub
    end if
@@ -329,7 +333,7 @@ Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
 
   'draw the slice's children
   dim ch as Slice ptr = .FirstChild
-  dim childindex as integer = 0  'Index amongst non-template siblings (unless shown)
+  dim childindex as integer = 0  'Index amongst not-template-skipped siblings
   do while ch <> 0
    if ch->Template = NO orelse template_slices_shown then  'equiv to ShouldSkipSlice(ch) = NO
     DrawSliceRecurse(ch, page, childindex)
@@ -2841,7 +2845,7 @@ Sub LayoutSliceData.SpaceRow(par as Slice ptr, first as Slice ptr, axis0 as inte
  wend
  dim is_last_row as bool = (ch = NULL)
 
- dim row_length as integer = offset - this.primary_padding
+ dim row_length as integer = offset - this.primary_padding  'We added the padding once too many
  dim extra_space as integer = available_size - row_length  'at the end of the row
 
  dim shift as integer = 0  'To add to each offset
@@ -3680,7 +3684,7 @@ end sub
 
 
 '=============================================================================
-'                        Slice refreshing & positioning
+'                      Slice alignment & position helpers
 
 'Returns the slice which provides the ChildRefresh method, in other words
 'the one that determines the screen position.
@@ -3795,6 +3799,7 @@ Sub UpdateCoverSize(par as Slice ptr)
  'to both fill and cover.
 
  'Panel, grid, layout are special, and will have to implement covering in their own way if at all.
+ 'They will probably do so in ChildRefresh or ChildrenRefresh, where Fill Parent is also handled.
  if par->SliceType = slPanel orelse par->SliceType = slGrid orelse par->SliceType = slLayout then exit sub
 
  dim size as XYPair
