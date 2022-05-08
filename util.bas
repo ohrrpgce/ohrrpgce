@@ -4251,17 +4251,23 @@ FUNCTION count_directory_size(directory as string) as integer
 END FUNCTION
 
 'Return contents of a binary file as a string
-FUNCTION read_file (filename as string) as string
- DIM buflen as integer = FILELEN(filename)
- DIM buf as string = STRING(buflen, 0)
+'For text files use string_from_file instead.
+FUNCTION read_file (filename as string, expect_exists as bool = YES, byref success as bool = NO) as string
+ success = NO
  DIM fh as integer
- IF OPENFILE(filename, FOR_BINARY + ACCESS_READ + OR_ERROR, fh) THEN RETURN ""
- GET #fh, , buf
+ IF OPENFILE(filename, FOR_BINARY + ACCESS_READ + IIF(expect_exists, OR_ERROR, 0), fh) THEN RETURN ""
+ DIM buflen as integer = LOF(fh)  'race condition!
+ DIM buf as string = STRING(buflen, 0)
+ IF buflen > 0 THEN  'Otherwise FB throws an illegal function call error
+  GET #fh, , buf
+ END IF
  CLOSE #fh
+ success = YES
  RETURN buf
 END FUNCTION
 
 'Write binary data (as a string) to a file
+'For text files use string_to_file instead.
 SUB write_file (filename as string, outdata as string)
  DIM fh as integer
  IF OPENFILE(filename, FOR_BINARY + ACCESS_WRITE, fh) = fberrOK then  'truncate to 0 length
@@ -4281,27 +4287,15 @@ FUNCTION string_from_first_line_of_file (filename as string) as string
  RETURN result
 END FUNCTION
 
-FUNCTION string_from_file (filename as string) as string
+FUNCTION string_from_file (filename as string, expect_exists as bool = YES, byref success as bool = NO) as string
  'Read an entire text file as a string and
  'convert the line endings to LF only
- DIM fh as integer
- DIM result as string = ""
- DIM s as string
- OPENFILE(filename, for_input, fh)
- DO WHILE NOT EOF(fh)
-  LINE INPUT #fh, s
-  s = RTRIM(s)
-  result &= s & CHR(10)
- LOOP
- CLOSE #fh
- RETURN result
+ RETURN normalize_newlines(read_file(filename, expect_exists, success), !"\n")
 END FUNCTION
 
 SUB string_to_file (string_to_write as string, filename as string)
  'Write a string to a text file using native line endings
- DIM s as string = string_to_write
- replacestr string_to_write, !"\n", LINE_END
- write_file filename, s
+ write_file filename, normalize_newlines(string_to_write, LINE_END)
 END SUB
 
 'Read each line of a file into a string array. Return true on success

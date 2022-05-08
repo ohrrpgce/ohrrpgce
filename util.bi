@@ -492,10 +492,10 @@ declare function is_not_file(filename as string) as bool
 declare function isdir (filename as string) as bool
 declare function count_directory_size(directory as string) as integer
 
-declare function read_file (filename as string) as string
+declare function read_file (filename as string, expect_exists as bool = YES, byref success as bool = NO) as string
 declare sub write_file (filename as string, outdata as string)
 declare function string_from_first_line_of_file (filename as string) as string
-declare function string_from_file (filename as string) as string
+declare function string_from_file (filename as string, expect_exists as bool = YES, byref success as bool = NO) as string
 declare sub string_to_file (string_to_write as string, filename as string)
 declare function lines_from_file (strarray() as string, filename as string, expect_exists as bool = YES) as bool
 declare function lines_to_file(strarray() as string, filename as string, lineending as string = !"\n") as bool
