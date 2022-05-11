@@ -4682,6 +4682,12 @@ script, rect slice tests, begin
   assert(get rect fuzziness(sl) == 70)
   set rect trans(sl, trans:blend), w
   assert(get rect opacity(sl) == 70)
+  assert(get rect fuzzy zoom(sl) == 1)  # Default value
+  set rect fuzzy zoom(sl, 1000)
+  assert(get rect fuzzy zoom(sl) == 1000)
+  assert(get rect stationary pattern(sl) == false)  # Default value
+  set rect stationary pattern(sl, true)
+  assert(get rect stationary pattern(sl) == true)
   free slice(sl)
 
   # Test rect box border and raw box border

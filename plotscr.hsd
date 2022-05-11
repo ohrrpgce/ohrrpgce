@@ -772,6 +772,10 @@ define function, begin
 740,setmenuitemextra,3,0,0,0  # Used to be a script
 741,herouseslevelmp,1,0       # Returns true if the hero uses level mp
 742,getzone,1,0               # Create a zone handle (zone id)
+743,getrectfuzzyzoom,1,0      # Get fuzzy zoom (slice)
+744,setrectfuzzyzoom,2,0,1    # Set fuzzy zoom >= 1 (slice, zoom)
+745,getrectstationarypattern,1,0 # Get whether fuzzy pattern is stationary (slice)
+746,setrectstationarypattern,2,0,1 # Set whether fuzzy pattern is stationary (slice, bool)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

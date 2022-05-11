@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-04-22">
+<plotscript version="wip" datecode="2022-05-11">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -9786,6 +9786,8 @@ set horiz align(sl, edge:right)
 			<seealso>
 				<ref>setrecttrans</ref>
 				<ref>getrectfuzziness</ref>
+				<ref>getrectfuzzyzoom</ref>
+				<ref>getrectstationarypattern</ref>
 			</seealso>
 		</command>
 
@@ -9819,6 +9821,8 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 				<ref>getrecttrans</ref>
 				<ref>setrectfuzziness</ref>
 				<ref>setrectopacity</ref>
+				<ref>setrectfuzzyzoom</ref>
+				<ref>setrectstationarypattern</ref>
 			</seealso>
 		</command>
 
@@ -9843,6 +9847,8 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 				<ref>setrectfuzziness</ref>
 				<ref>setrectopacity</ref>
 				<ref>getopacity</ref>
+				<ref>getrectfuzzyzoom</ref>
+				<ref>getrectstationarypattern</ref>
 			</seealso>
 		</command>
 
@@ -9862,6 +9868,67 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 				<ref>setrecttrans</ref>
 				<ref>getrecttrans</ref>
 				<ref>getrectfuzziness</ref>
+				<ref>setrectfuzzyzoom</ref>
+				<ref>setrectstationarypattern</ref>
+			</seealso>
+		</command>
+
+		<command id="getrectfuzzyzoom">
+			<canon>get rect fuzzy zoom (handle)</canon>
+			<shortname>get rect fuzzy zoom</shortname>
+			<description>
+				Given a rect slice <p>handle</p> returns the zoom amount for its fuzzy background,
+				if it has one. See <ref>setrectfuzzyzoom</ref>.
+				The zoom is a value 1 or higher.
+			</description>
+			<seealso>
+				<ref>getrectfuzziness</ref>
+				<ref>getrectstationarypattern</ref>
+			</seealso>
+		</command>
+		<command id="setrectfuzzyzoom">
+			<canon>set rect fuzzy zoom (handle, zoom)</canon>
+			<shortname>set rect fuzzy zoom</shortname>
+			<description>
+				Sets the zoom amount for the fuzzy background of a rect slice <p>handle</p> which has had
+				its background set to <tt>trans:fuzzy</tt> using e.g. <ref>setrecttrans</ref>.
+				If the rectangle doesn't have a fuzzy background then this setting has no effect.
+				<p>zoom</p> must be 1 or higher, measuring the size of each 'block' in the fuzzy pattern in pixels.
+			</description>
+			<seealso>
+				<ref>getrectfuzzyzoom</ref>
+				<ref>setrectfuzziness</ref>
+				<ref>setrectstationarypattern</ref>
+			</seealso>
+		</command>
+
+		<command id="getrectstationarypattern">
+			<canon>get rect stationary pattern (handle)</canon>
+			<shortname>get rect stationary pattern</shortname>
+			<description>
+				Given a rect slice <p>handle</p> returns <tt>true</tt> or <tt>false</tt>,
+				telling whether its fuzzy background pattern (if it has one) is set to be
+				'stationary'. See <ref>setrectstationarypattern</ref>.
+			</description>
+			<seealso>
+				<ref>getrectfuzziness</ref>
+				<ref>getrectfuzzyzoom</ref>
+			</seealso>
+		</command>
+		<command id="setrectstationarypattern">
+			<canon>set rect stationary pattern (handle, value)</canon>
+			<shortname>set rect stationary pattern</shortname>
+			<description>
+				Set whether a rect slice <p>handle</p> with a fuzzy background pattern is
+				'stationary', meaning that as you move the slice around the pattern doesn't shift.
+				This is especially useful when two fuzzy rects overlap.
+				<p>value</p> should be <tt>true</tt> or <tt>false</tt>.
+				If the rectangle doesn't have a fuzzy background then this setting has no effect.
+			</description>
+			<seealso>
+				<ref>getrectstationarypattern</ref>
+				<ref>setrectfuzziness</ref>
+				<ref>setrectfuzzyzoom</ref>
 			</seealso>
 		</command>
 

@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-04-22)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-05-11)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -959,8 +959,10 @@ function toggleContent(target) {
 		<a href="#about-getrectborder">get rect border (handle)</a><br>
 		<a href="#about-getrectfgcol">get rect fgcol (handle)</a><br>
 		<a href="#about-getrectfuzziness">get rect fuzziness (handle)</a><br>
+		<a href="#about-getrectfuzzyzoom">get rect fuzzy zoom (handle)</a><br>
 		<a href="#about-getrectopacity">get rect opacity (handle)</a><br>
 		<a href="#about-getrectrawborder">get rect raw border (handle)</a><br>
+		<a href="#about-getrectstationarypattern">get rect stationary pattern (handle)</a><br>
 		<a href="#about-getrectstyle">get rect style (handle)</a><br>
 		<a href="#about-getrecttrans">get rect trans (handle)</a><br>
 		<a href="#about-getrightpadding">get right padding (handle)</a><br>
@@ -1440,8 +1442,10 @@ function toggleContent(target) {
 		<a href="#about-setrectborder">set rect border (handle, border)</a><br>
 		<a href="#about-setrectfgcol">set rect fgcol (handle, color)</a><br>
 		<a href="#about-setrectfuzziness">set rect fuzziness (handle, percent)</a><br>
+		<a href="#about-setrectfuzzyzoom">set rect fuzzy zoom (handle, zoom)</a><br>
 		<a href="#about-setrectopacity">set rect opacity (handle, percent)</a><br>
 		<a href="#about-setrectrawborder">set rect raw border (handle, border)</a><br>
+		<a href="#about-setrectstationarypattern">set rect stationary pattern (handle, value)</a><br>
 		<a href="#about-setrectstyle">set rect style (handle, style)</a><br>
 		<a href="#about-setrecttrans">set rect trans (handle, transparency setting)</a><br>
 		<a href="#about-setrightpadding">set right padding (handle, pixels)</a><br>
@@ -10771,7 +10775,7 @@ set extra(handle, -1, value)   # Index -1 is the last element of the array</pre>
 			
 				Changes the length of an object's extra data array.
 				<span class="param">handle</span> is the <a href="#about-objecthandle" class="ref">object handle</a>.
-				The new <span class="param">length</span> can be between 0 and 1,000,000.
+				The new <span class="param">length</span> can be between 0 and 5,000,000.
 				For backwards compatibility it's 3 by default for all newly created slices and zones.
 				Values will either be removed from the end of the array, or zeroes added to the
 				end to meet the new length.
@@ -12583,6 +12587,10 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-getrectfuzziness">get rect fuzziness (handle)</a><br>
 		<a href="#about-getrectopacity">get rect opacity (handle)</a><br>
 		<a href="#about-setrectfuzziness">set rect fuzziness (handle, percent)</a><br>
+		<a href="#about-getrectfuzzyzoom">get rect fuzzy zoom (handle)</a><br>
+		<a href="#about-setrectfuzzyzoom">set rect fuzzy zoom (handle, zoom)</a><br>
+		<a href="#about-getrectstationarypattern">get rect stationary pattern (handle)</a><br>
+		<a href="#about-setrectstationarypattern">set rect stationary pattern (handle, value)</a><br>
 		<a href="#about-setrectopacity">set rect opacity (handle, percent)</a><br>
 </ul>
 <ul></ul>
@@ -17090,7 +17098,11 @@ set horiz align(sl, edge:right)
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-setrecttrans" class="ref">set rect trans</a>, </li>
-<li><a href="#about-getrectfuzziness" class="ref">get rect fuzziness</a></li>
+<li>
+<a href="#about-getrectfuzziness" class="ref">get rect fuzziness</a>, </li>
+<li>
+<a href="#about-getrectfuzzyzoom" class="ref">get rect fuzzy zoom</a>, </li>
+<li><a href="#about-getrectstationarypattern" class="ref">get rect stationary pattern</a></li>
 </ul>
 </div>
 		</p>
@@ -17134,7 +17146,11 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 <a href="#about-getrecttrans" class="ref">get rect trans</a>, </li>
 <li>
 <a href="#about-setrectfuzziness" class="ref">set rect fuzziness</a>, </li>
-<li><a href="#about-setrectopacity" class="ref">set rect opacity</a></li>
+<li>
+<a href="#about-setrectopacity" class="ref">set rect opacity</a>, </li>
+<li>
+<a href="#about-setrectfuzzyzoom" class="ref">set rect fuzzy zoom</a>, </li>
+<li><a href="#about-setrectstationarypattern" class="ref">set rect stationary pattern</a></li>
 </ul>
 </div>
 		</p>
@@ -17165,7 +17181,11 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 <a href="#about-setrectfuzziness" class="ref">set rect fuzziness</a>, </li>
 <li>
 <a href="#about-setrectopacity" class="ref">set rect opacity</a>, </li>
-<li><a href="#about-getopacity" class="ref">get opacity</a></li>
+<li>
+<a href="#about-getopacity" class="ref">get opacity</a>, </li>
+<li>
+<a href="#about-getrectfuzzyzoom" class="ref">get rect fuzzy zoom</a>, </li>
+<li><a href="#about-getrectstationarypattern" class="ref">get rect stationary pattern</a></li>
 </ul>
 </div>
 		</p>
@@ -17191,7 +17211,94 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 <a href="#about-setrecttrans" class="ref">set rect trans</a>, </li>
 <li>
 <a href="#about-getrecttrans" class="ref">get rect trans</a>, </li>
-<li><a href="#about-getrectfuzziness" class="ref">get rect fuzziness</a></li>
+<li>
+<a href="#about-getrectfuzziness" class="ref">get rect fuzziness</a>, </li>
+<li>
+<a href="#about-setrectfuzzyzoom" class="ref">set rect fuzzy zoom</a>, </li>
+<li><a href="#about-setrectstationarypattern" class="ref">set rect stationary pattern</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getrectfuzzyzoom"></a>
+				<h4>get rect fuzzy zoom (handle)</h4>
+<p>
+			
+				Given a rect slice <span class="param">handle</span> returns the zoom amount for its fuzzy background,
+				if it has one. See <a href="#about-setrectfuzzyzoom" class="ref">set rect fuzzy zoom</a>.
+				The zoom is a value 1 or higher.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getrectfuzziness" class="ref">get rect fuzziness</a>, </li>
+<li><a href="#about-getrectstationarypattern" class="ref">get rect stationary pattern</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setrectfuzzyzoom"></a>
+				<h4>set rect fuzzy zoom (handle, zoom)</h4>
+<p>
+			
+				Sets the zoom amount for the fuzzy background of a rect slice <span class="param">handle</span> which has had
+				its background set to <span class="code">trans:fuzzy</span> using e.g. <a href="#about-setrecttrans" class="ref">set rect trans</a>.
+				If the rectangle doesn't have a fuzzy background then this setting has no effect.
+				<span class="param">zoom</span> must be 1 or higher, measuring the size of each 'block' in the fuzzy pattern in pixels.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getrectfuzzyzoom" class="ref">get rect fuzzy zoom</a>, </li>
+<li>
+<a href="#about-setrectfuzziness" class="ref">set rect fuzziness</a>, </li>
+<li><a href="#about-setrectstationarypattern" class="ref">set rect stationary pattern</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getrectstationarypattern"></a>
+				<h4>get rect stationary pattern (handle)</h4>
+<p>
+			
+				Given a rect slice <span class="param">handle</span> returns <span class="code">true</span> or <span class="code">false</span>,
+				telling whether its fuzzy background pattern (if it has one) is set to be
+				'stationary'. See <a href="#about-setrectstationarypattern" class="ref">set rect stationary pattern</a>.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getrectfuzziness" class="ref">get rect fuzziness</a>, </li>
+<li><a href="#about-getrectfuzzyzoom" class="ref">get rect fuzzy zoom</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setrectstationarypattern"></a>
+				<h4>set rect stationary pattern (handle, value)</h4>
+<p>
+			
+				Set whether a rect slice <span class="param">handle</span> with a fuzzy background pattern is
+				'stationary', meaning that as you move the slice around the pattern doesn't shift.
+				This is especially useful when two fuzzy rects overlap.
+				<span class="param">value</span> should be <span class="code">true</span> or <span class="code">false</span>.
+				If the rectangle doesn't have a fuzzy background then this setting has no effect.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getrectstationarypattern" class="ref">get rect stationary pattern</a>, </li>
+<li>
+<a href="#about-setrectfuzziness" class="ref">set rect fuzziness</a>, </li>
+<li><a href="#about-setrectfuzzyzoom" class="ref">set rect fuzzy zoom</a></li>
 </ul>
 </div>
 		</p>
@@ -19445,7 +19552,7 @@ end</pre>
 			
 				Deletes temporary map state for the current map saved either with <a href="#about-savemapstate" class="ref">save map state</a>
 				or by leaving a map set to save state.
-				By default, (if both arguments are omitted) if the map is set to load NPC or tile
+				By default (if both arguments are omitted), if the map is set to load NPC or tile
 				data it will instead load the original data from the game files when it is entered.
 				<br>
 				<span class="param">whichdata</span> is an optional set of bits in the <a href="#about-savemapstate" class="ref">save map state</a> format to determine
@@ -21406,10 +21513,10 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				<h4>Object handles</h4>
 <p>
 			
-				An object handle is either a <a href="#about-slicehandle" class="ref">slice handle</a>, an <a href="#about-npcref" class="ref">NPC reference</a> (NOT an NPC ID!) or a zone handle (NOT a zone ID!).
-				They can be passed to <a href="#Extra%20Data%20Array%20Functions" class="ref">Extra Data Array Functions</a>.
-				Zone handles are returned by <a href="#about-getzone" class="ref">get zone</a>.
+				An object handle is either a <a href="#about-slicehandle" class="ref">slice handle</a>, an <a href="#about-npcref" class="ref">NPC reference</a> (NOT an NPC ID!) or a zone handle (returned by <a href="#about-getzone" class="ref">get zone</a>; NOT a zone ID!).
+				Menu and menu item handles don't (yet) count either.
 				<a href="#about-false" class="ref">false</a> (zero) is never a valid object handle.
+				Object handles can be passed to <a href="#Extra%20Data%20Array%20Functions" class="ref">Extra Data Array Functions</a>.
 			
 			
 			
@@ -21472,17 +21579,17 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				<h4>Extra data array index</h4>
 <p>
 			
-				An extra array index is a number telling which element of a slice's or zone's extra data array to read/write.
+				An extra array index is a number telling which element of an NPC's, slice's or zone's extra data array to read/write.
 				(An "array" is a list of values.)
 				The first element of the array is index 0, the second is index 1, etc, up to <span class="code">extra length(handle) -- 1</span>.
+				<br>
+				By default all slices/NPCs/etc start with a length 3 extra data array, so <span class="param">extra</span> is typically a value from 0 to 2.
+				You may also use the obsolete constants <span class="param">extra 0</span>, <span class="param">extra 1</span>, <span class="param">extra 2</span>
+				which have values 0, 1, 2, if you find them more readable.
 				<br>
 				For convenience, negative indexing like Python is also supported:
 				the last element is index -1, the second last is index -2, down to <span class="code">-1 * extra length(handle)</span> which is the first element.
 				Negative indexing is only supported by commands that explicitly say they accept an array index.
-				<br>
-				By default all slices/etc start with a length 3 extra data array, so <span class="param">extra</span> is typically a value from 0 to 2.
-				You may also use the obsolete constants <span class="param">extra 0</span>, <span class="param">extra 1</span>, <span class="param">extra 2</span>
-				which have values 0, 1, 2, if you find them more readable.
 			
 			
 			
@@ -22282,7 +22389,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 934 commands (of which 11 are aliases), 27 constants and 14 definitions of types and other terms in this file.</p>
+<p>Stats: There are 938 commands (of which 11 are aliases), 27 constants and 14 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

@@ -5161,6 +5161,27 @@ SUB script_functions(byval cmdid as integer)
    'gets stripped and re-added.
    scriptret = make_handle(HandleType.Zone, id)
   END IF
+ CASE 743 '--get rect fuzzy zoom(sl)
+  sl = get_arg_rectsl(0)
+  IF sl THEN
+   scriptret = sl->RectData->fuzz_zoom
+  END IF
+ CASE 744 '--set rect fuzzy zoom(sl, zoom)
+  sl = get_arg_rectsl(0)
+  DIM zoom as integer = retvals(1)
+  IF sl ANDALSO bound_arg(zoom, 1, INT_MAX, "zoom", , serrBadOp) THEN
+   sl->RectData->fuzz_zoom = zoom
+  END IF
+ CASE 745 '--get rect stationary pattern(sl)
+  sl = get_arg_rectsl(0)
+  IF sl THEN
+   scriptret = IIF(sl->RectData->fuzz_stationary, 1, 0)
+  END IF
+ CASE 746 '--set rect stationary pattern(sl, bool)
+  sl = get_arg_rectsl(0)
+  IF sl THEN
+   sl->RectData->fuzz_stationary = retvals(1) <> 0
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
