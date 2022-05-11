@@ -511,8 +511,8 @@ SUB gfx_editor_menu()
    IF state.pt = 0 THEN
     EXIT DO
    END IF
-   IF state.pt = 1 THEN maptile
-   IF state.pt = 2 THEN importmxs 'Tilesets still use the old mxs backdrop browser
+   IF state.pt = 1 THEN tileset_editor
+   IF state.pt = 2 THEN import_export_tilesets
    IF state.pt = 3 THEN spriteset_editor sprTypeWalkabout
    IF state.pt = 4 THEN spriteset_editor sprTypeHero
    IF state.pt = 5 THEN spriteset_editor sprTypeSmallEnemy

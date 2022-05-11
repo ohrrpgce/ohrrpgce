@@ -500,7 +500,7 @@ local sub modex_init()
 		vpages(i) = frame_new(windowsize.w, windowsize.h, , YES)
 	next
 	'other vpages slots are for temporary pages
-	'They are currently still used in the tileset editor, importmxs,
+	'They are currently still used in tileset_editor, import_export_tilesets,
 	'and mapedit_linkdoors.
 	'Except for the first two, they're assumed to be the same size as pages 0/1.
 
@@ -1007,14 +1007,14 @@ local sub screen_size_update ()
 end sub
 
 'Set the size of a video page and keep it from being resized as the window size changes.
-'TODO: delete this after the tileset editor and importmxs stop using video pages 2 and 3
+'TODO: delete this after tileset_editor and import_export_tilesets stop using video pages 2 and 3
 sub lock_page_size(page as integer, w as integer, h as integer)
 	resizepage page, w, h
 	vpages(page)->noresize = 1
 end sub
 
 'Revert a video page to following the size of the window
-'TODO: delete this after the tileset editor and importmxs stop using video pages 2 and 3
+'TODO: delete this after tileset_editor and import_export_tilesets stop using video pages 2 and 3
 sub unlock_page_size(page as integer)
 	resizepage page, windowsize.w, windowsize.h
 	vpages(page)->noresize = 0

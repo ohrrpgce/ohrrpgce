@@ -180,7 +180,7 @@ END SUB
 
 ' The "Import/Export Tilesets" menu
 ' (Previously it was also for importing/exporting backdrops, replaced by backdrop_browser)
-SUB importmxs ()
+SUB import_export_tilesets ()
  DIM filename as string = game + ".til"
  STATIC defaultdir as string  'Import & export
  STATIC bgcolor as bgType = 0 'Default to not transparent (color 0)
@@ -740,7 +740,8 @@ SUB crop_tilesets(to_id as integer)
  END IF
 END SUB
 
-SUB maptile ()
+'Doesn't include import_export_tilesets menu
+SUB tileset_editor ()
 STATIC bgcolor as bgType = 0  'Default to first color in master palette
 DIM menu() as string
 DIM mapfile as string = game & ".til"

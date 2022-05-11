@@ -41,7 +41,7 @@ DECLARE FUNCTION formation_picker (recindex as integer = -1) as integer
 DECLARE FUNCTION formation_picker_or_none (recindex as integer = -1) as integer
 
 
-DECLARE SUB importmxs ()
+DECLARE SUB import_export_tilesets ()
 DECLARE FUNCTION importmasterpal OVERLOAD (filename as string = "", palnum as integer) as bool
 DECLARE SUB importmasterpal OVERLOAD (newmaster() as RGBcolor, palnum as integer)
 DECLARE SUB vehicle_editor ()
@@ -49,7 +49,7 @@ DECLARE SUB script_management ()
 DECLARE SUB map_picker ()
 DECLARE SUB mapeditor (byval mapnum as integer)
 DECLARE SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
-DECLARE SUB maptile ()
+DECLARE SUB tileset_editor ()
 DECLARE SUB spriteset_editor(sprtype as SpriteType)
 DECLARE SUB backdrop_browser ()
 DECLARE SUB song_editor_main()
