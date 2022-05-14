@@ -1,10 +1,13 @@
 import sys
+from os import path
 import re
 from hs_ast import AST_state
 import hs_post
 import hs_gen
 import hs_file
 
+compiler_dir = path.dirname(sys.argv[0])
+#include_dir = ""
 # command line options
 main_args = None
 
@@ -13,13 +16,56 @@ include_once = None
 n_failed_scripts = 0
 n_scripts = 0
 
-def parse_hss_2(fn, cpass):
+def find_include_file_globally(include_name):
+    fpath = path.join(compiler_dir, include_name)
+    print("try", fpath)
+    if path.isfile(fpath):
+        return fpath
+    # From hspeak: in case we're installed at $prefix/{games,bin}, try $prefix/share/games/ohrrpgce/
+    fpath = path.join(compiler_dir, "../share/games/ohrrpgce/", include_name)
+    if path.isfile(fpath):
+        return fpath
+
+# From hspeak.exw
+def find_include_file(include_name, source_file = None):
+    """Find path to a file.
+    source_file is the file containing the 'include' or blank if none"""
+    include_name = include_name.replace('/', path.sep).replace('\\', path.sep)
+    if include_name == "plotscr.hsd" or include_name == "scancode.hsi":
+        # Prefer to use fundamental include files found in global locations, because
+        # plotscr.hsd and scancode.hsi will be exported too, when exporting scripts
+        # from Custom.
+        # (Note: differs from hspeak in that we afterwards fall back to local search)
+        fpath = find_include_file_globally(include_name)
+        if fpath:
+            return fpath
+    # Try source directory
+    if source_file:
+        fpath = path.join(path.dirname(source_file), include_name)
+        if path.isfile(fpath):
+            return fpath
+    # Support for unimplemented --incdir option
+    # fpath = path.join(include_dir, include_name)
+    # if path.isfile(fpath):
+    #     return fpath
+    # Try current directory (which will be where the .rpg is)
+    if path.isfile(include_name):
+        return include_name
+    # Try global locations
+    fpath = find_include_file_globally(include_name)
+    if fpath:
+        return fpath
+    raise FileNotFoundError("Can't find " + include_name)
+
+def parse_hss_2(fn, cpass, source_file = None):
     global n_failed_scripts, n_scripts
 
     if fn in include_once:
         return
 
     include_once.add(fn)
+
+    fn = find_include_file(fn, source_file)
 
     if cpass == 1:
         print("Including", fn)
@@ -58,7 +104,7 @@ def parse_hss_2(fn, cpass):
             if match.group(4):
                 print("Line", cline, "garbage after include filename:", match.group(4))
             include_file = match.group(3) or match.group(2).rstrip()
-            parse_hss_2(include_file, cpass)
+            parse_hss_2(include_file, cpass, fn)
             continue
 
         if csection == "script":
