@@ -70,7 +70,13 @@ def parse_hss_2(fn, cpass, source_file = None):
     if cpass == 1:
         print("Including", fn)
 
-    fd = open(fn, "r")
+    for encoding in ('utf-8', 'utf-16', 'latin-1'):
+        with open(fn, 'r', encoding = encoding) as fd:
+            try:
+                lines = fd.readlines()
+                break
+            except UnicodeError:
+                pass
 
     # current section
     csection = None
@@ -88,7 +94,7 @@ def parse_hss_2(fn, cpass, source_file = None):
 
     include_re = re.compile('include\s*,\s* ( ([^"#]+) | "([^"]+)" \s* ([^#]*) )', re.I + re.X)
 
-    for line in fd:
+    for line in lines:
         trimmed_line = line
 
         # remove comment

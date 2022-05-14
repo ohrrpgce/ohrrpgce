@@ -34,7 +34,7 @@ def write_lump(fd, fn):
 
     # in PDP-endian format
     fd.write(struct.pack(
-        '<2H', len(data) >> 16, len(data)
+        '<2H', len(data) >> 16, len(data) & 0xffff
     ))
 
     fd.write(data)
