@@ -18,7 +18,6 @@ n_scripts = 0
 
 def find_include_file_globally(include_name):
     fpath = path.join(compiler_dir, include_name)
-    print("try", fpath)
     if path.isfile(fpath):
         return fpath
     # From hspeak: in case we're installed at $prefix/{games,bin}, try $prefix/share/games/ohrrpgce/
@@ -85,7 +84,7 @@ def parse_hss_2(fn, cpass, source_file = None):
     cname = None
 
     # current script buffer
-    cbuffer = None
+    cbuffer = []
 
     # current line number
     cline = 0
@@ -123,7 +122,7 @@ def parse_hss_2(fn, cpass, source_file = None):
 
                     print("---- script ---- %s ---- %s ---- %d-%d" % (cname, fn, blockstart, cline))
 
-                    if AST_state.build(cbuffer, blockstart, cname):
+                    if AST_state.build(''.join(cbuffer), blockstart, cname):
 
                         hs_post.AST_post()
                         data = hs_gen.toHSZ(cname)
@@ -145,16 +144,13 @@ def parse_hss_2(fn, cpass, source_file = None):
 
                 csection = None
                 cname = None
-                cbuffer = None
+                cbuffer = []
                 continue
 
             if cpass == 1:
                 continue
 
-            if cbuffer:
-                cbuffer += line
-            else:
-                cbuffer = line
+            cbuffer.append(line)
 
             continue
 
