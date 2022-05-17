@@ -4,8 +4,9 @@ syntax errors.
 """
 
 import logging
-from hs_ast import AST_state
-import hs_parse
+from .ast import AST_state
+from . import parser as parsermod
+
 
 def expected_terms_and_nonterms(parser):
     """Return a pair, the sets of terminals and nonterminals that are valid here.
@@ -69,8 +70,8 @@ def describe_parser_expectation(parser):
     # Rename nonterminal symbols to user-friendly names
     nonterms = set()
     for nonterm in raw_nonterms:
-        if nonterm in hs_parse.symdesc:
-            nonterms.add(hs_parse.symdesc[nonterm])
+        if nonterm in parsermod.symdesc:
+            nonterms.add(parsermod.symdesc[nonterm])
         else:
             nonterms.add(nonterm.replace('_', ' '))
 
@@ -79,8 +80,8 @@ def describe_parser_expectation(parser):
         terms.add('end-of-input')
 
     # Special case for expressions
-    if terms.issuperset(hs_parse.operator_list):
-        terms.difference_update(hs_parse.operator_list)
+    if terms.issuperset(parsermod.operator_list):
+        terms.difference_update(parsermod.operator_list)
         terms = list(terms) + [" an operator like +"]  # Make sure it's listed last
 
     # Only show terms if there aren't too many, which happens if an arbitrary statement can go here

@@ -1,40 +1,29 @@
-import struct
-import os
+import struct, os
 from os import path
 
-from hs_ast import AST_state
-import hs_gen
+from . import gen
+from .ast import AST_state
 
 hs_fn = None
 hs_cache = None
 
-def scripts_bin_enc(_id, trigger, name):
-    name = bytes(name, "latin-1")
-    return struct.pack('<3H36sH', _id, trigger, len(name), name, 0)
-
 def write_hsz(name, data):
 
     script = AST_state.scripts[name]
+    fn = "%d.hsz" % (script.id)
 
-    fn = path.join(hs_cache, "%d.hsz" % (script.id))
-    fd = open(fn, "wb")
-    fd.write(data)
-    fd.close()
+    hs_cache[fn] = data
 
 def write_lump(fd, fn):
 
-    fdi = open(fn, "rb")
-    data = fdi.read()
-    fdi.close()
+    data = hs_cache[fn]
 
-    name = path.basename(fn).upper()
-
-    fd.write(bytes(name, "latin-1"))
+    fd.write(bytes(fn.upper(), "latin-1"))
     fd.write(bytes((0,)))
 
     # in PDP-endian format
     fd.write(struct.pack(
-        '<2H', len(data) >> 16, len(data) & 0xffff
+        '<2H', len(data) >> 16, len(data)
     ))
 
     fd.write(data)
@@ -43,80 +32,73 @@ def hs_begin(fn):
 
     global hs_fn, hs_cache
 
-    bn, ext = path.splitext(fn)
-    
-    hs_fn = bn + ".hs"
-    hs_cache = bn + ".cache"
-
-    if not path.isdir(hs_cache):
-        os.mkdir(hs_cache)
+    hs_fn = fn
+    hs_cache = {}
 
 def hs_end():
 
     # write hs
 
-    fn = path.join(hs_cache, "hs")
-    fd = open(fn, "w")
+    data = "HamsterSpeak\n"
+    data += "3Ue\n1\n3U\n3\n"
+    data += "689\n"
 
-    fd.write("HamsterSpeak\n")
-    fd.write("3Ue\n1\n3U\n3\n")
-    fd.write("689\n")
-
-    fd.close()
+    hs_cache["hs"] = bytes(data, "latin-1")
 
     # write scripts.txt
 
-    fn = path.join(hs_cache, "scripts.txt")
-    fd = open(fn, "w")
+    data = ""
 
     for name in AST_state.scripts:
 
         script = AST_state.scripts[name]
 
-        fd.write(name + "\n")
-        fd.write(str(script.id) + "\n")
-
-        fd.write(str(len(script.args)) + "\n")
+        data += name + "\n"
+        data += str(script.id) + "\n"
+        data += str(len(script.args)) + "\n"
 
         for arg in script.args:
-            kind, _id = hs_gen.kind_and_id(arg)
-            fd.write(str(_id) + "\n")
+            kind, id = gen.kind_and_id(arg)
+            data += str(id) + "\n"
 
-    fd.close()
+    hs_cache["scripts.txt"] = bytes(data, "latin-1")
 
     # write scripts.bin
 
-    fn = path.join(hs_cache, "scripts.bin")
-    fd = open(fn, "wb")
+    data = bytes()
 
-    fd.write(struct.pack('<2H', 4, 44))
+    data += struct.pack('<2H', 4, 44)
 
     for name in AST_state.scripts:
 
         script = AST_state.scripts[name]
+        b_name = bytes(name, "latin-1")
 
-        fd.write(scripts_bin_enc(
-            script.id, script.trigger, name
-        ))
+        data += struct.pack(
+            '<3H36sH',
+            script.id, script.trigger,
+            len(b_name), b_name, 0
+        )
 
-    fd.close()
+    hs_cache["scripts.bin"] = data
 
     # lump everything together
 
-    fd = open(hs_fn, "wb")
+    fn = path.splitext(hs_fn)[0] + ".hs"
+    fd = open(fn, "wb")
 
-    write_lump(fd, path.join(hs_cache, "hs"))
-    write_lump(fd, path.join(hs_cache, "scripts.txt"))
-    write_lump(fd, path.join(hs_cache, "scripts.bin"))
+    write_lump(fd, "hs")
+    write_lump(fd, "scripts.txt")
+    write_lump(fd, "scripts.bin")
 
     for name in AST_state.scripts:
 
         script = AST_state.scripts[name]
+        fn = "%d.hsz" % (script.id)
 
-        sfn = path.join(hs_cache, "%d.hsz" % (script.id))
-
-        # should report an error if a script is missing
-        if path.isfile(sfn):
-            write_lump(fd, sfn)
+        if fn in hs_cache:
+            write_lump(fd, fn)
+        else:
+            print("hsfile: missing script", fn)
 
     fd.close()

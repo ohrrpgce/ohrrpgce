@@ -1,9 +1,6 @@
-
-from hs_parser_utils import describe_parser_expectation, tell_error, inclusive_span
-
-# AST_node and AST_state are given to this module by hs_ast.py
-AST_node = None
-AST_state = None
+from .parser_utils import describe_parser_expectation, tell_error, inclusive_span
+from .ast import AST_node, AST_state
+from . import post
 
 # Human-readable description of symbols used when reporting errors
 symdesc = {}
@@ -46,8 +43,9 @@ tokens = [
 literals = (
     '+', '-', '*', '/', '^',
     '<', '>', '$', '^', '@',
-    ',', '(', ')', '=', ':',
-    '.', '#', '|', '%',
+    ',', '(', ')', '=', '&',
+    '|', '%', '.',
+    #':', '#'
 )
 
 # Tokens
@@ -118,6 +116,7 @@ def t_NUMBER(t):
 def t_STRING(t):
     r'\"([^\\\n]|(\\.))*?\"'
     t.value = t.value[1:-1]
+    #t.value = t.value.replace('\\"', '"')
     return t
 
 def t_bad_string(t):
@@ -139,7 +138,7 @@ def t_error(t):
 t_ignore = ' \t'
 
 # Build the lexer
-import ply.lex as lex
+from .ply import lex
 lexer = lex.lex() #optimize = True)
 
 
@@ -434,6 +433,7 @@ def p_binop(p):
 def p_unop(p):
     "expression : '-' expression %prec UMINUS"
     if p[2].type == "number":
+        # Unnecessary, also handled in post.py
         p[0] = AST_node('number', None, -p[2].leaf)
     else:
         p[0] = AST_node('unop', [p[2]], p[1])
@@ -519,5 +519,12 @@ def p_expr_block_err(p):
 ##############################################################################
 
 # Build the parser
-import ply.yacc as yacc
+from .ply import yacc
 parser = yacc.yacc()
+
+def AST_build(*args, do_post = True, **kwargs):
+    if AST_state.build(lexer, yacc, *args, **kwargs):
+        if do_post:
+            post.AST_post()
+        return True
+    return False

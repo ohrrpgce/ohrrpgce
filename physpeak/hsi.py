@@ -4,15 +4,10 @@ import os
 from os import path
 import sys
 
-sys.path.insert(0,
-    path.join(path.dirname(sys.argv[0]), "hs_lib")
-)
-
-from hs_ast import AST_state
-import hs_post
-import hs_gen
-
-# --
+import hslib.gen
+import hslib.post
+from hslib.ast import AST_state
+from hslib.parser import AST_build
 
 if __name__ == "__main__":
 
@@ -80,7 +75,7 @@ if __name__ == "__main__":
                 print_what = what
             continue
 
-        rv = AST_state.build(s1, 1, debuglog = log)
+        rv = AST_build(s1, 1, debuglog = log)
 
         # if the parser reported an error at the end of the line
         # then add another line and see if things improve
@@ -98,15 +93,15 @@ if __name__ == "__main__":
 
             s1 += '\n' + s2
 
-            rv = AST_state.build(s1, debuglog = log)
+            rv = AST_build(s1, debuglog = log, do_post = False)
 
         if rv:
             if print_what == 'pre':
-                AST_state._print()
+                print(AST_state)
                 continue
-            hs_post.AST_post()
+            hslib.post.AST_post()
             if print_what == 'post':
-                AST_state._print()
+                print(AST_state)
                 continue
             if print_what == 'hsz':
 
@@ -117,7 +112,7 @@ if __name__ == "__main__":
                     len(_args), _args
                 )
 
-                data = hs_gen.toHSZ("REPL", debug = True)
+                data = hslib.gen.toHSZ("REPL", debug = True)
 
         else:
             print(AST_state.error)

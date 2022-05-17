@@ -1,7 +1,7 @@
 import array
 import struct
 
-from hs_ast import AST_state
+from .ast import AST_state
 
 KIND_NUMBER = 1 # int32. ID is the value
 KIND_FLOW = 2 # Flow control (flow_table), including begin and end.
@@ -129,8 +129,8 @@ def kind_and_id(node):
             return KIND_SCRIPT, AST_state.scripts[node.leaf].id
         if node.leaf in AST_state.functions:
             return KIND_FUNCTION, AST_state.functions[node.leaf].id
-        if node.leaf in AST_state._constants:
-            return KIND_NUMBER, AST_state._constants[node.leaf]
+        if node.leaf in AST_state.constants:
+            return KIND_NUMBER, AST_state.constants[node.leaf]
 
         # compatibility
         if node.leaf in flow_table:
@@ -147,8 +147,8 @@ def kind_and_id(node):
 
     if node.type == "string_ref_1":
 
-        if node.leaf in AST_state._constants:
-            return KIND_NUMBER, AST_state._constants[node.leaf]
+        if node.leaf in AST_state.constants:
+            return KIND_NUMBER, AST_state.constants[node.leaf]
 
     if node.type == "string_ref_2":
 

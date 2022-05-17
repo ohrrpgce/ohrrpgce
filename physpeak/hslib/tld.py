@@ -1,15 +1,14 @@
 import sys
 from os import path
 import re
-from hs_ast import AST_state
-import hs_post
-import hs_gen
-import hs_file
+
+from . import gen, hsfile
+from .parser import AST_build
+from .ast import AST_state
 
 compiler_dir = path.dirname(sys.argv[0])
 #include_dir = ""
-# command line options
-main_args = None
+verbose = False
 
 include_once = None
 
@@ -66,7 +65,7 @@ def parse_hss_2(fn, cpass, source_file = None):
 
     fn = find_include_file(fn, source_file)
 
-    if cpass == 1:
+    if cpass == "declare":
         print("Including", fn)
 
     for encoding in ('utf-8', 'utf-16', 'latin-1'):
@@ -116,22 +115,20 @@ def parse_hss_2(fn, cpass, source_file = None):
 
             if trimmed_line == "end":
 
-                if cpass == 2:
+                if cpass == "compile":
 
                     # attempt to compile the script body
 
                     print("---- script ---- %s ---- %s ---- %d-%d" % (cname, fn, blockstart, cline))
 
-                    if AST_state.build(''.join(cbuffer), blockstart, cname):
+                    if AST_build(''.join(cbuffer), blockstart, cname):
 
-                        hs_post.AST_post()
-                        data = hs_gen.toHSZ(cname)
-                        hs_file.write_hsz(cname, data)
+                        data = gen.toHSZ(cname)
+                        hsfile.write_hsz(cname, data)
                         n_scripts += 1
 
-                        if main_args.d:
-                            AST_state._print()
-
+                        if verbose:
+                            print(AST_state)
                             print(
                                 "toHSZ:", len(data),
                                 "locals:", len(AST_state.locals),
@@ -147,7 +144,7 @@ def parse_hss_2(fn, cpass, source_file = None):
                 cbuffer = []
                 continue
 
-            if cpass == 1:
+            if cpass == "declare":
                 continue
 
             cbuffer.append(line)
@@ -164,10 +161,10 @@ def parse_hss_2(fn, cpass, source_file = None):
                 csection = None
                 continue
 
-            if cpass == 2:
+            if cpass == "compile":
                 continue
 
-            if not AST_state.build(line, cline):
+            if not AST_build(line, cline):
                 print("---> in %s %d" % (fn, cline))
                 print(AST_state.error)
                 continue
@@ -176,7 +173,7 @@ def parse_hss_2(fn, cpass, source_file = None):
             if not nodes:
                 continue
 
-            AST_state._constants[nodes[1].leaf] = \
+            AST_state.constants[nodes[1].leaf] = \
                 nodes[0].leaf
 
             continue
@@ -187,10 +184,10 @@ def parse_hss_2(fn, cpass, source_file = None):
                 csection = None
                 continue
 
-            if cpass == 2:
+            if cpass == "compile":
                 continue
 
-            if not AST_state.build(line, cline):
+            if not AST_build(line, cline):
                 print("---> in %s %d" % (fn, cline))
                 print(AST_state.error)
                 continue
@@ -228,7 +225,11 @@ def parse_hss_2(fn, cpass, source_file = None):
 
         # -- not in any section --
 
-        if not AST_state.build(line, cline):
+        if line == "end":
+            print("stray 'end' at line", cline)
+            continue
+
+        if not AST_build(line, cline):
             print("---> in %s %d" % (fn, cline))
             print(AST_state.error)
             continue
@@ -246,18 +247,18 @@ def parse_hss_2(fn, cpass, source_file = None):
             if nodes[0].leaf in AST_state.triggers:
 
                 # register the script
-                if cpass == 1:
+                if cpass == "declare":
 
-                    _args = nodes[2:-1]
+                    args = nodes[2:-1]
 
                     AST_state.alloc_script(
                         nodes[1].leaf,
                         AST_state.triggers[nodes[0].leaf],
-                        len(_args), _args
+                        len(args), args
                     )
 
                 # initialize local scope
-                elif cpass == 2:
+                elif cpass == "compile":
 
                     AST_state.reset_locals()
 
@@ -287,12 +288,12 @@ def parse_hss_2(fn, cpass, source_file = None):
             continue
 
         # function-like definitions outside of scripts
-        if cpass == 1 and nodes[0].type == "function":
+        if cpass == "declare" and nodes[0].type == "function":
 
             args = AST_state.root.children[0].children
 
             if nodes[0].leaf == "defineconstant":
-                AST_state._constants[args[1].leaf] = \
+                AST_state.constants[args[1].leaf] = \
                     args[0].leaf
                 continue
 
@@ -309,10 +310,10 @@ def parse_hss(fn):
 
     print("Pass 1...", file=sys.stderr)
     include_once = set()
-    parse_hss_2(fn, 1)
+    parse_hss_2(fn, "declare")
 
     print("Pass 2...", file=sys.stderr)
     include_once = set()
-    parse_hss_2(fn, 2)
+    parse_hss_2(fn, "compile")
 
     print("Compiled %d scripts, %d failed" % (n_scripts, n_failed_scripts), file=sys.stderr)
