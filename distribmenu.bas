@@ -56,6 +56,8 @@ DECLARE FUNCTION can_run_windows_exes () as bool
 DECLARE FUNCTION can_make_debian_packages () as bool
 DECLARE FUNCTION can_make_mac_packages () as bool
 DECLARE SUB edit_distrib_info ()
+DECLARE SUB sanitize_distinfo OVERLOAD ()
+DECLARE SUB sanitize_distinfo OVERLOAD (distinfo as DistribState)
 DECLARE FUNCTION sanitize_pkgname(s as string) as string
 DECLARE FUNCTION sanitize_email(s as string) as string
 DECLARE FUNCTION sanitize_url(s as string) as string
@@ -311,12 +313,7 @@ SUB edit_distrib_info ()
   IF usemenu(st, cast(BasicMenuItem vector, menu)) THEN st.need_update = YES
   
   IF st.need_update THEN
-   distinfo.pkgname = sanitize_pkgname(distinfo.pkgname)
-   distinfo.gamename = special_char_sanitize(exclude(distinfo.gamename, "/\""" & CHR(10)))
-   distinfo.author = special_char_sanitize(exclude(distinfo.author, "<>@""" & CHR(10)))
-   distinfo.email = sanitize_email(distinfo.email)
-   distinfo.website = sanitize_url(distinfo.website)
-   distinfo.copyright_year = exclusive(distinfo.copyright_year, "0123456789 -,")
+   sanitize_distinfo distinfo
    menu[1].text = "Package name: " & distinfo.pkgname
    menu[2].text = "Game name: " & distinfo.gamename
    menu[3].text = "Author: " & distinfo.author
@@ -351,8 +348,24 @@ SUB edit_distrib_info ()
 
 END SUB
 
+SUB sanitize_distinfo(distinfo as DistribState)
+ distinfo.pkgname = sanitize_pkgname(distinfo.pkgname)
+ distinfo.gamename = special_char_sanitize(exclude(distinfo.gamename, "/\""" & CHR(10)))
+ distinfo.author = special_char_sanitize(exclude(distinfo.author, "<>@""" & CHR(10)))
+ distinfo.email = sanitize_email(distinfo.email)
+ distinfo.website = sanitize_url(distinfo.website)
+ distinfo.copyright_year = exclusive(distinfo.copyright_year, "0123456789 -,")
+END SUB
+
+SUB sanitize_distinfo()
+ DIM distinfo as DistribState
+ load_distrib_state distinfo
+ sanitize_distinfo distinfo
+ save_distrib_state distinfo
+END SUB
+
 FUNCTION sanitize_pkgname(s as string) as string
- RETURN LCASE(special_char_sanitize(exclude(s, "/\ ""'" + CHR(10))))
+ RETURN LCASE(special_char_sanitize(exclude(s, "<>?./\ ""'" + CHR(10))))
 END FUNCTION
 
 FUNCTION sanitize_email(s as string) as string
