@@ -3,6 +3,7 @@
 FORCE=false
 UPLOAD=true
 
+CHROMEBOOK=
 # NOTE: "both" means compile two apks, one 32 bit and one 64 bit
 # We do not yet have the ability to compile multi-arch
 ARCH=both
@@ -25,6 +26,14 @@ do
     ARCH="$2"
     shift # past argument
     shift # past value
+    ;;
+    -chromebook|--chromebook)
+    # Create a build with no onscreen buttons, for Chromebooks and other
+    # devices with keyboards.
+    CHROMEBOOK=-chromebook
+    # This affects android/AndroidAppSettings.cfg, called by build.sh
+    export HASKEYBOARD=yes
+    shift # past argument
     ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
@@ -85,6 +94,8 @@ for CUR_ARCH in ${ARCHLIST[@]} ; do
 
 case $CUR_ARCH in
   32)
+    # TODO: is it time to upgrade to armv7-a, which has faster floating point?
+    # At some point Android dropped armeabi
     ARCHARGS="arch=armeabi"
     ARCHSUFFIX=""
     ;;
@@ -101,7 +112,7 @@ esac
 cd "${SCRIPTDIR}"
 
 # Cleanup old files
-rm -Rf "${SDLANDROID}"/project/obj/local/*
+#rm -Rf "${SDLANDROID}"/project/obj/local/*
 
 # Compile the source
 scons fbc="${FBCARM}" release=1 android-source=1 "${ARCHARGS}" game || exit 1
@@ -126,7 +137,7 @@ if [ "$UPLOAD" = "false" ] ; then
   echo "skipping upload."
   continue
 fi
-scp -pr project/bin/MainActivity-debug.apk james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-game-android-debug"${ARCHSUFFIX}".apk
+scp -pr project/bin/MainActivity-debug.apk james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-game-android"${CHROMEBOOK}"-debug"${ARCHSUFFIX}".apk
 
 done
-echo "Finished building arch $ARCH"
+echo "Finished building arch $ARCH $CHROMEBOOK"
