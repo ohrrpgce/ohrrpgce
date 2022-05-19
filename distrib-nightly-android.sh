@@ -112,7 +112,7 @@ esac
 cd "${SCRIPTDIR}"
 
 # Cleanup old files
-#rm -Rf "${SDLANDROID}"/project/obj/local/*
+rm -Rf "${SDLANDROID}"/project/obj/local/*
 
 # Compile the source
 scons fbc="${FBCARM}" release=1 android-source=1 "${ARCHARGS}" game || exit 1
