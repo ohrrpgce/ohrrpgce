@@ -4297,7 +4297,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    DIM projectile_start as XYZTriple
    projectile_start = projectile_start_position(attack, bat.acting, bat, bslot(), atkimgdirection)
    anim_setpos 12, projectile_start.x, projectile_start.y, atkimgdirection
-   anim_setz 12 + i, projectile_start.z
+   anim_setz 12, projectile_start.z
    anim_appear 12
    ' Play the sound effect
    IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
