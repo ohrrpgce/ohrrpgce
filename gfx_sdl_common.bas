@@ -105,6 +105,13 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
         IF controller THEN
           'This name may vary from SDL_JoystickNameForIndex
           debuginfo " Opened as gamecontroller " & *SDL_GameControllerName(controller)
+          #ifdef SDL_GameControllerTypeForIndex
+            'SDL 2.0.14+
+            debuginfo " Type: " & SDL_GameControllerTypeForIndex(joynum)
+          #endif
+          DIM mappingstr as zstring ptr = SDL_GameControllerMapping(controller)
+          debuginfo mappingstr
+          SDL_free(mappingstr)
         ELSE
           debug "Couldn't open gamecontroller " & joynum & ": " & *SDL_GetError
           .have_bindings = NO
