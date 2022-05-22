@@ -15,6 +15,7 @@
 #                   (Ralph Versteegen)
 # 2020-02-28 1.4.3: Support both Python 2 and 3. Py2 Unicode support untested
 #                   (Daniel Würl, Ralph Versteegen)
+# 2022-05-22 1.4.4: Python 3 fixes
 
 import re
 import sys
@@ -68,7 +69,7 @@ class ASTNode(object):
         return self.what
     def __eq__(self, rhs):
         return isinstance(rhs, ASTNode) and self.name == rhs.name and self.what == rhs.what
-    def __unicode__(self):
+    def __str__(self):
         return 'ASTNode(' + repr(self.name) + ', ' + repr(self.what) + ')'
     def __repr__(self):
         return str(self)
@@ -404,7 +405,7 @@ class parser(object):
         left, right = 0, len(self.lines)
 
         while True:
-            mid = int((right + left) / 2)
+            mid = (right + left) // 2
             if self.lines[mid][0] <= parsed:
                 try:
                     if self.lines[mid + 1][0] >= parsed:
@@ -431,7 +432,7 @@ def visualColumn(text, offset):
     ret = 0
     for c in text[:offset]:
         if c == "\t":
-            ret = (ret / 8 + 1) * 8
+            ret = (ret // 8 + 1) * 8
         else:
             ret += 1
     return ret
