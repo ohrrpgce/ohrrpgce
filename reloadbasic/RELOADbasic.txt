@@ -55,6 +55,7 @@ WithNode is mostly just a shortcut for
 (nodevar should not be manually declared, it's done automatically), however it has an important use
 inside ReadNode block (more there).
 
+Inside a WITHNODE nested inside a READNODE you can write CONTINUE READNODE and EXIT READNODE.
 
 = ReadNode =
 Syntax:
@@ -81,6 +82,9 @@ run with the default default value (ie. 0, 0.0 or "") unless either it has an ex
 attribute, or "default" appears in the ReadNode header, or it is type '.exists'.
 
 "default" in the ReadNode header has no effect on LoadArray lines, since arrays are always flushed.
+
+You can use EXIT READNODE (must be on the same line as a nodespec) to stop early.
+
 
 Example:
 

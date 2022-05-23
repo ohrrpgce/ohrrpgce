@@ -17,11 +17,11 @@ from xmlast import AST2XML
 reloadbasic = "".join((a,a.upper())[randint(0,1)] for a in "reloadbasic")
 
 def openwrapper(filename, mode, encoding='utf-8'):
-	if sys.version_info[0] == 2:
-		# Ignore encoding on python2.x
-		return open(filename, mode)
-	# Pass encoding for python 3.x
-	return open(filename, mode, encoding=encoding)
+    if sys.version_info[0] == 2:
+        # Ignore encoding on python2.x
+        return open(filename, mode)
+    # Pass encoding for python 3.x
+    return open(filename, mode, encoding=encoding)
 
 ############################### RB PEG grammar #################################
 
@@ -69,16 +69,18 @@ def nodeSpec():             return (AND(re.compile('.*\.\s*"')),
 #def simpleNodeSpec():      return [nodeSpec, identifier]
 
 # tokenLists are represent an arbitrary line of code, and are used where we don't
-# really want to parse the input, only find nodeSpecs.
+# really want to parse the input, only find nodeSpecs and (Exit|Continue) ReadNode
 # Strings are still parsed, to make sure they don't confuse the parser.
 # Optimisation: check for occurrence of ." before doing (very!) expensive splitting into tokens,
 # otherwise gulp the whole line.
-def tokenList():            return [(AND(re.compile('.*\.\s*"')),
+def tokenList():            return [(AND(re.compile('.*(\.\s*"|readnode)', re.I)),
                                        [nodeSpecAssignment,
-                                        (STAR, [nodeSpec, string, IGNORE('identifier', r'[a-zA-Z0-9._]+|[^\s"]')])]),
+                                        (STAR, [nodeSpec, string, readNodeExit, readNodeContinue,
+                                                IGNORE('identifier', r'[a-zA-Z0-9._]+|[^\s"]')])]),
                                     re.compile(".*")],
 # Unoptimised version
-#def tokenList():            return STAR, [nodeSpec, string, IGNORE('identifier', r'[a-zA-Z0-9._]+|[^\s"]')]
+#def tokenList():            return STAR, [nodeSpec, string, readNodeExit, readNodeContinue,
+#                                          IGNORE('identifier', r'[a-zA-Z0-9._]+|[^\s"]')]
 
 def expressionList():       return QUES, (expression, STAR, (PLUS, ",", CHECKPNT, expression))
 
@@ -122,6 +124,10 @@ def subEnd():               return "end", ["sub", "constructor", "destructor"]
 
 def readNode():             return "readnode", CHECKPNT, [(nodeSpec, "as", identifier), identifier], STAR, (",", re.compile("default|ignoreall"))
 def readNodeEnd():          return "end", "readnode"
+# Writing e.g. "EXIT READNODE, FOR" or "CONTINUE READNODE, FOR" will work because
+# anything after READNODE is preserved
+def readNodeExit():         return "exit", "readnode"
+def readNodeContinue():     return "continue", "readnode"
 
 def withNode():             return "withnode", CHECKPNT, nodeSpec, "as", identifier
 def withNodeEnd():          return "end", "withnode"
@@ -889,18 +895,37 @@ class ReloadBasicFunction(object):
                     self.find_nodespecs(node, results)
         return results
 
-    def translate_nodespecs(self, nodeset):
+    def freeform_translations(self, nodeset, readnode = None, handle_nodespecs = True):
         """
-        Translate all the nodespecs within a tokenList, expression, expressionList or plain list of these, returning a (replacements, prologue) pair.
+        Perform all translations that apply to freeform code outside of any context,
+        returning a (replacements, prologue) pair.
+        nodeset: a tokenList, expression, expressionList or plain list of these.
+        readnode: the containing readNode if inside one
+        handle_nodespecs: whether to translate nodeSpecs
         """
         replacements = []
         prologue = ""
-        for astnode in self.find_nodespecs(nodeset):
-            nodespec = NodeSpec(astnode, self.cur_line)
-            nodespec.check_expression_usage()
-            temp = self.nodespec_translation(nodespec)
-            replacements.append((astnode, temp[0]))
-            prologue += temp[1]
+        for node in nodeset:
+            if isinstance(node, ASTNode):
+                if node.name == "nodeSpec":
+                    if handle_nodespecs:
+                        nodespec = NodeSpec(node, self.cur_line)
+                        nodespec.check_expression_usage()
+                        repl, prol = self.nodespec_translation(nodespec)
+                        replacements.append((node, repl))
+                        prologue += prol
+                elif node.name == "readNodeExit":
+                    if readnode is None:
+                        raise LanguageError("Exit ReadNode outside a Readnode", node)
+                    replacements.append((node, "EXIT WHILE"))
+                elif node.name == "readNodeContinue":
+                    if readnode is None:
+                        raise LanguageError("Continue ReadNode outside a Readnode", node)
+                    replacements.append((node, "{it} = {it}->nextSib : CONTINUE WHILE".format(it = readnode.child_nodeptr)))
+                else:
+                    repl, prol = self.freeform_translations(node, readnode, handle_nodespecs)
+                    replacements += repl
+                    prologue += prol
         return replacements, prologue
 
     def astnode_to_string(self, node):
@@ -912,6 +937,7 @@ class ReloadBasicFunction(object):
     def _with_replacements(self, text, offset, replacements):
         ret = ""
         start = 0
+        replacements.sort(key = lambda pair: pair[0].start)
         for node, replacement in replacements:
             # print "Replacing", AST2XML(node)
             # print line
@@ -958,14 +984,13 @@ class ReloadBasicFunction(object):
 
         # Also check for nodespecs in initial values
         initvals = (initval for _, _, initval in var_list if initval)
-        #print list(initvals)
-        replacements, prologue = self.translate_nodespecs(initvals)
+        replacements, prologue = self.freeform_translations(initvals)
 
         if prologue:
             if indentwith == None:
                 indentwith = whitespace.match(self.cur_line).group(0)
             prologue = indent(prologue, indentwith) + "#line %d\n" % (self.cur_lineno - 1)
-            
+
         return prologue + self.cur_line_with_replacements(replacements)
 
     def process_readnode_loadarray(self, node, nodespec, readnode, node_path):
@@ -1034,7 +1059,7 @@ class ReloadBasicFunction(object):
 
     def process_readnode_line(self, node, iterator, readnode, parent_node_path):
         """
-        Process a readNode, withNode, or tokenList ASTNode (node) inside a readNode.
+        Process a line inside a readNode parsed as node: a readNode, withNode, or tokenList.
         """
 
         savescope = copy(self.users_temp_vars)
@@ -1107,13 +1132,19 @@ class ReloadBasicFunction(object):
                 nodespec = copy(nodespec)
                 nodespec.required = False
                 nodespec.warn = False
-                result.append(self.process_withnode(node, iterator, "", nodespec))
+                result.append(self.process_withnode(node, iterator, "", nodespec, readnode))
             elif node.name == "tokenList":
-                _, replacement, prologue_ = self.simple_nodespec_translation(nodespec)
-                if prologue_:
-                    result.append(prologue_)
+                _, replacement, prologue = self.simple_nodespec_translation(nodespec)
+                replacements = [(nodespec.node, replacement)]
+                # Handle "continue|exit readnode" (continue readnode is useless here but
+                # allowed for simplicity)
+                replacements_, prologue_ = self.freeform_translations(node, readnode, handle_nodespecs = False)
+                replacements += replacements_
+                prologue += prologue_
+                if prologue:
+                    result.append(prologue)
                 result.append("#line %d" % (self.cur_lineno - 1))
-                result.append(self.cur_line_with_replacements([(nodespec.node, replacement)]).lstrip())
+                result.append(self.cur_line_with_replacements(replacements).lstrip())
             elif node.name == "loadArray":
                 # This also adds the array flushing to readnode.prologue
                 result += self.process_readnode_loadarray(node, nodespec, readnode, node_path)
@@ -1239,10 +1270,11 @@ class ReloadBasicFunction(object):
             indentwith = whitespace.match(self.cur_line).group(0)
         return indent("".join(output), indentwith)
 
-    def process_withnode(self, header, iterator, indentwith = None, override_nodespec = None):
+    def process_withnode(self, header, iterator, indentwith = None, override_nodespec = None, outer_readnode = None):
         """
         Process a whole withnode block; header is a withNode ASTNode.
         override_nodespec may be passed to provided a modified NodeSpec
+        outer_readnode is the readNode ASTNode if we are inside one.
         """
         if override_nodespec:
             nodespec = override_nodespec
@@ -1274,7 +1306,7 @@ class ReloadBasicFunction(object):
             if nodetype == "dimStatement":
                 lines.append(self.process_dim(node, ""))
             elif nodetype == "tokenList":   # A normal line of code
-                replacements, prologue = self.translate_nodespecs(node)
+                replacements, prologue = self.freeform_translations(node, outer_readnode)
                 #print "tokens", replacements, repr(prologue)
                 if prologue:
                     prologue += "#line %d\n" % (self.cur_lineno - 1)
@@ -1332,7 +1364,7 @@ class ReloadBasicFunction(object):
             if nodetype == "dimStatement":
                 self.output(self.process_dim(node))
             elif nodetype == "tokenList":
-                replacements, prologue = self.translate_nodespecs(node)
+                replacements, prologue = self.freeform_translations(node)
                 #print "tokens", replacements, repr(prologue)
                 self.output(self.cur_line_with_replacements(replacements), prologue)
             elif nodetype == "directive":

@@ -197,6 +197,25 @@ startTest(testReadNode)
 	sum2 = 0
 	Asum = 0
 
+	' Test continue readnode, exit readnode
+	readnode nod1
+		sum1 += nod1."four of these"
+		sum2 += nod1."six of those" : if sum2 > 12 then exit readnode
+		withnode nod1."something else" as something
+			Asum += something."A"
+			if something."a" then continue readnode
+			Asum += 100
+			fail
+		end withnode
+	end readnode
+	if sum1 <> 9 then fail
+	if sum2 <> 19 then fail
+	if Asum <> 1 then fail
+
+	sum1 = 0
+	sum2 = 0
+	Asum = 0
+
 	readnode root."readnode" as parent
 		sum1 += parent."four of these"
 		sum2 += parent."six of those"
