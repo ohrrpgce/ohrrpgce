@@ -155,6 +155,7 @@ WHAT IS NEW?
       wrongly complained about wrong map size [Ralph]
     * Deleting all party heroes showed a BUG error. It's OK momentarily [Ralph]
     * Bug #1210 Sequential Projectile attacks misposition the weapon [Ralph]
+    * Bug #1101 Enemy ready meter not reset for spawned enemies [Rue]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license
