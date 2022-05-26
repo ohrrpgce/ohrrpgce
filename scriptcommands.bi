@@ -33,9 +33,11 @@ end enum
 #define HANDLE_TYPE_SHIFT       (32 - HANDLE_TYPE_BITS)
 #define HANDLE_TYPE_MASK        &hF8000000  '31 shl HANDLE_TYPE_SHIFT
 #define HANDLE_PAYLOAD_MASK     &h07FFFFFF  '(1 shl HANDLE_TYPE_SHIFT) - 1
+
+#define make_handle_raw(htype, payload) ((htype SHL HANDLE_TYPE_SHIFT) OR (payload))
 'Only the bottom 27 bits of payload are used, it can be either an integer in the range 0 to &h07FFFFFF
 'or a signed integer in range -&h04000000 to &h03FFFFFF.
-#define make_handle(type, payload) ((type SHL HANDLE_TYPE_SHIFT) OR (payload AND HANDLE_PAYLOAD_MASK))
+#define make_handle(htype, payload) make_handle_raw(htype, payload AND HANDLE_PAYLOAD_MASK)
 'The handle type is a signed integer -16 to 15
 #define get_handle_type(handle)    (CAST(integer, handle) SHR HANDLE_TYPE_SHIFT)
 'Returns the payload as an unsigned value 0 to &h07FFFFFF

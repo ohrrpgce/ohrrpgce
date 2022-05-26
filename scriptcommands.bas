@@ -5458,12 +5458,13 @@ END SUB
 'Return the Slice ptr for a slice handle, or throw an error
 'and return NULL if not valid
 FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
- 'It's not necessary to explicitly check handle is >= HandleType.Slice,
+ 'It's not necessary to explicitly check get_handle_type(handle) >= HandleType.Slice,
  'in fact we mustn't, to support obsolete handles in old saves which count up from 1.
  DIM slot as uinteger = handle AND SLICE_HANDLE_SLOT_MASK
  IF slot > UBOUND(plotslices) ORELSE plotslices(slot).handle <> handle ORELSE plotslices(slot).sl = NULL THEN
   IF errlvl > serrIgnore THEN
-   IF (handle AND NOT SLICE_HANDLE_CTR_MASK) = (plotslices(slot).handle AND NOT SLICE_HANDLE_CTR_MASK) THEN
+   IF slot > 0 ANDALSO slot <= UBOUND(plotslices) ANDALSO _
+      (handle AND NOT SLICE_HANDLE_CTR_MASK) = (plotslices(slot).handle AND NOT SLICE_HANDLE_CTR_MASK) THEN
     'The HandleType is correct so could have been a valid handle to a previously existing slice in this slot
     scripterr current_command_name() & ": the slice with handle " & handle & " has been deleted", errlvl
    ELSE
@@ -5596,7 +5597,7 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
   next_slice_table_slot = slot + 1
   'Increment the previous ctr (already shifted) by 1, looping around to 0
   DIM ctr as uinteger = (.handle + (1 SHL SLICE_HANDLE_CTR_SHIFT)) AND SLICE_HANDLE_CTR_MASK
-  .handle = (HandleType.Slice SHL HANDLE_TYPE_SHIFT) OR ctr OR slot
+  .handle = make_handle_raw(HandleType.Slice, ctr OR slot)
   RETURN .handle
  END WITH
 END FUNCTION
