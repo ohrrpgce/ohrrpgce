@@ -1793,6 +1793,8 @@ SUB update_battle_targetting_slices (layer as Slice Ptr, bat as BattleState, bsp
    'Targetting area also functions as a hero or enemy info area
    update_battle_hero_or_enemy_info_slice sl, bat, bspr
   END IF
+  DIM cursor as Slice Ptr = LookupSlice(SL_BATTLE_TARGETTING_CURSOR, sl)
+  IF cursor <> 0 THEN cursor->Pos = .cursorpos
   IF bat.targ.mode > targNONE ANDALSO (bat.targ.selected(.index) = YES ORELSE bat.targ.pointer = .index) THEN
    sl->Visible = YES
   END IF
@@ -2009,8 +2011,14 @@ FUNCTION create_default_targetting_overlay_area () as Slice Ptr
  'Template for the targetting overlay
  DIM templ as Slice Ptr = NewSliceOfType(slContainer, layer, SL_BATTLE_TARGETTING_TEMPLATE)
  templ->Template = YES
- DIM curs as Slice Ptr = NewSliceOfType(slText, templ)
- curs->Pos = XY(-3, 4)
+ DIM cursor as Slice Ptr = NewSliceOfType(slContainer, templ, SL_BATTLE_TARGETTING_CURSOR)
+ cursor->AnchorHoriz = alignCenter
+ cursor->AlignHoriz = alignCenter
+ cursor->AnchorVert = alignBottom
+ cursor->AlignVert = alignTop
+ cursor->Size = XY(0, 0)
+ DIM curs as Slice Ptr = NewSliceOfType(slText, cursor)
+ curs->Pos = XY(0, 4)
  curs->AnchorHoriz = alignCenter
  curs->AlignHoriz = alignCenter
  curs->AnchorVert = alignBottom
@@ -2019,9 +2027,9 @@ FUNCTION create_default_targetting_overlay_area () as Slice Ptr
  curs->ClampVert = alignBoth
  curs->ClampToScreen = YES
  ChangeTextSlice curs, CHR(24), uiSelectedItem2 * -1 - 1, YES
- DIM targname as Slice Ptr = NewSliceOfType(slText, templ)
+ DIM targname as Slice Ptr = NewSliceOfType(slText, cursor)
  targname->AnchorHoriz = alignCenter
- targname->AlignHoriz = alignCenter
+ targname->AlignHoriz = alignTop
  targname->AnchorVert = alignBottom
  targname->AlignVert = alignTop
  targname->ClampHoriz = alignBoth

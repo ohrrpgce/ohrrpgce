@@ -533,6 +533,7 @@ FUNCTION SliceLookupCodename (byval code as integer, use_default as bool = YES) 
   CASE SL_BATTLE_TARG_HOVER_TEMPLATE: RETURN "battle targ hover template"
   CASE SL_BATTLE_TARG_HOVER_OVERLAY: RETURN "battle targ hover overlay"
   CASE SL_BATTLE_TARG_HOVER_SELECT: RETURN "battle targ hover select"
+  CASE SL_BATTLE_TARGETTING_CURSOR: RETURN "battle targetting cursor"
 '</SLICE LOOKUP NAMES>
   CASE IS > 0
    'TODO: cache slicelookup() in memory.

@@ -2678,6 +2678,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   append_simplemenu_item menu, "battle_targ_hover_template", , , -200123
   append_simplemenu_item menu, "battle_targ_hover_overlay", , , -200124
   append_simplemenu_item menu, "battle_targ_hover_select", , , -200125
+  append_simplemenu_item menu, "battle_targetting_cursor", , , -200126
 '</SLICE LOOKUP NAMES>
 
  END IF
