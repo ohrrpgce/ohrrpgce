@@ -1823,6 +1823,8 @@ SUB update_battle_targ_hover_slices (layer as Slice Ptr, bat as BattleState, bsp
    'Targetting hover area also functions as a hero or enemy info area
    update_battle_hero_or_enemy_info_slice sl, bat, bspr
   END IF
+  DIM cursor as Slice Ptr = LookupSlice(SL_BATTLE_TARG_HOVER_CURSOR, sl)
+  IF cursor <> 0 THEN cursor->Pos = .cursorpos
   IF bat.targ.mode > targNONE ANDALSO bat.targ.hover = .index THEN
    sl->Visible = YES
   END IF
@@ -2046,8 +2048,16 @@ FUNCTION create_default_targ_hover_overlay_area () as Slice Ptr
  'Template for the hover overlay (only relevant for mouse control)
  DIM hov_templ as Slice Ptr = NewSliceOfType(slContainer, layer, SL_BATTLE_TARG_HOVER_TEMPLATE)
  hov_templ->Template = YES
- DIM hov_select as Slice Ptr = NewSliceOfType(slSelect, hov_templ, SL_BATTLE_TARG_HOVER_SELECT)
- hov_select->Pos = XY(-3, 4)
+ DIM hov_cursor as Slice Ptr = NewSliceOfType(slContainer, hov_templ, SL_BATTLE_TARG_HOVER_CURSOR)
+ hov_cursor->AnchorHoriz = alignCenter
+ hov_cursor->AlignHoriz = alignCenter
+ hov_cursor->AnchorVert = alignBottom
+ hov_cursor->AlignVert = alignTop
+ hov_cursor->Pos = XY(0, 0)
+ hov_cursor->Size = XY(0, 0)
+ 
+ DIM hov_select as Slice Ptr = NewSliceOfType(slSelect, hov_cursor, SL_BATTLE_TARG_HOVER_SELECT)
+ hov_select->Pos = XY(0, 4)
  hov_select->Size = XY(8, 10)
  hov_select->AnchorHoriz = alignCenter
  hov_select->AlignHoriz = alignCenter
