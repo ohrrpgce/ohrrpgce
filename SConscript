@@ -34,7 +34,7 @@ TRUE_CFLAGS = ['--std=gnu11']
 # Flags used only for C++ (in addition to CFLAGS)
 # Can add -fno-exceptions, but only removes ~2KB
 CXXFLAGS = '--std=c++0x -Wno-non-virtual-dtor'.split()
-# CCLINKFLAGS are passed to $CXX when linking with gcc/clang (linkgcc=1, which is the default)
+# CCLINKFLAGS are passed to $CC when linking with gcc/clang (linkgcc=1, which is the default)
 CCLINKFLAGS = []
 # FBLINKFLAGS are passed to fbc when linking with fbc (linkgcc=0)
 FBLINKFLAGS = []
@@ -49,7 +49,7 @@ if verbose:
 if 'FBFLAGS' in os.environ:
     FBFLAGS += shlex.split (os.environ['FBFLAGS'])
 gengcc = int (ARGUMENTS.get ('gengcc', True if release else False))
-linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # link using g++ instead of fbc?
+linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # Link using gcc instead of fbc?
 envextra = {}
 FRAMEWORKS_PATH = os.path.expanduser("~/Library/Frameworks")  # Frameworks search path in addition to the default /Library/Frameworks
 destdir = ARGUMENTS.get ('destdir', '')
@@ -769,7 +769,9 @@ if linkgcc:
     if win32:
         # win32\ld_opt_hack.txt contains --stack option which can't be passed using -Wl
         CCLINKFLAGS += ['-static-libgcc', '-static-libstdc++', '-Wl,@win32/ld_opt_hack.txt']
+        CCLINKFLAGS += ['-l', ':libstdc++.a']
     else:
+        CCLINKFLAGS += ['-lstdc++']
         if 'fb' in gfx:
             # Program icon required by fbgfx, but we only provide it on Windows,
             # because on X11 need to provide it as an XPM instead
@@ -840,9 +842,9 @@ if linkgcc:
         # -( -) are not supported on Mac, and don't seem to work with some other linkers either (e.g. on NixOS)...
     if True:
         # ...so never use -( -), to be more portable
-        basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CCLINKFLAGS'
+        basexe_gcc_action = '$CC $CFLAGS -o $TARGET $SOURCES $CCLINKFLAGS'
     else:
-        basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES "-Wl,-(" $CCLINKFLAGS "-Wl,-)"'
+        basexe_gcc_action = '$CC $CFLAGS -o $TARGET $SOURCES "-Wl,-(" $CCLINKFLAGS "-Wl,-)"'
 
     basexe_gcc = Builder (action = [basexe_gcc_action, check_binary, handle_symbols], suffix = exe_suffix,
                           src_suffix = '.bas', emitter = compile_main_module)
@@ -1681,7 +1683,7 @@ Options:
   buildtests=0        Affects test targets only: run tests without recompiling
                       anything or reimporting scripts.
   v=1                 Verbose output from commands.
-  linkgcc=0           Link using fbc instead of g++/clang++. May not work.
+  linkgcc=0           Link using fbc instead of gcc/clang. May not work.
   compiler=gcc|clang  Prefer to use clang or gcc for C, C++ and -gen gcc.
                       CC, CXX, FBCC environmental variables always take
                       precedence if set. If not, by default we use gcc for C, g++
