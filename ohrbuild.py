@@ -221,6 +221,9 @@ def expand_tool_path(path, always_expand = False):
     If it's in PATH, expand only if always_expand.
     """
     path = os.path.expanduser(path)  # expand ~
+    if host_win32:
+        if path.startswith('"') and path.endswith('"'):
+            path = path[1:-1]
     if os.path.isfile(path):
         return path
     ret = WhereIs(path)
@@ -253,7 +256,7 @@ def findtool(module, envvars, toolname, always_expand = False):
             ret = toolname
     # standalone builds of FB on Windows do not search $PATH for binaries,
     # so we have to do so for it!
-    ret = expand_tool_path(ret, module['win32'] or always_expand)
+    ret = expand_tool_path(ret, host_win32 or always_expand)
     return ret
 
 ########################################################################

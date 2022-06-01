@@ -803,7 +803,7 @@ if linkgcc:
         # but not necessarily in PATH. (Only a few dlls and mspdbsrv.exe actually needed.)
         # By default cv2pdb modifies the exe in-place, stripping DWARF debug info,
         # pass NUL as second argument to throw away the stripped copy.
-        handle_symbols = os.path.join('support', 'cv2pdb') + ' $TARGET '
+        handle_symbols = os.path.join('support', 'cv2pdb') + exe_suffix + ' $TARGET '
         # Actually, we need to always strip the debug info, because cv2pdb puts the GUID
         # of the .pdb in the exe at the same time, without which the .pdb doesn't work.
         # It would be possible to modify cv2pdb to add the GUID without stripping
@@ -1425,8 +1425,12 @@ COMMONTEST = env_exe ('commontest', builder = allmodexenv.BASEXE, source = allmo
 
 Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
 
-# building gfx_directx.dll (can't crosscompile)
-if platform.system () == 'Windows':
+# gfx_directx.dll and gfx_directx_test1.exe
+# Skip the following if we aren't building these, to avoid warnings if VC++ isn't available.
+if any('gfx_directx' in targ for targ in BUILD_TARGETS):
+    if platform.system() != 'Windows':
+        exit("Can't cross-compile gfx_directx, requires Visual C++")
+
     directx_sources = ['d3d.cpp', 'didf.cpp', 'gfx_directx.cpp', 'joystick.cpp', 'keyboard.cpp',
                        'midsurface.cpp', 'mouse.cpp', 'window.cpp']
     directx_sources = [os.path.join('gfx_directx', f) for f in directx_sources]
