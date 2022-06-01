@@ -3813,6 +3813,7 @@ SUB spells_menu_refresh_hero(sp as SpellsMenuState)
   END WITH
  NEXT i
 
+ DIM lists_added as integer  'bitvector
  DIM slot as integer = 0
  DIM listnum as integer
  DIM hero_node as NodePtr = her.reld
@@ -3822,6 +3823,15 @@ SUB spells_menu_refresh_hero(sp as SpellsMenuState)
    k = m."kind".ptr
    IF k."spells".exists THEN
     listnum = k."spells".integer
+    IF listnum < 0 ORELSE listnum > UBOUND(her.list_type) THEN
+     showerror "Invalid spell list " & listnum
+     FreeNode m
+     EXIT READNODE
+    END IF
+    'Only add each spell list once
+    DIM list_bit as integer = 1 SHL listnum
+    IF lists_added AND list_bit THEN CONTINUE READNODE
+
     WITH sp.lists(slot)
      .menu_index = listnum
      .magic_type = her.list_type(.menu_index)
@@ -3833,6 +3843,7 @@ SUB spells_menu_refresh_hero(sp as SpellsMenuState)
         'Only show lists with non-blank names
         .name = rpad(.name, " ", 10)
         slot += 1
+        lists_added OR= list_bit
        END IF
       END IF
      END IF
