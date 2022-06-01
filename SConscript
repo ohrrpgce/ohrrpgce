@@ -31,7 +31,7 @@ FBCC_CFLAGS = []
 # which causes types like off_t and off64_t to be renamed to _off_t and _off64_t
 # under MinGW. (See bug 951)
 TRUE_CFLAGS = ['--std=gnu11']
-# Flags used only for C++ (in addition to CFLAGS)
+# Flags used only for C++ (in addition to CFLAGS). Not used for linking.
 # Can add -fno-exceptions, but only removes ~2KB
 CXXFLAGS = '--std=c++0x -Wno-non-virtual-dtor'.split()
 # CCLINKFLAGS are passed to $CC when linking with gcc/clang (linkgcc=1, which is the default)
@@ -237,6 +237,7 @@ if debug >= 1 or pdb:
     FBFLAGS.append ('-g')
     CFLAGS.append ('-g')
     FBCC_CFLAGS.append ('-g')
+    CCLINKFLAGS.append ('-g')
 
 # Note: fbc includes symbols (but not debug info) in .o files even without -g,
 # but strips everything if -g not passed during linking; with linkgcc we need to strip.
@@ -285,6 +286,7 @@ if profile:
     FBFLAGS.append ('-profile')
     CFLAGS.append ('-pg')
     FBCC_CFLAGS.append ('-pg')
+    CCLINKFLAGS.append ('-pg')
 if int (ARGUMENTS.get ('valgrind', 0)):
     #-exx under valgrind is nearly redundant, and really slow
     FB_exx = False
@@ -555,6 +557,7 @@ if mac:
         CCLINKFLAGS += ["-isysroot", macSDKpath]  # "-static-libgcc", '-weak-lSystem']
     FBLINKERFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
     CFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
+    CCLINKFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
     if macosx_version_min != '10.4':
         # SDL 1.2.15+ (and SDL_mixer) uses @rpath in its load path, so the executable now needs
         # to contain an rpath. (Fix for bug #1113) @rpath was added in Mac OS 10.5. This is why
@@ -629,6 +632,7 @@ elif arch == 'x86':
     FBFLAGS += ["-arch", "686"]  # "x86" alias not recognised by FB yet
     CFLAGS.append ('-m32')
     FBCC_CFLAGS.append ('-m32')
+    CCLINKFLAGS.append ('-m32')
     if FBC.version < 1060 and CC.is_gcc and gengcc == False:
         # Recent versions of GCC default to assuming the stack is kept 16-byte aligned
         # (which is a recent change in the Linux x86 ABI, and IIRC is also part of the
@@ -643,6 +647,7 @@ elif arch == 'x86_64':
     FBFLAGS += ["-arch", arch]
     CFLAGS.append ('-m64')
     FBCC_CFLAGS.append ('-m64')
+    CCLINKFLAGS.append ('-m64')
     # This also causes older FB to default to -gen gcc, as -gen gas not supported
     # (but FB 1.08 added -gen gas64)
     # (therefore we don't need to pass -mpreferred-stack-boundary=2)
@@ -842,9 +847,9 @@ if linkgcc:
         # -( -) are not supported on Mac, and don't seem to work with some other linkers either (e.g. on NixOS)...
     if True:
         # ...so never use -( -), to be more portable
-        basexe_gcc_action = '$CC $CFLAGS -o $TARGET $SOURCES $CCLINKFLAGS'
+        basexe_gcc_action = '$CC -o $TARGET $SOURCES $CCLINKFLAGS'
     else:
-        basexe_gcc_action = '$CC $CFLAGS -o $TARGET $SOURCES "-Wl,-(" $CCLINKFLAGS "-Wl,-)"'
+        basexe_gcc_action = '$CC -o $TARGET $SOURCES "-Wl,-(" $CCLINKFLAGS "-Wl,-)"'
 
     basexe_gcc = Builder (action = [basexe_gcc_action, check_binary, handle_symbols], suffix = exe_suffix,
                           src_suffix = '.bas', emitter = compile_main_module)
