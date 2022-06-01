@@ -34,9 +34,9 @@ TRUE_CFLAGS = ['--std=gnu11']
 # Flags used only for C++ (in addition to CFLAGS)
 # Can add -fno-exceptions, but only removes ~2KB
 CXXFLAGS = '--std=c++0x -Wno-non-virtual-dtor'.split()
-# CXXLINKFLAGS are used when linking with g++
-CXXLINKFLAGS = []
-# FBLINKFLAGS are passed to fbc when linking with fbc
+# CCLINKFLAGS are passed to $CXX when linking with gcc/clang (linkgcc=1, which is the default)
+CCLINKFLAGS = []
+# FBLINKFLAGS are passed to fbc when linking with fbc (linkgcc=0)
 FBLINKFLAGS = []
 # FBLINKERFLAGS are passed to the linker (with -Wl) when linking with fbc
 FBLINKERFLAGS = []
@@ -250,8 +250,8 @@ if lto:
     # to use -fno-strict-aliasing. That might actually be needed despite the declarations being equivalent.
     CFLAGS.append('-fno-strict-aliasing')
     GENGCC_CFLAGS.append('-fno-strict-aliasing')
-    CXXLINKFLAGS += ['-fno-strict-aliasing', '-Wno-lto-type-mismatch']
-    #CXXLINKFLAGS.append('-flto')  # Shouldn't actually be needed?
+    CCLINKFLAGS += ['-fno-strict-aliasing', '-Wno-lto-type-mismatch']
+    #CCLINKFLAGS.append('-flto')  # Shouldn't actually be needed?
     if 'x86' in arch:
         # The default Intel syntax results in link-time asm errors like "Error: junk `(%rbp)' after expression"
         FBFLAGS += ['-asm', 'att']
@@ -272,7 +272,7 @@ if glibc:
         # try to use these symbols)
         # Unfortunately it even puts in symbols for functions that don't exist because they
         # were dead code or always inlined (especially in LTO builds)
-        CXXLINKFLAGS.append('-Wl,--export-dynamic')
+        CCLINKFLAGS.append('-Wl,--export-dynamic')
         FBLINKERFLAGS.append('--export-dynamic')
 
 portable = False
@@ -295,7 +295,7 @@ if asan:
     # AddressSanitizer is supported by both gcc & clang. They are responsible for linking runtime library
     assert linkgcc, "linkgcc=0 asan=1 combination not supported."
     CFLAGS.append ('-fsanitize=address')
-    CXXLINKFLAGS.append ('-fsanitize=address')
+    CCLINKFLAGS.append ('-fsanitize=address')
     base_libraries.append ('dl')
     # Also, compile FB to C by default, unless overridden with gengcc=0.
     if int (ARGUMENTS.get ('gengcc', 1)):
@@ -306,12 +306,12 @@ if tiny:
     gengcc = True
     CFLAGS.append('-Os')
     CXXFLAGS.append('-fno-exceptions')  # Just a few bytes
-    CXXLINKFLAGS.append('-Os')  # For LTO
+    CCLINKFLAGS.append('-Os')  # For LTO
     GENGCC_CFLAGS.append('-Os')
     FBFLAGS += ["-O", "2"]  # Currently no effect
 elif optimisations:
     CFLAGS.append ('-O3')
-    CXXLINKFLAGS.append ('-O2')  # For LTO
+    CCLINKFLAGS.append ('-O2')  # For LTO
     if optimisations > 1:
         # Also optimise FB code. Only use -O2 instead of -O3 because -O3 produces about 10% larger
         # binaries (before and after compression) but most of the performance critical stuff is in
@@ -524,7 +524,7 @@ if mac:
     macSDKpath = ''
     if os.path.isdir(FRAMEWORKS_PATH):
         FBLINKERFLAGS += ['-F', FRAMEWORKS_PATH]
-        CXXLINKFLAGS += ['-F', FRAMEWORKS_PATH]
+        CCLINKFLAGS += ['-F', FRAMEWORKS_PATH]
     # OS 10.4 is the minimum version supported by SDL 1.2.14 on x86 (README.MacOSX
     # in the SDL source tree seems to be out of date, it doesn't even mention x86_64)
     # and OS 10.6 is the minimum for x86_64. 10.6 was released 2009
@@ -552,7 +552,7 @@ if mac:
         if not os.path.isdir(macSDKpath):
             raise Exception('Mac SDK ' + macsdk + ' not installed: ' + macSDKpath + ' is missing')
         macosx_version_min = macsdk
-        CXXLINKFLAGS += ["-isysroot", macSDKpath]  # "-static-libgcc", '-weak-lSystem']
+        CCLINKFLAGS += ["-isysroot", macSDKpath]  # "-static-libgcc", '-weak-lSystem']
     FBLINKERFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
     CFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
     if macosx_version_min != '10.4':
@@ -560,7 +560,7 @@ if mac:
         # to contain an rpath. (Fix for bug #1113) @rpath was added in Mac OS 10.5. This is why
         # SDL 1.2.15 sets macOS 10.5 as the minimum. We're still using SDL 1.2.14 for 32-bit builds.
         FBLINKERFLAGS += ['-rpath,@executable_path/../Frameworks']
-        CXXLINKFLAGS += ['-Wl,-rpath,@executable_path/../Frameworks']
+        CCLINKFLAGS += ['-Wl,-rpath,@executable_path/../Frameworks']
 
 
 ################ Cross-compiling and arch-specific stuff
@@ -576,12 +576,12 @@ if android:
     # A workaround is to use a tool to load a PIE executable as a library
     # and run it on older Android:
     #https://chromium.googlesource.com/chromium/src/+/32352ad08ee673a4d43e8593ce988b224f6482d3/tools/android/run_pie/run_pie.c
-    CXXLINKFLAGS += ["-pie"]
+    CCLINKFLAGS += ["-pie"]
 elif mac:
     # (This is old logic, probably it should be merged into the branch below,
     # but I don't want to worry about breaking mac builds right now)
     # -no_pie (no position-independent execution) fixes a warning
-    CXXLINKFLAGS += ['-Wl,-no_pie']
+    CCLINKFLAGS += ['-Wl,-no_pie']
     NO_PIE = '-no_pie'
 elif not win32:
     # Recent versions of some linux distros, such as debian and arch, config
@@ -606,7 +606,7 @@ elif not win32:
         GENGCC_CFLAGS += [NO_PIE]
         # -no_pie is only needed when linking using gcc, not with linkgcc=0,
         # since apparently it's gcc, not ld, which is defaulting to PIE
-        CXXLINKFLAGS += [NO_PIE]
+        CCLINKFLAGS += [NO_PIE]
 
 
 # We set gengcc=True if FB will default to it; we need to know whether it's used
@@ -721,11 +721,11 @@ if gengcc:
 
 if mac:
     # Doesn't have --gc-sections. This is similar, but more aggressive than --gc-sections
-    CXXLINKFLAGS += ['-Wl,-dead_strip']
+    CCLINKFLAGS += ['-Wl,-dead_strip']
 else:
     # --gc-sections decreases filesize, but unfortunately doesn't remove symbols for dropped sections,
     # not even with -flto or --strip-discarded!
-    CXXLINKFLAGS += ['-Wl,--gc-sections']
+    CCLINKFLAGS += ['-Wl,--gc-sections']
 
 
 
@@ -748,42 +748,42 @@ if linkgcc:
     # for more dependencies (specifically SDL on X11, etc)
     # Usually the default, but overridden on some distros. Don't know whether GOLD ld supports this.
     if not mac:
-        CXXLINKFLAGS += ['-Wl,--add-needed']
+        CCLINKFLAGS += ['-Wl,--add-needed']
 
     # FB libs
     # Passing this -L option straight to the linker is necessary, otherwise gcc gives it
     # priority over the default library paths, which on Windows means using FB's old mingw libraries
     if android:
         # See NO_PIE discussion above
-        CXXLINKFLAGS += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0pic.o'), '-lfbmtpic']
+        CCLINKFLAGS += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0pic.o'), '-lfbmtpic']
     else:
-        CXXLINKFLAGS += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
+        CCLINKFLAGS += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
 
     if verbose:
-        CXXLINKFLAGS += ['-v']
+        CCLINKFLAGS += ['-v']
     if linkgcc_strip:
         # Strip debug info but leave in the function (and unwanted global) symbols.
         # Result is about 600KB larger than a full strip, and after running
         # strip_unwanted_syms below, down to 280KB.
-        CXXLINKFLAGS += ['-Wl,-S']
+        CCLINKFLAGS += ['-Wl,-S']
     if win32:
         # win32\ld_opt_hack.txt contains --stack option which can't be passed using -Wl
-        CXXLINKFLAGS += ['-static-libgcc', '-static-libstdc++', '-Wl,@win32/ld_opt_hack.txt']
+        CCLINKFLAGS += ['-static-libgcc', '-static-libstdc++', '-Wl,@win32/ld_opt_hack.txt']
     else:
         if 'fb' in gfx:
             # Program icon required by fbgfx, but we only provide it on Windows,
             # because on X11 need to provide it as an XPM instead
-            CXXLINKFLAGS += ['linux/fb_icon.c']
+            CCLINKFLAGS += ['linux/fb_icon.c']
         # Android doesn't have ncurses, and libpthread is part of libc
         if not android:
             # The following are required by libfb (not libfbgfx)
-            CXXLINKFLAGS += ['-lpthread']
+            CCLINKFLAGS += ['-lpthread']
             # Some Linux systems have only libncurses.so.5, others only libncurses.so.6
             # (since ~2015), and some have libtinfo.so while others don't. Probably same mess on BSD.
             # So don't link to libncurses/libtinfo. Instead we link to lib/termcap_stub.c below.
             # Don't know about Mac situation.
             if not portable or mac:
-                CXXLINKFLAGS += ['-lncurses']
+                CCLINKFLAGS += ['-lncurses']
 
     def compile_main_module(target, source, env):
         """
@@ -840,9 +840,9 @@ if linkgcc:
         # -( -) are not supported on Mac, and don't seem to work with some other linkers either (e.g. on NixOS)...
     if True:
         # ...so never use -( -), to be more portable
-        basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CXXLINKFLAGS'
+        basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES $CCLINKFLAGS'
     else:
-        basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES "-Wl,-(" $CXXLINKFLAGS "-Wl,-)"'
+        basexe_gcc_action = '$CXX $CXXFLAGS -o $TARGET $SOURCES "-Wl,-(" $CCLINKFLAGS "-Wl,-)"'
 
     basexe_gcc = Builder (action = [basexe_gcc_action, check_binary, handle_symbols], suffix = exe_suffix,
                           src_suffix = '.bas', emitter = compile_main_module)
@@ -878,7 +878,7 @@ if portable and (unix and not mac):
         # are defined in lib/glibc_compat.c.
         # See https://rpg.hamsterrepublic.com/ohrrpgce/Portable_GNU-Linux_binaries
         syms = "fcntl", "fcntl64", "stat64", "pow", "exp", "log"
-        CXXLINKFLAGS.append ("-Wl," + ",".join("--wrap=" + x for x in syms))
+        CCLINKFLAGS.append ("-Wl," + ",".join("--wrap=" + x for x in syms))
         FBLINKERFLAGS += ["--wrap=" + x for x in syms]
 
 # As long as exceptions aren't used anywhere and don't have to be propagated between libraries,
@@ -888,7 +888,7 @@ if portable and (unix and not mac):
 # NOTE: libgcc_s.so still appears in ldd output, but it's no longer listed in objdump -p
 # dependencies... hmmm...
 # if unix:
-#     CXXLINKFLAGS += ['-static-libgcc']
+#     CCLINKFLAGS += ['-static-libgcc']
 
 #################### Generate extraconfig.cfg for Android
 
@@ -930,13 +930,13 @@ if android_source:
 env['FBFLAGS'] = FBFLAGS
 env['CFLAGS'] += CFLAGS + TRUE_CFLAGS
 env['CXXFLAGS'] += CFLAGS + CXXFLAGS
-env['CXXLINKFLAGS'] = CXXLINKFLAGS
+env['CCLINKFLAGS'] = CCLINKFLAGS
 env['FBLINKFLAGS'] = FBLINKFLAGS
 env['FBLINKERFLAGS'] = FBLINKERFLAGS
 
 # These no longer have any effect.
 del FBFLAGS, TRUE_CFLAGS, GENGCC_CFLAGS, CFLAGS, CXXFLAGS
-del CXXLINKFLAGS, FBLINKFLAGS, FBLINKERFLAGS
+del CCLINKFLAGS, FBLINKFLAGS, FBLINKERFLAGS
 
 ################ Program-specific stuff starts here
 
@@ -1026,8 +1026,8 @@ if win32:
         env['CFLAGS'] += ['-D', 'USE_WINSOCK1']
     common_libraries += ['fbgfxmt', 'fbmt']   # For display_help_string
     commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
-    commonenv['CXXLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
-    #env['CXXLINKFLAGS'] += ['win32/CrashRpt1403.lib']  # If not linking the .dll w/ LoadLibrary
+    commonenv['CCLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
+    #env['CCLINKFLAGS'] += ['win32/CrashRpt1403.lib']  # If not linking the .dll w/ LoadLibrary
     env['CFLAGS'] += ['-I', 'win32/include']
     if 'sdl' in gfx or 'fb' in gfx:
         common_modules += ['lib/SDL/SDL_windowsclipboard.c', 'gfx_common/ohrstring.cpp']
@@ -1096,14 +1096,14 @@ elif unix:  # Unix+X11 systems: Linux & BSD
 if win32:
     # win32/ contains .a and .dll.a files
     env['FBLINKFLAGS'] += ['-p', 'win32']
-    env['CXXLINKFLAGS'] += ['-L', 'win32']
+    env['CCLINKFLAGS'] += ['-L', 'win32']
     common_libpaths += ['win32']
 
-commonenv['CXXLINKFLAGS'] += ['-L' + path for path in common_libpaths]
+commonenv['CCLINKFLAGS'] += ['-L' + path for path in common_libpaths]
 commonenv['FBLINKFLAGS'] += Flatten ([['-p', v] for v in common_libpaths])
 
 for lib in base_libraries:
-    env['CXXLINKFLAGS'] += ['-l' + lib]
+    env['CCLINKFLAGS'] += ['-l' + lib]
     env['FBLINKFLAGS'] += ['-l', lib]
 
 if mac:
@@ -1120,10 +1120,10 @@ for lib in common_libraries + base_libraries:
         # (Note: linkgcc=0 does not work on Mac because the #inclib "SDL" in the
         # SDL headers causes fbc to pass -lSDL to the linker, which can't be
         # found (even if we add the framework path, because it's not called libSDL.dylib))
-        commonenv['CXXLINKFLAGS'] += ['-framework', lib]
+        commonenv['CCLINKFLAGS'] += ['-framework', lib]
         commonenv['FBLINKERFLAGS'] += ['-framework', lib]
     else:
-        commonenv['CXXLINKFLAGS'] += ['-l' + lib]
+        commonenv['CCLINKFLAGS'] += ['-l' + lib]
         commonenv['FBLINKFLAGS'] += ['-l', lib]
 
 
@@ -1412,7 +1412,7 @@ x2rsrc = ['xml2reload.bas'] + reload_objects
 if win32:
     # Hack around our provided libxml2.a lacking a function. (Was less work than recompiling)
     x2rsrc.append (env.Object('win32/utf8toisolat1.c'))
-XML2RELOAD = env_exe ('xml2reload', source = x2rsrc, FBLINKFLAGS = env['FBLINKFLAGS'] + ['-l','xml2'], CXXLINKFLAGS = env['CXXLINKFLAGS'] + ['-lxml2'])
+XML2RELOAD = env_exe ('xml2reload', source = x2rsrc, FBLINKFLAGS = env['FBLINKFLAGS'] + ['-l','xml2'], CCLINKFLAGS = env['CCLINKFLAGS'] + ['-lxml2'])
 RELOAD2XML = env_exe ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
 RELOADUTIL = env_exe ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
 RBTEST = env_exe ('rbtest', source = [env.RB('rbtest.rbas'), env.RB('rbtest2.rbas')] + reload_objects)
