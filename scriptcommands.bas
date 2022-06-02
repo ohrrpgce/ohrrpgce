@@ -348,7 +348,7 @@ END FUNCTION
 '==========================================================================================
 
 
-FUNCTION script_keyval (byval key as KBScancode, byval player as integer = 0) as KeyBits
+FUNCTION script_keyval (byval key as KBScancode, byval player as integer = 0, byref down_ms as integer = 0) as KeyBits
  'Wrapper around player_keyval for use by scripts: performs scancode mapping for back-compat
 
  IF key < scKEYVAL_FIRST ORELSE key > scKEYVAL_LAST THEN
@@ -356,7 +356,7 @@ FUNCTION script_keyval (byval key as KBScancode, byval player as integer = 0) as
   RETURN 0
  END IF
 
- DIM ret as KeyBits = player_keyval(key, player)
+ DIM ret as KeyBits = player_keyval(key, player, down_ms)
 
  IF gam.click_keys THEN
   DIM mask as integer
@@ -372,6 +372,8 @@ FUNCTION script_keyval (byval key as KBScancode, byval player as integer = 0) as
    DIM byref mouse as MouseInfo = readmouse()
    'Check for release, not click, because that's how all builtin
    'use/menu/cancel/textbox advance controls work.
+   'Not counting mouse buttons towards down_ms because it's too much work, too obscure,
+   'and mouse buttons don't cause key-repeat anyway.
    IF mouse.release AND mask THEN ret OR= 6
    IF mouse.buttons AND mask THEN ret OR= 1
   END IF
@@ -384,26 +386,26 @@ FUNCTION script_keyval (byval key as KBScancode, byval player as integer = 0) as
   'as if they were indistinguishable.
   SELECT CASE key
    CASE scHome TO scDelete
-    ret OR= player_keyval(key + scNumpad7 - scHome, player)
+    ret OR= player_keyval(key + scNumpad7 - scHome, player, down_ms)
    CASE scNumpad7 TO scNumpad9, scNumpad4 TO scNumpad6, scNumpad1 TO scNumpadPeriod
-    ret OR= player_keyval(key - scNumpad7 + scHome, player)
-   CASE scSlash:       ret OR= player_keyval(scNumpadSlash, player)
-   CASE scEnter:       ret OR= player_keyval(scNumpadEnter, player)
-   CASE scNumlock:     ret OR= player_keyval(scPause, player)
-   CASE scNumpadSlash: ret OR= player_keyval(scSlash, player)
-   CASE scNumpadEnter: ret OR= player_keyval(scEnter, player)
-   CASE scPause:       ret OR= player_keyval(scNumlock, player)
+    ret OR= player_keyval(key - scNumpad7 + scHome, player, down_ms)
+   CASE scSlash:       ret OR= player_keyval(scNumpadSlash, player, down_ms)
+   CASE scEnter:       ret OR= player_keyval(scNumpadEnter, player, down_ms)
+   CASE scNumlock:     ret OR= player_keyval(scPause, player, down_ms)
+   CASE scNumpadSlash: ret OR= player_keyval(scSlash, player, down_ms)
+   CASE scNumpadEnter: ret OR= player_keyval(scEnter, player, down_ms)
+   CASE scPause:       ret OR= player_keyval(scNumlock, player, down_ms)
   END SELECT
  END IF
 
  IF prefbit(47) = NO THEN  '!Map joystick controls to keyboard keys for scripts
   SELECT CASE key
-   CASE scUp:     ret OR= player_keyval(ccUp, player, , , NO)  'check_keyboard=NO
-   CASE scDown:   ret OR= player_keyval(ccDown, player, , , NO)
-   CASE scLeft:   ret OR= player_keyval(ccLeft, player, , , NO)
-   CASE scRight:  ret OR= player_keyval(ccRight, player, , , NO)
-   CASE scEnter:  ret OR= player_keyval(ccUse, player, , , NO)
-   CASE scEsc:    ret OR= player_keyval(ccMenu, player, , , NO)
+   CASE scUp:     ret OR= player_keyval(ccUp, player, down_ms, , , NO)  'check_keyboard=NO
+   CASE scDown:   ret OR= player_keyval(ccDown, player, down_ms, , , NO)
+   CASE scLeft:   ret OR= player_keyval(ccLeft, player, down_ms, , , NO)
+   CASE scRight:  ret OR= player_keyval(ccRight, player, down_ms, , , NO)
+   CASE scEnter:  ret OR= player_keyval(ccUse, player, down_ms, , , NO)
+   CASE scEsc:    ret OR= player_keyval(ccMenu, player, down_ms, , , NO)
   END SELECT
  END IF
 
@@ -5182,6 +5184,9 @@ SUB script_functions(byval cmdid as integer)
   IF sl THEN
    sl->RectData->fuzz_stationary = retvals(1) <> 0
   END IF
+ CASE 747 '--keypress time(scancode, player)
+  a_script_wants_keys()
+  script_keyval(retvals(0), retvals(1), scriptret)
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

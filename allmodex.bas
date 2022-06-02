@@ -257,9 +257,9 @@ type KeyArray extends Object
 	declare sub update_keydown_times(inputst as InputStateFwd)
 	'In following, key is a KBScancode or JoyButton depending on subclass
 	declare function key_repeating(key as integer, repeat_wait as integer, repeat_rate as integer, inputst as InputStateFwd) as KeyBits
-	declare abstract function keyval(key as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd) as KeyBits
-	declare abstract function anykey(inputst as InputStateFwd) as KeyBits
-	declare function controlkey(key as KBScancode, inputst as InputStateFwd, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
+	declare abstract function keyval(key as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd, byref down_ms as integer) as KeyBits
+	declare abstract function anykey(inputst as InputStateFwd, byref down_ms as integer) as KeyBits
+	declare function controlkey(key as KBScancode, inputst as InputStateFwd, repeat_wait as integer = 0, repeat_rate as integer = 0, byref down_ms as integer) as KeyBits
 	declare sub clearkeys()
 end type
 
@@ -273,8 +273,8 @@ type KeyboardState extends KeyArray
 	declare sub update_keybits()
 	declare function is_arrow_key(key as KBScancode) as bool
 	declare function numpad_alias_key(key as KBScancode) as KBScancode
-	declare function keyval(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd) as KeyBits
-	declare function anykey(inputst as InputStateFwd) as KeyBits
+	declare function keyval(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd, byref down_ms as integer) as KeyBits
+	declare function anykey(inputst as InputStateFwd, byref down_ms as integer) as KeyBits
 end type
 
 dim shared last_setkeys_time as double      'Used to compute real_input.elapsed_ms
@@ -299,8 +299,8 @@ type JoystickState extends KeyArray
 	declare sub init_controls()
 	declare sub update_keybits(joynum as integer)
 	declare function is_arrow_key(key as JoyButton) as bool
-	declare function keyval(key as JoyButton, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd) as KeyBits
-	declare function anykey(inputst as InputStateFwd) as KeyBits
+	declare function keyval(key as JoyButton, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd, byref down_ms as integer) as KeyBits
+	declare function anykey(inputst as InputStateFwd, byref down_ms as integer) as KeyBits
 end type
 
 ' Keyboard and joystick state which is separate for recording and replaying.
@@ -1854,6 +1854,8 @@ end function
 'Reads replayed state, if any, unless real_keys = YES
 'key:    any scancode, including cc* constants and joystick buttons
 'player: 0 for any input device, 1 is first joystick + keyboard, 2-4 are other joysticks
+'down_ms: set to max(down_ms, ms1, ms2, ...) where ms# are how long each of the keys/buttons
+'        mapped to 'key' have been depressed, in milliseconds.
 'check_keyboard: pass false to ignore keyboard input
 '
 'except for possibly certain special keys (like capslock), each key reports 3 bits:
@@ -1865,16 +1867,16 @@ end function
 'Note: Alt/Ctrl keys may behave strangely with gfx_fb:
 'You won't see Left/Right keypresses even when scAlt/scCtrl is pressed, so do not
 'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
-function player_keyval(key as KBScancode, player as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES, real_keys as bool = NO) as KeyBits
+function player_keyval(key as KBScancode, player as integer = 0, byref down_ms as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES, real_keys as bool = NO) as KeyBits
 	BUG_IF(player < 0, "Invalid player " & player, 0)
 	BUG_IF(key < scKEYVAL_FIRST orelse key > scKEYVAL_LAST, "bad scancode " & key, 0)
 
 	dim ret as KeyBits
 
 	if player = 0 then
-		'Merge all inputs
+		'Merge all return values and find the max down_ms value
 		for player = 1 to num_joysticks()
-			ret or= player_keyval(key, player, repeat_wait, repeat_rate, check_keyboard, real_keys)
+			ret or= player_keyval(key, player, down_ms, repeat_wait, repeat_rate, check_keyboard, real_keys)
 		next
 		return ret
 	end if
@@ -1890,25 +1892,25 @@ function player_keyval(key as KBScancode, player as integer = 0, repeat_wait as 
 	if joynum > ubound(inputst->joys) then return 0
 
 	if key < 0 then  'Control key
-		ret = inputst->joys(joynum).controlkey(key, *inputst, repeat_wait, repeat_rate)
+		ret = inputst->joys(joynum).controlkey(key, *inputst, repeat_wait, repeat_rate, down_ms)
 		if player = 1 andalso check_keyboard then
 			'In future, ignore any keys mapped to other players?
-			ret or= inputst->kb.controlkey(key, *inputst, repeat_wait, repeat_rate)
+			ret or= inputst->kb.controlkey(key, *inputst, repeat_wait, repeat_rate, down_ms)
 		end if
 	elseif key <= scLAST then  'Keyboard key
 		if player = 1 andalso check_keyboard then
-			ret = inputst->kb.keyval(key, repeat_wait, repeat_rate, *inputst)
+			ret = inputst->kb.keyval(key, repeat_wait, repeat_rate, *inputst, down_ms)
 		end if
 	else  'Joystick button
 		dim button as integer = keybd_to_joy_scancode(key)  '0 if invalid
-		ret = inputst->joys(joynum).keyval(button, repeat_wait, repeat_rate, *inputst)
+		ret = inputst->joys(joynum).keyval(button, repeat_wait, repeat_rate, *inputst, down_ms)
 	end if
 	return ret
 end function
 
 'This keyval() variant always returns the real input, rather than replayed input
 function real_keyval (key as KBScancode) as KeyBits
-	return player_keyval(key, 0, , , , YES)
+	return player_keyval(key, 0, , , , , YES)
 end function
 
 function keyval (key as KBScancode) as KeyBits
@@ -1919,7 +1921,7 @@ end function
 
 'Simple keyval() variant with modified key repeat rate (in milliseconds), and no repeat delay
 function slowkey (key as KBScancode, ms as integer) as bool
-	return player_keyval(key, 0, ms, ms) > 1
+	return player_keyval(key, 0, , ms, ms) > 1
 end function
 
 sub setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
@@ -1929,6 +1931,14 @@ sub setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
 	inputst->repeat_wait = repeat_wait
 	inputst->repeat_rate = repeat_rate
 end sub
+
+'How long a key has been depressed, in milliseconds. Or max time, if multiple
+'keys map to 'key'.
+function keypress_time(key as KBScancode, player as integer = 0, real_keys as bool = NO) as integer
+	dim down_ms as integer = 0
+	player_keyval(key, player, down_ms, , , , real_keys)
+	return down_ms
+end function
 
 'Translate a sc* constant to a joy* constant
 function keybd_to_joy_scancode(key as KBScancode) as JoyButton
@@ -1962,13 +1972,13 @@ local function KeyboardState.numpad_alias_key(key as KBScancode) as KBScancode
 	return 0
 end function
 
-function KeyboardState.anykey(inputst as InputState) as KeyBits
+function KeyboardState.anykey(inputst as InputState, byref down_ms as integer) as KeyBits
 	dim ret as KeyBits
 	for key as KBScancode = 0 to scLAST
 		select case key
 			case scNumLock, scCapsLock, scScrollLock
 			case else
-				ret or= this.keyval(key, , , inputst)
+				ret or= this.keyval(key, , , inputst, down_ms)
 		end select
 	next
 	return ret
@@ -1976,10 +1986,10 @@ end function
 
 'This doesn't check all joystick buttons, only ones mapped in controls()
 'semi-intentionally, so you can ignore stuck keys or uncentered sticks.
-function JoystickState.anykey(inputst as InputState) as KeyBits
+function JoystickState.anykey(inputst as InputState, byref down_ms as integer) as KeyBits
 	dim ret as KeyBits
 	for idx as integer = 0 to ubound(this.controls)
-		ret or= this.keyval(this.controls(idx).scancode, , , inputst)
+		ret or= this.keyval(this.controls(idx).scancode, , , inputst, down_ms)
 	next
 	'for button as JoyButton = joyButton1 to joyLAST
 	'	ret or= this.keyval(button, repeat_wait, repeat_rate, inputst)
@@ -1989,17 +1999,17 @@ end function
 
 'Calculate value of a control key for one device, bitwise-ORing all keys mapped to it.
 'cc should be ccFIRST <= cc < 0
-function KeyArray.controlkey (cc as KBScancode, inputst as InputState, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
+function KeyArray.controlkey (cc as KBScancode, inputst as InputState, repeat_wait as integer = 0, repeat_rate as integer = 0, byref down_ms as integer) as KeyBits
 	if cc = ccAny then
 		'Note: repeat_wait and repeat_rate are ignored
-		return this.anykey(inputst)
+		return this.anykey(inputst, down_ms)
 	end if
 
 	dim ret as KeyBits
 	for idx as integer = 0 to ubound(this.controls)
 		with this.controls(idx)
 			if cc = .ckey then
-				ret or= this.keyval(.scancode, repeat_wait, repeat_rate, inputst)
+				ret or= this.keyval(.scancode, repeat_wait, repeat_rate, inputst, down_ms)
 			end if
 		end with
 	next
@@ -2007,7 +2017,7 @@ function KeyArray.controlkey (cc as KBScancode, inputst as InputState, repeat_wa
 end function
 
 'Get state of a real keyboard key: cc* and joy* scancodes not supported
-function KeyboardState.keyval(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputState) as KeyBits
+function KeyboardState.keyval(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputState, byref down_ms as integer) as KeyBits
 	dim check_repeat as bool = YES
 
 	'if key = scAlt then
@@ -2022,6 +2032,8 @@ function KeyboardState.keyval(key as KBScancode, repeat_wait as integer = 0, rep
 	'toggle keys in all backends, eg. gfx_fb)
 	if key = scNumlock orelse key = scCapslock orelse key = scScrolllock then check_repeat = NO
 
+	down_ms = large(down_ms, this.key_down_ms(key))
+
 	if check_repeat then
 		dim ret as KeyBits
 		ret = this.key_repeating(key, repeat_wait, repeat_rate, inputst)
@@ -2029,6 +2041,7 @@ function KeyboardState.keyval(key as KBScancode, repeat_wait as integer = 0, rep
 		dim key2 as KBScancode = this.numpad_alias_key(key)
 		if key2 then
 			ret or= this.key_repeating(key2, repeat_wait, repeat_rate, inputst)
+			down_ms = large(down_ms, this.key_down_ms(key2))
 		end if
 		return ret
 	else
@@ -2037,14 +2050,15 @@ function KeyboardState.keyval(key as KBScancode, repeat_wait as integer = 0, rep
 	end if
 end function
 
-function JoystickState.keyval (key as JoyButton, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputState) as KeyBits
+function JoystickState.keyval (key as JoyButton, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputState, byref down_ms as integer) as KeyBits
+	down_ms = large(down_ms, this.key_down_ms(key))
 	return this.key_repeating(key, repeat_wait, repeat_rate, inputst)
 end function
 
 'Return state of a key plus key repeat bit. (Should only be called from keyval)
 'repeat_wait and repeat_rate can override inputst settings.
 function KeyArray.key_repeating(key as integer, repeat_wait as integer, repeat_rate as integer, inputst as InputState) as KeyBits
-	dim result as KeyBits = keys(key)
+	dim result as KeyBits = this.keys(key)
 
 	if result and 1 then
 		'Check key repeat
@@ -2054,7 +2068,7 @@ function KeyArray.key_repeating(key as integer, repeat_wait as integer, repeat_r
 
 		dim down_ms as integer
 		'Ensure arrow keys/buttons repeat on the same tick
-		down_ms = iif(is_arrow_key(key), arrow_key_down_ms, key_down_ms(key))
+		down_ms = iif(is_arrow_key(key), this.arrow_key_down_ms, this.key_down_ms(key))
 
 		if down_ms >= repeat_wait then
 			'Keypress event at "wait + i * rate" ms after keydown

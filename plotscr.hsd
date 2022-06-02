@@ -776,6 +776,7 @@ define function, begin
 744,setrectfuzzyzoom,2,0,1    # Set fuzzy zoom >= 1 (slice, zoom)
 745,getrectstationarypattern,1,0 # Get whether fuzzy pattern is stationary (slice)
 746,setrectstationarypattern,2,0,1 # Set whether fuzzy pattern is stationary (slice, bool)
+747,keypresstime,2,0,0        # How long a key has been down, in milliseconds (scancode, player)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

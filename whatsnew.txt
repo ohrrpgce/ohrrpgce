@@ -94,6 +94,7 @@ WHAT IS NEW?
     * "hero uses level mp" [James]
     * "delete map state" takes customid arg, like other mapstate commands [Ralph]
     * "get/set rect fuzzy zoom", "get/set rect stationary pattern" [Ralph]
+    * "keypress time" [Ralph]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.
