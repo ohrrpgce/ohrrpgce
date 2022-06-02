@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-05-11">
+<plotscript version="wip" datecode="2022-06-02">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -8504,7 +8504,7 @@ while (sl) do, begin
 end
 </example>
 This example shows how to delete slices while you're iterating over them:
-			<example>variable(root, sl)
+			<example>variable(root, sl, next)
 root := sprite layer
 sl := root
 
@@ -8514,6 +8514,7 @@ while (sl) do, begin
   if (get slice visible(sl) == false) then (
     free slice (sl)
   )
+  sl := next
 end
 </example>
 			</description>

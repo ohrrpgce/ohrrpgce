@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-05-11)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-06-02)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -15110,7 +15110,7 @@ while (sl) do, begin
 end
 </pre>
 This example shows how to delete slices while you're iterating over them:
-			<pre>variable(root, sl)
+			<pre>variable(root, sl, next)
 root := sprite layer
 sl := root
 
@@ -15120,6 +15120,7 @@ while (sl) do, begin
   if (get slice visible(sl) == false) then (
     free slice (sl)
   )
+  sl := next
 end
 </pre>
 			
