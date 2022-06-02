@@ -835,26 +835,38 @@ DO
    END IF
   END IF
   IF herow(0).xygo = 0 THEN
-   DIM setdir as DirNum = -1
    'While on a vehicle, menu and use keys are handled in update_vehicle_state()
    IF carray(ccUse) > 1 ANDALSO vstate.active = NO ANDALSO usenpc(0, find_useable_npc()) THEN
     cancel_hero_pathfinding(0)
-   ELSEIF carray(ccUp) > 0 THEN
-    herow(0).ygo = 20
-    setdir = dirUp
-   ELSEIF carray(ccDown) > 0 THEN
-    herow(0).ygo = -20
-    setdir = dirDown
-   ELSEIF carray(ccLeft) > 0 THEN
-    herow(0).xgo = 20
-    setdir = dirLeft
-   ELSEIF carray(ccRight) > 0 THEN
-    herow(0).xgo = -20
-    setdir = dirRight
-   END IF
-   IF setdir <> -1 THEN
-    (herodir(0)) = setdir
-    cancel_hero_pathfinding(0)
+   ELSE
+
+    'Find the most recently pressed direction
+    DIM setdir as DirNum = -1
+    DIM best_time as integer = INT_MAX
+    IF keyval(ccUp) ANDALSO keypress_time(ccUp) < best_time THEN
+     setdir = dirUp
+     best_time = keypress_time(ccUp)
+    END IF
+    IF keyval(ccDown) ANDALSO keypress_time(ccDown) < best_time THEN
+     setdir = dirDown
+     best_time = keypress_time(ccDown)
+    END IF
+    IF keyval(ccLeft) ANDALSO keypress_time(ccLeft) < best_time THEN
+     setdir = dirLeft
+     best_time = keypress_time(ccLeft)
+    END IF
+    IF keyval(ccRight) ANDALSO keypress_time(ccRight) < best_time THEN
+     setdir = dirRight
+     best_time = keypress_time(ccRight)
+    END IF
+    IF setdir = dirUp    THEN herow(0).ygo = 20
+    IF setdir = dirDown  THEN herow(0).ygo = -20
+    IF setdir = dirLeft  THEN herow(0).xgo = 20
+    IF setdir = dirRight THEN herow(0).xgo = -20
+    IF setdir <> -1 THEN
+     (herodir(0)) = setdir
+     cancel_hero_pathfinding(0)
+    END IF
    END IF
   END IF
  END IF
