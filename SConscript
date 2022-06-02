@@ -1374,7 +1374,6 @@ def setup_eu_vars(compiling):
             # But the -extra-lflags option is new in Eu 4.1.
             euc_extra_args += ['-extra-lflags', NO_PIE]
 
-        print("CROSS", cross_compiling, win32)
         if cross_compiling:
             if 'eulib' not in ARGUMENTS:
                 exit('You need to pass eulib=... argument with the path to a Euphoria eu.a compiled for ' + target_prefix)
