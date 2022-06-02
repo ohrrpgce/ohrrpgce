@@ -103,7 +103,7 @@ android_source = False
 win95 = int(ARGUMENTS.get ('win95', '1'))
 glibc = False  # Computed below; can also be overridden by glibc=1 cmdline argument
 target = ARGUMENTS.get ('target', None)
-cross_compiling = (target is not None)
+cross_compiling = (target is not None)  # Possibly inaccurate, avoid!
 arch = ARGUMENTS.get ('arch', None)  # default decided below
 
 if 'android-source' in ARGUMENTS:
@@ -403,12 +403,9 @@ if not CXX:
     if not CXX:
         exit("Missing a C++ compiler! (Couldn't find " + _cxx + " nor c++ in PATH, nor is CXX set.)")
 
-if optimisations > 1:
-    EUC = ohrbuild.findtool(mod, 'EUC', "euc")  # Euphoria to C compiler (None if not found)
-    EUBIND = None
-else:
-    EUC = None
-    EUBIND = ohrbuild.findtool(mod, 'EUBIND', "eubind")  # Euphoria binder (None if not found)
+EUC = ohrbuild.findtool(mod, 'EUC', "euc")  # Euphoria to C compiler (None if not found)
+EUBIND = ohrbuild.findtool(mod, 'EUBIND', "eubind")  # Euphoria binder (None if not found)
+
 MAKE = ohrbuild.findtool(mod, 'MAKE', 'make')
 if not MAKE and win32:
     MAKE = ohrbuild.findtool(mod, 'MAKE', 'mingw32-make')
@@ -1351,9 +1348,17 @@ env_exe ('imageconv', builder = allmodexenv.BASEXE, source = ['imageconv.bas'] +
 ####################  Compiling Euphoria (HSpeak)
 
 def check_have_euc(target, source, env):
-    if not EUC and not EUBIND:
-        print("Euphoria is required to compile HSpeak but is not installed (euc is not in the PATH)")
+    if not EUC:
+        print("Error: Euphoria is required to compile HSpeak but is not installed (euc is not in the PATH)")
         Exit(1)
+    if cross_compiling and 'eulib' not in ARGUMENTS:
+        print("WARNING: looks like you're cross-compiling HSpeak so should pass an eulib=... argument with the path to a Euphoria eu.a compiled for " + target_prefix)
+
+def check_have_eubind(target, source, env):
+    if not EUBIND:
+        print("Error: Euphoria is required to compile HSpeak but is not installed (eubind is not in the PATH)")
+        Exit(1)
+    print("Note: binding hspeak. Run scons with release=1 to compile a faster hspeak")
 
 def setup_eu_vars(compiling):
     """Set the necessary variables on env for the euphoria EUEXE Builder.
@@ -1374,16 +1379,17 @@ def setup_eu_vars(compiling):
             # But the -extra-lflags option is new in Eu 4.1.
             euc_extra_args += ['-extra-lflags', NO_PIE]
 
+        if 'eulib' in ARGUMENTS:
+            euc_extra_args += ['-lib', ARGUMENTS['eulib']]
         if cross_compiling:
-            if 'eulib' not in ARGUMENTS:
-                exit('You need to pass eulib=... argument with the path to a Euphoria eu.a compiled for ' + target_prefix)
-            euc_extra_args += ['-arch', arch, '-lib', ARGUMENTS['eulib']]
+            euc_extra_args += ['-arch', arch]
             if win32:
                 euc_extra_args += ['-plat', 'windows']
             elif mac:
                 euc_extra_args += ['-plat', 'osx']
             else:  # unix
                 euc_extra_args += ['-plat', 'linux']   # FIXME: not quite right
+        env['EUCMAKEFLAGS'] = ['CC=' + str(CC), 'LINKER=' + str(CC)]
 
     env['EUFLAGS'] = euc_extra_args
     env['EUBUILDDIR'] = Dir(hspeak_builddir)  # Ensures spaces are escaped
@@ -1393,7 +1399,7 @@ def setup_eu_vars(compiling):
 # Cross-compiling using eubind could be possible if we passed it the path to
 # eub.exe, but for now just use euc.
 if optimisations > 1 or cross_compiling:
-    # Use euc to compile hspeak
+    # Use euc and gcc to compile hspeak in release builds
     setup_eu_vars(True)
 
     # HSpeak is built by translating to C, generating a Makefile, and running make.
@@ -1404,7 +1410,7 @@ if optimisations > 1 or cross_compiling:
 else:
     setup_eu_vars(False)
     # Use eubind to combine hspeak.exw and the eui interpreter into a single (slower) executable
-    euexe = Builder(action = [Action(check_have_euc, None),
+    euexe = Builder(action = [Action(check_have_eubind, None),
                               '$EUBIND -con $SOURCES $EUFLAGS'],
                     suffix = exe_suffix, src_suffix = '.exw')
 
