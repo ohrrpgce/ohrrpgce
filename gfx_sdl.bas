@@ -107,6 +107,7 @@ DECLARE SUB sdlCocoaMinimise()
 
 #ENDIF
 
+DIM SHARED libsdl_handle as any ptr  'Not used, only to match gfx_sdl2
 DIM SHARED zoom as integer = 2
 DIM SHARED zoom_has_been_changed as bool = NO
 DIM SHARED remember_zoom as integer = -1   'We may change the zoom when fullscreening, so remember it

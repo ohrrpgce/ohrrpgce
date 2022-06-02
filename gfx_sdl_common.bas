@@ -13,6 +13,11 @@
 
 
 SUB GFX_SDL(close)()
+  IF libsdl_handle THEN
+    dylibfree(libsdl_handle)
+    libsdl_handle = NULL
+  END IF
+
   'debug "quit_joystick_subsystem"
   IF SDL_WasInit(SDL_INIT_JOYSTICK) THEN
     quit_joystick_subsystem()
@@ -105,10 +110,9 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
         IF controller THEN
           'This name may vary from SDL_JoystickNameForIndex
           debuginfo " Opened as gamecontroller " & *SDL_GameControllerName(controller)
-          #ifdef SDL_GameControllerTypeForIndex
-            'SDL 2.0.14+
+          IF SDL_GameControllerTypeForIndex THEN  'Dynamically loaded (SDL 2.0.12+)
             debuginfo " Type: " & SDL_GameControllerTypeForIndex(joynum)
-          #endif
+          END IF
           DIM mappingstr as zstring ptr = SDL_GameControllerMapping(controller)
           debuginfo mappingstr
           SDL_free(mappingstr)

@@ -59,9 +59,15 @@ EXTERN "C"
   declare function SDL_JoystickGetDeviceInstanceID(byval device_index as long) as SDL_JoystickID
 #endif
 
+'Dynamically loaded functions
 
-#define USE_SDL2
-#include "gfx_sdl_common.bi"
+'SDL 2.0.12+
+#ifndef SDL_GameControllerType
+  type SDL_GameControllerType as long
+#endif
+#undef SDL_GameControllerTypeForIndex
+dim shared SDL_GameControllerTypeForIndex as function(byval joystick_index as long) as SDL_GameControllerType
+
 
 #IFDEF __FB_ANDROID__
 'This function shows/hides the sdl virtual gamepad
@@ -136,6 +142,12 @@ DIM SHARED mousewheel as integer     'Position of the wheel. A multiple of 120
 DIM SHARED virtual_keyboard_shown as bool = NO
 DIM SHARED allow_virtual_gamepad as bool = YES
 DIM SHARED safe_zone_margin as single = 0.0
+
+DIM SHARED libsdl_handle as any ptr
+
+#define USE_SDL2
+#include "gfx_sdl_common.bi"
+
 
 END EXTERN ' Can't put assignment statements in an extern block
 
@@ -272,6 +284,30 @@ PRIVATE SUB log_error(failed_call as zstring ptr, funcname as zstring ptr)
   debugerror *funcname & " " & *failed_call & ": " & *SDL_GetError()
 END SUB
 
+#MACRO TRYLOAD(procedure)
+  IF hfile THEN
+    procedure = dylibsymbol(hfile, #procedure)
+  ELSE
+    procedure = NULL
+  END IF
+#ENDMACRO
+
+'Load pointers to optional SDL functions, to support a range of SDL versions
+LOCAL SUB load_SDL_syms()
+  IF libsdl_handle = NULL THEN
+    libsdl_handle = dylibload("SDL2")
+    'Dynamic loading is only used for optional functions, so if the dylibload failed we can continue
+    IF libsdl_handle = NULL THEN
+      'TODO: try dlerror() on Unix
+      debug "dylibload(SDL2) failed. Continuing"
+    END IF
+  END IF
+
+  DIM hFile as any ptr = libsdl_handle
+
+  TRYLOAD(SDL_GameControllerTypeForIndex)
+END SUB
+
 FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 
   #ifdef USE_X11
@@ -279,6 +315,8 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
     'so the window can't be created. We need to install an error handler to prevent that
     set_X11_error_handlers
   #endif
+
+  load_SDL_syms
 
   'Not needed, seems to work without
   'SDL_SetHint(SDL_HINT_WINDOWS_INTRESOURCE_ICON, windowicon)
