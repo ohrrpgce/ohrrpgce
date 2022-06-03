@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# This script returns 0 on a successful build, 1 on error, 2 if there were no svn changes to build
+
 FORCE=false
 UPLOAD=true
 
@@ -86,7 +88,7 @@ fi
 
 if [ -z "$UPDATE" ] ; then
   echo No changes, no need to update nightly.
-  exit
+  exit 2
 fi
 
 # Loop through the architectures we want to build

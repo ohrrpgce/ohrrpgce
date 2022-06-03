@@ -11,8 +11,13 @@ if [ -n "True" ] ; then
   echo ""
   svn cleanup
   svn update distrib-nightly-android.sh nightly
-  ./distrib-nightly-android.sh 2>&1
-  ./distrib-nightly-android.sh --chromebook 2>&1
+  pwd
+  if ./distrib-nightly-android.sh 2>&1; then
+    # distrib-nightly-android.sh returns success if there were svn changes and
+    # the build succeeded.  In that case have to force the second invocation
+    # because we already updated svn.
+    ./distrib-nightly-android.sh --force --chromebook 2>&1
+  fi
 fi | tee ~/wrap-nightly-android-output.txt
 ~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-android-output.txt
 
