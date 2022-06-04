@@ -349,7 +349,12 @@ SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as 
     dstate.need_update = YES
    END IF
   CASE 9 TO 11: 'extra data
-   IF intgrabber(mi.extra(editaction - 9), -32768, 32767) THEN dstate.need_update = YES
+   'Currently, menu items stored in menuitem.bin always have 3 extra data
+   DIM value as integer = mi.extra(editaction - 9)
+   IF intgrabber(value, -32768, 32767) THEN
+    mi.extra(editaction - 9) = value
+    dstate.need_update = YES
+   END IF
   CASE 12: 'color
    IF intgrabber(mi.col, LowColorCode(), 255) THEN dstate.need_update = YES
    IF enter_space_click(dstate) THEN
