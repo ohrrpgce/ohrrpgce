@@ -2,28 +2,34 @@
 ################################################################
 # From http://rpg.hamsterrepublic.com/ohrrpgce/Scripts:Hero_will_move
 
-script, dir X, dir, begin
-  switch (dir) do (
-    case (up, down) do (return (0))
-    case (right) do (return (1))
-    case (left) do (return (-1))
-  )
-end
-
-script, dir Y, dir, begin
-  switch (dir) do (
-    case (left, right) do (return (0))
-    case (down) do (return (1))
-    case (up) do (return (-1))
-  )
-end
-
-script, trying to move direction, begin
+# Returns the direction the hero will try to move, or else -1
+script, want to move direction, begin
   return (-1)
-  if (key is pressed(key:right)) then (return (right))
-  if (key is pressed(key:left)) then (return (left))
-  if (key is pressed(key:down)) then (return (down))
-  if (key is pressed(key:up)) then (return (up))
+
+  # If a textbox is up or player is suspended, the hero can't move
+  if (current textbox > -1 || player is suspended) then (exit script)
+
+  # Nor if a menu is up which suspends gameplay.
+  # A more complicated menu check could be required if you are using fancy scripted menus that are always visible.
+  if(top menu) then(exit script)
+
+  variable(best dir, best time, time)
+  best dir := -1
+  best time := 999999
+
+  subscript, check key, key, dir, begin
+    time := keypress time(key)
+    if (key is pressed(key) && time < best time) then (
+      best dir := dir
+      best time := time
+    )
+  end
+
+  check key (right key, right)
+  check key (left key, left)
+  check key (down key, down)
+  check key (up key, up)
+  return (best dir)
 end
 
 # This will return true if hero 0 will start a new step
@@ -39,8 +45,8 @@ script, hero will move, begin
   if (current textbox > -1 || player is suspended) then (exit returning (false))
 
   # Check for player input
-  dir := trying to move direction
-  if (dir == -1) then (exit returning (false)) 
+  dir := want to move direction
+  if (dir == -1) then (exit returning (false))
 
   # If there's a wall in the way, nothing will happen (unless walls are suspended...)
   if (check hero wall(0, dir)) then (exit returning (false))
@@ -64,7 +70,7 @@ script, next leader move direction, begin
   if (hero is walking(0)) then (
     return (hero direction(0))
   ) else if (hero will move) then (
-    return (trying to move direction)
+    return (want to move direction)
   ) else (
     return (-1)
   )
