@@ -613,6 +613,7 @@ getstatnames statnames()
 load_global_npcs
 
 'Setup script interpreter
+load_script_triggers_and_names  'Also called in upgrade() unless running_under_Custom
 load_hsp
 'Might be changed by --errlvl commandline option
 'Default to showing all errors. genErrorLevel is no longer used (but might be again in future)
@@ -665,7 +666,6 @@ lastformation = -1
 menu_set.menufile = workingdir & SLASH & "menus.bin"
 menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
 REDIM remembered_menu_pts(gen(genMaxMenu))
-load_script_triggers_and_names
 
 makebackups 'make a few backup lumps
 
@@ -841,23 +841,26 @@ DO
    ELSE
 
     'Find the most recently pressed direction
+    '...unless backcompat bit is set to keep old "hero will move"/"trying to move direction"
+    'scripts (used by "fake parallax" script) working the same
     DIM setdir as DirNum = -1
     DIM best_time as integer = INT_MAX
-    IF keyval(ccUp) ANDALSO keypress_time(ccUp) < best_time THEN
-     setdir = dirUp
-     best_time = keypress_time(ccUp)
+    DIM fixedpriority as bool = prefbit(57)  '"Use old direction key tiebreaking"
+    IF keyval(ccRight) ANDALSO (fixedpriority ORELSE keypress_time(ccRight) < best_time) THEN
+     setdir = dirRight
+     best_time = keypress_time(ccRight)
     END IF
-    IF keyval(ccDown) ANDALSO keypress_time(ccDown) < best_time THEN
-     setdir = dirDown
-     best_time = keypress_time(ccDown)
-    END IF
-    IF keyval(ccLeft) ANDALSO keypress_time(ccLeft) < best_time THEN
+    IF keyval(ccLeft) ANDALSO (fixedpriority ORELSE keypress_time(ccLeft) < best_time) THEN
      setdir = dirLeft
      best_time = keypress_time(ccLeft)
     END IF
-    IF keyval(ccRight) ANDALSO keypress_time(ccRight) < best_time THEN
-     setdir = dirRight
-     best_time = keypress_time(ccRight)
+    IF keyval(ccDown) ANDALSO (fixedpriority ORELSE keypress_time(ccDown) < best_time) THEN
+     setdir = dirDown
+     best_time = keypress_time(ccDown)
+    END IF
+    IF keyval(ccUp) ANDALSO (fixedpriority ORELSE keypress_time(ccUp) < best_time) THEN
+     setdir = dirUp
+     best_time = keypress_time(ccUp)
     END IF
     IF setdir = dirUp    THEN herow(0).ygo = 20
     IF setdir = dirDown  THEN herow(0).ygo = -20

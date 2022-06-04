@@ -313,6 +313,7 @@ SUB edit_backcompat_bitsets()
   bitname(50) = "!Non-turn attack delays can also cause turn delays"
  END IF
  bitname(54) = "!Disable cost checking for autotarget spells in random spell lists"
+ bitname(57) = "Use old direction key tiebreaking"
  edit_global_bitsets bitname(), "share_general_game_backcompat_bitsets"
 END SUB
 

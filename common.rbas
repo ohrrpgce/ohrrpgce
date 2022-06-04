@@ -38,6 +38,7 @@
 'Subs and functions only used here
 DECLARE SUB setup_sprite_sizes ()
 DECLARE SUB check_map_count ()
+DECLARE SUB apply_script_fixups ()
 DECLARE SUB fatal_error_shutdown ()
 DECLARE SUB zero_out_pre_july_8_1999_general_map_data_garbage ()
 DECLARE SUB append_to_logfile(s as string)
@@ -5379,6 +5380,8 @@ IF gen(genStartTextbox) < 0 OR gen(genStartTextbox) > gen(genMaxTextbox) THEN
  gen(genStartTextbox) = 0
 END IF
 
+apply_script_fixups
+
 IF time_rpg_upgrade THEN
  upgrade_message "Upgrades complete."
  debuginfo "Total upgrade time = " & FORMAT(TIMER - upgrade_start_time, ".###") & "s, time wasted on messages = " & FORMAT(upgrade_overhead_time, ".###") & "s"
@@ -5399,6 +5402,22 @@ write_general_reld()
 #ENDIF
 
 'wow! this is quite a big and ugly routine!
+END SUB
+
+'Called from upgrade
+LOCAL SUB apply_script_fixups
+ load_script_triggers_and_names
+
+ 'Check for use of https://rpg.hamsterrepublic.com/ohrrpgce/Scripts:Hero_will_move
+ '(which is used by https://rpg.hamsterrepublic.com/ohrrpgce/Scripts:Fake_Parallax)
+ IF getfixbit(fixCheckTryingToMoveDirection) = NO THEN
+  setfixbit fixCheckTryingToMoveDirection, 1
+
+  IF a_find(script_names(), "tryingtomovedirection") > 0 THEN
+   upgrade_message "Enabling 'Use old direction key tiebreaking' bit"
+   setprefbit 57  '"Use old direction key tiebreaking""
+  END IF
+ END IF
 END SUB
 
 SUB zero_out_pre_july_8_1999_general_map_data_garbage ()

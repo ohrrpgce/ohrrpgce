@@ -324,7 +324,7 @@ setfont current_font()
 loadglobalstrings
 getstatnames statnames()
 load_special_tag_caches
-load_script_triggers_and_names
+load_script_triggers_and_names  'Also called in upgrade(), but be sure
 
 IF scriptfile <> "" THEN import_scripts_and_terminate scriptfile
 
