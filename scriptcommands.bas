@@ -2347,6 +2347,7 @@ SUB script_functions(byval cmdid as integer)
   IF retvals(0) = 0 THEN
    'No warning
   ELSE
+   'serrWarn causes get_arg_slice/get_handle_slice to not show an error if already freed
    sl = get_arg_slice(0, serrWarn)
    IF sl THEN
     IF sl->Protect THEN
@@ -5470,8 +5471,10 @@ FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum
   IF errlvl > serrIgnore THEN
    IF slot > 0 ANDALSO slot <= UBOUND(plotslices) ANDALSO _
       (handle AND NOT SLICE_HANDLE_CTR_MASK) = (plotslices(slot).handle AND NOT SLICE_HANDLE_CTR_MASK) THEN
-    'The HandleType is correct so could have been a valid handle to a previously existing slice in this slot
-    scripterr current_command_name() & ": the slice with handle " & handle & " has been deleted", errlvl
+    IF errlvl > serrWarn THEN
+     'The HandleType is correct so could have been a valid handle to a previously existing slice in this slot
+     scripterr current_command_name() & ": the slice with handle " & handle & " has been deleted", errlvl
+    END IF
    ELSE
     scripterr current_command_name() & ": " & handle & " is not a slice handle", errlvl
    END IF

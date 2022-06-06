@@ -107,6 +107,7 @@ WHAT IS NEW?
     * The number of slices is now limited to 2.1 million because slice handles
       don't count up from 1, in order to fix "slice is valid". (Handles for
       slices in old saves still work) [Ralph]
+    * "free slice" on an already freed slice no longer shows a warning [Ralph]
 
   *** Bugfixes
     * Various gfx_sdl2 window size/position/resizing and mouse glitches when
