@@ -22,6 +22,7 @@ support\zip -q distrib\%ZIPFILE% docs\plotdictionary.html docs\*.png docs\more-d
 support\zip -q distrib\%ZIPFILE% support\madplay.exe support\LICENSE-madplay.txt
 support\zip -q distrib\%ZIPFILE% support\oggenc.exe support\LICENSE-oggenc.txt
 support\zip -q distrib\%ZIPFILE% support\zip.exe
+support\zip -q distrib\%ZIPFILE% support\zip_exec.exe support\LICENSE-zip_exec.txt
 support\zip -q distrib\%ZIPFILE% support\*-version.txt
 support\zip -q distrib\%ZIPFILE% support\wget.exe
 support\zip -q distrib\%ZIPFILE% support\CrashRpt*.dll support\CrashSender*.exe support\crashrpt_lang.ini

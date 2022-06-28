@@ -123,6 +123,8 @@ support\cp support\wget.exe tmpdist\support
 support\cp support\wget.hlp tmpdist\support
 support\cp support\zip.exe tmpdist\support
 support\cp support\unzip.exe tmpdist\support
+support\cp support\zip_exec.exe tmpdist\support
+support\cp support\LICENSE-zip_exec.exe tmpdist\support
 support\cp support\CrashRpt*.dll support\CrashSender*.exe support\crashrpt_lang.ini tmpdist\support
 support\cp support\LICENSE-crashrpt.txt tmpdist\support
 support\cp support\rcedit.exe tmpdist\support

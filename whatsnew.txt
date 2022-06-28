@@ -161,6 +161,8 @@ WHAT IS NEW?
     * Bug #1101 Enemy ready meter not reset for spawned enemies [Rue]
     * Spell lists duplicated (with tag conditions) in a hero's battle menu caused
       duplication in out-of-battle Spells menu and could crash [Ralph]
+    * Fix the Mac app bundles exported from the Distribute Game menu on Windows
+      [James]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

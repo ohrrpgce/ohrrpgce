@@ -69,6 +69,7 @@ DECLARE FUNCTION is_known_license(license_code as string) as bool
 DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
 DECLARE FUNCTION browse_licenses(old_license as string) as string
 DECLARE SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = "")
+DECLARE FUNCTION fix_mac_app_executable_bit_on_windows(zipfile as string, exec_path_in_zip as string) as bool
 DECLARE FUNCTION running_64bit() as bool
 DECLARE SUB dist_basicstatus (s as string)
 DECLARE SUB itch_io_options_menu()
@@ -1724,9 +1725,11 @@ SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = 
 
   'Package as a .zip file. NOTE: When created on Unix, .zip files contain file permissions
   'including the all-important +x bit in the "external attributes", but on Windows they don't.
-  'We rely on a quirk of the Mac Finder, which sets the +x bit on every file when extracting
-  'files from a Windows/DOS .zip file. Other Mac archivers might not do this. For a solution
-  'to actually create Mac .zip packages with correct file permissions from Windows, see
+  'On older versions of MacOS we could rely on a quirk of the old Mac Finder, which would set
+  'the +x bit on every file when extracting files from a Windows/DOS .zip file. Newer Mac
+  'archivers do not do this. Instead we use the zip_exec tool to add the +x bit manually.
+  'See fix_mac_app_executable_bit_on_windows(). An alternate unused solution to actually
+  'create Mac .zip packages with correct file permissions from Windows, is in
   'prepare_mac_app_zip()
   DIM olddir as string = CURDIR
   CHDIR apptmp
@@ -1735,6 +1738,14 @@ SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = 
    EXIT DO
   END IF
   CHDIR olddir
+  
+  'Fix the executable bit on windows
+#IFDEF __FB_WIN32__
+  DIM execname as string = basename & ".app/Contents/MacOS/ohrrpgce-game"
+  IF fix_mac_app_executable_bit_on_windows(destname, execname) = NO THEN
+   dist_info "Was not able to set the executable bit on the Mac app bundle zip file. The app may not work as expected."
+  END IF
+#ENDIF
 
   dist_info destshortname & " was successfully created!", errInfo
   'I have seen someone -- on Linux, even -- wipe the +x flag on ohrrpgce-game
@@ -1748,6 +1759,25 @@ SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = 
  killdir apptmp, YES
 
 END SUB
+
+FUNCTION fix_mac_app_executable_bit_on_windows(zipfile as string, exec_path_in_zip as string) as bool
+ 'Return YES on success, NO on failure
+
+ DIM zip_exec as string = find_helper_app("zip_exec", YES)
+ IF zip_exec = "" THEN dist_info "ERROR: zip_exec is not available": RETURN NO
+
+ DIM spawn_ret as string
+ DIM args as string
+
+ args = " " & escape_filename(zipfile) & " " & exec_path_in_zip
+ 'debug zip_exec & " " & args
+ 
+ spawn_ret = spawn_and_wait(zip_exec, args)
+ 
+ IF INSTR(spawn_ret, "error:") THEN dist_info zip_exec & " " & args & !"\n" & spawn_ret : RETURN NO
+
+ RETURN YES
+END FUNCTION
 
 /' This works, but isn't used yet. May not be needed. See comment above.
 FUNCTION prepare_mac_app_zip(zipfile as string, gamename as string) as bool
