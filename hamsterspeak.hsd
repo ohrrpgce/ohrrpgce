@@ -67,6 +67,7 @@ define function, begin
 # 600,runningonouya,0           # returns true if the device is OUYA (see also "running on console")
 649,multdiv,3,0,0,0           # calculate int(float(a)*b/c), with rounding and clamping (undocumented)
 659,_asserteq,4,0,0,0,0       # Used in the macro expansion of assert(x==y)
+748,randomchoice,-1           # Return one of the args, randomly
 end
 
 define trigger,begin
@@ -120,6 +121,6 @@ define constant, begin
 1,on
 0,none
 -1,autonumber
-16383,maximum global id
+50000,maximum global id
 99,maximum string id
 end

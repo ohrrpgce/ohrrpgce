@@ -6751,7 +6751,6 @@ end
 #put slice (handle, X, Y)
 #put slice screen (handle, x, y)
 #put sprite (handle, x, y)
-#random (lownumber, highnumber)
 #random formation (formation set)
 #read color (index, element)
 #realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)

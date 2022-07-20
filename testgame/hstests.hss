@@ -22,6 +22,7 @@ global variable(205, tick counter slice)
 global variable(206, a global)
 global variable(207, another global)
 global variable(5000, global 5000)
+#Array of 20 globals starting at 5000
 
 
 ########################################################################
@@ -34,6 +35,7 @@ script, interpreter tests, begin
   parser tests
   flow tests
   subscript tests
+  random tests
 end
 
 ########################################################################
@@ -698,5 +700,61 @@ script, inside-outside fib, n, begin
   return(x)
 end
 
+########################################################################
+
+script, random tests, begin
+  variable(i, x, outliers)
+
+  # Test random() range
+  for (i, 1, 100) do (
+    x := random(-3, 10)
+    assert(x >= -3 && x <= 10)
+    x := random(20, 2)
+    assert(x >= 2 && x <= 20)
+  )
+  # Edge cases
+  for (i, 1, 10) do (
+    assert(random(0, 0) == 0)  # In fact hspeak optimises this to a constant
+    assert(random(-1, -1) == -1)
+    x := random(-2, -1)
+    assert(x >= -2 && x <= -1)
+    x := random(-1, -2)
+    assert(x >= -2 && x <= -1)
+  )
+
+  # A simple test that random() is uniform
+  for (i, 1, 10) do (
+    write global(@global 5000 + i, 0)
+  )
+  for (i, 1, 500) do (
+    x := random(1, 10)
+    write global(@global 5000 + x, read global(@global 5000 + x) + 1)
+  )
+  for (i, 1, 10) do (
+    x := read global(@global 5000 + i)
+    # 99.995% chance of the value being in this interval
+    assert(x >= 25 && x <= 78)
+    # 99.1% chance of the value being outside this interval
+    outliers += (x < 34 || x > 68)
+  )
+  assert(outliers <= 2)
+
+  # "random choice"
+  variable(bin1, bin2, bin3)
+  assert(random choice() == 0)
+  for (i, 1, 100) do (
+    assert(random choice(-1) == -1)
+    switch(random choice(100, -100, 0)) do (
+      case(100)  bin1 += 1
+      case(-100) bin2 += 1
+      case(0)    bin3 += 1
+      case(else) assert(false)
+    )
+  )
+  # 99.995% chance of the values being in this interval
+  assert(bin1 >= 16 && bin1 <= 53)
+  assert(bin2 >= 16 && bin2 <= 53)
+  assert(bin3 >= 16 && bin3 <= 53)
+end
 
 ########################################################################
