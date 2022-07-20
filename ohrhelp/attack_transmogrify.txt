@@ -5,8 +5,10 @@ a different enemy.
 When "Enemy Becomes" is "None", no transmogrification will happen. If an enemy ID number is selected, the target will be changed into it. This has no effect if the attack is used on a hero.
 Press ENTER to select an enemy.
 
-Health: You can choose whether to keep the old enemy's remaining health, or to restore the enemy's health to the max for the new enemy type, or to adjust the remaining health as a percentage of maximum.
+Health: You can choose whether to keep the old enemy's remaining health, or to restore the enemy's health to the max for the new enemy type, or to adjust the remaining health as a percentage of maximum, or not modify the Health current/max at all.
+For all options except the last, the maximum health of the enemy is replaced with the new enemy type's.
 
-Other stats: You can choose whether to keep the old enemy's other stats, or to restore them to the new enemy type's maximum, or to adjust them as a percentage of maximum.
+Other stats: You can choose whether to keep the old enemy's other stats, or to restore them to the new enemy type's maximum, or to adjust them as a percentage of maximum, or not modify the current/max stat at all.
+In all options except the last, the maximum stats of the enemy are replaced with the new enemy type's.
 
 Rewards: This controls whether the rewards from the old enemy are given out or not. In other words, whether the old enemy counts as defeated or not.

@@ -2114,10 +2114,12 @@ SUB change_foe_stat(bspr as BattleSprite, byval stat_num as integer, byval new_m
     ELSE
      .cur.sta(stat_num) = new_max
     END IF
-   CASE transmogKeepCurrentCropMax '--keep old current, crop to new max
+   CASE transmogKeepCurrentCropToMax '--keep old current, crop to new max
     .cur.sta(stat_num) = small(.cur.sta(stat_num), new_max)
+   CASE transmogKeepCurrentAndMax '--keep old current and max
+    EXIT SUB
   END SELECT
-  '--always use new max stat
+  '--All but transmogKeepCurrentAndMax use new max stat
   .max.sta(stat_num) = new_max
  END WITH
 END SUB

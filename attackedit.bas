@@ -715,13 +715,14 @@ max(AtkLimInsteadChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 min(AtkLimInsteadChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 
 CONST AtkLimTransmogStats = 38
-max(AtkLimTransmogStats) = 3
+max(AtkLimTransmogStats) = 4
 min(AtkLimTransmogStats) = 0
 menucapoff(AtkTransmogStats) = capindex
-addcaption caption(), capindex, "keep old current"  '0
+addcaption caption(), capindex, "keep current, copy max"  '0
 addcaption caption(), capindex, "restore to new max"  '1
-addcaption caption(), capindex, "preserve % of max"   '2
+addcaption caption(), capindex, "preserve % of new max"   '2
 addcaption caption(), capindex, "keep old current, limit to new max"  '3
+addcaption caption(), capindex, "don't change current or max"  '4
 
 CONST AtkLimTransmogEnemy = 39
 max(AtkLimTransmogEnemy) = gen(genMaxEnemy) + 1 'Must be updated!

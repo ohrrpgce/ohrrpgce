@@ -708,7 +708,8 @@ Enum TransmogStatsRule
 	transmogKeepCurrent = 0
 	transmogUseNewMax = 1
 	transmogKeepCurrentPercent = 2
-	transmogKeepCurrentCropMax = 3
+	transmogKeepCurrentCropToMax = 3
+	transmogKeepCurrentAndMax = 3
 End Enum
 
 'Attack transmogrification settings

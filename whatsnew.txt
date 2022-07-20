@@ -55,6 +55,8 @@ WHAT IS NEW?
     * --hsargs commandline arg to pass extra args to HSpeak when using Custom to
       import scripts from the commandline [Ralph]
     * Better tiebreaking when pressing multiple arrows/directions at once [Lenny]
+    * Enemy-transmogrifying attacks gain the option to preserve both current and
+      max values of each stat [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]
