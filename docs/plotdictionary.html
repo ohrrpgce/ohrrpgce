@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-06-02)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-06-29)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1059,6 +1059,7 @@ function toggleContent(target) {
 		<a href="#about-controlcodes">Key Constants</a><br>
 		<a href="#about-keyispressed">key is pressed (scancode, player)</a><br>
 		<a href="#about-keypress">keypress (scancode, player)</a><br>
+		<a href="#about-keypresstime">keypress time (scancode, player)</a><br>
 		<a href="#about-keyval">keyval (scancode, player)</a><br>
 		<a href="#about-knowsspell">knows spell (hero, attack)</a><br>
 		<a href="#about-lastascii">last ascii</a><br>
@@ -1228,6 +1229,7 @@ function toggleContent(target) {
 		<a href="#about-putslicescreen">put slice screen (handle, x, y)</a><br>
 		<a href="#about-putsprite">put sprite (handle, x, y)</a><br>
 		<a href="#about-random">random (lownumber, highnumber)</a><br>
+		<a href="#about-randomchoice">random choice (values...)</a><br>
 		<a href="#about-randomenemiesaresuspended">random enemies are suspended</a><br>
 		<a href="#about-randomformation">random formation (formation set)</a><br>
 		<a href="#about-rankincaterpillar">rank in caterpillar (who)</a><br>
@@ -1879,6 +1881,7 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 		<a href="#about-logicalxor">value ^^ value</a><br>
 		<a href="#about-not">not (value)</a><br>
 		<a href="#about-random">random (lownumber, highnumber)</a><br>
+		<a href="#about-randomchoice">random choice (values...)</a><br>
 		<a href="#about-seedrandom">seed random (seed)</a><br>
 		<a href="#about-multdiv">multdiv (a, b, c)</a><br>
 		<a href="#about-dirx">dir X (direction)</a><br>
@@ -2127,6 +2130,21 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 			Returns a random integer in the range of the two numbers. The returned value will be greater than or equal to the first number, and less than or equal to the second number
 			
 			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-randomchoice"></a>
+				<h4>random choice (values...)</h4>
+<p>
+			
+				Returns one of its arguments, randomly.
+				Up to 32 different <span class="param">values</span> can be provided.
+				Returns 0 if it has no arguments.
+			
+			
+			<pre># Move an npc randomly to either (5,10), (5,14), or (5,18)
+set npc position(npc, 5, random choice (10, 14, 18))</pre>
 			
 		</p>
 </div>
@@ -2867,6 +2885,8 @@ wait for hero (me) # wait until he stops</pre>
 				If you do not specify <span class="param">key</span>, then <a href="#about-anykey" class="ref">any key</a> will be used.
 				<br>
 				<a href="#about-anykey" class="ref">any key</a> waits for any keyboard or joystick button,
+				(except Numlock, Capslock and Scrolllock, or any joystick buttons that have no
+				builtin meaning e.g. X/Y/L1/L2/R1/R2)
 				and also waits for a mouse click if "'any key', etc, include mouse clicks" is
 				turned on in the Mouse Controls menu.
 				<span class="param">usekey</span> will wait for Space, Ctrl or Enter, joystick use key, and optionally left click;
@@ -9184,6 +9204,7 @@ end
 		<a href="#about-keypress">keypress (scancode, player)</a><br>
 		<a href="#about-newkeypress">new keypress (scancode, player)</a><br>
 		<a href="#about-keyval">keyval (scancode, player)</a><br>
+		<a href="#about-keypresstime">keypress time (scancode, player)</a><br>
 		<a href="#about-lastascii">last ascii</a><br>
 		<a href="#about-getscancodename">get scancode name(string id, scancode, long name)</a><br>
 		<a href="#about-enableinputtext">enable input text (enable)</a><br>
@@ -9305,6 +9326,8 @@ end
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					This command is an alternative to <a href="#about-keypress" class="ref">keypress</a> or <a href="#about-newkeypress" class="ref">new keypress</a>;
 					see <a href="#Keyboard%20Input" class="ref">Keyboard Input</a> for usage hints.
+					<br>
+					You can use <a href="#about-keypresstime" class="ref">keypress time</a> to see how long a key/button has been down.
 				</div>
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
@@ -9326,7 +9349,9 @@ end
 <a href="#about-keypress" class="ref">keypress</a>, </li>
 <li>
 <a href="#about-newkeypress" class="ref">new keypress</a>, </li>
-<li><a href="#about-keyval" class="ref">keyval</a></li>
+<li>
+<a href="#about-keyval" class="ref">keyval</a>, </li>
+<li><a href="#about-keypresstime" class="ref">keypress time</a></li>
 </ul>
 </div>
 		</p>
@@ -9371,7 +9396,9 @@ end
 <a href="#about-keyispressed" class="ref">key is pressed</a>, </li>
 <li>
 <a href="#about-newkeypress" class="ref">new keypress</a>, </li>
-<li><a href="#about-keyval" class="ref">keyval</a></li>
+<li>
+<a href="#about-keyval" class="ref">keyval</a>, </li>
+<li><a href="#about-keypresstime" class="ref">keypress time</a></li>
 </ul>
 </div>
 		</p>
@@ -9404,7 +9431,9 @@ end
 <a href="#about-keyispressed" class="ref">key is pressed</a>, </li>
 <li>
 <a href="#about-keypress" class="ref">keypress</a>, </li>
-<li><a href="#about-keyval" class="ref">keyval</a></li>
+<li>
+<a href="#about-keyval" class="ref">keyval</a>, </li>
+<li><a href="#about-keypresstime" class="ref">keypress time</a></li>
 </ul>
 </div>
 		</p>
@@ -9453,7 +9482,42 @@ end
 <a href="#about-keyispressed" class="ref">key is pressed</a>, </li>
 <li>
 <a href="#about-keypress" class="ref">keypress</a>, </li>
-<li><a href="#about-newkeypress" class="ref">new keypress</a></li>
+<li>
+<a href="#about-newkeypress" class="ref">new keypress</a>, </li>
+<li><a href="#about-keypresstime" class="ref">keypress time</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-keypresstime"></a>
+				<h4>keypress time (scancode, player)</h4>
+<p>
+			
+				Returns how long a key or button has been held down, in milliseconds (thousandths of a second), or 0 if the key isn't pressed.
+				<br>
+				The <span class="param">scancode</span> argument is a <a href="#about-scancode" class="ref">scancode</a> such as a keyboard key (e.g. <span class="code">key:ctrl</span>)
+				a joystick button (e.g. <span class="code">joy:left</span>), or a virtual scancode such as
+				<a href="#about-usekey" class="ref">use key</a> (see <a href="#about-controlcodes" class="ref">control codes</a>).
+				If you use a scancode that refers to multiple keys/buttons
+				(e.g. <span class="code">usekey</span> or <span class="code">anykey</span>)
+				then the longest time that any of those keys has been held down is returned.
+				<br>
+				<span class="param">player</span> is an optional <a href="#about-playernumber" class="ref">player number</a>,
+				normally only used with <span class="code">joy:...</span> joystick scancodes
+				or <a href="#about-controlcodes" class="ref">control codes</a>, and tells which player's controller to read.
+				By default it checks for a button press on any plugged-in controller.
+				<br>
+				If a fast keypress happens in less than a tick and the key is already up again
+				then <a href="#about-keyispressed" class="ref">key is pressed</a> can return <span class="code">false</span> and <span class="param">keypress time</span>
+				return <span class="code">0</span> although <a href="#about-keypress" class="ref">keypress</a> returns <span class="code">true</span>.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-keyispressed" class="ref">key is pressed</a>, </li>
+<li><a href="#about-keypress" class="ref">keypress</a></li>
 </ul>
 </div>
 		</p>
@@ -21827,7 +21891,9 @@ joy:button 17      # Warning: joy:button17 is not joy:button16 + 1! All other bu
 joy:button 32
 
 #  Virtual scancodes:
-any key            # Any keyboard key or joystick button (including joystick left/right/up/down),
+any key            # Any keyboard key except Numlock, Capslock and Scrolllock, or any joystick button
+                   # (including joystick left/right/up/down) that has a builtin meaning like 'use'
+                   # (e.g. X/Y/L1/L2/R1/R2/Select aren't included),
                    # and also any mouse button if "'any key', etc, include mouse clicks" is turned on in
 		   # the Mouse Controls menu.
 up key             # Up key on the keyboard, or on any joystick
@@ -22390,7 +22456,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 938 commands (of which 11 are aliases), 27 constants and 14 definitions of types and other terms in this file.</p>
+<p>Stats: There are 940 commands (of which 11 are aliases), 27 constants and 14 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

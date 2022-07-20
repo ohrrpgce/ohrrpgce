@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-06-03">
+<plotscript version="wip" datecode="2022-06-29">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -476,6 +476,17 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 			<canon>random (lownumber, highnumber)</canon>
 			<shortname>random</shortname>
 			<description>Returns a random integer in the range of the two numbers. The returned value will be greater than or equal to the first number, and less than or equal to the second number</description>
+		</command>
+		<command id="randomchoice">
+			<canon>random choice (values...)</canon>
+			<shortname>random choice</shortname>
+			<description>
+				Returns one of its arguments, randomly.
+				Up to 32 different <p>values</p> can be provided.
+				Returns 0 if it has no arguments.
+			</description>
+			<example># Move an npc randomly to either (5,10), (5,14), or (5,18)
+set npc position(npc, 5, random choice (10, 14, 18))</example>
 		</command>
 		<command id="seedrandom">
 			<canon>seed random (seed)</canon>

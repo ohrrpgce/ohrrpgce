@@ -5188,6 +5188,10 @@ SUB script_functions(byval cmdid as integer)
  CASE 747 '--keypress time(scancode, player)
   a_script_wants_keys()
   script_keyval(retvals(0), retvals(1), scriptret)
+ CASE 748 '--random choice(...)
+  IF curcmd->argc > 0 THEN
+   scriptret = retvals(randint(curcmd->argc))
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
