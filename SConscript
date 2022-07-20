@@ -299,6 +299,7 @@ if asan:
     CFLAGS.append ('-fsanitize=address')
     CCLINKFLAGS.append ('-fsanitize=address')
     base_libraries.append ('dl')
+    base_libraries.append ('m')
     # Also, compile FB to C by default, unless overridden with gengcc=0.
     if int (ARGUMENTS.get ('gengcc', 1)):
         gengcc = True
