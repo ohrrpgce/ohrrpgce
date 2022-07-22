@@ -33,7 +33,6 @@ Declare Function fb_hStrAllocTemp Alias "fb_hStrAllocTemp" (byval s as FBSTRING 
 '(returns error code)
 'Declare Function fb_hStrDelTemp Alias "fb_hStrDelTemp" (s as FBSTRING ptr) as long
 
-
 DECLARE FUNCTION integerptr_compare CDECL (byval a as integer ptr ptr, byval b as integer ptr ptr) as long
 DECLARE FUNCTION stringptr_compare CDECL (byval a as string ptr ptr, byval b as string ptr ptr) as long
 
@@ -4465,6 +4464,29 @@ sub processcommandline(nonoption_args() as string, opt_handler as FnSetOption, a
 	wend
 end sub
 
+sub display_help_string(help as string)
+#ifdef __FB_WIN32__
+	'Printing to the console doesn't work under Windows unless compiled without -s gui
+	'Don't do this under Unix, it's annoying and adds fbgfx as a dependency
+	if len(help) > 500 then
+		screen 19   ' create a graphical fake text console (800x600, 100x37 characters)
+	else
+		screen 11
+	end if
+	'Haaaaaack. fbgfx has builtin fonts which are code page 437 (US English IBM PC).
+	'So translate a couple characters we might use from Latin-1 (CP1252) to CP437
+	'Update: hróðvitnir is behind us, don't need this anymore!
+	'replacestr help, !"\&hF0", !"\&hEB"   ' ð -> δ
+	'replacestr help, !"\&hF3", !"\&hA2"   ' ó
+
+	print help,   ' display the help on the graphical console
+	dim k as string = input(1)  ' use FreeBasic-style keypress checking because our keyhandler isn't set up yet
+	screen 0
+#else
+	'Convert the string to system (multibyte) encoding
+	print utf8_to_mbs(latin1_to_utf8(help))
+#endif
+end sub
 
 '----------------------------------------------------------------------
 '                        ini file read/write

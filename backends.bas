@@ -3,7 +3,6 @@
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #include "config.bi"
-#include "cmdline.bi"
 #include "common.bi"
 #include "gfx.bi"
 #include "music.bi"
@@ -557,11 +556,13 @@ function backends_setoption(opt as string, arg as string) as integer
 			display_help_string "Can't specify --gfx after a backend is loaded! " _
 					    "(The backend is loaded automatically to process " _
 					    "unknown commandline options, so put --gfx first)"
+			return 2
 		end if
 
 		'First check if its a backend which isn't compiled in
 		if not valid_gfx_backend(arg) then
 			display_help_string """" + arg + """ is not a valid graphics backend"
+			return 2
 		end if
 
 		dim backendinfo as GfxBackendStuff ptr = lookup_gfx_backend(arg)
@@ -571,6 +572,7 @@ function backends_setoption(opt as string, arg as string) as integer
 			prefer_gfx_backend(backendinfo)
 			if not load_backend(backendinfo) then
 				display_help_string "gfx_" + arg + " could not be loaded!"
+				terminate_program
 			end if
 		end if
 		return 2
@@ -663,6 +665,7 @@ sub load_preferred_gfx_backend()
 		if load_backend(gfx_choices(i)) then exit sub
 	next
 	display_help_string "Could not load any graphic backend! (Who forgot to compile without at least gfx_fb?)"
+	terminate_program
 end sub
 
 ' Try to init gfx backends in order of preference until one works.
@@ -707,6 +710,7 @@ sub init_preferred_gfx_backend()
 	next
 
 	display_help_string "No working graphics backend!"
+	terminate_program
 end sub
 
 ' Load gfxbackendinfo, musicbackendinfo, systeminfo

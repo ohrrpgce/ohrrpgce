@@ -8,7 +8,6 @@
 #include "crt/string.bi"
 #include "crt/limits.bi"
 #include "string.bi"
-#include "cmdline.bi"
 #include "common.bi"
 #include "allmodex.bi"
 #include "gfx.bi"
@@ -705,11 +704,10 @@ function allmodex_setoption(opt as string, arg as string) as integer
 		dim fps as integer = str2int(arg, -1)
 		if fps > 0 then
 			gif_max_fps = fps
-			return 2
 		else
 			display_help_string "--giffps: invalid fps"
-			return 1
 		end if
+		return 2
 	elseif opt = "recordoverlays" then
 		screenshot_record_overlays = YES
 		return 1
@@ -720,20 +718,18 @@ function allmodex_setoption(opt as string, arg as string) as integer
 		dim fname as string = absolute_with_orig_path(arg)
 		if fileiswriteable(fname) then
 			start_recording_input fname
-			return 2 'arg used
 		else
 			display_help_string "input cannot be recorded to """ & fname & """ because the file is not writeable." & LINE_END
-			return 1
 		end if
+		return 2
 	elseif opt = "replayinput" then
 		dim fname as string = absolute_with_orig_path(arg)
 		if fileisreadable(fname) then
 			start_replaying_input fname
-			return 2 'arg used
 		else
 			display_help_string "input cannot be replayed from """ & fname & """ because the file is not readable." & LINE_END
-			return 1
 		end if
+		return 2
 	elseif opt = "nojoy" then
 		debuginfo "Joystick/gamepad disabled by -nojoy"
 		joysticks_globally_disabled = YES

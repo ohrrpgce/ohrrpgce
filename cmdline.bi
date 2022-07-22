@@ -5,8 +5,6 @@
 #IFNDEF CMDLINE_BI
 #DEFINE CMDLINE_BI
 
-DECLARE SUB display_help_string (help as string)
-
 DECLARE FUNCTION gamecustom_setoption(opt as string, arg as string) as integer
 
 DECLARE SUB hook_after_attach_to_Custom(success as bool)

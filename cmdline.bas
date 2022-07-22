@@ -36,6 +36,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "For source-code see http://HamsterRepublic.com/ohrrpgce/source.php" & LINE_END
 		help = help & "Game data copyright and license will vary." & LINE_END
 		display_help_string help
+		terminate_program
 		return 1
 	elseif opt = "?" or opt = "help" or opt = "h" then
 		load_preferred_gfx_backend()
@@ -105,6 +106,7 @@ function global_setoption(opt as string, arg as string) as integer
 			help = help & *gfx_describe_options()
 		end if
 		display_help_string help
+		terminate_program
 		return 1
 	elseif opt = "buildinfo" then
 		help = "[buildinfo]" & LINE_END
@@ -193,29 +195,6 @@ function gamecustom_setoption(opt as string, arg as string) as integer
 
 	return argsused
 end function
-
-sub display_help_string(help as string)
-#ifdef __FB_WIN32__
-	'Printing to the console doesn't work under Windows unless compiled without -s gui
-	'Don't do this under Unix, it's annoying and adds fbgfx as a dependency
-	if len(help) > 500 then
-		screen 19   ' create a graphical fake text console (800x600, 100x37 characters)
-	else
-		screen 11
-	end if
-	'Haaaaaack. fbgfx has builtin fonts which are code page 437 (US English IBM PC).
-	'So translate a couple characters we might use from Latin-1 (CP1252) to CP437
-	replacestr help, !"\&hF0", !"\&hEB"   ' ð -> δ
-	replacestr help, !"\&hF3", !"\&hA2"   ' ó
-
-	print help,   ' display the help on the graphical console
-	dim k as string = input(1)  ' use FreeBasic-style keypress checking because our keyhandler isn't set up yet
-#else
-	'Convert the string to system (multibyte) encoding
-	print utf8_to_mbs(latin1_to_utf8(help))
-#endif
-	terminate_program
-end sub
 
 ' This function exists to be hooked by gdb after we've opened
 ' the channel (without which, Custom's attempt to open it times out).
