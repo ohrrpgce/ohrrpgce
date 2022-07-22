@@ -2922,7 +2922,7 @@ wait for text box # wait until the player continues</example>
 				</note>
 			</description>
 			<example># Shows something like "coins=0, hero X(me)=3, hero Y(me)=14" at the bottom of the screen
-show value(coins, hero X(me), hero Y(me))</example>
+show value of(coins, hero X(me), hero Y(me))</example>
 		</command>
 		<command id="showstring">
 			<canon>show string (ID)</canon>
