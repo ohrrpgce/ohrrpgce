@@ -1029,6 +1029,8 @@ if win32:
     base_libraries += ['winmm', 'ole32', 'gdi32', 'shell32', 'advapi32', 'wsock32' if win95 else 'ws2_32']
     if win95:
         env['CFLAGS'] += ['-D', 'USE_WINSOCK1']
+        # Temp workaround for bug #1241 when compiling with mingw-w64 6.0.0 (currently used for official builds)
+        base_modules += ['lib/___mb_cur_max_func.c']
     common_libraries += ['fbgfxmt', 'fbmt']   # For display_help_string
     commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
     commonenv['CCLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
