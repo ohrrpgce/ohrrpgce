@@ -30,9 +30,9 @@ support\rm -f hspeak.exe
 CALL scons hspeak relump unlump %SCONS_ARGS%
 IF NOT EXIST hspeak.exe GOTO FAILURE
 
-REM This is the build for obsolete Windows (aka ohrrpgce-win-win95-wip.zip)
+REM This is the build for obsolete Windows machines (aka ohrrpgce-win-win95-wip.zip)
 support\rm -f game.exe custom.exe
-call scons gfx=directx+sdl+fb music=sdl win95=1 %SCONS_ARGS%
+call scons gfx=directx+sdl+fb music=sdl win95=1 sse2=0 %SCONS_ARGS%
 call distrib-nightly-win-packnupload music_sdl gfx_directx.dll SDL.dll SDL_mixer.dll
 
 REM This is the default build (default download is symlinked to it on the server)

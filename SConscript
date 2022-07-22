@@ -168,6 +168,8 @@ if arch == '64':
         arch = 'aarch64'
 if arch in ('i386', 'i686', '686'):
     # i386 is the name used on Mac, i686 commonly used on Linux, 686 by fbc
+    # On PC treat all of these as Pentium 4+ (by requiring SSE2) unless sse2=0 is used,
+    # in which case it really is 686 (Pentium Pro+)
     arch = 'x86'
 if arch in ('x64',):
     arch = 'x86_64'
@@ -200,6 +202,10 @@ if not arch:
         arch = 'armv5te'
     else:
         arch = default_arch
+
+if arch == 'x86':
+    # x86 only: whether to use SSE2 instructions. These are always available on x86 Mac & Android and on x86_64
+    sse2 = int(ARGUMENTS.get('sse2', 1))
 
 ################ Other commandline arguments
 
@@ -640,10 +646,20 @@ elif arch == 'x86':
         # Mac OSX ABI) but fbc's GAS backend wasn't updated for that until FB 1.06.
         # I don't know what clang does, but it doesn't support this commandline option.
         CFLAGS.append ('-mpreferred-stack-boundary=2')
-    # gcc -m32 on x86_64 defaults to enabling SSE and SSE2, so disable that,
-    # except on Intel Macs, where it is both always present, and required by system headers
-    if not mac:
-        CFLAGS.append ('-mno-sse')
+    # On Intel Macs, SSE2 is both always present and required by system headers.
+    if mac:
+        sse2 = True
+    if sse2:
+        CFLAGS += ['-msse2']
+        # We effectively require pentium4+, but adding -march=pentium4 or even
+        # -march=pentium4 -mtune=generic can generate slower code and break GCC 10's autovectoriser
+    else:
+        # gcc -m32 on a x86_64 host defaults to enabling SSE & SSE2, explicitly disable
+        CFLAGS += ['-mno-sse', '-DNO_SSE']
+        FBFLAGS += ['-d', 'NO_SSE']
+        # Note that if using gengcc=0, fbc doesn't emit SSE2 (unless you pass '-fpu sse'),
+        # so don't need to pass anything to fbc
+
 elif arch == 'x86_64':
     FBFLAGS += ["-arch", arch]
     CFLAGS.append ('-m64')
@@ -1728,6 +1744,8 @@ Options:
                        32 or 64           32 or 64 bit variant of the default
                                           arch (x86 or ARM).
                       Current (default) value: """ + arch + """
+  sse2=0              (x86 only). Disable SSE & SSE2 instructions to support
+                      Pentium Pro+ rather than Pentium 4+. Runs slower.
   eulib=...           Only needed when cross-compiling hspeak. Path to eu.a
                       library compiled for the target platform.
   portable=1          (For Linux and BSD) Try to build portable binaries, and

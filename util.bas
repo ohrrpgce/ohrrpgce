@@ -122,6 +122,9 @@ END EXTERN
 SUB lowlevel_init()
   'Note: if compiled with -e, FB will insert a call to fb_InitSignals()
   'at the top of main(), installing signals handlers for SIGSEGV, etc.
+  'and will also, on x86 only, call fb_CpuDetect and print an error and quit if
+  'the CPU isn't 686+ (Pentium Pro+) or (if compiled with -fpu sse) doesn't
+  'support SSE & SSE2. We duplicate that since we don't always compile with -e
 
   'Android only
   external_log "main() started..."
@@ -129,6 +132,20 @@ SUB lowlevel_init()
   init_crt   'setlocale
 
   os_init
+
+  #IF defined(__FB_X86__) AND NOT defined(__FB_64BIT__) AND NOT defined(NO_SSE)
+   'Check for SSE and SSE2 support
+   IF (fb_CpuDetect() AND &h6000000) <> &h6000000 THEN
+    #IFDEF __FB_WIN32__
+     'Unfortunately if you're using a default (gfx_sdl2) build you won't see this
+     'message due to dll errors unless you're running WinXP+ on an ancient machine.
+     display_help_string "Your CPU doesn't support SSE2 instructions (Pentium 4+). Go to https://ohrrpgce.com and download a 'Win95' build of the OHRRPGCE for older computers"
+    #ELSE
+     display_help_string "Your CPU doesn't support SSE2 instructions (Pentium 4+)?! Recompile the OHRRPGCE for older CPUs."
+    #ENDIF
+    SYSTEM 1
+   END IF
+  #ENDIF
 
   'Install FB error handler, either by hooking fb_End (which is a kludge)
   'or using ON ERROR GOTO (which is so yuck it's also a kludge).

@@ -106,6 +106,7 @@ CONST scUp = 72
 CONST scPageUp = 73
 CONST scNumpadMinus = 74
 CONST scLeft = 75
+'fbgfx in FB 1.10+ reports numpad 5 as 76 "Clear" key on Windows?
 CONST scRight = 77
 CONST scNumpadPlus = 78
 CONST scEnd = 79
