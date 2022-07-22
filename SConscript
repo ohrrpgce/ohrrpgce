@@ -100,7 +100,7 @@ unix = False  # True on mac and android
 mac = False
 android = False
 android_source = False
-win95 = int(ARGUMENTS.get ('win95', '1'))
+win95 = int(ARGUMENTS.get ('win95', '0'))
 glibc = False  # Computed below; can also be overridden by glibc=1 cmdline argument
 target = ARGUMENTS.get ('target', None)
 cross_compiling = (target is not None)  # Possibly inaccurate, avoid!
@@ -361,6 +361,9 @@ if 'sdl' in music+gfx and 'sdl2' in music+gfx:
     print("Can't link both sdl and sdl2 music or graphics backends at same time")
     Exit(1)
 
+if win95 and 'sdl2' in music+gfx:
+    print("SDL2 (gfx_sdl2/music_sdl2) doesn't support Windows 2000 or older")
+    Exit(1)
 
 
 ################ Create base environment
@@ -1028,8 +1031,9 @@ if win32:
     # Strangely advapi32 and shell32 are automatically added by ld when using linkgcc=1 but not linkgcc=0
     base_libraries += ['winmm', 'ole32', 'gdi32', 'shell32', 'advapi32', 'wsock32' if win95 else 'ws2_32']
     if win95:
+        # Link to Winsock 2 instead of 1 to support stock Win95 (Use win95=0 and mingw-w64 (not mingw) to get support for IPv6)
         env['CFLAGS'] += ['-D', 'USE_WINSOCK1']
-        # Temp workaround for bug #1241 when compiling with mingw-w64 6.0.0 (currently used for official builds)
+        # Temp workaround for bug #1241 when compiling with mingw-w64 6.0.0 (currently used for official builds) to support Win95-2k
         base_modules += ['lib/___mb_cur_max_func.c']
     common_libraries += ['fbgfxmt', 'fbmt']   # For display_help_string
     commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
@@ -1666,8 +1670,6 @@ Options:
   lto=1               Do link-time optimisation, for a faster, smaller build
                       (around 10-15% smaller for Game/Custom, 50% for utilities)
                       but long compile time. Useful with gengcc=1 only.
-  win95=0             (Windows only) Link to Winsock 2 instead of 1. Use win95=0
-                      and mingw-w64 (not mingw) to get support for IPv6.
   valgrind=1          Recommended when using valgrind (also turns off -exx).
   asan=1              Use AddressSanitizer. Unless overridden with gengcc=0 also
                       disables -exx and uses C backend.
@@ -1730,6 +1732,8 @@ Options:
                       library compiled for the target platform.
   portable=1          (For Linux and BSD) Try to build portable binaries, and
                       check library dependencies.
+  win95=1             (For Windows) Support old Windows versions. (By default
+                      stock Win95 isn't supported)
 
 The following environmental variables are also important:
   FBFLAGS             Pass more flags to fbc
