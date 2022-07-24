@@ -298,6 +298,13 @@ function try_load_crashrpt_at(crashrpt_dll as string) as bool
 end function
 
 function find_and_load_crashrpt() as bool
+	'CrashSender1403.exe requires this (and a couple other symbols in psapi.dll and dnsapi.dll) that aren't
+	'present on older Windows, even though loading CrashRpt1403.dll may work
+	if GetProcessMemoryInfo = NULL then
+		early_debuginfo "Skipping crashrpt: Windows too old"
+		return NO
+	end if
+
 	'This path is in settings_dir, but we haven't called get_settings_dir yet
 	dim dll_loc_file as string = ENVIRON("APPDATA") & "\OHRRPGCE\crashrpt_loc_api" & CURRENT_CRASHRPT_API & ".txt"
 
