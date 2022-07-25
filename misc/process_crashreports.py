@@ -66,7 +66,7 @@ SYMBOLS_ARCHIVE_URL = 'http://hamsterrepublic.com/ohrrpgce/symbols-archive/'
 # and by "set BUILDNAME=..." in distrib-win.{bat,sh}
 # Note that symbols_filename_from_build handles -debug variants, so they aren't in this table.
 BACKENDS_SYMSNAME = {
-    'gfx_directx+sdl+fb/music_sdl': 'music_sdl',   # And its obsolete variant, music_sdl-debug
+    'gfx_directx+sdl+fb/music_sdl': 'music_sdl',   # (aka win95 builds) And its obsolete variant, music_sdl-debug
     'gfx_directx+sdl+fb/music_native': 'music_native',   # Obsolete
     'gfx_directx+sdl+fb/music_native2': 'music_native2',   # Obsolete
     'gfx_directx+sdl+fb/music_silence': 'music_silence',   # Obsolete
@@ -438,8 +438,10 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
     keywords = []
     # This list of platforms is from config.bi
     for keyword in ("Android", "Linux", "FreeBSD", "NetBSD", "OpenBSD", "Mac", "Win", "DOS", "Unknown",
-                    "32-bit", "64-bit", "exx"):  #"portable", "AddrSan"
+                    "Win95", "32-bit", "64-bit", "exx"):  #"portable", "AddrSan", "SSE2"
         if keyword in build:
+            if keyword == "Win95":
+                keywords.remove("Win")
             keywords.append(keyword.replace('-bit', ''))
     summary.build = '/'.join(keywords + [backend.replace('"', '')])
 

@@ -408,6 +408,8 @@ def verprint(mod, builddir, rootdir):
         'asan':   'AddrSan ' if mod.asan else '',
         'portable': 'portable ' if mod.portable else '',
         'pdb':    'pdb ' if mod.pdb else '',
+        'win95':  'Win95 ' if mod.win95 else '',
+        'sse2':   'SSE2 ' if (mod.arch == 'x86' and mod.sse2) else '',
         'ccver':  ccversion,
         'fbver':  mod.FBC.fullversion,
         'uname':  platform.uname()[1],
@@ -425,7 +427,7 @@ def verprint(mod, builddir, rootdir):
         'DIM version_branch as string : version_branch = "%(branch_name)s"' % data,
         'DIM version_branch_revision as integer = %(branch_rev)s' % data,
         ('DIM long_version as string : long_version = "%(name)s %(codename)s %(date)s.%(rev)s %(gfx)s/%(music)s '
-         'FreeBASIC %(fbver)s %(ccver)s %(arch)s %(asan)s%(portable)s%(pdb)s Built on %(uname)s"') % data,
+         'FreeBASIC %(fbver)s %(ccver)s %(arch)s %(sse2)s%(asan)s%(win95)s%(portable)s%(pdb)s Built on %(uname)s"') % data,
         ('DIM supported_gfx_backends as string : supported_gfx_backends = "%s "' % ' '.join (supported_gfx))]
 
     write_file(builddir + 'backendinfo.bi',
