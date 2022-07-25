@@ -30,12 +30,25 @@ support\rm -f hspeak.exe
 CALL scons hspeak relump unlump %SCONS_ARGS%
 IF NOT EXIST hspeak.exe GOTO FAILURE
 
-REM This is the build for obsolete Windows machines (aka ohrrpgce-win-win95-wip.zip)
+REM This is the build for obsolete Windows machines (symlinked as ohrrpgce-win-win95-wip.zip)
 support\rm -f game.exe custom.exe
 call scons gfx=directx+sdl+fb music=sdl win95=1 sse2=0 %SCONS_ARGS%
 call distrib-nightly-win-packnupload music_sdl gfx_directx.dll SDL.dll SDL_mixer.dll
 
-REM This is the default build (default download is symlinked to it on the server)
+IF NOT EXIST game.exe (
+    ECHO game.exe didn't build; skipping ohrrpgce-player-win-wip-win95.zip
+    GOTO SKIPPLAYERWIN95
+)
+ECHO Packaging game player ohrrpgce-player-win-wip-win95.zip ...
+support\rm -f distrib\ohrrpgce-player-win-wip-win95.zip
+ECHO Generating nightly buildinfo.ini
+support\rm -f buildinfo.ini
+game.exe -buildinfo buildinfo.ini
+support\zip -9 -q distrib\ohrrpgce-player-win-wip-win95.zip game.exe buildinfo.ini SDL.dll SDL_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt svninfo.txt
+pscp -q distrib\ohrrpgce-player-win-wip-win95.zip %SCPHOST%:%SCPDEST%
+:SKIPPLAYERWIN95
+
+REM This is the default build (default download ohrrpgce-win-default.zip is symlinked to it on the server)
 support\rm -f game.exe custom.exe
 call scons gfx=sdl2+directx+fb music=sdl2 %SCONS_ARGS%
 call distrib-nightly-win-packnupload sdl2 gfx_directx.dll SDL2.dll SDL2_mixer.dll
@@ -53,7 +66,7 @@ IF EXIST distrib\ohrrpgce-win-installer-wip.exe (
 
 IF NOT EXIST game.exe (
     ECHO game.exe didn't build; skipping ohrrpgce-player-win-wip-sdl2.zip
-    GOTO SKIPPLAYER
+    GOTO SKIPPLAYERSDL2
 )
 ECHO Packaging game player ohrrpgce-player-win-wip-sdl2.zip ...
 support\rm -f distrib\ohrrpgce-player-win-wip-sdl2.zip
@@ -62,7 +75,7 @@ support\rm -f buildinfo.ini
 game.exe -buildinfo buildinfo.ini
 support\zip -9 -q distrib\ohrrpgce-player-win-wip-sdl2.zip game.exe buildinfo.ini SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt svninfo.txt
 pscp -q distrib\ohrrpgce-player-win-wip-sdl2.zip %SCPHOST%:%SCPDEST%
-:SKIPPLAYER
+:SKIPPLAYERSDL2
 
 support\rm -f game.exe custom.exe
 call scons music=native %SCONS_ARGS%

@@ -129,11 +129,17 @@ mustexist unlump.exe
 mustexist relump.exe
 mustexist hspeak.exe
 
+# This is the build for obsolete Windows machines (symlinked as ohrrpgce-win-win95-wip.zip)
 rm -f game*.exe custom*.exe
-${BUILD} gfx=directx+sdl+fb music=sdl $SCONS_ARGS || exit 1
+${BUILD} gfx=directx+sdl+fb music=sdl win95=1 sse2=0 $SCONS_ARGS || exit 1
 zip_and_upload music_sdl gfx_directx.dll SDL.dll SDL_mixer.dll
 
-# This is the default build (default download is symlinked to it on the server)
+# Win95 player-only zip
+rm -f distrib/ohrrpgce-player-win-wip-win95.zip
+zip -q -9 distrib/ohrrpgce-player-win-wip-win95.zip game.exe SDL.dll SDL_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt svninfo.txt
+scp -p distrib/ohrrpgce-player-win-wip-win95.zip "${SCPHOST}":"${SCPDEST}"
+
+# This is the default build (default download ohrrpgce-win-default.zip is symlinked to it on the server)
 rm -f game*.exe custom*.exe
 ${BUILD} gfx=sdl2+directx+fb music=sdl2 $SCONS_ARGS || exit 1
 zip_and_upload sdl2 gfx_directx.dll SDL2.dll SDL2_mixer.dll
@@ -146,7 +152,7 @@ rm -f iextratxt.txt
 mustexist "distrib/ohrrpgce-win-installer.exe"
 scp -p distrib/ohrrpgce-win-installer.exe "${SCPHOST}":"${SCPDEST}"/ohrrpgce-wip-win-installer.exe
 
-# Player-only zip
+# Default player-only zip
 rm -f distrib/ohrrpgce-player-win-wip-sdl2.zip
 zip -q -9 distrib/ohrrpgce-player-win-wip-sdl2.zip game.exe SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt svninfo.txt
 scp -p distrib/ohrrpgce-player-win-wip-sdl2.zip "${SCPHOST}":"${SCPDEST}"
