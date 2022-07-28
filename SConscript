@@ -1625,7 +1625,7 @@ TESTS = Phony ('test', source = test_srcs, action = tests)
 Alias ('tests', TESTS)
 
 def packager(target, source, env):
-    action = str(target[0])  # eg 'install'
+    action = str(target[0])  # 'install' or 'uninstall'
     if android or not unix:
         print("The '%s' action is only implemented on Unix systems." % action)
         return 1
@@ -1633,8 +1633,8 @@ def packager(target, source, env):
         print("dry_run option not implemented for 'install' action")
         return 1
     sys.path += ['linux']
-    import ohrrpgce
-    getattr(ohrrpgce, action)(destdir, prefix, dry_run = dry_run)
+    import linuxpkg
+    getattr(linuxpkg, action)(destdir, prefix, dry_run = dry_run)
 
 Phony ('install', source = [GAME, CUSTOM, HSPEAK], action = packager, message = "Installing...")
 Phony ('uninstall', source = [], action = packager, message = "Uninstalling..." + (dry_run and " (dry run)" or ""))

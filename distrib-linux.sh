@@ -40,6 +40,6 @@ if [ -z "${OHR_SKIP_X86_64}" ] ; then
   if which dpkg > /dev/null; then
     echo
     echo "Building x86_64 Debian/Ubuntu packages"
-    python linux/ohrrpgce.py distrib || exit 1
+    python linux/linuxpkg.py distrib || exit 1
   fi
 fi
