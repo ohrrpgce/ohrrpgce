@@ -166,6 +166,7 @@ WHAT IS NEW?
       duplication in out-of-battle Spells menu and could crash [Ralph]
     * Fix the Mac app bundles exported from the Distribute Game menu on Windows
       [James]
+    * Debian packages were missing the Plotscripting Dictionary [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

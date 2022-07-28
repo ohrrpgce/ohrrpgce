@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+# Supports Python 2.x and 3.x
 
 """
-For installing/uninstalling the OHRRPGCE locally system-wide under Linux and creating the ohrrpgce .deb package.
+For installing/uninstalling the OHRRPGCE locally system-wide under Linux (implementation of "scons install"
+and "scons uninstall", and creating the ohrrpgce .deb package (when invoked from the commandline).
 """
 
 from __future__ import print_function
@@ -14,7 +16,7 @@ rootdir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(rootdir)
 
 import ohrbuild
-from ohrpackage import files_to_package, copy_file_or_dir, safe_rm, safe_rmtree, quiet_mkdir
+from ohrpackage import engine_files, copy_file_or_dir, safe_rm, safe_rmtree, quiet_mkdir
 
 
 ############################################################################
@@ -105,7 +107,7 @@ def install(destdir = '', prefix = '/usr', dry_run = False):
     """Installs the OHRRPGCE on the local machine (not including Vikings of Midgard).
     Pass destdir to install into a staging area instead of writing to /
     (dry_run is not implemented)."""
-    files = files_to_package(get_srcdir())
+    files = engine_files('linux', 'minimal', get_srcdir())
     build_tree(destdir, package_name, files, prefix = prefix)
     menu_entry(destdir, package_name, "OHRRPGCE Game Player", prefix + "/games/ohrrpgce-game", desktop_file_suffix="-game", icon="ohrrpgce-game.png", prefix=prefix)
     menu_entry(destdir, package_name, "OHRRPGCE Custom Editor", prefix + "/games/ohrrpgce-custom", append=True, desktop_file_suffix="-custom", icon="ohrrpgce-custom.png", prefix=prefix)
@@ -145,14 +147,14 @@ def write_control_file(filename, template, values):
     f.write((template % values).encode('utf8'))
     f.close()
 
-def run_dpkg(package, ver):
-    temp = "fakeroot dpkg -b %s %s_%s_amd64.deb" % (package, package, ver)
+def run_dpkg(outdir, package, ver):
+    temp = "fakeroot dpkg -b %s %s%s_%s_amd64.deb" % (package, outdir, package, ver)
     os.system(temp.encode(sys.getfilesystemencoding()))
 
-def create_dpkg():
+def create_dpkg(outdir):
     "Creates ohrrpgce_${version}_amd64.deb in the current directory"
 
-    files = files_to_package(get_srcdir())
+    files = engine_files('linux', 'minimal', get_srcdir())
 
     maintainer = '"OHRRPGCE Development Team" <ohrrpgce@lists.motherhamster.org>'
     # For gfx_sdl builds:  libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2)
@@ -182,10 +184,15 @@ Description: Official Hamster Republic Role Playing Game Construction Engine
 """
     , (package_name, calculate_size(files), maintainer, version, depends, recommends))
     install(package_name)
-    run_dpkg(package_name, version)
+    run_dpkg(outdir, package_name, version)
     safe_rmtree(package_name)
 
 ############################################################################
 
 if __name__ == '__main__':
-    create_dpkg()
+    # Create ohrrpgce_..._amd64.deb
+    # One optional arg: directory in which to place the .deb
+    outdir = ''
+    if len(sys.argv) >= 2:
+        outdir = sys.argv[1] + '/'
+    create_dpkg(outdir)

@@ -9,87 +9,26 @@ if [ ! -f distrib-linux.sh ] ; then
   exit 1
 fi
 
-echo "Building relump"
-scons $SCONS_ARGS lto=1 relump || exit 1
-
-echo "Erasing contents of temporary directory"
-mkdir -p tmp
-mkdir -p distrib
-rm -Rf tmp/*
-
 echo Erasing old distribution files
+mkdir -p distrib
 rm -f distrib/ohrrpgce-linux-*.tar.bz2
-rm -f distrib/ohrrpgce-player-*.zip
+rm -f distrib/ohrrpgce-player-linux-*.zip
 rm -f distrib/*.deb
 
 package_for_arch() {
   ARCH=$1
 
+  echo
   echo "Building $ARCH binaries"
   # lto=1 to reduce unlump/relump size
   scons $SCONS_ARGS arch=$ARCH lto=1 unlump relump || return 1
   scons $SCONS_ARGS arch=$ARCH game custom hspeak || return 1
 
   echo "Packaging $ARCH binary distribution of CUSTOM"
-  
-  echo "  Including binaries"
-  cp -p ohrrpgce-game tmp &&
-  cp -p ohrrpgce-custom tmp &&
-  cp -p unlump tmp &&
-  cp -p relump tmp || return 1
-
-  echo "  Including hspeak"
-  cp -p hspeak tmp || return 1
-
-  echo "  Including support files"
-  cp -p plotscr.hsd tmp &&
-  cp -p scancode.hsi tmp || return 1
-
-  echo "  Including readmes"
-  cp -p README-game.txt tmp &&
-  cp -p README-custom.txt tmp &&
-  cp -p IMPORTANT-nightly.txt tmp &&
-  cp -p LICENSE.txt tmp &&
-  cp -p LICENSE-binary.txt tmp &&
-  cp -p whatsnew.txt tmp || return 1
-
-  echo "  Including data files"
-  mkdir -p tmp/data &&
-  cp -pr data/* tmp/data || return 1
-
-  echo "  Including import"
-  mkdir -p tmp/import &&
-  cp -pr import/* tmp/import || return 1
-
-  echo "  Including docs"
-  mkdir -p tmp/docs &&
-  cp -p docs/*.html tmp/docs &&
-  cp -p docs/*.png tmp/docs &&
-  cp -p docs/plotdict.xml tmp/docs &&
-  cp -p docs/htmlplot.xsl tmp/docs &&
-  cp -p docs/more-docs.txt tmp/docs || return 1
-
-  echo "  Including help files"
-  cp -pr ohrhelp tmp || return 1
-
-  echo "tarring and bzip2ing $ARCH distribution"
-  TODAY=`date "+%Y-%m-%d"`
-  CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
-  BRANCH=`cat codename.txt | grep -v "^#" | head -2 | tail -1 | tr -d "\r"`
-  mv tmp ohrrpgce
-  tar -jcf distrib/ohrrpgce-linux-$TODAY-$BRANCH-$ARCH.tar.bz2 --exclude .svn ./ohrrpgce || return 1
-  mv ohrrpgce tmp
-
-  echo "Erasing contents of temporary directory"
-  rm -Rf tmp/*
+  ./ohrpackage.py linux full distrib/ohrrpgce-linux-{TODAY}-{BRANCH}-$ARCH.tar.bz2 || return 1
 
   echo "Prepare minimal $ARCH player zip"
-  cp ohrrpgce-game tmp/
-  strip tmp/ohrrpgce-game
-  echo "Generating buildinfo.ini"
-  tmp/ohrrpgce-game -buildinfo tmp/buildinfo.ini
-  zip -j distrib/ohrrpgce-player-linux-bin-minimal-$TODAY-$BRANCH-$ARCH.zip tmp/ohrrpgce-game tmp/buildinfo.ini LICENSE-binary.txt README-player-only.txt
-  rm tmp/ohrrpgce-game
+  ./ohrpackage.py linux player distrib/ohrrpgce-player-linux-bin-minimal-{TODAY}-{BRANCH}-$ARCH.zip || return 1
 }
 
 if [ -z "${OHR_SKIP_X86}" ] ; then
@@ -99,11 +38,8 @@ fi
 if [ -z "${OHR_SKIP_X86_64}" ] ; then
   package_for_arch x86_64 || exit 1
   if which dpkg > /dev/null; then
+    echo
     echo "Building x86_64 Debian/Ubuntu packages"
-    cd linux
-    rm -f *.deb
-    python2.7 ./ohrrpgce.py || exit 1
-    cd ..
-    mv linux/*.deb distrib
+    python linux/ohrrpgce.py distrib || exit 1
   fi
 fi
