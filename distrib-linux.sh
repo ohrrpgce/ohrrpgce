@@ -102,7 +102,6 @@ if [ -z "${OHR_SKIP_X86_64}" ] ; then
     echo "Building x86_64 Debian/Ubuntu packages"
     cd linux
     rm -f *.deb
-    rm -Rf ohrrpgce
     python2.7 ./ohrrpgce.py || exit 1
     cd ..
     mv linux/*.deb distrib

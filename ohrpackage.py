@@ -16,7 +16,7 @@ def copy_file_or_dir(src, dest):
     """
     if os.path.isfile(src):
         shutil.copy2(src, dest)
-    else:
+    elif os.path.isdir(src):
         quiet_mkdir(dest)
         for filename in os.listdir(src):
             if filename == ".svn":
@@ -24,6 +24,8 @@ def copy_file_or_dir(src, dest):
             srcpath = os.path.join(src, filename)
             destpath = os.path.join(dest, filename)
             copy_file_or_dir(srcpath, destpath)
+    else:
+        raise Exception("Missing " + src)
 
 def safe_rm(path, dry_run = False):
     assert len(path) > 5
@@ -51,34 +53,69 @@ def relump(lumpdir, rpgfile):
     except(OSError):
         # don't care if the file does not already exist
         pass
-    os.system(rootdir + '/relump "' + lumpdir + '" "' + rpgfile + '"')
+    os.system('relump "' + lumpdir + '" "' + rpgfile + '"')
 
 ############################################################################
 
 
-if os.path.isfile('ohrrpgce-game'):
-    prefix = ""
-elif os.path.isfile('../ohrrpgce-game'):
-    prefix = "../"
-else:
-    raise Exception("Can't find ohrrpgce-game and other files")
+class PackageContents():
+    def __init__(self, srcdir):
+        self.srcdir = os.path.abspath(srcdir)
+        self.datafiles = []
+        self.executables = []
+        self.icons = []
 
-files = [
-  prefix + "README-game.txt",
-  prefix + "README-custom.txt",
-  prefix + "LICENSE.txt",
-  prefix + "LICENSE-binary.txt",
-  prefix + "whatsnew.txt",
-  prefix + "plotscr.hsd",
-  prefix + "scancode.hsi",
-  prefix + "unlump",
-  prefix + "relump",
-  prefix + "data",
-  prefix + "ohrhelp"]
+    def abspath(self, path):
+        return os.path.join(self.srcdir, path)
 
-executables = [prefix + "ohrrpgce-game",
-               prefix + "ohrrpgce-custom",
-               prefix + "hspeak"]
 
-icons = [prefix + "ohrrpgce-game.png",
-         prefix + "ohrrpgce-custom.png"]
+def files_to_package(srcdir = '', win32 = False):
+    """Return lists of file and directory paths to be packaged/installed.
+    Searches in srcdir which should be the root of the source repo.
+    Each returned path will be either absolute or relative to srcdir.
+    """
+
+    exe = '.exe' if win32 else ''
+
+    files = PackageContents(srcdir)
+
+    # Files installed under $prefix/share/games/ohrrpgce on Unix,
+    # installed in program directory on Windows and Mac
+    files.datafiles = [
+        "README-game.txt",
+        "README-custom.txt",
+        "LICENSE.txt",
+        "LICENSE-binary.txt",
+        "whatsnew.txt",
+        "plotscr.hsd",
+        "scancode.hsi",
+        "unlump" + exe,
+        "relump" + exe,
+        "data",
+        "ohrhelp"
+    ]
+
+    # Files installed under $prefix/games on Unix,
+    # installed in program directory on Windows and Mac
+    files.executables = [
+        "hspeak" + exe
+    ]
+    if win32:
+        files.executables += [
+            "game.exe",
+            "custom.exe",
+        ]
+    else:
+        files.executables += [
+            "ohrrpgce-game",
+            "ohrrpgce-custom",
+        ]
+
+    # Files installed under $prefix/share/icons/... on Unix,
+    # not used on Windows and Mac
+    files.icons = [
+        "ohrrpgce-game.png",
+        "ohrrpgce-custom.png"
+    ]
+
+    return files
