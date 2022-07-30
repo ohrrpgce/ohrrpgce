@@ -118,8 +118,8 @@ function global_setoption(opt as string, arg as string) as integer
 		help &= "svn_rev=" & svn_rev & LINE_END
 		dim code_name as string = split_chunk(version_code, -1, " ")
 		help &= "code_name=" & code_name & LINE_END
-		load_preferred_gfx_backend()
-		help &= "gfx=" & gfxbackend & LINE_END
+		'Space-separated list of backend names (excluding 'gfx_'/'music_')
+		help &= "gfx=" & supported_gfx_backends & LINE_END
 		help &= "music=" & musicbackend & LINE_END
 
 		dim ini_file as string = arg
