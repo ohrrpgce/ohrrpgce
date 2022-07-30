@@ -8,8 +8,14 @@ import subprocess
 import time
 import shutil
 import glob
+if sys.version_info.major == 2:
+    from ConfigParser import ConfigParser
+else:
+    from configparser import ConfigParser
 
 import ohrbuild
+
+host_win32 = sys.platform.startswith('win')
 
 ############################################################################
 ## Utilities
@@ -31,7 +37,7 @@ def copy_file_or_dir(src, dest):
     Because shutil.copytree fails if a directory already exists.
     """
     # Create directory
-    pardir = os.path.split(dest)[0]
+    pardir = os.path.dirname(dest)
     if pardir:
         quiet_mkdir(pardir)
 
@@ -70,9 +76,9 @@ def quiet_mkdir(dir):
     except OSError:
         pass # ignore dir-already-exists
 
-def check_call(*args):
+def check_call(*args, **kwargs):
     print(" ".join(args))
-    subprocess.check_call(args)
+    subprocess.check_call(args, **kwargs)
 
 def relump(lumpdir, rpgfile):
     try:
@@ -99,6 +105,43 @@ def archive_dir_contents(directory, outfile):
         else:
             print("Unsupported archive filetype")
             sys.exit(1)
+
+############################################################################
+
+def generate_buildinfo(game):
+    "Run ohrrpgce-game/game.exe -buildinfo, using wine if needed, to generate buildinfo.ini next to it"
+    directory, game = os.path.split(game)
+    with temp_chdir(directory):
+        safe_rm("buildinfo.ini")
+        if game.endswith(".exe"):
+            if host_win32:
+                check_call(game, "-buildinfo", "buildinfo.ini")
+            else:
+                # env = dict(os.environ)
+                # env["WINEDEBUG"] = "fixme-all"
+                # Send stderr to a pipe to silence it
+                check_call("wine", game, "-buildinfo", "buildinfo.ini", stderr = subprocess.PIPE)
+        else:
+            check_call("./" + game, "-buildinfo", "buildinfo.ini")
+        assert os.path.isfile("buildinfo.ini")
+
+def parse_buildinfo(path):
+    "Returns a dict with buildinfo.ini contents"
+    config = ConfigParser()
+    config.read(path)
+    return dict(config.items("buildinfo"))
+
+def get_buildinfo(game):
+    "Generate buildinfo.ini by running Game, and parse it"
+    # If buildinfo.ini already exists next to Game, we overwrite it, otherwise
+    # we delete it after we're done
+    inifile = os.path.join(os.path.dirname(game), "buildinfo.ini")
+    preexisting = os.path.isfile(inifile)
+    generate_buildinfo(game)
+    ret = parse_buildinfo(inifile)
+    if not preexisting:
+        safe_rm(inifile)
+    return ret
 
 ############################################################################
 
@@ -141,6 +184,30 @@ def player_only_files(target, srcdir = ''):
 
     return files
 
+def needed_windows_libs(buildinfo):
+    "List of the Windows libraries needed by all compiled-in backends"
+    gfxlibs = {
+        "fb":      [],
+        "sdl":     ["SDL.dll"],
+        "sdl2":    ["SDL2.dll"],
+        "directx": ["gfx_directx.dll"],
+        "directx": ["gfx_directx.dll"],
+    }
+    musiclibs = {
+        "silence": [],
+        "native":  ["audiere.dll"],
+        "native2": ["audiere.dll"],
+        "sdl":     ["SDL.dll", "SDL_mixer.dll"],
+        "sdl2":    ["SDL2.dll", "SDL2_mixer.dll"],
+    }
+
+    libs = set()
+    for gfx in buildinfo['gfx'].split():
+        libs.update(gfxlibs[gfx])
+    for music in buildinfo['music'].split():
+        libs.update(musiclibs[music])
+    return list(libs)
+
 def engine_files(target, config, srcdir = ''):
     """Files (returned as as PackageContents) for a Game+Custom package or for installation.
     Searches in srcdir, which should be the root of the source repo.
@@ -178,12 +245,15 @@ def engine_files(target, config, srcdir = ''):
 
     # Files installed under $prefix/games on Unix,
     # installed in program directory on Windows and Mac
+    # Includes libraries.
     if target == "win":
         files.executables += [
             "game.exe",
             "custom.exe",
             "hspeak.exe",
         ]
+        buildinfo = get_buildinfo(files.abspath("game.exe"))
+        files.executables += needed_windows_libs(buildinfo)
     elif target == "mac":
         files.executables += [
             "OHRRPGCE-Game.app",
@@ -224,12 +294,11 @@ def gather_files(files):
 
 def prepare_player(files):
     "Produces a player-only archive from files that were copied to the 'ohrrpgce' directory"
-    os.chdir("ohrrpgce")
-    game = files.executables[0]
-    check_call("strip", game)
-    check_call("./" + game, "-buildinfo", "buildinfo.ini")
-    files.datafiles += ["buildinfo.ini"]
-    os.chdir("..")
+    with temp_chdir("ohrrpgce"):
+        game = files.executables[0]
+        check_call("strip", game)
+        generate_buildinfo(game)
+        files.datafiles += ["buildinfo.ini"]
 
 def format_output_filename(template, srcdir = ''):
     "Expand replacements"
@@ -280,7 +349,7 @@ output_file can contain replacements {TODAY}, {CODENAME}, {BRANCH}."""
         sys.exit(1)
 
     target = sys.argv[1]
-    if target not in ("linux",):
+    if target not in ("linux", "win"):
         print("Unsupported OS '%s'" % target)
         sys.exit(1)
 

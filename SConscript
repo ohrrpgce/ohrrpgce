@@ -7,7 +7,6 @@ cf. SConstruct, ohrbuild.py
 from __future__ import print_function
 import sys
 import os
-import platform
 import shutil
 import shlex
 import itertools
@@ -93,7 +92,7 @@ CFLAGS += ['-DFBCVERSION=%d' % FBC.version]
 # FBC.default_target will be one of win32, dos, linux, freebsd, darwin, etc
 default_arch = FBC.default_arch
 
-host_win32 = platform.system() == 'Windows'
+host_win32 = sys.platform.startswith('win')
 
 win32 = False
 unix = False  # True on mac and android
@@ -843,7 +842,7 @@ if linkgcc:
         else:
             handle_symbols += '$TARGET'
         handle_symbols += ' win32/${TARGET.filebase}.pdb'
-        if not sys.platform.startswith('win'):
+        if not host_win32:
             handle_symbols = 'WINEDEBUG=fixme-all wine ' + handle_symbols
             # If cv2pdb fails (because Visual Studio is missing) continue without error
             handle_symbols += " || true"
@@ -1467,7 +1466,7 @@ Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
 # gfx_directx.dll and gfx_directx_test1.exe
 # Skip the following if we aren't building these, to avoid warnings if VC++ isn't available.
 if any('gfx_directx' in targ for targ in BUILD_TARGETS):
-    if platform.system() != 'Windows':
+    if not host_win32:
         exit("Can't cross-compile gfx_directx, requires Visual C++")
 
     directx_sources = ['d3d.cpp', 'didf.cpp', 'gfx_directx.cpp', 'joystick.cpp', 'keyboard.cpp',
