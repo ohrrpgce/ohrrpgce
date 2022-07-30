@@ -4482,8 +4482,8 @@ sub processcommandline(nonoption_args() as string, opt_handler as FnSetOption, a
 end sub
 
 sub display_help_string(help as string)
-#ifdef __FB_WIN32__
-	'Printing to the console doesn't work under Windows unless compiled without -s gui
+#if defined(__FB_WIN32__) and __FB_GUI__
+	'Printing to the console doesn't work under Windows if compiled with -s gui so create a window.
 	'Don't do this under Unix, it's annoying and adds fbgfx as a dependency
 	if len(help) > 500 then
 		screen 19   ' create a graphical fake text console (800x600, 100x37 characters)
