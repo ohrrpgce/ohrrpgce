@@ -38,6 +38,7 @@ support\rm -f distrib\ohrrpgce-player-win-minimal-sdl2.zip
 support\rm -f distrib\ohrrpgce-minimal.zip
 support\rm -f distrib\ohrrpgce.zip
 support\rm -f distrib\ohrrpgce-win-installer.exe
+support\rm -f distrib\ohrrpgce-symbols-win.7z
 
 ECHO ------------------------------------------
 ECHO Packaging game player ohrrpgce-player-win-minimal-sdl2.zip ...
@@ -65,10 +66,7 @@ IF NOT EXIST distrib\ohrrpgce-win-installer.exe (
 
 ECHO ------------------------------------------
 ECHO Packaging debug info archive
-support\rm -f distrib/ohrrpgce-symbols-win.7z
-REM The ./ path prefixes add the files with the win32/ relative path
-support\7za a -mx=7 -bd distrib\ohrrpgce-symbols-win.7z game.exe custom.exe .\win32\custom.pdb .\win32\game.pdb > NUL
-REM NOTE: 7za will produce a .7z file even if input files are missing. The -sse arg to stop that doesn't work!
+python ohrpackage.py win symbols distrib\ohrrpgce-symbols-win.7z
 IF NOT EXIST distrib\ohrrpgce-symbols-win.7z (
     ECHO 7za failed!
     exit /b 1

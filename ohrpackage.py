@@ -101,10 +101,16 @@ def clip_string(s, maxlen = 90):
     "Shorten a string if over maxlen"
     return s if len(s) <= maxlen else s[:maxlen-5] + "[...]"
 
-def check_call(*args, **kwargs):
-    args = (find_program(args[0]), ) + args[1:]
+def subprocess_args(args):
+    args = (find_program(args[0]), ) + tuple(args[1:])
     print(clip_string(" ".join(args)))
-    subprocess.check_call(args, **kwargs)
+    return args
+
+def check_call(*args, **kwargs):
+    subprocess.check_call(subprocess_args(args), **kwargs)
+
+def check_output(*args, **kwargs):
+    subprocess.check_output(subprocess_args(args), **kwargs)
 
 def relump(lumpdir, rpgfile):
     try:
@@ -116,20 +122,28 @@ def relump(lumpdir, rpgfile):
 
 def archive_dir(directory, outfile):
     """Produce an archive from a directory. Archived paths start with the directory path."""
+    safe_rm(outfile)
     if outfile.endswith(".tar.bz2"):
         check_call("tar", "-jcf", outfile, directory)
     elif outfile.endswith(".zip"):
         check_call("zip", "-9", "-q", "-r", outfile, directory)
+    elif outfile.endswith(".7z"):
+        # Capture stdout to silence it (errors printed to stderr)
+        check_output("7za", "a", "-mx=7", "-bd", outfile, directory)
     else:
         print("Unsupported archive filetype")
         sys.exit(1)
 
 def archive_dir_contents(directory, outfile):
     """Produce an archive from a directory. Archived paths don't include the directory path."""
+    safe_rm(outfile)
     outfile = os.path.abspath(outfile)
     with temp_chdir(directory):
         if outfile.endswith(".zip"):
             check_call("zip", "-9", "-q", "-r", outfile, *glob.glob("*"))
+        elif outfile.endswith(".7z"):
+            # Capture stdout to silence it (errors printed to stderr)
+            check_output("7za", "a", "-mx=7", "-bd", outfile, *glob.glob("*"))
         else:
             print("Unsupported archive filetype")
             sys.exit(1)
@@ -224,6 +238,23 @@ def player_only_files(target, srcdir = ''):
         "LICENSE-binary.txt"
     ]
 
+    return files
+
+def symbols_files(target, srcdir = ''):
+    """Files (returned as a PackageContents) for a  package"""
+    if target != "win":
+        print("Can only package Windows symbols")
+        sys.exit(1)
+
+    files = PackageContents(srcdir)
+    files.datafiles = [
+        "game.exe",
+        "custom.exe",
+        "win32/custom.pdb",
+        "win32/game.pdb",
+    ]
+    files.dest["win32/custom.pdb"] = ""
+    files.dest["win32/game.pdb"] = ""
     return files
 
 def needed_windows_libs(buildinfo):
@@ -426,6 +457,8 @@ def package(target, config, outfile = None):
 
     if config == "player":
         files = player_only_files(target)
+    elif config == "symbols":
+        files = symbols_files(target)
     else:
         files = engine_files(target, config)
 
@@ -436,7 +469,7 @@ def package(target, config, outfile = None):
 
     if outfile:
         print("Archiving " + outfile)
-        if config == "player" or target == "win":
+        if config in ("player", "symbols") or target == "win":
             archive_dir_contents("ohrrpgce", outfile)
         else:
             archive_dir("ohrrpgce", outfile)
@@ -450,7 +483,7 @@ if __name__ == '__main__':
 Package the OHRRPGCE for a given OS and configuration. (Not all supported yet!)
 Run after compiling all needed executables, from the root of the source tree.
 Usage:
-  ./ohrpackage.py {linux,win,mac} {full,minimal,nightly,player} [output_file]
+  ./ohrpackage.py {linux,win,mac} {full,minimal,nightly,player,symbols} [output_file]
 
 If output_file is omitted files are instead placed in a directory named 'ohrrpgce'.
 output_file can contain replacements {TODAY}, {CODENAME}, {BRANCH}."""
@@ -468,7 +501,7 @@ output_file can contain replacements {TODAY}, {CODENAME}, {BRANCH}."""
         sys.exit(1)
 
     config = sys.argv[2]
-    if config not in ("full", "minimal", "player"):
+    if config not in ("full", "minimal", "player", "symbols"):
         print("Unsupported configuration '%s'" % config)
         sys.exit(1)
 
