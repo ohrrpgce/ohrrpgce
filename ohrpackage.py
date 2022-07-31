@@ -4,6 +4,7 @@
 from __future__ import print_function
 import sys
 import os
+import io
 import subprocess
 import time
 import shutil
@@ -16,6 +17,8 @@ else:
 import ohrbuild
 
 host_win32 = sys.platform.startswith('win')
+
+rootdir = os.path.abspath(os.path.dirname(__file__))
 
 ############################################################################
 ## Utilities
@@ -75,6 +78,17 @@ def quiet_mkdir(dir):
         os.makedirs(dir)
     except OSError:
         pass # ignore dir-already-exists
+
+def unix2dos(path):
+    # Equivalent to open() in Python 3
+    with io.open(path, "r", encoding = "latin1") as f:
+        lines = f.readlines()
+    temp = path + "__dos"
+    with io.open(temp, "w", newline = "\r\n", encoding = "latin1") as f:
+        f.writelines(lines)
+    shutil.copystat(path, temp)
+    os.remove(path)
+    os.rename(temp, path)
 
 def find_program(name):
     if host_win32:
@@ -370,7 +384,7 @@ def engine_files(target, config, srcdir = ''):
 
 ############################################################################
 
-def gather_files(files):
+def gather_files(files, target):
     "Copy files (except icons) into a new directory named 'ohrrpgce' ready for archiving"
 
     # Place files in tmp/ in case we error out partway
@@ -380,6 +394,14 @@ def gather_files(files):
 
     for path in files.executables + files.datafiles:
         copy_file_or_dir(files.abspath(path), destdir + files.getdest(path))
+
+    if target == "win":
+        print("Converting *.txt/hsi/hsd newlines")
+        with temp_chdir("tmp"):
+            for dirpath, dirs, files in os.walk('.'):
+                for fname in files:
+                    if os.path.splitext(fname)[1] in (".txt", ".hsi", ".hsd"):
+                        unix2dos(os.path.join(dirpath, fname))
 
     safe_rmtree("ohrrpgce")
     os.rename(destdir, "ohrrpgce")
@@ -408,7 +430,7 @@ def package(target, config, outfile = None):
         files = engine_files(target, config)
 
     print("Gathering ohrrpgce/")
-    gather_files(files)
+    gather_files(files, target)
     if config == "player":
         prepare_player(files, target)
 
