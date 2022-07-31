@@ -82,6 +82,7 @@ svn update
 
 # Compile and create .bz2 and .deb files
 echo "Calling distrib-linux.sh..."
+# Note: this creates a 'full' rather than 'nightly' package. Only Windows nightlies use 'nightly'.
 ./distrib-linux.sh
 
 if [ -z "$OHR_SKIP_X86" ] ; then
