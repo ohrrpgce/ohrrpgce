@@ -31,71 +31,61 @@ CALL scons hspeak relump unlump %SCONS_ARGS%
 IF NOT EXIST hspeak.exe GOTO FAILURE
 
 REM This is the build for obsolete Windows machines (symlinked as ohrrpgce-win-win95-wip.zip)
-support\rm -f game.exe custom.exe
-call scons gfx=directx+sdl+fb music=sdl win95=1 sse2=0 %SCONS_ARGS%
-call distrib-nightly-win-packnupload music_sdl
+call scons gfx=directx+sdl+fb music=sdl win95=1 sse2=0 %SCONS_ARGS% && (
+  call distrib-nightly-win-packnupload music_sdl
 
-IF NOT EXIST game.exe (
-    ECHO game.exe didn't build; skipping ohrrpgce-player-win-wip-win95.zip
-    GOTO SKIPPLAYERWIN95
+  ECHO     Packaging win95 game player ...
+  python ohrpackage.py win player distrib\ohrrpgce-player-win-wip-win95.zip && (
+    pscp -q distrib\ohrrpgce-player-win-wip-win95.zip %SCPHOST%:%SCPDEST%
+  )
 )
-ECHO Packaging game player ohrrpgce-player-win-wip-win95.zip ...
-support\rm -f distrib\ohrrpgce-player-win-wip-win95.zip
-python ohrpackage.py win player distrib\ohrrpgce-player-win-wip-win95.zip
-pscp -q distrib\ohrrpgce-player-win-wip-win95.zip %SCPHOST%:%SCPDEST%
-:SKIPPLAYERWIN95
 
 REM This is the default build (default download ohrrpgce-win-default.zip is symlinked to it on the server)
-support\rm -f game.exe custom.exe
-call scons gfx=sdl2+directx+fb music=sdl2 %SCONS_ARGS%
-call distrib-nightly-win-packnupload sdl2
+call scons gfx=sdl2+directx+fb music=sdl2 %SCONS_ARGS% && (
+  call distrib-nightly-win-packnupload sdl2
 
-ECHO Packaging ohrrpgce-win-installer-wip.exe ...
-REM Create the installer from the executables we just built: the installer and .zips for default build configs
-REM must contain the same executables, to share .pdb files
-support\rm -f distrib\ohrrpgce-win-installer-wip.exe
-echo InfoBeforeFile=IMPORTANT-nightly.txt > iextratxt.txt
-"%ISCC%" /Q /Odistrib /Fohrrpgce-win-installer-wip ohrrpgce.iss
-del iextratxt.txt
-IF EXIST distrib\ohrrpgce-win-installer-wip.exe (
+  ECHO     Packaging ohrrpgce-win-installer-wip.exe ...
+  REM Create the installer from the executables we just built: the installer and .zips for default build configs
+  REM must contain the same executables, to share .pdb files
+  support\rm -f distrib\ohrrpgce-win-installer-wip.exe
+  echo InfoBeforeFile=IMPORTANT-nightly.txt > iextratxt.txt
+  "%ISCC%" /Q /Odistrib /Fohrrpgce-win-installer-wip ohrrpgce.iss
+  del iextratxt.txt
+  IF EXIST distrib\ohrrpgce-win-installer-wip.exe (
     pscp -q distrib\ohrrpgce-win-installer-wip.exe %SCPHOST%:%SCPDEST%
+  )
+
+  ECHO     Packaging sdl2 game player ...
+  python ohrpackage.py win player distrib\ohrrpgce-player-win-wip-sdl2.zip && (
+    pscp -q distrib\ohrrpgce-player-win-wip-sdl2.zip %SCPHOST%:%SCPDEST%
+  )
 )
 
-IF NOT EXIST game.exe (
-    ECHO game.exe didn't build; skipping ohrrpgce-player-win-wip-sdl2.zip
-    GOTO SKIPPLAYERSDL2
+call scons music=native %SCONS_ARGS% && (
+  call distrib-nightly-win-packnupload music_native
 )
-ECHO Packaging game player ohrrpgce-player-win-wip-sdl2.zip ...
-support\rm -f distrib\ohrrpgce-player-win-wip-sdl2.zip
-python ohrpackage.py win player distrib\ohrrpgce-player-win-wip-sdl2.zip
-pscp -q distrib\ohrrpgce-player-win-wip-sdl2.zip %SCPHOST%:%SCPDEST%
-:SKIPPLAYERSDL2
 
-support\rm -f game.exe custom.exe
-call scons music=native %SCONS_ARGS%
-call distrib-nightly-win-packnupload music_native
+call scons music=native2 %SCONS_ARGS% && (
+  call distrib-nightly-win-packnupload music_native2
+)
 
-support\rm -f game.exe custom.exe
-call scons music=native2 %SCONS_ARGS%
-call distrib-nightly-win-packnupload music_native2
+call scons music=silence %SCONS_ARGS% && (
+  call distrib-nightly-win-packnupload music_silence
+)
 
-support\rm -f game.exe custom.exe
-call scons music=silence %SCONS_ARGS%
-call distrib-nightly-win-packnupload music_silence
+REM call scons gfx=alleg+directx+fb+sdl music=sdl %SCONS_ARGS% && (
+REM   call distrib-nightly-win-packnupload gfx_alleg-music_sdl
+REM )
 
-REM support\rm -f game.exe custom.exe
-REM call scons gfx=alleg+directx+fb+sdl music=sdl %SCONS_ARGS%
-REM call distrib-nightly-win-packnupload gfx_alleg-music_sdl
-
-support\rm -f game.exe custom.exe
-call scons debug=2 pdb=1
-call distrib-nightly-win-packnupload sdl2-debug misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
+call scons debug=2 pdb=1 && (
+  call distrib-nightly-win-packnupload sdl2-debug misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
+)
 
 REM Note: when adding or modifying builds, BACKENDS_SYMSNAME in misc/process_crashreports.py should be updated
 
+ECHO     Packaging other utilities
 
 REM Note that this is duplicated in distrib-nightly-linux.sh
-Echo upload plotdict.xml
 pscp -q docs\*.png %SCPHOST%:%SCPDOCS%
 pscp -q docs\plotdict.xml %SCPHOST%:%SCPDOCS%
 pscp -q docs\htmlplot.xsl %SCPHOST%:%SCPDOCS%
