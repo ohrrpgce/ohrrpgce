@@ -415,7 +415,7 @@ def engine_files(target, config, srcdir = ''):
 
 ############################################################################
 
-def gather_files(files, target):
+def gather_files(files, target, extrafiles = []):
     "Copy files (except icons) into a new directory named 'ohrrpgce' ready for archiving"
 
     # Place files in tmp/ in case we error out partway
@@ -423,7 +423,7 @@ def gather_files(files, target):
     safe_rmtree(destdir)
     quiet_mkdir(destdir)
 
-    for path in files.executables + files.datafiles:
+    for path in files.executables + files.datafiles + extrafiles:
         copy_file_or_dir(files.abspath(path), destdir + files.getdest(path))
 
     if target == "win":
@@ -451,7 +451,7 @@ def format_output_filename(template, srcdir = ''):
     codename, branch_name, branch_rev = ohrbuild.read_codename_and_branch(srcdir)
     return template.format(TODAY = today, CODENAME = codename, BRANCH = branch_name)
 
-def package(target, config, outfile = None):
+def package(target, config, outfile = None, extrafiles = []):
     if outfile:
         outfile = format_output_filename(outfile)
 
@@ -463,7 +463,7 @@ def package(target, config, outfile = None):
         files = engine_files(target, config)
 
     print("Gathering ohrrpgce/")
-    gather_files(files, target)
+    gather_files(files, target, extrafiles)
     if config == "player":
         prepare_player(files, target)
 
@@ -479,30 +479,42 @@ def package(target, config, outfile = None):
 
 
 if __name__ == '__main__':
-    usage = """
-Package the OHRRPGCE for a given OS and configuration. (Not all supported yet!)
-Run after compiling all needed executables, from the root of the source tree.
-Usage:
-  ./ohrpackage.py {linux,win,mac} {full,minimal,nightly,player,symbols} [output_file]
+    import argparse
 
-If output_file is omitted files are instead placed in a directory named 'ohrrpgce'.
-output_file can contain replacements {TODAY}, {CODENAME}, {BRANCH}."""
+    parser = argparse.ArgumentParser(formatter_class = argparse.RawTextHelpFormatter, description =
+"""Package the OHRRPGCE for a given OS and configuration. (Not all supported yet!)
+Run after compiling all needed executables as desired, from the root of the source tree.
 
-    outfile = None
-    if len(sys.argv) == 4:
-        outfile = sys.argv[3]
-    elif len(sys.argv) != 3:
-        print(usage)
-        sys.exit(1)
+If outfile is omitted, files are instead placed in a directory named 'ohrrpgce'.""")
 
-    target = sys.argv[1]
-    if target not in ("linux", "win"):
-        print("Unsupported OS '%s'" % target)
-        sys.exit(1)
+    if "--" in sys.argv:
+        dashdash = sys.argv.index("--")
+    else:
+        dashdash = len(sys.argv)
+    argv = sys.argv[1 : dashdash]
+    extrafiles = sys.argv[dashdash + 1 :]
 
-    config = sys.argv[2]
-    if config not in ("full", "minimal", "player", "symbols"):
-        print("Unsupported configuration '%s'" % config)
-        sys.exit(1)
+    parser.add_argument("target", choices = ("linux", "win", "mac"), help = "OS to package for (Windows from Unix requires wine)")
+    parser.add_argument("config", choices = ("full", "nightly", "minimal", "player", "symbols"), help =
+"""What to package:
+full:    Complete package (except Vikings)
+nightly: Slightly leaner, excludes import/
+minimal: Excludes import/, plotdict.xml and unnecessary support utilities
+player:  Just Game, for packaging games
+symbols: Windows .pdb debug symbols, for crash analysis""")
+    parser.add_argument("outfile", nargs = "?", help = 
+"""Output file path. Should end in a supported archive format (e.g. .zip, .7z).
+Can contain text replacements {TODAY}, {CODENAME}, {BRANCH}.""")
+    # This argument is added just to add to the usage
+    parser.add_argument("dummy", nargs="?",metavar = "-- file [file ...]", help = "Extra files to include")
 
-    package(target, config, outfile)
+    if not argv:
+        parser.print_help()
+        exit()
+
+    args = parser.parse_args(argv)
+    if args.dummy:
+        parser.print_usage()
+        exit("Unexpected arg after outfile: " + args.dummy)
+
+    package(args.target, args.config, args.outfile, extrafiles)
