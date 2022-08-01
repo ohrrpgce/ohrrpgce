@@ -23,6 +23,10 @@ rootdir = os.path.abspath(os.path.dirname(__file__))
 ############################################################################
 ## Utilities
 
+class PackageError(Exception): pass
+class MissingFile(PackageError): pass
+
+
 class temp_chdir():
     "Context manager to change working directory. Equivalent to contextlib.chdir() in Python 3.11"
     def __init__(self, directory):
@@ -55,7 +59,7 @@ def copy_file_or_dir(src, dest):
             destpath = os.path.join(dest, filename)
             copy_file_or_dir(srcpath, destpath)
     else:
-        raise Exception("Missing " + src)
+        raise MissingFile("Missing " + src)
 
 def safe_rm(path, dry_run = False):
     assert len(path) > 3
@@ -102,12 +106,15 @@ def clip_string(s, maxlen = 90):
     return s if len(s) <= maxlen else s[:maxlen-5] + "[...]"
 
 def subprocess_args(args):
-    args = (find_program(args[0]), ) + tuple(args[1:])
-    print(clip_string(" ".join(args)))
-    return args
+    return (find_program(args[0]), ) + tuple(args[1:])
 
 def check_call(*args, **kwargs):
     subprocess.check_call(subprocess_args(args), **kwargs)
+
+def print_check_call(*args, **kwargs):
+    args = subprocess_args(args)
+    print(clip_string(" ".join(args), 200))
+    subprocess.check_call(args, **kwargs)
 
 def check_output(*args, **kwargs):
     subprocess.check_output(subprocess_args(args), **kwargs)
@@ -131,7 +138,7 @@ def archive_dir(directory, outfile):
     """Produce an archive from a directory. Archived paths start with the directory path."""
     ext = get_ext(outfile)
     if ext not in "tar.bz2 zip 7z".split():
-        exit("Unsupported archive filetype " + ext)
+        raise PackageError("Unsupported archive filetype " + ext)
     safe_rm(outfile)
     if ext == "tar.bz2":
         check_call("tar", "-jcf", outfile, directory)
@@ -145,7 +152,7 @@ def archive_dir_contents(directory, outfile):
     """Produce an archive from a directory. Archived paths don't include the directory path."""
     ext = get_ext(outfile)
     if ext not in "zip 7z".split():
-        exit("Unsupported archive filetype " + ext)
+        raise PackageError("Unsupported archive filetype " + ext)
     safe_rm(outfile)
     outfile = os.path.abspath(outfile)
     with temp_chdir(directory):
@@ -164,14 +171,14 @@ def generate_buildinfo(game):
         safe_rm("buildinfo.ini")
         if game.endswith(".exe"):
             if host_win32:
-                check_call(game, "-buildinfo", "buildinfo.ini")
+                print_check_call(game, "-buildinfo", "buildinfo.ini")
             else:
                 # env = dict(os.environ)
                 # env["WINEDEBUG"] = "fixme-all"
                 # Send stderr to a pipe to silence it
-                check_call("wine", game, "-buildinfo", "buildinfo.ini", stderr = subprocess.PIPE)
+                print_check_call("wine", game, "-buildinfo", "buildinfo.ini", stderr = subprocess.PIPE)
         else:
-            check_call("./" + game, "-buildinfo", "buildinfo.ini")
+            print_check_call("./" + game, "-buildinfo", "buildinfo.ini")
         assert os.path.isfile("buildinfo.ini")
 
 def parse_buildinfo(path):
@@ -250,8 +257,7 @@ def player_only_files(target, srcdir = ''):
 def symbols_files(target, srcdir = ''):
     """Files (returned as a PackageContents) for a  package"""
     if target != "win":
-        print("Can only package Windows symbols")
-        sys.exit(1)
+        raise PackageError("Can only package Windows symbols")
 
     files = PackageContents(srcdir)
     files.datafiles = [
@@ -524,4 +530,7 @@ Can contain text replacements {TODAY}, {CODENAME}, {BRANCH}.""")
         parser.print_usage()
         exit("Unexpected arg after outfile: " + args.dummy)
 
-    package(args.target, args.config, args.outfile, extrafiles)
+    try:
+        package(args.target, args.config, args.outfile, extrafiles)
+    except PackageError as e:
+        exit("Error: " + str(e))
