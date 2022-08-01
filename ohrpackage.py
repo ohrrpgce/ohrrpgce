@@ -120,33 +120,40 @@ def relump(lumpdir, rpgfile):
         pass
     os.system('relump "' + lumpdir + '" "' + rpgfile + '"')
 
+def get_ext(path):
+    "Unlike os.path.splitext, splits from first . not last"
+    path = os.path.basename(path)[1:]  # Trim any leading .
+    if "." not in path:
+        return ""
+    return path[path.index(".") + 1 :]
+
 def archive_dir(directory, outfile):
     """Produce an archive from a directory. Archived paths start with the directory path."""
+    ext = get_ext(outfile)
+    if ext not in "tar.bz2 zip 7z".split():
+        exit("Unsupported archive filetype " + ext)
     safe_rm(outfile)
-    if outfile.endswith(".tar.bz2"):
+    if ext == "tar.bz2":
         check_call("tar", "-jcf", outfile, directory)
-    elif outfile.endswith(".zip"):
+    elif ext == "zip":
         check_call("zip", "-9", "-q", "-r", outfile, directory)
-    elif outfile.endswith(".7z"):
+    elif ext == "7z":
         # Capture stdout to silence it (errors printed to stderr)
         check_output("7za", "a", "-mx=7", "-bd", outfile, directory)
-    else:
-        print("Unsupported archive filetype")
-        sys.exit(1)
 
 def archive_dir_contents(directory, outfile):
     """Produce an archive from a directory. Archived paths don't include the directory path."""
+    ext = get_ext(outfile)
+    if ext not in "zip 7z".split():
+        exit("Unsupported archive filetype " + ext)
     safe_rm(outfile)
     outfile = os.path.abspath(outfile)
     with temp_chdir(directory):
-        if outfile.endswith(".zip"):
+        if ext == "zip":
             check_call("zip", "-9", "-q", "-r", outfile, *glob.glob("*"))
-        elif outfile.endswith(".7z"):
+        elif ext == "7z":
             # Capture stdout to silence it (errors printed to stderr)
             check_output("7za", "a", "-mx=7", "-bd", outfile, *glob.glob("*"))
-        else:
-            print("Unsupported archive filetype")
-            sys.exit(1)
 
 ############################################################################
 
