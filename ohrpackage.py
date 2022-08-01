@@ -277,7 +277,7 @@ def needed_windows_libs(buildinfo):
         "sdl":     ["SDL.dll"],
         "sdl2":    ["SDL2.dll"],
         "directx": ["gfx_directx.dll"],
-        "directx": ["gfx_directx.dll"],
+        "alleg":   ["alleg40.dll"],
     }
     musiclibs = {
         "silence": [],
@@ -285,6 +285,7 @@ def needed_windows_libs(buildinfo):
         "native2": ["audiere.dll"],
         "sdl":     ["SDL.dll", "SDL_mixer.dll"],
         "sdl2":    ["SDL2.dll", "SDL2_mixer.dll"],
+        "allegro": ["alleg40.dll"],
     }
 
     libs = set()
@@ -305,6 +306,8 @@ def engine_files(target, config, srcdir = ''):
 
     # files.datafiles are installed under $prefix/share/games/ohrrpgce on Unix,
     # installed in program directory on Windows and Mac
+    if config == "nightly":
+        files.datafiles += ["README-nightly.txt"]
     files.datafiles = [
         "README-game.txt",
         "README-custom.txt",
@@ -345,6 +348,10 @@ def engine_files(target, config, srcdir = ''):
                 "docs/plotdict.xml",
                 "docs/htmlplot.xsl",
             ]
+
+    if os.path.isfile(files.abspath("svninfo.txt")):
+        # Created by distrib-nightly-win.bat. We could also generate it here. See ohrbuild.query_svn_rev_and_date()
+        files.datafiles += ["svninfo.txt"]
 
     if config == "full":
         # NOTE: import/ is specially excluded from .deb and linux "scons install"

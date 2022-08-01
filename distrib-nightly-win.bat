@@ -33,7 +33,7 @@ IF NOT EXIST hspeak.exe GOTO FAILURE
 REM This is the build for obsolete Windows machines (symlinked as ohrrpgce-win-win95-wip.zip)
 support\rm -f game.exe custom.exe
 call scons gfx=directx+sdl+fb music=sdl win95=1 sse2=0 %SCONS_ARGS%
-call distrib-nightly-win-packnupload music_sdl gfx_directx.dll SDL.dll SDL_mixer.dll
+call distrib-nightly-win-packnupload music_sdl
 
 IF NOT EXIST game.exe (
     ECHO game.exe didn't build; skipping ohrrpgce-player-win-wip-win95.zip
@@ -41,17 +41,14 @@ IF NOT EXIST game.exe (
 )
 ECHO Packaging game player ohrrpgce-player-win-wip-win95.zip ...
 support\rm -f distrib\ohrrpgce-player-win-wip-win95.zip
-ECHO Generating nightly buildinfo.ini
-support\rm -f buildinfo.ini
-game.exe -buildinfo buildinfo.ini
-support\zip -9 -q distrib\ohrrpgce-player-win-wip-win95.zip game.exe buildinfo.ini SDL.dll SDL_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt svninfo.txt
+python ohrpackage.py win player distrib\ohrrpgce-player-win-wip-win95.zip
 pscp -q distrib\ohrrpgce-player-win-wip-win95.zip %SCPHOST%:%SCPDEST%
 :SKIPPLAYERWIN95
 
 REM This is the default build (default download ohrrpgce-win-default.zip is symlinked to it on the server)
 support\rm -f game.exe custom.exe
 call scons gfx=sdl2+directx+fb music=sdl2 %SCONS_ARGS%
-call distrib-nightly-win-packnupload sdl2 gfx_directx.dll SDL2.dll SDL2_mixer.dll
+call distrib-nightly-win-packnupload sdl2
 
 ECHO Packaging ohrrpgce-win-installer-wip.exe ...
 REM Create the installer from the executables we just built: the installer and .zips for default build configs
@@ -70,32 +67,29 @@ IF NOT EXIST game.exe (
 )
 ECHO Packaging game player ohrrpgce-player-win-wip-sdl2.zip ...
 support\rm -f distrib\ohrrpgce-player-win-wip-sdl2.zip
-ECHO Generating nightly buildinfo.ini
-support\rm -f buildinfo.ini
-game.exe -buildinfo buildinfo.ini
-support\zip -9 -q distrib\ohrrpgce-player-win-wip-sdl2.zip game.exe buildinfo.ini SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt svninfo.txt
+python ohrpackage.py win player distrib\ohrrpgce-player-win-wip-sdl2.zip
 pscp -q distrib\ohrrpgce-player-win-wip-sdl2.zip %SCPHOST%:%SCPDEST%
 :SKIPPLAYERSDL2
 
 support\rm -f game.exe custom.exe
 call scons music=native %SCONS_ARGS%
-call distrib-nightly-win-packnupload music_native gfx_directx.dll SDL2.dll audiere.dll
+call distrib-nightly-win-packnupload music_native
 
 support\rm -f game.exe custom.exe
 call scons music=native2 %SCONS_ARGS%
-call distrib-nightly-win-packnupload music_native2 gfx_directx.dll SDL2.dll audiere.dll
+call distrib-nightly-win-packnupload music_native2
 
 support\rm -f game.exe custom.exe
 call scons music=silence %SCONS_ARGS%
-call distrib-nightly-win-packnupload music_silence gfx_directx.dll SDL2.dll
+call distrib-nightly-win-packnupload music_silence
 
 REM support\rm -f game.exe custom.exe
 REM call scons gfx=alleg+directx+fb+sdl music=sdl %SCONS_ARGS%
-REM call distrib-nightly-win-packnupload gfx_alleg-music_sdl alleg40.dll SDL.dll SDL_mixer.dll
+REM call distrib-nightly-win-packnupload gfx_alleg-music_sdl
 
 support\rm -f game.exe custom.exe
 call scons debug=2 pdb=1
-call distrib-nightly-win-packnupload sdl2-debug gfx_directx.dll SDL2.dll SDL2_mixer.dll misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
+call distrib-nightly-win-packnupload sdl2-debug misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
 REM Note: when adding or modifying builds, BACKENDS_SYMSNAME in misc/process_crashreports.py should be updated
 
