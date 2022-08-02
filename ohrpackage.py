@@ -105,19 +105,33 @@ def clip_string(s, maxlen = 90):
     "Shorten a string if over maxlen"
     return s if len(s) <= maxlen else s[:maxlen-5] + "[...]"
 
-def subprocess_args(args):
-    return (find_program(args[0]), ) + tuple(args[1:])
+def subprocess_args(prog, *args):
+    return (find_program(prog), ) + args
 
 def check_call(*args, **kwargs):
-    subprocess.check_call(subprocess_args(args), **kwargs)
+    subprocess.check_call(subprocess_args(*args), **kwargs)
 
 def print_check_call(*args, **kwargs):
-    args = subprocess_args(args)
+    args = subprocess_args(*args)
     print(clip_string(" ".join(args), 200))
     subprocess.check_call(args, **kwargs)
 
 def check_output(*args, **kwargs):
-    subprocess.check_output(subprocess_args(args), **kwargs)
+    subprocess.check_output(subprocess_args(*args), **kwargs)
+
+def check_wine_call(prog, *args):
+    "Call wine as needed. Prefix prog with @ to silence stderr and wine spam"
+    silent = prog[0] == "@"
+    prog = prog.lstrip("@")
+    if prog.endswith(".exe") and not host_win32:
+        kwargs = {"env": dict(os.environ)}
+        kwargs["env"]["WINEDEBUG"] = "fixme-all"
+        if silent:
+            # Send stderr to a pipe to silence remaining spam
+            kwargs["stderr"] = subprocess.PIPE
+        print_check_call("wine", prog, *args, **kwargs)
+    else:
+        print_check_call(prog, *args)
 
 def relump_game(lumpdir, rpgfile):
     safe_rm(rpgfile)
@@ -165,16 +179,7 @@ def generate_buildinfo(game):
     directory, game = os.path.split(game)
     with temp_chdir(directory):
         safe_rm("buildinfo.ini")
-        if game.endswith(".exe"):
-            if host_win32:
-                print_check_call(game, "-buildinfo", "buildinfo.ini")
-            else:
-                # env = dict(os.environ)
-                # env["WINEDEBUG"] = "fixme-all"
-                # Send stderr to a pipe to silence it
-                print_check_call("wine", game, "-buildinfo", "buildinfo.ini", stderr = subprocess.PIPE)
-        else:
-            print_check_call("./" + game, "-buildinfo", "buildinfo.ini")
+        check_wine_call("@./" + game, "-buildinfo", "buildinfo.ini")
         assert os.path.isfile("buildinfo.ini")
 
 def parse_buildinfo(path):
@@ -242,6 +247,9 @@ def player_only_files(target, srcdir = ''):
         files.executables = ["ohrrpgce-game"]
 
     game = files.abspath(files.executables[0])
+    if not os.path.isfile(game):
+        raise MissingFile("Missing " + game)
+
     buildinfo = get_buildinfo(game, keep_file = True)
     print("buildinfo: gfx=%s,  music=%s" % (buildinfo['gfx'], buildinfo['music']))
     if target == "win":
@@ -555,5 +563,5 @@ Can contain text replacements {TODAY}, {CODENAME}, {BRANCH}.""")
 
     try:
         package(args.target, args.config, args.outfile, extrafiles)
-    except PackageError as e:
+    except (PackageError, subprocess.CalledProcessError) as e:
         exit("Error: " + str(e))
