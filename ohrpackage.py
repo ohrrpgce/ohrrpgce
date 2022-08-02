@@ -308,11 +308,10 @@ def engine_files(target, config, srcdir = ''):
     # installed in program directory on Windows and Mac
     if config == "nightly":
         files.datafiles += ["README-nightly.txt"]
-    files.datafiles = [
+    files.datafiles += [
         "README-game.txt",
         "README-custom.txt",
         "IMPORTANT-nightly.txt",
-        "LICENSE.txt",
         "LICENSE-binary.txt",
         "whatsnew.txt",
         "plotscr.hsd",

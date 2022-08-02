@@ -78,7 +78,7 @@ REM   call distrib-nightly-win-packnupload gfx_alleg-music_sdl
 REM )
 
 call scons debug=2 pdb=1 && (
-  call distrib-nightly-win-packnupload sdl2-debug misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
+  call distrib-nightly-win-packnupload sdl2-debug misc\gdbcmds1.txt gdbgame.bat gdbcustom.bat
 )
 
 REM Note: when adding or modifying builds, BACKENDS_SYMSNAME in misc/process_crashreports.py should be updated
