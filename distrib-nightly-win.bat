@@ -47,9 +47,7 @@ call scons gfx=sdl2+directx+fb music=sdl2 %SCONS_ARGS% && (
   ECHO     Packaging ohrrpgce-win-installer-wip.exe ...
   REM Create the installer from the executables we just built: the installer and .zips for default build configs
   REM must contain the same executables, to share .pdb files
-  support\rm -f distrib\ohrrpgce-win-installer-wip.exe
-  python ohrpackage.py win full+vikings distrib\ohrrpgce-win-installer-wip.exe
-  IF EXIST distrib\ohrrpgce-win-installer-wip.exe (
+  python ohrpackage.py win full+vikings distrib\ohrrpgce-win-installer-wip.exe && (
     pscp -q distrib\ohrrpgce-win-installer-wip.exe %SCPHOST%:%SCPDEST%
   )
 
@@ -91,25 +89,25 @@ pscp -q docs\htmlplot.xsl %SCPHOST%:%SCPDOCS%
 support\rm -f distrib\ohrrpgce-util.zip
 IF NOT EXIST unlump.exe GOTO NOUTIL
 IF NOT EXIST relump.exe GOTO NOUTIL
-support\zip distrib\ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt svninfo.txt
+support\zip -q distrib\ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt svninfo.txt
 pscp -q distrib\ohrrpgce-util.zip %SCPHOST%:%SCPDEST%
 :NOUTIL
 
 support\rm -f distrib\hspeak-win-nightly.zip
 IF NOT EXIST hspeak.exe GOTO NOHSPEAK
-support\zip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e euphoria\*.e euphoria\License.txt LICENSE.txt plotscr.hsd scancode.hsi
+support\zip -q distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e euphoria\*.e euphoria\License.txt LICENSE.txt plotscr.hsd scancode.hsi
 pscp -q distrib\hspeak-win-nightly.zip %SCPHOST%:%SCPDEST%
 :NOHSPEAK
 
 support\rm -f distrib\bam2mid.zip bam2mid.exe
 call scons bam2mid.exe
 IF NOT EXIST bam2mid.exe GOTO NOBAM2MID
-support\zip distrib\bam2mid.zip bam2mid.exe bam2mid.txt LICENSE.txt svninfo.txt
+support\zip -q distrib\bam2mid.zip bam2mid.exe bam2mid.txt LICENSE.txt svninfo.txt
 pscp -q distrib\bam2mid.zip %SCPHOST%:%SCPDEST%
 :NOBAM2MID
 
 support\rm -f distrib\madplay+oggenc.zip
-support\zip distrib\madplay+oggenc.zip support\madplay.exe support\oggenc.exe support\LICENSE-madplay.txt support\LICENSE-oggenc.txt
+support\zip -q distrib\madplay+oggenc.zip support\madplay.exe support\oggenc.exe support\LICENSE-madplay.txt support\LICENSE-oggenc.txt
 pscp -q distrib\madplay+oggenc.zip %SCPHOST%:%SCPDEST%
 
 REM For some weird reason, the following upload only works once every few months

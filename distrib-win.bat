@@ -20,7 +20,7 @@ REM "scons pdb=1" will continue even if it can't produce these
 FOR %%X IN (win32\game.pdb win32\custom.pdb) DO (
     IF NOT EXIST "%%X" (
         ECHO "ERROR: build result %%X is missing. Unable to continue."
-        GOTO SANITYFAIL
+        exit /b 1
     )
 )
 
@@ -42,33 +42,25 @@ support\rm -f distrib\ohrrpgce-symbols-win.7z
 
 ECHO ------------------------------------------
 ECHO Packaging game player ohrrpgce-player-win-minimal-sdl2.zip ...
-python ohrpackage.py win player distrib\ohrrpgce-player-win-minimal-sdl2.zip
+python ohrpackage.py win player distrib\ohrrpgce-player-win-minimal-sdl2.zip || exit /b 1
 
 ECHO ------------------------------------------
 ECHO Packaging minimal-but-complete ohrrpgce-minimal.zip ...
 REM Note: linux and mac "minimal" .tar.gz files contain only the player, while
 REM Windows "minimal" .zip files contain nearly everything except support, import and Vikings
-python ohrpackage.py win minimal distrib\ohrrpgce-minimal.zip
+python ohrpackage.py win minimal distrib\ohrrpgce-minimal.zip || exit /b 1
 
 ECHO ------------------------------------------
 ECHO Packaging ohrrpgce.zip ...
-python ohrpackage.py win full distrib\ohrrpgce.zip
+python ohrpackage.py win full distrib\ohrrpgce.zip || exit /b 1
 
 ECHO ------------------------------------------
 ECHO Packaging ohrrpgce-win-installer.exe ...
-python ohrpackage.py win full+vikings distrib\ohrrpgce-win-installer.exe
-IF NOT EXIST distrib\ohrrpgce-win-installer.exe (
-    ECHO Inno Setup failed!
-    exit /b 1
-)
+python ohrpackage.py win full+vikings distrib\ohrrpgce-win-installer.exe || exit /b 1
 
 ECHO ------------------------------------------
 ECHO Packaging debug info archive
-python ohrpackage.py win symbols distrib\ohrrpgce-symbols-win.7z
-IF NOT EXIST distrib\ohrrpgce-symbols-win.7z (
-    ECHO 7za failed!
-    exit /b 1
-)
+python ohrpackage.py win symbols distrib\ohrrpgce-symbols-win.7z || exit /b 1
 
 ECHO ------------------------------------------
 ECHO Packaging source snapshot zip ...
@@ -105,13 +97,3 @@ move distrib\ohrrpgce-symbols-win.7z distrib\ohrrpgce-symbols-win-%BUILDNAME%-r%
 
 REM ------------------------------------------
 ECHO Done.
-GOTO DONE
-
-REM ------------------------------------------
-
-:SANITYFAIL
-ECHO ERROR: Sanity test failed, distribution files are incomplete!
-exit /b 1
-
-REM ------------------------------------------
-:DONE
