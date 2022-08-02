@@ -8,9 +8,6 @@
 # write access to your automatic build machine. Don't do it unless you trust them all.
 # (which James fortunately does, and the build machine is reasonably sandboxed, so!)
 
-# This script checks out two copies of the OHRRPGCE svn repository: one for building
-# from, the other is kept clean and used for packaging the source.
-
 UPLOAD_SERVER="james_paige@motherhamster.org"
 UPLOAD_FOLDER="HamsterRepublic.com"
 UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
@@ -41,18 +38,12 @@ if [ -z "$UPDATE" ] ; then
   exit
 fi
 
-cd ohrrpgce
-
-echo "Removing old nightly source snapshot..."
-rm ohrrpgce-source-nightly.zip
+cd ohrrpgce/wip
 
 echo "Zipping up new nightly snapshot..."
-svn info wip > wip/svninfo.txt
-zip -q -r ohrrpgce-source-nightly.zip wip -x "*/.svn/*" "*/vikings/*"
-ls -l ohrrpgce-source-nightly.zip
-
-echo "Uploading new nightly source snapshot..."
-scp -p ohrrpgce-source-nightly.zip $UPLOAD_DEST/ohrrpgce/nightly/
+./ohrpackage.py linux source ../ohrrpgce-source-nightly.zip &&
+echo "Uploading nightly source snapshot..." &&
+scp -p ../ohrrpgce-source-nightly.zip $UPLOAD_DEST/ohrrpgce/nightly/
 
 # This is duplicated in distrib-nightly-win[-wine].sh
 echo uploading plotscripting docs
@@ -69,16 +60,23 @@ echo Now we go to build the linux nightlies
 
 cd ..
 
+# Using two checked-out copies of the svn repo ("ohrrpgce-build" for building
+# from, "ohrrpgce" kept clean and used for packaging the source) is no longer
+# necessary now that we use ohrpackage.py. If they already both exist, use
+# ohrrpgce-build, otherwise don't create it.
+
 if [ ! -d ohrrpgce-build ] ; then
-  echo nightly snapshot not found, checking out from svn...
-  mkdir ohrrpgce-build
-  svn checkout https://rpg.hamsterrepublic.com/source/wip ./ohrrpgce-build/wip
+  #echo nightly snapshot not found, checking out from svn...
+  #mkdir ohrrpgce-build
+  #svn checkout https://rpg.hamsterrepublic.com/source/wip ./ohrrpgce-build/wip
+  cd ohrrpgce/wip
+else
+  cd ohrrpgce-build/wip
+
+  svn cleanup
+  svn update
 fi
 
-cd ohrrpgce-build/wip
-
-svn cleanup
-svn update
 
 # Compile and create .bz2 and .deb files
 echo "Calling distrib-linux.sh..."
@@ -111,6 +109,7 @@ fi
 
 echo "Uploading debian packages..."
 for arch in i386 amd64 ; do
+  # Note: there is no i386 debian package currently.
   if [ -f distrib/ohrrpgce_*.wip-*_$arch.deb ] ; then
     # The deb packages are named ohrrpgce_$YYYY.$MM.$DD.$codename-$revision_$arch.deb,
     # so we need to delete the previous package from the same arch but different filename.

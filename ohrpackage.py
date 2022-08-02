@@ -117,7 +117,17 @@ def print_check_call(*args, **kwargs):
     subprocess.check_call(args, **kwargs)
 
 def check_output(*args, **kwargs):
-    subprocess.check_output(subprocess_args(*args), **kwargs)
+    out = subprocess.check_output(subprocess_args(*args), **kwargs)
+    return out.decode("latin-1")  # Possibly bad assumption...
+
+def print_check_output(*args, **kwargs):
+    args = subprocess_args(*args)
+    print(clip_string(" ".join(args), 200))
+    return subprocess.check_output(args, **kwargs).decode("latin-1")
+
+def print_system(cmdline):
+    print(cmdline)
+    return os.system(cmdline)
 
 def check_wine_call(prog, *args):
     "Call wine as needed. Prefix prog with @ to silence stderr and wine spam"
@@ -167,7 +177,7 @@ def archive_dir_contents(directory, outfile):
     outfile = os.path.abspath(outfile)
     with temp_chdir(directory):
         if ext == "zip":
-            check_call("zip", "-9", "-q", "-r", outfile, *glob.glob("*"))
+            check_call("zip", "-q", "-r", outfile, *glob.glob("*"))
         elif ext == "7z":
             # Capture stdout to silence it (errors printed to stderr)
             check_output("7za", "a", "-mx=7", "-bd", outfile, *glob.glob("*"))
@@ -448,6 +458,30 @@ def add_vikings_files(files):
         files.setdest("vikings/README-vikings.txt", "")
     ]
 
+def source_files(srcdir = "."):
+    "List of all files checked into git/svn (under wip/), except for vikings/"
+    files = PackageContents(srcdir)
+
+    with temp_chdir(srcdir):
+        if os.path.isdir(".git"):
+            print_system("git svn info > svninfo.txt")
+            filelist = print_check_output(*"git ls-tree -r --full-tree --name-only HEAD".split())
+        elif os.path.isdir(".svn") or os.path.isdir("../.svn"):
+            # We're in a checkout of wip/ or of the whole svn repo
+            print_system("svn info > svninfo.txt")
+            filelist = print_check_output("svn", "list", "-R")
+        else:
+            raise PackageError("Neither a git nor svn working copy")
+
+        for f in filelist.split("\n"):
+            # Remove directories, which appear in svn's filelist
+            if f and not f.startswith("vikings") and not f.endswith(os.path.sep):
+                files.datafiles.append(f)
+
+    files.datafiles += ["svninfo.txt"]
+
+    return files
+
 ############################################################################
 
 def create_win_installer(files, outfile, iscc = "iscc", srcdir = "."):
@@ -481,7 +515,7 @@ def gather_files(files, target, extrafiles = []):
         src = files.abspath(path)
         dest = destdir + files.getdest(path)
         # Automatically relump an .rpgdir to .rpg
-        if path.endswith(".rpg") and os.path.isdir(src + "dir"):
+        if path.endswith(".rpg") and not os.path.isfile(src) and os.path.isdir(src + "dir"):
             relump_game(src + "dir", dest)
         else:
             copy_file_or_dir(src, dest)
@@ -523,6 +557,9 @@ def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):
     elif config == "full+vikings":
         files = engine_files(target, "full")
         add_vikings_files(files)
+    elif config == "source":
+        files = source_files()
+        target = "linux"  # Prevent newline conversion
     else:
         files = engine_files(target, config)
 
@@ -535,6 +572,8 @@ def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):
         print("Archiving " + outfile)
         if outfile.endswith(".exe"):
             create_win_installer(files, outfile, iscc)
+        elif config == "source":
+            archive_dir("ohrrpgce", outfile)
         elif config in ("player", "symbols") or target == "win":
             archive_dir_contents("ohrrpgce", outfile)
         else:
@@ -560,16 +599,20 @@ If outfile is omitted, files are instead placed in a directory named 'ohrrpgce'.
     argv = sys.argv[1 : dashdash]
     extrafiles = sys.argv[dashdash + 1 :]
 
-    parser.add_argument("target", choices = ("linux", "win", "mac"), help = "OS to package for (Windows from Unix requires wine)")
-    parser.add_argument("config", metavar = "config", choices = ("full", "full+vikings", "nightly", "minimal", "player", "symbols"), help =
+    parser.add_argument("target", choices = ("linux", "win", "mac"), help = 
+"""OS to package for (Windows from Unix requires wine; other cross-packaging
+not supported)""")
+    parser.add_argument("config", metavar = "config", choices = ("full", "full+vikings", "nightly", "minimal", "player", "symbols", "source"), help =
 """What to package:
 full:         Complete OHRRPGCE package (except Vikings)
 full+vikings: Adds Vikings of Midgard
 nightly:      Slightly leaner, excludes import/ and some utilities
 minimal:      Excludes import/, plotdict.xml and unnecessary support utilities
 player:       Just Game, for distributing games
-symbols:      Windows .pdb debug symbols, for process_crashrpt_report.py""")
-    parser.add_argument("outfile", nargs = "?", help = 
+symbols:      Windows .pdb debug symbols, for process_crashrpt_report.py
+source:       Copy of all files (with any modifications) checked into git or svn,
+              except vikings/*. Target OS ignored.""")
+    parser.add_argument("outfile", nargs = "?", help =
 """Output file path. Should end in a supported archive format (e.g. .zip, .7z)
 or .exe to create a Windows installer.
 Can contain text replacements {TODAY}, {CODENAME}, {BRANCH}, {REV}.""")

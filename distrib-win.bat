@@ -1,8 +1,5 @@
 CALL distrib-win-setup.bat || exit /b 1
 
-IF EXIST tmpdist RMDIR /S /Q tmpdist
-MKDIR tmpdist
-
 REM ------------------------------------------
 ECHO Building executables...
 
@@ -22,14 +19,6 @@ FOR %%X IN (win32\game.pdb win32\custom.pdb) DO (
         ECHO "ERROR: build result %%X is missing. Unable to continue."
         exit /b 1
     )
-)
-
-ECHO   Lumping Vikings of Midgard
-support\rm -f vikings.rpg
-relump vikings\vikings.rpgdir vikings.rpg > NUL
-IF NOT EXIST vikings.rpg (
-    ECHO "ERROR: Failed to relump vikings of midgard"
-    exit /b 1
 )
 
 ECHO ------------------------------------------
@@ -64,29 +53,11 @@ python ohrpackage.py win symbols distrib\ohrrpgce-symbols-win.7z || exit /b 1
 
 ECHO ------------------------------------------
 ECHO Packaging source snapshot zip ...
-IF NOT EXIST "%SVN%" (
-    ECHO "ERROR: SVN (Subversion) is neither in PATH or in a default location, unable to continue."
-    ECHO "Download from https://subversion.apache.org/"
-    exit /b 1
-)
-CALL distver.bat
-CD tmpdist
-"%SVN%" info .. | ..\support\grep "^URL:" | ..\support\sed s/"^URL: "/"SET REPOSITORY="/ > svnrepo.bat
-CALL svnrepo.bat
-ECHO   Checkout...
-"%SVN%" co -q %REPOSITORY%
-"%SVN%" info %OHRVERBRANCH% > %OHRVERBRANCH%/svninfo.txt
-del svnrepo.bat
-ECHO   Zip...
-..\support\zip -q -r ..\distrib\ohrrpgce-source.zip *.* -x "*\vikings\*"
-cd ..
-
-ECHO ------------------------------------------
-ECHO Cleaning up...
-rmdir /s /q tmpdist
+python ohrpackage.py win source distrib\ohrrpgce-source.zip || exit /b 1
 
 REM ------------------------------------------
 ECHO Rename results...
+CALL distver.bat
 ECHO %OHRVERDATE%-%OHRVERBRANCH%
 move distrib\ohrrpgce-player-win-minimal-sdl2.zip distrib\ohrrpgce-player-win-minimal-sdl2-%OHRVERDATE%-%OHRVERBRANCH%.zip
 move distrib\ohrrpgce-minimal.zip distrib\ohrrpgce-minimal-%OHRVERDATE%-%OHRVERBRANCH%.zip
