@@ -119,13 +119,9 @@ def print_check_call(*args, **kwargs):
 def check_output(*args, **kwargs):
     subprocess.check_output(subprocess_args(args), **kwargs)
 
-def relump(lumpdir, rpgfile):
-    try:
-        os.remove(rpgfile)
-    except(OSError):
-        # don't care if the file does not already exist
-        pass
-    os.system('relump "' + lumpdir + '" "' + rpgfile + '"')
+def relump_game(lumpdir, rpgfile):
+    safe_rm(rpgfile)
+    check_call("relump", lumpdir, rpgfile)
 
 def get_ext(path):
     "Unlike os.path.splitext, splits from first . not last"
@@ -204,7 +200,8 @@ def get_buildinfo(game, keep_file = False):
 class PackageContents():
     """Lists of files and directories to be packaged/installed.
     Each file path will be relative to srcdir.
-    The destination directories for files can be overridden by writing to dest.
+    If a file is an .rpg then gather_files() look for an .rpgdir and relump it.
+    The destination directories for files can be overridden with setdest().
     """
     def __init__(self, srcdir):
         self.srcdir = os.path.abspath(srcdir)
@@ -212,6 +209,10 @@ class PackageContents():
         self.executables = []
         self.icons = []
         self.dest = {}
+
+    def setdest(self, path, destdir):
+        self.dest[path] = destdir
+        return path
 
     def getdest(self, path):
         "Get the (relative) path at which to place a file"
@@ -368,8 +369,8 @@ def engine_files(target, config, srcdir = ''):
         ]
     if target == "win":
         # These aren't always included
-        files.dest["relump.exe"] = "support"
-        files.dest["unlump.exe"] = "support"
+        files.setdest("relump.exe", "support")
+        files.setdest("unlump.exe", "support")
 
     if target == "win":
         files.datafiles += [
@@ -431,6 +432,12 @@ def engine_files(target, config, srcdir = ''):
 
     return files
 
+def add_vikings_files(files):
+    files.datafiles += [
+        files.setdest("vikings/vikings.rpg", ""),  # Will be generated from vikings.rpgdir
+        files.setdest("vikings/Vikings script files", ""),
+        files.setdest("vikings/README-vikings.txt", "")
+    ]
 
 ############################################################################
 
@@ -443,7 +450,13 @@ def gather_files(files, target, extrafiles = []):
     quiet_mkdir(destdir)
 
     for path in files.executables + files.datafiles + extrafiles:
-        copy_file_or_dir(files.abspath(path), destdir + files.getdest(path))
+        src = files.abspath(path)
+        dest = destdir + files.getdest(path)
+        # Automatically relump an .rpgdir to .rpg
+        if path.endswith(".rpg") and os.path.isdir(src + "dir"):
+            relump_game(src + "dir", dest)
+        else:
+            copy_file_or_dir(src, dest)
 
     if target == "win":
         print("Converting *.txt/hsi/hsd newlines")
@@ -478,6 +491,9 @@ def package(target, config, outfile = None, extrafiles = []):
         files = player_only_files(target)
     elif config == "symbols":
         files = symbols_files(target)
+    elif config == "full+vikings":
+        files = engine_files(target, "full")
+        add_vikings_files(files)
     else:
         files = engine_files(target, config)
 
@@ -514,13 +530,14 @@ If outfile is omitted, files are instead placed in a directory named 'ohrrpgce'.
     extrafiles = sys.argv[dashdash + 1 :]
 
     parser.add_argument("target", choices = ("linux", "win", "mac"), help = "OS to package for (Windows from Unix requires wine)")
-    parser.add_argument("config", choices = ("full", "nightly", "minimal", "player", "symbols"), help =
+    parser.add_argument("config", metavar = "config", choices = ("full", "full+vikings", "nightly", "minimal", "player", "symbols"), help =
 """What to package:
-full:    Complete package (except Vikings)
-nightly: Slightly leaner, excludes import/
-minimal: Excludes import/, plotdict.xml and unnecessary support utilities
-player:  Just Game, for packaging games
-symbols: Windows .pdb debug symbols, for crash analysis""")
+full:         Complete OHRRPGCE package (except Vikings)
+full+vikings: Adds Vikings of Midgard
+nightly:      Slightly leaner, excludes import/ and some utilities
+minimal:      Excludes import/, plotdict.xml and unnecessary support utilities
+player:       Just Game, for distributing games
+symbols:      Windows .pdb debug symbols, for process_crashrpt_report.py""")
     parser.add_argument("outfile", nargs = "?", help = 
 """Output file path. Should end in a supported archive format (e.g. .zip, .7z).
 Can contain text replacements {TODAY}, {CODENAME}, {BRANCH}.""")
