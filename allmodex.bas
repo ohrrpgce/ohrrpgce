@@ -24,6 +24,7 @@
 #include "uiconst.bi"
 #include "slices.bi"
 #include "loading.bi"
+#include "cmdline.bi"
 #include "steam.bi"
 
 using Reload

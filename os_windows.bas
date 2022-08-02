@@ -233,6 +233,9 @@ function memory_usage_string() as string
 	       & " nonpaged=" & memctrs.QuotaNonPagedPoolUsage
 end function
 
+sub error_message_box(msg as zstring ptr)
+	MessageBoxA(NULL, msg, "OHRRPGCE Error", MB_OK or MB_ICONERROR)
+end sub
 
 '==========================================================================================
 '                                   Exception Handling
@@ -265,7 +268,7 @@ function exceptFilterMessageBox(pExceptionInfo as PEXCEPTION_POINTERS) as clong
 				 !"ohrrpgce-crash@HamsterRepublic.com\n" _
 				 "with a description of what you were doing.")
 		end if
-		MessageBoxA(NULL, strptr(msgbuf), "OHRRPGCE Error", MB_OK or MB_ICONERROR)
+		error_message_box strptr(msgbuf)
 	end if
 
 	if continue_after_exception then

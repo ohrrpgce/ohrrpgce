@@ -874,8 +874,6 @@ type FnSetOption as function(opt as string, arg as string) as integer
 declare function commandline_flag(opt as string) as bool
 declare sub processcommandline(cmdline_args() as string, opt_handler as FnSetOption, args_file as string = "")
 
-declare sub display_help_string(help as string)
-
 
 '----------------------------------------------------------------------
 '                        ini file read/write

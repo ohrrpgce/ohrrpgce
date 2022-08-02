@@ -8,9 +8,9 @@
 
 CONST STACK_SIZE_INC = 512 ' in integers
 
+#include "config.bi"
 #include "datetime.bi" 'FB header
 #include "string.bi"  'FB header
-#include "config.bi"
 #include "util.bi"
 #include "miscc.bi"
 #include "unicode.bi"
@@ -117,6 +117,17 @@ SUB fb_error_hook(message as const zstring ptr, interrupt_signal as boolint)
 END SUB
 END EXTERN
 
+LOCAL SUB lowlevel_error (msg as zstring ptr)
+#IFDEF __FB_WIN32__
+ 'We can't print to the console because that won't work in programs compiled for
+ 'the Windows 'gui' subsystem (and util.bas gets linked into both kinds of exe;
+ 'could use is_console_program() to detect)
+ error_message_box(msg)
+#ELSE
+ PRINT *msg
+#ENDIF
+END SUB
+
 'Gets called at the top of the main module for each executable just by including util.bi.
 'This is the place to put initialisation code common to everything.
 SUB lowlevel_init()
@@ -132,16 +143,15 @@ SUB lowlevel_init()
   init_crt   'setlocale
 
   os_init
-
   #IF defined(__FB_X86__) AND NOT defined(__FB_64BIT__) AND NOT defined(NO_SSE)
    'Check for SSE and SSE2 support
    IF (fb_CpuDetect() AND &h6000000) <> &h6000000 THEN
     #IFDEF __FB_WIN32__
      'Unfortunately if you're using a default (gfx_sdl2) build you won't see this
      'message due to dll errors unless you're running WinXP+ on an ancient machine.
-     display_help_string "Your CPU doesn't support SSE2 instructions (Pentium 4+). Go to https://ohrrpgce.com and download a 'Win95' build of the OHRRPGCE for older computers"
+     lowlevel_error "Your CPU doesn't support SSE2 instructions (Pentium 4+). Go to https://ohrrpgce.com and download a 'Win95' build of the OHRRPGCE for older computers"
     #ELSE
-     display_help_string "Your CPU doesn't support SSE2 instructions (Pentium 4+)?! Recompile the OHRRPGCE for older CPUs."
+     lowlevel_error "Your CPU doesn't support SSE2 instructions (Pentium 4+)?! Recompile the OHRRPGCE for older CPUs."
     #ENDIF
     SYSTEM 1
    END IF
@@ -4479,30 +4489,6 @@ sub processcommandline(nonoption_args() as string, opt_handler as FnSetOption, a
 		end if
 		cnt += argsused
 	wend
-end sub
-
-sub display_help_string(help as string)
-#if defined(__FB_WIN32__) and __FB_GUI__
-	'Printing to the console doesn't work under Windows if compiled with -s gui so create a window.
-	'Don't do this under Unix, it's annoying and adds fbgfx as a dependency
-	if len(help) > 500 then
-		screen 19   ' create a graphical fake text console (800x600, 100x37 characters)
-	else
-		screen 11
-	end if
-	'Haaaaaack. fbgfx has builtin fonts which are code page 437 (US English IBM PC).
-	'So translate a couple characters we might use from Latin-1 (CP1252) to CP437
-	'Update: hróðvitnir is behind us, don't need this anymore!
-	'replacestr help, !"\&hF0", !"\&hEB"   ' ð -> δ
-	'replacestr help, !"\&hF3", !"\&hA2"   ' ó
-
-	print help,   ' display the help on the graphical console
-	dim k as string = input(1)  ' use FreeBasic-style keypress checking because our keyhandler isn't set up yet
-	screen 0
-#else
-	'Convert the string to system (multibyte) encoding
-	print utf8_to_mbs(latin1_to_utf8(help))
-#endif
 end sub
 
 '----------------------------------------------------------------------

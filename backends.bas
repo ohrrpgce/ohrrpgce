@@ -8,6 +8,7 @@
 #include "music.bi"
 #include "gfx.new.bi"
 #include "surface.bi"
+#include "cmdline.bi"
 
 #include "backendinfo.bi"
 

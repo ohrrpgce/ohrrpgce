@@ -18,6 +18,7 @@ declare function is_windows_9x () as bool
 declare function get_windows_version () as string
 declare function get_windows_runtime_info () as string
 declare function win_error_str(errcode as integer = -1) as zstring ptr
+declare sub error_message_box(msg as zstring ptr)
 #endif
 
 declare sub os_init ()

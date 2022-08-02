@@ -9,6 +9,8 @@ DECLARE FUNCTION gamecustom_setoption(opt as string, arg as string) as integer
 
 DECLARE SUB hook_after_attach_to_Custom(success as bool)
 
+DECLARE SUB display_help_string(help as string)
+
 ''''Globals
 
 ' Globals telling whether certain commandline arguments have been seen.
