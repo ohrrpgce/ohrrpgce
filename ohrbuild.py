@@ -160,7 +160,7 @@ def query_git (rootdir):
     return date, rev
 
 def query_svn_rev_and_date(rootdir):
-    """Determine svn revision and date, from svn, git, or svninfo.txt
+    """Determine svn revision and date (datetime.date object), from svn, git, or svninfo.txt
     NOTE: Actually, we return current date instead of svn last-modified date,
     as the source might be locally modified"""
     date, rev = query_git (rootdir)
@@ -185,9 +185,9 @@ svninfo.txt should have been included with the source code if you downloaded a
         build_date = datetime.datetime.utcfromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']))
     else:
         build_date = datetime.date.today()
-    date = build_date.strftime ('%Y%m%d')
+    #date = build_date.strftime('%Y%m%d')
 
-    return rev, date
+    return rev, build_date
 
 ########################################################################
 
@@ -363,7 +363,8 @@ def verprint(mod, builddir, rootdir):
         with openw(rootdir, filename) as f:
             f.write(text.encode('latin-1'))
 
-    rev, date = query_svn_rev_and_date(rootdir)
+    rev, build_date = query_svn_rev_and_date(rootdir)
+    date = build_date.strftime('%Y%m%d')
 
     codename, branch_name, branch_rev = read_codename_and_branch(rootdir)
     if branch_rev <= 0:
@@ -434,14 +435,10 @@ def verprint(mod, builddir, rootdir):
                '\n'.join (backendinfo) + '\n')
     write_file(builddir + 'globals.bas',
                '\n'.join (globals_bas) + '\n')
-    tmpdate = '.'.join([data['date'][:4],data['date'][4:6],data['date'][6:8]])
-    write_file('iver.txt',
-               ('AppVerName=%(name)s %(codename)s %(date)s\n' % data +
-                'VersionInfoVersion=%s.%s\n' % (tmpdate, rev)))
     write_file('distver.bat',
                ('SET OHRVERCODE=%s\n' % codename +
                 'SET OHRVERBRANCH=%s\n' % branch_name +
-                'SET OHRVERDATE=%s\n' % tmpdate.replace('.', '-') +
+                'SET OHRVERDATE=%s\n' % build_date.strftime('%Y-%m-%d') +
                 'SET SVNREV=%s' % rev))
 
 ########################################################################

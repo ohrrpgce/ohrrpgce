@@ -48,9 +48,7 @@ call scons gfx=sdl2+directx+fb music=sdl2 %SCONS_ARGS% && (
   REM Create the installer from the executables we just built: the installer and .zips for default build configs
   REM must contain the same executables, to share .pdb files
   support\rm -f distrib\ohrrpgce-win-installer-wip.exe
-  echo InfoBeforeFile=IMPORTANT-nightly.txt > iextratxt.txt
-  "%ISCC%" /Q /Odistrib /Fohrrpgce-win-installer-wip ohrrpgce.iss
-  del iextratxt.txt
+  python ohrpackage.py win full+vikings distrib\ohrrpgce-win-installer-wip.exe
   IF EXIST distrib\ohrrpgce-win-installer-wip.exe (
     pscp -q distrib\ohrrpgce-win-installer-wip.exe %SCPHOST%:%SCPDEST%
   )

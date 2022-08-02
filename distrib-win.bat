@@ -56,9 +56,7 @@ python ohrpackage.py win full distrib\ohrrpgce.zip
 
 ECHO ------------------------------------------
 ECHO Packaging ohrrpgce-win-installer.exe ...
-echo. > iextratxt.txt
-"%ISCC%" /Q /Odistrib /Fohrrpgce-win-installer ohrrpgce.iss
-del iextratxt.txt
+python ohrpackage.py win full+vikings distrib\ohrrpgce-win-installer.exe
 IF NOT EXIST distrib\ohrrpgce-win-installer.exe (
     ECHO Inno Setup failed!
     exit /b 1

@@ -136,11 +136,9 @@ def calculate_size(files):
 
 def read_version():
     codename, branch_name, branch_rev = ohrbuild.read_codename_and_branch(rootdir)
-    rev, date = ohrbuild.query_svn_rev_and_date(rootdir)
-    year = date[0:4]
-    month = date[4:6]
-    day = date[6:8]
-    return "%s.%s.%s.%s-%s" % (year, month, day, branch_name, rev)
+    rev, build_date = ohrbuild.query_svn_rev_and_date(rootdir)
+    date = build_date.strftime('%Y.%m.%d')
+    return "%s.%s-%s" % (date, branch_name, rev)
 
 def write_control_file(filename, template, values):
     "Write /DEBIAN/control"

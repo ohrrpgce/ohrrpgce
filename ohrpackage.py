@@ -437,6 +437,7 @@ def engine_files(target, config, srcdir = ''):
         "ohrrpgce-game.png",
         "ohrrpgce-custom.png"
     ]
+    # Note: ohrrpgce.iss adds game.ico to the Windows installer
 
     return files
 
@@ -446,6 +447,25 @@ def add_vikings_files(files):
         files.setdest("vikings/Vikings script files", ""),
         files.setdest("vikings/README-vikings.txt", "")
     ]
+
+############################################################################
+
+def create_win_installer(files, outfile, iscc = "iscc", srcdir = "."):
+    "Generate Windows installer from the contents of ohrrpgce/"
+
+    # Generate iver.txt include for ohrrpgce.iss
+    rev, date = ohrbuild.query_svn_rev_and_date(srcdir)
+    codename, branch_name, branch_rev = ohrbuild.read_codename_and_branch(srcdir)
+    with open("iver.txt", "wb") as f:
+        text = 'AppVerName=OHRRPGCE %s %s\n' % (codename, date.strftime('%Y%m%d'))
+        text += 'VersionInfoVersion=%s.%s\n' % (date.strftime('%Y.%m.%d'), rev)
+        if codename == "wip":
+            text += "InfoBeforeFile=IMPORTANT-nightly.txt\n"
+        f.write(text.encode('latin-1'))
+
+    dir, fname = os.path.split(os.path.abspath(outfile))
+    check_wine_call(iscc, "/Q", "/O" + dir, "/F" + fname[:-4], "ohrrpgce.iss")
+    os.remove("iver.txt")
 
 ############################################################################
 
@@ -485,13 +505,14 @@ def prepare_player(files, target):
             game = files.executables[0]
             check_call("strip", game)
 
-def format_output_filename(template, srcdir = ''):
+def format_output_filename(template, srcdir = '.'):
     "Expand replacements"
+    rev, date = ohrbuild.query_svn_rev_and_date(srcdir)
     today = time.strftime('%Y-%m-%d')
     codename, branch_name, branch_rev = ohrbuild.read_codename_and_branch(srcdir)
-    return template.format(TODAY = today, CODENAME = codename, BRANCH = branch_name)
+    return template.format(TODAY = today, CODENAME = codename, BRANCH = branch_name, REV = rev)
 
-def package(target, config, outfile = None, extrafiles = []):
+def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):
     if outfile:
         outfile = format_output_filename(outfile)
 
@@ -512,7 +533,9 @@ def package(target, config, outfile = None, extrafiles = []):
 
     if outfile:
         print("Archiving " + outfile)
-        if config in ("player", "symbols") or target == "win":
+        if outfile.endswith(".exe"):
+            create_win_installer(files, outfile, iscc)
+        elif config in ("player", "symbols") or target == "win":
             archive_dir_contents("ohrrpgce", outfile)
         else:
             archive_dir("ohrrpgce", outfile)
@@ -547,10 +570,12 @@ minimal:      Excludes import/, plotdict.xml and unnecessary support utilities
 player:       Just Game, for distributing games
 symbols:      Windows .pdb debug symbols, for process_crashrpt_report.py""")
     parser.add_argument("outfile", nargs = "?", help = 
-"""Output file path. Should end in a supported archive format (e.g. .zip, .7z).
-Can contain text replacements {TODAY}, {CODENAME}, {BRANCH}.""")
+"""Output file path. Should end in a supported archive format (e.g. .zip, .7z)
+or .exe to create a Windows installer.
+Can contain text replacements {TODAY}, {CODENAME}, {BRANCH}, {REV}.""")
     # This argument is added just to add to the usage
     parser.add_argument("dummy", nargs="?",metavar = "-- file [file ...]", help = "Extra files to include")
+    parser.add_argument("--iscc", default = "iscc", help = "Path to Innosetup's iscc.exe, to create Windows installer")
 
     if not argv:
         parser.print_help()
@@ -562,6 +587,6 @@ Can contain text replacements {TODAY}, {CODENAME}, {BRANCH}.""")
         exit("Unexpected arg after outfile: " + args.dummy)
 
     try:
-        package(args.target, args.config, args.outfile, extrafiles)
+        package(args.target, args.config, args.outfile, extrafiles, args.iscc)
     except (PackageError, subprocess.CalledProcessError) as e:
         exit("Error: " + str(e))
