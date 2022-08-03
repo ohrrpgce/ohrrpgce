@@ -6,65 +6,34 @@ ECHO Building executables...
 REM This should be the BUILDNAME (as in distrib-nightly-win-packnupload.bat) for the default backends
 set BUILDNAME=sdl2
 
-support\rm -f game.exe custom.exe relump.exe unlump.exe hspeak.exe
+support\rm -f game.exe custom.exe relump.exe unlump.exe hspeak.exe win32\game.pdb win32\custom.pdb
 
-ECHO   Windows executables...
 CALL scons game custom hspeak %SCONS_ARGS% || exit /b 1
 REM Would compile with lto=1 to reduce unlump/relump size, but that causes mingw-w64 gcc 8.1.0 to crash
 CALL scons unlump relump %SCONS_ARGS% || exit /b 1
 
-REM "scons pdb=1" will continue even if it can't produce these
-FOR %%X IN (win32\game.pdb win32\custom.pdb) DO (
-    IF NOT EXIST "%%X" (
-        ECHO "ERROR: build result %%X is missing. Unable to continue."
-        exit /b 1
-    )
-)
+ECHO ------------------------------------------
+ECHO Packaging game player ohrrpgce-player-win-minimal-sdl2-*.zip ...
+python ohrpackage.py win player distrib\ohrrpgce-player-win-minimal-sdl2-{TODAY}-{BRANCH}.zip || exit /b 1
 
 ECHO ------------------------------------------
-ECHO Erasing old distrib files ...
-support\rm -f distrib\ohrrpgce-player-win-minimal-sdl2.zip
-support\rm -f distrib\ohrrpgce-minimal.zip
-support\rm -f distrib\ohrrpgce.zip
-support\rm -f distrib\ohrrpgce-win-installer.exe
-support\rm -f distrib\ohrrpgce-symbols-win.7z
+ECHO Packaging minimal-but-complete ohrrpgce-minimal-*.zip ...
+python ohrpackage.py win minimal distrib\ohrrpgce-minimal-{TODAY}-{BRANCH}.zip || exit /b 1
 
 ECHO ------------------------------------------
-ECHO Packaging game player ohrrpgce-player-win-minimal-sdl2.zip ...
-python ohrpackage.py win player distrib\ohrrpgce-player-win-minimal-sdl2.zip || exit /b 1
+ECHO Packaging ohrrpgce-*.zip ...
+python ohrpackage.py win full distrib\ohrrpgce-{TODAY}-{BRANCH}.zip || exit /b 1
 
 ECHO ------------------------------------------
-ECHO Packaging minimal-but-complete ohrrpgce-minimal.zip ...
-REM Note: linux and mac "minimal" .tar.gz files contain only the player, while
-REM Windows "minimal" .zip files contain nearly everything except support, import and Vikings
-python ohrpackage.py win minimal distrib\ohrrpgce-minimal.zip || exit /b 1
-
-ECHO ------------------------------------------
-ECHO Packaging ohrrpgce.zip ...
-python ohrpackage.py win full distrib\ohrrpgce.zip || exit /b 1
-
-ECHO ------------------------------------------
-ECHO Packaging ohrrpgce-win-installer.exe ...
-python ohrpackage.py win full+vikings distrib\ohrrpgce-win-installer.exe || exit /b 1
+ECHO Packaging ohrrpgce-win-installer-*.exe ...
+python ohrpackage.py win full+vikings distrib\ohrrpgce-win-installer-{TODAY}-{BRANCH}.exe --iscc "%ISCC%" || exit /b 1
 
 ECHO ------------------------------------------
 ECHO Packaging debug info archive
-python ohrpackage.py win symbols distrib\ohrrpgce-symbols-win.7z || exit /b 1
+python ohrpackage.py win symbols distrib\ohrrpgce-symbols-win-%BUILDNAME%-{REV}-{TODAY}-{BRANCH}.7z || exit /b 1
 
 ECHO ------------------------------------------
 ECHO Packaging source snapshot zip ...
-python ohrpackage.py win source distrib\ohrrpgce-source.zip || exit /b 1
+python ohrpackage.py win source distrib\ohrrpgce-source-{TODAY}-{BRANCH}.zip || exit /b 1
 
-REM ------------------------------------------
-ECHO Rename results...
-CALL distver.bat
-ECHO %OHRVERDATE%-%OHRVERBRANCH%
-move distrib\ohrrpgce-player-win-minimal-sdl2.zip distrib\ohrrpgce-player-win-minimal-sdl2-%OHRVERDATE%-%OHRVERBRANCH%.zip
-move distrib\ohrrpgce-minimal.zip distrib\ohrrpgce-minimal-%OHRVERDATE%-%OHRVERBRANCH%.zip
-move distrib\ohrrpgce.zip distrib\ohrrpgce-%OHRVERDATE%-%OHRVERBRANCH%.zip
-move distrib\ohrrpgce-win-installer.exe distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERBRANCH%.exe
-move distrib\ohrrpgce-source.zip distrib\ohrrpgce-source-%OHRVERDATE%-%OHRVERBRANCH%.zip
-move distrib\ohrrpgce-symbols-win.7z distrib\ohrrpgce-symbols-win-%BUILDNAME%-r%SVNREV%-%OHRVERDATE%-%OHRVERBRANCH%.7z
-
-REM ------------------------------------------
 ECHO Done.

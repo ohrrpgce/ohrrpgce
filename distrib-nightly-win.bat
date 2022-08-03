@@ -47,7 +47,7 @@ call scons gfx=sdl2+directx+fb music=sdl2 %SCONS_ARGS% && (
   ECHO     Packaging ohrrpgce-win-installer-wip.exe ...
   REM Create the installer from the executables we just built: the installer and .zips for default build configs
   REM must contain the same executables, to share .pdb files
-  python ohrpackage.py win full+vikings distrib\ohrrpgce-win-installer-wip.exe && (
+  python ohrpackage.py win full+vikings distrib\ohrrpgce-win-installer-wip.exe --iscc "%ISCC%" && (
     pscp -q distrib\ohrrpgce-win-installer-wip.exe %SCPHOST%:%SCPDEST%
   )
 

@@ -11,7 +11,6 @@
 UPLOAD_SERVER="james_paige@motherhamster.org"
 UPLOAD_FOLDER="HamsterRepublic.com"
 UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
-TODAY=`date "+%Y-%m-%d"`
 
 mkdir -p ~/src/nightly
 cd ~/src/nightly
@@ -45,7 +44,7 @@ echo "Zipping up new nightly snapshot..."
 echo "Uploading nightly source snapshot..." &&
 scp -p ../ohrrpgce-source-nightly.zip $UPLOAD_DEST/ohrrpgce/nightly/
 
-# This is duplicated in distrib-nightly-win[-wine].sh
+# This is duplicated in distrib-nightly-win[-wine].sh except plotdictionary.html
 echo uploading plotscripting docs
 cd wip/docs
 ./update-html.sh
@@ -81,30 +80,18 @@ fi
 # Compile and create .bz2 and .deb files
 echo "Calling distrib-linux.sh..."
 # Note: this creates a 'full' rather than 'nightly' package. Only Windows nightlies use 'nightly'.
-./distrib-linux.sh
+./distrib-linux.sh ohrrpgce-linux-wip ohrrpgce-player-linux-bin-minimal || exit 1
 
 if [ -z "$OHR_SKIP_X86" ] ; then
   echo "Uploading 32-bit linux binaries..."
-  mv distrib/ohrrpgce-linux-*-wip-x86.tar.bz2 distrib/ohrrpgce-linux-wip-x86.tar.bz2 &&
   scp -p distrib/ohrrpgce-linux-wip-x86.tar.bz2 $UPLOAD_DEST/ohrrpgce/nightly/
-  # The -minimal.zip files are downloaded by the distrib menu.
-  # ohrrpgce-player-linux-bin-minimal.zip is 32-bit
-  echo "Uploading minimal 32-bit ohrrpgce-player binaries..."
-  mv distrib/ohrrpgce-player-linux-bin-minimal-*-wip-x86.zip distrib/ohrrpgce-player-linux-bin-minimal-x86.zip &&
   scp -p distrib/ohrrpgce-player-linux-bin-minimal-x86.zip $UPLOAD_DEST/ohrrpgce/nightly/
-  rm distrib/ohrrpgce-player-linux-bin-minimal-x86.zip
 fi
 
 if [ -z "$OHR_SKIP_X86_64" ] ; then
   echo "Uploading 64-bit linux binaries..."
-  mv distrib/ohrrpgce-linux-*-wip-x86_64.tar.bz2 distrib/ohrrpgce-linux-wip-x86_64.tar.bz2 &&
   scp -p distrib/ohrrpgce-linux-wip-x86_64.tar.bz2 $UPLOAD_DEST/ohrrpgce/nightly/
-  rm distrib/ohrrpgce-linux-wip-*.tar.bz2
-  # ohrrpgce-player-linux-bin-minimal-x86_64.zip is 64-bit
-  # echo "Uploading minimal 64-bit ohrrpgce-player binaries..."
-  mv distrib/ohrrpgce-player-linux-bin-minimal-*-wip-x86_64.zip distrib/ohrrpgce-player-linux-bin-minimal-x86_64.zip &&
   scp -p distrib/ohrrpgce-player-linux-bin-minimal-x86_64.zip $UPLOAD_DEST/ohrrpgce/nightly/
-  rm distrib/ohrrpgce-player-linux-bin-minimal-x86_64.zip
 fi
 
 echo "Uploading debian packages..."

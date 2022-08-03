@@ -15,7 +15,8 @@ SET "ISCC=C:\Program Files\Inno Setup 5\iscc.exe"
 REM In case we need the 32 bit versions on a 64 bit system...
 IF NOT EXIST "%ISCC%" SET "ISCC=C:\Program Files (x86)\Inno Setup 5\iscc.exe"
 
-REM Find svn (Note: %SVN% is only used by distrib-win.bat, not nightlies.
+REM Find svn (Note: %SVN% is not used currently, would have to modify ohrpackage.py.
+REM Currently svn is only used by distrib-win.bat, not the Windows nightlies.
 REM Should probably just require svn to be in PATH instead!)
 
 REM This checks whether svn is in PATH, otherwise does SVN=
@@ -30,10 +31,10 @@ IF NOT EXIST "%SVN%" (
     IF NOT EXIST "%SVN%" SET "SVN=C:\Program Files\Sliksvn\bin\svn.exe"
     IF NOT EXIST "%SVN%" SET "SVN=C:\Program Files (x86)\Sliksvn\bin\svn.exe"
 
-    REM Don't throw an error if couldn't find svn, since only distrib.bat needs it
+    REM Don't throw an error if couldn't find svn, since only distrib-win.bat needs it
 )
 
-for %%X in (cp.exe zip.exe grep.exe sed.exe 7za.exe) do (
+for %%X in (cp.exe zip.exe rm.exe) do (
     if not exist "support\%%X" (
         ECHO "ERROR: Support file %%X is missing. Unable to continue."
         exit /b 1

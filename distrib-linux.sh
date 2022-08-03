@@ -3,6 +3,8 @@
 # Build and package builds for linux
 
 SCONS_ARGS="release=1"
+FULLNAME=${1:-"ohrrpgce-linux-{TODAY}-{BRANCH}"}
+PLAYERNAME=${2:-"ohrrpgce-player-linux-bin-minimal-{TODAY}-{BRANCH}"}
 
 if [ ! -f distrib-linux.sh ] ; then
   echo You should only run this script from the ohrrpgce directory.
@@ -11,8 +13,8 @@ fi
 
 echo Erasing old distribution files
 mkdir -p distrib
-rm -f distrib/ohrrpgce-linux-*.tar.bz2
-rm -f distrib/ohrrpgce-player-linux-*.zip
+rm -f distrib/$FULLNAME-*.tar.bz2
+rm -f distrib/$PLAYERNAME-*.zip
 rm -f distrib/*.deb
 
 package_for_arch() {
@@ -25,10 +27,10 @@ package_for_arch() {
   scons $SCONS_ARGS arch=$ARCH game custom hspeak || return 1
 
   echo "Packaging $ARCH binary distribution of CUSTOM"
-  ./ohrpackage.py linux full distrib/ohrrpgce-linux-{TODAY}-{BRANCH}-$ARCH.tar.bz2 || return 1
+  ./ohrpackage.py linux full distrib/$FULLNAME-$ARCH.tar.bz2 || return 1
 
   echo "Prepare minimal $ARCH player zip"
-  ./ohrpackage.py linux player distrib/ohrrpgce-player-linux-bin-minimal-{TODAY}-{BRANCH}-$ARCH.zip || return 1
+  ./ohrpackage.py linux player distrib/$PLAYERNAME-$ARCH.zip || return 1
 }
 
 if [ -z "${OHR_SKIP_X86}" ] ; then
@@ -40,6 +42,6 @@ if [ -z "${OHR_SKIP_X86_64}" ] ; then
   if which dpkg > /dev/null; then
     echo
     echo "Building x86_64 Debian/Ubuntu packages"
-    python linux/linuxpkg.py distrib || exit 1
+    linux/linuxpkg.py distrib || exit 1
   fi
 fi
