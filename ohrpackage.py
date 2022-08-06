@@ -95,8 +95,6 @@ def unix2dos(path):
     os.rename(temp, path)
 
 def find_program(name):
-    # TEMP for debugging
-    print("### find_program %s rootdir %s check %s " % (name, rootdir, os.path.join(rootdir, "support", name + ".exe")))
     if host_win32:
         support_exe = os.path.join(rootdir, "support", name + ".exe")
         if os.path.isfile(support_exe):
@@ -115,7 +113,7 @@ def check_call(*args, **kwargs):
 
 def print_check_call(*args, **kwargs):
     args = subprocess_args(*args)
-    print(clip_string(" ".join(args), 200))
+    print(": " + clip_string(" ".join(args), 200))
     subprocess.check_call(args, **kwargs)
 
 def check_output(*args, **kwargs):
@@ -134,8 +132,6 @@ def print_system(cmdline):
 def check_wine_call(prog, *args):
     "Call wine as needed. Prefix prog with @ to silence stderr and wine spam"
     silent = prog[0] == "@"
-    # TEMP for debugging
-    print("###", prog, prog.lstrip("@"))
     prog = prog.lstrip("@")
     if prog.endswith(".exe") and not host_win32:
         kwargs = {"env": dict(os.environ)}
@@ -193,7 +189,7 @@ def generate_buildinfo(game):
     directory, game = os.path.split(game)
     with temp_chdir(directory):
         safe_rm("buildinfo.ini")
-        check_wine_call("@./" + game, "-buildinfo", "buildinfo.ini")
+        check_wine_call("@" + os.path.join(".", game), "-buildinfo", "buildinfo.ini")
         assert os.path.isfile("buildinfo.ini")
 
 def parse_buildinfo(path):
@@ -548,7 +544,6 @@ def format_output_filename(template, srcdir = '.'):
     rev, date = ohrbuild.query_svn_rev_and_date(srcdir)
     today = time.strftime('%Y-%m-%d')
     codename, branch_name, branch_rev = ohrbuild.read_codename_and_branch(srcdir)
-    print("### output: " + template)  # TEMP for debugging
     return template.format(TODAY = today, CODENAME = codename, BRANCH = branch_name, REV = rev)
 
 def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):

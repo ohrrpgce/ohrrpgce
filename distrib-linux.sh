@@ -3,8 +3,8 @@
 # Build and package builds for linux
 
 SCONS_ARGS="release=1"
-FULLNAME=${1:-"ohrrpgce-linux-{TODAY}-{BRANCH}"}
-PLAYERNAME=${2:-"ohrrpgce-player-linux-bin-minimal-{TODAY}-{BRANCH}"}
+FULLNAME=${1:-ohrrpgce-linux-\{TODAY\}-\{BRANCH\}}
+PLAYERNAME=${2:-ohrrpgce-player-linux-bin-minimal-\{TODAY\}-\{BRANCH\}}
 
 if [ ! -f distrib-linux.sh ] ; then
   echo You should only run this script from the ohrrpgce directory.
@@ -27,8 +27,6 @@ package_for_arch() {
   scons $SCONS_ARGS arch=$ARCH game custom hspeak || return 1
 
   echo "Packaging $ARCH binary distribution of CUSTOM"
-  # TEMP for debugging
-  echo '###' ./ohrpackage.py linux full distrib/$FULLNAME-$ARCH.tar.bz2
   ./ohrpackage.py linux full "distrib/$FULLNAME-$ARCH.tar.bz2" || return 1
 
   echo "Prepare minimal $ARCH player zip"
