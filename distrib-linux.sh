@@ -27,10 +27,12 @@ package_for_arch() {
   scons $SCONS_ARGS arch=$ARCH game custom hspeak || return 1
 
   echo "Packaging $ARCH binary distribution of CUSTOM"
-  ./ohrpackage.py linux full distrib/$FULLNAME-$ARCH.tar.bz2 || return 1
+  # TEMP for debugging
+  echo '###' ./ohrpackage.py linux full distrib/$FULLNAME-$ARCH.tar.bz2
+  ./ohrpackage.py linux full "distrib/$FULLNAME-$ARCH.tar.bz2" || return 1
 
   echo "Prepare minimal $ARCH player zip"
-  ./ohrpackage.py linux player distrib/$PLAYERNAME-$ARCH.zip || return 1
+  ./ohrpackage.py linux player "distrib/$PLAYERNAME-$ARCH.zip" || return 1
 }
 
 if [ -z "${OHR_SKIP_X86}" ] ; then

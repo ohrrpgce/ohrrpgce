@@ -95,6 +95,8 @@ def unix2dos(path):
     os.rename(temp, path)
 
 def find_program(name):
+    # TEMP for debugging
+    print("### find_program %s rootdir %s check %s " % (name, rootdir, os.path.join(rootdir, "support", name + ".exe")))
     if host_win32:
         support_exe = os.path.join(rootdir, "support", name + ".exe")
         if os.path.isfile(support_exe):
@@ -132,6 +134,8 @@ def print_system(cmdline):
 def check_wine_call(prog, *args):
     "Call wine as needed. Prefix prog with @ to silence stderr and wine spam"
     silent = prog[0] == "@"
+    # TEMP for debugging
+    print("###", prog, prog.lstrip("@"))
     prog = prog.lstrip("@")
     if prog.endswith(".exe") and not host_win32:
         kwargs = {"env": dict(os.environ)}
@@ -544,6 +548,7 @@ def format_output_filename(template, srcdir = '.'):
     rev, date = ohrbuild.query_svn_rev_and_date(srcdir)
     today = time.strftime('%Y-%m-%d')
     codename, branch_name, branch_rev = ohrbuild.read_codename_and_branch(srcdir)
+    print("### output: " + template)  # TEMP for debugging
     return template.format(TODAY = today, CODENAME = codename, BRANCH = branch_name, REV = rev)
 
 def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):
