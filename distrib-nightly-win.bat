@@ -27,7 +27,7 @@ svn info > svninfo.txt
 REM Build all utilities once (relump and unlump aren't important, but want to detect if hspeak didn't build)
 REM Would compile with lto=1 to reduce unlump/relump size, but that causes mingw-w64 gcc 8.1.0 to crash
 support\rm -f hspeak.exe
-CALL scons hspeak relump unlump %SCONS_ARGS%
+CALL scons hspeak relump unlump win95=1 sse2=0 %SCONS_ARGS%
 IF NOT EXIST hspeak.exe GOTO FAILURE
 
 REM This is the build for obsolete Windows machines (symlinked as ohrrpgce-win-win95-wip.zip)

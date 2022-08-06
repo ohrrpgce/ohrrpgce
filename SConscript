@@ -346,7 +346,10 @@ elif mac:
 elif android:
     gfx = 'sdl'
 elif win32:
-    gfx = 'sdl2+directx+fb'
+    if win95:
+        gfx = 'directx+sdl+fb'
+    else:
+        gfx = 'sdl2+directx+fb'
 else: # unix
     gfx = 'sdl2+fb'
 gfx = [g.lower() for g in gfx.split("+")]
@@ -1652,6 +1655,7 @@ Options:
                       (Don't try to use gfx_dummy!)
                       At runtime, backends are tried in the order specified.
                       Current (default) value: """ + "+".join(gfx) + """
+                      Defaults differ by OS and if win95=1 is passed.
   music=BACKEND       Music backend. Options:
                         """ + " ".join(music_map.keys()) + """
                       Current (default) value: """ + "+".join(music) + """
@@ -1754,7 +1758,7 @@ Options:
   portable=1          (For Linux and BSD) Try to build portable binaries, and
                       check library dependencies.
   win95=1             (For Windows) Support old Windows versions. (By default
-                      stock Win95 isn't supported)
+                      stock Win95 isn't supported.) Changes default backends.
 
 The following environmental variables are also important:
   FBFLAGS             Pass more flags to fbc
@@ -1832,6 +1836,10 @@ Examples:
   scons -j1
  Create a fully optimised 64 bit build with debug symbols:
   scons arch=64 release=1 debug=1 .
+ Create a release build supporting Windows 95+ (Windows only):
+  scons win95=1 sse2=0 release=1  .
  Compile and install (Unix only):
   sudo scons install prefix=/usr/local
+
+After compiling, you can run ohrpackage.py to package results for distribution.
 """)
