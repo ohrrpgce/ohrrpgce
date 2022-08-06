@@ -810,6 +810,10 @@ FUNCTION prompt_for_scancode () as KBScancode
           CASE scAnyEnter, scUnfilteredAlt, scAlt, scShift, scCtrl, scMeta
             'These are less-specific keys
             CONTINUE FOR
+          CASE scNumLock
+            'This one causes problems because depending on backend, it might always be stuck down.
+            'Don't allow numlock.
+            CONTINUE FOR
         END SELECT
         IF keyval(i) > 0 THEN
           keyname = scancodename(i, YES)
