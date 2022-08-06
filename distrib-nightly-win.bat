@@ -35,8 +35,8 @@ call scons gfx=directx+sdl+fb music=sdl win95=1 sse2=0 %SCONS_ARGS% && (
   call distrib-nightly-win-packnupload music_sdl
 
   ECHO     Packaging win95 game player ...
-  python ohrpackage.py win player distrib\ohrrpgce-player-win-wip-win95.zip && (
-    pscp -q distrib\ohrrpgce-player-win-wip-win95.zip %SCPHOST%:%SCPDEST%
+  python ohrpackage.py win player distrib\ohrrpgce-player-win-win95-wip.zip && (
+    pscp -q distrib\ohrrpgce-player-win-win95-wip.zip %SCPHOST%:%SCPDEST%
   )
 )
 
@@ -52,8 +52,8 @@ call scons gfx=sdl2+directx+fb music=sdl2 %SCONS_ARGS% && (
   )
 
   ECHO     Packaging sdl2 game player ...
-  python ohrpackage.py win player distrib\ohrrpgce-player-win-wip-sdl2.zip && (
-    pscp -q distrib\ohrrpgce-player-win-wip-sdl2.zip %SCPHOST%:%SCPDEST%
+  python ohrpackage.py win player distrib\ohrrpgce-player-win-sdl2-wip.zip && (
+    pscp -q distrib\ohrrpgce-player-win-sdl2-wip.zip %SCPHOST%:%SCPDEST%
   )
 )
 

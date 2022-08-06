@@ -13,8 +13,8 @@ REM Would compile with lto=1 to reduce unlump/relump size, but that causes mingw
 CALL scons unlump relump %SCONS_ARGS% || exit /b 1
 
 ECHO ------------------------------------------
-ECHO Packaging game player ohrrpgce-player-win-minimal-sdl2-*.zip ...
-python ohrpackage.py win player distrib\ohrrpgce-player-win-minimal-sdl2-{TODAY}-{BRANCH}.zip || exit /b 1
+ECHO Packaging game player ohrrpgce-player-win-sdl2-*.zip ...
+python ohrpackage.py win player distrib\ohrrpgce-player-win-sdl2-{TODAY}-{BRANCH}.zip || exit /b 1
 
 ECHO ------------------------------------------
 ECHO Packaging minimal-but-complete ohrrpgce-minimal-*.zip ...
