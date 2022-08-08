@@ -50,7 +50,7 @@ DECLARE FUNCTION battle_time_can_pass(byref bat as BattleState) as bool
 DECLARE FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata as Formation, page as integer)
-DECLARE SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, page as integer)
 DECLARE SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
@@ -224,7 +224,7 @@ FUNCTION battle (byval form as integer) as bool
   
   '--Apply more generic animation effects. These are often triggered by
   '--battle_attack_anim_playback() but do not have to be
-  battle_animate bat, bslot()
+  battle_animate bat, bslot(), st()
   
   SELECT CASE bat.turn.mode
    CASE turnACTIVE: active_mode_state_machine bat, bslot(), formdata
@@ -1270,7 +1270,7 @@ SUB decrement_attack_queue_delays(bslot() as BattleSprite)
  NEXT i
 END SUB
 
-SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
+SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
  'This sub is intended to apply animation effects triggered elsewhere.
  'FIXME: due to messy code, plenty of animation stuff might still happen elsewhere
  DIM i as integer
@@ -1285,7 +1285,11 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite)
   ' injured in the middle of an animation? Battlescripting?
   IF (bat.atk.id >= 0 AND bat.acting = i) = NO THEN enforce_weak_picture i, bslot(), bat
   IF bat.vic.state > vicNONE AND bslot(i).stat.cur.hp > 0 AND bat.tog = 0 THEN
-   IF bslot(i).frame = frameVICTORYB THEN bslot(i).frame = frameVICTORYA ELSE bslot(i).frame = frameVICTORYB
+   IF st(i).skip_victory_dance THEN
+    bslot(i).frame = frameVICTORYB
+   ELSE
+    IF bslot(i).frame = frameVICTORYB THEN bslot(i).frame = frameVICTORYA ELSE bslot(i).frame = frameVICTORYB
+   END IF
   END IF
  NEXT i
  '--Then apply movement forces for all things, heroes, enemies, attacks, weapons

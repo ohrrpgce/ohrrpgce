@@ -890,6 +890,7 @@ Type HeroDef
 	max_name_len as integer
 	hand_pos(1) as XYPair
 	default_auto_battle as bool
+	skip_victory_dance as bool
 	reld as Reload.NodePtr
 
 	Declare Constructor (id as integer = -1)

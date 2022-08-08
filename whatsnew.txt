@@ -57,6 +57,8 @@ WHAT IS NEW?
     * Better tiebreaking when pressing multiple arrows/directions at once [Lenny]
     * Enemy-transmogrifying attacks gain the option to preserve both current and
       max values of each stat [Ralph]
+    * Added an option to disable the victory dance animation for specific heroes
+      [James]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

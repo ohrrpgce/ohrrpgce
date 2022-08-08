@@ -1884,6 +1884,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr, byval id as 
     hero.portrait = sprite."pic".integer
     hero.portrait_pal = sprite."pal".default(-1).integer
    END WITHNODE
+   hero.skip_victory_dance = appearance."skipvicdance".bool
   END READNODE
   hero.def_level = parent."default_level".default(-1).integer
   hero.def_weapon = parent."default_weapon".integer
@@ -2042,6 +2043,7 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
  ch = WritePicPalNode(appear, "battle", hero.sprite, hero.sprite_pal)
  WriteXYPairNode ch, "hand_a", hero.hand_pos(0)
  WriteXYPairNode ch, "hand_b", hero.hand_pos(1)
+ SetChildNode appear, "skipvicdance", IIF(hero.skip_victory_dance, 1, 0)
  IF hero.def_level >= 0 THEN SetChildNode parent, "default_level", hero.def_level
  SetChildNode parent, "default_weapon", hero.def_weapon
  SetChildNode parent, "default_auto_battle", IIF(hero.default_auto_battle, 1, 0)
