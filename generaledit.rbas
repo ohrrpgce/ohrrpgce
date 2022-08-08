@@ -810,9 +810,10 @@ FUNCTION prompt_for_scancode () as KBScancode
           CASE scAnyEnter, scUnfilteredAlt, scAlt, scShift, scCtrl, scMeta
             'These are less-specific keys
             CONTINUE FOR
-          CASE scNumLock
-            'This one causes problems because depending on backend, it might always be stuck down.
-            'Don't allow numlock.
+          CASE scNumLock, scCapsLock, scScrollLock
+            'Skip the "lock" family of keys. They can sometimes behave as stuck down,
+            'and they don't make much sense for gamepad button remapping.
+            'We also ignore them for KeyboardState.anykey() and the "wait for any key" command
             CONTINUE FOR
         END SELECT
         IF keyval(i) > 0 THEN
