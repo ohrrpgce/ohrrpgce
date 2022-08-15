@@ -81,4 +81,4 @@ build() {
 }
 
 build sdl_mixer_ohrrpgce SDL SDL-devel-1.2.15-mingw32.tar.gz
-build sdl2_mixer_ohrrpgce SDL2 SDL2-devel-2.0.14-mingw.tar.gz
+build sdl2_mixer_ohrrpgce SDL2 SDL2-devel-2.0.22-mingw.tar.gz
