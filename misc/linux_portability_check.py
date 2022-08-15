@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Utility to check and print which versions of glibc, stdc++/supc++ and gcc dependency libraries (libgcc_s)
-that an ELF binary requires, and when those versions were released.
+Utility to check and print which versions of glibc, libstdc++/libsupc++ and gcc
+dependency libraries (libgcc_s) that an ELF binary requires, and when those
+versions were released.
 
 Python 2.7 or 3.x
 
@@ -71,6 +72,7 @@ def check_deps(binary):
         (3,4,26): (9,1,0),
         (3,4,27): (9,2,0),
         (3,4,28): (9,3,0),
+        (3,4,29): (11,1,0),
     }
 
     # Ditto for CXXABI
@@ -92,6 +94,7 @@ def check_deps(binary):
         (1,3,10): (6,1,0),
         (1,3,11): (7,1,0),
         (1,3,12): (9,1,0),
+        (1,3,13): (11,1,0),
     }
 
     # From https://gcc.gnu.org/releases.html
@@ -124,6 +127,11 @@ def check_deps(binary):
         (9,3,0): '2020-03-12',
         (10,1,0): '2020-05-07',
         (10,2,0): '2020-07-23',
+        (10,3,0): '2021-04-08',
+        (11,1,0): '2021-04-27',
+        (11,2,0): '2021-07-28',
+        (11,3,0): '2022-04-21',
+        (12,1,0): '2022-05-06',
     }
 
     # From https://sourceware.org/glibc/wiki/Glibc%20Timeline
@@ -168,8 +176,10 @@ def check_deps(binary):
         (2,32):   '2020-08-05',
         (2,33):   '2021-02-01',
         (2,34):   '2021-08-02',
-        (2,35):   '2022-02-01',  # Future
-        (2,36):   '2022-08-01',  # Future
+        (2,35):   '2022-02-03',
+        (2,36):   '2022-08-01',
+        (2,37):   '2023-02-01',  # Future
+        (2,38):   '2023-08-01',  # Future
     }
     #print(req)
 
@@ -219,7 +229,8 @@ def check_deps(binary):
 ##############################################################################
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage: %s <executable or .so>")
+    if len(sys.argv) < 2:
+        print("Usage: %s <executable or .so> ...")
         exit(1)
-    check_deps(sys.argv[1])
+    for binary in sys.argv[1:]:
+        check_deps(binary)
