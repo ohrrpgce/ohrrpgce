@@ -39,7 +39,7 @@ libstdc++ 4.3.
 
 // The libstdc++ version for the gcc compiler used.
 #if (__GNUC__ >= 5)
- #define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 21)  //GCC 5.0
+ #define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 21)  //GCC 5.1
 #elif (__GNUC__ == 4) && (__GNUC_MINOR__ >= 9)
  #define MOZ_LIBSTDCXX_VERSION GLIBCXX_VERSION(3, 4, 20)  //GCC 4.9
 #elif (__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)
@@ -201,4 +201,13 @@ namespace std {
     {
     }
 }
+
+#  if !defined(MOZ_ASAN) && !defined(MOZ_TSAN)
+/* operator delete with size is only available in CXXAPI_1.3.9, equivalent to
+ * GLIBCXX_3.4.21. */
+void operator delete(void* ptr, size_t size) noexcept(true) {
+  ::operator delete(ptr);
+}
+#  endif
+
 #endif
