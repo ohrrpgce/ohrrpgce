@@ -26,7 +26,8 @@ if [ -z "${DOWNLOAD_DIR}" ]; then
         # Reuse mxe's download cache, which is also used by win32/build_sdl_mixer.sh
         DOWNLOAD_DIR=$MXEDIR/pkg
     else
-        DOWNLOAD_DIR=download_cache
+        DOWNLOAD_DIR="$(pwd)/download_cache"
+        mkdir -p $DOWNLOAD_DIR
     fi
 fi
 echo "*    Placing downloaded archives in ${DOWNLOAD_DIR}"
@@ -173,7 +174,8 @@ build_sdl2_mixer() {
     # rather than RPATH, so should have a lower priority than LD_LIBRARY_PATH... but only
     # on newer Linux systems that support RUNPATH? So override it with SDL_LIBS=-lSDL2.
     # (FWIW steam-runtime libSDL2_mixer.so has no RUNPATH)
-    # Need to pass SDL_CFLAGS too otherwise SDL_LIBS is ignored.
+    # Need to pass SDL_CFLAGS too otherwise SDL_LIBS is ignored; likewise XMP_LIBS or
+    # else XMP_CFLAGS is ignored.
 
     rm -rf "${BUILD_DIR}"
     mkdir "${BUILD_DIR}"
@@ -197,14 +199,22 @@ build_sdl2_mixer() {
         LDFLAGS="-L$LIBDIR $LDFLAGS" \
         SDL_CFLAGS="$(sdl2-config --cflags)" \
         SDL_LIBS="-lSDL2" \
-        XMP_CFLAGS="-I$TEMPDIR/libxmp-lite/include"
-        #XMP_LIBS="libxmp-lite.so.4"
+        XMP_CFLAGS="-I$TEMPDIR/libxmp-lite/include" \
+        XMP_LIBS="-lxmp-lite"
 
     ${MAKE} -C "$BUILD_DIR" -j6
 
     LIBNAME=libSDL2_mixer-2.0.so.0
     cp "${BUILD_DIR}/build/.libs/$LIBNAME" "$LIBDIR"
     ln -sf $LIBNAME "$LIBDIR"/libSDL2_mixer.so
+
+    # Check that libraries are runtime linked as desired (don't check libopusfile: optional)
+    for soname in libxmp-lite.so.4 libfluidsynth.so; do
+        if ! strings "$LIBDIR"/libSDL2_mixer.so | grep -q $soname; then
+            echo "Sanity check failed: $LIBDIR/libSDL2_mixer.so doesn't contain $soname"
+            exit 1
+        fi
+    done
 }
 
 
