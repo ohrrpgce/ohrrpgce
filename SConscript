@@ -1152,6 +1152,7 @@ for lib in base_libraries:
     env['CCLINKFLAGS'] += ['-l' + lib]
     env['FBLINKFLAGS'] += ['-l', lib]
 
+frameworks = None
 if mac:
     frameworks = ARGUMENTS.get('frameworks', 'SDL,SDL_mixer,SDL2,SDL2_mixer')
     if frameworks in ('0', 'no', ''):

@@ -103,13 +103,9 @@ end function
 local function _load_libvorbisfile(libfile as string) as bool
 	#ifdef __FB_DARWIN__
 		libvorbisfile = dylibload(libfile + ".framework/" + libfile)
-	#else
-		libvorbisfile = dylibload(libfile)
 	#endif
-	if libvorbisfile = NULL then
-		debuginfo "Couldn't find " & libfile & ", skipping (not an error)"
-		return NO
-	end if
+	if libvorbisfile = NULL then libvorbisfile = dylibload(libfile)
+	if libvorbisfile = NULL then return NO
 
 	MUSTLOAD(libvorbisfile, ov_clear)
 	MUSTLOAD(libvorbisfile, ov_fopen)
@@ -118,7 +114,7 @@ local function _load_libvorbisfile(libfile as string) as bool
 	MUSTLOAD(libvorbisfile, ov_time_total)
 	MUSTLOAD(libvorbisfile, ov_comment)
 
-	debuginfo "Successfully loaded libvorbisfile symbols from " & libfile
+	debuginfo "Loaded libvorbisfile symbols from " & libfile
 	return YES
 end function
 
@@ -132,31 +128,33 @@ end function
 local function load_vorbisfile() as bool
 	if libvorbisfile = BADPTR then return NO
 	if libvorbisfile then return YES
-	' Unix
 	#ifdef __FB_DARWIN__
-		if _load_libvorbisfile("Vorbis") then return YES
-	#else
-		if _load_libvorbisfile("vorbisfile") then return YES
+		' Vorbis.framework is included inside SDL2_mixer.framework before 2.6.x
+		if _load_libvorbisfile("Vorbis.framework/Vorbis") then return YES
 	#endif
-	' libvorbisfile is statically linked into our SDL_mixer.dll, and our
-	' SDL2_mixer.dll before 2.6.1 (which switched to stb_vorbis).
-	' We can load them even if we're using a different music backend
-	if _load_libvorbisfile("SDL_mixer") then return YES
-	if _load_libvorbisfile("SDL2_mixer") then return YES
+	' Unix
+	if _load_libvorbisfile("vorbisfile") then return YES
+
+	#if defined(__FB_WIN32__) or defined(__FB_DARWIN__)
+		' libvorbisfile is statically linked into our SDL_mixer.dll, our
+		' SDL2_mixer.dll before 2.6.1 (which switched to stb_vorbis),
+		' and our 32-bit Mac SDL_mixer.framework.
+		' We can load them even if we're using a different music backend,
+		' so no need to use libsdl_mixer_name/etc or dylib_noload
+		if _load_libvorbisfile("SDL_mixer") then return YES
+		if _load_libvorbisfile("SDL2_mixer") then return YES
+	#endif
 	libvorbisfile = BADPTR
+	debuginfo "Couldn't find libvorbisfile, skipping"
 	return NO
 end function
 
 local function _load_libmad(libfile as string) as bool
 	#ifdef __FB_DARWIN__
 		libmad = dylibload(libfile + ".framework/" + libfile)
-	#else
-		libmad = dylibload(libfile)
 	#endif
-	if libmad = NULL then
-		debuginfo "Couldn't find " & libfile & ", skipping (not an error)"
-		return NO
-	end if
+	if libmad = NULL then libmad = dylibload(libfile)
+	if libmad = NULL then return NO
 
 	MUSTLOAD(libmad, mad_stream_init)
 	MUSTLOAD(libmad, mad_stream_finish)
@@ -165,7 +163,7 @@ local function _load_libmad(libfile as string) as bool
 	MUSTLOAD(libmad, mad_header_init)
 	MUSTLOAD(libmad, mad_header_decode)
 
-	debuginfo "Successfully loaded libmad symbols from " & libfile
+	debuginfo "Loaded libmad symbols from " & libfile
 	return YES
 end function
 
@@ -175,11 +173,15 @@ local function load_libmad() as bool
 	if libmad then return YES
 	' Unix
 	if _load_libmad("mad") then return YES
-	' libmad is statically linked into our Windows SDL_mixer and SDL2_mixer builds.
-	' Very unlikely to be linked on Linux.
-	' We can load them even if we're using a different music backend
-	if _load_libmad("SDL_mixer") then return YES
-	if _load_libmad("SDL2_mixer") then return YES
+	#if defined(__FB_WIN32__) or defined(__FB_DARWIN__)
+		' libmad is statically linked into our Windows SDL_mixer.dll,
+		' our SDL2_mixer.dll before 2.6.1 (which switched to drmp3),
+		' and our 32-bit Mac SDL_mixer.framework.
+		' We can load them even if we're using a different music backend
+		if _load_libmad("SDL_mixer") then return YES
+		if _load_libmad("SDL2_mixer") then return YES
+	#endif
+	debuginfo "Couldn't find libmad, skipping"
 	libmad = BADPTR
 	return NO
 end function

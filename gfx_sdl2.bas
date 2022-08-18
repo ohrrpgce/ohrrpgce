@@ -295,17 +295,13 @@ END SUB
 'Load pointers to optional SDL functions, to support a range of SDL versions
 LOCAL SUB load_SDL_syms()
   IF libsdl_handle = NULL THEN
+    'Especially on Linux must make sure we don't load a different (system) .so
+    'to the one we're linked to (possibly a library in linux/$arch/)
+    libsdl_handle = dylib_noload(libsdl2_name)
 
-    #if defined(__FB_DARWIN__) or defined(__FB_WIN32__)
-      libsdl_handle = dylibload("SDL2")
-    #else
-      'Especially on Linux must make sure we don't load a different (system) .so
-      'to the one we're linked to (possibly a library in linux/$arch/)
-      libsdl_handle = dylib_noload(libsdl2_name)
-    #endif
     'Dynamic loading is only used for optional functions, so if the load failed we can continue
     IF libsdl_handle = NULL THEN
-      debug "dylibload(SDL2) failed. Continuing"
+      debug "dylib_noload(" & libsdl2_name & ") failed. Continuing"
     END IF
   END IF
 
