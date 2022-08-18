@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-06-29)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-08-18)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -5930,7 +5930,7 @@ resume box advance # go back to normal</pre>
 			
 			
 			<pre># Shows something like "coins=0, hero X(me)=3, hero Y(me)=14" at the bottom of the screen
-show value(coins, hero X(me), hero Y(me))</pre>
+show value of(coins, hero X(me), hero Y(me))</pre>
 			
 		</p>
 </div>
@@ -18367,7 +18367,57 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 				</div>
 			
 			
-			
+			<pre># Example for the player picking up fruit by moving onto them using normal
+# tile-based player movement, but you can use whatever 'player' slice you want)
+
+global variable (1, fruit container)
+global variable (2, collected fruits)  # Number picked up
+
+# Create 10 randomly placed fruit slices on the map
+plotscript, create fruit, begin
+  # Where to put the fruit
+  fruit container := lookup slice(sl:walkabout layer)
+
+  variable (i, fruit)
+  for (i, 1, 10) do (
+    fruit := load walkabout sprite(42)   # Sprite set 42
+    put slice(fruit, random(0, 500), random(0, 500))
+    set parent(fruit, fruit container)
+  )
+end
+
+# Call this from somewhere, such as an each-step script, or each tick from a loop, e.g.:
+#   "while(true) do(pickup fruit, wait(1))"
+plotscript, pickup fruit, begin
+  variable (player, fruit)
+  player := get hero slice(me)
+  while (true) do (
+     fruit := find colliding slice(fruit container, player)
+     if (fruit == false) then (break)
+     free slice (fruit)
+     collected fruits += 1
+   )
+end
+</pre><pre>
+# If you need to skip some colliding slices (e.g. other NPCs), or don't immediately free them on
+# collision, use this version instead
+plotscript, pickup fruit, begin
+  variable (player, fruit, index)
+  player := get hero slice(me)
+  while (true) do (
+     fruit := find colliding slice(fruit container, player, index)
+     if (fruit == false) then (break)
+     # Example of rejecting certain slices as not fruit
+     if (slice is sprite(fruit) == false || get sprite set number(fruit) &lt;&gt; 42) then (
+       index += 1
+       continue  #skip
+     )
+
+     free slice (fruit)
+     collected fruits += 1
+   )
+end
+</pre>
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-sliceatpixel" class="ref">slice at pixel</a>, </li>
