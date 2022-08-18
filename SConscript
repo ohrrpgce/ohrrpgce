@@ -1124,16 +1124,29 @@ elif unix:  # Unix+X11 systems: Linux & BSD
     # commonenv['FBFLAGS'] += ['-d','HAVE_VORBISFILE']
 
 
-################ Add the libraries to env and commonenv
+################ Add the library search paths to env and commonenv
+
+def add_libpath(env, libpath):
+    env['FBLINKFLAGS'] += ['-p', libpath]
+    env['CCLINKFLAGS'] += ['-L', libpath]
+
+libdir = None
+if 'libdir' in ARGUMENTS:
+    libdir = os.path.join(rootdir, ARGUMENTS['libdir'])
+    add_libpath(env, libdir)
+    add_libpath(commonenv, libdir)
 
 if win32:
     # win32/ contains .a and .dll.a files
-    env['FBLINKFLAGS'] += ['-p', 'win32']
-    env['CCLINKFLAGS'] += ['-L', 'win32']
-    common_libpaths += ['win32']
+    add_libpath(env, 'win32')
+    add_libpath(commonenv, 'win32')
 
-commonenv['CCLINKFLAGS'] += ['-L' + path for path in common_libpaths]
-commonenv['FBLINKFLAGS'] += Flatten ([['-p', v] for v in common_libpaths])
+for libpath in common_libpaths:
+    add_libpath(commonenv, libpath)
+del common_libpaths
+
+
+################ Add the libraries to env and commonenv
 
 for lib in base_libraries:
     env['CCLINKFLAGS'] += ['-l' + lib]
@@ -1366,6 +1379,10 @@ else:
     CUSTOM = env_exe(editname, builder = editenv.BASEXE, source = editsrc)
     Alias('game', GAME)
     Alias('custom', CUSTOM)
+    # if libdir:
+    #     libs = Glob(libdir + '/*')
+    #     Depends(GAME, libs)
+    #     Depends(CUSTOM, libs)
 
 env_exe ('bam2mid', source = ['bam2mid.bas'] + base_objects)
 env_exe ('miditest')
@@ -1713,6 +1730,9 @@ Options:
                       "frameworks=" links only to .dylibs. Use this if
                       SDL/SDL_mixer have been installed using a package manager
                       like MacPorts or Nix. Creates non-distributable binaries.
+  libdir=PATH         A directory containing libraries passed with -L to linker
+                      and also (Unix only) sets filenames for runtime linking
+                      (E.g. libdir=linux/x86)
   prefix=PATH         For 'install' and 'uninstall' actions. Default: '/usr'
   destdir=PATH        For 'install' and 'uninstall' actions. Use if you want to
                       install into a staging area, for a package creation tool.
@@ -1838,6 +1858,8 @@ Examples:
   scons arch=64 release=1 debug=1 .
  Create a release build supporting Windows 95+ (Windows only):
   scons win95=1 sse2=0 release=1  .
+ A release build against Linux prebuilt libraries:
+  scons release=1 libdir=linux/x86_64
  Compile and install (Unix only):
   sudo scons install prefix=/usr/local
 
