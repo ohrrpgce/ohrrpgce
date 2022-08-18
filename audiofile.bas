@@ -138,8 +138,8 @@ local function load_vorbisfile() as bool
 	#else
 		if _load_libvorbisfile("vorbisfile") then return YES
 	#endif
-	' libvorbisfile is statically linked into our Windows and Mac SDL_mixer builds
-	' and Windows SDL2_mixer.
+	' libvorbisfile is statically linked into our SDL_mixer.dll, and our
+	' SDL2_mixer.dll before 2.6.1 (which switched to stb_vorbis).
 	' We can load them even if we're using a different music backend
 	if _load_libvorbisfile("SDL_mixer") then return YES
 	if _load_libvorbisfile("SDL2_mixer") then return YES

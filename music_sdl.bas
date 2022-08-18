@@ -181,6 +181,7 @@ function music_get_info() as string
 		Mix_QuerySpec(@freq, @format, @channels)
 		ret += " (" & freq & "Hz"
 
+		have_modplug = NO
 		if _Mix_GetNumMusicDecoders andalso _Mix_GetMusicDecoder then
 			ret += ", Music decoders:"
 			for i as integer = 0 to _Mix_GetNumMusicDecoders() - 1
@@ -193,10 +194,12 @@ function music_get_info() as string
 				'Mix_GetChunkDecoder only lists file formats, not decoders.
 				if form = "MP3" then
 					'Note: SDL_mixer 1.2 reports "MP3" only regardless of which library it's
-					'using, 2.0 also reports "MPG123" or "MAD".
+					'using, 2.x also reports "MPG123", "DRMP3", "SMPEG", or "MAD".
 					'SDL_mixer 1.2.13 (unreleased) supports only libmad or libmpg123, not smpeg.
 					'smpeg may crash for non-44.1kHz MP3s (bug #372), so don't support them on
 					'SDL_mixer <= 1.2.12 Mac/Linux, where it's very probably linked to smpeg.
+					'(Latest SDL_mixer 1.2.13 from git, used by some distros, has finally
+					'dropped smpeg support)
 					#ifdef __FB_WIN32__
 						supported_formats or= FORMAT_MP3
 					#else
@@ -210,7 +213,9 @@ function music_get_info() as string
 					supported_formats or= FORMAT_FLAC
 				elseif form = "WAVE" then
 					supported_formats or= FORMAT_WAV
-				elseif form = "MOD" or form = "MODPLUG" then
+				elseif form = "MOD" then
+					supported_formats or= FORMAT_MODULES
+				elseif form = "MODPLUG" then
 					supported_formats or= FORMAT_MODULES
 					have_modplug = YES
 				elseif form = "MIKMOD" then
@@ -220,7 +225,7 @@ function music_get_info() as string
 				end if
 			next
 		else
-			'A very out of date copy of SDL_mixer. Assume linked to SMPEG
+			'A very out of date copy of SDL_mixer (1.2). Assume linked to SMPEG
 			supported_formats = FORMAT_BAM or FORMAT_MIDI or FORMAT_MODULES or FORMAT_OGG or FORMAT_WAV
 		end if
 
@@ -402,9 +407,11 @@ sub music_play(filename as string, byval fmt as MusicFormatEnum)
 
 		#ifndef __FB_WIN32__
 			if getmusictype(songname) and FORMAT_MODULES then
-				'Hack: SDL_mixer and SDL2_mixer currently do not enable loop points
-				'in modplug, although our Windows builds have it enabled. In case not using
-				'a custom build, try to enable loop points. Must happen before playing.
+				'Hack. Work around SDL_mixer bug 1499: SDL_mixer (before Jan 2021)
+				'and SDL2_mixer (before 2.6.0) did not enable loop points in modplug
+				'(nor mikmod), although our Windows builds had it enabled.  In case
+				'not using a custom build, try to enable loop points. Must happen
+				'before playing.
 				enable_modplug_looping
 			end if
 		#endif
@@ -450,10 +457,11 @@ sub music_play(filename as string, byval fmt as MusicFormatEnum)
 
 		dim volume_mult as double = 1.
 
-		'SDL_mixer 2.0.5 halves modplug volume (a change backported to
-		'our SDL_mixer.dll 1.2.13 build), so we halve the volume when using
+		'SDL_mixer 2.6.0 halves modplug volume (a change first backported to
+		'our SDL_mixer.dll 1.2.13 build and then later also officially
+		'backported to SDL_mixer 1.2), so we halve the volume when using
 		'older versions, for consistency.
-		'(Our pre-2.0.5 build of SDL2_mixer.dll identifies as 2.0.5)
+		'(Our pre-2.6.0 build of SDL2_mixer.dll identified as 2.0.5)
 		if (fmt and FORMAT_MODULES) andalso have_modplug then
 			#ifdef SDL_MIXER2
 				if mixer_version < 2005 then volume_mult = 0.5
@@ -810,7 +818,8 @@ end function
 
 '================================================================================
 '                                    ModPlug settings
-
+'
+' This is obsolete since we now use libxmp instead of libmodplug whenever possible.
 
 type ModplugSettingsMenu extends ModularMenu
 	settings as ModPlug_Settings
@@ -870,7 +879,7 @@ end function
 #ifndef __FB_WIN32__
 'Try to override SDL_mixer's disabling of loop points in ModPlug.
 'Does not affect any currently playing module.
-'Not needed on Windows.
+'Not needed if using our SDL_mixer.dll on Windows.
 sub enable_modplug_looping ()
 	if tried_enabling_modplug_loops then exit sub
 	tried_enabling_modplug_loops = YES
