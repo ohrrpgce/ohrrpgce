@@ -4713,8 +4713,11 @@ SUB write_engine_version_node(byval parent as NodePtr, nodename as string)
  DIM ch as NodePtr
  ch = SetChildNode(parent, nodename, "OHRRPGCE")
  IF version_branch_revision THEN
-  IF ch."branch_revision" > version_branch_revision THEN EXIT SUB
-  IF ch."branch_revision" = version_branch_revision AND ch."revision" > version_revision THEN EXIT SUB
+  'In wip from r11886 until r13056 branch_revision was incorrectly set to 12220
+  DIM old_branch_revision as integer = ch."branch_revision"
+  IF old_branch_revision = 12220 THEN old_branch_revision = ch."revision"
+  IF old_branch_revision > version_branch_revision THEN EXIT SUB
+  IF old_branch_revision = version_branch_revision AND ch."revision" > version_revision THEN EXIT SUB
  END IF
 
  SetChildNode(ch, "long_version", long_version & " " & build_info)
@@ -4735,6 +4738,8 @@ FUNCTION read_engine_version_node(vernode as Node ptr) as EngineVersion
   ret.branch_name = vernode."branch_name".string
   ret.revision = vernode."revision"
   ret.branch_revision = vernode."branch_revision"
+  'In wip from r11886 until r13056 branch_revision was incorrectly set to 12220
+  IF ret.branch_revision = 12220 THEN ret.branch_revision = ret.revision
  END IF
  RETURN ret
 END FUNCTION

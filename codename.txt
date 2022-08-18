@@ -6,4 +6,4 @@ wip
 wip
 # The third line should be either 0 for a wip build, or the SVN revision number at which this
 # release was branched from wip, or other appropriate 'nearest match' wip revision
-12220
+0
