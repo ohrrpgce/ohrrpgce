@@ -36,6 +36,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <dlfcn.h>
 #include <stdio.h>
 #include <dirent.h>
 #include <fnmatch.h>
@@ -226,8 +227,17 @@ boolint send_bug_report (const char *msg) {
 	return NO;
 }
 
-boolint on_main_thread() {
-	return pthread_equal(pthread_self(), main_thread_handle) ? YES : NO;
+// Like FB's dylibload except it doesn't load the library if it isn't already, and
+// requires the full filename for a dynamic library ("libfoo.so", not "foo").  But the
+// file can be a symlink different to the one previously loaded as long as it ultimately
+// points to the same file.
+// Use with FB's dylibsymbol and dylibfree.
+void *dylib_noload(const char *libname) {
+	//dlerror();  // Erase error
+	void *ret = dlopen(libname, RTLD_LAZY | RTLD_NOLOAD);
+	//if (!ret)
+	//	debug(errInfo, "dlopen(%s) fail: %s", libname, dlerror());
+	return ret;
 }
 
 
@@ -1062,6 +1072,10 @@ void interrupt_self () {
 // If there's any platform where this fails, need to do some #ifdef'ing
 // (might also get a compile failure if pthread_key_t isn't an integral type).
 _Static_assert(sizeof(pthread_key_t) <= sizeof(void*), "Hacky pthread_key_t assumption violated!");
+
+boolint on_main_thread() {
+	return pthread_equal(pthread_self(), main_thread_handle) ? YES : NO;
+}
 
 TLSKey tls_alloc_key() {
 	pthread_key_t key;

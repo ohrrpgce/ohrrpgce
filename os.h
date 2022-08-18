@@ -46,6 +46,8 @@ boolint save_backtrace(boolint show_message);
 void os_open_logfile(const char *path);
 void os_close_logfile();
 
+void *dylib_noload(const char *libname);
+
 int copy_file_replacing(const char *source, const char *destination);
 boolint os_rename(const char *source, const char *destination);
 

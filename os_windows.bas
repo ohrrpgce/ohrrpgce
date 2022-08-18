@@ -237,6 +237,26 @@ sub error_message_box(msg as zstring ptr)
 	MessageBoxA(NULL, msg, "OHRRPGCE Error", MB_OK or MB_ICONERROR)
 end sub
 
+/' Not needed
+' Like FB's dylibload except it doesn't load the library if it isn't already.
+' The ".dll" suffix on the name is optional and it can include a path.
+' Use with FB's dylibsymbol and dylibfree.
+function dylib_noload(libname as const zstring ptr) as any ptr
+	dim handle as any ptr = GetModuleHandleA(libname)
+	if handle = NULL then return NULL
+	'GetModuleHandle doesn't increment the refcount (GetModuleHandleEx can,
+	'but it's only in WinXP+), so call LoadLibrary so the handle can later
+	'be passed to dylibfree
+	dim handle2 as any ptr = LoadLibraryA(libname)
+	if handle <> handle2 then  'Hopefully impossible
+		debug "GetModuleHandle and LoadLibrary disagree on " & *libname
+		FreeLibrary(handle2)
+		return NULL
+	end if
+	return handle
+end function
+'/
+
 '==========================================================================================
 '                                   Exception Handling
 '==========================================================================================

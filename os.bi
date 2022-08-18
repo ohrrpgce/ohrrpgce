@@ -174,6 +174,8 @@ declare sub os_get_screen_size(wide as integer ptr, high as integer ptr)
 declare sub set_X11_error_handlers()
 #endif
 
+declare function dylib_noload(libname as const zstring ptr) as any ptr
+
 end extern
 
 #endif
