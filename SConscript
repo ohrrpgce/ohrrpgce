@@ -303,7 +303,6 @@ if asan:
     assert linkgcc, "linkgcc=0 asan=1 combination not supported."
     CFLAGS.append ('-fsanitize=address')
     CCLINKFLAGS.append ('-fsanitize=address')
-    base_libraries.append ('dl')
     base_libraries.append ('m')
     # Also, compile FB to C by default, unless overridden with gengcc=0.
     if int (ARGUMENTS.get ('gengcc', 1)):
@@ -1098,6 +1097,7 @@ elif android:
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c', 'android/sdlmain.c']
 elif unix:  # Unix+X11 systems: Linux & BSD
+    base_libraries += ['dl']
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c']
     if portable:

@@ -234,7 +234,13 @@ boolint send_bug_report (const char *msg) {
 // Use with FB's dylibsymbol and dylibfree.
 void *dylib_noload(const char *libname) {
 	//dlerror();  // Erase error
+#ifdef __ANDROID__
+	// RTLD_NOLOAD not supported until android-21 (Android 5.0) or maybe android-20?
+	// We don't really need it on Android anyway
+	void *ret = dlopen(libname, RTLD_LAZY);
+#else
 	void *ret = dlopen(libname, RTLD_LAZY | RTLD_NOLOAD);
+#endif
 	//if (!ret)
 	//	debug(errInfo, "dlopen(%s) fail: %s", libname, dlerror());
 	return ret;

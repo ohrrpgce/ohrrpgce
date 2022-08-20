@@ -362,6 +362,7 @@ def runtime_lib_names(win32, mac, android, frameworks = None, libdir = None):
         for libname in libnames:
             libs[libname] = 'lib' + libname + '.so'
         # For some reason the SDL 1.2 Android port uses different names
+        # (although commit 487062dd switched to proper name for libSDL2)
         if android:
             libs['SDL'] = 'libsdl-1.2.so'
             libs['SDL_mixer'] = 'libsdl_mixer.so'
