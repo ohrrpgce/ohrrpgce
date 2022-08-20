@@ -730,6 +730,23 @@ EmbeddedFileInfo *find_embedded_file(const char *path) {
 	}
 }
 
+// Write an embedded file out to dump_path. Returns true on success.
+bool dump_embedded_file(const char *embedded_path, const char *dump_path) {
+	EmbeddedFileInfo *embedded = find_embedded_file(embedded_path);
+	if (!embedded) {
+		// This function is called from the -dump-embed commandline arg,
+		// so better to write to stderr than the debug log
+		fprintf(stderr, "No such embed: %s\n", embedded_path);
+		return false;
+	}
+	FILE *cfile = fopen(dump_path, "wb");
+	if (!cfile) return false;
+	// Returns 1 if whole file written
+	bool ret = fwrite(embedded->data, embedded->length, 1, cfile);
+	fclose(cfile);
+	return ret;
+}
+
 // Open either an arbitrary external file (relative to the current directory),
 // or if path begins with "res://", an embedded data file, e.g.
 // res://sourceslices/default_item_screen.slice

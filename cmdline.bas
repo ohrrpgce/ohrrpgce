@@ -1,5 +1,5 @@
 'OHRRPGCE - Common Game/Custom commandline arg processing
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2022 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 'Many commandline args are handled by *_setoption functions in individual modules because they access internal data
@@ -30,7 +30,7 @@ function global_setoption(opt as string, arg as string) as integer
 	dim help as string = ""
 	if opt = "v" or opt = "version" then
 		help = help & long_version & build_info & LINE_END
-		help = help & "(C) Copyright 1997-2017 James Paige, Ralph Versteegen, and the OHRRPGCE Developers" & LINE_END
+		help = help & "(C) Copyright 1997-2022 James Paige, Ralph Versteegen, and the OHRRPGCE Developers" & LINE_END
 		help = help & "Dual licensed under the GNU GPL v2+ and MIT Licenses." & LINE_END
 		help = help & "Read LICENSE.txt for terms and disclaimer of liability." & LINE_END
 		help = help & "For source-code see http://HamsterRepublic.com/ohrrpgce/source.php" & LINE_END
@@ -53,9 +53,8 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-? -h -help         Display this help screen" & LINE_END
 		help = help & "-v -version         Show version and build info" & LINE_END
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
-		help = help & "-buildinfo [file]   Write build metadata in ini format to file or stdout" & LINE_END
-		'Hidden:
-		'help = help & "-list-embeds        Print the list of embedded data files (for verification)" & LINE_END
+		help = help & "-list-embeds        Print the list of embedded data files" & LINE_END
+		help = help & "-dump-embed file    Extract an embedded file, written to the current directory" & LINE_END
 #IFDEF IS_GAME
 		help = help & "-full-upgrade       Upgrade game data completely, as Custom does (only useful for bughunting)" & LINE_END
 		help = help & "-autosnap N         Automatically save a screen snapshot every N ticks" & LINE_END
@@ -108,29 +107,9 @@ function global_setoption(opt as string, arg as string) as integer
 		display_help_string help
 		terminate_program
 		return 1
-	elseif opt = "buildinfo" then
-		help = "[buildinfo]" & LINE_END
-		help &= "packaging_version=1" & LINE_END
-		help &= "long_version=" & long_version & build_info & LINE_END
-		dim version_prefix as string = split_chunk(version_build, 0, " ")
-		dim build_date as string = split_chunk(version_prefix, 0, ".")
-		dim svn_rev as string = split_chunk(version_prefix, 1, ".")
-		help &= "build_date=" & build_date & LINE_END
-		help &= "svn_rev=" & svn_rev & LINE_END
-		dim code_name as string = split_chunk(version_code, -1, " ")
-		help &= "code_name=" & code_name & LINE_END
-		help &= "arch=" & version_arch & LINE_END
-		'Space-separated list of backend names (excluding 'gfx_'/'music_')
-		help &= "gfx=" & supported_gfx_backends & LINE_END
-		help &= "music=" & musicbackend & LINE_END
-
-		dim ini_file as string = arg
-		if len(ini_file) then
-			string_to_file help, ini_file
-		else
-			display_help_string help
-		end if
-		terminate_program
+	elseif opt = "dump-embed" then
+		dim success as bool = dump_embedded_file(arg, trimpath(arg))
+		terminate_program iif(success, 0, 1)
 		return 2
 	elseif opt = "list-embeds" then
 		'Prints to both stdout and *debug.txt so that you can see it on Windows

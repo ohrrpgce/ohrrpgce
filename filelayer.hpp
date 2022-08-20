@@ -96,6 +96,7 @@ extern "C" {
 
 	void list_embedded_files();
 	EmbeddedFileInfo *find_embedded_file(const char *path);
+	bool dump_embedded_file(const char *embedded_path, const char *dump_path);
 
 	// Abstraction layer for reading data files, embedded or not
 

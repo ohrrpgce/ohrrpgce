@@ -1287,7 +1287,7 @@ NoCache(verprint_targets)
 ################ Data files
 
 # Files to embed in Custom+Game
-common_datafiles = Glob('sourceslices/*.slice')
+common_datafiles = Glob('sourceslices/*.slice') + ['buildinfo.ini']
 # Files to embed in other utilities
 util_datafiles = []
 
