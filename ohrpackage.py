@@ -187,6 +187,8 @@ def archive_dir_contents(directory, outfile):
 
 def parse_buildinfo(path):
     "Returns a dict with buildinfo.ini contents"
+    if not os.path.isfile(path):
+        raise MissingFile("Missing " + path + ". Run scons to compile.")
     config = ConfigParser()
     config.read(path)
     return dict(config.items("buildinfo"))
@@ -542,17 +544,18 @@ def prepare_player(files, target):
             game = files.getdest(files.game_exe())
             check_call("strip", game)
 
-def format_output_filename(template, srcdir = '.'):
+def format_output_filename(template, buildinfo, srcdir = '.'):
     "Expand replacements"
-    rev, date = ohrbuild.query_svn_rev_and_date(srcdir)
+    #rev, date = ohrbuild.query_svn_rev_and_date(srcdir)
+    #codename, branch_name, branch_rev = ohrbuild.read_codename_and_branch(srcdir)
+    builddate = 'xxxx-xx-xx'.replace('x','%s') % tuple(buildinfo['build_date'])
     today = time.strftime('%Y-%m-%d')
-    codename, branch_name, branch_rev = ohrbuild.read_codename_and_branch(srcdir)
-    return template.format(TODAY = today, CODENAME = codename, BRANCH = branch_name, REV = rev)
+    return template.format(
+        TODAY = today, DATE = builddate, CODENAME = buildinfo['code_name'],
+        BUILDNAME = buildinfo['build_name'], BRANCH = buildinfo['branch_name'],
+        ARCH = buildinfo['arch'], REV = buildinfo['svn_rev'])
 
 def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):
-    if outfile:
-        outfile = format_output_filename(outfile)
-
     if config == "player":
         files = player_only_files(target)
     elif config == "symbols":
@@ -577,6 +580,7 @@ def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):
         prepare_player(files, target)
 
     if outfile:
+        outfile = format_output_filename(outfile, buildinfo)
         print("Archiving " + outfile)
         if outfile.endswith(".exe"):
             create_win_installer(outfile, iscc)
@@ -623,7 +627,8 @@ source:       Copy of all files (with any modifications) checked into git or svn
     parser.add_argument("outfile", nargs = "?", help =
 """Output file path. Should end in a supported archive format (e.g. .zip, .7z)
 or .exe to create a Windows installer.
-Can contain text replacements {TODAY}, {CODENAME}, {BRANCH}, {REV}.""")
+Can contain text replacements {DATE} (the build date), {TODAY} (the current date),
+{CODENAME}, {BUILDNAME}, {BRANCH} (usually same as codename), {REV}, {ARCH}.""")
     # This argument is added just to add to the usage
     parser.add_argument("dummy", nargs="?",metavar = "-- file [file ...]", help = "Extra files to include")
     parser.add_argument("--iscc", default = "iscc", help = "Path to Innosetup's iscc.exe, to create Windows installer")
