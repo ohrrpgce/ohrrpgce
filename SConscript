@@ -40,6 +40,7 @@ FBLINKFLAGS = []
 # FBLINKERFLAGS are passed to the linker (with -Wl) when linking with fbc
 FBLINKERFLAGS = []
 
+FRAMEWORKS_PATH = os.path.expanduser("~/Library/Frameworks")  # Frameworks search path in addition to the default /Library/Frameworks
 
 release = int (ARGUMENTS.get ('release', False))
 verbose = int (ARGUMENTS.get ('v', False))
@@ -50,10 +51,10 @@ if 'FBFLAGS' in os.environ:
 gengcc = int (ARGUMENTS.get ('gengcc', True if release else False))
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # Link using gcc instead of fbc?
 envextra = {}
-FRAMEWORKS_PATH = os.path.expanduser("~/Library/Frameworks")  # Frameworks search path in addition to the default /Library/Frameworks
 destdir = ARGUMENTS.get ('destdir', '')
 prefix =  ARGUMENTS.get ('prefix', '/usr')
 dry_run = int(ARGUMENTS.get ('dry_run', '0'))  # Only used by uninstall
+buildname = ARGUMENTS.get('buildname', '')
 buildtests = int(ARGUMENTS.get ('buildtests', True))
 python = ARGUMENTS.get('python', os.environ.get('PYTHON'))
 if python == None:
@@ -382,7 +383,8 @@ env = Environment (CFLAGS = [],
 
 # Shocked that scons doesn't provide $HOME
 # $DISPLAY is need for both gfx_sdl and gfx_fb (when running tests)
-for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR', 'WINEPREFIX':
+# FB 1.11 supports $SOURCE_DATE_EPOCH
+for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR', 'WINEPREFIX', 'SOURCE_DATE_EPOCH':
     if var in os.environ:
         env['ENV'][var] = os.environ[var]
 for var in 'AS', 'CC', 'CXX':
@@ -1708,6 +1710,8 @@ Options:
                       Visual Studio or Visual C++ Build Tools must be installed.
                       Forces gengcc=1. Doesn't support linkgcc=0.
                       Requires wine if cross-compiling to Windows.
+  buildname=NAME      A name used to identify the build, to find debug symbols.
+                      Currently only officially used on Windows for Game/Custom.
   lto=1               Do link-time optimisation, for a faster, smaller build
                       (around 10-15% smaller for Game/Custom, 50% for utilities)
                       but long compile time. Useful with gengcc=1 only.
@@ -1800,6 +1804,7 @@ The following environmental variables are also important:
   EUBIND              eubind Euphoria binder, produces hspeak in debug builds
   EUDIR               Override location of the Euphoria installation, for
                       compiling hspeak (not needed if installed system-wide)
+  SOURCE_DATE_EPOCH   Override the build date.
   SCONS_CACHE_SIZE    Max size of the compile results cache in MB; default 100.
                       Set to 0 to disable the cache.
 

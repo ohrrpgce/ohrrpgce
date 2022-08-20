@@ -60,12 +60,11 @@ SUPPORT_DIR = pathjoin(os.path.dirname(__file__), '../support/')
 
 SYMBOLS_ARCHIVE_URL = 'http://hamsterrepublic.com/ohrrpgce/symbols-archive/'
 
-# Map from the backends to the name used to identify the file in SYMBOLS_ARCHIVE_URL.
-# This name is defined in distrib-nightly-win.bat, as the first argument to
-# distrib-nightly-win-packnupload.bat (or the wine versions thereof),
-# and by "set BUILDNAME=..." in distrib-win.{bat,sh}
+# Map from the backends to the buildname, used to identify the file in SYMBOLS_ARCHIVE_URL.
+# Only needed for older builds before buildname was added to scons and crashrpt.xml,
+# set by the distrib*-win scripts.
 # Note that symbols_filename_from_build handles -debug variants, so they aren't in this table.
-BACKENDS_SYMSNAME = {
+BACKENDS_TO_BUILDNAME = {
     'gfx_directx+sdl+fb/music_sdl': 'music_sdl',   # (aka win95 builds) And its obsolete variant, music_sdl-debug
     'gfx_directx+sdl+fb/music_native': 'music_native',   # Obsolete
     'gfx_directx+sdl+fb/music_native2': 'music_native2',   # Obsolete
@@ -138,11 +137,12 @@ def fix_build_string(build):
 
 class NoSymbolsError(ValueError): pass
 
-def symbols_filename_from_build(build, branch):
+def symbols_filename_from_build(build, buildname, branch):
     """Work out what the name of the symbols file (as uploaded to SYMBOLS_ARCHIVE_URL)
     for this build is, or raise NoSymbolsError if there is none.
 
     build is a string, long_version + build_info in the FB source.
+    buildname will be None in older reports.
     """
     if not build:  # Should always be present
         raise NoSymbolsError("build string missing from crashrpt.xml!")
@@ -159,15 +159,16 @@ def symbols_filename_from_build(build, branch):
         raise NoSymbolsError("No symbols: not an official build!")
     elif 'pdb' not in build:
         raise NoSymbolsError("Not built with pdb symbols!")
-    elif backends not in BACKENDS_SYMSNAME:
-        raise NoSymbolsError("No symbols: unrecognised build backends")
     else:
-        buildtag = BACKENDS_SYMSNAME[backends]
-        if '-exx' in build:
-            buildtag += '-debug'
+        if buildname is None:
+            if backends not in BACKENDS_TO_BUILDNAME:
+                raise NoSymbolsError("No symbols: unrecognised build backends and no buildname")
+            buildname = BACKENDS_TO_BUILDNAME[backends]
+            if '-exx' in build:
+                buildname += '-debug'
         date, svnrev = build.split(' ')[2].split('.')
         split_date = '%s-%s-%s' % (date[:4], date[4:6], date[6:])  # e.g 2019-02-09
-        return 'ohrrpgce-symbols-win-%s-r%s-%s-%s.7z' % (buildtag, svnrev, split_date, branch)
+        return 'ohrrpgce-symbols-win-%s-r%s-%s-%s.7z' % (buildname, svnrev, split_date, branch)
 
 
 def download_and_extract_symbols(syms_fname, args):
@@ -194,12 +195,12 @@ def download_and_extract_symbols(syms_fname, args):
         subprocess.check_call([exe, 'x', '-o' + cachedir, syms_7z], stdout=stdout)
     return cachedir
 
-def process_minidump(build, branch, reportdir, is_custom, args):
+def process_minidump(build, buildname, branch, reportdir, is_custom, args):
     """Read a minidump file (producing .sym files as necessary), print info
     from it, and return a (stacktrace, crash_summary, crash_info) tuple."""
     # Try to determine the symbols .7z archive
     try:
-        syms_fname = symbols_filename_from_build(build, branch)
+        syms_fname = symbols_filename_from_build(build, buildname, branch)
         error_note = ""
     except NoSymbolsError as err:
         syms_fname = None
@@ -297,12 +298,15 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
                 summary.description = elmt.text
             print_attr(tagname, elmt.text)
     build = None
+    buildname = None
     branch = None
     for x in root.iter('Prop'):
         name, val = x.attrib['name'], x.attrib['value']
         print_attr(name.title(), val)
         if name == 'build':
             build = fix_build_string(val)
+        if name == 'buildname':  # Added since ichorescent
+            buildname = val
         if name == 'branch':
             branch = val
         if name == 'error':  # The BUG message
@@ -384,7 +388,7 @@ def process_crashrpt_report(reportdir, uuid, upload_time, args):
     if args.no_stacktrace:
         stacktrace, summary.crash_summary, crash_info = None, 'N/A', []
     else:
-        stacktrace, summary.crash_summary, crash_info = process_minidump(build, branch, reportdir, is_custom, args)
+        stacktrace, summary.crash_summary, crash_info = process_minidump(build, buildname, branch, reportdir, is_custom, args)
     # Print the stacktrace later, at the end
 
     for key, value in crash_info:

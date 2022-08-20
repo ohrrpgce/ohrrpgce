@@ -31,7 +31,7 @@ CALL scons hspeak relump unlump win95=1 sse2=0 %SCONS_ARGS%
 IF NOT EXIST hspeak.exe GOTO FAILURE
 
 REM This is the build for obsolete Windows machines (symlinked as ohrrpgce-win-win95-wip.zip)
-call scons gfx=directx+sdl+fb music=sdl win95=1 sse2=0 %SCONS_ARGS% && (
+call scons gfx=directx+sdl+fb music=sdl win95=1 sse2=0 buildname=music_sdl %SCONS_ARGS% && (
   call distrib-nightly-win-packnupload music_sdl
 
   ECHO     Packaging win95 game player ...
@@ -41,7 +41,7 @@ call scons gfx=directx+sdl+fb music=sdl win95=1 sse2=0 %SCONS_ARGS% && (
 )
 
 REM This is the default build (default download ohrrpgce-win-default.zip is symlinked to it on the server)
-call scons gfx=sdl2+directx+fb music=sdl2 %SCONS_ARGS% && (
+call scons gfx=sdl2+directx+fb music=sdl2 buildname=sdl2 %SCONS_ARGS% && (
   call distrib-nightly-win-packnupload sdl2
 
   ECHO     Packaging ohrrpgce-win-installer-wip.exe ...
@@ -57,27 +57,21 @@ call scons gfx=sdl2+directx+fb music=sdl2 %SCONS_ARGS% && (
   )
 )
 
-call scons music=native %SCONS_ARGS% && (
+call scons music=native buildname=music_native %SCONS_ARGS% && (
   call distrib-nightly-win-packnupload music_native
 )
 
-call scons music=native2 %SCONS_ARGS% && (
+call scons music=native2 buildname=music_native2 %SCONS_ARGS% && (
   call distrib-nightly-win-packnupload music_native2
 )
 
-call scons music=silence %SCONS_ARGS% && (
+call scons music=silence buildname=music_silence %SCONS_ARGS% && (
   call distrib-nightly-win-packnupload music_silence
 )
 
-REM call scons gfx=alleg+directx+fb+sdl music=sdl %SCONS_ARGS% && (
-REM   call distrib-nightly-win-packnupload gfx_alleg-music_sdl
-REM )
-
-call scons debug=2 pdb=1 && (
+call scons debug=2 pdb=1 buildname=sdl2-debug && (
   call distrib-nightly-win-packnupload sdl2-debug misc\gdbcmds1.txt gdbgame.bat gdbcustom.bat
 )
-
-REM Note: when adding or modifying builds, BACKENDS_SYMSNAME in misc/process_crashreports.py should be updated
 
 ECHO     Packaging other utilities
 

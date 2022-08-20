@@ -1,4 +1,5 @@
 CALL distver.bat
+REM BUILDNAME must be the same as the buildname arg to scons
 set BUILDNAME=%1
 set ZIPFILE=ohrrpgce-win-%BUILDNAME%-%OHRVERCODE%.zip
 set SYMBFILE=ohrrpgce-symbols-win-%BUILDNAME%-r%SVNREV%-%OHRVERDATE%-%OHRVERCODE%.7z

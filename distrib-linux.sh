@@ -3,8 +3,8 @@
 # Build and package builds for linux
 
 SCONS_ARGS="release=1"
-FULLNAME=${1:-ohrrpgce-linux-\{TODAY\}-\{BRANCH\}}
-PLAYERNAME=${2:-ohrrpgce-player-linux-\{TODAY\}-\{BRANCH\}}
+FULLNAME=${1:-ohrrpgce-linux-\{DATE\}-\{BRANCH\}}
+PLAYERNAME=${2:-ohrrpgce-player-linux-\{DATE\}-\{BRANCH\}}
 
 if [ ! -f distrib-linux.sh ] ; then
   echo You should only run this script from the ohrrpgce directory.

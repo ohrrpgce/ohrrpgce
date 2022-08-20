@@ -445,6 +445,7 @@ def verprint(mod, builddir, rootdir):
     data = {
         'codename': codename, 'date': date, 'arch': archinfo,
         'rev': rev, 'branch_rev': branch_rev, 'branch_name': branch_name,
+        'buildname': mod.buildname,
         'name':   'OHRRPGCE',
         'gfx':    'gfx_' + "+".join(mod.gfx),
         'music':  'music_' + "+".join(mod.music),
@@ -461,8 +462,8 @@ def verprint(mod, builddir, rootdir):
     }
     data['long_version'] = (
         '%(name)s %(codename)s %(date)s.%(rev)s %(gfx)s/%(music)s '
-        'FreeBASIC %(fbver)s %(ccver)s %(arch)s %(sse2)s%(asan)s%(win95)s%(portable)s%(pdb)s '
-        'Built on %(uname)s'
+        'FreeBASIC %(fbver)s %(ccver)s %(arch)s %(sse2)s%(asan)s%(win95)s%(portable)s%(pdb)s'
+        'buildname=%(buildname)s  Built on %(uname)s'
     ) % data
 
     globals_bas = [
@@ -472,6 +473,7 @@ def verprint(mod, builddir, rootdir):
         'DIM short_version as string : short_version = "%(name)s %(codename)s %(date)s"' % data,
         'DIM version_code as string : version_code = "%(name)s Editor version %(codename)s"' % data,
         'DIM version_build as string : version_build = "%(date)s.%(rev)s %(gfx)s %(music)s"' % data,
+        'DIM version_buildname as string : version_buildname = "%(buildname)s"' % data,
         'DIM version_arch as string : version_arch = "%(arch)s"' % data,
         'DIM version_revision as integer = %(rev)d' % data,
         'DIM version_date as integer = %(date)s' % data,
@@ -484,10 +486,12 @@ def verprint(mod, builddir, rootdir):
     buildinfo = [
         "[buildinfo]",
         "packaging_version=1",
+        "build_name=%(buildname)s",
         "long_version=%(long_version)s",
         "build_date=%(date)s",
         "svn_rev=%(rev)s",
         "code_name=%(codename)s",
+        "branch_name=%(branch_name)s",
         "arch=%(arch)s",
         "gfx=%(gfx_list)s",
         "music=%(music_list)s",
