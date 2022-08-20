@@ -129,19 +129,20 @@ def print_system(cmdline):
     print(cmdline)
     return os.system(cmdline)
 
-def check_wine_call(prog, *args):
-    "Call wine as needed. Prefix prog with @ to silence stderr and wine spam"
+def with_wine(func, prog, *args, **kwargs):
+    """Call wine as needed. Prefix prog with @ to silence stderr and wine spam.
+    func should be one of the above *check* functions"""
     silent = prog[0] == "@"
     prog = prog.lstrip("@")
     if prog.endswith(".exe") and not host_win32:
-        kwargs = {"env": dict(os.environ)}
+        kwargs["env"] = dict(os.environ)
         kwargs["env"]["WINEDEBUG"] = "fixme-all"
         if silent:
             # Send stderr to a pipe to silence remaining spam
             kwargs["stderr"] = subprocess.PIPE
-        print_check_call("wine", prog, *args, **kwargs)
+        return func("wine", prog, *args, **kwargs)
     else:
-        print_check_call(prog, *args)
+        return func(prog, *args, **kwargs)
 
 def relump_game(lumpdir, rpgfile):
     safe_rm(rpgfile)
@@ -184,31 +185,11 @@ def archive_dir_contents(directory, outfile):
 
 ############################################################################
 
-def generate_buildinfo(game):
-    "Run ohrrpgce-game/game.exe -buildinfo, using wine if needed, to generate buildinfo.ini next to it"
-    directory, game = os.path.split(game)
-    with temp_chdir(directory):
-        safe_rm("buildinfo.ini")
-        check_wine_call("@" + os.path.join(".", game), "-buildinfo", "buildinfo.ini")
-        assert os.path.isfile("buildinfo.ini")
-
 def parse_buildinfo(path):
     "Returns a dict with buildinfo.ini contents"
     config = ConfigParser()
     config.read(path)
     return dict(config.items("buildinfo"))
-
-def get_buildinfo(game, keep_file = False):
-    """Generate buildinfo.ini by running Game, and parse it.
-    If buildinfo.ini already exists next to Game, overwrite it,
-    otherwise delete it afterwards, unless keep_file."""
-    inifile = os.path.join(os.path.dirname(game), "buildinfo.ini")
-    preexisting = os.path.isfile(inifile)
-    generate_buildinfo(game)
-    ret = parse_buildinfo(inifile)
-    if not preexisting and not keep_file:
-        safe_rm(inifile)
-    return ret
 
 ############################################################################
 
@@ -251,6 +232,13 @@ class PackageContents():
         with temp_chdir(self.srcdir):
             return sum(map(glob.glob, patterns), [])
 
+    def game_exe(self):
+        return self.executables[0]
+
+    def buildinfo(self):
+        "Return $srcdir/buildinfo.ini parsed into a dict."
+        return parse_buildinfo(self.abspath("buildinfo.ini"))
+
 
 def player_only_files(target, srcdir = ''):
     """Files (returned as a PackageContents) for a player-only package"""
@@ -264,14 +252,8 @@ def player_only_files(target, srcdir = ''):
     else:  #target == "linux":
         files.executables = ["ohrrpgce-game"]
 
-    game = files.abspath(files.executables[0])
-    if not os.path.isfile(game):
-        raise MissingFile("Missing " + game)
-
-    buildinfo = get_buildinfo(game, keep_file = True)
-    print("buildinfo: gfx=%s,  music=%s" % (buildinfo['gfx'], buildinfo['music']))
     if target == "win":
-        files.executables += needed_windows_libs(buildinfo)
+        files.executables += needed_windows_libs(files.buildinfo())
 
     files.datafiles = [
         "buildinfo.ini",
@@ -434,9 +416,7 @@ def engine_files(target, config, srcdir = ''):
             "custom.exe",
             "hspeak.exe",
         ]
-        buildinfo = get_buildinfo(files.abspath("game.exe"))
-        print("buildinfo: gfx=%s,  music=%s" % (buildinfo['gfx'], buildinfo['music']))
-        files.executables += needed_windows_libs(buildinfo)
+        files.executables += needed_windows_libs(files.buildinfo())
     elif target == "mac":
         files.executables += [
             "OHRRPGCE-Game.app",
@@ -506,7 +486,7 @@ def create_win_installer(files, outfile, iscc = "iscc", srcdir = "."):
         f.write(text.encode('latin-1'))
 
     dir, fname = os.path.split(os.path.abspath(outfile))
-    check_wine_call(iscc, "/Q", "/O" + dir, "/F" + fname[:-4], "ohrrpgce.iss")
+    with_wine(print_check_call, iscc, "/Q", "/O" + dir, "/F" + fname[:-4], "ohrrpgce.iss")
     os.remove("iver.txt")
 
 ############################################################################
@@ -544,7 +524,7 @@ def prepare_player(files, target):
     # game.exe already fully stripped if scons pdb=1 used, and in fact strip likely will fail
     if target != "win":
         with temp_chdir("ohrrpgce"):
-            game = files.getdest(files.executables[0])
+            game = files.getdest(files.game_exe())
             check_call("strip", game)
 
 def format_output_filename(template, srcdir = '.'):
@@ -570,6 +550,9 @@ def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):
         target = "linux"  # Prevent newline conversion
     else:
         files = engine_files(target, config)
+
+    buildinfo = files.buildinfo()
+    print("buildinfo: arch=%s,  gfx=%s,  music=%s" % (buildinfo['arch'], buildinfo['gfx'], buildinfo['music']))
 
     print("Gathering ohrrpgce/")
     gather_files(files, target, extrafiles)

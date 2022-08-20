@@ -1276,7 +1276,7 @@ common_modules += ['rotozoom.c',
 
 def version_info(source, target, env):
     ohrbuild.verprint(globals(), builddir, rootdir)
-verprint_targets = [builddir + 'globals.bas', builddir + 'backendinfo.bi', '#/iver.txt', '#/distver.bat']
+verprint_targets = [builddir + 'globals.bas', builddir + 'backendinfo.bi', '#/buildinfo.ini', '#/distver.bat']
 VERPRINT = env.Command (target = verprint_targets,
                         source = ['codename.txt'], 
                         action = env.Action(version_info, "Generating version/backend info"))

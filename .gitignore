@@ -26,7 +26,7 @@ GTAGS
 # Build & distrib artifacts
 build/
 distver.bat
-iver.txt
+buildinfo.ini
 android/tmp/
 android/extraconfig.cfg
 distrib/
@@ -124,7 +124,7 @@ ohr.geany
 # Don't ignore anything under data/
 !data/**
 
-#steam
+# Steam
 steam_appid.txt
 steam_api.dll
 libsteam_api.so
