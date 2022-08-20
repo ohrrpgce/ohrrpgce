@@ -111,6 +111,7 @@ function global_setoption(opt as string, arg as string) as integer
 	elseif opt = "buildinfo" then
 		help = "[buildinfo]" & LINE_END
 		help &= "packaging_version=1" & LINE_END
+		help &= "long_version=" & long_version & build_info & LINE_END
 		dim version_prefix as string = split_chunk(version_build, 0, " ")
 		dim build_date as string = split_chunk(version_prefix, 0, ".")
 		dim svn_rev as string = split_chunk(version_prefix, 1, ".")
@@ -118,13 +119,13 @@ function global_setoption(opt as string, arg as string) as integer
 		help &= "svn_rev=" & svn_rev & LINE_END
 		dim code_name as string = split_chunk(version_code, -1, " ")
 		help &= "code_name=" & code_name & LINE_END
+		help &= "arch=" & version_arch & LINE_END
 		'Space-separated list of backend names (excluding 'gfx_'/'music_')
 		help &= "gfx=" & supported_gfx_backends & LINE_END
 		help &= "music=" & musicbackend & LINE_END
 
 		dim ini_file as string = arg
 		if len(ini_file) then
-			debuginfo "Write buildinfo in ini format to """ & ini_file & """"
 			string_to_file help, ini_file
 		else
 			display_help_string help

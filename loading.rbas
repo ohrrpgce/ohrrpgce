@@ -4720,7 +4720,7 @@ SUB write_engine_version_node(byval parent as NodePtr, nodename as string)
   IF old_branch_revision = version_branch_revision AND ch."revision" > version_revision THEN EXIT SUB
  END IF
 
- SetChildNode(ch, "long_version", long_version & " " & build_info)
+ SetChildNode(ch, "long_version", long_version & build_info)
  SetChildNode(ch, "branch_name", version_branch)
  SetChildNode(ch, "build_date", version_date)
  'version_revision is 0 if verprint could not determine it

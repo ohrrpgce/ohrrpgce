@@ -467,6 +467,7 @@ def verprint(mod, builddir, rootdir):
         'DIM short_version as string : short_version = "%(name)s %(codename)s %(date)s"' % data,
         'DIM version_code as string : version_code = "%(name)s Editor version %(codename)s"' % data,
         'DIM version_build as string : version_build = "%(date)s.%(rev)s %(gfx)s %(music)s"' % data,
+        'DIM version_arch as string : version_arch = "%(arch)s"' % data,
         'DIM version_revision as integer = %(rev)d' % data,
         'DIM version_date as integer = %(date)s' % data,
         'DIM version_branch as string : version_branch = "%(branch_name)s"' % data,

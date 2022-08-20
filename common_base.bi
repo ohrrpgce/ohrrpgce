@@ -48,6 +48,7 @@ end extern
 EXTERN short_version as string
 EXTERN version_code as string
 EXTERN version_build as string
+EXTERN version_arch as string
 EXTERN version_revision as integer
 EXTERN version_date as integer
 EXTERN version_branch as string
