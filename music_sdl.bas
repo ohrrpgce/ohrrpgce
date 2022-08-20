@@ -18,6 +18,7 @@
 #include "gfx.bi"
 #include "util.bi"
 #include "common.bi"
+#include "backendinfo.bi"
 'warning: due to a FB bug, overloaded functions must be declared before SDL.bi is included
 
 #ifdef __FB_UNIX__

@@ -16,6 +16,7 @@
 #include "allmodex.bi"  'For set_scale_factor
 #include "unicode.bi"
 #include "scancodes.bi"
+#include "backendinfo.bi"
 '#define NEED_SDL_GETENV
 
 #ifdef __FB_UNIX__

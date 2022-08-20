@@ -54,9 +54,5 @@ EXTERN version_branch as string
 EXTERN version_branch_revision as integer
 EXTERN long_version as string
 EXTERN supported_gfx_backends as string
-EXTERN libsdl_name as string
-EXTERN libsdl2_name as string
-EXTERN libsdl_mixer_name as string
-EXTERN libsdl2_mixer_name as string
 
 #endif
