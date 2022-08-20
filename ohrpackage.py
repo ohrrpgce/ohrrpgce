@@ -216,7 +216,7 @@ class PackageContents():
     """Lists of files and directories to be packaged/installed.
     Each file path will be relative to srcdir.
     If a file is an .rpg then gather_files() look for an .rpgdir and relump it.
-    The destination directories for files can be overridden with setdest().
+    The destination for files can be overridden with setdest().
     """
     def __init__(self, srcdir):
         self.srcdir = os.path.abspath(srcdir)
@@ -225,14 +225,21 @@ class PackageContents():
         self.icons = []
         self.dest = {}
 
-    def setdest(self, path, destdir):
-        self.dest[path] = destdir
-        return path
+    def setdest(self, srcpath, destpath):
+        """Override the destination filepath (relative from the archive root) for a
+        file, or just the directory to place it in if destpath ends in '/'.
+        """
+        self.dest[srcpath] = destpath
+        return srcpath
 
     def getdest(self, path):
-        "Get the (relative) path at which to place a file"
+        "Get the (relative) path to which to copy a file"
         if path in self.dest:
-            return os.path.join(self.dest[path], os.path.basename(path))
+            dest = self.dest[path]
+            if dest.endswith("/"):
+                return os.path.join(dest, os.path.basename(path))
+            else:
+                return dest
         return path
 
     def abspath(self, path):
@@ -249,6 +256,7 @@ def player_only_files(target, srcdir = ''):
     """Files (returned as a PackageContents) for a player-only package"""
     files = PackageContents(srcdir)
 
+    # Note: files.executables[0] must be the Game binary, for stripping
     if target == "win":
         files.executables = ["game.exe"]
     elif target == "mac":
@@ -387,8 +395,8 @@ def engine_files(target, config, srcdir = ''):
         ]
     if target == "win":
         # These aren't always included
-        files.setdest("relump.exe", "support")
-        files.setdest("unlump.exe", "support")
+        files.setdest("relump.exe", "support/")
+        files.setdest("unlump.exe", "support/")
 
     if target == "win":
         files.datafiles += [
@@ -453,9 +461,9 @@ def engine_files(target, config, srcdir = ''):
 
 def add_vikings_files(files):
     files.datafiles += [
-        files.setdest("vikings/vikings.rpg", ""),  # Will be generated from vikings.rpgdir
-        files.setdest("vikings/Vikings script files", ""),
-        files.setdest("vikings/README-vikings.txt", "")
+        files.setdest("vikings/vikings.rpg", "./"),  # Will be generated from vikings.rpgdir
+        files.setdest("vikings/Vikings script files", "./"),
+        files.setdest("vikings/README-vikings.txt", "./")
     ]
 
 def source_files(srcdir = "."):
@@ -536,7 +544,7 @@ def prepare_player(files, target):
     # game.exe already fully stripped if scons pdb=1 used, and in fact strip likely will fail
     if target != "win":
         with temp_chdir("ohrrpgce"):
-            game = files.executables[0]
+            game = files.getdest(files.executables[0])
             check_call("strip", game)
 
 def format_output_filename(template, srcdir = '.'):
