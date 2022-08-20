@@ -107,7 +107,8 @@ def install(destdir = '', prefix = '/usr', dry_run = False):
     """Installs the OHRRPGCE on the local machine (not including Vikings of Midgard).
     Pass destdir to install into a staging area instead of writing to /
     (dry_run is not implemented)."""
-    files = engine_files('linux', 'full', get_srcdir())
+    # 'unix' target means that precompiled libraries are not included
+    files = engine_files('unix', 'full', get_srcdir())
     files.datafiles.remove('import')
 
     build_tree(destdir, package_name, files, prefix = prefix)
@@ -154,7 +155,8 @@ def run_dpkg(outdir, package, ver):
 def create_dpkg(outdir):
     "Creates ohrrpgce_${version}_amd64.deb in the current directory"
 
-    files = engine_files('linux', 'full', get_srcdir())
+    # 'unix' target means that precompiled libraries are not included
+    files = engine_files('unix', 'full', get_srcdir())
     files.datafiles.remove('import')
 
     maintainer = '"OHRRPGCE Development Team" <ohrrpgce@lists.motherhamster.org>'

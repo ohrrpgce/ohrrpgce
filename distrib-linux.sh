@@ -24,7 +24,7 @@ package_for_arch() {
   echo "Building $ARCH binaries"
   # lto=1 to reduce unlump/relump size
   scons $SCONS_ARGS arch=$ARCH lto=1 unlump relump || return 1
-  scons $SCONS_ARGS arch=$ARCH game custom hspeak || return 1
+  scons $SCONS_ARGS arch=$ARCH libs=linux/$ARCH game custom hspeak || return 1
 
   echo "Packaging $ARCH binary distribution of CUSTOM"
   ./ohrpackage.py linux full "distrib/$FULLNAME-$ARCH.tar.bz2" || return 1

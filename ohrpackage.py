@@ -247,13 +247,17 @@ def player_only_files(target, srcdir = ''):
     # Note: files.executables[0] must be the Game binary, for stripping
     if target == "win":
         files.executables = ["game.exe"]
+        files.executables += needed_windows_libs(files.buildinfo())
     elif target == "mac":
         files.executables = ["OHRRPGCE-Game.app"]
-    else:  #target == "linux":
+    elif target == "linux":
+        arch = files.buildinfo()['arch']
+        # Don't include the symlinks because there will be problems on Windows
+        files.executables = [files.setdest("ohrrpgce-game", "linux/" + arch + "/"),
+                             "game.sh",
+                            ] + files.glob("linux/" + arch + "/*.so.*")
+    else:  # target == "unix"
         files.executables = ["ohrrpgce-game"]
-
-    if target == "win":
-        files.executables += needed_windows_libs(files.buildinfo())
 
     files.datafiles = [
         "buildinfo.ini",
@@ -348,7 +352,7 @@ def engine_files(target, config, srcdir = ''):
             )
         else: # nightly
             pass
-    else: # linux
+    else: # linux/unix
         if config in ("full", "nightly"):  #linux-minimal config isn't used anyway
             files.datafiles += [
                 "docs/hamsterspeak.html",
@@ -362,7 +366,7 @@ def engine_files(target, config, srcdir = ''):
         files.datafiles += ["svninfo.txt"]
 
     if config == "full":
-        # NOTE: import/ is specially excluded from .deb and linux "scons install"
+        # NOTE: import/ is specially excluded from .deb and linux/unix "scons install"
         files.datafiles += ["import"]
 
     # Support utilities
@@ -422,12 +426,23 @@ def engine_files(target, config, srcdir = ''):
             "OHRRPGCE-Game.app",
             "OHRRPGCE-Custom.app",
         ]
-    else:  #target == "linux":
+    else:  #target == "linux"/"unix":
         files.executables += [
             "ohrrpgce-game",
             "ohrrpgce-custom",
             "hspeak",
         ]
+        if target == "linux":
+            arch = files.buildinfo()['arch']
+            # Don't include the .so symlinks, for consistency with player_only_files
+            files.executables += ["game.sh",
+                                  "custom.sh",
+                                  ] + files.glob("linux/" + arch + "/*.so.*")
+            # Move ohrrpgce-game/custom into linux/$arch and replace them by shell scripts
+            files.setdest("ohrrpgce-game", "linux/" + arch + "/")
+            files.setdest("ohrrpgce-custom", "linux/" + arch + "/")
+            files.setdest("game.sh", "ohrrpgce-game")
+            files.setdest("custom.sh", "ohrrpgce-custom")
 
     # Files installed under $prefix/share/icons/... on Unix,
     # not used in Linux tarballs nor on Windows or Mac
@@ -590,9 +605,9 @@ If outfile is omitted, files are instead placed in a directory named 'ohrrpgce'.
     argv = sys.argv[1 : dashdash]
     extrafiles = sys.argv[dashdash + 1 :]
 
-    parser.add_argument("target", choices = ("linux", "win", "mac"), help = 
-"""OS to package for (Windows from Unix requires wine; other cross-packaging
-not supported)""")
+    parser.add_argument("target", choices = ("linux", "unix", "win", "mac"), help =
+"""OS to package for (win from Unix requires wine; other cross-packaging unsupported)
+linux includes precompiled libraries and game.sh/edit.sh wrappers, unix doesn't.""")
     parser.add_argument("config", metavar = "config", choices = ("full", "full+vikings", "nightly", "minimal", "player", "symbols", "source"), help =
 """What to package:
 full:         Complete OHRRPGCE package (except Vikings)

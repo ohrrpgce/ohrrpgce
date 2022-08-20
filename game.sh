@@ -10,7 +10,7 @@ COMMAND="$(basename -s .sh "$0")"
 # that name, unless an .rpg/.rpgdir is passed as argument.
 RPG=
 if echo "$@" | grep -qv "\.rpg"; then
-    if [ "$COMMAND" != "game" ]; then
+    if [ "$COMMAND" != "game" ] && [ "$COMMAND" != "$PROG" ]; then
         if [ -f "$DIR/$COMMAND.rpg" ]; then
             RPG="$DIR/$COMMAND.rpg"
         elif [ -d "$DIR/$COMMAND.rpgdir" ]; then
@@ -20,7 +20,8 @@ if echo "$@" | grep -qv "\.rpg"; then
 fi
 
 # Search for $PROG in the same directory or $OS/$ARCH/
-if [ -f "$DIR/$PROG" ]; then
+# (This script may be renamed $PROG)
+if [ -f "$DIR/$PROG" ] && [ "$COMMAND" != "$PROG" ]; then
     EXE="$DIR/$PROG"
 else
     MACHINE="$(uname -m)"

@@ -40,7 +40,7 @@ fi
 cd ohrrpgce/wip
 
 echo "Zipping up new nightly snapshot..."
-./ohrpackage.py linux source ../ohrrpgce-source-nightly.zip &&
+./ohrpackage.py unix source ../ohrrpgce-source-nightly.zip &&
 echo "Uploading nightly source snapshot..." &&
 scp -p ../ohrrpgce-source-nightly.zip $UPLOAD_DEST/ohrrpgce/nightly/
 

@@ -4,9 +4,11 @@
 PROG=ohrrpgce-custom
 OS=linux
 DIR="$(dirname "$(readlink -e "$0")")"
+COMMAND="$(basename -s .sh "$0")"
 
 # Search for $PROG in the same directory or $OS/$ARCH/
-if [ -f "$DIR/$PROG" ]; then
+# (This script may be renamed $PROG)
+if [ -f "$DIR/$PROG" ] && [ "$COMMAND" != "$PROG" ]; then
     EXE="$DIR/$PROG"
 else
     MACHINE="$(uname -m)"
