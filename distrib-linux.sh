@@ -4,7 +4,7 @@
 
 SCONS_ARGS="release=1"
 FULLNAME=${1:-ohrrpgce-linux-\{TODAY\}-\{BRANCH\}}
-PLAYERNAME=${2:-ohrrpgce-player-linux-bin-minimal-\{TODAY\}-\{BRANCH\}}
+PLAYERNAME=${2:-ohrrpgce-player-linux-\{TODAY\}-\{BRANCH\}}
 
 if [ ! -f distrib-linux.sh ] ; then
   echo You should only run this script from the ohrrpgce directory.

@@ -47,11 +47,11 @@ curl -L -s -o releases/ohrrpgce.zip https://hamsterrepublic.com/dl/ohrrpgce.zip
 curl -L -s -o releases/OHRRPGCE-x86_64.dmg https://hamsterrepublic.com/dl/OHRRPGCE-x86_64.dmg
 curl -L -s -o releases/ohrrpgce-linux-x86_64.tar.bz2 https://hamsterrepublic.com/dl/ohrrpgce-linux-x86_64.tar.bz2
 # We don't upload the last one, it is just for buildinfo.ini
-curl -L -s -o releases/ohrrpgce-player-linux-bin-minimal-x86_64.zip https://hamsterrepublic.com/dl/ohrrpgce-player-linux-bin-minimal-x86_64.zip
+curl -L -s -o releases/ohrrpgce-player-linux-x86_64.zip https://hamsterrepublic.com/dl/ohrrpgce-player-linux-x86_64.zip
 
 echo "Parsing release name"
 rm -f releases/buildinfo.ini
-unzip -q releases/ohrrpgce-player-linux-bin-minimal-x86_64.zip buildinfo.ini -d ./releases/
+unzip -q releases/ohrrpgce-player-linux-x86_64.zip buildinfo.ini -d ./releases/
 if [ ! -f "releases/buildinfo.ini" ] ; then
   echo "Unable to find buildinfo.ini"
   exit 1

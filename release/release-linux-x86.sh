@@ -12,4 +12,4 @@ TODAY=`date "+%Y-%m-%d"`
 CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
 BRANCH=`cat codename.txt | grep -v "^#" | head -2 | tail -1 | tr -d "\r"`
 scp -p distrib/ohrrpgce-linux-${TODAY}-${BRANCH}-*.tar.bz2 "${SCPDEST}"/archive/
-scp -p distrib/ohrrpgce-player-linux-bin-minimal-${TODAY}-${BRANCH}-*.zip "${SCPDEST}"/archive/
+scp -p distrib/ohrrpgce-player-linux-${TODAY}-${BRANCH}-*.zip "${SCPDEST}"/archive/

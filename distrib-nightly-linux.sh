@@ -80,18 +80,18 @@ fi
 # Compile and create .bz2 and .deb files
 echo "Calling distrib-linux.sh..."
 # Note: this creates a 'full' rather than 'nightly' package. Only Windows nightlies use 'nightly'.
-./distrib-linux.sh ohrrpgce-linux-wip ohrrpgce-player-linux-bin-minimal || exit 1
+./distrib-linux.sh ohrrpgce-linux-wip ohrrpgce-player-linux || exit 1
 
 if [ -z "$OHR_SKIP_X86" ] ; then
   echo "Uploading 32-bit linux binaries..."
   scp -p distrib/ohrrpgce-linux-wip-x86.tar.bz2 $UPLOAD_DEST/ohrrpgce/nightly/
-  scp -p distrib/ohrrpgce-player-linux-bin-minimal-x86.zip $UPLOAD_DEST/ohrrpgce/nightly/
+  scp -p distrib/ohrrpgce-player-linux-x86.zip $UPLOAD_DEST/ohrrpgce/nightly/
 fi
 
 if [ -z "$OHR_SKIP_X86_64" ] ; then
   echo "Uploading 64-bit linux binaries..."
   scp -p distrib/ohrrpgce-linux-wip-x86_64.tar.bz2 $UPLOAD_DEST/ohrrpgce/nightly/
-  scp -p distrib/ohrrpgce-player-linux-bin-minimal-x86_64.zip $UPLOAD_DEST/ohrrpgce/nightly/
+  scp -p distrib/ohrrpgce-player-linux-x86_64.zip $UPLOAD_DEST/ohrrpgce/nightly/
 fi
 
 echo "Uploading debian packages..."
