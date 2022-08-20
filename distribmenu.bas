@@ -2251,11 +2251,11 @@ FUNCTION itch_butler_is_logged_in() as bool
  IF NOT itch_butler_is_installed() THEN RETURN NO
  DIM butler_creds as string
  #IFDEF __FB_WIN32__
- butler_creds = ENVIRON("USERPROFILE") & SLASH & ".config" & SLASH & "itch" & SLASH & "butler_creds"
+ butler_creds = ENVIRON("USERPROFILE") & "\.config\itch\butler_creds"
  #ELSEIF DEFINED(__FB_DARWIN__)
- butler_creds = ENVIRON("HOME") & SLASH & "Library" & SLASH & "Application Support" & SLASH & "itch" & SLASH & "butler_creds"
+ butler_creds = ENVIRON("HOME") & "/Library/Application Support/itch/butler_creds"
  #ELSE
- butler_creds = ENVIRON("HOME") & SLASH & ".config" & SLASH & "itch" & SLASH & "butler_creds"
+ butler_creds = ENVIRON("HOME") & "/.config/itch/butler_creds"
  #ENDIF
  RETURN isfile(butler_creds)
 END FUNCTION

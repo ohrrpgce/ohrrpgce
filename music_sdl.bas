@@ -153,7 +153,7 @@ function music_get_info() as string
 		_ModPlug_GetSettings = dylibsymbol(libhandle, "ModPlug_GetSettings")
 		_ModPlug_SetSettings = dylibsymbol(libhandle, "ModPlug_SetSettings")
 	else
-		debug "dylibload(" & SONAME & ") failed. Continuing"
+		debug "dylib_noload(" & SONAME & ") failed. Continuing"
 	end if
 
 	dim ver as const SDL_version ptr

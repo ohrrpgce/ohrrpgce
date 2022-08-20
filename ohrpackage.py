@@ -196,8 +196,8 @@ def parse_buildinfo(path):
 class PackageContents():
     """Lists of files and directories to be packaged/installed.
     Each file path will be relative to srcdir.
-    If a file is an .rpg then gather_files() look for an .rpgdir and relump it.
-    The destination for files can be overridden with setdest().
+    If a file is an .rpg then gather_files() looks for an .rpgdir and relumps it.
+    The destination path/name for files can be overridden with setdest().
     """
     def __init__(self, srcdir):
         self.srcdir = os.path.abspath(srcdir)
@@ -268,7 +268,7 @@ def player_only_files(target, srcdir = ''):
     return files
 
 def symbols_files(target, srcdir = ''):
-    """Files (returned as a PackageContents) for a  package"""
+    """Files (returned as a PackageContents) for a debug symbols package ('symbols' config)."""
     if target != "win":
         raise PackageError("Can only package Windows symbols")
 
@@ -309,7 +309,7 @@ def needed_windows_libs(buildinfo):
     return list(libs)
 
 def engine_files(target, config, srcdir = ''):
-    """Files (returned as as PackageContents) for a Game+Custom package or for installation.
+    """Files (returned as a PackageContents) for a Game+Custom package/installation.
     Searches in srcdir, which should be the root of the source repo.
     config should be one of 'full', 'minimal' or 'nightly'.
     """
@@ -487,7 +487,7 @@ def source_files(srcdir = "."):
 
 ############################################################################
 
-def create_win_installer(files, outfile, iscc = "iscc", srcdir = "."):
+def create_win_installer(outfile, iscc = "iscc", srcdir = "."):
     "Generate Windows installer from the contents of ohrrpgce/"
 
     # Generate iver.txt include for ohrrpgce.iss
@@ -506,15 +506,15 @@ def create_win_installer(files, outfile, iscc = "iscc", srcdir = "."):
 
 ############################################################################
 
-def gather_files(files, target, extrafiles = []):
-    "Copy files (except icons) into a new directory named 'ohrrpgce' ready for archiving"
+def gather_files(files, target):
+    "Copy PackageContents files (except .icons) into a new directory named 'ohrrpgce' ready for archiving"
 
-    # Place files in tmp/ in case we error out partway
+    # Place files in tmp/ in case we error out partway (but won't be cleaned up)
     destdir = "tmp/"
     safe_rmtree(destdir)
     quiet_mkdir(destdir)
 
-    for path in files.executables + files.datafiles + extrafiles:
+    for path in files.executables + files.datafiles:
         src = files.abspath(path)
         dest = destdir + files.getdest(path)
         # Automatically relump an .rpgdir to .rpg
@@ -557,27 +557,29 @@ def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):
         files = player_only_files(target)
     elif config == "symbols":
         files = symbols_files(target)
+    elif config == "source":
+        files = source_files()
+        target = "unix"  # Prevent newline conversion
     elif config == "full+vikings":
         files = engine_files(target, "full")
         add_vikings_files(files)
-    elif config == "source":
-        files = source_files()
-        target = "linux"  # Prevent newline conversion
     else:
         files = engine_files(target, config)
+
+    files.datafiles += extrafiles
 
     buildinfo = files.buildinfo()
     print("buildinfo: arch=%s,  gfx=%s,  music=%s" % (buildinfo['arch'], buildinfo['gfx'], buildinfo['music']))
 
     print("Gathering ohrrpgce/")
-    gather_files(files, target, extrafiles)
+    gather_files(files, target)
     if config == "player":
         prepare_player(files, target)
 
     if outfile:
         print("Archiving " + outfile)
         if outfile.endswith(".exe"):
-            create_win_installer(files, outfile, iscc)
+            create_win_installer(outfile, iscc)
         elif config == "source":
             archive_dir("ohrrpgce", outfile)
         elif config in ("player", "symbols") or target == "win":
