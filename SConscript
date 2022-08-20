@@ -383,7 +383,7 @@ env = Environment (CFLAGS = [],
 
 # Shocked that scons doesn't provide $HOME
 # $DISPLAY is need for both gfx_sdl and gfx_fb (when running tests)
-for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR':
+for var in 'PATH', 'DISPLAY', 'HOME', 'EUDIR', 'WINEPREFIX':
     if var in os.environ:
         env['ENV'][var] = os.environ[var]
 for var in 'AS', 'CC', 'CXX':
