@@ -202,6 +202,7 @@ retvalsp = @retvals(0)
 orig_dir = CURDIR
 'Note: debug log messages go in CURDIR until log_dir set below
 
+'Processes the -appdir commandline flag
 set_app_dir
 
 #IFDEF __FB_ANDROID__

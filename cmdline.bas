@@ -53,6 +53,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-? -h -help         Display this help screen" & LINE_END
 		help = help & "-v -version         Show version and build info" & LINE_END
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
+                'help = help & "-appdir foldername  Installation directory (Must be first option!)" & LINE_END
 		help = help & "-list-embeds        Print the list of embedded data files" & LINE_END
 		help = help & "-dump-embed file    Extract an embedded file, written to the current directory" & LINE_END
 #IFDEF IS_GAME
@@ -107,6 +108,9 @@ function global_setoption(opt as string, arg as string) as integer
 		display_help_string help
 		terminate_program
 		return 1
+	elseif opt = "appdir" then
+		'This special commandline arg is processed early, in get_app
+		return 2
 	elseif opt = "dump-embed" then
 		dim success as bool = dump_embedded_file(arg, trimpath(arg))
 		terminate_program iif(success, 0, 1)

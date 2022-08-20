@@ -106,6 +106,7 @@ DIM cleanup_workingdir_on_error as bool = YES
 orig_dir = CURDIR
 'Note: debug log messages go in CURDIR until log_dir set below
 
+'Processes the -appdir commandline flag
 set_app_dir
 
 'temporarily set current directory, will be changed to game directory later if writable

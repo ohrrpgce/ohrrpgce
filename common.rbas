@@ -7248,6 +7248,13 @@ SUB set_app_dir()
   'while orig_dir is where the .app contents are.
   app_dir = add_trailing_slash(orig_dir)
  #ENDIF
+
+ '-appdir is a special commandline arg, it needs to be processed early (although
+ 'maybe the others should be processed earlier). So must be first one, to simplify.
+ 'It's set by game.sh/custom.sh, probably won't be used otherwise.
+ IF COMMAND(1) = "-appdir" THEN
+  IF isdir(COMMAND(2)) THEN app_dir = add_trailing_slash(COMMAND(2))
+ END IF
 END SUB
 
 FUNCTION get_settings_dir () as string

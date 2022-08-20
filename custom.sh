@@ -26,4 +26,4 @@ fi
 
 export LD_LIBRARY_PATH="$DIR/$OS/x86:$DIR/$OS/x86_64:$LD_LIBRARY_PATH"
 
-exec "$EXE" "$@"
+exec "$EXE" -appdir "$DIR" "$@"

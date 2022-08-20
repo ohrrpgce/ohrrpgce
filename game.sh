@@ -41,4 +41,4 @@ fi
 export LD_LIBRARY_PATH="$DIR/$OS/x86:$DIR/$OS/x86_64:$LD_LIBRARY_PATH"
 
 # Add $RPG as an arg only if not empty
-exec "$EXE" ${RPG:+"$RPG"} "$@"
+exec "$EXE" -appdir "$DIR" ${RPG:+"$RPG"} "$@"
