@@ -107,11 +107,13 @@ DIM context_string as string
 
 '=== Other global dirs and files ==='
 
-'Replacement for exepath: Where the exe is, or on Mac, where the .app is, and on Android,
-'where the extracted .apk contents are (actually the files/ subdirectory).
-'This should often be used instead of exepath for compatibility with Mac and Android
-'(exepath is garbage on Android).
+'This should usually be used instead of exepath as the location of the executables.
 'Always has a trailing slash.
+'on Mac: where the .app is
+'on Android: where the extracted .apk contents are (actually the files/ subdirectory)
+'            (exepath is garbage on Android)
+'on Linux: where the ohrrpgce-* wrapper shell scripts (renamed game/custom.sh) are
+'otherwise: where the exe is (same as exepath)
 DIM app_dir as string
 
 'Used on Mac to point to the app bundle Resources directory (if running an .app). Otherwise empty.
@@ -3618,9 +3620,9 @@ FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, downlo
   'Downloaded utilities are put here
   try_app_path(app_dir & "support/" & *appname)
   'unlump and relump get installed here
-  try_app_path(exepath & "/../share/games/ohrrpgce/" & *appname)
+  try_app_path(app_dir & "/../share/games/ohrrpgce/" & *appname)
   '/usr/share/games is optional in the Linux FHS standard, so try share/ohrrpgce too (Not seen in the wild)
-  try_app_path(exepath & "/../share/ohrrpgce/" & *appname)
+  try_app_path(app_dir & "/../share/ohrrpgce/" & *appname)
   try_app_path("/usr/share/games/ohrrpgce/" & *appname)
   try_app_path("/usr/share/ohrrpgce/" & *appname)
  #ENDIF
@@ -4033,12 +4035,12 @@ LOCAL FUNCTION finddatafile_internal(filename as string, searchtype as FileTypeE
   try_data_path(settings_dir & SLASH & filename)
   ' Assuming the binary is in $prefix/games or $prefix/bin
   DIM datafiles as string
-  datafiles = exepath & "/../share/games/ohrrpgce/"
+  datafiles = app_dir & "/../share/games/ohrrpgce/"
   ' In this case the packaging script could avoid putting anything in a subdirectory
   try_data_path(datafiles & "data/" & filename)
   try_data_path(datafiles & filename)
   '/usr/share/games is optional in the Linux FHS standard, so try share/ohrrpgce too (Not seen in the wild)
-  datafiles = exepath & "/../share/ohrrpgce/"
+  datafiles = app_dir & "/../share/ohrrpgce/"
   try_data_path(datafiles & "data/" & filename)
   try_data_path(datafiles & filename)
  #ENDIF
@@ -4089,8 +4091,8 @@ FUNCTION get_data_dir() as string
   try_data_path(app_resources_dir)
  END IF
  #IFDEF __FB_UNIX__
-  try_data_path(exepath & "/../share/games/ohrrpgce/data")
-  try_data_path(exepath & "/../share/ohrrpgce/data")
+  try_data_path(app_dir & "/../share/games/ohrrpgce/data")
+  try_data_path(app_dir & "/../share/ohrrpgce/data")
  #ENDIF
  IF makedir("data") = 0 THEN RETURN "data" 'Success
 END FUNCTION
@@ -7272,7 +7274,7 @@ FUNCTION get_settings_dir () as string
    settings_dir = ENVIRON("APPDATA") & SLASH & "OHRRPGCE"
   ELSE
    'APPDATA enviroment variable doesn't exist in Windows 98 so we need a fallback
-   settings_dir = exepath & SLASH & "OHRRPGCE-settings"
+   settings_dir = app_dir & SLASH & "OHRRPGCE-settings"
   END IF
  #ELSE
   #ERROR "Unknown OS"
@@ -7341,9 +7343,9 @@ FUNCTION get_help_dir(helpfile as string="") as string
  END IF
  #IFDEF __FB_UNIX__
   DIM datafiles as string
-  datafiles = exepath & "/../share/games/ohrrpgce/ohrhelp"
+  datafiles = app_dir & "/../share/games/ohrrpgce/ohrhelp"
   IF help_dir_helper(datafiles, helpfile) THEN RETURN datafiles
-  datafiles = exepath & "/../share/ohrrpgce/ohrhelp"
+  datafiles = app_dir & "/../share/ohrrpgce/ohrhelp"
   IF help_dir_helper(datafiles, helpfile) THEN RETURN datafiles
  #ENDIF
  '-- if all else fails, place next to executable even if invalid

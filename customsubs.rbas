@@ -2236,21 +2236,18 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
  gameexename = "OHRRPGCE-Game"
  CONST mac_game_bundle as string = "OHRRPGCE-Game.app/Contents/MacOS/ohrrpgce-game"
  ' First check for unbundled ohrrpgce-game (because it would be most recently built) then OHRRPGCE-Game.app
- executable = exepath & SLASH & GAMEEXE
+ executable = app_dir & GAMEEXE
  IF isfile(executable) = NO THEN
-  executable = app_dir & GAMEEXE
+  executable = app_dir & mac_game_bundle
   IF isfile(executable) = NO THEN
-   executable = app_dir & mac_game_bundle
+   'If Gatekeeper Path Randomization (aka App Translocation) happens, then EXEPATH (and app_dir)
+   'is a random path inside a read-only mount.
+   'So also check CURDIR, which is the location of the .rpg, or a global location
+   executable = CURDIR & SLASH & mac_game_bundle
    IF isfile(executable) = NO THEN
-    'If Gatekeeper Path Randomization (aka App Translocation) happens, then EXEPATH (and app_dir)
-    'is a random path inside a read-only mount.
-    'So also check CURDIR, which is the location of the .rpg, or a global location
-    executable = CURDIR & SLASH & mac_game_bundle
+    executable = ENVIRON("HOME") & "/Applications/" & mac_game_bundle
     IF isfile(executable) = NO THEN
-     executable = ENVIRON("HOME") & "/Applications/" & mac_game_bundle
-     IF isfile(executable) = NO THEN
-      executable = "/Applications/" & mac_game_bundle
-     END IF
+     executable = "/Applications/" & mac_game_bundle
     END IF
    END IF
   END IF
