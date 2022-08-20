@@ -667,12 +667,12 @@ SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
  IF NOT isfile(ico_name) THEN debuginfo ico_name & " does not exist" : EXIT SUB
 
  DIM rcedit as string = find_windows_helper_app("rcedit", YES)
- IF rcedit = "" THEN EXIT SUB
+ IF rcedit = "" THEN dist_info "WARNING: rcedit not found, can't set the icon": EXIT SUB
 
  DIM args as string = escape_filename(exe_name) & " --set-icon " & escape_filename(ico_name)
  DIM spawn_ret as string
  spawn_ret = win_or_wine_spawn_and_wait(rcedit, args)
- IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: rcedit failed when trying to update the icon: " & spawn_ret : EXIT SUB
+ IF LEN(spawn_ret) > 0 THEN dist_info "WARNING: rcedit failed when trying to set the icon: " & spawn_ret : EXIT SUB
 END SUB
 
 SUB add_file(byref files as string vector, fname as string)
@@ -2181,6 +2181,7 @@ FUNCTION itch_butler_platform_version() as string
  RETURN prefix & "-" & suffix
 END FUNCTION
 
+'TODO: couldn't this be merged with install_windows_helper_app?
 FUNCTION itch_butler_download() as bool
  DIM butler_path as string = itch_butler_path()
 
@@ -2234,6 +2235,7 @@ FUNCTION itch_gametarg(distinfo as DistribState) as string
  RETURN sanitize_url_chunk(IIF(LEN(distinfo.itch_gamename) = 0, distinfo.pkgname, distinfo.itch_gamename))
 END FUNCTION
 
+'TODO: this could be replaced with find_helder_app, why treat butler differently from all others?!
 FUNCTION itch_butler_path() as string
  RETURN get_support_dir() & SLASH & "butler" & DOTEXE
 END FUNCTION

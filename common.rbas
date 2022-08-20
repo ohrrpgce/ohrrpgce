@@ -3556,20 +3556,30 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
 
 END FUNCTION
 
-FUNCTION get_support_dir () as string
+FUNCTION get_support_dir (create_dir as bool = YES) as string
  'Returns, creating if needed, the support directory path.
- 'The support dir is only normally used on Windows and Mac (on Mac, hspeak lives there).
+ 'The support dir is most commonly used on Windows and Mac (on Mac, hspeak lives there).
  'On GNU/Linux or Android it (currently) won't pre-exist unless the OHR is compiled from source,
- 'and it is only used to hold utilities downloaded for distributing games (currently just rcedit.exe).
+ 'and it is only used to hold utilities downloaded for distributing games (currently just
+ 'rcedit.exe and butler).
  '(Downloaded versions of Game itself are stored in $settings_dir/_gameplayer instead)
- DIM suppdir as string
- suppdir = exepath & SLASH "support"  'For Mac .app bundles: don't use app_dir
+ DIM as string suppdir, suppdir2
+ #IFDEF __FB_DARWIN__
+  'Inside Mac .app bundles at .../Contents/MacoOS/support/
+  suppdir = exepath & SLASH "support"
+ #ELSE
+  'On Linux ohrrpgce-custom/game may be in linux/$arch/, so look next to game.sh/custom.sh
+  suppdir = app_dir & "support"
+ #ENDIF
  IF isdir(suppdir) THEN RETURN suppdir
- IF makedir(suppdir) = 0 THEN RETURN suppdir
- suppdir = settings_dir & SLASH "support"
- IF isdir(suppdir) THEN RETURN suppdir
- IF makedir(suppdir) = 0 THEN RETURN suppdir
- showerror "Could not find or create a directory for support utilities"
+ '~/.ohrrpgce/support on Unix
+ suppdir2 = settings_dir & SLASH "support"
+ IF isdir(suppdir2) THEN RETURN suppdir2
+ IF create_dir THEN
+  IF makedir(suppdir) = 0 THEN RETURN suppdir
+  IF makedir(suppdir2) = 0 THEN RETURN suppdir2
+  showerror "Could not find or create a directory for support utilities"
+ END IF
  RETURN "" ' not found. booo! :(
 END FUNCTION
 
@@ -3603,22 +3613,24 @@ FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, downlo
 
  DIM temp as string
 
- 'Look in the same folder as CUSTOM/GAME
+ 'Look in the installation directory... I think this is only to find hspeak on Windows and Unix.
  try_app_path(app_dir & *appname & DOTEXE)
 
- #IFDEF __FB_DARWIN__
-  'Inside an .app, support/ is next to the executable
-  try_app_path(exepath & "/support/" & *appname)
- #ENDIF
- #IFDEF __FB_UNIX__
+ #IFDEF __FB_WIN32__
+  RETURN find_windows_helper_app(*appname, try_install, *download_url)
+ #ELSE
+  'Look in support dir and then try $PATH... same as find_windows_helper_app. And then hardcoded paths.
+
+  'See get_support_dir() for explanation of programs that might be there.
+  try_app_path(get_support_dir(NO) & SLASH & *appname)  'Don't create support dir
+
   'Use the standard util "which" to search the path
   DIM where as string
   run_and_get_output("which " & *appname, where, , NO)  'disable debuginfo spam
   'where is empty on failure
   where = RTRIM(where, !"\n")
   IF LEN(where) THEN RETURN where
-  'Downloaded utilities are put here
-  try_app_path(app_dir & "support/" & *appname)
+
   'unlump and relump get installed here
   try_app_path(app_dir & "/../share/games/ohrrpgce/" & *appname)
   '/usr/share/games is optional in the Linux FHS standard, so try share/ohrrpgce too (Not seen in the wild)
@@ -3626,14 +3638,12 @@ FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, downlo
   try_app_path("/usr/share/games/ohrrpgce/" & *appname)
   try_app_path("/usr/share/ohrrpgce/" & *appname)
  #ENDIF
- #IFDEF __FB_WIN32__
-  RETURN find_windows_helper_app(*appname, try_install, *download_url)
- #ENDIF
 END FUNCTION
 
 FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string
  'Gets the windows version of the helper app, even when run on Linux or Mac (for utils to be run via wine)
  'Returns an empty string if the app is not found or version is too old, or the full path if it is found
+ 'TODO: this could be merged with find_helper_app.
  'try_install: download it if not installed or too old
  'download_url: only used if try_install is true, to override the default
 
@@ -3697,6 +3707,7 @@ END FUNCTION
 
 'Returns "" on failure, otherwise path to the executable
 '(This can get run on Unix too!)
+'(Note that itch_butler_download is a partial duplicate of this)
 FUNCTION install_windows_helper_app (appname as string, download_url as string="") as string
  DIM support as string = get_support_dir()
  DIM apppath as string = support & SLASH & appname & ".exe"
