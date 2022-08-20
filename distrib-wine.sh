@@ -1,209 +1,93 @@
 #!/bin/bash
 
-echo "Building OHRRPGCE distribution for Windows using Linux+Wine"
-echo "-----------------------------------------------------------"
+# Identical to distrib-win.bat except it cross-compiles/packages
+# from Linux, using either wine or mxe -- uncomment either section below.
+
+set -e
+
+echo "Building OHRRPGCE distribution for Windows from Linux"
 
 #-----------------------------------------------------------------------
-
-function mustexist {
-  if [ ! -f "${1}" -a ! -d "${1}" ] ; then
-    echo "ERROR: ${1} does not exist!"
-    exit 1
-  fi
-}  
-
-function ohrrpgce_common_files {
- cp game.exe tmpdist
- cp custom.exe tmpdist
- cp hspeak.exe tmpdist
- cp plotscr.hsd tmpdist
- cp scancode.hsi tmpdist
- cp README-game.txt tmpdist
- cp README-custom.txt tmpdist
- cp IMPORTANT-nightly.txt tmpdist
- cp LICENSE.txt tmpdist
- cp LICENSE-binary.txt tmpdist
- cp whatsnew.txt tmpdist
- cp SDL2.dll tmpdist
- cp SDL2_mixer.dll tmpdist
- cp gfx_directx.dll tmpdist
- mkdir tmpdist/support
- cp support/madplay.exe tmpdist/support
- cp support/LICENSE-madplay.txt tmpdist/support
- cp support/oggenc.exe tmpdist/support
- cp support/LICENSE-oggenc.txt tmpdist/support
- cp support/wget.exe tmpdist/support
- cp support/wget.hlp tmpdist/support
- cp support/zip.exe tmpdist/support
- cp support/zip_exec.exe tmpdist/support
- cp support/LICENSE-zip_exec.exe tmpdist/support
- cp support/CrashRpt*.dll support/CrashSender*.exe support/crashrpt_lang.ini tmpdist/support
- cp support/LICENSE-crashrpt.txt tmpdist/support
- cp support/unzip.exe tmpdist/support
- cp support/rcedit.exe tmpdist/support
- cp support/LICENSE-rcedit.txt tmpdist/support
- cp support/*-version.txt tmpdist/support
- cp relump.exe tmpdist/support
- cp unlump.exe tmpdist/support
- cp -r data tmpdist/data
- cp -r ohrhelp tmpdist/ohrhelp
- mkdir tmpdist/docs
- cp docs/*.URL tmpdist/docs
- cp docs/*.png tmpdist/docs
- cp docs/plotdictionary.html tmpdist/docs
- cp docs/more-docs.txt tmpdist/docs
- unix2dos -q tmpdist/*.txt tmpdist/*.hsd tmpdist/*.hsi tmpdist/support/*.txt tmpdist/docs/*.txt
-}
-
-#-----------------------------------------------------------------------
-# turn off wine's debug noise
-export WINEDEBUG=fixme-all
-
-SCONS="C:\Python27\Scripts\scons.bat"
-ISCC="C:\Program Files\Inno Setup 5\iscc.exe"
-SVN="C:\Program Files\Subversion\bin\svn.exe"
-EUC="C:\Euphoria\bin\euc.exe"
 
 SCONS_ARGS="release=1 pdb=1"
 
-# This should be the BUILDNAME matching $SCONS_ARGS, i.e. the default backends
-BUILDNAME=sdl2
-
-# Using wine
+#### Using wine
+export WINEDEBUG=fixme-all  # turn off wine's debug noise
+SCONS="C:\Python27\Scripts\scons.bat"
 BUILD="wine cmd /C ${SCONS}"
+EUC="C:\Euphoria\bin\euc.exe"
 
-# Uncomment to cross-compile
-#export PATH=~/src/mxe/usr/bin:$PATH
-#BUILD="scons target=i686-w64-mingw32.shared"
-#DONT_BUILD_HSPEAK=yes  #TODO: scons doesn't support cross-compiling hspeak yet
-
-
-echo "Building executables..."
-
-rm -f game.exe custom.exe relump.exe unlump.exe
-${BUILD} game custom unlump relump $SCONS_ARGS || exit 1
-# Would compile with lto=1 to reduce unlump/relump size, but that causes mingw-w64 gcc 8.1.0 to crash
-${BUILD} unlump relump $SCONS_ARGS || exit 1
+#### Uncomment to cross-compile with mxe
+# export PATH=~/src/mxe/usr/bin:$PATH
+# BUILD="scons target=i686-w64-mingw32.static"
+# # To cross-compile hspeak, need two Euphoria installations
+# BUILD+=" eulib=~/local/euphoria-4.1.0-Windows-x86/bin/eu.a"
+# export EUDIR=~/local/euphoria-4.1.0-Linux-x64/
+# export EUC=$EUDIR/bin/euc
 
 
-if [ -z "$DONT_BUILD_HSPEAK" ]; then
-  rm -f hspeak.exe
-  ${BUILD} hspeak $SCONS_ARGS || exit 1
+# Find iscc.exe
+ISCC='C:\Program Files\Inno Setup 5\iscc.exe'
+if ! [ -f "$(winepath "$ISCC")" ]; then
+    ISCC='C:\Program Files (x86)\Inno Setup 5\iscc.exe'
+    if ! [ -f "$(winepath "$ISCC")" ]; then
+        echo "Can't find Inno Setup 5"
+        exit 1
+    fi
 fi
 
-for exe in "game.exe" "custom.exe" "unlump.exe" "relump.exe" "hspeak.exe" ; do
-  mustexist "${exe}"
-done
+echo ==========================================
+echo Building sdl2 executables...
 
-echo "Lumping Vikings of Midgard"
-#scons $SCONS_ARGS relump
-rm -f vikings.rpg
-wine ./relump.exe vikings/vikings.rpgdir vikings.rpg
-mustexist "vikings.rpg"
-unix2dos -q "tmpdist/Vikings script files/"*
+# scons continues if can't create the pdb files
+rm -f game.exe custom.exe relump.exe unlump.exe hspeak.exe win32/game.pdb win32/custom.pdb
 
-rm -f distrib/ohrrpgce-player-win-minimal-sdl2.zip
-rm -f distrib/ohrrpgce-minimal.zip
-rm -f distrib/ohrrpgce.zip
-rm -f distrib/ohrrpgce-win-installer.exe
+# Equivalent to gfx=sdl2+directx+fb music=sdl2
+$BUILD game custom buildname=sdl2 $SCONS_ARGS
+# Would compile with lto=1 to reduce unlump/relump size, but that causes mingw-w64 gcc 8.1.0 to crash
+$BUILD hspeak unlump relump win95=1 sse2=0 $SCONS_ARGS
 
-echo "Generating buildinfo.ini"
-rm -f buildinfo.ini
-wine ./game.exe -buildinfo buildinfo.ini
+echo ------------------------------------------
+echo Packaging game player ohrrpgce-player-win-sdl2-*.zip ...
+./ohrpackage.py win player distrib/ohrrpgce-player-win-sdl2-{TODAY}-{BRANCH}.zip
 
-echo "Packaging game player ohrrpgce-player-win-minimal-sdl2.zip ..."
-zip -9 -q distrib/ohrrpgce-player-win-minimal-sdl2.zip game.exe buildinfo.ini SDL2.dll SDL2_mixer.dll gfx_directx.dll LICENSE-binary.txt README-player-only.txt
+echo ------------------------------------------
+echo Packaging minimal-but-complete ohrrpgce-minimal-*.zip ...
+./ohrpackage.py win minimal distrib/ohrrpgce-minimal-{TODAY}-{BRANCH}.zip
 
-echo "Make temporary folder..."
-rm -Rf tmpdist
-mkdir tmpdist
+echo ------------------------------------------
+echo Packaging ohrrpgce-*.zip ...
+./ohrpackage.py win full distrib/ohrrpgce-{TODAY}-{BRANCH}.zip
 
-echo "Packaging minimal-but-complete ohrrpgce-minimal.zip ..."
-# Note: this does not match contents of ohrrpgce-minimal.zip created
-# by distrib.bat, which e.g. excludes all support/ utils except wget.
-# Note: linux and mac "minimal" .tar.gz files contain only the player, while
-# windows "minimal" .zip files contain nearly everything except vikings and import.
-ohrrpgce_common_files
+echo ------------------------------------------
+echo Packaging ohrrpgce-win-installer-*.exe ...
+./ohrpackage.py win full+vikings distrib/ohrrpgce-win-installer-{TODAY}-{BRANCH}.exe --iscc "$ISCC"
 
-cd tmpdist
-zip -9 -q -r ../distrib/ohrrpgce-minimal.zip *
-cd ..
+echo ------------------------------------------
+echo Packaging sdl2 debug info archive
+./ohrpackage.py win symbols distrib/ohrrpgce-symbols-win-{BUILDNAME}-{REV}-{TODAY}-{BRANCH}.7z
 
-echo "  verify minimalist zip file..."
-rm -Rf tmpdist
-mkdir tmpdist
-cd tmpdist
-unzip -q ../distrib/ohrrpgce-minimal.zip game.exe
-cd ..
-mustexist "tmpdist/game.exe"
+echo ==========================================
+echo Building win95 executables...
 
-echo "Packaging ohrrpgce.zip ..."
-rm -Rf tmpdist
-mkdir tmpdist
-ohrrpgce_common_files
-# extra docs
-cp docs/*.png tmpdist/docs
-cp docs/plotdict.xml tmpdist/docs
-cp docs/htmlplot.xsl tmpdist/docs
-# Import folder
-cp -r import tmpdist/import
+rm -f game.exe custom.exe win32/game.pdb win32/custom.pdb
+# Equivalent to gfx=directx+sdl+fb music=sdl
+$BUILD game custom win95=1 sse2=0 buildname=music_sdl $SCONS_ARGS
 
-cd tmpdist
-zip -9 -q -r ../distrib/ohrrpgce.zip *
-cd ..
+echo ------------------------------------------
+echo Packaging game player ohrrpgce-player-win-win95-*.zip ...
+./ohrpackage.py win player distrib/ohrrpgce-player-win-win95-{TODAY}-{BRANCH}.zip
 
-echo "Sanity checking ohrrpgce.zip"
-rm -Rf tmpdist
-mkdir tmpdist
-cd tmpdist
-unzip -q ../distrib/ohrrpgce.zip custom.exe
-cd ..
-mustexist "tmpdist/custom.exe"
+echo ------------------------------------------
+echo Packaging ohrrpgce-win95-*.zip ...
+./ohrpackage.py win full distrib/ohrrpgce-win95-{TODAY}-{BRANCH}.zip
 
-echo "Packaging ohrrpgce-win-installer.exe ..."
-echo "" > iextratxt.txt
-wine "${ISCC}" /Q /Odistrib /Fohrrpgce-win-installer ohrrpgce.iss
-rm -f iextratxt.txt
+echo ------------------------------------------
+echo Packaging win95 debug info archive
+./ohrpackage.py win symbols distrib/ohrrpgce-symbols-win-{BUILDNAME}-{REV}-{TODAY}-{BRANCH}.7z
 
-mustexist "distrib/ohrrpgce-win-installer.exe"
+echo ==========================================
+echo Packaging source snapshot zip ...
+./ohrpackage.py win source distrib/ohrrpgce-source-{TODAY}-{BRANCH}.zip
 
-echo "Packaging debug info archive"
-rm -f distrib/ohrrpgce-symbols-win.7z
-# The ./ path prefixes add the files with the win32/ relative path
-7z a -mx=7 -bd distrib/ohrrpgce-symbols-win.7z game.exe custom.exe ./win32/custom.pdb ./win32/game.pdb > /dev/null
-mustexist "distrib/ohrrpgce-symbols-win.7z"
-
-echo "Packaging source snapshot zip ..."
-OHRVERDATE=`svn info | grep "^Last Changed Date:" | cut -d ":" -f 2 | cut -d " " -f 2`
-SVNREV=`svn info | grep "^Revision:" | cut -d " " -f 2`
-OHRVERCODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
-OHRVERBRANCH=`cat codename.txt | grep -v "^#" | head -2 | tail -1 | tr -d "\r"`
-REPOSITORY=`svn info | grep "^URL:" | cut -d " " -f 2-`
-rm -Rf tmpdist
-mkdir tmpdist
-
-cd tmpdist
-echo "  Checkout..."
-svn co -q "${REPOSITORY}"
-[ ! -d $OHRVERBRANCH ] && echo "Directory $OHRVERBRANCH is missing. Maybe codename.txt wasn't updated?" && exit 1
-svn info $OHRVERBRANCH > $OHRVERBRANCH/svninfo.txt
-echo "  Zip..."
-zip -q -r ../distrib/ohrrpgce-source.zip * -x "*/.svn/*" "*/vikings/*"
-cd ..
-
-echo "Cleaning up..."
-rm -Rf tmpdist
-
-echo "Rename results..."
-SUFFIX="${OHRVERDATE}-${OHRVERBRANCH}"
-echo "${SUFFIX}"
-cd distrib
-mv ohrrpgce-player-win-minimal-sdl2.zip    ohrrpgce-player-win-minimal-sdl2-"${SUFFIX}".zip
-mv ohrrpgce-minimal.zip       ohrrpgce-minimal-"${SUFFIX}".zip
-mv ohrrpgce.zip               ohrrpgce-"${SUFFIX}".zip
-mv ohrrpgce-win-installer.exe ohrrpgce-win-installer-"${SUFFIX}".exe
-mv ohrrpgce-source.zip        ohrrpgce-source-"${SUFFIX}".zip
-mv ohrrpgce-symbols-win.7z    ohrrpgce-symbols-win-"${BUILDNAME}-r${SVNREV}-${SUFFIX}".7z
-cd ..
-
-echo "Done."
+echo Done.

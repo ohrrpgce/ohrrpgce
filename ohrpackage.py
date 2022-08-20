@@ -226,6 +226,8 @@ class PackageContents():
         return path
 
     def abspath(self, path):
+        if not path:
+            raise ValueError("Blank path. Use ./ for root directory.")
         return os.path.join(self.srcdir, path)
 
     def glob(self, *patterns):
