@@ -573,8 +573,9 @@ def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):
 
     files.datafiles += extrafiles
 
-    buildinfo = files.buildinfo()
-    print("buildinfo: arch=%s,  gfx=%s,  music=%s" % (buildinfo['arch'], buildinfo['gfx'], buildinfo['music']))
+    if config != "source":
+        buildinfo = files.buildinfo()
+        print("buildinfo: arch=%s,  gfx=%s,  music=%s" % (buildinfo['arch'], buildinfo['gfx'], buildinfo['music']))
 
     print("Gathering ohrrpgce/")
     gather_files(files, target)
@@ -582,7 +583,8 @@ def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):
         prepare_player(files, target)
 
     if outfile:
-        outfile = format_output_filename(outfile, buildinfo)
+        if '{' in outfile:
+            outfile = format_output_filename(outfile, files.buildinfo())
         print("Archiving " + outfile)
         if outfile.endswith(".exe"):
             create_win_installer(outfile, iscc)
