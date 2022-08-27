@@ -4,6 +4,7 @@ REM to the repository full control of your build computer. Thank
 REM goodness James trusts the other devs ;)
 
 CALL distrib-win-setup.bat || exit /b 1
+set SCONS_CACHE_SIZE=200
 
 cd c:\nightly\ohrrpgce
 svn cleanup
