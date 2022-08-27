@@ -233,9 +233,15 @@ DFI_IMPLEMENT_CDECL(int, gfx_setoption, const char* opt, const char* arg)
 		else
 			gfx_SendMessage(OM_GFX_SETSSFORMAT, 0, 0);
 	}
-	else if(::strcmp(opt, "input-debug") == 0)
+	else if(::strcmp(opt, "input-debug") == 0 || ::strcmp(opt, "debug-input") == 0)
 	{
-		input_debug = true;
+		if(*arg == '0')
+		{
+			input_debug = false;  // Only for Ctrl-Shift-I key
+			return 2;
+		}
+		else
+			input_debug = true;
 		return 1;
 	}
 	else

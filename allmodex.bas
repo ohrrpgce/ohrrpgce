@@ -141,6 +141,7 @@ dim faded_to_color as RGBcolor 'If faded_in=NO, the color the screen is faded to
 dim user_toggled_fullscreen as bool = NO
 
 'The -input-debug cmdline option: causes gfx backends to print info about events and other user/OS input
+'(Use set_debugging_io to set)
 dim debugging_io as bool = NO
 
 'Amount of time (in seconds) that the user has been actively using the program. Stops counting if no input
@@ -677,6 +678,14 @@ sub setwindowtitle (title as string)
 	GFX_EXIT
 end sub
 
+local sub set_debugging_io(state as bool)
+	debugging_io = state
+	'sdl/sdl2/fb access the debugging_io global, but gfx_directx does not
+	if gfx_setoption then
+		gfx_setoption(@"input-debug", iif(state, @"1", @"0"))
+	end if
+end sub
+
 function allmodex_setoption(opt as string, arg as string) as integer
 	if opt = "no-native-kbd" then
 		disable_native_text_input = YES
@@ -746,11 +755,7 @@ function allmodex_setoption(opt as string, arg as string) as integer
 		show_mouse_overlay = YES
 		return 1
 	elseif opt = "input-debug" orelse opt = "debug-input" then
-		debugging_io = YES
-		'sdl/sdl2/fb access the debugging_io global, but gfx_directx does not
-		if gfx_setoption then
-			gfx_setoption(cstring(opt), "")  'Ignore result
-		end if
+		set_debugging_io YES
 		return 1
 	elseif opt = "logslow" then
 		log_slow = YES
@@ -3414,6 +3419,12 @@ local sub allmodex_controls()
 		gfx_backend_menu
 	end if
 
+	'Ctrl-Shift-I: toggle IO debug
+	if ctrl > 0 andalso shift > 0 andalso (real_keyval(scI) and 4) then
+		set_debugging_io (debugging_io xor YES)
+		show_overlay_message "Gfx backend/Input debug logging " & onoroff(debugging_io xor YES)
+	end if
+
 	'Ctrl-Shift-N: toggle numpad remapping
 	if ctrl > 0 andalso shift > 0 andalso (real_keyval(scN) and 4) then
 		remap_numpad xor= YES
@@ -3449,6 +3460,7 @@ local sub allmodex_controls()
 	end if
 
 	'This is a pause that doesn't show up in recorded input
+	'Overrides the in-game & in-battle Pause key/screen.
 	if (replay.active or record.active) andalso real_keyval(scPause) > 1 then
 		real_clearkey(scPause)
 		pause_replaying_input

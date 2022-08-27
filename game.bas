@@ -4600,6 +4600,11 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  'This is also handled in allmodex
  IF dbg.def( , , "Record .gif video (Shft/Ctrl-F12)") THEN toggle_recording_gif
 
+ 'Undocumented, in allmodex_controls:
+ 'Ctrl-Tab-F3/F4/F5/F6: crash/halt in various ways
+ 'Ctrl-Shift-I: toggle IO debug
+ 'Ctrl-Shift-N: toggle numpad remapping
+
  IF dbg.def( , scPause, "Pause game (Pause)") THEN
   gam.paused XOR= YES
   IF gam.paused THEN
