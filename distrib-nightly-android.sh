@@ -78,7 +78,7 @@ cd "${SCRIPTDIR}"
 
 # Check if a new nightly build is actually needed. Only if there are new changes
 svn cleanup
-svn update | tee nightly-temp.txt || exit 1
+svn update --trust-server-cert-failures=unknown-ca --non-interactive | tee nightly-temp.txt || exit 1
 UPDATE=`grep "Updated to revision" nightly-temp.txt`
 rm nightly-temp.txt
 if [ "$FORCE" = "true" ] ; then
