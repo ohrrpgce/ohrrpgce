@@ -3411,25 +3411,30 @@ FUNCTION open_document (file_or_url as string) as bool
  #ENDIF
 END FUNCTION
 
-FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as bool = YES) as string
+FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as bool = YES, grab_stderr as bool = NO) as string
  'Run a commandline program in a terminal emulator and wait for it to finish.
- 'WARNING: in general can't check whether it succeeded! Can check the exit code
- 'only on Windows, and don't check stderr anywhere (except gfx_console).
+ 'Returns "" on success, or an error message, or optionally (only Unix only!) both the
+ 'stderr output and exitcode.
+ 'NOTE: you should display the error with visible_debug, because this function doesn't write
+ 'it to the debug log (TODO: change that)
+ 'Use run_and_get_output() instead if stdout or stderr is needed.
  '
  'On Windows the program is run asynchronously and users are offered the option to kill it.
  'On other platforms this is synchronous: we freeze.
- 'You can of course also kill the program on all platforms with Ctrl+C
+ 'You can of course also kill the program on all platforms with Ctrl+C in the terminal.
  '
- 'app should be a path to an executable (not escaped), while args should be escaped as needed.
- 'Returns an error message, or "" if no apparent failure.
- 'If expect_exitcode_0 and the exitcode isn't 0, then returns a failure message.
- 'NOTE: you should display the error with visible_debug, because this function doesn't write
- 'it to the debug log (TODO: change that)
- 'There's no exit code error checking except on Windows. stderr isn't captured anywhere.
- 'Use run_and_get_output() if better error checking is needed. (FIXME: could pipe stderr
- 'to a temp file for better error checking.)
+ '-app:  A path to an executable, not escaped
+ '-args: Should be escaped as needed (with escape_filename) to be passed via a shell
+ '-expect_exitcode_0:
+ '       If true and the exitcode isn't 0, then returns a failure message, otherwise the
+ '       exitcode is ignored.
+ '-grab_stderr:
+ '       (Not supported on Windows) Return stderr appended with the exitcode
+ '       If nothing was printed, return "" according to expect_exitcode_0.
 
- debuginfo "spawn_and_wait " & escape_filename(app) + " " + args
+ debuginfo "spawn_and_wait " + app + " " + args
+
+ DIM appname as string = trimpath(app)
 
  IF gfxbackend = "console" THEN
   CLS
@@ -3441,9 +3446,9 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
   setvispage vpage, NO
   'res is < 0 if there was a problem running it, > 0 is an exit code from the program
   IF res < 0 THEN
-   RETURN "Failed to run " & trimpath(app) & ", errorcode " & res
+   RETURN "Failed to run " & appname & ", errorcode " & res
   ELSEIF res > 0 ANDALSO expect_exitcode_0 THEN
-   RETURN trimpath(app) & " reported failure, errorcode " & res
+   RETURN appname & " reported failure, errorcode " & res
   ELSE
    RETURN ""
   END IF
@@ -3451,7 +3456,7 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
 
 #IFDEF __FB_UNIX__
 
- basic_textbox "Please wait, running " & trimpath(app), uilook(uiText), vpage
+ basic_textbox "Please wait, running " & appname, uilook(uiText), vpage
  setvispage vpage, NO
 
  DIM term_wrap as string
@@ -3471,7 +3476,7 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
  'Generic UNIX: xterm is nearly everywhere (but not installed by default in some linux distros)
  '(TODO: use 'which' to check for xterm and fallback to something else)
  'open_process with show_output=true is only implemented on Windows, so we run sh (via
- 'system()), which runs xterm, which runs sh to run dummyscript, which runs app.  That's a
+ 'system()), which runs xterm, which runs sh to run app_wrap, which runs app.  That's a
  'lot that can go wrong!
 
  IF LEN(find_helper_app("xterm")) = 0 THEN
@@ -3484,31 +3489,69 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
 
  waitforkeyrelease
 
- DIM fh as integer
- DIM dummyscript as string = tmpdir + "dummyscript" & randint(10000) & ".sh"
- fh = FREEFILE
- OPEN dummyscript FOR OUTPUT as #fh
+ DIM randprefix as string = absolute_path(tmpdir) & randint(10000)
+ DIM app_wrap as string = randprefix & "_script.sh"
+ DIM errfile as string = randprefix & "_err.txt"
+ DIM esc_errfile as string = escape_filename(errfile)
+ DIM cmd as string = escape_filename(app) + " " + args
+
+ 'Produce a wrapper script which is run inside the terminal emulator
+ DIM fh as integer = FREEFILE
+ OPEN app_wrap FOR OUTPUT as #fh
  PRINT #fh, "#!/bin/sh"
  PRINT #fh, "cd " & escape_filename(curdir())
  PRINT #fh, "clear"
- PRINT #fh, escape_filename(app) + " " + args
+ IF grab_stderr THEN
+  'Swap stdout and stderr so that (the original) stderr goes to tee
+  '(unfortunately this adds buffering, could use 'stdbuf' to avoid but that
+  'isn't available everywhere, eg macOS), and stdout goes straight to the
+  'terminal, unbuffered. { } is needed to get the exitcode, otherwise $? reports
+  'the exitcode of the final command in the pipeline.
+  PRINT #fh, "{ " + cmd + " 3>&2 2>&1 1>&3; echo exitcode=$? >> " + esc_errfile + "; } | tee " + esc_errfile
+ ELSE
+  PRINT #fh, cmd
+  PRINT #fh, "echo exitcode=$? > " & esc_errfile
+ END IF
  CLOSE #fh
- safe_shell "chmod +x " + escape_filename(dummyscript)
+ safe_shell "chmod +x " + escape_filename(app_wrap)
 
- DIM res as integer = safe_shell(term_wrap + " " + escape_filename(dummyscript))
+ DIM res as integer = safe_shell(term_wrap + " " + escape_filename(app_wrap))
+ DIM ret as string
 
  'res is < 0 if there was a problem forking/waiting, 127 if xterm/Terminal_wrapper.sh wasn't found
  '(in which case an error will probably be printed to our stderr),
- 'while > 0 are exitcodes returned from xterm/Terminal_wrapper.sh, NOT from dummyscript.
+ 'while > 0 are exitcodes returned from xterm/Terminal_wrapper.sh, NOT from app_wrap.
  'xterm prints nothing and returns 0 even if it couldn't run the program!
  'Likewise can't get anything from Terminal.
  IF res THEN
-  RETURN "Could not run a terminal emulator: exitcode " & res
+  ret = "Could not run a terminal emulator: exitcode " & res
+ ELSE
+
+  ret = RTRIM(string_from_file(errfile, NO), ANY !"\n\r ")  'expect_exists=NO
+
+  IF ret = "" THEN
+   'errfile is missing or zero length
+   ret = "Unknown failure to run " & appname
+  ELSEIF starts_with(ret, "exitcode=") THEN
+   'No stderr output
+   IF expect_exitcode_0 THEN
+    IF ret = "exitcode=0" THEN
+     ret = ""
+    ELSE
+     ret = appname & " failed with " & ret
+    END IF
+   ELSE
+    'Ignore exitcode
+    ret = ""
+   END IF
+  ELSE
+   'stderr output. Return as-is, with the exitcode regardless of what it is.
+  END IF
  END IF
 
- safekill dummyscript
- RETURN ""  'Success
-
+ safekill errfile
+ safekill app_wrap
+ RETURN ret
 
 #ELSEIF defined(__FB_WIN32__)
 
@@ -3529,7 +3572,7 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
    cleanup_process @handle
    IF expect_exitcode_0 ANDALSO exitcode <> 0 THEN
     'Error, or the user might have killed the program some other way
-    RETURN trimpath(app) + " reported failure, errorcode " & exitcode
+    RETURN appname & " failed with exitcode=" & exitcode
    END IF
    RETURN ""
   END IF
@@ -3542,7 +3585,7 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
 
   dots = (dots + 1) MOD 5
   DIM msg as string
-  msg = "Please wait, running " & trimpath(app) & rpad(STRING(dots, "."), , 5)
+  msg = "Please wait, running " & appname & rpad(STRING(dots, "."), , 5)
   msg += fgcol_text(!"\nPress ESC to cancel", uilook(uiMenuItem))
   basic_textbox msg, uilook(uiText), vpage
   setvispage vpage

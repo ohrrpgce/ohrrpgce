@@ -2661,6 +2661,7 @@ END FUNCTION
 '
 '(There is a second implementation of this as run_process_and_get_output in os_unix.c
 ' which does't support stderr, but doesn't use temporary files or run the shell)
+'(If you want to SEE the program's output in a terminal emulator, use spawn_and_wait instead)
 FUNCTION run_and_get_output(cmd as string, byref stdout_s as string, byref stderr_s as string = "", log_it as bool = YES) as integer
   DIM ret as integer
   DIM as string stdout_file, stderr_file, cmdline
