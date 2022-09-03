@@ -1148,16 +1148,15 @@ END FUNCTION
 
 FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
  'For running Windows programs only. On Windows run natively, on Linux Unix Mac, try to run with Wine
- 'Currently only needed for installing and running innosetup. Hopefully we won't ever need it for anything else
+ 'Currently only needed for installing and running Innosetup and rcedit (for icons).
+ 'Hopefully we won't ever need it for anything else
  DIM spawn_ret as string
 #IFDEF __FB_WIN32__
  'On Windows this is nice and simple
- debuginfo "spawn_and_wait: " & cmd & " " & args
  RETURN spawn_and_wait(cmd, args)
 #ELSE
  'args is probably insufficiently escaped, but not sure how to fix that
  DIM wine_args as string = escape_filename(cmd) & " " & escape_string(args, "\")
- debuginfo "spawn_and_wait: wine " & cmd & " " & wine_args
  RETURN spawn_and_wait("wine", wine_args)
 #ENDIF
  

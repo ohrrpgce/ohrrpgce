@@ -3411,7 +3411,7 @@ FUNCTION open_document (file_or_url as string) as bool
  #ENDIF
 END FUNCTION
 
-FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as bool = YES, grab_stderr as bool = NO, wait_on_error as bool = NO) as string
+FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as bool = YES, grab_stderr as bool = NO, wait_on_error as bool = YES) as string
  'Run a commandline program in a terminal emulator and wait for it to finish.
  'Returns "" on success, or an error message, or optionally (only Unix only!) both the
  'stderr output and exitcode.
@@ -3853,7 +3853,7 @@ FUNCTION download_file (url as string, destfile as string) as bool
   args = "-N -P " & escape_filename(destdir) & " " & escape_filename(url)
  
   '--Do the download
-  spawn_ret = spawn_and_wait(wget, args, , , YES)
+  spawn_ret = spawn_and_wait(wget, args)
  
   '--Check to see if the download worked
   IF real_isfile(wget_dest) THEN
@@ -3878,7 +3878,7 @@ FUNCTION download_file (url as string, destfile as string) as bool
         " -z " & escape_filename(destfile) & " -L " & escape_filename(url)
 
   '--Do the download
-  spawn_ret = spawn_and_wait(curl, args, , , YES)
+  spawn_ret = spawn_and_wait(curl, args)
 
   '--Check to see if the download worked
   IF LEN(spawn_ret) = 0 THEN RETURN isfile(destfile)

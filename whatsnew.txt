@@ -61,6 +61,8 @@ WHAT IS NEW?
       [James]
     * Distribute Game menu won't redownload the game player if it hasn't changed
       [Ralph]
+    * If a utility like unzip or oggenc reports an error the terminal window
+      stays open so you can read it [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

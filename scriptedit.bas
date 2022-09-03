@@ -659,8 +659,8 @@ FUNCTION compilescripts(fname as string, hsifile as string, quickimport as bool 
  outfile = trimextension(fname) + ".hs"
  safekill outfile
  'Wait for keys: we spawn a command prompt/xterm/Terminal.app, which will be closed when HSpeak exits
- 'HSpeak returns 1 on an error, 2 on a warning, so ignore exit code
- errmsg = spawn_and_wait(hspeak, args & " " & escape_filename(simplify_path_further(fname)), NO)
+ 'HSpeak returns 1 on an error, 2 on a warning, so ignore exit code and don't wait_on_error
+ errmsg = spawn_and_wait(hspeak, args & " " & escape_filename(simplify_path_further(fname)), NO, , NO)
  IF LEN(errmsg) THEN
   IF option_nowait THEN
    PRINT errmsg
