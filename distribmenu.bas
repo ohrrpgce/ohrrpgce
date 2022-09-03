@@ -1774,20 +1774,23 @@ FUNCTION fix_mac_app_executable_bit_on_windows(zipfile as string, exec_path_in_z
  DIM zip_exec as string = find_helper_app("zip_exec", YES)
  IF zip_exec = "" THEN dist_info "ERROR: zip_exec is not available": RETURN NO
 
- DIM spawn_ret as string
- DIM args as string
+ DIM cmd as string
+ cmd = escape_filename(zip_exec) & " " & escape_filename(zipfile) & " " & escape_filename(exec_path_in_zip)
+ 'debug cmd
 
- args = " " & escape_filename(zipfile) & " " & exec_path_in_zip
- 'debug zip_exec & " " & args
- 
- spawn_ret = spawn_and_wait(zip_exec, args)
- 
- IF INSTR(spawn_ret, "error:") THEN dist_info zip_exec & " " & args & !"\n" & spawn_ret : RETURN NO
+ DIM cmd_stdout as string
+ DIM res as integer = run_and_get_output(cmd, cmd_stdout)
+
+ 'zip_exec itself doesn't return an exit code. It prints an error message to stdout
+ IF res ORELSE INSTR(cmd_stdout, "error:") THEN
+  dist_info cmd & !" failed:\n" & cmd_stdout & IIF(res, !"\nexitcode=" & res, "")
+  RETURN NO
+ END IF
 
  RETURN YES
 END FUNCTION
 
-/' This works, but isn't used yet. May not be needed. See comment above.
+/' This works, but isn't used. Won't be needed now that we have zip_exec. See comment above.
 FUNCTION prepare_mac_app_zip(zipfile as string, gamename as string) as bool
  '--Renames OHRRPGCE-Game.app to gamename.app inside a zip file, without extracting it
  DIM unzip as string = find_helper_app("unzip", YES)
