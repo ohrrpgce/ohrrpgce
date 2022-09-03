@@ -145,6 +145,20 @@ end extern
 
 'Declare overloaded versions of each vector function
 #MACRO DECLARE_VECTOR_OF_TYPE(T, TID)
+  DECLARE_VECTOR_OF_TYPE_NOPOP(T, TID)
+
+  'Pops and returns element at 'index', by default the last. Throws a fatal error if out of range.
+  private function v_pop overload (byref this as T vector, byval index as integer = -1) as T
+    if index = -1 then index = v_len(this) - 1
+    dim ret as T = *v_at(this, index)
+    v_delete_slice(this, index, index + 1)
+    return ret
+  end function
+#ENDMACRO
+
+'Use this instead of DECLARE_VECTOR_OF_TYPE if can't return a value of type 'T' (e.g. zstring,
+'or if a necessary copy-constructor is missing)
+#MACRO DECLARE_VECTOR_OF_TYPE_NOPOP(T, TID)
 
   extern "C"
     extern type_table(TID) as TypeTable
@@ -428,7 +442,7 @@ DECLARE_VECTOR_OF_TYPE(integer, integer)
 DECLARE_VECTOR_OF_TYPE(double, double)
 DECLARE_VECTOR_OF_TYPE(string, string)
 DECLARE_VECTOR_OF_TYPE(zstring ptr, zstring_ptr)  'Warning, no deleting, copying or initialisation done (strings assumed to be static)
-DECLARE_VECTOR_OF_TYPE(zstring, zstring)  'Warning, no deleting, copying or initialisation done (strings assumed to be static)
+DECLARE_VECTOR_OF_TYPE_NOPOP(zstring, zstring)  'Warning, no deleting, copying or initialisation done (strings assumed to be static)
 DECLARE_VECTOR_OF_TYPE(any ptr, any_ptr)  'Pointers aren't freed when the vector is
 
 DECLARE_VECTOR_OF_TYPE(integer vector, integer_vector)

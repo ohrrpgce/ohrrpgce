@@ -128,7 +128,7 @@ startTest(emptyString)
 	if arr <> NULL then fail
 endTest
 
-startTest(appendInteger)
+startTest(appendPopInteger)
 	dim arr as integer vector
 	v_new arr
 	v_append arr, 42
@@ -137,11 +137,15 @@ startTest(appendInteger)
 	if @arr[1] <> @(v_last(arr)) then fail
 	if arr[0] <> 42 then fail
 	if arr[1] <> -2 then fail
+	if v_pop(arr) <> -2 then fail
+	if v_len(arr) <> 1 then fail
+	if v_pop(arr) <> 42 then fail
+	if v_len(arr) <> 0 then fail
 	v_free arr
 	if arr <> NULL then fail
 endTest
 
-startTest(appendString)
+startTest(appendPopString)
 	dim arr as string vector
 	v_new arr
 	v_append arr, ""
@@ -150,6 +154,10 @@ startTest(appendString)
 	if arr <> v_end(arr)-2 then fail
 	if arr[0] <> "" then fail
 	if arr[1] <> "foo" then fail
+	if v_pop(arr) <> "foo" then fail
+	if v_len(arr) <> 1 then fail
+	if v_pop(arr) <> "" then fail
+	if v_len(arr) <> 0 then fail
 	v_free arr
 	if arr <> NULL then fail
 endTest
@@ -193,6 +201,8 @@ startTest(findInsertDeleteInteger)
 	assertVector(arr, "[100, 101]")
 	v_shrink arr, -3
 	assertVector(arr, "[100, 101, 0, 0, 0]")
+	if v_pop(arr, 0) <> 100 then fail
+	assertVector(arr, "[101, 0, 0, 0]")
 	v_delete_slice arr, 0, v_len(arr)
 	assertVector(arr, "[]")
 	v_free arr
@@ -278,8 +288,10 @@ startTest(appendTypeA)
 
 	if arr[0].int1 <> 16 then fail
 	if arr[0].d1 <> 3.14159265358979323 then fail
-	if arr[1].int1 <> 17 then fail
-	if arr[1].d1 <> 1.23 then fail
+	dim tempa as TypeA = v_pop(arr, 1)
+	if v_len(arr) <> 2 then fail
+	if tempa.int1 <> 17 then fail
+	if tempa.d1 <> 1.23 then fail
 	v_free arr
 endTest
 
