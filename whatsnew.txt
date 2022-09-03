@@ -59,8 +59,11 @@ WHAT IS NEW?
       max values of each stat [Ralph]
     * Added an option to disable the victory dance animation for specific heroes
       [James]
-    * Distribute Game menu won't redownload the game player if it hasn't changed
-      [Ralph]
+    * If using a stable release, Distribute Game now packages your game with the
+      release you're using, not the latest one. In nightlies, it won't download
+      the latest game players unless you upgrade to a new nightly build of Custom,
+      so you're not distributing with a version you haven't tested.
+      And it won't re-download anything if it hasn't changed. [Ralph]
     * If a utility like unzip or oggenc reports an error the terminal window
       stays open so you can read it [Ralph]
 
@@ -117,8 +120,6 @@ WHAT IS NEW?
       don't count up from 1, in order to fix "slice is valid". (Handles for
       slices in old saves still work) [Ralph]
     * "free slice" on an already freed slice no longer shows a warning [Ralph]
-    * If using a stable release, Distribute Game packages your game with the
-      release you're using, not the latest one [Ralph]
 
   *** Bugfixes
     * Various gfx_sdl2 window size/position/resizing and mouse glitches when

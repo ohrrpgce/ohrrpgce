@@ -14,6 +14,7 @@
 #include "cglobals.bi"
 #include "uiconst.bi"
 #include "scrconst.bi"
+#include "vbcompat.bi"  'DATESERIAL, NOW
 
 DECLARE SUB distribute_game_as_zip (dest_override as string = "")
 DECLARE SUB distribute_game_as_windows_installer (dest_override as string = "")
@@ -21,6 +22,8 @@ DECLARE SUB distribute_game_as_linux_tarball (which_arch as string, dest_overrid
 DECLARE FUNCTION get_windows_gameplayer() as string
 DECLARE FUNCTION get_linux_gameplayer(which_arch as string) as string
 DECLARE FUNCTION get_mac_gameplayer(which_arch as string) as string
+DECLARE FUNCTION agreed_to_download(agree_file as string, description as string) as bool
+DECLARE FUNCTION download_gameplayer_if_needed(url as string, destfile as string, agree_filename as string, description as string) as bool
 DECLARE FUNCTION sanity_check_buildinfo(buildinfo_file as string) as bool
 DECLARE FUNCTION find_or_download_innosetup () as string
 DECLARE FUNCTION find_innosetup () as string
@@ -794,23 +797,11 @@ FUNCTION get_windows_gameplayer() as string
   dlfile = "ohrrpgce-player-win-sdl2" & version_release_tag & ".zip"
   url = "http://hamsterrepublic.com/ohrrpgce/archive/" & dlfile
  END IF
- 
- '--Ask the user for permission the first time we download (subsequent updates don't ask)
- IF NOT isfile(dldir & SLASH & "win.download.agree") THEN
-  IF dist_yesno("Is it okay to download the Windows version of OHRRPGCE game.exe from HamsterRepublic.com now?") = NO THEN RETURN ""
-  touchfile dldir & SLASH & "win.download.agree"
- END IF
- 
- IF version_branch = "wip" THEN
-  dist_info "The latest nightly WIP version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
- END IF
 
  DIM destzip as string = dldir & SLASH & dlfile
- download_file url, destzip
- '--Continue if download failed but have an old file
- IF NOT isfile(destzip) THEN
-  dist_info "ERROR: Failed to download game.exe" : RETURN ""
- END IF
+
+ '--Prompt & download if missing or out of date
+ IF NOT download_gameplayer_if_needed(url, destzip, "win.download.agree", "the Windows OHRRPGCE game player") THEN RETURN ""
  
  '--Find the unzip tool
  DIM unzip as string = find_helper_app("unzip", YES)
@@ -920,22 +911,10 @@ END SELECT
   url = "http://hamsterrepublic.com/ohrrpgce/archive/" & dlfile
  END IF
 
- '--Ask the user for permission the first time we download (subsequent updates don't ask)
- IF NOT isfile(dldir & SLASH & "linux.download.agree") THEN
-  IF dist_yesno("Is it okay to download the Linux version of OHRRPGCE ohrrpgce-game from HamsterRepublic.com now?") = NO THEN RETURN ""
-  touchfile dldir & SLASH & "linux.download.agree"
- END IF
-
- IF version_branch = "wip" THEN
-  dist_info "The latest nightly WIP version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
- END IF
-
  DIM destzip as string = dldir & SLASH & dlfile
- download_file url, destzip
- '--Continue if download failed but have an old file
- IF NOT isfile(destzip) THEN
-  dist_info "ERROR: Failed to download Linux" & arch_suffix & " ohrrpgce-game" : RETURN ""
- END IF
+
+ '--Prompt & download if missing or out of date
+ IF NOT download_gameplayer_if_needed(url, destzip, "linux.download.agree", "the Linux OHRRPGCE game player") THEN RETURN ""
  
  '--Find the unzip tool
  DIM unzip as string = find_helper_app("unzip", YES)
@@ -1871,21 +1850,8 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
  DIM destgz as string = dldir & SLASH & dlfile
  DIM desttar as string = trimextension(destgz)
 
- '--Ask the user for permission the first time we download (subsequent updates don't ask)
- IF NOT isfile(dldir & SLASH & "mac.download.agree") THEN
-  IF dist_yesno("Is it okay to download the Mac OS X version of OHRRPGCE from HamsterRepublic.com now?") = NO THEN RETURN ""
-  touchfile dldir & SLASH & "mac.download.agree"
- END IF
-
- IF version_branch = "wip" THEN
-  dist_info "The latest nightly WIP version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
- END IF
-
- download_file url, destgz
- '--Continue if download failed but have an old copy
- IF NOT isfile(destgz) THEN
-  dist_info "ERROR: Failed to download Mac OHRRPGCE" : RETURN ""
- END IF
+ '--Prompt & download if missing or out of date
+ IF NOT download_gameplayer_if_needed(url, destgz, "mac.download.agree", "the Mac OHRRPGCE game player") THEN RETURN ""
 
  '--remove the old uncompressed files
  safekill dldir & SLASH & "LICENSE-binary.txt"
@@ -2056,6 +2022,101 @@ SUB auto_export_distribs (distrib_type as string)
  auto_choose_default = NO
 END SUB
 
+/'
+'Ask whether to download the latest version of a file if it's been days_per_check since the last prompt
+FUNCTION occasionally_prompt_to_download(destfile as string, description as string)
+ DIM last_check_key as string = "downloads.last_check." & trimpath(destfile)
+
+ DIM check_interval as integer = read_config_int("downloads.days_per_check", 7)
+ DIM last_check as double = VAL(read_config_str(last_check_key))  '0.0 if invalid
+ DIM old_mtime as double = FILEDATETIME(destfile)
+ last_check = large(last_check, old_mtime)
+ IF last_check + check_interval < NOW THEN
+  RETURN dist_yesno("You are running " & short_version & !"\n" & _
+                    "You have a " & description & " from " & format_date(old_mtime) & !"\n" & _
+                    "Do you want to download the latest " & description & "?", _
+                    NO, NO)
+ END IF
+ RETURN NO
+END FUNCTION
+'/
+
+'Ask the user for permission the first time we download (subsequent updates don't ask)
+FUNCTION agreed_to_download(agree_file as string, description as string) as bool
+ IF NOT isfile(agree_file) THEN
+  IF dist_yesno("Is it okay to download " & description & " now?") = NO THEN RETURN NO
+  touchfile agree_file
+ END IF
+ RETURN YES
+END FUNCTION
+
+'Download a game player package, with appropriate prompts.
+'For 'wip' versions, downloads a new nightly build if destfile is older than
+'Custom, otherwise downloads only if missing.
+'Returns true if we have destfile and it's either up-to-date or the user agreed
+'to use an older copy.
+FUNCTION download_gameplayer_if_needed(url as string, destfile as string, agree_filename as string, description as string) as bool
+ DIM dldir as string = settings_dir & SLASH & "_gameplayer"
+ DIM as double old_mtime, new_mtime
+ DIM download as bool = NO
+
+ IF isfile(destfile) = NO THEN
+  download = YES
+ ELSEIF version_branch = "wip" THEN
+  'We could extract buildinfo.ini from the archive instead of using the mtime,
+  'but both wget and curl should set the mtime to match the original mtime on
+  'the server, so this should work.  Just not sure about timezones...
+  'but since we don't include the time this should download if the archive is from yesterday.
+  old_mtime = FILEDATETIME(destfile)
+
+  'Could also use FILEDATETIME(EXEPATH) instead of version_date
+  DIM builddate as double = DATESERIAL(version_date \ 10000, (version_date \ 100) MOD 100, version_date MOD 100)
+
+  debuginfo trimpath(destfile) & " mtime " & format_date(old_mtime)
+  debuginfo "Custom version_date " & format_date(builddate)
+  debuginfo CUSTOMEXE & " mtime " & format_date(FILEDATETIME(EXEPATH))
+
+  'Always download if older than Custom
+  IF old_mtime < builddate THEN download = YES
+ END IF
+
+ IF download THEN
+  'Ask for permission the first time we download
+  IF agreed_to_download(dldir & SLASH & agree_filename, description & " from HamsterRepublic.com") = NO THEN RETURN NO
+
+  IF version_branch = "wip" THEN
+   dist_info "The latest nightly WIP version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
+  END IF
+
+  IF download_file(url, destfile) = NO THEN
+   IF isfile(destfile) THEN
+    'A previous download, which hasn't been replaced.
+    'This should only happen when downloading a nightly build
+    RETURN dist_yesno(!"Downloading the latest version failed.\n" & _
+                      "You are running " & short_version & !"\n" & _
+                      "You still have " & description & " from " & FORMAT(old_mtime, "yyyy-mm-dd") & !" (" & version_branch & !")\n" & _
+                      "Continue with this old version?", _
+                      NO, NO)
+   ELSE
+    RETURN NO
+   END IF
+  END IF
+ END IF
+
+ IF isfile(destfile) THEN
+  'Log that we've used this file, so that we can cleanup the least recently used
+  'downloads (TODO: not implemented yes) which are the top-most files in the
+  '.ini due to using shuffle_to_end=YES
+  write_ini_prefixed_str(dldir & SLASH & "lastused.ini", trimpath(destfile), STR(NOW), YES, YES)
+
+  new_mtime = FILEDATETIME(destfile)
+  debuginfo destfile & " mtime after download " & format_date(new_mtime)
+
+  RETURN YES
+ END IF
+END FUNCTION
+
+
 CONST itchmenuEXIT as integer = 1
 CONST itchmenuUSER as integer = 2
 CONST itchmenuUPLOAD as integer = 3
@@ -2199,10 +2260,7 @@ FUNCTION itch_butler_download() as bool
 
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
  DIM agree_file as string = get_support_dir() & SLASH & "itch.butler.download.agree"
- IF NOT isfile(agree_file) THEN
-  IF dist_yesno("Is it okay to download the itch.io butler tool?") = NO THEN RETURN NO
-  touchfile agree_file
- END IF
+ IF agreed_to_download(agree_file, "the itch.io butler tool") = NO THEN RETURN NO
  
  DIM destzip as string = get_support_dir() & SLASH & "butler.zip"
  '--Actually download the dang file
