@@ -3745,7 +3745,7 @@ FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, dow
    ' Don't do this if we require a specific version, because we won't know (presumably there won't be a version.txt)
    ' Prepend a _ because if its args are blank echo prints "ECHO ON."
    run_and_get_output "for %X in (" & appname & ".exe) do echo _%~$PATH:X", ret, , NO 'disable debuginfo spam
-   ret = RTRIM(ret, ANY !"\n\r")
+   ret = RTRIM(ret, ANY !"\n\r ")
    IF LEN(ret) > 1 THEN RETURN MID(ret, 2)  ' Trim the _.
   END IF
  #ENDIF
