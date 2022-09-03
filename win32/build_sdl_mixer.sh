@@ -9,6 +9,8 @@
 # Note that there are many comments about the build configuration in
 # src/sdl[2]_mixer_ohrrpgce.mk in mxe.
 
+set -e
+
 MXEDIR=${MXEDIR:-~/src/mxe}
 OHRDIR=$(dirname "$(realpath -s "$0")")/..
 
@@ -17,9 +19,9 @@ build() {
     SDL=$2
     SDL_PKG=$3
 
-    cd $MXEDIR || exit 1
+    cd $MXEDIR
 
-    STATIC_DIR=usr/i686-w64-mingw32.static
+    STATIC_DIR=usr/i686-w64-mingw32.static.win32
     SHARED_DIR=usr/i686-w64-mingw32.shared
 
     if [ ! -f $STATIC_DIR/lib/lib$SDL.la ] || grep -q "dlname=''" $STATIC_DIR/lib/lib$SDL.la; then
@@ -40,13 +42,14 @@ build() {
             echo "Downloading prebuilt SDL library"
 
             if [ ! -f pkg/${SDL_PKG} ]; then
-                wget https://www.libsdl.org/release/${SDL_PKG} -O pkg/${SDL_PKG} || exit 1
+                wget https://www.libsdl.org/release/${SDL_PKG} -O pkg/${SDL_PKG}
             fi
-            mkdir -p sdltmp && \
-            tar xf pkg/${SDL_PKG} -C sdltmp && \
-            cp -a sdltmp/SDL*/lib/*  $STATIC_DIR/lib/  && \
-            cp -a sdltmp/SDL*/bin/* $STATIC_DIR/bin/  && \
-            cp -ar sdltmp/SDL*/include/* $STATIC_DIR/include/  || exit 1
+            mkdir -p sdltmp
+            tar xf pkg/${SDL_PKG} -C sdltmp
+            mkdir -p $STATIC_DIR/lib $STATIC_DIR/bin $STATIC_DIR/include
+            cp -a sdltmp/SDL*/lib/*  $STATIC_DIR/lib/
+            cp -a sdltmp/SDL*/bin/* $STATIC_DIR/bin/
+            cp -ar sdltmp/SDL*/include/* $STATIC_DIR/include/
             rm -rf sdltmp
         # fi
 
@@ -62,7 +65,10 @@ build() {
         fi
     fi
 
-    make MXE_TARGETS=i686-w64-mingw32.static $SCRIPT || exit 1
+    # Use win32 instead of posix threads (winpthreads library) for Win 95 support.
+    # If you haven't build the actual mxe 'sdl' target then the testcase can't compile due to
+    # missing the sdl.pc pkg-config script, so SKIP_TEST.
+    make MXE_TARGETS=i686-w64-mingw32.static.win32 SKIP_TEST=1 $SCRIPT
     DLL=$STATIC_DIR/bin/${SDL}_mixer.dll
     if ! objdump -x $DLL | grep -q "$SDL\.dll"; then
         echo "$DLL seems to be statically linked to $SDL. This shouldn't have happened!"
@@ -76,7 +82,7 @@ build() {
 
     cd $OHRDIR
     # Produces SDL_mixer.pdb and strips SDL_mixer.dll
-    WINEDEBUG=fixme-all wine support/cv2pdb.exe ${SDL}_mixer.dll ${SDL}_mixer.dll || exit 1
+    WINEDEBUG=fixme-all wine support/cv2pdb.exe ${SDL}_mixer.dll ${SDL}_mixer.dll
     mv ${SDL}_mixer.pdb win32
 }
 
