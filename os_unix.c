@@ -907,6 +907,7 @@ int checked_system(const char* cmdline) {
 //aside from passing to cleanup_process (which you should do).
 //program is an unescaped path. Any paths in the arguments should be escaped
 //show_output: Unix: does nothing. The process's stdout/stderr always goes to our stdout/stderr.
+//           Use spawn_and_wait (in common.rbas) instead to open a terminal emulator.
 //           Windows: if true, displays a console for commandline programs, or output to our console
 //           if we're a commandline process. If false, the output of the program goes nowhere.
 //waitable is true if you want cleanup_process to wait for the command to finish (ignored on
@@ -958,8 +959,9 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable,
 // The process name and args should be escaped if needed (with escape_filename).
 // Returns -1 if there's an error running or fetching the output. Otherwise returns the exit code of the program.
 // Anything written to stderr by the program goes to our stderr.
-// Not used: functionally identical to run_process_and_get_output in util.bas, with no
-// apparent advantages to this version, which can't pipe multiple programs,
+// Not used: functionally identical to run_and_get_output in util.bas, except
+// this version doesn't capture stderr. There are no apparent advantages
+// to this version, which can't pipe multiple programs,
 // and there is no Windows implementation of this function.
 int run_process_and_get_output(FBSTRING *program, FBSTRING *args, FBSTRING *output) {
 #ifdef __ANDROID__

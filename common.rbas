@@ -3425,6 +3425,9 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
  'If expect_exitcode_0 and the exitcode isn't 0, then returns a failure message.
  'NOTE: you should display the error with visible_debug, because this function doesn't write
  'it to the debug log (TODO: change that)
+ 'There's no exit code error checking except on Windows. stderr isn't captured anywhere.
+ 'Use run_and_get_output() if better error checking is needed. (FIXME: could pipe stderr
+ 'to a temp file for better error checking.)
 
  debuginfo "spawn_and_wait " & escape_filename(app) + " " + args
 
@@ -3446,17 +3449,38 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
   END IF
  END IF
 
-#IF defined(__FB_DARWIN__)
+#IFDEF __FB_UNIX__
 
  basic_textbox "Please wait, running " & trimpath(app), uilook(uiText), vpage
  setvispage vpage, NO
+
+ DIM term_wrap as string
+
+#IFDEF __FB_DARWIN__
 
  'Wow that's a crazy amount of indirection!
  'Running Terminal.app is the only way to get a terminal, but 'open' is for opening a file with an application only,
  'so we use an AppleScript script embedded in Terminal_wrapper.sh to run HSpeak
 
- DIM term_wrap as string = find_helper_app("Terminal_wrapper.sh")
+ term_wrap = find_helper_app("Terminal_wrapper.sh")
  IF term_wrap = "" THEN RETURN missing_helper_message("Terminal_wrapper.sh")
+ term_wrap = escape_filename(term_wrap)
+
+#ELSE
+
+ 'Generic UNIX: xterm is nearly everywhere (but not installed by default in some linux distros)
+ '(TODO: use 'which' to check for xterm and fallback to something else)
+ 'open_process with show_output=true is only implemented on Windows, so we run sh (via
+ 'system()), which runs xterm, which runs sh to run dummyscript, which runs app.  That's a
+ 'lot that can go wrong!
+
+ IF LEN(find_helper_app("xterm")) = 0 THEN
+  RETURN "Could not continue because xterm is not installed, please install it. For example run 'yum install xterm' or 'apt-get install xterm'."
+ END IF
+
+ term_wrap = "xterm -bg black -fg gray90 -e"
+
+#ENDIF
 
  waitforkeyrelease
 
@@ -3470,9 +3494,21 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
  PRINT #fh, escape_filename(app) + " " + args
  CLOSE #fh
  safe_shell "chmod +x " + escape_filename(dummyscript)
- safe_shell escape_filename(term_wrap) + " " + escape_filename(dummyscript)
+
+ DIM res as integer = safe_shell(term_wrap + " " + escape_filename(dummyscript))
+
+ 'res is < 0 if there was a problem forking/waiting, 127 if xterm/Terminal_wrapper.sh wasn't found
+ '(in which case an error will probably be printed to our stderr),
+ 'while > 0 are exitcodes returned from xterm/Terminal_wrapper.sh, NOT from dummyscript.
+ 'xterm prints nothing and returns 0 even if it couldn't run the program!
+ 'Likewise can't get anything from Terminal.
+ IF res THEN
+  RETURN "Could not run a terminal emulator: exitcode " & res
+ END IF
+
  safekill dummyscript
- RETURN ""
+ RETURN ""  'Success
+
 
 #ELSEIF defined(__FB_WIN32__)
 
@@ -3513,34 +3549,6 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
 
   dowait
  LOOP
-
-#ELSE
-
- 'Generic UNIX: xterm is nearly everywhere (but not installed by default in some linux distros)
- 'os_* process handling functions only currently implemented on Windows
- 'We run run_and_get_output which runs sh (via system()), which runs xterm, which runs app.
- 'That's a lot that can go wrong!
-
- IF LEN(find_helper_app("xterm")) = 0 THEN
-  RETURN "Could not continue because xterm is not installed, please install it. For example run 'yum install xterm' or 'apt-get install xterm'."
- END IF
-
- waitforkeyrelease
-
- DIM cmd as string, outbuffer as string, stderr_s as string
- cmd = "xterm -bg black -fg gray90 -e """ & escape_string(escape_filename(app) & " " & args, """\") & """"
- ' Capture stdout and stderr (Why?! It's from xterm, not the program, and xterm
- ' prints nothing even if it couldn't run the program!)
- DIM res as integer = run_and_get_output(cmd, outbuffer, stderr_s)
- 'res is < 0 if there was a problem running xterm, while > 0 are exitcodes returned from xterm,
- 'NOT from the program. There's no way to get xterm to report the program's exitcode :(
- 'outbuffer and stderr_s will probably be blank.
- IF res THEN
-  IF LEN(outbuffer) = 0 THEN outbuffer = "Error code " & res
-  RETURN "Could not run " & app & !":\n" & outbuffer & " " & stderr_s
- END IF
-
- RETURN ""  'Success
 
 #ENDIF
 
