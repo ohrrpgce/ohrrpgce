@@ -8498,6 +8498,7 @@ FUNCTION read_config_bool (key as zstring ptr, default as bool=NO) as bool
 END FUNCTION
 
 'Overwrite or (only if force_write) append a line to an .ini file. Returns true if wrote.
+'(If shuffle_to_end is true, moves the modified line to the end.)
 'Almost-drop-in replacement for write_ini_value which is compatible with read_config_*:
 'if there's more-specific setting prefixed with game. or edit., it gets overwritten.
 'If there is a less-specific setting (e.g. gfx.fullscreen if we're writing game.gfx.fullscreen,
@@ -8505,7 +8506,7 @@ END FUNCTION
 'the value we write.
 '(One difference from write_ini_value: only replaces the first match, not all of them)
 'uses the same prefix-matching
-FUNCTION write_ini_prefixed_str(filename as string, key as zstring ptr, value as zstring ptr, force_write as bool = YES) as bool
+FUNCTION write_ini_prefixed_str(filename as string, key as zstring ptr, value as zstring ptr, force_write as bool = YES, shuffle_to_end as bool = NO) as bool
  REDIM ini(-1 TO -1) as string
  IF real_isfile(filename) THEN
   lines_from_file ini(), filename
@@ -8517,6 +8518,10 @@ FUNCTION write_ini_prefixed_str(filename as string, key as zstring ptr, value as
  DIM linenum as integer
  read_ini_prefixed_str(ini(), key, , linenum)
  IF linenum <> -1 THEN  'Matched
+  IF shuffle_to_end THEN
+   a_shuffle_to_end ini(), linenum
+   linenum = UBOUND(ini)
+  END IF
   ini(linenum) = LEFT(ini(linenum), INSTR(ini(linenum), "=")) + " " + *value
   'debug filename & ": overwriting " & ini(linenum)
   ret = YES
@@ -8525,6 +8530,24 @@ FUNCTION write_ini_prefixed_str(filename as string, key as zstring ptr, value as
   'debug filename & ": appending " & ini(ubound(ini))
   ret = YES
  END IF
+ IF ret THEN lines_to_file ini(), filename, LINE_END
+ RETURN ret
+END FUNCTION
+
+'Remove all lines from an .ini file matching key, including prefixed matched like read_config_str finds.
+'Returns true if removed at least one line.
+FUNCTION remove_ini_prefixed_str(filename as string, key as zstring ptr) as bool
+ REDIM ini(-1 TO -1) as string
+ IF lines_from_file(ini(), filename, NO) = NO THEN RETURN NO  'expect_exists=NO
+
+ DIM linenum as integer
+ DIM ret as bool
+ DO
+  read_ini_prefixed_str(ini(), key, , linenum)
+  IF linenum = -1 THEN EXIT DO
+  a_pop ini(), linenum
+  ret = YES
+ LOOP
  IF ret THEN lines_to_file ini(), filename, LINE_END
  RETURN ret
 END FUNCTION

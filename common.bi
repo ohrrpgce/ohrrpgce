@@ -426,6 +426,7 @@ DECLARE FUNCTION read_config_str (key as zstring ptr, default as zstring ptr=@""
 DECLARE FUNCTION read_config_int (key as zstring ptr, default as integer=0) as integer
 DECLARE FUNCTION read_config_bool (key as zstring ptr, default as bool=NO) as bool
 DECLARE FUNCTION write_ini_prefixed_str (filename as string, key as zstring ptr, value as zstring ptr, force_write as bool = YES, shuffle_to_end as bool = NO) as bool
+DECLARE FUNCTION remove_ini_prefixed_str(filename as string, key as zstring ptr) as bool
 DECLARE SUB write_config OVERLOAD (key as zstring ptr, value as string)
 DECLARE SUB write_config OVERLOAD (key as zstring ptr, value as integer)
 DECLARE SUB write_config OVERLOAD (key as zstring ptr, value as double)
