@@ -2624,7 +2624,7 @@ FUNCTION url_hostname (url as string) as string
   RETURN ret
 END FUNCTION
 
-'This is a replacement for SHELL, meaning it runs invokes a command interpreter like
+'This is a replacement for SHELL, meaning it invokes a command interpreter like
 'cmd.exe instead of just running a program, and the standard search paths are searched,
 'don't need to get a full path.
 'Unlike SHELL on Windows, it doesn't pop up a terminal window.

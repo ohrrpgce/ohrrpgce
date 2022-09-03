@@ -1094,7 +1094,8 @@ end function
 
 'Returns 0 on failure.
 'If successful, you should call cleanup_process with the handle after you don't need it any longer.
-'This is currently designed for asynchronously running console applications.
+'This is currently designed for asynchronously running console applications,
+'searching for it in the standard search paths.
 'On Windows it displays a visible console window, on Unix it doesn't.
 'Could be generalised in future as needed.
 function open_console_process (program as string, args as string) as ProcessHandle
@@ -1110,7 +1111,10 @@ function open_console_process (program as string, args as string) as ProcessHand
 	sinfo.dwY = 5
 
 	dim pinfop as ProcessHandle = Callocate(sizeof(PROCESS_INFORMATION))
-	if CreateProcess(strptr(program), strptr(argstemp), NULL, NULL, 0, flags, NULL, NULL, @sinfo, pinfop) = 0 then
+	'Passing NULL as lpApplicationName causes the first quote-delimited
+	'token in argstemp to be used, and to search for the program in standard
+	'paths. If lpApplicationName is provided then searching doesn't happen.
+	if CreateProcess(NULL, strptr(argstemp), NULL, NULL, 0, flags, NULL, NULL, @sinfo, pinfop) = 0 then
 		dim errstr as string = *win_error_str()
 		debug "CreateProcess(" & program & ", " & args & ") failed: " & errstr
 		Deallocate(pinfop)
