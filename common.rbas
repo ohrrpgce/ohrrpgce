@@ -3703,6 +3703,9 @@ FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, dow
  ELSEIF appname = "rcedit" THEN
   need_version = 10101
   need_version_text = "1.1.1"
+ ELSEIF appname = "gzip" THEN
+  need_version = 10312
+  need_version_text = "1.3.12"  'Actually 1.3.12-1
  END IF
 
  DIM have_version as integer

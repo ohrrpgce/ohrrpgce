@@ -1540,6 +1540,7 @@ FUNCTION gunzip_file (filename as string) as bool
  IF gzip = "" THEN dist_info "ERROR: gzip is not available": RETURN NO
  
  DIM args as string
+ 'Note, the gzip.exe we ship originally shipped didn't support -k. Version 1.3.12-1 does.
  args = " -d -f -k " & escape_filename(filename)
  DIM spawn_ret as string
  spawn_ret = spawn_and_wait(gzip, args)
