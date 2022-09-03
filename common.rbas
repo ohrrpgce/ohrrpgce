@@ -8464,29 +8464,29 @@ END SUB
 FUNCTION read_config_str (key as zstring ptr, default as zstring ptr=@"") as string
  IF game_config_file <> "" THEN
   'Settings in the game's .ini file override others
-  DIM ret as string = read_ini_prefixed_str(game_config_file, *key, CHR(0))
+  DIM ret as string = read_ini_prefixed_str(game_config_file, key, @!"\0")
   IF ret <> CHR(0) THEN RETURN ret
  END IF
- RETURN read_ini_prefixed_str(global_config_file, *key, *default)
+ RETURN read_ini_prefixed_str(global_config_file, key, default)
 END FUNCTION
 
 'See read_config_str
 'Optionally returns the line number (0-indexed) on which the match was found in linenum, or else -1.
-FUNCTION read_ini_prefixed_str (filename as string, key as string, default as string="", byref linenum as integer=0) as string
+FUNCTION read_ini_prefixed_str (filename as string, key as zstring ptr, default as zstring ptr=@"", byref linenum as integer=0) as string
  REDIM ini(-1 TO -1) as string
- IF real_isfile(filename) = NO THEN RETURN default
+ IF real_isfile(filename) = NO THEN RETURN *default
  lines_from_file ini(), filename
  RETURN read_ini_prefixed_str(ini(), key, default, linenum)
 END FUNCTION
 
-FUNCTION read_ini_prefixed_str (ini() as string, key as string, default as string="", byref linenum as integer=0) as string
+FUNCTION read_ini_prefixed_str (ini() as string, key as zstring ptr, default as zstring ptr=@"", byref linenum as integer=0) as string
  'First check for setting prefixed with game. or edit.
  '(Normally you wouldn't prepend exe_prefix, but it does happen when called
  'from write_ini_prefixed_str.  No harm if we double-prefix it here.)
- DIM ret as string = read_ini_str(ini(), exe_prefix & key, default, linenum)
+ DIM ret as string = read_ini_str(ini(), exe_prefix & *key, *default, linenum)
  IF linenum <> -1 THEN RETURN ret
  'Otherwise check for key exactly as specified
- RETURN read_ini_str(ini(), key, default, linenum)
+ RETURN read_ini_str(ini(), *key, *default, linenum)
 END FUNCTION
 
 FUNCTION read_config_int (key as zstring ptr, default as integer=0) as integer
@@ -8505,7 +8505,7 @@ END FUNCTION
 'the value we write.
 '(One difference from write_ini_value: only replaces the first match, not all of them)
 'uses the same prefix-matching
-FUNCTION write_ini_prefixed_str(filename as string, key as string, value as string, force_write as bool = YES) as bool
+FUNCTION write_ini_prefixed_str(filename as string, key as zstring ptr, value as zstring ptr, force_write as bool = YES) as bool
  REDIM ini(-1 TO -1) as string
  IF real_isfile(filename) THEN
   lines_from_file ini(), filename
@@ -8517,11 +8517,11 @@ FUNCTION write_ini_prefixed_str(filename as string, key as string, value as stri
  DIM linenum as integer
  read_ini_prefixed_str(ini(), key, , linenum)
  IF linenum <> -1 THEN  'Matched
-  ini(linenum) = LEFT(ini(linenum), INSTR(ini(linenum), "=")) + " " + value
+  ini(linenum) = LEFT(ini(linenum), INSTR(ini(linenum), "=")) + " " + *value
   'debug filename & ": overwriting " & ini(linenum)
   ret = YES
  ELSEIF force_write THEN
-  a_append ini(), key & " = " & value
+  a_append ini(), *key + " = " + *value
   'debug filename & ": appending " & ini(ubound(ini))
   ret = YES
  END IF
