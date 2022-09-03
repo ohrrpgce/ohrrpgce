@@ -1853,21 +1853,22 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
  '--Prompt & download if missing or out of date
  IF NOT download_gameplayer_if_needed(url, destgz, "mac.download.agree", "the Mac OHRRPGCE game player") THEN RETURN ""
 
+ DIM game_app as string = dldir & SLASH & "OHRRPGCE-Game.app"
+
  '--remove the old uncompressed files
  safekill dldir & SLASH & "LICENSE-binary.txt"
- killdir dldir & SLASH & "OHRRPGCE-Game.app", YES
+ IF isdir(game_app) THEN killdir game_app, YES
  
  '--Untar the desired files
  IF gunzip_file(destgz) = NO THEN RETURN ""
  IF extract_tarball(dldir, desttar, "OHRRPGCE-Game.app buildinfo.ini LICENSE-binary.txt") = NO THEN RETURN ""
  
- IF NOT isdir(dldir & SLASH & "OHRRPGCE-Game.app")   THEN dist_info "ERROR: Failed to untar OHRRPGCE-Game.app" : RETURN ""
- IF NOT isfile(dldir & SLASH & "OHRRPGCE-Game.app" & SLASH & "Contents" & SLASH & "MacOS" & SLASH & "ohrrpgce-game")   THEN dist_info "ERROR: Failed to completely untar OHRRPGCE-Game.app" : RETURN ""
+ IF NOT isdir(game_app) THEN dist_info "ERROR: Failed to untar OHRRPGCE-Game.app" : RETURN ""
+ IF NOT isfile(game_app & SLASH & "Contents" & SLASH & "MacOS" & SLASH & "ohrrpgce-game")   THEN dist_info "ERROR: Failed to completely untar OHRRPGCE-Game.app" : RETURN ""
  IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to untar LICENSE-binary.txt" : RETURN ""
  IF sanity_check_buildinfo(dldir & SLASH & "buildinfo.ini") THEN RETURN ""
  
- RETURN dldir & SLASH & "OHRRPGCE-Game.app"
-
+ RETURN game_app
 END FUNCTION
 
 SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")

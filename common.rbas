@@ -3492,7 +3492,7 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
 
  waitforkeyrelease
 
- DIM randprefix as string = absolute_path(tmpdir) & randint(10000)
+ DIM randprefix as string = absolute_path(tmpdir) & "temp" & randint(10000)
  DIM app_wrap as string = randprefix & "_script.sh"
  DIM errfile as string = randprefix & "_err.txt"
  DIM esc_errfile as string = escape_filename(errfile)
@@ -3522,7 +3522,7 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
   PRINT #fh, "if [ ""$EXITC"" != 0 ]; then echo ""Press ENTER to continue...""; read; fi"
  END IF
  CLOSE #fh
- safe_shell "chmod +x " + escape_filename(app_wrap)
+ safe_shell "chmod +x " + escape_filename(app_wrap), , NO  'log_it = NO
 
  DIM res as integer = safe_shell(term_wrap + " " + escape_filename(app_wrap))
  DIM ret as string
