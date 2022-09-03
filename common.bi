@@ -224,7 +224,7 @@ DECLARE SUB playsongnum (byval songnum as integer)
 
 DECLARE FUNCTION open_document (url as string) as bool
 #DEFINE open_url open_document
-DECLARE FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as bool = YES, grab_stderr as bool = NO) as string
+DECLARE FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as bool = YES, grab_stderr as bool = NO, wait_on_error as bool = NO) as string
 DECLARE FUNCTION get_support_dir (create_dir as bool = YES) as string
 DECLARE FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, download_url as zstring ptr=@"") as string
 DECLARE FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string

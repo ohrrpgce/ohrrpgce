@@ -3411,7 +3411,7 @@ FUNCTION open_document (file_or_url as string) as bool
  #ENDIF
 END FUNCTION
 
-FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as bool = YES, grab_stderr as bool = NO) as string
+FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as bool = YES, grab_stderr as bool = NO, wait_on_error as bool = NO) as string
  'Run a commandline program in a terminal emulator and wait for it to finish.
  'Returns "" on success, or an error message, or optionally (only Unix only!) both the
  'stderr output and exitcode.
@@ -3431,6 +3431,9 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
  '-grab_stderr:
  '       (Not supported on Windows) Return stderr appended with the exitcode
  '       If nothing was printed, return "" according to expect_exitcode_0.
+ '-wait_on_error:
+ '       If the exitcode is nonzero then pause and wait for the user to press a key before
+ '       closing the terminal. Not supported on Windows 9x.
 
  debuginfo "spawn_and_wait " + app + " " + args
 
@@ -3507,10 +3510,16 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
   'isn't available everywhere, eg macOS), and stdout goes straight to the
   'terminal, unbuffered. { } is needed to get the exitcode, otherwise $? reports
   'the exitcode of the final command in the pipeline.
-  PRINT #fh, "{ " + cmd + " 3>&2 2>&1 1>&3; echo exitcode=$? >> " + esc_errfile + "; } | tee " + esc_errfile
+  PRINT #fh, "{ " + cmd + " 3>&2 2>&1 1>&3; EXITC=$?; echo exitcode=$EXITC >> " + esc_errfile + "; } | tee " + esc_errfile
  ELSE
   PRINT #fh, cmd
-  PRINT #fh, "echo exitcode=$? > " & esc_errfile
+  PRINT #fh, "EXITC=$?"
+  PRINT #fh, "echo exitcode=$EXITC > " & esc_errfile
+  PRINT #fh, "echo exit $EXITC"
+ END IF
+ IF wait_on_error THEN
+  'read -p is a bashism
+  PRINT #fh, "if [ ""$EXITC"" != 0 ]; then echo ""Press ENTER to continue...""; read; fi"
  END IF
  CLOSE #fh
  safe_shell "chmod +x " + escape_filename(app_wrap)
@@ -3557,10 +3566,19 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
 
  waitforkeyrelease
 
+ IF wait_on_error ANDALSO is_windows_9x() = NO THEN
+  'I've no clue why the "exit !ERRORLEVEL!" is necessary to get the exit code, it's
+  'not needed without the || pause even though that doesn't change the errorlevel!
+  '& is a command separator like ; in Unix
+  '/y:on turns on delayed variable expansion, for !ERRORLEVEL!
+  args = "/y:on /c """ & escape_filename(app) & " " & args & " || pause & exit !ERRORLEVEL!"""
+  app = "cmd.exe"
+ END IF
+
  DIM handle as ProcessHandle
  handle = open_console_process(app, args)
  IF handle = 0 THEN
-  RETURN "Could not run " & app
+  RETURN "Could not run " & appname
  END IF
 
  DIM dots as integer = 0
@@ -3835,7 +3853,7 @@ FUNCTION download_file (url as string, destfile as string) as bool
   args = "-N -P " & escape_filename(destdir) & " " & escape_filename(url)
  
   '--Do the download
-  spawn_ret = spawn_and_wait(wget, args)
+  spawn_ret = spawn_and_wait(wget, args, , , YES)
  
   '--Check to see if the download worked
   IF real_isfile(wget_dest) THEN
@@ -3860,7 +3878,7 @@ FUNCTION download_file (url as string, destfile as string) as bool
         " -z " & escape_filename(destfile) & " -L " & escape_filename(url)
 
   '--Do the download
-  spawn_ret = spawn_and_wait(curl, args)
+  spawn_ret = spawn_and_wait(curl, args, , , YES)
 
   '--Check to see if the download worked
   IF LEN(spawn_ret) = 0 THEN RETURN isfile(destfile)
