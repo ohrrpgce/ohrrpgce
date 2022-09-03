@@ -538,6 +538,7 @@ FUNCTION generate_copyright_line(distinfo as DistribState) as string
 END FUNCTION
 
 SUB distribute_game_as_zip (dest_override as string = "")
+ debuginfo "  distribute_game_as_zip():"
 
  DIM distinfo as DistribState
  load_distrib_state distinfo
@@ -601,7 +602,7 @@ SUB distribute_game_as_zip (dest_override as string = "")
   spawn_ret = spawn_and_wait(zip, args)
   IF LEN(spawn_ret) ORELSE NOT isfile(destzip) THEN
    safekill destzip
-   dist_info "Zip file creation failed." & spawn_ret
+   dist_info "Zip file creation failed. " & spawn_ret
    RETURN
   END IF
   
@@ -954,6 +955,7 @@ END SELECT
 END FUNCTION
 
 SUB distribute_game_as_windows_installer (dest_override as string = "")
+ debuginfo "  distribute_game_as_windows_installer():"
 
  DIM distinfo as DistribState
  load_distrib_state distinfo
@@ -1161,6 +1163,7 @@ FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
 END FUNCTION
 
 SUB distribute_game_as_debian_package (which_arch as string, dest_override as string = "")
+ debuginfo "  distribute_game_as_debian_package():"
 
  DIM deb_arch as string
  SELECT CASE which_arch
@@ -1230,7 +1233,7 @@ SUB distribute_game_as_debian_package (which_arch as string, dest_override as st
   DIM gamedocsdir as string = docsdir & SLASH & basename
   makedir gamedocsdir
   write_readme_text_file gamedocsdir & SLASH & "README.txt", CHR(10)
-  gzip_file gamedocsdir & SLASH & "README.txt"
+  IF gzip_file(gamedocsdir & SLASH & "README.txt") = NO THEN EXIT DO
   write_debian_copyright_file gamedocsdir & SLASH & "copyright"
 
   IF distinfo.license <> "GPL" THEN
@@ -1238,7 +1241,7 @@ SUB distribute_game_as_debian_package (which_arch as string, dest_override as st
    DIM lic_file as string = gamedocsdir & SLASH & "LICENSE-" & distinfo.license & ".txt"
    maybe_write_license_text_file lic_file
    IF isfile(lic_file) THEN
-    gzip_file lic_file
+    IF gzip_file(lic_file) = NO THEN EXIT DO
    END IF
   END IF
 
@@ -1539,7 +1542,7 @@ FUNCTION gunzip_file (filename as string) as bool
  spawn_ret = spawn_and_wait(gzip, args)
  IF LEN(spawn_ret) THEN dist_info spawn_ret : RETURN NO
  IF NOT isfile(trimextension(filename)) THEN
-  dist_info "ERROR: gzip -d completed but " & filename & ".gz was not uncompressed"
+  dist_info "ERROR: gzip -d completed but " & filename & " was not uncompressed"
   RETURN NO
  END IF
 
@@ -1659,6 +1662,7 @@ FUNCTION can_make_mac_packages () as bool
 END FUNCTION
 
 SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = "")
+ debuginfo "  distribute_game_as_mac_app():"
 
  DIM distinfo as DistribState
  load_distrib_state distinfo
@@ -1897,6 +1901,7 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
 END FUNCTION
 
 SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
+ debuginfo "  distribute_game_as_linux_tarball():"
 
  DIM arch_suffix as string
  SELECT CASE which_arch
