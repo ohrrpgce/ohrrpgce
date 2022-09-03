@@ -59,6 +59,8 @@ WHAT IS NEW?
       max values of each stat [Ralph]
     * Added an option to disable the victory dance animation for specific heroes
       [James]
+    * Distribute Game menu won't redownload the game player if it hasn't changed
+      [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

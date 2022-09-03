@@ -804,11 +804,8 @@ FUNCTION get_windows_gameplayer() as string
  dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
 
  DIM destzip as string = dldir & SLASH & dlfile
- '--Remove the old copy
- safekill destzip
- '--Actually download the dang file
- download_file url, dldir
- 
+ download_file url, destzip
+ '--Continue if download failed but have an old file
  IF NOT isfile(destzip) THEN
   dist_info "ERROR: Failed to download game.exe" : RETURN ""
  END IF
@@ -929,10 +926,8 @@ END SELECT
  dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
 
  DIM destzip as string = dldir & SLASH & dlfile
- '--Remove the old file
- safekill destzip
- '--Actually download the dang file
- download_file url, dldir
+ download_file url, destzip
+ '--Continue if download failed but have an old file
  IF NOT isfile(destzip) THEN
   dist_info "ERROR: Failed to download Linux" & arch_suffix & " ohrrpgce-game" : RETURN ""
  END IF
@@ -1111,11 +1106,12 @@ FUNCTION find_or_download_innosetup () as string
    'In future we could switch to 5.6.x (2019), the last version to support Win 2000 and XP.
    'As a separate problem, the following link redirects to https, and wget fails to create a SSL
    'connection on Win XP and older.
-   'download_file "http://www.jrsoftware.org/download.php/is.exe", settings_dir, "is.exe"  'Latest version
-   download_file "http://files.jrsoftware.org/is/5/isetup-5.4.3.exe", settings_dir, "is.exe"
+   DIM is_exe as string = settings_dir & SLASH & "is.exe"
+   'download_file "http://www.jrsoftware.org/download.php/is.exe", is_exe  'Latest version
+   download_file "http://files.jrsoftware.org/is/5/isetup-5.4.3.exe", is_exe
    DIM spawn_ret as string
-   spawn_ret = win_or_wine_spawn_and_wait(settings_dir & SLASH & "is.exe")
-   safekill settings_dir & SLASH & "is.exe"
+   spawn_ret = win_or_wine_spawn_and_wait(is_exe)
+   safekill is_exe
    IF LEN(spawn_ret) THEN dist_info "ERROR: Inno Setup installer failed: " & spawn_ret : RETURN ""
    '--re-search for iscc now that it may have been installed
    iscc = find_innosetup()
@@ -1532,12 +1528,14 @@ FUNCTION gzip_file (filename as string) as bool
 END FUNCTION
 
 FUNCTION gunzip_file (filename as string) as bool
+ 'Extracts a .gz file, creating a new file minus the .gz extension next to it.
+ 'Doesn't delete the .gz.
  'Returns YES on success, NO on failure
  DIM gzip as string = find_helper_app("gzip", YES)
  IF gzip = "" THEN dist_info "ERROR: gzip is not available": RETURN NO
  
  DIM args as string
- args = " -d -f " & escape_filename(filename)
+ args = " -d -f -k " & escape_filename(filename)
  DIM spawn_ret as string
  spawn_ret = spawn_and_wait(gzip, args)
  IF LEN(spawn_ret) THEN dist_info spawn_ret : RETURN NO
@@ -1867,11 +1865,6 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
  DIM destgz as string = dldir & SLASH & dlfile
  DIM desttar as string = trimextension(destgz)
 
- '--Always remove the old files. We can't tell how old they might be, or
- '  whether they match the current version (since multiple versions could be installed)
- safekill destgz
- safekill desttar
-
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
  IF NOT isfile(dldir & SLASH & "mac.download.agree") THEN
   IF dist_yesno("Is it okay to download the Mac OS X version of OHRRPGCE from HamsterRepublic.com now?") = NO THEN RETURN ""
@@ -1880,8 +1873,8 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
 
  dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
 
- '--Actually download the dang file
- download_file url, dldir
+ download_file url, destgz
+ '--Continue if download failed but have an old copy
  IF NOT isfile(destgz) THEN
   dist_info "ERROR: Failed to download Mac OHRRPGCE" : RETURN ""
  END IF
@@ -2204,13 +2197,9 @@ FUNCTION itch_butler_download() as bool
  END IF
  
  DIM destzip as string = get_support_dir() & SLASH & "butler.zip"
- '--Remove the old copy
- safekill destzip
  '--Actually download the dang file
  DIM url as string = "https://broth.itch.ovh/butler/" & butler_platform & "/LATEST/archive/default"
- download_file url, get_support_dir(), "butler.zip"
- 
- IF NOT isfile(destzip) THEN
+ IF NOT download_file(url, destzip) THEN
   dist_info "ERROR: Failed to download itch.io butler.zip" : RETURN NO
  END IF
  

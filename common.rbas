@@ -3755,6 +3755,8 @@ FUNCTION install_windows_helper_app (appname as string, download_url as string="
 
  DIM extension as string
  IF appname = "unzip" THEN extension = "exe" ELSE extension = "zip"
+ DIM dlfile as string = support & SLASH & appname & "." & extension
+
  IF LEN(download_url) = 0 THEN
   download_url = "http://HamsterRepublic.com/ohrrpgce/support/" & appname & "." & extension
  END IF
@@ -3762,8 +3764,7 @@ FUNCTION install_windows_helper_app (appname as string, download_url as string="
  choice = twochoice(appname & ".exe was not found (or incorrect version). Would you like to automatically download it from " _
                     & url_hostname(download_url) & "?", , , , , "download_win_support_util")
  IF choice = 0 THEN
-  download_file download_url, support
-  IF NOT isfile(support & SLASH & appname & "." & extension) THEN
+  IF NOT download_file(download_url, dlfile) THEN
    visible_debug "Unable to download " & appname & "." & extension
    RETURN ""
   END IF
@@ -3778,83 +3779,92 @@ FUNCTION install_windows_helper_app (appname as string, download_url as string="
    safekill trimextension(apppath) & "-version.txt"
    ' -q quiet -o overwrite -C case-insenstive -L make lowercase -j junk directories
    DIM arglist as string
-   DIM zipfile as string = support & SLASH & appname & ".zip"
-   arglist =  " -qoCLj " & escape_filename(zipfile) & " -d " & escape_filename(support)
+   arglist =  " -qoCLj " & escape_filename(dlfile) & " -d " & escape_filename(support)
    DIM spawn_ret as string
    spawn_ret = spawn_and_wait(unzip, arglist)
    IF NOT isfile(apppath) THEN
     visible_debug "Unable to unzip " & appname & ".exe from " & appname & ".zip"
     RETURN ""
    END IF
-   safekill zipfile
+   safekill dlfile
   END IF
   RETURN apppath
  END IF
 END FUNCTION
 
-FUNCTION download_file (url as string, destdir as string, forcefilename as string="") as bool
+FUNCTION download_file (url as string, destfile as string) as bool
  'Returns True on success, false on failure.
  '
- 'wget is the first choice because its -N option can prevent unneeded redundant
- 'downloads when the file has not changed. curl is an important fallback because
- 'it is installed by default on Mac OS X (and recent Windows too).
+ 'Downloads to destfile.
+ 'Uses wget -N or curl -z options to avoid downloading when the file has not changed
+ '(but still returns true).
+ '
+ 'wget is the first choice because we include it with Windows packages, but curl
+ 'is an important fallback because it is installed by default on Mac OS X (and
+ 'recent Windows too), unlike wget.
  '
  'NOTE: On WinXP at least, wget no longer is able to establish a SSL connection
  'to servers. We ship an old support/wget.exe, but a new build doesn't work either.
  'However a new build takes the --no-check-certificate option, while our wget.exe
  'doesn't seem to have any corresponding option. However, a recent wget build from
  'https://eternallybored.org/misc/wget/ is 1.7MB zipped, so not switching to it.
- '
  'On Windows XP SP3 or later, could also use powershell to download files.
- '
- 'If you specify forcefilename, the -N option will do nothing,
- ' and the file will be re-downloaded even if it has not changed
- ' since the last time it was downloaded.
 
  DIM spawn_ret as string
  DIM args as string
 
- '--Find the wget to to do the downloading
  DIM wget as string = find_helper_app("wget")
  IF wget <> "" THEN
 
-  '--prepare the command line
-  IF forcefilename = "" THEN
-   args = "-N -P " & escape_filename(destdir)
-  ELSE
-   args = "-O " & escape_filename(destdir & SLASH & forcefilename)
+  DIM destdir as string = trimfilename(destfile)
+  IF LEN(destdir) = 0 THEN destdir = CURDIR
+
+  ' The file path that wget will actually write
+  DIM wget_dest as string = destdir + SLASH + trimpath(url)
+  DIM need_rename as bool = NOT paths_equal(destfile, wget_dest)
+  IF need_rename THEN
+   debuginfo " rename " & wget_dest & " from " & destfile
+   ' Can't use -O (outfile filename) argument with -N arg, so temporarily rename
+   ' the file to match URL and use -P (destination directory) so wget will find it.
+   IF real_isfile(destfile) THEN os_rename(destfile, wget_dest)
   END IF
-  args &= " " & escape_filename(url)
+
+  args = "-N -P " & escape_filename(destdir) & " " & escape_filename(url)
  
   '--Do the download
   spawn_ret = spawn_and_wait(wget, args)
  
   '--Check to see if the download worked
-  IF LEN(spawn_ret) = 0 THEN RETURN YES
+  IF real_isfile(wget_dest) THEN
+   IF need_rename THEN
+    IF os_rename(wget_dest, destfile) = NO THEN
+     spawn_ret &= !"\nrename " & wget_dest & " to " & destfile & " failed"
+    END IF
+   END IF
+   IF LEN(spawn_ret) = 0 THEN RETURN YES
+  END IF
+
   visible_debug "ERROR: wget download failed: " & spawn_ret
  END IF
  
  '--find curl to do the downloading
  DIM curl as string = find_helper_app("curl")
  IF curl <> "" THEN
-  
-  DIM destfile as string = forcefilename
-  IF destfile = "" THEN
-   destfile = trimpath(url)
-  END IF
 
   '-L (location) means follow redirects
-  args = "-L -o " & escape_filename(destdir & SLASH & destfile) & " " & escape_filename(url)
+  '-z means download only if newer than given file
+  args = "-o " & escape_filename(destfile) & _
+        " -z " & escape_filename(destfile) & " -L " & escape_filename(url)
 
   '--Do the download
   spawn_ret = spawn_and_wait(curl, args)
 
   '--Check to see if the download worked
-  IF LEN(spawn_ret) = 0 THEN RETURN YES
+  IF LEN(spawn_ret) = 0 THEN RETURN isfile(destfile)
   visible_debug "ERROR: curl download failed: " & spawn_ret
  END IF
 
- visible_debug "Download failed (tried both wget and curl)" 
+ visible_debug "Could not download (with neither 'wget' nor 'curl')"
  RETURN NO
 END FUNCTION
 
