@@ -892,7 +892,7 @@ sub enable_modplug_looping ()
 		'Using NULL as the module handle doesn't work, as SDL_mixer doesn't
 		'load modplug into the global namespace.
 		#ifdef __FB_DARWIN__
-			modplug_handle = dylibload("libmodplug.framework/libmodplug")
+			modplug_handle = dylibload("modplug.framework/modplug")
 		#endif
 		if modplug_handle = NULL then
 			modplug_handle = dylibload("modplug")
