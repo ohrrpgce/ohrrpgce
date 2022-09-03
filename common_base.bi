@@ -52,6 +52,7 @@ EXTERN version_buildname as string
 EXTERN version_arch as string
 EXTERN version_revision as integer
 EXTERN version_date as integer
+EXTERN version_release_tag as string
 EXTERN version_branch as string
 EXTERN version_branch_revision as integer
 EXTERN long_version as string

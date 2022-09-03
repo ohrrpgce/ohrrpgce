@@ -781,19 +781,19 @@ FUNCTION get_windows_gameplayer() as string
   '--(Before 2020-11-17 nightlies downloaded ohrrpgce-player-win-wip.zip instead,
   '--which was assumed to be gfx_directx+sdl[+fb], music_sdl)
   '--(Used to be called ohrrpgce-player-win-wip-sdl2.zip which is now symlinked to the new name)
-  url = "http://hamsterrepublic.com/ohrrpgce/nightly/"
   dlfile = "ohrrpgce-player-win-sdl2-wip.zip"
+  url = "http://hamsterrepublic.com/ohrrpgce/nightly/" & dlfile
  ELSE
-  '--If running any stable release, download the latest stable release
-  '--(Stable releases gorgonzola 2020-05-02 and older downloaded ohrrpgce-player-win.zip instead,
-  '--which was assumed to be gfx_directx+sdl[+fb], music_sdl)
-  '--(Hróðvitnir 2020-09-13 downloaded ohrrpgce-player-win-minimal-sdl2.zip,
-  '--which is now symlinked to the new name)
+  '--Use this stable release
+  '--(Previously, always downloaded the latest stable release from
+  '--http://hamsterrepublic.com/dl/
+  '-- gorgonzola and older downloaded ohrrpgce-player-win.zip (a music_sdl build)
+  '-- hróðvitnir downloaded ohrrpgce-player-win-minimal-sdl2.zip
+  '--see web/ohrstable.sh for info on server symlinks)
 
-  url = "http://hamsterrepublic.com/dl/"
-  dlfile = "ohrrpgce-player-win-sdl2.zip"
+  dlfile = "ohrrpgce-player-win-sdl2" & version_release_tag & ".zip"
+  url = "http://hamsterrepublic.com/ohrrpgce/archive/" & dlfile
  END IF
- url &= dlfile
  
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
  IF NOT isfile(dldir & SLASH & "win.download.agree") THEN
@@ -801,7 +801,9 @@ FUNCTION get_windows_gameplayer() as string
   touchfile dldir & SLASH & "win.download.agree"
  END IF
  
- dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
+ IF version_branch = "wip" THEN
+  dist_info "The latest nightly WIP version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
+ END IF
 
  DIM destzip as string = dldir & SLASH & dlfile
  download_file url, destzip
@@ -908,13 +910,14 @@ END SELECT
  '--Decide which url to download
  DIM url as string
  DIM dlfile as string
- dlfile = "ohrrpgce-player-linux-bin-minimal" & arch_suffix & ".zip"
  IF version_branch = "wip" THEN
   'If using any wip release, get the latest wip release
+  dlfile = "ohrrpgce-player-linux-bin-minimal" & arch_suffix & ".zip"
   url = "http://hamsterrepublic.com/ohrrpgce/nightly/" & dlfile
  ELSE
-  'If using any stable release, get the latest stable release
-  url = "http://hamsterrepublic.com/dl/" & dlfile
+  'Use this stable release
+  dlfile = "ohrrpgce-player-linux-bin-minimal" & version_release_tag & arch_suffix & ".zip"
+  url = "http://hamsterrepublic.com/ohrrpgce/archive/" & dlfile
  END IF
 
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
@@ -923,7 +926,9 @@ END SELECT
   touchfile dldir & SLASH & "linux.download.agree"
  END IF
 
- dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
+ IF version_branch = "wip" THEN
+  dist_info "The latest nightly WIP version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
+ END IF
 
  DIM destzip as string = dldir & SLASH & dlfile
  download_file url, destzip
@@ -1852,14 +1857,15 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
  '--Decide which url to download
  DIM url as string
  DIM dlfile as string
- dlfile = "ohrrpgce-mac-minimal" & arch_suffix & ".tar.gz"
 
  IF version_branch = "wip" THEN
   'If using any wip release, get the latest wip release
+  dlfile = "ohrrpgce-mac-minimal" & arch_suffix & ".tar.gz"
   url = "http://hamsterrepublic.com/ohrrpgce/nightly/" & dlfile
  ELSE
-  'If using any stable release, get the latest stable release
-  url = "http://hamsterrepublic.com/dl/" & dlfile
+  'Use this stable release
+  dlfile = "ohrrpgce-mac-minimal" & version_release_tag & arch_suffix & ".tar.gz"
+  url = "http://hamsterrepublic.com/ohrrpgce/archive/" & dlfile
  END IF
 
  DIM destgz as string = dldir & SLASH & dlfile
@@ -1871,7 +1877,9 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
   touchfile dldir & SLASH & "mac.download.agree"
  END IF
 
- dist_info "The latest " & IIF(version_branch = "wip", "wip", "stable") & " version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
+ IF version_branch = "wip" THEN
+  dist_info "The latest nightly WIP version of the OHRRPGCE will be used, even if that is newer than the version you are currently using.", errInfo
+ END IF
 
  download_file url, destgz
  '--Continue if download failed but have an old copy

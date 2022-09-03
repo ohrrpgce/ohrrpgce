@@ -115,6 +115,8 @@ WHAT IS NEW?
       don't count up from 1, in order to fix "slice is valid". (Handles for
       slices in old saves still work) [Ralph]
     * "free slice" on an already freed slice no longer shows a warning [Ralph]
+    * If using a stable release, Distribute Game packages your game with the
+      release you're using, not the latest one [Ralph]
 
   *** Bugfixes
     * Various gfx_sdl2 window size/position/resizing and mouse glitches when
