@@ -3874,8 +3874,12 @@ FUNCTION download_file (url as string, destfile as string) as bool
 
   '-L (location) means follow redirects
   '-z means download only if newer than given file
+  '--fail means return exitcode 22 if the server delivers a 404 or other error page, don't save it
   args = "-o " & escape_filename(destfile) & _
-        " -z " & escape_filename(destfile) & " -L " & escape_filename(url)
+         " -L --fail " & escape_filename(url)
+  IF real_isfile(destfile) THEN  'Avoid a warning
+   args &= " -z " & escape_filename(destfile)
+  END IF
 
   '--Do the download
   spawn_ret = spawn_and_wait(curl, args)
