@@ -1948,7 +1948,7 @@ FUNCTION normalize_path(filename as string) as string
   DIM ret as string = filename
 #IFDEF __FB_WIN32__
   FOR i as integer = 0 TO LEN(ret) - 1 
-    IF ispathsep(ret[i]) THEN ret[i] = asc(SLASH)
+    IF ispathsep(ret[i]) THEN ret[i] = ASC(SLASH)
   NEXT
 #ENDIF
   RETURN ret
@@ -2142,6 +2142,33 @@ FUNCTION justextension (filename as string) as string
   END IF
 END FUNCTION
 
+#IFDEF __FB_MAIN__
+#DEFINE testTrimExt(path, expected) testEqual(trimextension(path), normalize_path(expected))
+#DEFINE testJustExt(path, expected) testEqual(justextension(path), normalize_path(expected))
+
+startTest(TrimExtension)
+  testTrimExt("", "")
+  testTrimExt("File", "File")
+  testTrimExt("file.e", "file")
+  testTrimExt("file.tar.gz", "file.tar")
+  testTrimExt("dir/game.rpgdir", "dir/game")
+  testTrimExt("dir/game.rpgdir/", "dir/game.rpgdir/")
+  testTrimExt(".config", ".config")
+  testTrimExt(".config.TxT", ".config")
+  testTrimExt("bad filename. no?", "bad filename")
+
+  testJustExt("", "")
+  testJustExt("File", "")
+  testJustExt("file.e", "e")
+  testJustExt("file.tar.gz", "gz")
+  testJustExt("dir/game.rpgdir", "rpgdir")
+  testJustExt("dir/game.rpgdir/", "")
+  testJustExt(".config", "")
+  testJustExt(".config.TxT", "TxT")
+  testJustExt("bad filename. no?", " no?")
+endTest
+#ENDIF
+
 'Return the root of a Windows path, regardless of the current OS: X:/ or X:\ or / or \
 'Otherwise return ""
 'FIXME: should handle network paths on Windows too
@@ -2331,7 +2358,7 @@ endTest
 #ENDIF
 
 'Go up a number of directories. Simplifies and normalises.
-'pathname is interpreted as a directory even if missing the final slash!
+'path is interpreted as a directory even if missing the final slash!
 FUNCTION parentdir (path as string, byval upamount as integer = 1) as string
   DIM pathname as string = path + SLASH
   FOR i as integer = 0 TO upamount - 1
@@ -2346,6 +2373,13 @@ startTest(parentdir)
   testEqual(parentdir("foo/bar/qux", 1), "foo" SLASH "bar" SLASH)
   testEqual(parentdir("foo/bar/qux", 2), "foo" SLASH)
   testEqual(parentdir("foo/bar/qux", 3), "." SLASH)
+  testEqual(parentdir("qux/", 0), "qux" SLASH)
+  testEqual(parentdir("qux", 0), "qux" SLASH)
+  testEqual(parentdir("qux", 1), "." SLASH)
+  testEqual(parentdir(SLASH, 1), SLASH)
+  #IFDEF __FB_WIN32__
+    testEqual(parentdir("C:\", 1), "C:\")
+  #ENDIF
 endTest
 #ENDIF
 
