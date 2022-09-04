@@ -10,10 +10,11 @@
 
 namespace Steam
 
+#define steam_error(msg)  debug "steam: " msg
 #ifdef DEBUG_STEAM
-declare sub steam_debug(msg as string)
+#define steam_debug(msg)  debug "steam: " msg
 #else
-#define steam_debug(x)
+#define steam_debug(msg)
 #endif
 
 ' event handlers
@@ -46,13 +47,12 @@ dim shared SteamAPI_ISteamUserStats_ClearAchievement as function(byval self as I
 dim shared SteamAPI_ISteamUserStats_StoreStats as function(byval self as ISteamUserStats ptr) as boolean
 dim shared SteamAPI_ISteamUserStats_IndicateAchievementProgress as function(byval self as ISteamUserStats ptr, byval name as const zstring ptr, progress as uinteger, max_progress as uinteger) as boolean
 
-
 dim shared steam_user_stats as ISteamUserStats ptr
 
 #macro MUSTLOAD(hfile, procedure)
   procedure = dylibsymbol(hfile, #procedure)
   if procedure = NULL then
-    steam_debug("Was not able to find " & #procedure)
+    steam_error("Unable to find " & #procedure)
     ' do this instead of uninitialize_steam(), since it assumes we succeeded in initializing
     dylibfree(hFile)
     hFile = null
@@ -82,7 +82,7 @@ function initialize() as boolean
 
   steamworks_handle = dylibload(STEAM_LIB)
   if steamworks_handle = null then
-    steam_debug("Was not able to open " STEAM_FULL_FNAME)
+    debuginfo("Running without Steam, unable to load " STEAM_FULL_FNAME)
     return false
   end if
 
@@ -103,7 +103,7 @@ function initialize() as boolean
   MUSTLOAD(steamworks_handle, SteamAPI_ISteamUserStats_IndicateAchievementProgress)
   
   if SteamAPI_Init() = false then
-    steam_debug("unable to initialize steamworks")
+    steam_error("Unable to initialize Steamworks")
     uninitialize()
     return false
   end if
@@ -119,16 +119,16 @@ function initialize() as boolean
   steam_user_stats = SteamAPI_SteamUserStats_v012()
 
   if steam_user_stats = null then
-    steam_debug("Unable to obtain user stats object")
+    steam_error("Unable to obtain user stats object")
   else
     ' we need to instruct steam to fetch the user stats, so we can reward achievements later
     if SteamAPI_ISteamUserStats_RequestCurrentStats(steam_user_stats) = false then
-      steam_debug("Unable to request current stats")
+      steam_error("Unable to request current stats")
     end if
   end if
 
+  debuginfo "Steam initialized"
   return true
-
 end function
 
 sub uninitialize()
@@ -146,10 +146,10 @@ sub reward_achievement(id as const string)
   if available() = false then return
 
   if SteamAPI_ISteamUserStats_SetAchievement(steam_user_stats, id) = false then
-    steam_debug("unable to reward achievement: " & id)
+    steam_error("Unable to reward achievement: " & id)
   else
     if SteamAPI_ISteamUserStats_StoreStats(steam_user_stats) = false then
-      steam_debug("unable to persist stats")
+      steam_error("Unable to persist stats")
     end if
   end if
 end sub
@@ -158,7 +158,7 @@ sub clear_achievement(id as string)
   if available() = false then return
 
   if SteamAPI_ISteamUserStats_ClearAchievement(steam_user_stats, id) = false then
-    steam_debug("unable to clear an achievement: " & id)
+    steam_error("Unable to clear an achievement: " & id)
   end if
 end sub
 
@@ -166,7 +166,7 @@ sub notify_achievement_progress(id as const string, progress as integer, max_pro
   if available() = false then return
 
   if SteamAPI_ISteamUserStats_IndicateAchievementProgress(steam_user_stats, id, progress, max_progress) = false then
-    steam_debug("unable to indicate achievement progress: " & id)
+    steam_error("Unable to indicate achievement progress: " & id)
   end if
 end sub
 
@@ -234,11 +234,5 @@ private sub OnUserStatsReceived(msg as UserStatsReceived_t ptr)
 
   ' achieve_timer = 1000
 end sub
-
-#ifdef DEBUG_STEAM
-sub steam_debug(msg as string)
-  debug "steam: " & msg
-end sub
-#endif
 
 end namespace

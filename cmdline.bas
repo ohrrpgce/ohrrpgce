@@ -66,6 +66,8 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "-print              Print 'trace' and 'trace value' commands also to stdout" LINE_END
 		help = help & "-printonly          Print 'trace' and 'trace value' commands only to stdout" LINE_END
 #ENDIF
+		help = help & "-debug-achieve      Start with achievement debug logging enabled" LINE_END
+		help = help & "-reset_platform_achievements  Wipe rewarded Steam achievements" LINE_END
                 'Hidden options:
                 'help = help & "-from_Custom channel  IPC channel to use to receive messages from Custom" & LINE_END
                 'help = help & "-debugkeys         Turn on debug keys" & LINE_END

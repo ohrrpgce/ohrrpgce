@@ -268,11 +268,7 @@ IF running_under_Custom THEN debuginfo "Spawned from Custom"
 
 '============================== Initialise backends ===========================
 
-IF Steam.Initialize() THEN
-  debuginfo "Steam initialized"
-ELSE
-  debuginfo "Steam not initialized"
-END IF
+Steam.Initialize()
 
 'DEBUG debug "set mode-X"
 set_resolution read_config_int("gfx.resolution_w", 320), read_config_int("gfx.resolution_h", 200)
@@ -4677,6 +4673,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  END IF
  '/
 
+ IF dbg.def( , , IIF(Achievements.enable_debug, "Disable", "Enable") & " achievements debug logging") THEN Achievements.enable_debug XOR= true
  IF dbg.def( , , "Edit general preference bitsets") THEN edit_general_bitsets
  IF dbg.def( , , "Edit backcompat bitsets") THEN edit_backcompat_bitsets
  IF dbg.def( , , "Show/test battle formations here") THEN battle_formation_testing_menu NO

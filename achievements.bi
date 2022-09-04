@@ -36,6 +36,15 @@ namespace Achievements
   declare function get_definition_by_id(id as integer) byref as AchievementDefinition
   declare function is_permanent() as boolean
 
+  extern enable_debug as boolean
+
+  #ifdef DEBUG_ACHIEVEMENTS
+  #define ach_verbose(msg) debug "achievements: " & msg
+  #else
+  #define ach_verbose(x)
+  #endif
+  declare sub ach_debug(msg as string)
+
 end namespace
 
 #endif

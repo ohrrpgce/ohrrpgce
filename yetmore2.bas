@@ -1092,6 +1092,8 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
   debug "Enqueuing platform achievement reset"
   Achievements.definitions_reset
   RETURN 1
+ ELSEIF opt = "debug-achieve" THEN
+  Achievements.enable_debug = true
  END IF
  RETURN 0
 END FUNCTION

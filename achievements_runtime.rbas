@@ -28,17 +28,10 @@ using Reload
 
 namespace Achievements
 
-  declare function mark_tag_as_seen(index as integer, tag as integer) as boolean
+  declare function evaluate_a_tag(index as integer, tag as integer) as boolean
   declare function needs_rewarding(index as integer) as boolean
   declare function needs_progress_update(index as integer) as boolean
   declare sub reward_achievement(index as integer)
-
-  #ifdef DEBUG_ACHIEVEMENTS
-  declare sub ach_debug(msg as string) ' this is actually defined in achievements.rbas
-  #else
-  #define ach_debug(x)
-  #endif
-
 
   ' -- globals --
   dim shared achievement_progress() as AchievementProgress
@@ -47,30 +40,27 @@ namespace Achievements
   ' -- public api --
 
   sub evaluate_tags()
-    ach_debug("achievements_evaluate_tags")
+    ach_verbose("achievements_evaluate_tags")
 
     if save_loaded = false then
-      ach_debug("save is not loaded, aborting evaluation")
+      ach_verbose("save is not loaded, aborting evaluation")
       return 'don't evaluate anything before the save has actually been loaded
     end if
 
     for index as integer = 0 to ubound(achievement_progress)
-      ach_debug("evaluating #" & index)
-
       if achievement_progress(index).rewarded then continue for ' ignore rewarded achievements
 
       with get_definition_by_index(index)
-        ach_debug("evaluating '" & .name & "'")
+        ach_verbose("evaluating idx=" & index & " id=" & .id & " '" & .name & "'")
         for t as integer = 0 to v_len(.tags) - 1
           dim tag as integer = .tags[t]
 
-          if mark_tag_as_seen(index, tag) then
+          if evaluate_a_tag(index, tag) then
             if needs_rewarding(index) then
-              ' reward the achievement
               reward_achievement index
             elseif needs_progress_update(index) then
               ' ping user with progress
-              ach_debug("notifying progress on '" & .name & "'")
+              ach_debug("Steam: notifying progress on '" & .name & "'")
               Steam.notify_achievement_progress .steam_id, achievement_progress(index).value, .max_value
             end if
           end if
@@ -79,9 +69,10 @@ namespace Achievements
     next
   end sub
 
+  ' Disables achievement evaluation
   sub runtime_reset
     dim count as integer = definitions_count()
-    ach_debug("resetting achievement data to " & count)
+    ach_verbose("resetting achievement data to " & count)
 
     if count = 0 then
       erase achievement_progress
@@ -92,6 +83,7 @@ namespace Achievements
     save_loaded = false
   end sub
 
+  ' node may be null.
   sub runtime_load(node as Reload.NodePtr)
     runtime_reset
 
@@ -109,12 +101,9 @@ namespace Achievements
 
           for index as integer = 0 to ubound(achievement_progress)
             if achievement_progress(index).id = id then
-              ach_debug("progress in slot " & index & " has index " & id)
               progress = @achievement_progress(index)
               exit for
-            else
-              ach_debug("progress in slot " & index & " has wrong index")
-            end if 
+            end if
           next
 
           if progress <> null then
@@ -122,12 +111,11 @@ namespace Achievements
             progress->rewarded = achievement."rewarded".exists
             progress->rewarded_date = achievement."rewarded_date".double
 
-            ach_debug("loaded progress of " & progress->value & " for id " & id)
-            ach_debug("loaded rewarded state of " & progress->rewarded & " for id " & id)
+            ach_debug("loading progress of #" & id & ": value=" & progress->value & " rewarded=" & progress->rewarded)
             dim tag as Nodeptr = FirstChild(achievement."tags".ptr, "tag")
             while tag <> null
               dim t as integer = GetInteger(tag)
-              ach_debug("noted tag " & t & " for id " & id)
+              ach_debug("  seen tag " & t)
               v_append progress->seen_tags, t
               tag = NextSibling(tag, "tag")
             wend
@@ -144,7 +132,7 @@ namespace Achievements
 
   sub runtime_save(node as NodePtr)
     ach_debug("saving achievement data")
-    
+
     if ubound(achievement_progress) < 0 then
       ach_debug("no achievements to save")
       return
@@ -154,8 +142,8 @@ namespace Achievements
 
     for index as integer = 0 to ubound(achievement_progress)
       with achievement_progress(index)
-        ach_debug("State of achievement id " & .id & ": Value=" & .value & ", tags=" & v_len(.seen_tags))
-        
+        ach_debug("State of achievement id " & .id & ": value=" & .value & ", tags=" & v_str(.seen_tags))
+
         if .value <= 0 andalso .rewarded = false andalso v_len(.seen_tags) <= 0 then continue for
 
         dim achievement as NodePtr = AppendChildNode(achievements_node, "achievement", .id)
@@ -175,38 +163,38 @@ namespace Achievements
   ' -- members for AchievementProgress --
 
   constructor AchievementProgress
-    ach_debug("AchivementProgress constructor")
     v_new seen_tags
   end constructor
 
   destructor AchievementProgress
-    ach_debug("AchivementProgress destructor")
     v_free seen_tags
   end destructor
 
   ' -- internal functions --
 
-  private function mark_tag_as_seen(index as integer, tag as integer) as boolean
-    ach_debug("mark_tag_as_seen")
+  private function evaluate_a_tag(index as integer, tag as integer) as boolean
+    ach_verbose("evaluate_a_tag(" & index & ", " & tag & ")")
 
-    if achievement_progress(index).rewarded then return false ' ignore rewarded achievements
+    dim byref progress as AchievementProgress = achievement_progress(index)
+
+    if progress.rewarded then return false ' ignore rewarded achievements
 
     with get_definition_by_index(index)
       dim is_triggered as boolean = istag(tag)
-      dim ix as integer = v_find(achievement_progress(index).seen_tags, tag)
-      ach_debug("Relevant tag " & tag & " is " & is_triggered)
+      dim ix as integer = v_find(progress.seen_tags, tag)
+      ach_verbose("Relevant tag " & tag & " is " & is_triggered)
       if is_triggered and ix = -1 then
-        ach_debug("This means that is is now on!")
-        v_append achievement_progress(index).seen_tags, tag
-        if .achievement_type = AchievementType.count and achievement_progress(index).value < .max_value then
-          achievement_progress(index).value += 1
+        v_append progress.seen_tags, tag
+        if .achievement_type = AchievementType.count andalso progress.value < .max_value then
+          progress.value += 1
         end if
+        ach_debug(.id & ": tag " & tag & " turned on, new value=" & progress.value & " of max=" & .max_value)
         return true
       elseif .latching = false andalso is_triggered = false andalso ix <> -1 then
-        ach_debug("This means that is is now off!")
-        v_remove achievement_progress(index).seen_tags, tag
+        v_remove progress.seen_tags, tag
         ' note: disabling a tag does _not_ decrement the value
         ' for this reason, we return false since the achievement state didn't really change
+        ach_debug(.id & ": tag " & tag & " turned off")
         return false
       end if
     end with
@@ -215,7 +203,7 @@ namespace Achievements
   end function
 
   private function needs_rewarding(index as integer) as boolean
-    ach_debug("needs_rewarding")
+    ach_verbose("needs_rewarding(" & index & ")")
     dim byref achievement as AchievementDefinition = get_definition_by_index(index)
     dim byref progress as AchievementProgress = achievement_progress(index)
 
@@ -226,27 +214,27 @@ namespace Achievements
         for ix as integer = 0 to v_len(achievement.tags) - 1
           dim tag as integer = achievement.tags[ix]
           if v_find(progress.seen_tags, tag) = -1 then
-            ach_debug(":( '" & achievement.name & "' is not complete because tag " & tag & " is not set")
+            ach_verbose(":( " & achievement.id & " is not complete because tag " & tag & " is not set")
             return false
           end if
         next
       case AchievementType.count
         if progress.value < achievement.max_value then
-          ach_debug(":( '" & achievement.name & "' is not complete because value " & progress.value & " is less than " & achievement.max_value)
+          ach_verbose(":( " & achievement.id & " is not complete because value " & progress.value & " is less than " & achievement.max_value)
           return false
         end if
     end select
-    ach_debug(":D '" & achievement.name & "' is complete!")
+    ach_debug(achievement.id & " '" & achievement.name & "' is complete!")
     return true
   end function
 
   ' call this _after_ checking is_complete!
   private function needs_progress_update(index as integer) as boolean
-    ach_debug("needs_progress_update(" & index & ")")
+    ach_verbose("needs_progress_update(" & index & ")")
     dim byref achievement as AchievementDefinition = get_definition_by_index(index)
     dim byref progress as AchievementProgress = achievement_progress(index)
 
-    ach_debug((achievement.achievement_type = AchievementType.count) & _
+    ach_verbose((achievement.achievement_type = AchievementType.count) & _
       ", " & (achievement.progress_interval > 0) & _
       ", " & (progress.value > 0) & _
       ", " & (progress.value mod achievement.progress_interval) _
@@ -261,8 +249,8 @@ namespace Achievements
     dim needs_persist as boolean = false
 
     with get_definition_by_index(index)
+      ach_debug("Rewarding #" & .id & " '" & .name & "' Steam ID '" & .steam_id & "'")
       if .steam_id <> "" then
-        ach_debug("rewarding '" & .name & "'")
         Steam.reward_achievement .steam_id
       end if
     end with
@@ -273,28 +261,20 @@ namespace Achievements
 
       ' if permanent, persist in global store
       if is_permanent() then
-        ach_debug("adding achievement to persist.reld")
-
         dim persist as NodePtr = get_persist_reld()
         dim path as string = "/achievements/achievement[" & .id & "]"
         if NodeByPath(persist, path) = 0 then
-          ach_debug("achievement not in persist.reld... adding now!")
+          ach_debug("...not in persist.reld... adding now!")
           dim achievement as NodePtr = NodeByPath(persist, path, true)
           SetChildNodeDate(achievement, "rewarded_date", NOW())
           write_persist_reld
         else
-          ach_debug("achievement already in persist.reld, skipping")
+          ach_debug("...already in persist.reld, skipping")
         end if
       else
-        ach_debug("achievmeent is per-save, so not adding to persist")
+        ach_debug("...is per-save, not adding to persist")
       end if
     end with
   end sub
-
-  #ifdef DEBUG_ACHIEVEMENTS
-  private sub ach_debug(msg as string)
-    debug "achievements: " & msg
-  end sub
-  #endif
 
 end namespace

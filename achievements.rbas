@@ -6,7 +6,7 @@
 #include "reload.bi"
 #include "steam.bi"
 
-' uncomment to enable debug output
+' uncomment to enable spammy debug output
 ' #define DEBUG_ACHIEVEMENTS
 
 using Reload
@@ -16,12 +16,7 @@ namespace Achievements
   ' Local functions
   declare function type_name_to_enum(name as string) as AchievementType
 
-  #ifdef DEBUG_ACHIEVEMENTS
-  declare sub ach_debug(msg as string)
-  #else
-  #define ach_debug(x)
-  #endif
-
+  dim enable_debug as boolean = false
   dim shared next_id as integer = 0
   dim shared permanent as boolean = false
   dim shared reset_queued as boolean = false
@@ -59,7 +54,6 @@ namespace Achievements
       permanent = cheevos."permanent".exists
 
       WITHNODE cheevos."achievement" as cheevo
-        ach_debug("loading achievement #" & i)
         with achievement_defs(i)
           .id = GetInteger(cheevo)
           .name = cheevo."name".string
@@ -75,7 +69,7 @@ namespace Achievements
             tag = NextSibling(tag, "tag")
           wend
         end with
-        ach_debug("Finished loading achievement #" & i & ", " & achievement_defs(i).name)
+        ach_debug("Loaded achievement #" & i & ", " & achievement_defs(i).name)
         i += 1
       END WITHNODE
     END READNODE
@@ -83,7 +77,8 @@ namespace Achievements
     FreeDocument(doc)
 
     if reset_queued then
-      ach_debug("Resetting achievements (hopefully this is after the steam data stuff is loaded)")
+      'Hopefully this is after the steam data stuff is loaded
+      debuginfo "Resetting Steam achievements"
       reset_queued = false
 
       for i as integer = 0 to ubound(achievement_defs)
@@ -93,7 +88,7 @@ namespace Achievements
   end sub
 
   sub definitions_free
-    ach_debug("definitions_free")
+    ach_verbose("definitions_free")
     erase achievement_defs
 
     next_id = 1
@@ -101,18 +96,18 @@ namespace Achievements
   end sub
 
   sub definitions_reset
-    ach_debug("definitions_reset")
+    ach_verbose("definitions_reset")
 
     reset_queued = true
   end sub
 
   function definitions_count() as integer
-    ach_debug("definitions_count")
+    ach_verbose("definitions_count")
     return ubound(achievement_defs) - lbound(achievement_defs) + 1
   end function
 
   function get_definition_by_index(index as integer) byref as AchievementDefinition
-    ach_debug("get_definition_by_index(" & index & ")")
+    ach_verbose("get_definition_by_index(" & index & ")")
 
     ERROR_IF(index < 0 orelse index > ubound(achievement_defs), "Invalid achievement index, " & index, byval null)
 
@@ -133,12 +128,10 @@ namespace Achievements
   ' -- members for AchievementDefinition --
 
   constructor AchievementDefinition
-    ach_debug("AchivementProgress constructor")
     v_new tags
   end constructor
 
   destructor AchievementDefinition
-    ach_debug("AchivementDefinition destructor")
     v_free tags
   end destructor
 
@@ -151,7 +144,7 @@ namespace Achievements
       case "count"
         return AchievementType.count
       case else
-        ach_debug("unknown achievement type string: " & name)
+        debug "unknown achievement type string: " & name
         return AchievementType.flag
     end select
   end function
@@ -163,15 +156,13 @@ namespace Achievements
       case AchievementType.count
         return "count"
       case else
-        ach_debug("unknown achievement type enum: " & typ)
+        debug "unknown achievement type enum: " & typ
         return "flag"
     end select
   end function
 
-  #ifdef DEBUG_ACHIEVEMENTS
-  private sub ach_debug(msg as string)
-    debug "achievements: " & msg
+  sub ach_debug(msg as string)
+    if enable_debug then debuginfo "achievements: " & msg
   end sub
-  #endif
 
 end namespace
