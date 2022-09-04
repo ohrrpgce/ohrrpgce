@@ -54,6 +54,7 @@ DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, fi
 DECLARE SUB fix_deb_group_permissions(start_at_dir as string)
 DECLARE SUB write_debian_postrm_script (filename as string)
 DECLARE SUB write_debian_postinst_script (filename as string)
+DECLARE FUNCTION dist_find_helper_app(appname as string) as string
 DECLARE FUNCTION can_make_tarballs () as bool
 DECLARE FUNCTION can_run_windows_exes () as bool
 DECLARE FUNCTION can_make_debian_packages () as bool
@@ -79,8 +80,6 @@ DECLARE SUB itch_io_options_menu()
 DECLARE FUNCTION itch_game_url(distinfo as DistribState) as string
 DECLARE FUNCTION itch_target(distinfo as DistribState) as string
 DECLARE FUNCTION itch_gametarg(distinfo as DistribState) as string
-DECLARE FUNCTION itch_butler_path() as string
-DECLARE FUNCTION itch_butler_is_installed() as bool
 DECLARE FUNCTION itch_butler_is_logged_in() as bool
 DECLARE FUNCTION itch_butler_setup() as bool
 DECLARE FUNCTION itch_butler_download() as bool
@@ -804,8 +803,8 @@ FUNCTION get_windows_gameplayer() as string
  IF NOT download_gameplayer_if_needed(url, destzip, "win.download.agree", "the Windows OHRRPGCE game player") THEN RETURN ""
  
  '--Find the unzip tool
- DIM unzip as string = find_helper_app("unzip", YES)
- IF unzip = "" THEN dist_info "ERROR: Couldn't find unzip tool": RETURN ""
+ DIM unzip as string = dist_find_helper_app("unzip")
+ IF unzip = "" THEN RETURN ""
  
  '--remove the old files first
  safekill dldir & SLASH & "game.exe"
@@ -1318,6 +1317,12 @@ SUB write_linux_desktop_file(title as string, filename as string, basename as st
  CLOSE #fh
 END SUB
 
+FUNCTION dist_find_helper_app(appname as string) as string
+ DIM path as string = find_helper_app(appname, YES)
+ IF path = "" THEN dist_info "ERROR: " & missing_helper_message(appname & DOTEXE)
+ RETURN path
+END FUNCTION
+
 FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as bool
  '--Returns YES if successful, or NO if failed
 
@@ -1326,8 +1331,8 @@ FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as s
  'files is a list of space-separated filenames and directory names to include in the tarball
  'if they contain spaces they must be quoted
 
- DIM ar as string = find_helper_app("ar", YES)
- IF ar = "" THEN dist_info "ERROR: ar is not available" : RETURN NO
+ DIM ar as string = dist_find_helper_app("ar")
+ IF ar = "" THEN RETURN NO
 
  DIM args as string
  args = " qc"
@@ -1357,8 +1362,8 @@ FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as stri
  'files is a list of space-separated filenames and directory names to include in the tarball
  'if they contain spaces they must be quoted
  
- DIM zip as string = find_helper_app("zip", YES)
- IF zip = "" THEN dist_info "ERROR: zip is not available": RETURN NO
+ DIM zip as string = dist_find_helper_app("zip")
+ IF zip = "" THEN RETURN NO
 
  DIM spawn_ret as string
  DIM args as string
@@ -1385,11 +1390,11 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  'files is a list of space-separated filenames and directory names to include in the tarball
  'if they contain spaces they must be quoted
  
- DIM tar as string = find_helper_app("tar", YES)
- IF tar = "" THEN dist_info "ERROR: tar is not available": RETURN NO
+ DIM tar as string = dist_find_helper_app("tar")
+ IF tar = "" THEN RETURN NO
 
- DIM gzip as string = find_helper_app("gzip", YES)
- IF gzip = "" THEN dist_info "ERROR: gzip is not available": RETURN NO
+ DIM gzip as string = dist_find_helper_app("gzip")
+ IF gzip = "" THEN RETURN NO
 
  DIM as string tarversion, errstr
  IF run_and_get_output(tar & " --version", tarversion, errstr) THEN
@@ -1473,8 +1478,8 @@ FUNCTION extract_tarball(into_dir as string, tarball as string, files as string)
  'if they contain spaces they must be quoted
  
  
- DIM tar as string = find_helper_app("tar", YES)
- IF tar = "" THEN dist_info "ERROR: tar utility is not available": RETURN NO
+ DIM tar as string = dist_find_helper_app("tar")
+ IF tar = "" THEN RETURN NO
 
  DIM spawn_ret as string
  DIM args as string
@@ -1494,8 +1499,8 @@ END FUNCTION
 
 FUNCTION gzip_file (filename as string) as bool
  'Returns YES on success, NO on failure
- DIM gzip as string = find_helper_app("gzip", YES)
- IF gzip = "" THEN dist_info "ERROR: gzip is not available": RETURN NO
+ DIM gzip as string = dist_find_helper_app("gzip")
+ IF gzip = "" THEN RETURN NO
  
  DIM args as string
  args = escape_filename(filename)
@@ -1514,8 +1519,8 @@ FUNCTION gunzip_file (filename as string) as bool
  'Extracts a .gz file, creating a new file minus the .gz extension next to it.
  'Doesn't delete the .gz.
  'Returns YES on success, NO on failure
- DIM gzip as string = find_helper_app("gzip", YES)
- IF gzip = "" THEN dist_info "ERROR: gzip is not available": RETURN NO
+ DIM gzip as string = dist_find_helper_app("gzip")
+ IF gzip = "" THEN RETURN NO
  
  DIM args as string
  'Note, the gzip.exe we ship originally shipped didn't support -k. Version 1.3.12-1 does.
@@ -2203,10 +2208,11 @@ END SUB
 FUNCTION itch_butler_setup() as bool
  ' Returns NO if setup failed
 
- DIM butler_path as string = itch_butler_path()
- 
- IF NOT itch_butler_is_installed() THEN
+ DIM butler_path as string = find_helper_app("butler")
+ IF butler_path = "" THEN
   IF NOT itch_butler_download() THEN RETURN NO
+  butler_path = find_helper_app("butler")
+  IF butler_path = "" THEN RETURN NO  'Shouldn't happen
  END IF
 
  'If we got this far, butler should be installed. Try to log in
@@ -2254,16 +2260,17 @@ END FUNCTION
 
 'TODO: couldn't this be merged with install_windows_helper_app?
 FUNCTION itch_butler_download() as bool
- DIM butler_path as string = itch_butler_path()
+ DIM support_dir as string = get_support_dir()
+ DIM butler_path as string = support_dir & SLASH & "butler" DOTEXE
 
  DIM butler_platform as string = itch_butler_platform_version()
  IF butler_platform = "" THEN RETURN NO  'Not available
 
  '--Ask the user for permission the first time we download (subsequent updates don't ask)
- DIM agree_file as string = get_support_dir() & SLASH & "itch.butler.download.agree"
+ DIM agree_file as string = support_dir & SLASH & "itch.butler.download.agree"
  IF agreed_to_download(agree_file, "the itch.io butler tool") = NO THEN RETURN NO
  
- DIM destzip as string = get_support_dir() & SLASH & "butler.zip"
+ DIM destzip as string = support_dir & SLASH & "butler.zip"
  '--Actually download the dang file
  DIM url as string = "https://broth.itch.ovh/butler/" & butler_platform & "/LATEST/archive/default"
  IF NOT download_file(url, destzip) THEN
@@ -2299,20 +2306,9 @@ FUNCTION itch_gametarg(distinfo as DistribState) as string
  RETURN sanitize_url_chunk(IIF(LEN(distinfo.itch_gamename) = 0, distinfo.pkgname, distinfo.itch_gamename))
 END FUNCTION
 
-'TODO: this could be replaced with find_helder_app, why treat butler differently from all others?!
-FUNCTION itch_butler_path() as string
- RETURN get_support_dir() & SLASH & "butler" & DOTEXE
-END FUNCTION
-
-FUNCTION itch_butler_is_installed() as bool
- DIM butler as string = itch_butler_path()
- IF butler = "" THEN RETURN NO
- RETURN isfile(butler)
-END FUNCTION
-
 FUNCTION itch_butler_is_logged_in() as bool
  ' Can't be logged in if it ain't installed
- IF NOT itch_butler_is_installed() THEN RETURN NO
+ IF find_helper_app("butler") = "" THEN RETURN NO
  DIM butler_creds as string
  #IFDEF __FB_WIN32__
  butler_creds = ENVIRON("USERPROFILE") & "\.config\itch\butler_creds"
@@ -2344,7 +2340,9 @@ SUB itch_butler_upload(distinfo as DistribState)
  debuginfo "itch_butler_upload"
  dist_basicstatus "Checking butler status..."
 
- DIM butler as string = itch_butler_path()
+ 'When this function is called we've already checked butler is present and logged in
+ DIM butler as string = find_helper_app("butler")
+ BUG_IF(butler = "", "butler missing")
  DIM target as string = itch_target(distinfo)
  DIM out_s as string
  DIM err_s as string
