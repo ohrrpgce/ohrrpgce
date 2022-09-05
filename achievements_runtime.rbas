@@ -126,8 +126,24 @@ namespace Achievements
       END READNODE
     end if
 
-    ach_debug("done loading save game")
     save_loaded = true
+
+    ' Update awarded status in Steam, in casewe previously couldn't (e.g. a new achievement that's
+    ' been added to a game, or not previously running under Steam)
+    if Steam.available then
+      for index as integer = 0 to ubound(achievement_progress)
+        if achievement_progress(index).rewarded then
+          with get_definition_by_index(index)
+            if .steam_id <> "" then
+              ach_debug("Steam: rewarding #" & .id & " '" & .name & "' Steam ID '" & .steam_id & "'")
+              Steam.reward_achievement .steam_id
+            end if
+          end with
+        end if
+      next
+    end if
+
+    ach_debug("done loading save game")
   end sub
 
   sub runtime_save(node as NodePtr)
@@ -269,7 +285,7 @@ namespace Achievements
           SetChildNodeDate(achievement, "rewarded_date", NOW())
           write_persist_reld
         else
-          ach_debug("...already in persist.reld, skipping")
+          ach_debug("...already in persist.reld, skip adding")
         end if
       else
         ach_debug("...is per-save, not adding to persist")
