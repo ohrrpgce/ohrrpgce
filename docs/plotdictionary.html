@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-08-18)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-09-09)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1138,6 +1138,7 @@ function toggleContent(target) {
 		<a href="#about-moveslicebelow">move slice below (handle, below what handle)</a><br>
 		<a href="#about-movesliceby">move slice by (handle, relative x, relative y, ticks)</a><br>
 		<a href="#about-movesliceto">move slice to (handle, x, y, ticks)</a><br>
+		<a href="#about-moveslicetoscreenpos">move slice to screen pos (handle, x, y, ticks)</a><br>
 		<a href="#about-moveslicewithwallchecking">move slice with wallchecking (sl, relative x, relative y, friction%)</a><br>
 		<a href="#about-multdiv">multdiv (a, b, c)</a><br>
 		<a href="#about-multiply">number * number</a><br>
@@ -12476,6 +12477,7 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-setslicevelocity">set slice velocity (handle, horiz pixels per tick, vert pixels per tick, ticks)</a><br>
 		<a href="#about-stopslice">stop slice (handle)</a><br>
 		<a href="#about-movesliceto">move slice to (handle, x, y, ticks)</a><br>
+		<a href="#about-moveslicetoscreenpos">move slice to screen pos (handle, x, y, ticks)</a><br>
 		<a href="#about-movesliceby">move slice by (handle, relative x, relative y, ticks)</a><br>
 		<a href="#about-waitforslice">wait for slice (handle)</a><br>
 		<a href="#about-sliceismoving">slice is moving (handle)</a><br>
@@ -14792,7 +14794,54 @@ map y := slice screen y(sl) + camera pixel y</pre>
 			
 				Instruct slice <span class="param">handle</span> to move in a straight line to a specific
 				<span class="param">x</span> and <span class="param">y</span> position over a given number of <span class="param">ticks</span>.
-				(As always, the position is an offset relative to its parent.)
+				(As always, the position is an offset relative to its parent. See <a href="#about-moveslicetoscreenpos" class="ref">move slice to screen pos</a> if you want to use screen coordinates instead)
+				<br>
+				If the slice had velocity set with <a href="#about-setslicevelocity" class="ref">set slice velocity</a>,
+				<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a> or <a href="#about-setslicevelocityy" class="ref">set slice velocity y</a> it will be cancelled.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					If you change the slice's position manually during that time (eg. with <a href="#about-putslice" class="ref">put slice</a>),
+					it'll continue to move towards the original target in a straight line
+					(but now with a different velocity), until <span class="code">ticks</span> is up.
+					Use <a href="#about-setslicevelocity" class="ref">set slice velocity</a> instead if you don't want this.
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a>, </li>
+<li>
+<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a>, </li>
+<li>
+<a href="#about-getslicevelocityx" class="ref">get slice velocity x</a>, </li>
+<li>
+<a href="#about-getslicevelocityy" class="ref">get slice velocity y</a>, </li>
+<li>
+<a href="#about-setslicevelocity" class="ref">set slice velocity</a>, </li>
+<li>
+<a href="#about-stopslice" class="ref">stop slice</a>, </li>
+<li>
+<a href="#about-movesliceto" class="ref">move slice to</a>, </li>
+<li>
+<a href="#about-moveslicetoscreenpos" class="ref">move slice to screen pos</a>, </li>
+<li>
+<a href="#about-movesliceby" class="ref">move slice by</a>, </li>
+<li>
+<a href="#about-waitforslice" class="ref">wait for slice</a>, </li>
+<li><a href="#about-sliceismoving" class="ref">slice is moving</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-moveslicetoscreenpos"></a>
+				<h4>move slice to screen pos (handle, x, y, ticks)</h4>
+<p>
+			
+				Instruct slice <span class="param">handle</span> to move in a straight line to a specific
+				<span class="param">x</span> and <span class="param">y</span> screen position over a given number of <span class="param">ticks</span>.
+				(Unlike <a href="#about-movesliceto" class="ref">move slice to</a> the position is relative to the screen, regardless of the slice's parentage)
 				<br>
 				If the slice had velocity set with <a href="#about-setslicevelocity" class="ref">set slice velocity</a>,
 				<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a> or <a href="#about-setslicevelocityy" class="ref">set slice velocity y</a> it will be cancelled.
@@ -14870,6 +14919,8 @@ map y := slice screen y(sl) + camera pixel y</pre>
 <a href="#about-stopslice" class="ref">stop slice</a>, </li>
 <li>
 <a href="#about-movesliceto" class="ref">move slice to</a>, </li>
+<li>
+<a href="#about-moveslicetoscreenpos" class="ref">move slice to screen pos</a>, </li>
 <li>
 <a href="#about-movesliceby" class="ref">move slice by</a>, </li>
 <li>
@@ -22506,7 +22557,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 940 commands (of which 11 are aliases), 27 constants and 14 definitions of types and other terms in this file.</p>
+<p>Stats: There are 941 commands (of which 11 are aliases), 27 constants and 14 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

@@ -1936,6 +1936,13 @@ script, put slice screen, hsd:sl, hsd:newx, hsd:newy, begin
                     slice y(hsd:sl) + hsd:newy -- slice screen y(hsd:sl))
 end
 
+script, move slice to screen pos, hsd:sl, hsd:newx, hsd:newy, hsd:ticks, begin
+  variable(hsd:offsetx, hsd:offsety)
+  hsd:offsetx := slice screen x(hsd:sl) -- slice x(hsd:sl)
+  hsd:offsety := slice screen y(hsd:sl) -- slice y(hsd:sl)
+  move slice to(hsd:sl, hsd:newx -- hsd:offsetx, hsd:newy -- hsd:offsety, hsd:ticks)
+end
+
 script, set padding, hsd:sl, hsd:newpadding, begin
   set left padding  (hsd:sl, hsd:newpadding)
   set right padding (hsd:sl, hsd:newpadding)

@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-08-18">
+<plotscript version="wip" datecode="2022-09-09">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -8299,7 +8299,38 @@ map y := slice screen y(sl) + camera pixel y</example>
 			<description>
 				Instruct slice <p>handle</p> to move in a straight line to a specific
 				<p>x</p> and <p>y</p> position over a given number of <p>ticks</p>.
-				(As always, the position is an offset relative to its parent.)
+				(As always, the position is an offset relative to its parent. See <ref>moveslicetoscreenpos</ref> if you want to use screen coordinates instead)
+				<lb/>
+				If the slice had velocity set with <ref>setslicevelocity</ref>,
+				<ref>setslicevelocityx</ref> or <ref>setslicevelocityy</ref> it will be cancelled.
+				<note>
+					If you change the slice's position manually during that time (eg. with <ref>putslice</ref>),
+					it'll continue to move towards the original target in a straight line
+					(but now with a different velocity), until <tt>ticks</tt> is up.
+					Use <ref>setslicevelocity</ref> instead if you don't want this.
+				</note>
+			</description>
+			<seealso>
+				<ref>setslicevelocityx</ref>
+				<ref>setslicevelocityy</ref>
+				<ref>getslicevelocityx</ref>
+				<ref>getslicevelocityy</ref>
+				<ref>setslicevelocity</ref>
+				<ref>stopslice</ref>
+				<ref>movesliceto</ref>
+				<ref>moveslicetoscreenpos</ref>
+				<ref>movesliceby</ref>
+				<ref>waitforslice</ref>
+				<ref>sliceismoving</ref>
+			</seealso>
+		</command>
+		<command id="moveslicetoscreenpos">
+			<canon>move slice to screen pos (handle, x, y, ticks)</canon>
+			<shortname>move slice to screen pos</shortname>
+			<description>
+				Instruct slice <p>handle</p> to move in a straight line to a specific
+				<p>x</p> and <p>y</p> screen position over a given number of <p>ticks</p>.
+				(Unlike <ref>movesliceto</ref> the position is relative to the screen, regardless of the slice's parentage)
 				<lb/>
 				If the slice had velocity set with <ref>setslicevelocity</ref>,
 				<ref>setslicevelocityx</ref> or <ref>setslicevelocityy</ref> it will be cancelled.
@@ -8352,6 +8383,7 @@ map y := slice screen y(sl) + camera pixel y</example>
 				<ref>setslicevelocity</ref>
 				<ref>stopslice</ref>
 				<ref>movesliceto</ref>
+				<ref>moveslicetoscreenpos</ref>
 				<ref>movesliceby</ref>
 				<ref>waitforslice</ref>
 				<ref>sliceismoving</ref>
