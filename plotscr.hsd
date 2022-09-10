@@ -1908,6 +1908,15 @@ script, realign slice, hsd:sl, hsd:halign, hsd:valign, hsd:hanchor=-1, hsd:vanch
   if(hsd:vanchor <> -1) then(set vert anchor(hsd:sl, hsd:vanchor))
 end
 
+script, gently realign slice, hsd:sl, hsd:halign, hsd:valign, hsd:hanchor=-1, hsd:vanchor=-1, begin
+  variable(hsd:oldx, hsd:oldy)
+  hsd:oldx := slice screen x(hsd:sl)
+  hsd:oldy := slice screen y(hsd:sl)
+  realign slice(hsd:sl, hsd:halign, hsd:valign, hsd:hanchor, hsd:vanchor)
+  set slice screen x(hsd:sl, hsd:oldx)
+  set slice screen y(hsd:sl, hsd:oldy)
+end
+
 script, center slice, hsd:sl, begin
   realign slice(hsd:sl, 1, 1, 1, 1)
 end

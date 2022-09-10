@@ -840,6 +840,7 @@ function toggleContent(target) {
 		<a href="#about-freesprite">free sprite (handle)</a><br>
 		<a href="#about-gainherostat">gain hero stat (who, stat, amount, reset to max)</a><br>
 		<a href="#about-gameover">game over</a><br>
+		<a href="#about-gentlyrealignslice">gently realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)</a><br>
 		<a href="#about-gentlyreparent">gently reparent (handle, parent handle)</a><br>
 		<a href="#about-getactivebattlepauseonallmenus">get active battle pause on all menus</a><br>
 		<a href="#about-getactivetimebattlemode">get active time battle mode</a><br>
@@ -12451,6 +12452,7 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-getvertanchor">get vert anchor (handle)</a><br>
 		<a href="#about-realignslice">realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)</a><br>
 		<a href="#about-centerslice">center slice (handle)</a><br>
+		<a href="#about-gentlyrealignslice">gently realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)</a><br>
 </ul>
 <ul></ul>
 </li>
@@ -14359,7 +14361,9 @@ map y := slice screen y(sl) + camera pixel y</pre>
 <a href="#about-setvertalign" class="ref">set vert align</a>, </li>
 <li>
 <a href="#about-sethorizanchor" class="ref">set horiz anchor</a>, </li>
-<li><a href="#about-setvertanchor" class="ref">set vert anchor</a></li>
+<li>
+<a href="#about-setvertanchor" class="ref">set vert anchor</a>, </li>
+<li><a href="#about-gentlyrealignslice" class="ref">gently realign slice</a></li>
 </ul>
 </div>
 		</p>
@@ -14374,6 +14378,25 @@ map y := slice screen y(sl) + camera pixel y</pre>
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-realignslice" class="ref">realign slice</a>, </li>
+<li>
+<a href="#about-sethorizalign" class="ref">set horiz align</a>, </li>
+<li>
+<a href="#about-setvertalign" class="ref">set vert align</a>, </li>
+<li>
+<a href="#about-sethorizanchor" class="ref">set horiz anchor</a>, </li>
+<li><a href="#about-setvertanchor" class="ref">set vert anchor</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-gentlyrealignslice"></a>
+				<h4>gently realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)</h4>
+<p>
+			A quick way to set the alignment and optionally the anchor of a slice with a single command, but to preserve the current screen position of the slice. This will alter a slices relative position, but keep its screen position the same as the alignment and anchor change. If you leave out the arguments for the anchor then only the alignment will be changed.
+			
+			
+			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-sethorizalign" class="ref">set horiz align</a>, </li>
 <li>
@@ -22582,7 +22605,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 942 commands (of which 11 are aliases), 27 constants and 14 definitions of types and other terms in this file.</p>
+<p>Stats: There are 943 commands (of which 11 are aliases), 27 constants and 14 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

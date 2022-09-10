@@ -8036,6 +8036,7 @@ map y := slice screen y(sl) + camera pixel y</example>
 				<ref>setvertalign</ref>
 				<ref>sethorizanchor</ref>
 				<ref>setvertanchor</ref>
+				<ref>gentlyrealignslice</ref>
 			</seealso>
 		</command>
 		<command id="centerslice">
@@ -8044,6 +8045,17 @@ map y := slice screen y(sl) + camera pixel y</example>
 			<description>A quick way to center the alignment and the anchor of a slice with a single command. Equivalent to <p>realign slice(handle, edge:center, edge:center, edge:middle, edge:middle)</p>.</description>
 			<seealso>
 				<ref>realignslice</ref>
+				<ref>sethorizalign</ref>
+				<ref>setvertalign</ref>
+				<ref>sethorizanchor</ref>
+				<ref>setvertanchor</ref>
+			</seealso>
+		</command>
+		<command id="gentlyrealignslice">
+			<canon>gently realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)</canon>
+			<shortname>gently realign slice</shortname>
+			<description>A quick way to set the alignment and optionally the anchor of a slice with a single command, but to preserve the current screen position of the slice. This will alter a slices relative position, but keep its screen position the same as the alignment and anchor change. If you leave out the arguments for the anchor then only the alignment will be changed.</description>
+			<seealso>
 				<ref>sethorizalign</ref>
 				<ref>setvertalign</ref>
 				<ref>sethorizanchor</ref>
