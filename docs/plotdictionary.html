@@ -840,6 +840,7 @@ function toggleContent(target) {
 		<a href="#about-freesprite">free sprite (handle)</a><br>
 		<a href="#about-gainherostat">gain hero stat (who, stat, amount, reset to max)</a><br>
 		<a href="#about-gameover">game over</a><br>
+		<a href="#about-gentlyreparent">gently reparent (handle, parent handle)</a><br>
 		<a href="#about-getactivebattlepauseonallmenus">get active battle pause on all menus</a><br>
 		<a href="#about-getactivetimebattlemode">get active time battle mode</a><br>
 		<a href="#about-getambientmusic">get ambient music</a><br>
@@ -12343,6 +12344,7 @@ set menu on close script(m, @my menu exit handler)
 <button onclick="toggleContent(this);"><span class="content-shown">Hide command index</span><span class="content-hidden">Show command index</span></button><ul>
 <div class="content-shown">
 		<a href="#about-setparent">set parent (handle, parent handle)</a><br>
+		<a href="#about-gentlyreparent">gently reparent (handle, parent handle)</a><br>
 		<a href="#about-sliceisvalid">slice is valid (value)</a><br>
 		<a href="#about-freeslice">free slice (handle)</a><br>
 		<a href="#about-freeslicechildren">free slice children (handle)</a><br>
@@ -12777,7 +12779,7 @@ set menu on close script(m, @my menu exit handler)
 			<a name="about-setparent"></a>
 				<h4>set parent (handle, parent handle)</h4>
 <p>
-			Moves a slice <span class="param">handle</span> to a different <span class="param">parent handle</span>. A slice is connected to its parent, and is positioned based on its parent's position. When you move a slice to a new parent, it will become that parent's last child, meaning it will be drawn on top of any other children that the parent already had.
+			Moves a slice <span class="param">handle</span> to a different <span class="param">parent handle</span>. A slice is connected to its parent, and is positioned based on its parent's position. When you move a slice to a new parent, it will become that parent's last child, meaning it will be drawn on top of any other children that the parent already had. Because a slice is positioned relative to its parent, using this command can cause the slice to move. If you would like to change a slice's parent without changing its screen position, see the <a href="#about-gentlyreparent" class="ref">gently reparent</a> command instead.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -12785,7 +12787,28 @@ set menu on close script(m, @my menu exit handler)
 <a href="#about-parentslice" class="ref">parent slice</a>, </li>
 <li>
 <a href="#about-checkparentage" class="ref">check parentage</a>, </li>
-<li><a href="#about-slicechild" class="ref">slice child</a></li>
+<li>
+<a href="#about-slicechild" class="ref">slice child</a>, </li>
+<li><a href="#about-gentlyreparent" class="ref">gently reparent</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-gentlyreparent"></a>
+				<h4>gently reparent (handle, parent handle)</h4>
+<p>
+			Moves a slice <span class="param">handle</span> to a different <span class="param">parent handle</span>, but preserves the slice's current screen position. This means that the slice's x and y position relative to its new parent might be changed. When you move a slice to a new parent, it will become that parent's last child, meaning it will be drawn on top of any other children that the parent already had. If you would like to change a slice's parent without changing its position relative to its parent (which could change its screen position), see the <a href="#about-setparent" class="ref">set parent</a> command instead.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-parentslice" class="ref">parent slice</a>, </li>
+<li>
+<a href="#about-checkparentage" class="ref">check parentage</a>, </li>
+<li>
+<a href="#about-slicechild" class="ref">slice child</a>, </li>
+<li><a href="#about-gentlyreparent" class="ref">gently reparent</a></li>
 </ul>
 </div>
 		</p>
@@ -15179,6 +15202,8 @@ end
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-setparent" class="ref">set parent</a>, </li>
+<li>
+<a href="#about-gentlyreparent" class="ref">gently reparent</a>, </li>
 <li>
 <a href="#about-checkparentage" class="ref">check parentage</a>, </li>
 <li><a href="#about-slicechild" class="ref">slice child</a></li>
@@ -22557,7 +22582,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 941 commands (of which 11 are aliases), 27 constants and 14 definitions of types and other terms in this file.</p>
+<p>Stats: There are 942 commands (of which 11 are aliases), 27 constants and 14 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

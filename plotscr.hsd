@@ -1958,6 +1958,15 @@ script, reparent to hero, hsd:sl, hsd:hero rank, begin
   set parent(hsd:sl, lookup slice(sl:walkabout sprite component, get hero slice(hsd:hero rank)))
 end
 
+script, gently reparent, hsd:sl, hsd:newparent, begin
+  variable(hsd:oldx, hsd:oldy)
+  hsd:oldx := slice screen x(hsd:sl)
+  hsd:oldy := slice screen y(hsd:sl)
+  set parent(hsd:sl, hsd:newparent)
+  set slice screen x(hsd:sl, hsd:oldx)
+  set slice screen y(hsd:sl, hsd:oldy)
+end
+
 #--------------------------------------------------------------------------
 # helper scripts
 

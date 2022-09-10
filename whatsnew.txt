@@ -108,7 +108,7 @@ WHAT IS NEW?
     * "get/set rect fuzzy zoom", "get/set rect stationary pattern" [Ralph]
     * "keypress time" [Ralph]
     * "random choice" [Ralph]
-    * "move slice to screen pos" [James]
+    * "move slice to screen pos", "gently reparent" [James]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

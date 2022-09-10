@@ -6889,11 +6889,23 @@ set menu on close script(m, @my menu exit handler)
 		<command id="setparent">
 			<canon>set parent (handle, parent handle)</canon>
 			<shortname>set parent</shortname>
-			<description>Moves a slice <p>handle</p> to a different <p>parent handle</p>. A slice is connected to its parent, and is positioned based on its parent's position. When you move a slice to a new parent, it will become that parent's last child, meaning it will be drawn on top of any other children that the parent already had.</description>
+			<description>Moves a slice <p>handle</p> to a different <p>parent handle</p>. A slice is connected to its parent, and is positioned based on its parent's position. When you move a slice to a new parent, it will become that parent's last child, meaning it will be drawn on top of any other children that the parent already had. Because a slice is positioned relative to its parent, using this command can cause the slice to move. If you would like to change a slice's parent without changing its screen position, see the <ref>gentlyreparent</ref> command instead.</description>
 			<seealso>
 				<ref>parentslice</ref>
 				<ref>checkparentage</ref>
 				<ref>slicechild</ref>
+				<ref>gentlyreparent</ref>
+			</seealso>
+		</command>
+		<command id="gentlyreparent">
+			<canon>gently reparent (handle, parent handle)</canon>
+			<shortname>gently reparent</shortname>
+			<description>Moves a slice <p>handle</p> to a different <p>parent handle</p>, but preserves the slice's current screen position. This means that the slice's x and y position relative to its new parent might be changed. When you move a slice to a new parent, it will become that parent's last child, meaning it will be drawn on top of any other children that the parent already had. If you would like to change a slice's parent without changing its position relative to its parent (which could change its screen position), see the <ref>setparent</ref> command instead.</description>
+			<seealso>
+				<ref>parentslice</ref>
+				<ref>checkparentage</ref>
+				<ref>slicechild</ref>
+				<ref>gentlyreparent</ref>
 			</seealso>
 		</command>
 		<command id="sliceisvalid">
@@ -8540,6 +8552,7 @@ end
 			<description>Returns a slice handle for the parent of slice <p>handle</p>, or 0 if <p>handle</p> is the root slice.</description>
 			<seealso>
 				<ref>setparent</ref>
+				<ref>gentlyreparent</ref>
 				<ref>checkparentage</ref>
 				<ref>slicechild</ref>
 			</seealso>
