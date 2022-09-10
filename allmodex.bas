@@ -2418,12 +2418,20 @@ end function
 sub waitforkeyrelease ()
 	setkeys
 	'anykeypressed checks scAlt instead of scUnfilteredAlt
-	while anykeypressed(YES, YES, 1) or keyval(scUnfilteredAlt)
+	dim ticks as integer = 0
+	dim sc as integer = anykeypressed(YES, YES, 1)
+	while sc or keyval(scUnfilteredAlt)
 		if getquitflag() then exit sub
+		if ticks > 60 then
+			edgeprint "Waiting for release: " & scancodename(sc), 0, pBottom, uilook(uiText), getvispage
+			setvispage getvispage
+		end if
 		io_pollkeyevents()
 		setwait 15
 		setkeys
+		ticks += 1
 		dowait
+		sc = anykeypressed(YES, YES, 1)
 	wend
 end sub
 
