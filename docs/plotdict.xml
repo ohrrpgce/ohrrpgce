@@ -168,7 +168,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-09-09">
+<plotscript version="wip" datecode="2022-09-10">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -7220,6 +7220,7 @@ lookup slice(sl:pathfind dest display)
 				<ref>setslicelookup</ref>
 				<ref>getslicelookup</ref>
 				<ref>lookupnextslice</ref>
+				<ref>lookupparent</ref>
 			</seealso>
 		</command>
 
@@ -7262,6 +7263,18 @@ while (true) do (
   if (slice is sprite (sl)) then (set sprite frame (sl, 0))  # Reset button appearances
   if (slice is text (sl)) then (set text color (sl, ui:text))  # Reset text highlighting
 )</example>
+		</command>
+		<command id="lookupparent">
+			<canon>lookup parent (lookup code, slice)</canon>
+			<shortname>lookup parent</shortname>
+			<description>
+				Search for a slice's parent or grandparent that's tagged with a <ref>lookupcode</ref>, and return a handle to it, or 0 if no ancestor slice has the lookup code.
+			</description>
+			<seealso>
+				<ref>lookupslice</ref>
+				<ref>setslicelookup</ref>
+				<ref>getslicelookupname</ref>
+			</seealso>
 		</command>
 
 		<command id="spritelayer">

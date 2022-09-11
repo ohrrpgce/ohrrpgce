@@ -204,7 +204,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-09-09)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-09-10)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1101,6 +1101,7 @@ function toggleContent(target) {
 		<a href="#about-logicalxor">value ^^ value</a><br>
 		<a href="#about-lookupcode">Slice lookup codes</a><br>
 		<a href="#about-lookupnextslice">lookup next slice (lookup code, current slice, root slice)</a><br>
+		<a href="#about-lookupparent">lookup parent (lookup code, slice)</a><br>
 		<a href="#about-lookupslice">lookup slice (lookup code, root slice)</a><br>
 		<a href="#about-losemoney">lose money (amount)</a><br>
 		<a href="#about-mainmenu">main menu</a><br>
@@ -12359,6 +12360,7 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-loadslicecollection">load slice collection (id)</a><br>
 		<a href="#about-lookupslice">lookup slice (lookup code, root slice)</a><br>
 		<a href="#about-lookupnextslice">lookup next slice (lookup code, current slice, root slice)</a><br>
+		<a href="#about-lookupparent">lookup parent (lookup code, slice)</a><br>
 		<a href="#about-spritelayer">sprite layer</a><br>
 		<a href="#about-getslicelookup">get slice lookup (handle)</a><br>
 		<a href="#about-setslicelookup">set slice lookup (handle, code)</a><br>
@@ -13175,7 +13177,9 @@ lookup slice(sl:pathfind dest display)
 <a href="#about-setslicelookup" class="ref">set slice lookup</a>, </li>
 <li>
 <a href="#about-getslicelookup" class="ref">get slice lookup</a>, </li>
-<li><a href="#about-lookupnextslice" class="ref">lookup next slice</a></li>
+<li>
+<a href="#about-lookupnextslice" class="ref">lookup next slice</a>, </li>
+<li><a href="#about-lookupparent" class="ref">lookup parent</a></li>
 </ul>
 </div>
 		</p>
@@ -13222,6 +13226,25 @@ while (true) do (
   if (slice is text (sl)) then (set text color (sl, ui:text))  # Reset text highlighting
 )</pre>
 			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-lookupparent"></a>
+				<h4>lookup parent (lookup code, slice)</h4>
+<p>
+			
+				Search for a slice's parent or grandparent that's tagged with a <a href="#about-lookupcode" class="ref">slice lookup code</a>, and return a handle to it, or 0 if no ancestor slice has the lookup code.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-lookupslice" class="ref">lookup slice</a>, </li>
+<li>
+<a href="#about-setslicelookup" class="ref">set slice lookup</a>, </li>
+<li><a href="#about-getslicelookupname" class="ref">get slice lookup name</a></li>
+</ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -22605,7 +22628,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 943 commands (of which 11 are aliases), 27 constants and 14 definitions of types and other terms in this file.</p>
+<p>Stats: There are 944 commands (of which 11 are aliases), 27 constants and 14 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

@@ -109,6 +109,7 @@ WHAT IS NEW?
     * "keypress time" [Ralph]
     * "random choice" [Ralph]
     * "move slice to screen pos" "gently reparent", "gently realign slice" [James]
+    * "lookup parent" [James]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.
