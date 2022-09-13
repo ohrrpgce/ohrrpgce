@@ -40,6 +40,9 @@
 					h4 {
 						color: yellow;
 					}
+					.gloss h4 {
+						color: #ffe090;
+					}
 
 					.command {
 						margin-top: 17px;
@@ -49,7 +52,7 @@
 						font-family: 'Lucida Console',monospace;
 						font-size: 0.75em;
 					}
-					/* Reduce gaps between (each) command name(s) and definition */
+					/* Reduce gaps between (each) command/gloss's title(s) and definition */
 					.command h4 {
 						margin-bottom: 0px;
 						margin-top: 0px;
@@ -57,6 +60,7 @@
 					.command p {
 						margin-top: 3px;
 					}
+
 					.notetext {
 						font-style: italic;
 						font-size: 11px;
@@ -92,8 +96,9 @@
 						color:red;
 					}
 
-					a.ref:after {
-						/*content: " ?";*/
+					a.gloss {
+						text-decoration-style: dashed;
+						color: #ffd090;
 					}
 
 					.param {
@@ -247,7 +252,7 @@ function toggleContent(target) {
 				<hr/>
 				<h2>Alphabetical Index</h2>
 				<p>
-				<xsl:apply-templates select=".//command|.//altcommand" mode="alphalist">
+				<xsl:apply-templates select=".//command|.//altcommand|.//gloss" mode="alphalist">
 				<xsl:sort select="@id" data-type="text" />
 				</xsl:apply-templates>
 				</p>
@@ -257,8 +262,9 @@ function toggleContent(target) {
 				</xsl:apply-templates>
 
 				<xsl:variable name="numconstants" select='count(//section[@constants="yes"]/command)'/>
+				<xsl:variable name="numglossary" select='count(//section/gloss)'/>
 				<xsl:variable name="numtopics" select='count(//section[@topics="yes"]/command)'/>
-				<p>Stats: There are <xsl:value-of select='count(//command) - $numconstants - $numtopics'/> commands (of which <xsl:value-of select='count(//command[not(@constants) and not(@topics)]/alias)'/> are aliases), <xsl:value-of select='$numconstants'/> constants and <xsl:value-of select='$numtopics'/> definitions of types and other terms in this file.</p>
+				<p>Stats: There are <xsl:value-of select='count(//command) - $numconstants - $numtopics'/> commands (of which <xsl:value-of select='count(//command[not(@constants) and not(@topics)]/alias)'/> are aliases), <xsl:value-of select='$numconstants'/> constants and <xsl:value-of select='$numtopics + $numglossary'/> definitions of types and other terms in this file.</p>
 				<p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 			</body>
 		</html>
@@ -275,34 +281,40 @@ function toggleContent(target) {
 		</li>
 	</xsl:template>
 
-	<!-- Nested list of subsection links and all commands there-in -->
+	<!-- Nested list of subsection links and all commands/glosses there-in -->
 	<xsl:template match="section" mode="sections-and-commands"><xsl:text>
 		</xsl:text><!--<xsl:if test='@subsection_of'><div class="subsection-header-spacer" /></xsl:if>-->
 		<li><a href="#{@title}"><xsl:value-of select="@title" /></a>
 		<br/><xsl:text>
 		</xsl:text>
 		<ul class="content-shown">
-			<!-- Include commands and nested commands (aliases) -->
-			<xsl:apply-templates select="command|command/altcommand" mode="alphalist" />
+			<!-- Include commands and nested commands (aliases) and glosses -->
+			<xsl:apply-templates select="command|command/altcommand|gloss" mode="alphalist" />
 		</ul>
 		<!-- Recurse on subsections -->
 		<ul><xsl:apply-templates select="section" mode="sections-and-commands" /></ul>
 		</li>
 	</xsl:template>
 
-	<!-- A link to a command in a command index -->
-	<xsl:template match="command|altcommand" mode="alphalist"><xsl:text>
+	<!-- A link to a command/gloss in a command index (see "ref" below for links in text) -->
+	<xsl:template match="command|altcommand|gloss" mode="alphalist"><xsl:text>
 		</xsl:text>
+		<xsl:variable name="aclass">
+			<xsl:choose>
+				<xsl:when test="name(.)='gloss'">gloss</xsl:when>
+				<xsl:otherwise>ref</xsl:otherwise>
+			</xsl:choose>
+		</xsl:variable>
 		<xsl:choose>
 			<xsl:when test='boolean(canon)'>
-				<a href="#about-{@id}"><xsl:value-of select="canon" /></a><br/>
+				<a href="#about-{@id}" class="{$aclass}"><xsl:value-of select="canon" /></a><br/>
 			</xsl:when>
 			<xsl:when test='boolean(alias)'>
-				<a href="#about-{alias}"><xsl:value-of select="shortname" /></a><br/>
+				<a href="#about-{alias}" class="{$aclass}"><xsl:value-of select="shortname" /></a><br/>
 			</xsl:when>
 			<!-- This is only used for <altcommands> with no <canon> -->
 			<xsl:when test='boolean(shortname)'>
-				<a href="#about-{@id}"><xsl:value-of select="shortname" /></a><br/>
+				<a href="#about-{@id}" class="{$aclass}"><xsl:value-of select="shortname" /></a><br/>
 			</xsl:when>
 		</xsl:choose>
 	</xsl:template>
@@ -327,15 +339,15 @@ function toggleContent(target) {
 		<!-- Show section description-->
 		<p><xsl:apply-templates select="description"/></p>
 		<xsl:if test="not(parent::section)">
-			<!-- Top-level section: show all subsections and commands -->
+			<!-- Top-level section: show all subsections and commands and glosses -->
 			<div class="select-content-shown" id="{@title}-index" >
 				<button onclick="toggleContent(this);">
-					<span class="content-shown">Hide command index</span>
-					<span class="content-hidden">Show command index</span>
+					<span class="content-shown">Hide index</span>
+					<span class="content-hidden">Show index</span>
 				</button>
 				<ul>
 					<div class="content-shown">
-						<xsl:apply-templates select="command|command/altcommand" mode="alphalist" />
+						<xsl:apply-templates select="command|command/altcommand|gloss" mode="alphalist" />
 					</div>
 					<xsl:apply-templates select="section" mode="sections-and-commands" />
 				</ul>
@@ -348,8 +360,8 @@ function toggleContent(target) {
 			</ul>
 		</xsl:if>
 
-		<!-- Show commands-->
-		<xsl:apply-templates select="command|reference" mode="full" /><xsl:text>
+		<!-- Show commands & glosses-->
+		<xsl:apply-templates select="command|reference|gloss" mode="full" /><xsl:text>
 		</xsl:text><hr></hr><xsl:text>
 		</xsl:text></div>
 		<!-- Followed by subsections (outside section div) -->
@@ -394,7 +406,28 @@ function toggleContent(target) {
 		</div>
 	</xsl:template>
 
-	<xsl:template match="command|altcommand" mode="anchor">
+	<xsl:template match="gloss" mode="full"><xsl:text>
+		</xsl:text><div class="command gloss">
+		<xsl:apply-templates select="." mode="anchor" />
+		<xsl:if test='not(boolean(alias))'>
+			<xsl:text>
+			</xsl:text><h4><xsl:value-of select="canon" /></h4>
+			<p><xsl:text>
+			</xsl:text><xsl:apply-templates select="description" /><xsl:text>
+		</xsl:text></p></xsl:if>
+		<xsl:if test='boolean(alias)'><xsl:text>
+				</xsl:text><h4><xsl:value-of select="shortname" /></h4><xsl:text>
+				See </xsl:text>
+				<!-- This expands the <alias> as if it were a <ref>. -->
+				<xsl:for-each select="alias">
+					<xsl:call-template name="ref" />
+				</xsl:for-each>
+				<xsl:text>.</xsl:text>
+		</xsl:if>
+		</div>
+	</xsl:template>
+
+	<xsl:template match="command|altcommand|gloss" mode="anchor">
 		<xsl:if test='boolean(@id)'><xsl:text>
 			</xsl:text><a name="about-{@id}" ></a>
 		</xsl:if>
@@ -437,23 +470,44 @@ function toggleContent(target) {
 			<a href="#{.}" class="ref"><xsl:value-of select="." /></a>
 		</xsl:if>
 	</xsl:template>
-	<!--Reference (link) to a <command> -->
+
+	<!--Reference (link) to a <command> or <gloss>-->
 	<xsl:template match="ref" name="ref">
 		<xsl:if test='count(id(.))=0'>
 			<xsl:message>
 				Broken link to <xsl:value-of select='.' />
 			</xsl:message>
-			<a href="#{.}" class="undef"><xsl:value-of select='.' /></a>
+			<a href="#about-{.}" class="undef"><xsl:value-of select='.' /></a>
 		</xsl:if>
 		<xsl:if test='count(id(.))>0'>
-			<xsl:if test='not(id(.)/alias)'>
-				<a href="#about-{.}" class="ref"><xsl:value-of select='id(.)/shortname' /></a>
-			</xsl:if>
-			<xsl:if test='id(.)/alias'>
-				<a href="#about-{id(.)/alias}" class="ref"><xsl:value-of select='id(.)/shortname' /></a>
-			</xsl:if>
+			<xsl:variable name="aclass">
+				<xsl:choose>
+					<xsl:when test="name(id(.))='gloss'">gloss</xsl:when>
+					<xsl:otherwise>ref</xsl:otherwise>
+				</xsl:choose>
+			</xsl:variable>
+			<xsl:variable name="link">
+				<xsl:choose>
+					<xsl:when test='id(.)/alias'>
+						<xsl:value-of select='id(.)/alias' />
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select='.' />
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:variable>
+			<xsl:choose>
+				<xsl:when test='boolean(id(.)/shortname)'>
+					<a href="#about-{$link}" class="{$aclass}"><xsl:value-of select="id(.)/shortname" /></a>
+				</xsl:when>
+				<!-- commands need a shortname, so canon is only used by glosses without a shortname-->
+				<xsl:when test='boolean(id(.)/canon)'>
+					<a href="#about-{$link}" class="{$aclass}"><xsl:value-of select="id(.)/canon" /></a>
+				</xsl:when>
+			</xsl:choose>
 		</xsl:if>
 	</xsl:template>
+
 	<xsl:template match="seealso">
 		<div class="seealso">See also: <ul><xsl:apply-templates select="ref" mode="seealso"/></ul></div>
 	</xsl:template>

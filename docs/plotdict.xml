@@ -5,13 +5,16 @@
 	<!ELEMENT plotscript (section+)>
 	<!ATTLIST plotscript version CDATA "wip" datecode CDATA "???">
 	<!ATTLIST plotscript show-alias CDATA "yes">
-	<!ELEMENT section (description?,(command|reference|section)+)>
+	<!ELEMENT section (description?,(command|reference|gloss|section)+)>
 	<!ATTLIST section title CDATA #REQUIRED constants (yes|no) #IMPLIED topics (yes|no) #IMPLIED>
 	<!ELEMENT reference EMPTY>
 	<!ATTLIST reference ref IDREF #REQUIRED>
 	<!ELEMENT command ((canon+,shortname,altcommand*,added?,deprecated?,description,altcommand*,example*,seealso?) |
 					   (alias,shortname,added?,deprecated?))>
 	<!ATTLIST command id ID #REQUIRED>
+	<!ELEMENT gloss ((canon,shortname?,description) |
+					   (alias,shortname))>
+	<!ATTLIST gloss id ID #REQUIRED>
 	<!ELEMENT altcommand (canon*,shortname)>
 	<!ATTLIST altcommand id ID #IMPLIED show-alias CDATA "yes"  alias (show|hide) "show">
 	<!ELEMENT canon      (#PCDATA)>
@@ -58,8 +61,8 @@ a subsection will be reorderd in front of all subsections.
 The heart of the PDL are the <command> elements inside the <section>s. It has a
 single attribute, id. This is essentially the whitespace stripped version of the
 command (the "wait for text box" command would have an id of "waitfortextbox").
-This is used to uniquely identify each command. It's used in many ways, from
-crosslinking command entries to generating a file for HssEd to use.
+This is used to uniquely identify each command for linking or cross-linking.
+Similiar to <command> is <gloss>, for glossary items.
 
 Inside the <command> element are subelements, in this order:
 Case 1: Full command definition
@@ -99,6 +102,9 @@ Case 1: Full command definition
                   <example># first example line has no line-break
 # the second (and more) lines should have no indentation
 # and so forth</example>
+                  The <example> tag can have a c="..." attribute to reuse an
+		  example from another command.
+
 
 As an alternative to <altcommand> you can also define aliases which have
 separate entries. This is probably mainly useful for obsolete aliases which
@@ -114,6 +120,20 @@ Case 2: Alias command definition
 Additionally, if you want a command to appear in multiple sections,
 define it once and place references to it elsewhere.
   <reference>   - Has a single attribute, 'ref', and no contents.
+
+A <gloss> is like a <command> but styled differently, and not supporting most of the
+same subelements. It can be placed in any section, if there's a reason to not put it
+in the dedicated Glossary section. It can be an alias to another <gloss>
+Case 1: Normal <gloss> subelements:
+  <canon>       - The title of the glossary entry.
+  <shortname>?  - Optional, this is text to use in cross-links. The canon is used
+                  by default.
+  <description> - Defines the term. See <command> above for available subelemnts.
+
+Case 2: Alias <gloss> subelements:
+  <alias>       - If two term are synonymous, use the <alias> element. Put
+                  the ID of the real gloss entry in here.
+  <shortname>   - The name/title of the term.
 
 Basically, you should be able to examine the entries that already exist. It's
 fairly self evident what everything does.
@@ -168,7 +188,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-09-10">
+<plotscript version="wip" datecode="2022-09-13">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -8647,7 +8667,7 @@ end
 			<canon>check parentage (handle, ancestor handle)</canon>
 			<shortname>check parentage</shortname>
 			<description>
-				Checks to see if <p>handle</p> is a child (or grandchild, or great-grandchild, etc...) of <p>ancestor handle</p>.
+				Checks to see if <p>handle</p> is a <ref>descendent</ref> of <p>ancestor handle</p>.
 				Returns <ref>true</ref> or <ref>false</ref>.
 				The result is <tt>false</tt> if <tt>handle == ancestor handle</tt>.
 			</description>
@@ -13266,6 +13286,37 @@ run key            # Alias for 'flee key'
 				<ref>joystickaxis</ref>
 			</seealso>
 		</command>
+	</section>
+
+	<section title="Glossary">
+		<gloss id="ancestor">
+			<canon>ancestor (of a slice)</canon>
+			<shortname>ancestor</shortname>
+			<description>
+				A slice's parent, grandparent, great-grandparent, etc., all the way to the root.
+				Use <ref>checkparentage</ref> to see if one slice is an ancestor of another.
+			</description>
+		</gloss>
+		<gloss id="descendent">
+			<canon>descendent (of a slice)</canon>
+			<shortname>descendent</shortname>
+			<description>
+				Any child, or grandchild, or great-grandchild, etc. of a slice.
+				Use <ref>checkparentage</ref> to see if one slice is a descendent of another.
+			</description>
+		</gloss>
+		<gloss id="slicesubtree">
+			<canon>slice subtree</canon>
+			<description>
+				A slice together with all of its <ref>descendent</ref>s forms a slice subtree.
+				The slice is the root of the subtree.
+			</description>
+		</gloss>
+		<gloss id="subtree">
+			<alias>slicesubtree</alias>
+			<shortname>subtree</shortname>
+		</gloss>
+
 	</section>
 
 	<section title="Predefined Constants" constants="yes">
