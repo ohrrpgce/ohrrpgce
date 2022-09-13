@@ -807,6 +807,7 @@ function toggleContent(target) {
 		<a href="#about-experiencetonextlevel" class="ref">experience to next level (who)</a><br>
 		<a href="#about-exponent" class="ref">number ^ power</a><br>
 		<a href="#about-exportglobals" class="ref">export globals (slot, first, last)</a><br>
+		<a href="#about-expression" class="gloss">expression</a><br>
 		<a href="#about-extendedscancodesenabled" class="ref">extended scancodes enabled</a><br>
 		<a href="#about-extractcolor" class="ref">extract color (color, component)</a><br>
 		<a href="#about-extradataindex" class="ref">Extra data array index</a><br>
@@ -2263,7 +2264,7 @@ y := hero pixel Y(me) + 10 + 20 * dir Y(dir)</pre>
 				This command works exactly the same for global and local variables.
 				<br>
 				The <span class="code">:=</span> operation actually returns <span class="param">value</span>, so you can use it
-				as an expression, for example in <span class="code">temp1 := (temp2 := 1)</span>.
+				as an <a href="#about-expression" class="gloss">expression</a>, for example in <span class="code">temp1 := (temp2 := 1)</span>.
 			
 			
 			
@@ -2282,7 +2283,7 @@ y := hero pixel Y(me) + 10 + 20 * dir Y(dir)</pre>
 				This command works exactly the same for global and local variables.
 				<br>
 				The <span class="code">+=</span> operation actually returns the new value of <span class="param">variable</span>,
-				so you can use it as an expression, for example in <span class="code">while ((index += 1) &lt; 10)</span>.
+				so you can use it as an <a href="#about-expression" class="gloss">expression</a>, for example in <span class="code">while ((index += 1) &lt; 10)</span>.
 			
 			
 			
@@ -2301,7 +2302,7 @@ y := hero pixel Y(me) + 10 + 20 * dir Y(dir)</pre>
 				This command works exactly the same for global and local variables.
 				<br>
 				The <span class="code">-=</span> operation actually returns the new value of <span class="param">variable</span>,
-				so you can use it as an expression, for example in <span class="code">while (index -= 1)</span>.
+				so you can use it as an <a href="#about-expression" class="gloss">expression</a>, for example in <span class="code">while (index -= 1)</span>.
 			
 			
 			
@@ -2736,7 +2737,7 @@ end</pre>
 			<a name="about-switch"></a>
 				<h4>switch(expression)</h4>
 <p>
-			Select between a number of <a href="#about-case" class="ref">case</a> blocks to execute based on the value of an expression. The switch command is an alternative to a big block of nested <a href="#about-if" class="ref">if</a>/then/else commands that all check the same value. Switch can be easier to read than a lot of if's. Consider the follow script snippet:
+			Select between a number of <a href="#about-case" class="ref">case</a> blocks to execute based on the value of an <a href="#about-expression" class="gloss">expression</a>. The switch command is an alternative to a big block of nested <a href="#about-if" class="ref">if</a>/then/else commands that all check the same value. Switch can be easier to read than a lot of if's. Consider the follow script snippet:
 <pre>if (v == 0) then (
   something
 ) else if (v == 1 || v == 2) then (
@@ -2775,7 +2776,7 @@ There are two different styles (syntaxes) in which switch can be written. The se
   case(10)   do() #nothing happens here
   case(else) something to do if none of the cases happen
 )</pre>
-Besides readability, there is one other important difference between using switch and using a sequence of if's. The switch command only checks the value of the expression (v) once. The if/then/else method checks v repeatedly, so it could be slower, and could be susceptible to errors if you accidentally change the value of v somewhere in the middle.
+Besides readability, there is one other important difference between using switch and using a sequence of if's. The switch command only checks the value of the <a href="#about-expression" class="gloss">expression</a> (v) once. The if/then/else method checks v repeatedly, so it could be slower, and could be susceptible to errors if you accidentally change the value of v somewhere in the middle.
 			
 			
 			
@@ -4391,7 +4392,7 @@ end</pre>
 <p>
 			
 				This command is the same as <a href="#about-npcreference" class="ref">NPC reference</a> except that it takes a global NPC ID number instead of a local NPC ID number. If there is no copy of the global NPC ID on the current map, it will return false. This command cannot get references to NPCs located on different maps, and the NPC reference it returns is only valid on the current map.<br>
-				<span class="code">global NPC</span> is an alias for <span class="code">global NPC reference</span>
+				<span class="code">global NPC</span> is an alias for <span class="code">global NPC reference</span>.
 			
 			
 			
@@ -5933,7 +5934,7 @@ resume box advance # go back to normal</pre>
 				<h4>show value of (expression, ...)</h4>
 <p>
 			
-				Displays one or more expressions and their values at the bottom left corner of the screen,
+				Displays one or more <a href="#about-expression" class="gloss">expression</a>s and their values at the bottom left corner of the screen,
 				which remains there until overwritten or <a href="#about-shownovalue" class="ref">show no value</a> is used.
 				Useful for debugging complicated scripts.
 				The number of arguments to this command is variable;
@@ -10149,7 +10150,7 @@ There is no limit on string length.<br>
 			<a name="about-__setstring__"></a>
 				<h4>$id="some text"</h4>
 <p>
-			Sets the contents of a string variable given by <span class="param">id</span>, which can be a constant like 0 or 1, a variable, or even an expression like a call to a script, to a piece of text. The previous contents are erased. The whole statement must be on a single line; you can't split the text onto multiple lines (use multiple <a href="#about-__appendstring__" class="ref">$id+"..."</a> statements instead). The value of the whole statement is equal to <span class="param">id</span> for convenience (see the example). The text (which is called a string literal) can contain certain escape codes (see examples below):<br>
+			Sets the contents of a string variable given by <span class="param">id</span>, which can be a constant like 0 or 1, a variable, or even an <a href="#about-expression" class="gloss">expression</a> like a call to a script, to a piece of text. The previous contents are erased. The whole statement must be on a single line; you can't split the text onto multiple lines (use multiple <a href="#about-__appendstring__" class="ref">$id+"..."</a> statements instead). The value of the whole statement is equal to <span class="param">id</span> for convenience (see the example). The text (which is called a string literal) can contain certain escape codes (see examples below):<br>
 \\ turns into a single \<br>
 \" turns into a single " without signalling the end of the literal<br>
 \n is a new line character, which can be used in text slices, <a href="#about-showstring" class="ref">show string</a>, <a href="#about-showstringat" class="ref">show string at</a> and <a href="#about-trace" class="ref">trace</a>.<br>
@@ -10342,7 +10343,7 @@ show string(0)</pre>
 			<a name="about-searchstring"></a>
 				<h4>search string (ID1, ID2, start)</h4>
 <p>
-			Searches the string for a specified string, returns the position at which the string was found. <span class="param">start</span> is the position at which you want to start looking, default is 1. <span class="param">ID1</span> is the the string you want to search, <span class="param">ID2</span> is the string expression you want to find. Returns <a href="#about-false" class="ref">false</a> if the string wasn't found
+			Searches the string for a specified string, returns the position at which the string was found. <span class="param">start</span> is the position at which you want to start looking, default is 1. <span class="param">ID1</span> is the the string you want to search, <span class="param">ID2</span> is the string you want to find. Returns <a href="#about-false" class="ref">false</a> if the string wasn't found
 			
 			
 			
@@ -13246,7 +13247,8 @@ while (true) do (
 				<h4>lookup ancestor (lookup code, slice)</h4>
 <p>
 			
-				Search for a slice's parent or grandparent or great-grandparent (etc...) that's tagged with a <a href="#about-lookupcode" class="ref">slice lookup code</a>, and return a handle to it, or 0 if no ancestor slice has the lookup code.
+				Search for a slice's <a href="#about-ancestor" class="gloss">ancestor</a> that's tagged with a <a href="#about-lookupcode" class="ref">slice lookup code</a>, and return a handle to it, or 0 if no ancestor slice has the lookup code.
+				Starts by checking the parent, and goes up to the root.
 			
 			
 			
@@ -13978,7 +13980,7 @@ map y := slice screen y(sl) + camera pixel y</pre>
 			<a name="about-getslicevisible"></a>
 				<h4>get slice visible (handle)</h4>
 <p>
-			Returns the visibility setting for slice <span class="param">handle</span>.  This is true for visible, or false for invisible. Note that this only tells you if the slice is set to be invisible, it will not tell you if the slice is invisible for some other reason, such as if it is offscreen, or if it is the child of an invisible parent or grandparent.
+			Returns the visibility setting for slice <span class="param">handle</span>.  This is true for visible, or false for invisible. Note that this only tells you if the slice is set to be invisible, it will not tell you if the slice is invisible for some other reason, such as if it is offscreen, or if it is the <a href="#about-descendent" class="gloss">descendent</a> of an invisible slice.
 			
 			
 			
@@ -13988,7 +13990,7 @@ map y := slice screen y(sl) + camera pixel y</pre>
 			<a name="about-setsliceclipping"></a>
 				<h4>set slice clipping (handle, clip)</h4>
 <p>
-			Changes whether or not a slice will clip its children if they overflow its edges. The first argument is a slice <span class="param">handle</span>. The second argument is true to make the slice clip, or false to allow its children to overflow. (newly created slices do not clip by default)
+			Changes whether or not a slice will clip its children if they overflow its edges. The first argument is a slice <span class="param">handle</span>. The second argument is true to make the slice clip, or false to allow its children to overflow. (Newly created slices do not clip by default)
 			
 			
 			
@@ -15275,7 +15277,7 @@ end
 				<h4>next slice in tree (current slice, root slice, visit children)</h4>
 <p>
 			
-				Returns the next slice after <span class="param">current slice</span> in the slice tree, or a sub-tree.
+				Returns the next slice after <span class="param">current slice</span> in the slice tree or a <a href="#about-slicesubtree" class="gloss">slice subtree</a>.
 				This can be used for iterating over a tree of slices using a <a href="#about-while" class="ref">while</a> loop, in the order that they appear
 				in the slice collection editor (from top to bottom):
 				first go to the first child if any, and then any other descendents and children,
@@ -18128,7 +18130,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 			<a name="about-setscrollcheckdepth"></a>
 				<h4>set scroll check depth (handle, depth)</h4>
 <p>
-			Changes the number of generations of children and grandchildren that a scroll slice cares about. The first argument is the handle of the scroll slice. The second argument is the desired depth, or 0 to check the entire family tree of all child slices. For example, a depth of 1 means the scroll only considers children. 2 means it considers children+grandchildren. 3 means it considers children+grandchildren+greatgrandchildren.
+			Changes the number of generations of <a href="#about-descendent" class="gloss">descendent</a>s that a scroll slice cares about. The first argument is the <a href="#about-slicehandle" class="ref">slice handle</a> of the scroll slice. The second argument is the desired depth, or 0 to check the entire <a href="#about-slicesubtree" class="gloss">slice subtree</a>. For example, a depth of 1 means the scroll only considers children. 2 means it considers children+grandchildren. 3 means it considers children+grandchildren+greatgrandchildren.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getscrollcheckdepth" class="ref">get scroll check depth</a></li></ul>
@@ -18139,7 +18141,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 			<a name="about-getscrollcheckdepth"></a>
 				<h4>get scroll check depth (handle)</h4>
 <p>
-			Returns the number of generations of children and grandchildren that a scroll slice cares about, or 0 if it considers the entire family tree of every child. The first argument is the handle of the scroll slice. For example, a return value of 1 means the scroll only considers children. 2 means it considers children+grandchildren. 3 means it considers children+grandchildren+greatgrandchildren.
+			Returns the number of generations of <a href="#about-descendent" class="gloss">descendent</a>s that a scroll slice cares about, or 0 if it considers the <a href="#about-slicesubtree" class="gloss">slice subtree</a>. The first argument is the <a href="#about-slicehandle" class="ref">slice handle</a> of the scroll slice. For example, a return value of 1 means the scroll only considers children. 2 means it considers children+grandchildren. 3 means it considers children+grandchildren+greatgrandchildren.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-setscrollcheckdepth" class="ref">set scroll check depth</a></li></ul>
@@ -18157,7 +18159,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 <p>
 			
 				Causes all the children of the <span class="param">parent</span> slice to be shifted by the same offset
-				so the screen position of <span class="param">sl</span> (any child or descendent of <span class="param">parent</span>) fits inside the parent.
+				so the screen position of <span class="param">sl</span> (which may be any <a href="#about-descendent" class="gloss">descendent</a> of <span class="param">parent</span>) fits inside the parent.
 				<br>
 				If <span class="param">apply padding</span> is true (the default is <span class="code">false</span>),
 				then <span class="param">sl</span> is scrolled within the area of <span class="param">parent</span>
@@ -21210,7 +21212,7 @@ trace (1) # writes "TRACE: i = ????" to g_debug.txt</pre>
 				<h4>trace value of (expression, ...)</h4>
 <p>
 			
-				Prints one or more expressions and their values to "g_debug.txt".
+				Prints one or more <a href="#about-expression" class="gloss">expression</a>s and their values to "g_debug.txt".
 				The number of arguments to this command is variable;
 				each is printed as source text along with its value.
 				You can't print strings with this command; use <a href="#about-trace" class="ref">trace</a> instead.
@@ -21237,13 +21239,14 @@ trace value (hero X (me), hero Y (me))</pre>
 				<h4>dump slice tree (slice)</h4>
 <p>
 			
-				Prints out a brief description of a slice and all its descendents to "g_debug.txt".
-				<span class="param">slice</span> is optional; if omitted the whole tree is printed out,
-				which is the same as pressing the <span class="param">Ctrl+F8</span> debug key.
+				Prints out a brief description of a slice and all its <a href="#about-descendent" class="gloss">descendent</a>s to "g_debug.txt".
+				<span class="param">slice</span> is optional; if omitted the whole tree is printed out.
+				<br>
+				This is also available as "List slices to g_debug.txt" in the F8 Debug Menu.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					Most of the slice data isn't printed; if you want to inspect it the easiest
-					way to do so is either to press <span class="param">Ctrl+F4</span> to view the slice editor/debugger,
+					way to do so is either to press <span class="param">Shift+F4</span> to view the slice editor/debugger,
 					or to call <a href="#about-scripterror" class="ref">script error</a> at the exact moment you want to check the slice tree;
 					you can then enter the slice debugger from the Script Error menu.
 				</div>
@@ -21323,7 +21326,7 @@ trace value (hero X (me), hero Y (me))</pre>
 			<a name="about-assert"></a>
 				<h4>assert (expression)</h4>
 <p>
-			If <span class="param">expression</span> is false, then writes the script filename, line number and <span class="param">expression</span> into the string given by the constant or global variable named <span class="param">assert expression string</span>, and then calls the script named <span class="param">assert failure</span>. You can use this to detect bugs in your scripts, by checking that your assumptions about the state of the game are correct.
+			If <span class="param">expression</span> is false, then writes the script filename, line number and <a href="#about-expression" class="gloss">expression</a> into the string given by the constant or global variable named <span class="param">assert expression string</span>, and then calls the script named <span class="param">assert failure</span>. You can use this to detect bugs in your scripts, by checking that your assumptions about the state of the game are correct.
 			
 			<pre># The following...
 assert (check tag (tag:initialised) == OFF)
@@ -21384,7 +21387,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<a name="about-getcallingscriptid"></a>
 				<h4>get calling script id (depth)</h4>
 <p>
-			Returns the ID number of the script which called this one. The optional <span class="param">depth</span> argument, which defaults to 1, allows returning the ID of a deeper ancestor script instead: 1 is the parent, 2 is the grandparent, etc. If there is no calling script (the script was triggered instead), then the return value is 0. You can get the ID number of a script by writing @scriptname.
+			Returns the ID number of the script which called this one. The optional <span class="param">depth</span> argument, which defaults to 1, allows returning the ID of a deeper ancestor script instead: 1 is the parent, 2 is the grandparent, etc. If there is no calling script (the script was triggered instead), then the return value is 0. You can get the ID number of a script by writing <span class="code">@scriptname</span>.
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getscriptname" class="ref">get script name</a></li></ul>
@@ -22190,6 +22193,7 @@ run key            # Alias for 'flee key'
 		<a href="#about-descendent" class="gloss">descendent (of a slice)</a><br>
 		<a href="#about-slicesubtree" class="gloss">slice subtree</a><br>
 		<a href="#about-slicesubtree" class="gloss">subtree</a><br>
+		<a href="#about-expression" class="gloss">expression</a><br>
 </div></ul>
 </div>
 		<div class="command gloss">
@@ -22218,7 +22222,8 @@ run key            # Alias for 'flee key'
 <p>
 			
 				A slice together with all of its <a href="#about-descendent" class="gloss">descendent</a>s forms a slice subtree.
-				The slice is the root of the subtree.
+				The slice is the 'root' of the subtree.
+				You can iterate over all the slices in a subtree (or the whole tree) with <a href="#about-nextsliceintree" class="ref">next slice in tree</a>.
 			
 		</p>
 </div>
@@ -22226,6 +22231,24 @@ run key            # Alias for 'flee key'
 			<a name="about-subtree"></a>
 				<h4>subtree</h4>
 				See <a href="#about-slicesubtree" class="gloss">slice subtree</a>.</div>
+		<div class="command gloss">
+			<a name="about-expression"></a>
+			<h4>expression</h4>
+<p>
+			
+				An expression is any piece of code that can be evaluated to a value, which can be passed to a command
+				or stored in a variable.
+				Examples include numbers like <span class="code">3</span>, variables like <span class="code">x</span>,
+				formulas like <span class="code">20 * x</span>, commands or scripts which return values like <a href="#about-npcdirection" class="ref">NPC direction</a>,
+				compound expressions like <span class="code"><a href="#about-heropixelx" class="ref">hero pixel X</a>(who + 1) / 20</span>
+				and the string expressions <a href="#about-__setstring__" class="ref">$id="..."</a> and <a href="#about-__appendstring__" class="ref">$id+"..."</a> (which return <span class="code">id</span>).
+				Flow control (<a href="#about-if" class="ref">if</a>, <a href="#about-switch" class="ref">switch</a>, etc) as well as <a href="#about-variable" class="ref">variable</a>
+				are <span class="param">statements</span>, not expressions.
+				<br>
+				<a href="#about-setvariable" class="ref">:=</a> expressions like <span class="code">x := 3</span> can also be used as expressions, but it's often considered poor taste to do so.
+			
+		</p>
+</div>
 		<hr>
 		</div>
 		<div class="section">
@@ -22690,7 +22713,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 944 commands (of which 11 are aliases), 27 constants and 18 definitions of types and other terms in this file.</p>
+<p>Stats: There are 944 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

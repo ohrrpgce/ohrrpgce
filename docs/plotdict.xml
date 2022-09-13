@@ -330,7 +330,7 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 				This command works exactly the same for global and local variables.
 				<lb/>
 				The <tt>:=</tt> operation actually returns <p>value</p>, so you can use it
-				as an expression, for example in <tt>temp1 := (temp2 := 1)</tt>.
+				as an <ref>expression</ref>, for example in <tt>temp1 := (temp2 := 1)</tt>.
 			</description>
 		</command>
 		<command id="increment">
@@ -344,7 +344,7 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 				This command works exactly the same for global and local variables.
 				<lb/>
 				The <tt>+=</tt> operation actually returns the new value of <p>variable</p>,
-				so you can use it as an expression, for example in <tt>while ((index += 1) &lt; 10)</tt>.
+				so you can use it as an <ref>expression</ref>, for example in <tt>while ((index += 1) &lt; 10)</tt>.
 			</description>
 		</command>
 		<command id="decrement">
@@ -358,7 +358,7 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 				This command works exactly the same for global and local variables.
 				<lb/>
 				The <tt>-=</tt> operation actually returns the new value of <p>variable</p>,
-				so you can use it as an expression, for example in <tt>while (index -= 1)</tt>.
+				so you can use it as an <ref>expression</ref>, for example in <tt>while (index -= 1)</tt>.
 			</description>
 		</command>
 		<command id="readglobal">
@@ -880,7 +880,7 @@ end</example>
 			<canon>switch(expression)</canon>
 			<shortname>switch</shortname>
 			<added>ubersetzung</added>
-			<description>Select between a number of <ref>case</ref> blocks to execute based on the value of an expression. The switch command is an alternative to a big block of nested <ref>if</ref>/then/else commands that all check the same value. Switch can be easier to read than a lot of if's. Consider the follow script snippet:
+			<description>Select between a number of <ref>case</ref> blocks to execute based on the value of an <ref>expression</ref>. The switch command is an alternative to a big block of nested <ref>if</ref>/then/else commands that all check the same value. Switch can be easier to read than a lot of if's. Consider the follow script snippet:
 <example>if (v == 0) then (
   something
 ) else if (v == 1 || v == 2) then (
@@ -919,7 +919,7 @@ There are two different styles (syntaxes) in which switch can be written. The se
   case(10)   do() #nothing happens here
   case(else) something to do if none of the cases happen
 )</example>
-Besides readability, there is one other important difference between using switch and using a sequence of if's. The switch command only checks the value of the expression (v) once. The if/then/else method checks v repeatedly, so it could be slower, and could be susceptible to errors if you accidentally change the value of v somewhere in the middle.
+Besides readability, there is one other important difference between using switch and using a sequence of if's. The switch command only checks the value of the <ref>expression</ref> (v) once. The if/then/else method checks v repeatedly, so it could be slower, and could be susceptible to errors if you accidentally change the value of v somewhere in the middle.
 			</description>
 		</command>
 		<command id="case">
@@ -1862,7 +1862,7 @@ end</example>
 			</altcommand>
 			<description>
 				This command is the same as <ref>npcreference</ref> except that it takes a global NPC ID number instead of a local NPC ID number. If there is no copy of the global NPC ID on the current map, it will return false. This command cannot get references to NPCs located on different maps, and the NPC reference it returns is only valid on the current map.<lb/>
-				<tt>global NPC</tt> is an alias for <tt>global NPC reference</tt>
+				<tt>global NPC</tt> is an alias for <tt>global NPC reference</tt>.
 			</description>
 			<seealso>
 				<ref>npcreference</ref>
@@ -2930,7 +2930,7 @@ wait for text box # wait until the player continues</example>
 			<canon>show value of (expression, ...)</canon>
 			<shortname>show value of</shortname>
 			<description>
-				Displays one or more expressions and their values at the bottom left corner of the screen,
+				Displays one or more <ref>expression</ref>s and their values at the bottom left corner of the screen,
 				which remains there until overwritten or <ref>shownovalue</ref> is used.
 				Useful for debugging complicated scripts.
 				The number of arguments to this command is variable;
@@ -5477,7 +5477,7 @@ There is no limit on string length.<lb/>
 		<command id="__setstring__">
 			<canon>$id="some text"</canon>
 			<shortname>$id="..."</shortname>
-			<description>Sets the contents of a string variable given by <p>id</p>, which can be a constant like 0 or 1, a variable, or even an expression like a call to a script, to a piece of text. The previous contents are erased. The whole statement must be on a single line; you can't split the text onto multiple lines (use multiple <ref>__appendstring__</ref> statements instead). The value of the whole statement is equal to <p>id</p> for convenience (see the example). The text (which is called a string literal) can contain certain escape codes (see examples below):<lb/>
+			<description>Sets the contents of a string variable given by <p>id</p>, which can be a constant like 0 or 1, a variable, or even an <ref>expression</ref> like a call to a script, to a piece of text. The previous contents are erased. The whole statement must be on a single line; you can't split the text onto multiple lines (use multiple <ref>__appendstring__</ref> statements instead). The value of the whole statement is equal to <p>id</p> for convenience (see the example). The text (which is called a string literal) can contain certain escape codes (see examples below):<lb/>
 \\ turns into a single \<lb/>
 \" turns into a single " without signalling the end of the literal<lb/>
 \n is a new line character, which can be used in text slices, <ref>showstring</ref>, <ref>showstringat</ref> and <ref>trace</ref>.<lb/>
@@ -5622,7 +5622,7 @@ show string(0)</example>
 		<command id="searchstring">
 			<canon>search string (ID1, ID2, start)</canon>
 			<shortname>search string</shortname>
-			<description>Searches the string for a specified string, returns the position at which the string was found. <p>start</p> is the position at which you want to start looking, default is 1. <p>ID1</p> is the the string you want to search, <p>ID2</p> is the string expression you want to find. Returns <ref>false</ref> if the string wasn't found</description>
+			<description>Searches the string for a specified string, returns the position at which the string was found. <p>start</p> is the position at which you want to start looking, default is 1. <p>ID1</p> is the the string you want to search, <p>ID2</p> is the string you want to find. Returns <ref>false</ref> if the string wasn't found</description>
 		</command>
 		<command id="trimstring">
 			<canon>trim string (ID, start, length)</canon>
@@ -7288,7 +7288,8 @@ while (true) do (
 			<canon>lookup ancestor (lookup code, slice)</canon>
 			<shortname>lookup ancestor</shortname>
 			<description>
-				Search for a slice's parent or grandparent or great-grandparent (etc...) that's tagged with a <ref>lookupcode</ref>, and return a handle to it, or 0 if no ancestor slice has the lookup code.
+				Search for a slice's <ref>ancestor</ref> that's tagged with a <ref>lookupcode</ref>, and return a handle to it, or 0 if no ancestor slice has the lookup code.
+				Starts by checking the parent, and goes up to the root.
 			</description>
 			<seealso>
 				<ref>lookupslice</ref>
@@ -7799,12 +7800,12 @@ map y := slice screen y(sl) + camera pixel y</example>
 		<command id="getslicevisible">
 			<canon>get slice visible (handle)</canon>
 			<shortname>get slice visible</shortname>
-			<description>Returns the visibility setting for slice <p>handle</p>.  This is true for visible, or false for invisible. Note that this only tells you if the slice is set to be invisible, it will not tell you if the slice is invisible for some other reason, such as if it is offscreen, or if it is the child of an invisible parent or grandparent.</description>
+			<description>Returns the visibility setting for slice <p>handle</p>.  This is true for visible, or false for invisible. Note that this only tells you if the slice is set to be invisible, it will not tell you if the slice is invisible for some other reason, such as if it is offscreen, or if it is the <ref>descendent</ref> of an invisible slice.</description>
 		</command>
 		<command id="setsliceclipping">
 			<canon>set slice clipping (handle, clip)</canon>
 			<shortname>set slice clipping</shortname>
-			<description>Changes whether or not a slice will clip its children if they overflow its edges. The first argument is a slice <p>handle</p>. The second argument is true to make the slice clip, or false to allow its children to overflow. (newly created slices do not clip by default)</description>
+			<description>Changes whether or not a slice will clip its children if they overflow its edges. The first argument is a slice <p>handle</p>. The second argument is true to make the slice clip, or false to allow its children to overflow. (Newly created slices do not clip by default)</description>
 		</command>
 		<command id="getsliceclipping">
 			<canon>get slice clipping (handle)</canon>
@@ -8607,7 +8608,7 @@ end
 			<canon>next slice in tree (current slice, root slice, visit children)</canon>
 			<shortname>next slice in tree</shortname>
 			<description>
-				Returns the next slice after <p>current slice</p> in the slice tree, or a sub-tree.
+				Returns the next slice after <p>current slice</p> in the slice tree or a <ref>slicesubtree</ref>.
 				This can be used for iterating over a tree of slices using a <ref>while</ref> loop, in the order that they appear
 				in the slice collection editor (from top to bottom):
 				first go to the first child if any, and then any other descendents and children,
@@ -10464,7 +10465,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 		<command id="setscrollcheckdepth">
 			<canon>set scroll check depth (handle, depth)</canon>
 			<shortname>set scroll check depth</shortname>
-			<description>Changes the number of generations of children and grandchildren that a scroll slice cares about. The first argument is the handle of the scroll slice. The second argument is the desired depth, or 0 to check the entire family tree of all child slices. For example, a depth of 1 means the scroll only considers children. 2 means it considers children+grandchildren. 3 means it considers children+grandchildren+greatgrandchildren.</description>
+			<description>Changes the number of generations of <ref>descendent</ref>s that a scroll slice cares about. The first argument is the <ref>slicehandle</ref> of the scroll slice. The second argument is the desired depth, or 0 to check the entire <ref>slicesubtree</ref>. For example, a depth of 1 means the scroll only considers children. 2 means it considers children+grandchildren. 3 means it considers children+grandchildren+greatgrandchildren.</description>
 			<seealso>
 				<ref>getscrollcheckdepth</ref>
 			</seealso>
@@ -10472,7 +10473,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 		<command id="getscrollcheckdepth">
 			<canon>get scroll check depth (handle)</canon>
 			<shortname>get scroll check depth</shortname>
-			<description>Returns the number of generations of children and grandchildren that a scroll slice cares about, or 0 if it considers the entire family tree of every child. The first argument is the handle of the scroll slice. For example, a return value of 1 means the scroll only considers children. 2 means it considers children+grandchildren. 3 means it considers children+grandchildren+greatgrandchildren.</description>
+			<description>Returns the number of generations of <ref>descendent</ref>s that a scroll slice cares about, or 0 if it considers the <ref>slicesubtree</ref>. The first argument is the <ref>slicehandle</ref> of the scroll slice. For example, a return value of 1 means the scroll only considers children. 2 means it considers children+grandchildren. 3 means it considers children+grandchildren+greatgrandchildren.</description>
 			<seealso>
 				<ref>setscrollcheckdepth</ref>
 			</seealso>
@@ -10486,7 +10487,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 			<shortname>scroll to slice</shortname>
 			<description>
 				Causes all the children of the <p>parent</p> slice to be shifted by the same offset
-				so the screen position of <p>sl</p> (any child or descendent of <p>parent</p>) fits inside the parent.
+				so the screen position of <p>sl</p> (which may be any <ref>descendent</ref> of <p>parent</p>) fits inside the parent.
 				<lb/>
 				If <p>apply padding</p> is true (the default is <tt>false</tt>),
 				then <p>sl</p> is scrolled within the area of <p>parent</p>
@@ -12533,7 +12534,7 @@ trace (1) # writes "TRACE: i = ????" to g_debug.txt</example>
 			<canon>trace value of (expression, ...)</canon>
 			<shortname>trace value</shortname>
 			<description>
-				Prints one or more expressions and their values to "g_debug.txt".
+				Prints one or more <ref>expression</ref>s and their values to "g_debug.txt".
 				The number of arguments to this command is variable;
 				each is printed as source text along with its value.
 				You can't print strings with this command; use <ref>trace</ref> instead.
@@ -12555,12 +12556,13 @@ trace value (hero X (me), hero Y (me))</example>
 			<canon>dump slice tree (slice)</canon>
 			<shortname>dump slice tree</shortname>
 			<description>
-				Prints out a brief description of a slice and all its descendents to "g_debug.txt".
-				<p>slice</p> is optional; if omitted the whole tree is printed out,
-				which is the same as pressing the <p>Ctrl+F8</p> debug key.
+				Prints out a brief description of a slice and all its <ref>descendent</ref>s to "g_debug.txt".
+				<p>slice</p> is optional; if omitted the whole tree is printed out.
+				<lb/>
+				This is also available as "List slices to g_debug.txt" in the F8 Debug Menu.
 				<note>
 					Most of the slice data isn't printed; if you want to inspect it the easiest
-					way to do so is either to press <p>Ctrl+F4</p> to view the slice editor/debugger,
+					way to do so is either to press <p>Shift+F4</p> to view the slice editor/debugger,
 					or to call <ref>scripterror</ref> at the exact moment you want to check the slice tree;
 					you can then enter the slice debugger from the Script Error menu.
 				</note>
@@ -12616,7 +12618,7 @@ trace value (hero X (me), hero Y (me))</example>
 		<command id="assert">
 			<canon>assert (expression)</canon>
 			<shortname>assert</shortname>
-			<description>If <p>expression</p> is false, then writes the script filename, line number and <p>expression</p> into the string given by the constant or global variable named <p>assert expression string</p>, and then calls the script named <p>assert failure</p>. You can use this to detect bugs in your scripts, by checking that your assumptions about the state of the game are correct.</description>
+			<description>If <p>expression</p> is false, then writes the script filename, line number and <ref>expression</ref> into the string given by the constant or global variable named <p>assert expression string</p>, and then calls the script named <p>assert failure</p>. You can use this to detect bugs in your scripts, by checking that your assumptions about the state of the game are correct.</description>
 			<example># The following...
 assert (check tag (tag:initialised) == OFF)
 # ...is equivalent to something like
@@ -12665,7 +12667,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 		<command id="getcallingscriptid">
 			<canon>get calling script id (depth)</canon>
 			<shortname>get calling script id</shortname>
-			<description>Returns the ID number of the script which called this one. The optional <p>depth</p> argument, which defaults to 1, allows returning the ID of a deeper ancestor script instead: 1 is the parent, 2 is the grandparent, etc. If there is no calling script (the script was triggered instead), then the return value is 0. You can get the ID number of a script by writing @scriptname.</description>
+			<description>Returns the ID number of the script which called this one. The optional <p>depth</p> argument, which defaults to 1, allows returning the ID of a deeper ancestor script instead: 1 is the parent, 2 is the grandparent, etc. If there is no calling script (the script was triggered instead), then the return value is 0. You can get the ID number of a script by writing <tt>@scriptname</tt>.</description>
 			<seealso>
 				<ref>getscriptname</ref>
 			</seealso>
@@ -13309,12 +13311,28 @@ run key            # Alias for 'flee key'
 			<canon>slice subtree</canon>
 			<description>
 				A slice together with all of its <ref>descendent</ref>s forms a slice subtree.
-				The slice is the root of the subtree.
+				The slice is the 'root' of the subtree.
+				You can iterate over all the slices in a subtree (or the whole tree) with <ref>nextsliceintree</ref>.
 			</description>
 		</gloss>
 		<gloss id="subtree">
 			<alias>slicesubtree</alias>
 			<shortname>subtree</shortname>
+		</gloss>
+		<gloss id="expression">
+			<canon>expression</canon>
+			<description>
+				An expression is any piece of code that can be evaluated to a value, which can be passed to a command
+				or stored in a variable.
+				Examples include numbers like <tt>3</tt>, variables like <tt>x</tt>,
+				formulas like <tt>20 * x</tt>, commands or scripts which return values like <ref>npcdirection</ref>,
+				compound expressions like <tt><ref>heropixelx</ref>(who + 1) / 20</tt>
+				and the string expressions <ref>__setstring__</ref> and <ref>__appendstring__</ref> (which return <tt>id</tt>).
+				Flow control (<ref>if</ref>, <ref>switch</ref>, etc) as well as <ref>variable</ref>
+				are <p>statements</p>, not expressions.
+				<lb/>
+				<ref>setvariable</ref> expressions like <tt>x := 3</tt> can also be used as expressions, but it's often considered poor taste to do so.
+			</description>
 		</gloss>
 
 	</section>
