@@ -1976,7 +1976,7 @@ script, gently reparent, hsd:sl, hsd:newparent, begin
   set slice screen y(hsd:sl, hsd:oldy)
 end
 
-script, lookup parent, hsd:code, hsd:sl, begin
+script, lookup ancestor, hsd:code, hsd:sl, begin
   variable(hsd:par)
   hsd:par := slice parent(hsd:sl)
   while(hsd:par) do(

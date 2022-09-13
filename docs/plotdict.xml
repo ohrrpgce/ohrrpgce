@@ -7220,7 +7220,7 @@ lookup slice(sl:pathfind dest display)
 				<ref>setslicelookup</ref>
 				<ref>getslicelookup</ref>
 				<ref>lookupnextslice</ref>
-				<ref>lookupparent</ref>
+				<ref>lookupancestor</ref>
 			</seealso>
 		</command>
 
@@ -7264,11 +7264,11 @@ while (true) do (
   if (slice is text (sl)) then (set text color (sl, ui:text))  # Reset text highlighting
 )</example>
 		</command>
-		<command id="lookupparent">
-			<canon>lookup parent (lookup code, slice)</canon>
-			<shortname>lookup parent</shortname>
+		<command id="lookupancestor">
+			<canon>lookup ancestor (lookup code, slice)</canon>
+			<shortname>lookup ancestor</shortname>
 			<description>
-				Search for a slice's parent or grandparent that's tagged with a <ref>lookupcode</ref>, and return a handle to it, or 0 if no ancestor slice has the lookup code.
+				Search for a slice's parent or grandparent or great-grandparent (etc...) that's tagged with a <ref>lookupcode</ref>, and return a handle to it, or 0 if no ancestor slice has the lookup code.
 			</description>
 			<seealso>
 				<ref>lookupslice</ref>
