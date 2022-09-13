@@ -4975,6 +4975,7 @@ SUB script_functions(byval cmdid as integer)
  CASE 708'-- get slice lookup name (string, code, use default)
   IF valid_plotstr(retvals(0)) THEN
    plotstr(retvals(0)).s = SliceLookupCodename(retvals(1), retvals(2))
+   scriptret = retvals(0)
   END IF
  CASE 709'-- get npc pool
   IF retvals(0) >= 0 THEN
