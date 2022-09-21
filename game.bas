@@ -1845,7 +1845,8 @@ SUB npcmove_direct_chase(npci as NPCInst, npcdata as NPCType)
    axis = 1
   ELSE
    'Exactly diagonal, use manhattan distance modulo 1 as a non-random tiebreaker
-   axis = (ABS(dist.x) + ABS(dist.y)) MOD 1
+   'FIXME: this is always zero! Should have been AND 1
+   axis = 0  '(ABS(dist.x) + ABS(dist.y)) MOD 1
   END IF
   'Check for walls
   DIM obstructed(1) as bool
@@ -1882,7 +1883,8 @@ SUB npcmove_direct_avoid(npci as NPCInst, npcdata as NPCType)
    axis = 1
   ELSE
    'Exactly diagonal, use manhattan distance modulo 1 as a non-random tiebreaker
-   axis = (ABS(dist.x) + ABS(dist.y)) MOD 1
+   'FIXME: this is always zero! Should have been AND 1
+   axis = 0  '(ABS(dist.x) + ABS(dist.y)) MOD 1
   END IF
   'Check for walls
   DIM obstructed(1) as bool
