@@ -904,6 +904,7 @@ declare function format_duration(length as double, decimal_places as integer = 1
 
 declare sub flusharray (array() as integer, byval size as integer=-1, byval value as integer=0)
 declare sub sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer = 0, byval stride as integer = SIZEOF(integer))
+declare sub qsort_indices(indices() as integer, byval start as any ptr, byval number as integer = 0, byval stride as integer, byval compare_fn as FnCompare)
 declare sub qsort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer, byval stride as integer)
 declare sub qsort_strings_indices(indices() as integer, byval start as string ptr, byval number as integer, byval stride as integer)
 declare function ptr_compare cdecl (byval a as any ptr ptr, byval b as any ptr ptr) as long

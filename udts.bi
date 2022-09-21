@@ -422,7 +422,7 @@ TYPE ScriptData
                         '(A script is considered to be a fibre root if it has a non-blank trigger_type)
   refcount as integer   'number of ScriptInst pointing to this data
   lastuse as uinteger
-  'For script profiling. The following are filled in and used only if SCRIPTPROFILE is defined.
+  'For script profiling. The following are filled in and used only if scriptprofiling is true.
   calls_in_stack as integer 'Number of times this script appears in the call chain for the current
                         'executing fibre. Needed to account child running time when recursing.
   numcalls as integer   'Total number of times this script has been started (since loading)
@@ -432,6 +432,11 @@ TYPE ScriptData
   totaltime as double   'time spent in here, in seconds. If currently executing, subtract start time.
   childtime as double   'time spent in here and all descendents, in seconds
   entered as integer    'number of times entered (started/switched to)
+  'For command profiling. The following are filled in and used only if commandprofiling is true.
+  numcmdcalls as integer      'Number of builtin command calls.
+  cmdtime as double           'Time spent in builtin commands.
+  specificcmdcalls as integer 'Number of times time_specific_cmdid command was called.
+  specificcmdtime as double   'Time spent in the time_specific_cmdid command.
   'End profiling.
 
   next as ScriptData ptr 'next in linked list, for hashtable

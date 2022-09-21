@@ -80,7 +80,7 @@ DECLARE FUNCTION rankincaterpillar (byval heroid as integer) as integer
 
 DECLARE SUB trigger_onkeypress_script ()
 DECLARE SUB process_wait_conditions ()
-DECLARE SUB script_functions (cmdid as integer)
+DECLARE SUB script_commands (cmdid as integer)
 
 DECLARE SUB wrappedsong (byval songnumber as integer)
 DECLARE SUB stopsong

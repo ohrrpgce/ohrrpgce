@@ -181,7 +181,11 @@ DO
        scriptmath
        '.state = streturn
       ELSE
-       script_functions(curcmd->value)
+       IF commandprofiling THEN
+        timed_script_commands(curcmd->value)
+       ELSE
+        script_commands(curcmd->value)
+       END IF
        '--nowscript might be changed
        '--unless you have switched to wait mode, return
        'IF scrat(nowscript).state = stnext THEN scrat(nowscript).state = streturn'---return

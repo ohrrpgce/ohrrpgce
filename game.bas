@@ -180,6 +180,7 @@ REDIM plotstr(maxScriptStrings) as Plotstring
 DIM insideinterpreter as bool
 DIM timing_fibre as bool
 DIM scriptprofiling as bool
+DIM commandprofiling as bool
 DIM wantimmediate as integer  'Equal to 0, -1 or -2
 
 'incredibly frustratingly fbc doesn't export global array debugging symbols
@@ -4604,7 +4605,19 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF num_logged_errors THEN note = ": " & num_logged_errors & " errors" ELSE note = " log"
  IF dbg.def(      ,     , "View g_debug.txt" & note & " (S/C-F8)") THEN open_document log_dir & *app_log_filename
 
- IF dbg.def(SftCtl, scF9, IIF(scriptprofiling, "Stop", "Start") & " script profiling (S/C-F9)") THEN
+ 'Command profiling can be enabled independently of script profiling, but
+ 'there seems to be no need to expose that. So show options to Start script
+ 'or script+command or script+command+specific command profiling, or a single Stop option.
+ DIM toggle_profiling as bool = _
+     dbg.def(SftCtl, scF9, IIF(scriptprofiling, "Stop", "Start") & " script profiling (S/C-F9)")
+ IF scriptprofiling = NO THEN
+  IF dbg.def(      ,     , "Start script+command profiling") ORELSE _
+    (dbg.def(      ,     , "Start specific command profiling") ANDALSO prompt_for_profiling_cmdid()) THEN
+   toggle_profiling = YES
+   commandprofiling = YES
+  END IF
+ END IF
+ IF toggle_profiling THEN
   scriptprofiling XOR= YES
   IF scriptprofiling THEN
    gam.showtext = "Timings will be printed to g_debug.txt"

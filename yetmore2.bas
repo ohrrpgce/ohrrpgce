@@ -1211,6 +1211,19 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
  ELSEIF opt = "scriptlog" THEN
   gam.script_log.enabled = YES
   RETURN 1
+/' There's a Debug Menu function to set time_specific_cmdid, so this arg isn't needed
+ ELSEIF opt = "timecmd" THEN
+  'Can't accept a command name because haven't loaded command names from an .hsp
+  'file (scrcommands.bi only has a subset).
+  DIM cmdid as integer
+  IF parse_int(arg, @cmdid) ANDALSO cmdid >= 0 ANDALSO cmdid <= maxScriptCmdID THEN
+   time_specific_cmdid = cmdid
+   RETURN 2
+  ELSE
+   debug "Invalid --timecmd arg " & arg
+   RETURN 1
+  END IF
+'/
  ELSEIF opt = "print" THEN
   gam.print_trace = YES
   RETURN 1

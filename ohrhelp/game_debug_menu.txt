@@ -47,6 +47,10 @@ This menu item will read "View g_debug.txt: # errors" if there are errors.
 
 Shift/Ctrl+F9 Toggle script profiling. When profiling, the script interpreter collects statistics about how long each script ran for, how long the scripts it called ran for, and how many times it was run. These stats are printed to g_debug.txt (press Shift-F8 to view) when you quit, or when you turn off profiling. Note: If you turn profiling on and off several times, data from all profiling sessions gets printed.
 
+Start script+command profiling. (Only when not already profiling.) Script profiling plus also track time spent on each script command (and how many times each was called), printed to g_debug.txt as an extra table. Causes extra slow down.
+
+Start specific command profiling. (Only when not already profiling.) Shows a prompt for the name or ID number (from the list in plotscr.hsd, e.g. showtextbox is 11) of a builtin script command. Then starts script+command profiling. After stopping the profiling, the printed script profiles table has two extra columns showing how many times each script called the command and how much time it took. This doesn't work for builtin scripts in plotscr.hsd which aren't commands like "npc copy number".
+
 F10 Toggle script-debugging mode. Press once to draw some information on-screen while continuing to play, twice to pause and enter the script debugger, three times to exit.
 
 Shift/Ctrl+F10 Enable script trigger logging. Every time a script is triggered by an event like a keypress it is logged to a text file called script_log.txt. Also displays when triggered scripts are paused by a wait or finish, however this won't work for scripts started before the bdebug key was pressed (restart the game if needed).

@@ -21,12 +21,15 @@ DECLARE SUB watched_script_triggered (fibre as ScriptFibre)
 DECLARE SUB watched_script_resumed ()
 DECLARE SUB watched_script_finished ()
 
+DECLARE FUNCTION prompt_for_profiling_cmdid() as bool
 DECLARE SUB print_script_profiling ()
 DECLARE SUB clear_profiling_stats ()
 DECLARE SUB start_fibre_timing ()
 DECLARE SUB stop_fibre_timing ()
+DECLARE SUB stop_command_timing ()
 DECLARE SUB script_call_timing ()
 DECLARE SUB script_return_timing ()
+DECLARE SUB timed_script_commands(byval cmdid as integer)
 
 DECLARE SUB killallscripts ()
 DECLARE SUB killscriptthread ()
@@ -68,5 +71,15 @@ DECLARE SUB scriptwatcher (byref mode as integer, byval drawloop as bool = NO)
 DECLARE SUB setScriptArg (byval arg as integer, byval value as integer)
 DECLARE FUNCTION ancestor_script_id(scriptslot as integer, depth as integer) as integer
 
+' Globals for profiling of builtin script commands
+EXTERN profiling_cmdid as integer
+EXTERN profiling_cmd_in_script as ScriptData ptr
+EXTERN time_specific_cmdid as integer
+TYPE CommandProfile
+  callstart as double  'When the current call started, if timing it (see profiling_cmdid), otherwise garbage
+  time as double       'Total time spent in this command
+  calls as integer     'Number of calls
+END TYPE
+EXTERN command_profiles(maxScriptCmdID) as CommandProfile
 
 #endif

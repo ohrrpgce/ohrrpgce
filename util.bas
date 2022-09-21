@@ -1656,7 +1656,7 @@ END SUB
 'For random integers, the quicksort is faster
 'for arrays over length about 80. For arrays which are 90% sorted appended with 10% random data,
 'the cut off is about 600 (insertion sort did ~5x better on nearly-sort data at the 600 mark)
-LOCAL SUB qsort_indices(indices() as integer, byval start as any ptr, byval number as integer, byval stride as integer, byval compare_fn as FnCompare)
+SUB qsort_indices(indices() as integer, byval start as any ptr, byval number as integer = 0, byval stride as integer, byval compare_fn as FnCompare)
  IF number = 0 THEN number = UBOUND(indices) + 1
 
  DIM keys(number - 1) as any ptr

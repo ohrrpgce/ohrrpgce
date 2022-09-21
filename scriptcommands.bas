@@ -596,10 +596,8 @@ END SUB
 '                                      Script Commands
 '==========================================================================================
 
-'DIM SHARED used_script_commands(maxScriptCmdID) as bool
-
 ' This entry point is called from the script interpreter.
-SUB script_functions(byval cmdid as integer)
+SUB script_commands(byval cmdid as integer)
  'These variables are uninitialised for speed
  DIM id as integer = ANY
  DIM menuslot as integer = ANY
@@ -610,11 +608,6 @@ SUB script_functions(byval cmdid as integer)
  DIM mi as MenuDefItem ptr = ANY
  DIM i as integer = ANY
  scriptret = 0
-
- 'IF cmdid <= maxScriptCmdID ANDALSO used_script_commands(cmdid) = NO THEN
- ' debug "Used command " & cmdid & " " & commandname(cmdid)
- ' used_script_commands(cmdid) = YES
- 'END IF
 
  SELECT CASE as CONST cmdid
 

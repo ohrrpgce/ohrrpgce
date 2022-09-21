@@ -68,6 +68,9 @@ WHAT IS NEW?
       stays open so you can read it [Ralph]
     * "Show CPU usage" debug mode (Shift/Ctrl-F5), to help understand slowdowns
       (to find slow scripts, use script profiling: Shift/Ctrl-F9) [Ralph]
+    * Script+Command Profiling (in the Debug Menu) extends script profiling to
+      also show time spent on each command, and Specific Command Profiling to
+      add a column for time each script spends on one command [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

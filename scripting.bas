@@ -31,17 +31,25 @@ DECLARE FUNCTION loadscript_read_data(header as ScriptData ptr, fh as integer) a
 DECLARE FUNCTION scriptcache_find(id as integer) as ScriptData ptr
 DECLARE SUB scriptcache_add(id as integer, thisscr as ScriptData ptr)
 
+DECLARE SUB print_command_profiling(entiretime as double, timeroverhead as double)
+
 '------------ Global variables ------------
 
 DEFINE_VECTOR_OF_TYPE(ScriptFibre ptr, ScriptFibre_ptr)
+
+'ID of the command being timed, or 0 if not timing
+DIM profiling_cmdid as integer
+'The script containing the timed command, 0 if not timing
+DIM profiling_cmd_in_script as ScriptData ptr
+'ID of a single command to tally time spent per script, while command profiling
+DIM time_specific_cmdid as integer = 0
+DIM command_profiles(maxScriptCmdID) as CommandProfile
 
 '--------- Module shared variables ---------
 
 'Used by trigger_script
 DIM SHARED trigger_script_failure as bool
 DIM SHARED last_queued_script as ScriptFibre ptr
-
-DIM SHARED timeroverhead as double
 
 
 '==========================================================================================
@@ -409,6 +417,7 @@ SUB resetinterpreter
  killallscripts
 
  IF numloadedscr > 0 THEN
+  'Also calls print_command_profiling
   IF scriptprofiling THEN print_script_profiling
 
   freescripts(0)
@@ -430,7 +439,7 @@ SUB script_start_waiting(waitarg1 as integer = 0, waitarg2 as integer = 0)
 END SUB
 
 ' Cause a script fibre to start waiting for some number of ticks.
-' Unlike script_start_waiting this can be called from outside script_functions.
+' Unlike script_start_waiting this can be called from outside script_commands.
 ' This is NOT the implementation of the wait(x) command, but it has the same effect
 ' whichscript is scriptinsts() index.
 SUB script_start_waiting_ticks(whichscript as integer, ticks as integer)
@@ -820,7 +829,7 @@ SUB deref_script(script as ScriptData ptr)
   'scriptcachemem
   unused_script_cache_mem += script->size
   ' If profiling don't delete ScriptDatas, as they include the timing info
-  IF scriptprofiling THEN EXIT SUB
+  IF scriptprofiling OR commandprofiling THEN EXIT SUB
   IF unused_script_cache_mem > scriptmemMax THEN
    'Evicting stuff from the script cache is probably pointless, but we've already got it,
    'and it may be useful for the new script interpreter...
@@ -1096,6 +1105,7 @@ END SUB
 ' Call this when starting/resuming execution of a script fibre;
 ' used to collect timing statistics.
 SUB start_fibre_timing
+ 'No need to restart command timing if resuming a script command.
  IF scriptprofiling = NO THEN EXIT SUB
  IF nowscript < 0 OR insideinterpreter = NO THEN EXIT SUB
  'debug "start_fibre_timing slot " & nowscript & " id " & scrat(nowscript).scr->id
@@ -1133,6 +1143,7 @@ END SUB
 ' command or a script error.
 ' NOTE: if script_return_timing cleans up the last script in a fibre, stop_fibre_timing doesn't get called.
 SUB stop_fibre_timing
+ stop_command_timing
  IF scriptprofiling = NO THEN EXIT SUB
  IF nowscript < 0 OR insideinterpreter = NO THEN EXIT SUB
  'debug "stop_fibre_timing slot " & nowscript & " id " & scrat(nowscript).scr->id
@@ -1181,29 +1192,38 @@ LOCAL FUNCTION profiling_script_childtime_scorer(byref script as ScriptData) as 
  RETURN -script.childtime
 END FUNCTION
 
+'Measure how long a TIMER call takes
+FUNCTION measure_timer_overhead() as double
+ DIM as double besttime = 1e99, thistime, timestamp
+ FOR attempt as integer = 1 TO 5
+  READ_TIMER(timestamp)
+  thistime = -timestamp
+  FOR i as integer = 0 TO 1999
+   READ_TIMER(timestamp)
+  NEXT
+  thistime += timestamp
+  IF thistime < besttime THEN besttime = thistime
+ NEXT
+ RETURN besttime / 2000
+END FUNCTION
+
 'Print profiling information on scripts to g_debug.txt
 SUB print_script_profiling
- DIM timestamp as double
- READ_TIMER(timestamp)
- timeroverhead = -timestamp
- FOR i as integer = 0 TO 1999
-  READ_TIMER(timestamp)
- NEXT
- timeroverhead += timestamp
- timeroverhead /= 2000
+ DIM timeroverhead as double = measure_timer_overhead()
 
  REDIM LRUlist() as ScriptListElmt
  DIM numscripts as integer
 
- 'give each script a score (the lower, the more likely to throw) and sort them
- 'this is roughly a least recently used list
+ 'Sort scripts by time. Ignore the reused LRUlist variable name
  sort_scripts LRUlist(), numscripts, @profiling_script_totaltime_scorer
 
  DIM entiretime as double
  DIM totalswitches as integer
+ DIM totalcmds as integer
  FOR i as integer = 0 TO numscripts - 1
   entiretime += LRUlist(i).p->totaltime
   totalswitches += LRUlist(i).p->entered
+  totalcmds += LRUlist(i).p->numcmdcalls
  NEXT
 
  debug "=== Script profiling information ==="
@@ -1211,37 +1231,56 @@ SUB print_script_profiling
  debug "'time' is the time spent in the script (and built-in commands it called)."
  debug "'childtime' is the time spent in a script and all scripts it called, and all"
  debug "  scripts called from those, and so on."
+ debug "'cmdtime' (if command profiling) is time spent in builtin commands"
  debug "'#calls' is the number of times the script ran."
- debug "'#switches' is the number of times that the interpreter switched to that"
- debug "  script, which is the sum of #calls, how many other scripts it called and"
- debug "  how many times it waited (switching time is relatively neglible)."
- debug "'type' is the way that a script was last triggered"
+ debug "'#cmds' (if command profiling) is number of calls to builtin commands."
+ 'debug "'#switches' is the number of times that the interpreter switched to that"
+ 'debug "  script, which is the sum of #calls, how many other scripts it called and"
+ 'debug "  how many times it waited (switching time is relatively neglible)."
+ debug "'type' (in second table) is the way that a script was last triggered"
+ debug "'#calls & time for...' is shown if profiling a specific command, showing how"
+ debug "  much it was used by that script"
  debug ""
  debug "ms is milliseconds (0.001 seconds), us is microseconds (0.000001 seconds)"
  debug ""
  debug "Total time recorded in interpreter: " & format(entiretime, "0.000") & "sec"
  debug "(Timer overhead = " & format(timeroverhead*1e6, "0.00") & "us per measurement)"
- debug "(Estimated time wasted profiling: " & format(timeroverhead * totalswitches, "0.000") & "sec)"
+ debug "(Estimated time wasted script profiling: " & format(timeroverhead * totalswitches, "0.000") & "sec)"
+ IF commandprofiling THEN
+  debug "(Estimated time wasted command profiling: " & format(timeroverhead * 2 * totalcmds, "0.000") & "sec)"
+ END IF
  debug ""
  debug "  -- All scripts sorted by time --"
- debug " %time        time   childtime    time/call      #calls   #switches  script name"
+ IF commandprofiling THEN
+  debug " %time       time    cmdtime   childtime    time/call    #calls     #cmds  script name " _
+        & IIF(time_specific_cmdid, SPACE(14) & "#calls &  time for " & commandname(time_specific_cmdid), "")
+ ELSE
+  debug " %time       time  childtime    time/call    #calls   script name"
+ END IF
+
  FOR i as integer = 0 TO numscripts - 1
  ' debug i & ": " & LRUlist(i).p & " score = " & LRUlist(i).score
   WITH *LRUlist(i).p
-   debug RIGHT("  " & format(100 * .totaltime / entiretime, "0.00"), 6) _
-       & RIGHT(SPACE(9) & format(.totaltime*1000, "0"), 10) & "ms" _
-       & RIGHT(SPACE(9) & format(.childtime*1000, "0"), 10) & "ms" _
-       & RIGHT(SPACE(10) & format(.totaltime*1000000/.numcalls, "0"), 11) & "us" _
-       & RIGHT(SPACE(11) & .numcalls, 12) _
-       & RIGHT(SPACE(11) & .entered, 12) _
-       & "  " & scriptname(ABS(.id))
-       '& "  " & format(1000*(.totaltime + .entered * timeroverhead), "0.00")
+   DIM cmdtime_line as string
+   DIM numcmds_line as string
+   IF commandprofiling THEN
+    cmdtime_line = lpad(format(.cmdtime*1000, "0.0"), , 9) & "ms"
+    numcmds_line = "  " & lpad(STR(.numcmdcalls), , 8)
+   END IF
 
- '  debug "id = " & .id & " " & scriptname(ABS(.id))
- '  debug "refcount = " & .refcount
- '  debug "numcalls = " & .numcalls
- '  debug "lastuse = " & .lastuse
- '  debug "size = " & .size
+   debug lpad(format(100 * .totaltime / entiretime, "0.00"), , 6) _
+       & lpad(format(.totaltime*1000, "0.0"), , 9) & "ms" _
+       & cmdtime_line _
+       & lpad(format(.childtime*1000, "0.0"), , 10) & "ms" _
+       & lpad(format(.totaltime*1e6/.numcalls, "0"), , 11) & "us" _
+       & lpad(STR(.numcalls), , 10) _
+       & numcmds_line _
+       _ '& lpad(STR(.entered), , 12)
+       & "  " & rpad(scriptname(ABS(.id)), , 25) _
+       & IIF(time_specific_cmdid, " " & lpad(STR(.specificcmdcalls), , 6), "") _
+       & IIF(time_specific_cmdid, " " & lpad(format(.specificcmdtime*1000, "0.0"), , 5) & "ms", "")
+      '& "  " & format(1000*(.totaltime - (.entered + 2 * .numcmdcalls) * timeroverhead), "0.00") & "ms"
+
   END WITH
  NEXT
 
@@ -1254,21 +1293,28 @@ SUB print_script_profiling
  FOR i as integer = 0 TO numscripts - 1
   WITH *LRUlist(i).p
    DIM percall as string
-   debug RIGHT("  " & format(100 * .childtime / entiretime, "0.00"), 6)  _
-       & RIGHT(SPACE(9) & format(.childtime*1000, "0"), 10) & "ms" _
-       & RIGHT(SPACE(11) & format(.childtime*1000/.numcalls, "0.0"), 12) & "ms" _
-       & RIGHT(SPACE(9) & .numcalls, 10) _
-       & RIGHT(SPACE(20) & .trigger_type, 20) _
+   debug lpad(format(100 * .childtime / entiretime, "0.00"), , 6)  _
+       & lpad(format(.childtime*1000, "0"), , 10) & "ms" _
+       & lpad(format(.childtime*1000/.numcalls, "0.0"), , 12) & "ms" _
+       & lpad(STR(.numcalls), , 10) _
+       & lpad(.trigger_type, , 20) _
        & "  " & scriptname(ABS(.id))
   END WITH
  NEXT
  debug ""
+
+ IF commandprofiling THEN
+  entiretime -= (totalswitches + 2 * totalcmds) * timeroverhead
+  print_command_profiling(entiretime, timeroverhead)
+ END IF
 END SUB
 
 ' Normally when you do multiple profiling runs, the stats are cumulative.
 ' This should not be called from inside the interpreter, at least not while profiling.
 SUB clear_profiling_stats
  IF insideinterpreter AND scriptprofiling THEN EXIT SUB
+
+ memset(@command_profiles(0), 0, SIZEOF(CommandProfile) * (1 + UBOUND(command_profiles)))
 
  FOR i as integer = 0 TO UBOUND(script)
   DIM scrp as ScriptData Ptr = script(i)
@@ -1277,9 +1323,119 @@ SUB clear_profiling_stats
    scrp->totaltime = 0.
    scrp->childtime = 0.
    scrp->entered = 0
+   scrp->numcmdcalls = 0
+   scrp->cmdtime = 0.
+   scrp->specificcmdtime = 0.
+   scrp->specificcmdcalls = 0
    scrp = scrp->next
   WEND
  NEXT
+END SUB
+
+'Compare for qsort
+LOCAL FUNCTION compare_command_profiles CDECL (a as const CommandProfile ptr ptr, b as const CommandProfile ptr ptr) as integer
+ IF (*a)->time < (*b)->time THEN RETURN -1
+ IF (*a)->time > (*b)->time THEN RETURN 1
+ RETURN 0
+END FUNCTION
+
+'Wrapper around script_commands() for when commandprofiling is enabled
+SUB timed_script_commands(cmdid as integer)
+ 'Start command timing
+ IF cmdid <= maxScriptCmdID THEN
+  profiling_cmdid = cmdid
+  profiling_cmd_in_script = scrat(nowscript).scr
+  profiling_cmd_in_script->numcmdcalls += 1
+  WITH command_profiles(cmdid)
+   .calls += 1
+   .callstart = TIMER
+  END WITH
+ END IF
+
+ script_commands(cmdid)
+
+ stop_command_timing
+END SUB
+
+'Stop timing the current script command
+SUB stop_command_timing
+ 'When commandprofile is true, profiling_cmdid may be 0 if not in the
+ 'interpreter or we stopped early because stop_fibre_timing was called.
+ IF profiling_cmdid THEN
+  WITH command_profiles(profiling_cmdid)
+   DIM cmdtime as double = TIMER - .callstart
+   .time += cmdtime
+   'Don't use nowscript in case the script changed (e.g. runscriptbyid)
+   profiling_cmd_in_script->cmdtime += cmdtime
+   IF time_specific_cmdid = profiling_cmdid THEN
+    profiling_cmd_in_script->specificcmdtime += cmdtime
+    profiling_cmd_in_script->specificcmdcalls += 1
+   END IF
+  END WITH
+  profiling_cmdid = 0
+  profiling_cmd_in_script = 0
+ END IF
+END SUB
+
+'Prompt for a command to do detailed command profiling on
+FUNCTION prompt_for_profiling_cmdid() as bool
+ DIM cmdidstr as string
+ IF prompt_for_string(cmdidstr, "ID (see plotscr.hsd) or name of a script command to profile?", 60) THEN
+  'ID input
+  DIM cmdid as integer
+  IF parse_int(cmdidstr, @cmdid) ANDALSO cmdid >= 0 ANDALSO cmdid <= maxScriptCmdID THEN
+   time_specific_cmdid = cmdid
+   RETURN YES
+  END IF
+
+  'Search by command name
+  cmdidstr = LCASE(exclude(cmdidstr, " "))
+  FOR cmdid = 0 TO maxScriptCmdID
+   IF commandname(cmdid) = cmdidstr THEN
+    time_specific_cmdid = cmdid
+    RETURN YES
+   END IF
+  NEXT
+
+  notification cmdidstr & " is not a builtin command name or ID. Some commands in the Dictionary are actually scripts; check plotscr.hsd."
+ END IF
+ time_specific_cmdid = 0
+ RETURN NO
+END FUNCTION
+
+SUB print_command_profiling(entiretime as double, timeroverhead as double)
+ 'Subtract the estimated timing overhead from each command, because it can easily be 90% of the total time
+ FOR i as integer = 0 TO UBOUND(command_profiles)
+  WITH command_profiles(i)
+   .time = large(0.0, .time - .calls * timeroverhead)
+  END WITH
+ NEXT
+
+ DIM indices(UBOUND(command_profiles)) as integer
+ qsort_indices(indices(), @command_profiles(0), , SIZEOF(CommandProfile), CAST(FnCompare, @compare_command_profiles))
+
+ debug "=== Command profiling ==="
+ debug "'%time' shows the % of total script interpreter time spent in the command."
+ debug "'time' is the total time spent in the command."
+ debug "'#calls' is the number of times called."
+ debug ""
+ debug " %time       time   time/call      #calls  command name" '     time+overhead"
+ FOR i as integer = UBOUND(indices) TO 0 STEP -1
+  DIM cmdid as integer = indices(i)
+  WITH command_profiles(cmdid)
+   IF .calls = 0 THEN EXIT FOR
+   'DIM realtime as double = .time + .calls * timeroverhead
+
+   debug lpad(format(100 * .time / entiretime, "0.00"), , 6) _
+       & lpad(format(.time*1000, "0"), , 9) & "ms" _
+       & lpad(format(.time*1e6/.calls, "0.00"), , 10) & "us" _
+       & lpad(STR(.calls), , 12) _
+       & "  " & commandname(cmdid)
+      '& lpad(format(realtime*1000, "0"), , 10) & "ms"
+      '& "  " & format(1000*(.calls * timeroverhead), "0") & "ms"
+  END WITH
+ NEXT
+ debug ""
 END SUB
 
 
@@ -1300,6 +1456,8 @@ FUNCTION script_string_constant(scriptinsts_slot as integer, offset as integer) 
  END WITH
 END FUNCTION
 
+'TODO: commands.bin should just be loaded into memory, which would be simpler and fix
+'some script errors being extra expensive even when ignored
 FUNCTION commandname (byval id as integer) as string
  'cmd_default_names array
 #include "scrcommands.bi"
@@ -1325,7 +1483,7 @@ FUNCTION commandname (byval id as integer) as string
  GET #fh, , records
 
  IF formatv > 0 OR id < 0 OR id >= records THEN
-  CLOSE fh
+  lazyclose fh
   add_string_cache cache(), id, ret
   RETURN ret
  END IF
@@ -1333,7 +1491,7 @@ FUNCTION commandname (byval id as integer) as string
  GET #fh, 1 + headersz + 2 * id, offset
 
  IF offset = 0 THEN
-  CLOSE fh
+  lazyclose fh
   add_string_cache cache(), id, ret
   RETURN ret
  END IF
@@ -1341,7 +1499,7 @@ FUNCTION commandname (byval id as integer) as string
  DIM rec(25) as short
  GET #fh, 1 + offset + 2, rec()
  ret = readbinstring(rec(), 0, 50)
- CLOSE fh
+ lazyclose fh
  add_string_cache cache(), id, ret
  RETURN ret
 END FUNCTION

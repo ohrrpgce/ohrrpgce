@@ -22,9 +22,6 @@ EXTERN lastsaveslot as integer
 EXTERN usepreunlump as bool
 EXTERN fatal as bool
 EXTERN checkfatal as bool
-EXTERN err_suppress_lvl as scriptErrEnum
-EXTERN backcompat_sound_slot_mode as bool
-EXTERN backcompat_sound_slots() as integer
 EXTERN autosnap as integer
 EXTERN custom_version as string
 EXTERN channel_to_Custom as IPCChannel
@@ -73,6 +70,7 @@ EXTERN scriptinsts() as ScriptInst
 EXTERN retvals() as integer
 EXTERN wantimmediate as integer
 EXTERN scriptprofiling as bool
+EXTERN commandprofiling as bool
 EXTERN timing_fibre as bool
 EXTERN insideinterpreter as bool
 EXTERN nowscript as integer
@@ -88,6 +86,9 @@ EXTERN scrst as Stack
 EXTERN curcmd as ScriptCommand ptr
 EXTERN last_queued_script as ScriptFibre ptr
 EXTERN mainFibreGroup as ScriptFibre ptr vector
+EXTERN err_suppress_lvl as scriptErrEnum
+EXTERN backcompat_sound_slot_mode as bool
+EXTERN backcompat_sound_slots() as integer
 'debugger aids
 EXTERN globalp as integer ptr
 EXTERN heapp as integer ptr
