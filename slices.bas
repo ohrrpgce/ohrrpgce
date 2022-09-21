@@ -4911,6 +4911,17 @@ END FUNCTION
 
 #endif
 
+'Number of slices in a subtree (including sl)
+FUNCTION count_slices(sl as Slice ptr) as integer
+ DIM count as integer = 1
+ sl = sl->FirstChild
+ WHILE sl
+  count += count_slices(sl)
+  sl = sl->NextSibling
+ WEND
+ RETURN count
+END FUNCTION
+
 'This is the dump function accessible by an in-game debug key,
 'and is intended for seeing the slice tree, not debugging code
 SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)

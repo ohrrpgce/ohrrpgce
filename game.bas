@@ -680,6 +680,7 @@ load_non_elemental_elements gam.non_elemental_elements()
 '--Reset some stuff related to debug keys
 gam.showtext_ticks = 0
 gam.debug_showtags = 0
+gam.debug_timings = NO
 gam.debug_npc_info = 0
 gam.debug_textbox_info = NO
 gam.debug_scripts = 0
@@ -755,6 +756,8 @@ END IF
 '================================= Main loop ==================================
 '==============================================================================
 
+DIM starttime as double
+
 queue_fade_in
 'DEBUG debug "pre-call update_heroes"
 evalherotags
@@ -765,7 +768,10 @@ setkeys
 DO
  'DEBUG debug "top of master loop"
  setwait speedcontrol
+ DIM mainloop_starttime as double = TIMER
+
  IF running_under_Custom THEN try_to_reload_lumps_onmap
+
  'DEBUG debug "increment play timers"
  IF gam.paused = NO THEN playtimer
 
@@ -792,6 +798,9 @@ DO
  IF menus_allow_gameplay() THEN
  'DEBUG debug "enter script interpreter"
  interpret_scripts
+
+ starttime = TIMER
+
  'DEBUG debug "increment script timers"
  dotimer(TIMER_NORMAL)
 
@@ -902,6 +911,8 @@ DO
 
  END IF 'end gam.need_fade_page = NO
 
+ IF gam.debug_timings THEN add_timing "Gameplay logic (NPCs...)", starttime
+
  ELSE
   dotimer(TIMER_BLOCKINGMENUS)
  END IF' end menus_allow_gameplay
@@ -972,7 +983,9 @@ DO
  END IF
 
  'DEBUG debug "swap video pages"
+ starttime = TIMER
  swap_or_fade_page vpage, dpage
+ IF gam.debug_timings THEN add_timing "Update screen", starttime
 
  IF gam.paused = NO THEN
   'DEBUG debug "fade in"
@@ -980,6 +993,8 @@ DO
   check_for_queued_fade_in
  END IF
  'DEBUG debug "tail of main loop"
+
+ IF gam.debug_timings THEN add_timing "Total", mainloop_starttime
  dowait
 LOOP
 
@@ -1133,6 +1148,8 @@ END SUB
 '==========================================================================================
 
 SUB displayall()
+ DIM starttime as double = TIMER
+
  ' We need to update walkabout slice positions before calling
  ' setmapxy, in the case where the camera is following a hero
  ' or NPC, but this is pretty wasteful. One alternative
@@ -1171,13 +1188,18 @@ SUB displayall()
  update_backdrop_slice
  IF txt.showing = YES THEN update_textbox
 
+ IF gam.debug_timings THEN add_timing "Update slices", starttime
+ starttime = TIMER
+
  clearpage dpage
 
  NumDrawnSlices = 0
- DIM drawtime as double = TIMER
  DrawSlice(SliceTable.Root, dpage)
- drawtime = TIMER - drawtime
- 'debuginfo "Drew " & NumDrawnSlices & " slices in " & CINT(drawtime * 1e6) & "us; " & CINT(drawtime * 1e9 / NumDrawnSlices) & "ns/slice average"
+
+ IF gam.debug_timings THEN
+  add_timing "Draw " & NumDrawnSlices & " slices", starttime
+  add_timing "  Total slices: " & count_slices(SliceTable.root)
+ END IF
 
  'The order in which we update and draw things is a little strange; I'm just preserving what it was
  animatetilesets tilesets()
@@ -1204,6 +1226,10 @@ SUB displayall()
  IF gam.debug_textbox_info THEN show_textbox_debug_info
  IF gam.debug_showtags THEN tagdisplay dpage
  IF gam.debug_scripts THEN scriptwatcher gam.debug_scripts, YES
+ IF gam.debug_timings THEN
+  add_timing "Draw other (eg menus)", starttime
+  display_timings dpage
+ END IF
 END SUB
 
 
@@ -2434,6 +2460,8 @@ SUB execute_script_fibres
 END SUB
 
 SUB interpret_scripts()
+ DIM starttime as double = TIMER
+
  'It seems like it would be good to call this immediately before scriptinterpreter so that
  'the return values of fightformation and waitforkey are correct, however doing so might
  'break something?
@@ -2491,6 +2519,8 @@ SUB interpret_scripts()
   gam.want.usenpc = 0
  END IF
  'ALSO gam.want.loadgame, gam.want.rungame
+
+ IF gam.debug_timings THEN add_timing "Script interpreter", starttime
 END SUB
 
 
@@ -4518,6 +4548,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF dbg.def(      , scF4, "Tag debugger (F4)") THEN
   loopvar gam.debug_showtags, 0, 2
   gam.debug_scripts = 0
+  gam.debug_timings = NO
  END IF
 
  IF dbg.def(SftCtl, scF4, "View/edit slice tree (Shft/Ctrl-F4)") THEN
@@ -4525,6 +4556,12 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  END IF
 
  IF dbg.def(      , scF5, "Data reload menu (F5)") THEN live_preview_menu
+
+ IF dbg.def(SftCtl, scF5, "Show CPU usage (Shft/Ctrl-F5)") THEN
+  gam.debug_timings XOR= YES
+  gam.debug_showtags = 0
+  gam.debug_scripts = NO
+ END IF
 
  IF dbg.def(      , scF6, "NPC info overlay (F6)") THEN gam.debug_npc_info = (gam.debug_npc_info + 1) MOD 3
 
@@ -4564,10 +4601,12 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF dbg.def(      , scF10) THEN
   loopvar gam.debug_scripts, 0, 2
   gam.debug_showtags = 0
+  gam.debug_timings = NO
  END IF
  IF dbg.def(      ,      , "Script debugger (F10)") THEN
   gam.debug_scripts = 2  'Go straight in instead of showing the memory usage bars
   gam.debug_showtags = 0
+  gam.debug_timings = NO
  END IF
 
  IF dbg.def(SftCtl, scF10, "Toggle script logging (S/C-F10)") THEN

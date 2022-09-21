@@ -1003,6 +1003,43 @@ SUB drawants_for_tile(tile as XYPair, byval direction as DirNum)
  END IF
 END SUB
 
+'==============================================================================
+
+SUB append_timing_line(name as string, ttime as double = 0.0, skip_zero as bool = NO)
+ IF skip_zero ANDALSO ttime = 0.0 THEN EXIT SUB
+ DIM idx as integer = UBOUND(gam.timings) + 1
+ REDIM PRESERVE gam.timings(0 TO idx)
+ WITH gam.timings(idx)
+  .name = name
+  .time = ttime
+ END WITH
+END SUB
+
+SUB add_timing(name as string, starttime as double = 0.0)
+ DIM ttime as double = 0.
+ IF starttime THEN ttime = TIMER - starttime
+ append_timing_line name, ttime
+END SUB
+
+'Draw timing debug mode
+SUB display_timings(page as integer)
+ DIM red as integer = findrgb(255,0,0)
+ FOR idx as integer = 0 TO UBOUND(gam.timings)
+  WITH gam.timings(idx)
+   DIM text as string = .name
+   IF .time > 0. THEN
+    '.time = 0 indicates a note
+    edgebox 0, idx * 12, vpages(page)->w * .time / (1e-3 * speedcontrol), 6, red, uilook(uiBackground), page
+    text = rpad(text, "_" , 24) & " " & strprintf("%4.1f", .time * 1e3) & "ms"
+   END IF
+   edgeprint text, 0, idx * 12 + 3, uilook(uiText), page
+  END WITH
+ NEXT
+ ERASE gam.timings
+END SUB
+
+'==============================================================================
+
 SUB limitcamera (byref x as integer, byref y as integer)
  ' The slice the map is drawn "onto"
  DIM mapview as Slice ptr

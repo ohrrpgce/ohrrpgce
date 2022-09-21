@@ -47,8 +47,13 @@ DECLARE SUB reloadmap_passmap(merge as bool)
 DECLARE SUB reloadmap_foemap()
 DECLARE SUB reloadmap_zonemap()
 DECLARE SUB deletetemps
+
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display (draw_walls as bool)
+DECLARE SUB append_timing_line(name as string, ttime as double = 0.0, skip_zero as bool = NO)
+DECLARE SUB add_timing(name as string, starttime as double = 0.0)
+DECLARE SUB display_timings(page as integer)
+
 DECLARE FUNCTION game_setoption(opt as string, arg as string) as integer
 DECLARE SUB handshake_with_Custom ()
 DECLARE SUB wrong_spawned_version_fatal_error ()

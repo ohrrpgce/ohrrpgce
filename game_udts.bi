@@ -174,6 +174,11 @@ TYPE OriginalStock
                                      '(Note this differs from encoding of gam.stock())
 END TYPE
 
+TYPE TimingInfo
+  name as string
+  time as double
+END TYPE
+
 TYPE GameState
   map as MapModeState
   wonbattle as bool                  'Indicates the status of the last battle (won as opposed to dying or running or 'force exit')
@@ -202,6 +207,10 @@ TYPE GameState
   'The following are mutually exclusive
   debug_scripts as integer           '0: off, 1: show running scripts, 2: pause and enter debugger
   debug_showtags as integer          '0: off, 1: small display, 2: full-length display
+  debug_timings as bool              'Show CPU usage mode
+
+  'Timing debug mode data
+  timings(any) as TimingInfo
 
   paused as bool                     'Pause the game (only in map mode; this is a debug key)
   autorungame as bool                'Game was autorun, not selected from RPG browser

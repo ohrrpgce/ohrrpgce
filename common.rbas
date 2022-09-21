@@ -1119,7 +1119,7 @@ FUNCTION scriptname (id_or_trigger as integer) as string
  END IF
 END FUNCTION
 
-' 0 means use the default default, -1 means none
+' 0 means use default_trigger, -1 means none
 FUNCTION scriptname_default(id_or_trigger as integer, default_trigger as integer) as string
  IF id_or_trigger = -1 THEN RETURN "[none]"
  IF id_or_trigger = 0 THEN

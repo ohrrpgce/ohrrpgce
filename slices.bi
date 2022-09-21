@@ -740,6 +740,9 @@ DECLARE FUNCTION SliceDebugCheck(sl as Slice Ptr) as integer
 
 DECLARE SUB SliceDebugDumpTree(sl as Slice Ptr, byval indent as integer = 0)
 'DECLARE SUB SliceDebugLinks(sl as Slice Ptr, recurse as bool = NO, prefix as string = "", indent as integer = 0)
+DECLARE SUB SliceDebugLinks(sl as Slice Ptr, recurse as bool = NO, prefix as string = "", indent as integer = 0)
+DECLARE FUNCTION count_slices(sl as Slice ptr) as integer
+
 
 '''' SliceType-specific functions
 

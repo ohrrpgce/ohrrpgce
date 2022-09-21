@@ -28,15 +28,20 @@ Shift/Ctrl+F4 Edit the slice tree (in the Slice Collection Editor). You can even
 
 F5 Menu for forcing reloading of edited data while running Game using "Test Game". If you are not editing while you play then this menu is only useful for reloading the map to undo changes made by scripts.
 
+Shift/Ctrl+F5 Shows CPU usage - shows how much time is spent on different major tasks including running scripts, drawing slices, gameplay logic (builtin logic such as NPC AI, menus, textboxes, and loading data for them) and updating screen (sending the image to the OS/GPU, after possibly applying upscaling, palette fades, and filters. On some computers this can consume a lot of time due to `vsync', which can be considered idle time available for other uses). Audio playback isn't shown, because it's played by a separate CPU thread, but the time taken to load sound effects is counted towards whatever loaded them (eg. Scripts or Gameplay Logic).
+Also shows the number of slices that were drawn (container, etc slices aren't counted), and the total number of slices.
+
 F6 NPC Debug Mode. Draw NPC type ID and reference numbers on top of NPCs. ID numbers at top, reference numbers below. The reference numbers are shown without the negative signs. NPCs that are hidden due to tag conditions are shown with darkened ID numbers.
 Move the mouse over an NPC to see some of the NPC type and instance data. (Hint: use the PAUSE key to examine at moving NPCs)
 Press F6 twice to also see dotted lines around each NPC indicating everything that's considered an obstruction. Press three times to disable this mode.
+
+F7 Enter camera movement mode. Lets you use the arrow keys to move the camera (hold Shift to go faster). Press F7 to exit this mode.
 
 Shift/Ctrl+F7 Lets you switch graphics backend. This key combination works everywhere in Game and Custom. Try switching if you have graphical or keyboard/mouse/joystick problems or want certain features. Only gfx_sdl supports resolutions other than 320x200.
 
 F8 Bring up this debug menu (this option does nothing)
 
-Shift/Ctrl+F8 Open g_debug.txt with an (default) external program. g_debug.txt is written next to the .rpg file and error messages and other output is written to it. Errors are lines beginning with "! ", and often don't cause a message to display to the player.
+Shift/Ctrl+F8 Open g_debug.txt with a (default) external program. g_debug.txt is written next to the .rpg file and error messages and other output is written to it. Errors are lines beginning with "! ", and often don't cause a message to display to the player.
 This menu item will read "View g_debug.txt: # errors" if there are errors.
 
 Shift/Ctrl+F9 Toggle script profiling. When profiling, the script interpreter collects statistics about how long each script ran for, how long the scripts it called ran for, and how many times it was run. These stats are printed to g_debug.txt (press Shift-F8 to view) when you quit, or when you turn off profiling. Note: If you turn profiling on and off several times, data from all profiling sessions gets printed.
