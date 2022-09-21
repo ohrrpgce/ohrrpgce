@@ -331,7 +331,7 @@ CONST maxSpriteHistoryMem = 16000000  'Max size of sprite undo history, in bytes
 CONST maxFrameSize = 4096 'Max width or height of a Frame (in memory or .rgfx) or importable image.
 CONST maxScriptGlobals = 50000 'Actually the index of the last global  (also "maximum global id" in plotscr.hsd)
                                'If you update this, also update the default argument to exportglobals in plotscr.hsd
-CONST maxScriptStrings = 99 'ID of last plotstring  (also "maximum string id" in plotscr.hsd)
+CONST maxScriptStrings = 255 'ID of last plotstring  (also "maximum string id" in plotscr.hsd)
 CONST numInitialTimers = 16 'Initial number of script timers
 CONST maxExtraLength = 5000000 'Max size of an extra data array
 CONST maxScriptHeap = 8192 'Maximum number of local variables in use by all running scripts

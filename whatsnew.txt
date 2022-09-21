@@ -71,6 +71,7 @@ WHAT IS NEW?
     * Script+Command Profiling (in the Debug Menu) extends script profiling to
       also show time spent on each command, and Specific Command Profiling to
       add a column for time each script spends on one command [Ralph]
+    * Number of script strings increased from 100 to 256 (IDs 0-255)
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

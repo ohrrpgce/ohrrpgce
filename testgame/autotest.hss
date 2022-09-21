@@ -880,12 +880,12 @@ script, hero names embed tests, begin
   assert(string compare(1, $2="Var=${V121}"))
 
   # Test strings
-  $3="A very fine mess"
+  $255="A very fine mess"
   save in slot(4), w
-  $3="Cleaned up"
-  show string(expand string($2="${S3}", 4)), w
+  $255="Cleaned up"
+  show string(expand string($2="${S255}", 4)), w
+  assert(string compare(255, $1="Cleaned up"))
   assert(string compare(2, $1="A very fine mess"))
-  assert(string compare(3, $1="Cleaned up"))
   # A different string
   $2="Is better than sloppy order"
   save in slot(4), w

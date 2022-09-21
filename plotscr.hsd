@@ -2340,7 +2340,7 @@ define constant, begin
 17,dissolve:blip
 -1,dissolvetime:default
 50000,maximum global id
-99,maximum string id
+255,maximum string id
  -1, ui:Background               # Background colour
  -2, ui:MenuItem                 # Normal menu item
  -3, ui:DisabledItem             # Disabled menu item
