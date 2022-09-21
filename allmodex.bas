@@ -151,6 +151,8 @@ dim idle_time_threshold as double = 30.
 'When last input arrived
 dim shared last_active_time as double
 
+dim as MultiTimer gfx_op_timer, gfx_slice_timer
+
 dim def_drawoptions as DrawOptions
 
 redim fonts(fontLAST) as Font ptr
@@ -4290,6 +4292,12 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 	dim todraw as integer
 	dim tileframe as Frame
 
+	dim subtimer as TimerIDs
+	if opts.with_blending then
+		' Does nothing if timing not enabled
+		subtimer = gfx_op_timer.substart(TimerIDs.Blend)
+	end if
+
 	get_cliprect(dest)  'Set clipping Frame
 
 	'copied from the asm
@@ -4344,6 +4352,8 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 		ty = ty + 20
 		ypos = ypos + 1
 	wend
+
+	gfx_op_timer.substop subtimer
 end sub
 
 'Set tile animation state for drawmap... yuck
@@ -10137,6 +10147,17 @@ end function
 
 local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
 
+	dim subtimer as TimerIDs
+	if gfx_op_timer.enabled then
+		'Doesn't matter that it may not actually be blended/transformed (eg. opacity = 0)
+		if opts.with_blending then
+			subtimer = TimerIDs.Blend
+		elseif opts.scale <> 1 then
+			subtimer = TimerIDs.Rotozoom
+		end if
+		subtimer = gfx_op_timer.substart(subtimer)
+	end if
+
 	if (src->surf andalso src->surf->format <> SF_8bit) orelse _
 	   (dest->surf andalso dest->surf->format <> SF_8bit) then
 		' Have to use gfx_surfaceCopy, so translate everything to Surfaces
@@ -10180,6 +10201,8 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 			draw_clipped src, pal, x, y, trans, dest, opts
 		end if
 	end if
+
+	if subtimer then gfx_op_timer.substop subtimer
 end sub
 
 ' Draw a Frame with position and transformation specified by an AffineTransform.

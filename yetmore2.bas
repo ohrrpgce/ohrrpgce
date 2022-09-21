@@ -810,6 +810,8 @@ SUB deletetemps
  NEXT
 END SUB
 
+'==============================================================================
+
 'Print all NPCs to g_debug.txt
 SUB debug_npcs ()
  FOR p as integer = 0 to 1
@@ -1019,6 +1021,18 @@ SUB add_timing(name as string, starttime as double = 0.0)
  DIM ttime as double = 0.
  IF starttime THEN ttime = TIMER - starttime
  append_timing_line name, ttime
+END SUB
+
+SUB add_gfx_timings()
+ append_timing_line "  By slice type:"
+ append_timing_line "  -Map layers", gfx_slice_timer.times(TimerIDs.Map), YES
+ append_timing_line "  -Text", gfx_slice_timer.times(TimerIDs.Text), YES
+ append_timing_line "  -Other slices", gfx_slice_timer.times(TimerIDs.Default)
+ append_timing_line "  By draw operation:"
+ append_timing_line "  -Dissolving", gfx_op_timer.times(TimerIDs.Dissolve), YES
+ append_timing_line "  -Rotate/zoom/flip", gfx_op_timer.times(TimerIDs.Rotozoom), YES
+ append_timing_line "  -Blended/transparent", gfx_op_timer.times(TimerIDs.Blend), YES
+ append_timing_line "  -Normal", gfx_op_timer.times(TimerIDs.Default)
 END SUB
 
 'Draw timing debug mode

@@ -1740,6 +1740,11 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
 
+ dim subtimer as TimerIDs
+ if gfx_slice_timer.enabled then
+  subtimer = gfx_slice_timer.substart(TimerIDs.Text)
+ end if
+
  dim dat as TextSliceData ptr = sl->SliceData
 
  dim col as integer = dat->col
@@ -1748,6 +1753,7 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
 
  if dat->use_render_text then
   NewDrawTextSlice sl, p, col
+  if subtimer then gfx_slice_timer.substop subtimer
   exit sub
  end if
 
@@ -1787,6 +1793,8 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
    printstr lines(linenum), sl->screenx, sl->screeny + ypos, p
   end if
  next
+
+ if subtimer then gfx_slice_timer.substop subtimer
 end sub
 
 'New render_text-based updating of Text slice size. Only used when dat->use_render_text
@@ -2036,12 +2044,26 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
  if sl->SliceData = 0 then exit sub
 
  with *sl->SpriteData
+  dim subtimer as TimerIDs
+  if gfx_op_timer.enabled then
+   if .dissolving then
+    subtimer = TimerIDs.Dissolve
+   elseif .rotate or .zoom <> 1. or .flipHoriz or .flipVert then
+    'Though surfaces don't support DrawOptions.scale yet
+    subtimer = TimerIDs.Rotozoom
+   elseif .drawopts.with_blending then
+    subtimer = TimerIDs.Blend
+   end if
+   if subtimer then subtimer = gfx_op_timer.substart(subtimer)
+  end if
+
   LoadSpriteSliceImage sl
 
   dim spr as Frame ptr
   dim have_copy as bool = NO
   spr = .img.sprite
   if spr = 0 then
+   if subtimer then gfx_op_timer.substop subtimer
    showbug "null slice .sprite ptr"
    sl->Visible = NO  'prevent error loop
    exit sub
@@ -2123,6 +2145,8 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
   if have_copy then
    frame_unload(@spr)
   end if
+
+  if subtimer then gfx_op_timer.substop subtimer
  end with
 end sub
 
@@ -2533,10 +2557,12 @@ Sub DrawMapSlice(byval sl as Slice ptr, byval page as integer)
 
   'static watch as SmoothedTimer
   'if .drawopts.with_blending then watch.start()
+  var subtimer = gfx_slice_timer.substart(TimerIDs.Map)
 
   drawmap *.tiles, sl->ScreenX * -1, sl->ScreenY * -1, .tileset, page, .transparent, .overlay, .pass, , , , .drawopts
 
   'if .drawopts.with_blending then watch.stop_and_print()
+  gfx_slice_timer.substop subtimer
  end with
 end sub
 

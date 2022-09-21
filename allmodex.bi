@@ -857,6 +857,9 @@ extern debugging_io as bool
 extern active_seconds as double
 extern idle_time_threshold as double
 extern joysticks_globally_disabled as bool
+
+extern as MultiTimer gfx_op_timer, gfx_slice_timer
+
 extern "C"
 'WARNING: don't pass curmasterpal() to functions from code outside allmodex.bas!
 'That will crash because it's not a dynamic array! (FB bug: in other modules, an

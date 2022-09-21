@@ -1188,8 +1188,12 @@ SUB displayall()
  update_backdrop_slice
  IF txt.showing = YES THEN update_textbox
 
- IF gam.debug_timings THEN add_timing "Update slices", starttime
- starttime = TIMER
+ IF gam.debug_timings THEN
+  add_timing "Update slices", starttime
+  starttime = TIMER
+  gfx_slice_timer.begin
+  gfx_op_timer.begin
+ END IF
 
  clearpage dpage
 
@@ -1198,7 +1202,11 @@ SUB displayall()
 
  IF gam.debug_timings THEN
   add_timing "Draw " & NumDrawnSlices & " slices", starttime
-  add_timing "  Total slices: " & count_slices(SliceTable.root)
+  gfx_slice_timer.finish
+  gfx_op_timer.finish
+  add_timing "    (Total slices: " & count_slices(SliceTable.root) & ")"
+  add_gfx_timings
+  starttime = TIMER
  END IF
 
  'The order in which we update and draw things is a little strange; I'm just preserving what it was

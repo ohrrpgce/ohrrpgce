@@ -938,8 +938,17 @@ enum TimerIDs explicit
   None = -1
   Default = 0
 
+  'For gfx_slice_timer
+  Map = 1
+  Text = 2
+
+  'For gfx_op_timer
+  Dissolve = 1
+  Rotozoom = 2
+  Blend = 3
+
   'Max value of any valid timer ID
-  LAST = 1
+  LAST = 3
 end enum
 
 'Time sections of code, attributing time to a certain subtimer or to the default one.
