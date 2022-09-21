@@ -934,6 +934,33 @@ type SmoothedTimer
    declare sub stop_and_print()
 end Type
 
+enum TimerIDs explicit
+  None = -1
+  Default = 0
+
+  'Max value of any valid timer ID
+  LAST = 1
+end enum
+
+'Time sections of code, attributing time to a certain subtimer or to the default one.
+'You can make nested calls to substart/substop, provided that they have different TimerIDs,
+'but only the first takes effect, the rest are ignored: it's assumed the first call is the
+'most specific (e.g. a sprite dissolve might do a blended draw).
+'Alternatively, nested_start/stop do temporarily override the current subtimer.
+type MultiTimer
+  enabled as bool
+  subtimer as TimerIDs = 0  '-1 if disabled, 0 if default
+  times(TimerIDs.LAST) as double
+  'num_timer_calls as integer
+
+  declare sub begin()
+  declare sub finish()
+  declare function substart(new_subtimer as TimerIDs) as TimerIDs
+  declare sub substop(cur_subtimer as TimerIDs)
+  declare function nested_start(new_subtimer as TimerIDs) as TimerIDs
+  declare sub nested_stop(prev_subtimer as TimerIDs)
+end type
+
 
 '----------------------------------------------------------------------
 '                        Old allmodex functions

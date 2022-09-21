@@ -4659,6 +4659,69 @@ sub SmoothedTimer.stop_and_print()
 end sub
 
 '----------------------------------------------------------------------
+
+'Reset state
+sub MultiTimer.begin()
+  erase times
+  times(TimerIDs.Default) = -timer
+  'num_timer_calls = 1
+  subtimer = TimerIDs.Default
+  enabled = YES
+end sub
+
+'Stop all timers
+sub MultiTimer.finish()
+  if subtimer > 0 then times(subtimer) += timer  'Shouldn't happen
+  times(TimerIDs.Default) += timer
+  'num_timer_calls += 1
+  'For efficiency we don't stop/start Default timer all the time
+  for idx as integer = 1 to TimerIDs.LAST
+    times(TimerIDs.Default) -= times(idx)
+  next
+  enabled = NO
+  subtimer = TimerIDs.None
+end sub
+
+'If a timer (not the default) is already running, returns 0
+function MultiTimer.substart(new_subtimer as TimerIDs) as TimerIDs
+  if subtimer <> TimerIDs.Default then return 0
+  subtimer = new_subtimer
+  times(subtimer) -= timer
+  'num_timer_calls += 1
+  return subtimer
+end function
+
+'Pass in the ID of the subtimer to end, so can ignore nested subtimers
+sub MultiTimer.substop(cur_subtimer as TimerIDs)
+  if cur_subtimer <> subtimer then exit sub
+  if subtimer = TimerIDs.Default then exit sub
+  times(subtimer) += timer
+  'num_timer_calls += 1
+  subtimer = TimerIDs.Default
+end sub
+
+'Override the current subtimer temporarily.
+'Returns previous subtimer ID, which must be passed to nested_stop
+function MultiTimer.nested_start(new_subtimer as TimerIDs) as TimerIDs
+  dim time as double = timer
+  'num_timer_calls += 1
+  if subtimer <> TimerIDs.Default then times(subtimer) += time
+  function = subtimer
+  subtimer = new_subtimer
+  times(subtimer) -= time
+end function
+
+sub MultiTimer.nested_stop(prev_subtimer as TimerIDs)
+  dim time as double = timer
+  'num_timer_calls += 1
+  times(subtimer) += time
+  subtimer = prev_subtimer
+  if subtimer = TimerIDs.Default then exit sub
+  times(subtimer) -= time
+end sub
+
+
+'----------------------------------------------------------------------
 '                       other misc functions
 
 ' Argument is a timeserial
