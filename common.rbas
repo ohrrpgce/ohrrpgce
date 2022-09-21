@@ -5944,7 +5944,7 @@ SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context a
  'But 'context' is always the innermost
  DIM full_msg as string = *msg
  IF context THEN
-  full_msg = *context & ": "
+  full_msg = *context & ": " & full_msg
  END IF
  IF LEN(context_string) THEN
   full_msg = context_string & ": " & full_msg
