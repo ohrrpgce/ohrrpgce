@@ -1322,12 +1322,19 @@ END SUB
 
 SUB set_speedcontrol (byval millisec_per_frame as integer)
  ' See also set_animation_framerate
- speedcontrol = bound(millisec_per_frame, 16, 200)
+ speedcontrol = bound(millisec_per_frame, 5, 200)
  IF gfx_vsync_supported() = NO THEN
-  ' 16ms and 33ms are special-cased to be exactly 60/30fps rather than 62.5/30.3
+  ' Special cases to hit exact values like 60fps rather than 62.5.
+  ' Targetting slightly above 60fps can cause gfx_present to start doing a lot of
+  ' waiting for vsync (e.g. gfx_sdl2 under X11 with compositing)
+  ' Note that setvispage performs frameskipping above 60.
   ' Disabled under gfx_directx, where have to try to run slightly faster than 60/30
   ' so that vsync can add a wait.
-  IF speedcontrol = 16 THEN  '60 FPS
+  IF speedcontrol = 8 THEN  '120 FPS
+   speedcontrol = 8.333
+  ELSEIF speedcontrol = 11 THEN  '90 FPS
+   speedcontrol = 11.111
+  ELSEIF speedcontrol = 16 THEN  '60 FPS
    speedcontrol = 16.666
   ELSEIF speedcontrol = 33 THEN  '30 FPS
    speedcontrol = 33.333

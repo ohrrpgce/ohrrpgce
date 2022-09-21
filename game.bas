@@ -4670,16 +4670,15 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  END IF
 
  IF gam.debug_showtags = 0 OR dbg.menu <> NULL THEN  'Always accessible in debug menu
+  DIM setspeed as integer
   IF dbg.def(scCtrl, scPlus) OR _
-     dbg.def(scCtrl, scNumpadPlus, "Increase tick rate (Ctrl +)") THEN
-   speedcontrol = large(speedcontrol - 1, 10.)
-   gam.showtext = speedcontrol & "ms/frame"
-   gam.showtext_ticks = 60
-  END IF
+     dbg.def(scCtrl, scNumpadPlus, "Increase tick rate (Ctrl +)") THEN setspeed = -1
   IF dbg.def(scCtrl, scMinus) OR _
-     dbg.def(scCtrl, scNumpadMinus, "Decrease tick rate (Ctrl -)") THEN
-   speedcontrol = small(speedcontrol + 1, 160.)
-   gam.showtext = speedcontrol & "ms/frame"
+     dbg.def(scCtrl, scNumpadMinus, "Decrease tick rate (Ctrl -)") THEN setspeed = 1
+  IF setspeed THEN
+   setspeed = bound(INT(speedcontrol) + setspeed, 5, 200)
+   set_speedcontrol setspeed
+   gam.showtext = setspeed & "ms/frame"
    gam.showtext_ticks = 60
   END IF
  END IF

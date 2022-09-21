@@ -4821,7 +4821,7 @@ SUB script_functions(byval cmdid as integer)
   'r, g, b don't have to be in the range 0-255.
   scriptret = nearcolor(master(), retvals(0), retvals(1), retvals(2), retvals(3))
  CASE 683 '--override tick milliseconds(ms)
-  IF bound_arg(retvals(0), 16, 200, "milliseconds (must be in the range 16 to 200)") THEN
+  IF bound_arg(retvals(0), 5, 200, "milliseconds") THEN
    set_speedcontrol retvals(0)
    set_animation_framerate retvals(0)
   END IF

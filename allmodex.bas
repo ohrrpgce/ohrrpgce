@@ -1682,7 +1682,7 @@ function dowait () as bool
 	do while timer <= waittime - 0.0005
 		var prev_subtimer = main_timer.switch(TimerIDs.IOBackend)
 		io_waitprocessing()
-		Steam.run_frame
+		Steam.run_frame  'FIXME: what if we're overtime?
 		main_timer.switch(TimerIDs.Pause)
 		sleep bound((waittime - timer) * 1000, 1, 5)
 		main_timer.switch(prev_subtimer)  'resume
@@ -11360,8 +11360,8 @@ anim_op_fullnames(animOpSetOffset) = "Move to offset (unimp)"
 anim_op_fullnames(animOpRelOffset) = "Add to offset (unimp)"
 
 sub set_animation_framerate(ms as integer)
-	' We bound to 16-200 because set_speedcontrol does the same thing
-	ms_per_frame = bound(ms, 16, 200)
+	' We bound to 5-200 because set_speedcontrol does the same thing
+	ms_per_frame = bound(ms, 5, 200)
 end sub
 
 function ms_to_frames(ms as integer) as integer

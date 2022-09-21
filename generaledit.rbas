@@ -2122,7 +2122,13 @@ SUB GeneralSettingsMenu.define_items()
   ELSEIF refresh THEN
     DIM fps as string
     '16ms and 33ms are special-cased to be exactly 60/30fps
-    IF gen(genMillisecPerFrame) = 16 THEN
+    'In this menu you can't select a value less than 16ms, because it interferes
+    'badly with gfx_present, but you can in-game with set_speedcontrol.
+    IF gen(genMillisecPerFrame) = 8 THEN
+      fps = "120"
+    ELSEIF gen(genMillisecPerFrame) = 11 THEN
+      fps = "90"
+    ELSEIF gen(genMillisecPerFrame) = 16 THEN
       fps = "60"
     ELSEIF gen(genMillisecPerFrame) = 33 THEN
       fps = "30"
