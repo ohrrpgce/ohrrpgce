@@ -100,7 +100,9 @@ NOTE: When an attack is used outside of battle, most target classes are treated 
   attack can only target the same
   targets as whatever attack was most
   recently used by the attacker
-  (only one target, unless it was a
+  (only the actual targets for that
+  attack, not the possible ones - so
+  only one target unless it was a
   spread attack).
 
 * Recorded (stored) targets -
@@ -185,16 +187,22 @@ Target Setting: This controls how the attack can be targetted if more than one v
   attacker will have the choice of
   whether they want to choose a
   single target or all available
-  targets.
+  targets. If the attack is chained
+  to from another attack then the
+  attack doesn't get a choice.
+  Instead it hits all targets 33% of
+  the time, otherwise a random one.
 
 * Random Roulette - Like "Focus" this
   chooses only a single target, but
-  the player will not be allowed to
-  choose which target. The targetting   cursor will rapidly change.
+  the player will not be able to
+  choose which target because the
+  targetting cursor will rapidly
+  change until they press Confirm.
   If used by an enemy, this is not
   any different from "Focus", and if
-  used as part of a chain, this will
-  simply pick a random target.
+  chained to from another attack, it
+  will simply pick a random target.
 
 * First Target - This always targets
   the first valid target in the
@@ -245,3 +253,5 @@ Weak/Strong Stat: This only applies if you have chosen "weakest" "strongest" "we
 
 
 Note that if the attack is used as part of a chain, and both the target class and the target setting are the same as the previous attack, and the preferred target is "Default" then the attack will use the exact same target as the previous attack.
+
+If you have a Spread attack A and a Focused attack B which both chain to attack C, and you want C to hit the same targets as the previous attack then set its Target Class to Previous Target(s) and Target Setting to Spread.
