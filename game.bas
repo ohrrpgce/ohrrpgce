@@ -1191,8 +1191,8 @@ SUB displayall()
  IF gam.debug_timings THEN
   add_timing "Update slices", starttime
   starttime = TIMER
-  gfx_slice_timer.begin
-  gfx_op_timer.begin
+  gfx_slice_timer.begin_timestep
+  gfx_op_timer.begin_timestep
  END IF
 
  clearpage dpage
@@ -1202,8 +1202,8 @@ SUB displayall()
 
  IF gam.debug_timings THEN
   add_timing "Draw " & NumDrawnSlices & " slices", starttime
-  gfx_slice_timer.finish 500 / speedcontrol  '1/2 sec halflife
-  gfx_op_timer.finish 500 / speedcontrol
+  gfx_slice_timer.finish_timestep 500 / speedcontrol  '1/2 sec halflife
+  gfx_op_timer.finish_timestep 500 / speedcontrol
   add_timing "    (Total slices: " & count_slices(SliceTable.root) & ")"
   add_gfx_timings
   starttime = TIMER

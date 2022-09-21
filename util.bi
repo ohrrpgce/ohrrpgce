@@ -943,46 +943,52 @@ type ExpSmoothedTimer
   cur_time as double         'Current time step
   smooth_time as double      'Smoothed time value
 
-  declare sub begin()
-  declare function finish(halflife as double) as double
+  declare sub begin_timestep()
+  declare function finish_timestep(halflife as double) as double
   declare sub start()
   declare sub stop()
+  declare operator +=(rhs as ExpSmoothedTimer)
 end type
 
 enum TimerIDs explicit
-  None = -1
-  Default = 0
+  None = -2
+  Total = -1        'Can't be passed to substart/substop/switch
+  Default = 0       'Time not assigned to any subtimer
+  Pause = 1         'Special subtimer subtracted from Total
+  FIRST = 2         'First normal subtimer
 
   'For gfx_slice_timer
-  Map = 1
-  Text = 2
+  Map = 2
+  Text = 3
 
   'For gfx_op_timer
-  Dissolve = 1
-  Rotozoom = 2
-  Blend = 3
+  Dissolve = 2
+  Rotozoom = 3
+  Blend = 4
 
   'Max value of any valid timer ID
-  LAST = 3
+  LAST = 4
 end enum
 
-'Time sections of code, attributing time to a certain subtimer or to the default one.
+'Time sections of code, attributing time to a certain subtimer or to the default one,
+'performing smoothing between timesteps.
 'You can make nested calls to substart/substop, provided that they have different TimerIDs,
 'but only the first takes effect, the rest are ignored: it's assumed the first call is the
 'most specific (e.g. a sprite dissolve might do a blended draw).
-'Alternatively, nested_start/stop do temporarily override the current subtimer.
+'Alternatively, use switch() to override the current subtimer or perform nesting.
+'Use TimerIDs.Pause to pause the timestep.
 type MultiTimer
-  enabled as bool
-  subtimer as TimerIDs = 0  '-1 if disabled, 0 if default
-  timers(TimerIDs.LAST) as ExpSmoothedTimer
+  enabled as bool                      'True if and only if subtimer <> None (true when Paused)
+  subtimer as TimerIDs = TimerIDs.None 'Never equal to Total.
+  timers(-1 to TimerIDs.LAST) as ExpSmoothedTimer
   'num_timer_calls as integer
 
-  declare sub begin()
-  declare sub finish(halflife as double)
+  declare sub begin_timestep()
+  declare sub finish_timestep(halflife as double)
   declare function substart(new_subtimer as TimerIDs) as TimerIDs
   declare sub substop(cur_subtimer as TimerIDs)
-  declare function nested_start(new_subtimer as TimerIDs) as TimerIDs
-  declare sub nested_stop(prev_subtimer as TimerIDs)
+  declare function switch(new_subtimer as TimerIDs) as TimerIDs
+  declare sub add_time(to_subtimer as TimerIDs, amount as double)
 end type
 
 

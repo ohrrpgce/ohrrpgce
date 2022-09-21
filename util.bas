@@ -4659,20 +4659,20 @@ end sub
 
 '----------------------------------------------------------------------
 
-
-'Begin a time step
-sub ExpSmoothedTimer.begin()
-  cur_time = 0.
+'Begin a new time step and start()
+sub ExpSmoothedTimer.begin_timestep()
+  cur_time = -timer
 end sub
 
-'Finish a time step, update smooth_time with decay
-function ExpSmoothedTimer.finish(halflife as double) as double
+'Stop if not already, and finish a time step by updating smooth_time with decay
+function ExpSmoothedTimer.finish_timestep(halflife as double) as double
+  if cur_time < 0 then cur_time += timer  '.stop()
   dim decay as double = exp2(-1 / halflife)
   smooth_time = decay * smooth_time + (1 - decay) * cur_time
   return smooth_time
 end function
 
-'Start adding time to this timer
+'Resume adding time to this timer
 sub ExpSmoothedTimer.start()
   cur_time -= timer
 end sub
@@ -4682,45 +4682,61 @@ sub ExpSmoothedTimer.stop()
   cur_time += timer
 end sub
 
+operator ExpSmoothedTimer.+=(rhs as ExpSmoothedTimer)
+  this.cur_time += rhs.cur_time
+  this.smooth_time += rhs.smooth_time
+end operator
+
+
 '----------------------------------------------------------------------
 
-'Reset state
-sub MultiTimer.begin()
-  for idx as integer = 0 to ubound(timers)
-    timers(idx).begin()
+'Reset state and start the Default timer
+sub MultiTimer.begin_timestep()
+  for idx as integer = lbound(timers) to ubound(timers)
+    timers(idx).cur_time = 0.
   next
-  timers(TimerIDs.Default).start()
+  timers(TimerIDs.Total).start()
   'num_timer_calls = 1
   subtimer = TimerIDs.Default
   enabled = YES
 end sub
 
-'Stop all timers
-sub MultiTimer.finish(halflife as double)
+'Stop all timers and apply smoothing
+sub MultiTimer.finish_timestep(halflife as double)
+  if enabled = NO then exit sub
   if subtimer > 0 then timers(subtimer).stop()  'Shouldn't happen
-  timers(TimerIDs.Default).stop()
+  timers(TimerIDs.Total).stop()
   'num_timer_calls += 1
-  'For efficiency we don't stop/start Default timer all the time
-  for idx as integer = 1 to ubound(timers)
+
+  'Calculate Total & Default.
+  'For efficiency we don't stop/start Default timer all the time.
+  timers(TimerIDs.Total).cur_time -= timers(TimerIDs.Pause).cur_time
+  timers(TimerIDs.Default).cur_time = timers(TimerIDs.Total).cur_time
+  for idx as integer = TimerIDs.FIRST to ubound(timers)
     timers(TimerIDs.Default).cur_time -= timers(idx).cur_time
   next
-  for idx as integer = 0 to ubound(timers)
-    timers(idx).finish(halflife)
+
+  for idx as integer = lbound(timers) to ubound(timers)
+    timers(idx).finish_timestep(halflife)
   next
   enabled = NO
   subtimer = TimerIDs.None
 end sub
 
-'If a timer (not the default) is already running, returns 0
+'If enabled=NO or a subtimer (not Default) is already running, does nothing and
+'returns 0 (Default).
+'Can use substart(TimerIDs.Pause) to pause.
+'The return value can optionally be used to more efficiently skip the matching substop().
 function MultiTimer.substart(new_subtimer as TimerIDs) as TimerIDs
-  if subtimer <> TimerIDs.Default then return 0
+  if subtimer <> TimerIDs.Default then return TimerIDs.Default
   subtimer = new_subtimer
   timers(subtimer).cur_time -= timer  '.start()
   'num_timer_calls += 1
   return subtimer
 end function
 
-'Pass in the ID of the subtimer to end, so can ignore nested subtimers
+'Pass in the ID of the subtimer to end, so can ignore nested substart/substop pairs; does nothing
+'when passed 0 (Default) or subtimer other than the active one.
 sub MultiTimer.substop(cur_subtimer as TimerIDs)
   if cur_subtimer <> subtimer then exit sub
   if subtimer = TimerIDs.Default then exit sub
@@ -4729,24 +4745,23 @@ sub MultiTimer.substop(cur_subtimer as TimerIDs)
   subtimer = TimerIDs.Default
 end sub
 
-'Override the current subtimer temporarily.
-'Returns previous subtimer ID, which must be passed to nested_stop
-function MultiTimer.nested_start(new_subtimer as TimerIDs) as TimerIDs
+'Override the current subtimer, including switching to Default or Pause.
+'Returns previous subtimer ID, which can be passed back to switch to resume it:
+'you must do so to use this for nesting subtimers.
+'Returns TimerIDs.None if not running.
+function MultiTimer.switch(new_subtimer as TimerIDs) as TimerIDs
+  if subtimer = TimerIDs.None or new_subtimer = TimerIDs.None then return TimerIDs.None
   dim time as double = timer
   'num_timer_calls += 1
   if subtimer <> TimerIDs.Default then timers(subtimer).cur_time += time  '.stop()
   function = subtimer
   subtimer = new_subtimer
-  timers(subtimer).cur_time -= time  '.start()
+  if subtimer <> TimerIDs.Default then timers(subtimer).cur_time -= time  '.start()
 end function
 
-sub MultiTimer.nested_stop(prev_subtimer as TimerIDs)
-  dim time as double = timer
-  'num_timer_calls += 1
-  timers(subtimer).cur_time += time  '.stop()
-  subtimer = prev_subtimer
-  if subtimer = TimerIDs.Default then exit sub
-  timers(subtimer).cur_time -= time  '.start()
+sub MultiTimer.add_time(to_subtimer as TimerIDs, amount as double)
+  timers(TimerIDs.Total).cur_time += amount
+  timers(to_subtimer).cur_time += amount
 end sub
 
 
