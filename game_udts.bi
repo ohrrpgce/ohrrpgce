@@ -184,14 +184,16 @@ END TYPE
 'State for the CPU usage debug mode
 'Also used are main_timer, gfx_slice_timer, gfx_op_timer which are globals
 'because they're accessed in code shared with Custom.
-TYPE CPUUsageMenu
+TYPE CPUUsageMode
   halflife as double                 'Halflife for smoothing, measured in ticks. Computed as 1/2 sec
+  is_update_tick as bool             'True 5 times a second, on ticks on which to update display values
   menu(any) as TimingInfo
 
   DECLARE SUB update()
   DECLARE SUB display(page as integer)
+  DECLARE SUB disable()
 
-  DECLARE SUB addline OVERLOAD(name as string, smooth_time as double = 0., frame_time as double = -1., skip_zero as bool = NO)
+  DECLARE SUB addline OVERLOAD(name as string, smooth_time as double = 0., frame_time as double = -1., display_time as double = 0., skip_zero as bool = NO)
   DECLARE SUB addline OVERLOAD(name as string, id as TimerIDs, skip_zero as bool = NO)
   DECLARE SUB addline OVERLOAD(name as string, exptimer as ExpSmoothedTimer, skip_zero as bool = NO)
 END TYPE
@@ -224,8 +226,8 @@ TYPE GameState
   'The following are mutually exclusive
   debug_scripts as integer           '0: off, 1: show running scripts, 2: pause and enter debugger
   debug_showtags as integer          '0: off, 1: small display, 2: full-length display
-  debug_timings as bool              'Show CPU usage mode
-  cpu_usage as CPUUsageMenu
+  debug_timings as integer           '0: off, 1: CPU usage mode (CPU%), 2: CPU usage mode (ms/frame)
+  cpu_usage_mode as CPUUsageMode
 
   paused as bool                     'Pause the game (only in map mode; this is a debug key)
   autorungame as bool                'Game was autorun, not selected from RPG browser

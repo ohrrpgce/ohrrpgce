@@ -223,9 +223,9 @@ dim shared setwait_called as bool
 dim shared tickcount as integer = 0
 dim use_speed_control as bool = YES
 dim shared ms_per_frame as integer = 55     'This is only used by the animation system, not the framerate control
-dim shared requested_framerate as double    'Set by last setwait
+dim requested_framerate as double           'Set by last setwait, takes into account the fps_multiplier
 dim shared base_fps_multiplier as double = 1.0 'Doesn't include effect of shift+tab
-dim shared fps_multiplier as double = 1.0   'Effect speed multiplier, affects all setwait/dowaits
+dim shared fps_multiplier as double = 1.0   'Effective speed multiplier, affects all setwait/dowaits
 dim max_display_fps as integer = 60         'Skip frames if drawing more than this.
 dim shared frame_index as integer           'Count number of setvispage calls
 dim shared skipped_frame as SkippedFrame    'Records the last setvispage call if it was frameskipped.
@@ -1643,6 +1643,7 @@ sub setwait (ms as double, flagms as double = 0)
 	requested_framerate = 1000. / ms
 	dim thetime as double = timer
 	dim target as double
+	'This clamping also is needed on the first tick to initialize waittime
 	target = bound(waittime + ms / 1000, thetime + 0.5 * ms / 1000, thetime + 1.5 * ms / 1000)
 	/'
 	if thetime > waittime + 0.001 then
@@ -9623,7 +9624,7 @@ function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame 
 
 	dim ret as Frame ptr
 	dim sprset as SpriteSet ptr
-	dim starttime as double = timer
+	var prev_subtimer = main_timer.switch(TimerIDs.FileIO)
 
 	if sprtype = sprTypeTileset or sprtype = sprTypeTilesetStrip then
 		dim mxs as Frame ptr
@@ -9664,7 +9665,7 @@ function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame 
 		end if
 	end if
 
-	debug_if_slow(starttime, 0.1, sprtype & "," & record)
+	main_timer.switch(prev_subtimer)
 	return ret
 end function
 

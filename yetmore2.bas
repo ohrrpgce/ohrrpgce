@@ -1007,9 +1007,11 @@ END SUB
 
 '==============================================================================
 
-'smooth_time: the main time value, shown as a bar. Preferrably smoothed over multiple frames
-'frame_time: optional; if available, the actual time for this frame
-SUB CPUUsageMenu.addline(name as string, smooth_time as double = 0., frame_time as double = -1., skip_zero as bool = NO)
+' Add a line (possibly with no time/bar) to the "menu"
+' smooth_time: the main time value, shown as a bar. Preferrably smoothed over multiple frames
+' frame_time: optional; if available, the actual time for this frame
+' skip_zero: remove (eventually) if the time is zero
+SUB CPUUsageMode.addline(name as string, smooth_time as double = 0., frame_time as double = -1., display_time as double = 0., skip_zero as bool = NO)
  IF skip_zero ANDALSO smooth_time = 0.0 THEN EXIT SUB
  DIM idx as integer = UBOUND(this.menu) + 1
  REDIM PRESERVE this.menu(0 TO idx)
@@ -1017,37 +1019,39 @@ SUB CPUUsageMenu.addline(name as string, smooth_time as double = 0., frame_time 
   .name = name
   .smooth_time = smooth_time
   .frame_time = IIF(frame_time = -1, smooth_time, frame_time)
-  .display_time = .smooth_time
+  .display_time = display_time
  END WITH
 END SUB
 
-SUB CPUUsageMenu.addline(name as string, exptimer as ExpSmoothedTimer, skip_zero as bool = NO)
+SUB CPUUsageMode.addline(name as string, exptimer as ExpSmoothedTimer, skip_zero as bool = NO)
  IF skip_zero THEN
-  IF exptimer.cur_time = 0.0 ANDALSO exptimer.smooth_time < 0.0001e-3 THEN EXIT SUB
+  IF exptimer.cur_time = 0.0 ANDALSO exptimer.smooth_time < 0.05e-3 THEN
+   exptimer.hide_delay -= 1
+   IF exptimer.hide_delay < 0 THEN exptimer.hide = YES : EXIT SUB
+  ELSE
+   exptimer.hide = NO
+   exptimer.hide_delay = 2 * requested_framerate  'two sec
+  END IF
  END IF
- addline name, exptimer.smooth_time, exptimer.cur_time
+ addline name, exptimer.smooth_time, exptimer.cur_time, exptimer.display_time
 END SUB
 
-SUB CPUUsageMenu.addline(name as string, id as TimerIDs, skip_zero as bool = NO)
+SUB CPUUsageMode.addline(name as string, id as TimerIDs, skip_zero as bool = NO)
  addline name, main_timer.timers(id), skip_zero
 END SUB
 
-/'
-SUB CPUUsageMenu.addline(name as string, id as TimerIDs, starttime as double = 0.0)
- DIM ttime as double = 0.
- IF starttime THEN ttime = TIMER - starttime
- addline name, ttime
-END SUB
-'/
-
-SUB CPUUsageMenu.update()
+SUB CPUUsageMode.update()
  'We have to stop main_timer in order to read times & update smoothing, so time steps
  'start/end here instead of dowait. Time spent sleeping in dowait is counted towards
  'TimerIDs.Paused; as a benefit time spent in backend processing in dowait is counted.
  'We still specially count the time spent in this sub towards DrawDebug.
  DIM update_time as double = -TIMER
- this.halflife = 333 / speedcontrol  '1/3 of a second
- main_timer.finish_timestep this.halflife
+ this.halflife = requested_framerate / 3  '1/3 of a second
+ main_timer.finish_timestep this.halflife, this.is_update_tick
+
+ STATIC last_update_tick as double
+ this.is_update_tick = (last_update_tick + 0.1 < TIMER)  '10 times a second
+ IF this.is_update_tick THEN last_update_tick = TIMER
 
  ERASE this.menu
 
@@ -1056,8 +1060,7 @@ SUB CPUUsageMenu.update()
  addline "Input & backend processing", TimerIDs.IOBackend, YES
  addline "File IO/loading data", TimerIDs.FileIO, YES
 
- addline "Updating slices", TimerIDs.UpdateSlices
- addline "  (" & count_slices(SliceTable.root) & " slices in tree)"
+ addline "Update slices (" & count_slices(SliceTable.root) & " total)", TimerIDs.UpdateSlices
 
  DIM draw_total as ExpSmoothedTimer
  draw_total += main_timer.timers(TimerIDs.DrawSlices)
@@ -1071,10 +1074,10 @@ SUB CPUUsageMenu.update()
   addline "  By slice type:"
   addline "  -Map layers", .timers(TimerIDs.Map), YES
   addline "  -Text", .timers(TimerIDs.Text), YES
-  addline "  -Other slices", .timers(TimerIDs.Default)
+  addline "  -Other", .timers(TimerIDs.Default)
  END WITH
  WITH gfx_op_timer
-  addline "  By draw operation:"
+  addline "  By draw type:"
   addline "  -Dissolving", .timers(TimerIDs.Dissolve), YES
   addline "  -Rotate/zoom/flip", .timers(TimerIDs.Rotozoom), YES
   addline "  -Blended/transparent", .timers(TimerIDs.Blend), YES
@@ -1084,36 +1087,77 @@ SUB CPUUsageMenu.update()
  addline " Draw other (eg menus)", TimerIDs.DrawOther
  addline " Draw debug displays", TimerIDs.DrawDebug, YES
 
- addline "Update/zoom/filter screen", TimerIDs.UpdateScreen
+ addline "Update screen", TimerIDs.UpdateScreen
 
  addline "Total", TimerIDs.Total
- addline "Unused CPU", TimerIDs.Pause
+
+ /'
+ DIM theoretical_fps as integer = 1. / main_timer.timers(TimerIDs.Total).display_time
+ addline " (Equivalent FPS " & theoretical_fps & ")"
+
+ ' Show 100% - Total as Unused CPU or Excess CPU
+ VAR extratime = main_timer.timers(TimerIDs.Total)
+ DIM targettime as double = 1. / requested_framerate
+ extratime.display_time = targettime - extratime.display_time
+ extratime.smooth_time = targettime - extratime.smooth_time
+ extratime.cur_time = targettime - extratime.cur_time
+ addline IIF(extratime.display_time < 0, "Excess", "Unused") & " CPU", extratime
+
+ ' Time spent sleeping in dowait. this is ususally almost equal to Unused CPU
+ addline "Sleep (spare time)", TimerIDs.Pause
+ '/
 
  update_time += TIMER
  main_timer.begin_timestep
  main_timer.add_time TimerIDs.DrawDebug, update_time
 END SUB
 
-'Draw timing debug mode
-SUB CPUUsageMenu.display(page as integer)
+' Draw timing overlay
+SUB CPUUsageMode.display(page as integer)
+
  this.update()
+
  main_timer.switch TimerIDs.DrawDebug
 
+ CONST lineheight = 12
  DIM red as integer = findrgb(255,0,0)
+ DIM blue as integer = findrgb(50,50,255)
  DIM yellow as integer = findrgb(255,255,80)
- DIM sec_to_px as double = vpages(page)->w / (1e-3 * speedcontrol)
+
+ edgeprint "F1 help", pRight, pTop, uilook(uiMenuItem), page
+
+ DIM targettime as double = 1. / requested_framerate
+ DIM sec_to_px as double = vpages(page)->w / targettime
  FOR idx as integer = 0 TO UBOUND(this.menu)
   WITH this.menu(idx)
    DIM text as string = .name
-   IF .smooth_time > 0. THEN
-    '.smooth_time = 0 indicates a note
-    edgebox 0, idx * 13, .smooth_time * sec_to_px, 6, red, uilook(uiBackground), page
-    rectangle .frame_time * sec_to_px, idx * 13, 1, 6, yellow, page
-    text = rpad(text, "." , 26) & " " & strprintf("%4.1f", .display_time * 1e3) & "ms"
+   IF .display_time <> 0. THEN
+    ' .display_time = 0 indicates a note
+    DIM col as integer = IIF(.smooth_time < 0, red, blue)
+    ' Draw a bar, with 100% of targettime shown as the full screen width
+    edgebox 0, idx * lineheight, ABS(.smooth_time) * sec_to_px, 6, col, uilook(uiBackground), page
+    ' If above 100%, wrap around to of screen, overlaying a red bar
+    IF .smooth_time > targettime THEN
+     edgebox 0, idx * lineheight, (.smooth_time - targettime) * sec_to_px, 6, red, uilook(uiBackground), page
+    END IF
+    rectangle (.frame_time * sec_to_px) MOD vpages(page)->w, idx * lineheight, 1, 6, yellow, page
+    text = rpad(text, "." , 27)
+    IF gam.debug_timings = 1 THEN
+     text &= strprintf("%5.1f", 100 * .display_time / targettime) & "%"
+    ELSE
+     text &= strprintf("%4.1f", .display_time * 1e3) & "ms"
+    END IF
    END IF
-   edgeprint text, 0, idx * 13 + 2, uilook(uiText), page
+   edgeprint text, 0, idx * lineheight + 2, uilook(uiText), page
   END WITH
  NEXT
+END SUB
+
+' Called to stop timing
+SUB CPUUsageMode.disable()
+ ' If main_timer.enabled this stops it, otherwise does nothing
+ main_timer.finish_timestep this.halflife, NO
+ gam.debug_timings = 0
 END SUB
 
 '==============================================================================
@@ -2088,7 +2132,7 @@ SUB LPM_update (menu1 as MenuDef, st1 as MenuState, tooltips() as string)
 
   IF running_under_Custom THEN 'Not useful otherwise
    LPM_append_force_reload_item menu1, tooltips(), "scripts", .hsp, 110
-   tooltips(UBOUND(tooltips)) += " (Read Help file!)"
+   tooltips(UBOUND(tooltips)) += " (See F1 Help!)"
   END IF
 
   init_menu_state st1, menu1

@@ -165,6 +165,8 @@ END SUB
 'Load a range of global variables from a save slot
 'Reads zeroes, without an error, on empty save slots
 SUB loadglobalvars (byval slot as integer, byval first as integer, byval last as integer)
+ VAR prev_subtimer = main_timer.switch(TimerIDs.FileIO)
+
  FOR i as integer = first TO last
   global(i) = 0
  NEXT i
@@ -177,6 +179,8 @@ SUB loadglobalvars (byval slot as integer, byval first as integer, byval last as
  ELSE
   old_loadglobalvars slot, first, last
  END IF
+
+ main_timer.switch(prev_subtimer)
 END SUB
 
 SUB get_save_slot_preview(byval slot as integer, pv as SaveSlotPreview)
@@ -213,6 +217,8 @@ SUB savegame (byval slot as integer, prefix as string="")
 
  BUG_IF(prefix <> trimpath(prefix), "Not allowed to include path in save prefix!")
 
+ VAR prev_subtimer = main_timer.switch(TimerIDs.FileIO)
+
  DIM slot_count as integer = gen(genSaveSlotCount)
  IF slot_count = 0 THEN slot_count = 4
  IF prefix = "" ANDALSO slot >= 0 ANDALSO slot <= maxSaveSlotCount - 1 ANDALSO slot <= slot_count - 1 THEN
@@ -242,6 +248,7 @@ SUB savegame (byval slot as integer, prefix as string="")
  FreeDocument doc
  current_save_slot = -1
  current_save_prefix = ""
+ main_timer.switch(prev_subtimer)
 END SUB
 
 'Returns an error message on failure
@@ -1299,6 +1306,8 @@ END SUB
 '-----------------------------------------------------------------------
 
 SUB saveglobalvars (byval slot as integer, byval first as integer, byval last as integer)
+ VAR prev_subtimer = main_timer.switch(TimerIDs.FileIO)
+
  current_save_slot = slot
  
  DIM filename as string
@@ -1337,6 +1346,8 @@ SUB saveglobalvars (byval slot as integer, byval first as integer, byval last as
  
  FreeDocument doc
  current_save_slot = -1
+
+ main_timer.switch(prev_subtimer)
 END SUB
 
 'Load a range of global variables from a save slot

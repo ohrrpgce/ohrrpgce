@@ -4665,10 +4665,11 @@ sub ExpSmoothedTimer.begin_timestep()
 end sub
 
 'Stop if not already, and finish a time step by updating smooth_time with decay
-function ExpSmoothedTimer.finish_timestep(halflife as double) as double
-  if cur_time < 0 then cur_time += timer  '.stop()
+function ExpSmoothedTimer.finish_timestep(halflife as double, update_display as bool = YES) as double
+  'if cur_time < 0 then cur_time += timer  '.stop(). Breaks timers using negative add_time
   dim decay as double = exp2(-1 / halflife)
   smooth_time = decay * smooth_time + (1 - decay) * cur_time
+  if update_display then display_time = smooth_time
   return smooth_time
 end function
 
@@ -4685,6 +4686,7 @@ end sub
 operator ExpSmoothedTimer.+=(rhs as ExpSmoothedTimer)
   this.cur_time += rhs.cur_time
   this.smooth_time += rhs.smooth_time
+  this.display_time += rhs.display_time
 end operator
 
 
@@ -4702,9 +4704,9 @@ sub MultiTimer.begin_timestep()
 end sub
 
 'Stop all timers and apply smoothing
-sub MultiTimer.finish_timestep(halflife as double)
+sub MultiTimer.finish_timestep(halflife as double, update_display as bool = YES)
   if enabled = NO then exit sub
-  if subtimer > 0 then timers(subtimer).stop()  'Shouldn't happen
+  if subtimer > TimerIDs.Default then timers(subtimer).stop()  'Shouldn't happen
   timers(TimerIDs.Total).stop()
   'num_timer_calls += 1
 
@@ -4717,7 +4719,7 @@ sub MultiTimer.finish_timestep(halflife as double)
   next
 
   for idx as integer = lbound(timers) to ubound(timers)
-    timers(idx).finish_timestep(halflife)
+    timers(idx).finish_timestep(halflife, update_display)
   next
   enabled = NO
   subtimer = TimerIDs.None

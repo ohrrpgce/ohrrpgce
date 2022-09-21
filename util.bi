@@ -942,9 +942,13 @@ end type
 type ExpSmoothedTimer
   cur_time as double         'Current time step
   smooth_time as double      'Smoothed time value
+  display_time as double     'Set equal to smooth_delay only when update_display=YES
+  'The following are used internally by CPUUsageMode
+  hide_delay as integer      'Number of ticks before recomputing .hide
+  hide as bool               'Don't display, because it's zero
 
   declare sub begin_timestep()
-  declare function finish_timestep(halflife as double) as double
+  declare function finish_timestep(halflife as double, update_display as bool = YES) as double
   declare sub start()
   declare sub stop()
   declare operator +=(rhs as ExpSmoothedTimer)
@@ -995,7 +999,7 @@ type MultiTimer
   'num_timer_calls as integer
 
   declare sub begin_timestep()
-  declare sub finish_timestep(halflife as double)
+  declare sub finish_timestep(halflife as double, update_display as bool = YES)
   declare function substart(new_subtimer as TimerIDs) as TimerIDs
   declare sub substop(cur_subtimer as TimerIDs)
   declare function switch(new_subtimer as TimerIDs) as TimerIDs

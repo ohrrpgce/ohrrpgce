@@ -4790,9 +4790,14 @@ End function
 'Returns true on (apparent) success; when returning false may be partially
 'loaded, such as when there's an unknown slice type.
 Function SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handles as bool=NO, collection_id as integer=-1) as bool
+ var prev_subtimer = main_timer.switch(TimerIDs.FileIO)
+
  dim doc as Reload.DocPtr
  doc = Reload.LoadDocument(filename, optNoDelay)
- if doc = null then return NO  'Already showed an error
+ if doc = null then
+  main_timer.switch(prev_subtimer)
+  return NO  'Already showed an error
+ end if
 
  'Always give the root slice a context. The context is used to hold the name of
  'the slice collection, if there is one, and other shared data in future
@@ -4807,6 +4812,8 @@ Function SliceLoadFromFile(byval sl as Slice Ptr, filename as string, load_handl
  dim ret as bool = SliceLoadFromNode(sl, node, load_handles)
 
  Reload.FreeDocument(doc)
+
+ main_timer.switch(prev_subtimer)
  return ret
 End function
 

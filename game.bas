@@ -680,7 +680,7 @@ load_non_elemental_elements gam.non_elemental_elements()
 '--Reset some stuff related to debug keys
 gam.showtext_ticks = 0
 gam.debug_showtags = 0
-gam.debug_timings = NO
+gam.cpu_usage_mode.disable  'Reset gam.debug_timings
 gam.debug_npc_info = 0
 gam.debug_textbox_info = NO
 gam.debug_scripts = 0
@@ -963,8 +963,6 @@ DO
   END IF
  END IF
 
- 'IF gam.debug_timings THEN add_timing "Gameplay logic (NPCs...)", TimerIDs.Gameplay
-
  'Draw screen
  displayall()
 
@@ -988,14 +986,9 @@ DO
 
  'DEBUG debug "swap video pages"
  
- ' TIME_START(UpdateScreen)
- ' swap_or_fade_page vpage, dpage
- ' TIME_STOP(UpdateScreen)
-
  main_timer.substart(TimerIDs.UpdateScreen)
  swap_or_fade_page vpage, dpage
  main_timer.substop(TimerIDs.UpdateScreen)
- 'IF gam.debug_timings THEN add_timing "Update screen", starttime
 
  IF gam.paused = NO THEN
   'DEBUG debug "fade in"
@@ -1206,11 +1199,13 @@ SUB displayall()
  clearpage dpage
 
  NumDrawnSlices = 0
- DrawSlice(SliceTable.Root, dpage)
+ DrawSlice SliceTable.Root, dpage
 
  IF gam.debug_timings THEN
-  gfx_slice_timer.finish_timestep gam.cpu_usage.halflife
-  gfx_op_timer.finish_timestep gam.cpu_usage.halflife
+  WITH gam.cpu_usage_mode
+   gfx_slice_timer.finish_timestep .halflife, .is_update_tick
+   gfx_op_timer.finish_timestep .halflife, .is_update_tick
+  END WITH
   main_timer.switch TimerIDs.DrawOther
  END IF
 
@@ -1243,8 +1238,8 @@ SUB displayall()
  IF gam.debug_showtags THEN tagdisplay dpage
  IF gam.debug_scripts THEN scriptwatcher gam.debug_scripts, YES
  IF gam.debug_timings THEN
-  'main_timer.finish_timestep/begin_timestep called inside this sub
-  gam.cpu_usage.display dpage
+  'main_timer.finish_timestep/begin_timestep called inside (switch to TimerIDs.Default)
+  gam.cpu_usage_mode.display dpage
   main_timer.switch TimerIDs.Default
  END IF
 END SUB
@@ -4522,7 +4517,12 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  ' If you want to give extra requirements, write "may_frobnicate() ANDALSO dbg.def()"
  ' (not AND, unless you want it to always appear in the menu!)
 
- IF txt.showing = NO THEN
+ IF gam.debug_timings THEN
+  IF dbg.def(      , scF1, "Help for CPU usage (F1)") THEN show_help "game_cpu_usage"
+ ELSEIF txt.showing THEN
+  IF dbg.def(      , scF1, "See textbox info (F1)") THEN gam.debug_textbox_info XOR= YES
+ ELSE
+
   IF dbg.def(      , scF1, "Minimap (F1)") THEN minimap heropos(0)
 
   IF dbg.def(SftCtl, scF1, "Teleport tool (Shft/Ctrl-F1)") THEN
@@ -4560,14 +4560,12 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
    gam.want.loadgame = pickload(NO, YES) + 1  'No New Game option, beep if the menu doesn't display
   END IF
 
- ELSE
-  IF dbg.def(      , scF1, "See textbox info (F1)") THEN gam.debug_textbox_info XOR= YES
  END IF
 
  IF dbg.def(      , scF4, "Tag debugger (F4)") THEN
   loopvar gam.debug_showtags, 0, 2
   gam.debug_scripts = 0
-  gam.debug_timings = NO
+  gam.cpu_usage_mode.disable
  END IF
 
  IF dbg.def(SftCtl, scF4, "View/edit slice tree (Shft/Ctrl-F4)") THEN
@@ -4577,12 +4575,13 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF dbg.def(      , scF5, "Data reload menu (F5)") THEN live_preview_menu
 
  IF dbg.def(SftCtl, scF5, "Show CPU usage (Shft/Ctrl-F5)") THEN
-  gam.debug_timings XOR= YES
+  loopvar gam.debug_timings, 0, 2
+  IF gam.debug_timings = 0 THEN gam.cpu_usage_mode.disable
   gam.debug_showtags = 0
   gam.debug_scripts = NO
  END IF
 
- IF dbg.def(      , scF6, "NPC info overlay (F6)") THEN gam.debug_npc_info = (gam.debug_npc_info + 1) MOD 3
+ IF dbg.def(      , scF6, "NPC info overlay (F6)") THEN loopvar gam.debug_npc_info, 0, 2
 
  IF dbg.def(      , scF7, "Move the camera (F7)") THEN
   IF gam.debug_camera_pan THEN
@@ -4620,12 +4619,12 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF dbg.def(      , scF10) THEN
   loopvar gam.debug_scripts, 0, 2
   gam.debug_showtags = 0
-  gam.debug_timings = NO
+  gam.cpu_usage_mode.disable
  END IF
  IF dbg.def(      ,      , "Script debugger (F10)") THEN
   gam.debug_scripts = 2  'Go straight in instead of showing the memory usage bars
   gam.debug_showtags = 0
-  gam.debug_timings = NO
+  gam.cpu_usage_mode.disable
  END IF
 
  IF dbg.def(SftCtl, scF10, "Toggle script logging (S/C-F10)") THEN

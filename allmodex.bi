@@ -851,6 +851,7 @@ extern key2text(3,53) as string*1
 extern fonts() as Font ptr
 extern global_tog as integer
 extern max_display_fps as integer
+extern requested_framerate as double
 extern use_speed_control as bool
 extern user_toggled_fullscreen as bool
 extern debugging_io as bool

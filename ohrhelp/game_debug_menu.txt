@@ -2,6 +2,8 @@ The following documentation is also available at http://rpg.hamsterrepublic.com/
 
 Most debug keys let you press either Shift or Ctrl. Pressing Ctrl will activate menu items, NPCs, etc, so use Shift in those cases.
 
+F1 might show a help page while certain debug modes are active.
+
 -------------------------------------
 The following are only available when a text box IS NOT being displayed:
 
@@ -28,8 +30,7 @@ Shift/Ctrl+F4 Edit the slice tree (in the Slice Collection Editor). You can even
 
 F5 Menu for forcing reloading of edited data while running Game using "Test Game". If you are not editing while you play then this menu is only useful for reloading the map to undo changes made by scripts.
 
-Shift/Ctrl+F5 Shows CPU usage - shows how much time is spent on different major tasks including running scripts, drawing slices, gameplay logic (builtin logic such as NPC AI, menus, textboxes, and loading data for them) and updating screen (sending the image to the OS/GPU, after possibly applying upscaling, palette fades, and filters. On some computers this can consume a lot of time due to `vsync', which can be considered idle time available for other uses). Audio playback isn't shown, because it's played by a separate CPU thread, but the time taken to load sound effects is counted towards whatever loaded them (eg. Scripts or Gameplay Logic).
-Also shows the number of slices that were drawn (container, etc slices aren't counted), and the total number of slices.
+Shift/Ctrl+F5 Shows CPU usage - shows how much time is spent on different tasks including running scripts and drawing slices. Also shows numbers of drawn and total slices. Press F1 after enabling it for detailed help.
 
 F6 NPC Debug Mode. Draw NPC type ID and reference numbers on top of NPCs. ID numbers at top, reference numbers below. The reference numbers are shown without the negative signs. NPCs that are hidden due to tag conditions are shown with darkened ID numbers.
 Move the mouse over an NPC to see some of the NPC type and instance data. (Hint: use the PAUSE key to examine at moving NPCs)

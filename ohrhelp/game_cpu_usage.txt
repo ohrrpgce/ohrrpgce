@@ -1,0 +1,37 @@
+This is the CPU Usage debug mode, which shows just how much time is spent running scripts, drawing the screen, and other things.
+
+CPU time is shown as a percentage of the time available for running at the target framerate: 60 fps requires producing a frame in 1/60 of a second, 16.7ms. (Everything shown happens on a single CPU thread. Only a little bit of computation happens on other threads.) If the "Total" time goes above 100% then the framerate will drop. You want it to be well under 100%, so the game won't slow down on a slower computer.
+
+The exact timing value for each frame is shown with a yellow line, which will jump around so much it might be a blur. The blue bars and the numbers show an exponential average over a short time. The bar lengths are equal to the whole width of the screen at 100%.
+If any value is above 100% it'll wrap around to the left, in red.
+
+NOTE: You might see some very bizarre effects, such as CPU times dropping when doing more work or when running other programs in the background! This is because modern CPUs change speed continually to match the workload, and the OS moves programs between CPU cores. It causes lots of variance from frame to frame.
+
+Controls:
+
+Press Ctrl/Shift-F5 a 2nd time to show milliseconds per frame (useful for comparing frame rates) instead of the % of available time, and again to exit.
+
+Press Ctrl~ once ("Display") or twice ("Draw") to see the framerate. "Draw" might be less if some Screen Updates are skipped. Try pressing Shift-Tab!
+
+Timing lines:
+
+Some of the lines will disappear when they're zero.
+
+"Gameplay logic" is the default for anything not counted elsewhere, except for things which happen on a different CPU thread (mainly audio playback). It includes builtin logic such as NPC AI, hero pathfinding, menu and textbox logic, and various data loads loading data for them)
+
+"File IO/loading data" includes time spent loading graphics, music, sound effects, slice collections and maps from disk. It doesn't include many other things that might be loaded by script commands such as hero or item data. Any File IO caused by a script command won't be counted towards Scripts (but will still be counted by script/command profiling).
+
+"Update slices" (also shows the total number of slices in the slice tree although not all are updated) is time spent updating builtin slices such as the map, walkabouts, and textboxes, and any automatic slice behaviour such as slice velocity, autosorting children, or animations.
+
+"Draw (total)" is all the time spent drawing the screen, except for Update screen. It's broken down into Slices, Other and Debug on separate lines.
+
+"Draw (other)" is mainly menus and strings.
+
+Time spent drawing slices is broken down further two different ways: into Map layers, Text, and Other (e.g. Sprite) slices, and also by whether any special effects such as Blending are applied to the draws -- since those can be very expensive.
+
+The number of drawn slices is shown. This excludes invisible slices and also Container and other non-graphical slices, but includes slices that are off the screen - they aren't drawn but it takes time to determine that.
+
+"Draw debug displays" is mainly time spent on this debug mode itself, or any others such as tag or NPC debug displays.
+
+"Update screen" is the time upscaling the image to cover the window (possibly with a smoothing filter), and handing it to the OS to display, and also fading the screen in/out. Depending on the operating system and other things this might be very high if it includes time spent waiting for monitor vsync. Don't worry if so, that time is still available to do something else. (Actual CPU usage in a system utility such as Task Manager will give you a more accurate picture.)
+However large window sizes and using an upscaling filter do use a large amount of CPU time.
