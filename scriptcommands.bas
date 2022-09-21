@@ -351,10 +351,7 @@ END FUNCTION
 FUNCTION script_keyval (byval key as KBScancode, byval player as integer = 0, byref down_ms as integer = 0) as KeyBits
  'Wrapper around player_keyval for use by scripts: performs scancode mapping for back-compat
 
- IF key < scKEYVAL_FIRST ORELSE key > scKEYVAL_LAST THEN
-  scripterr current_command_name() & ": invalid scancode " & key, serrBound
-  RETURN 0
- END IF
+ IF bound_arg(key, scKEYVAL_FIRST, scKEYVAL_LAST, "scancode") = NO THEN RETURN 0
 
  DIM ret as KeyBits = player_keyval(key, player, down_ms)
 
@@ -3076,13 +3073,13 @@ SUB script_commands(byval cmdid as integer)
    scriptret = IIF(sl->GridData->show, 1, 0)
   END IF
  CASE 461 '--load slice collection
-  IF isfile(workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld") THEN
-   sl = NewSliceOfType(slContainer, SliceTable.scriptsprite)
-   SliceLoadFromFile sl, workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld", , retvals(0)
+  sl = LoadSliceCollection(SL_COLLECT_USERDEFINED, retvals(0))
+  IF sl THEN
+   'If the collection was partially loaded, we showed an error but continue
+   SetSliceParent sl, SliceTable.scriptsprite
    scriptret = create_plotslice_handle(sl)
   ELSE
-   scripterr current_command_name() & ": invalid slice collection id " & retvals(0), serrBadOp
-   scriptret = 0
+   scripterr "load slice collection: invalid id " & retvals(0), serrBadOp
   END IF
  CASE 462 '--set slice edge x
   sl = get_arg_slice(0)
@@ -3091,7 +3088,7 @@ SUB script_commands(byval cmdid as integer)
     sl->X = retvals(2) + SliceXAnchor(sl) - SliceEdgeX(sl, retvals(1))
    END IF
   END IF
- CASE 463 '--slice edge y
+ CASE 463 '--set slice edge y
   sl = get_arg_slice(0)
   IF sl THEN
    IF bound_arg(retvals(1), 0, 2, "edge") THEN
@@ -4613,9 +4610,7 @@ SUB script_commands(byval cmdid as integer)
   scriptret = gen(genResolutionY)
  CASE 645'--set screen resolution
   'FIXME: this is secret and undocumented until the gfx_directx backends supports resolution changing
-  IF retvals(0) < MinResolutionX ORELSE retvals(0) > MaxResolutionX ORELSE retvals(1) < MinResolutionY ORELSE retvals(1) > MaxResolutionY THEN
-   scripterr interpreter_context_name() + "invalid resolution " & retvals(0) & "," & retvals(1) & " should be in the range of " & MinResolutionX & "," & MinResolutionY & " to " & MaxResolutionX & "," & MaxResolutionY, serrBound
-  ELSE
+  IF bound_arg(retvals(0), MinResolutionX, MaxResolutionX, "width") ANDALSO bound_arg(retvals(1), MinResolutionY, MaxResolutionY, "height") THEN
    gen(genResolutionX) = retvals(0)
    gen(genResolutionY) = retvals(1)
    apply_game_window_settings()
