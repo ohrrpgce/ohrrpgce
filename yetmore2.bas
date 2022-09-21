@@ -1009,64 +1009,111 @@ END SUB
 
 'smooth_time: the main time value, shown as a bar. Preferrably smoothed over multiple frames
 'frame_time: optional; if available, the actual time for this frame
-SUB append_timing_line(name as string, smooth_time as double = 0., frame_time as double = -1., skip_zero as bool = NO)
+SUB CPUUsageMenu.addline(name as string, smooth_time as double = 0., frame_time as double = -1., skip_zero as bool = NO)
  IF skip_zero ANDALSO smooth_time = 0.0 THEN EXIT SUB
- DIM idx as integer = UBOUND(gam.timings) + 1
- REDIM PRESERVE gam.timings(0 TO idx)
- WITH gam.timings(idx)
+ DIM idx as integer = UBOUND(this.menu) + 1
+ REDIM PRESERVE this.menu(0 TO idx)
+ WITH this.menu(idx)
   .name = name
   .smooth_time = smooth_time
   .frame_time = IIF(frame_time = -1, smooth_time, frame_time)
+  .display_time = .smooth_time
  END WITH
 END SUB
 
-SUB append_timing_line(name as string, exptimer as ExpSmoothedTimer, skip_zero as bool = NO)
+SUB CPUUsageMenu.addline(name as string, exptimer as ExpSmoothedTimer, skip_zero as bool = NO)
  IF skip_zero THEN
-  IF exptimer.cur_time = 0.0 ANDALSO exptimer.smooth_time < 0.05e-3 THEN EXIT SUB
+  IF exptimer.cur_time = 0.0 ANDALSO exptimer.smooth_time < 0.0001e-3 THEN EXIT SUB
  END IF
- append_timing_line name, exptimer.smooth_time, exptimer.cur_time
+ addline name, exptimer.smooth_time, exptimer.cur_time
 END SUB
 
-SUB add_timing(name as string, starttime as double = 0.0)
+SUB CPUUsageMenu.addline(name as string, id as TimerIDs, skip_zero as bool = NO)
+ addline name, main_timer.timers(id), skip_zero
+END SUB
+
+/'
+SUB CPUUsageMenu.addline(name as string, id as TimerIDs, starttime as double = 0.0)
  DIM ttime as double = 0.
  IF starttime THEN ttime = TIMER - starttime
- append_timing_line name, ttime
+ addline name, ttime
 END SUB
+'/
 
-SUB add_gfx_timings()
- append_timing_line "  By slice type:"
+SUB CPUUsageMenu.update()
+ 'We have to stop main_timer in order to read times & update smoothing, so time steps
+ 'start/end here instead of dowait. Time spent sleeping in dowait is counted towards
+ 'TimerIDs.Paused; as a benefit time spent in backend processing in dowait is counted.
+ 'We still specially count the time spent in this sub towards DrawDebug.
+ DIM update_time as double = -TIMER
+ this.halflife = 333 / speedcontrol  '1/3 of a second
+ main_timer.finish_timestep this.halflife
+
+ ERASE this.menu
+
+ addline "Gameplay logic (NPCs...)", TimerIDs.Default
+ addline "Scripts", TimerIDs.Scripts
+ addline "Input & backend processing", TimerIDs.IOBackend, YES
+ addline "File IO/loading data", TimerIDs.FileIO, YES
+
+ addline "Updating slices", TimerIDs.UpdateSlices
+ addline "  (" & count_slices(SliceTable.root) & " slices in tree)"
+
+ DIM draw_total as ExpSmoothedTimer
+ draw_total += main_timer.timers(TimerIDs.DrawSlices)
+ draw_total += main_timer.timers(TimerIDs.DrawOther)
+ draw_total += main_timer.timers(TimerIDs.DrawDebug)
+ addline "Draw (total):", draw_total
+ addline " Draw " & NumDrawnSlices & " slices", TimerIDs.DrawSlices
+
  WITH gfx_slice_timer
-  append_timing_line "  -Map layers", .timers(TimerIDs.Map), YES
-  append_timing_line "  -Text", .timers(TimerIDs.Text), YES
-  append_timing_line "  -Other slices", .timers(TimerIDs.Default)
+
+  addline "  By slice type:"
+  addline "  -Map layers", .timers(TimerIDs.Map), YES
+  addline "  -Text", .timers(TimerIDs.Text), YES
+  addline "  -Other slices", .timers(TimerIDs.Default)
  END WITH
  WITH gfx_op_timer
-  append_timing_line "  By draw operation:"
-  append_timing_line "  -Dissolving", .timers(TimerIDs.Dissolve), YES
-  append_timing_line "  -Rotate/zoom/flip", .timers(TimerIDs.Rotozoom), YES
-  append_timing_line "  -Blended/transparent", .timers(TimerIDs.Blend), YES
-  append_timing_line "  -Normal", .timers(TimerIDs.Default)
+  addline "  By draw operation:"
+  addline "  -Dissolving", .timers(TimerIDs.Dissolve), YES
+  addline "  -Rotate/zoom/flip", .timers(TimerIDs.Rotozoom), YES
+  addline "  -Blended/transparent", .timers(TimerIDs.Blend), YES
+  addline "  -Normal", .timers(TimerIDs.Default)
  END WITH
+
+ addline " Draw other (eg menus)", TimerIDs.DrawOther
+ addline " Draw debug displays", TimerIDs.DrawDebug, YES
+
+ addline "Update/zoom/filter screen", TimerIDs.UpdateScreen
+
+ addline "Total", TimerIDs.Total
+ addline "Unused CPU", TimerIDs.Pause
+
+ update_time += TIMER
+ main_timer.begin_timestep
+ main_timer.add_time TimerIDs.DrawDebug, update_time
 END SUB
 
 'Draw timing debug mode
-SUB display_timings(page as integer)
+SUB CPUUsageMenu.display(page as integer)
+ this.update()
+ main_timer.switch TimerIDs.DrawDebug
+
  DIM red as integer = findrgb(255,0,0)
  DIM yellow as integer = findrgb(255,255,80)
  DIM sec_to_px as double = vpages(page)->w / (1e-3 * speedcontrol)
- FOR idx as integer = 0 TO UBOUND(gam.timings)
-  WITH gam.timings(idx)
+ FOR idx as integer = 0 TO UBOUND(this.menu)
+  WITH this.menu(idx)
    DIM text as string = .name
    IF .smooth_time > 0. THEN
     '.smooth_time = 0 indicates a note
-    edgebox 0, idx * 12, .smooth_time * sec_to_px, 6, red, uilook(uiBackground), page
-    rectangle .frame_time * sec_to_px, idx * 12, 1, 6, yellow, page
-    text = rpad(text, "_" , 24) & " " & strprintf("%4.1f", .smooth_time * 1e3) & "ms"
+    edgebox 0, idx * 13, .smooth_time * sec_to_px, 6, red, uilook(uiBackground), page
+    rectangle .frame_time * sec_to_px, idx * 13, 1, 6, yellow, page
+    text = rpad(text, "." , 26) & " " & strprintf("%4.1f", .display_time * 1e3) & "ms"
    END IF
-   edgeprint text, 0, idx * 12 + 3, uilook(uiText), page
+   edgeprint text, 0, idx * 13 + 2, uilook(uiText), page
   END WITH
  NEXT
- ERASE gam.timings
 END SUB
 
 '==============================================================================
@@ -1913,6 +1960,8 @@ SUB try_reload_lumps_anywhere ()
 END SUB
 
 SUB try_to_reload_lumps_onmap ()
+ main_timer.substart(TimerIDs.FileIO)
+
  'calls receive_file_updates
  try_reload_lumps_anywhere
 
@@ -1964,6 +2013,8 @@ SUB try_to_reload_lumps_onmap ()
    i += 1
   END IF
  WEND
+
+ main_timer.substop(TimerIDs.FileIO)
 END SUB
 
 FUNCTION lump_reload_mode_to_string (mode as LoadModeEnum) as string

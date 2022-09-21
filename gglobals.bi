@@ -14,6 +14,7 @@
 'Misc game globals
 EXTERN savedir as string
 EXTERN speedcontrol as double
+EXTERN total_draw_timer as ExpSmoothedTimer
 EXTERN autotestmode as bool
 EXTERN always_enable_debug_keys as bool
 EXTERN presentsong as integer

@@ -151,7 +151,8 @@ dim idle_time_threshold as double = 30.
 'When last input arrived
 dim shared last_active_time as double
 
-dim as MultiTimer gfx_op_timer, gfx_slice_timer
+'These are only used in Game, do nothing if not started
+dim as MultiTimer main_timer, gfx_op_timer, gfx_slice_timer
 
 dim def_drawoptions as DrawOptions
 
@@ -1679,9 +1680,12 @@ function dowait () as bool
 	global_tog XOR= 1
 	dim starttime as double = timer
 	do while timer <= waittime - 0.0005
+		var prev_subtimer = main_timer.switch(TimerIDs.IOBackend)
 		io_waitprocessing()
 		Steam.run_frame
+		main_timer.switch(TimerIDs.Pause)
 		sleep bound((waittime - timer) * 1000, 1, 5)
+		main_timer.switch(prev_subtimer)  'resume
 	loop
 	' dowait might be called after waittime has already passed, ignore that
         ' (the time printed is the unwanted delay).
@@ -1722,7 +1726,9 @@ sub closemusic ()
 end sub
 
 sub loadsong (songname as string)
+	var prev_subtimer = main_timer.switch(TimerIDs.FileIO)
 	music_play(songname, getmusictype(songname))
+	main_timer.switch(prev_subtimer)
 end sub
 
 'Doesn't work in SDL_mixer for MIDI music, so avoid
@@ -1751,6 +1757,7 @@ end sub
 ' loopcount N to play N+1 times, -1 to loop forever
 ' See set_sfx_volume for description of volume_mult.
 sub playsfx (num as integer, loopcount as integer = 0, volume_mult as single = 1.)
+	var prev_subtimer = main_timer.switch(TimerIDs.FileIO)
 	dim slot as integer
 	' If already loaded can reuse without reloading.
 	' TODO: However this preempts it if still playing; shouldn't force that
@@ -1764,6 +1771,7 @@ sub playsfx (num as integer, loopcount as integer = 0, volume_mult as single = 1
 	'debug "playsfx volume_mult=" & volume_mult & " global_sfx_volume " & global_sfx_volume
 	sound_play(slot, loopcount, volume_mult * global_sfx_volume)
 	IF_PTR(sound_slotdata(slot))->original_volume = volume_mult
+	main_timer.switch(prev_subtimer)
 end sub
 
 sub resetsfx ()

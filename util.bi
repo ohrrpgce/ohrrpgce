@@ -957,6 +957,17 @@ enum TimerIDs explicit
   Pause = 1         'Special subtimer subtracted from Total
   FIRST = 2         'First normal subtimer
 
+  'For main_timer
+  'Default is gameplay logic
+  UpdateSlices = 2  'Updating the slice tree, and AdvanceSlices
+  DrawSlices = 3
+  DrawOther = 4     'Things not converted to slices, other than debug menus
+  DrawDebug = 5     'Debug menus
+  UpdateScreen = 6  'setvispage
+  Scripts = 7
+  FileIO = 8        'Doesn't include all file IO, just slowest (eg. loading the map, sfx, reloading lumps(
+  IOBackend = 9     'setkeys, io_waitprocessing, Steam
+
   'For gfx_slice_timer
   Map = 2
   Text = 3
@@ -967,7 +978,7 @@ enum TimerIDs explicit
   Blend = 4
 
   'Max value of any valid timer ID
-  LAST = 4
+  LAST = 9
 end enum
 
 'Time sections of code, attributing time to a certain subtimer or to the default one,

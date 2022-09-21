@@ -858,7 +858,7 @@ extern active_seconds as double
 extern idle_time_threshold as double
 extern joysticks_globally_disabled as bool
 
-extern as MultiTimer gfx_op_timer, gfx_slice_timer
+extern as MultiTimer main_timer, gfx_op_timer, gfx_slice_timer
 
 extern "C"
 'WARNING: don't pass curmasterpal() to functions from code outside allmodex.bas!

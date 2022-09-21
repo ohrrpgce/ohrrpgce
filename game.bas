@@ -756,7 +756,9 @@ END IF
 '================================= Main loop ==================================
 '==============================================================================
 
-DIM starttime as double
+'Debug modes are preserved when starting a new game.
+'Normally begin_timestep is called from within displayall
+IF gam.debug_timings THEN main_timer.begin_timestep
 
 queue_fade_in
 'DEBUG debug "pre-call update_heroes"
@@ -768,7 +770,7 @@ setkeys
 DO
  'DEBUG debug "top of master loop"
  setwait speedcontrol
- DIM mainloop_starttime as double = TIMER
+ 'Subsequent main_timer method calls will be ignored if .begin_timestep() wasn't called
 
  IF running_under_Custom THEN try_to_reload_lumps_onmap
 
@@ -776,8 +778,10 @@ DO
  IF gam.paused = NO THEN playtimer
 
  'DEBUG debug "read controls"
+ main_timer.substart TimerIDs.IOBackend
  update_virtual_gamepad_display()
  setkeys gam.getinputtext_enabled
+ main_timer.substop TimerIDs.IOBackend
  'debug_mouse_state()
 
  '--Debug keys
@@ -798,8 +802,6 @@ DO
  IF menus_allow_gameplay() THEN
  'DEBUG debug "enter script interpreter"
  interpret_scripts
-
- starttime = TIMER
 
  'DEBUG debug "increment script timers"
  dotimer(TIMER_NORMAL)
@@ -907,11 +909,11 @@ DO
  'DEBUG debug "NPC movement"
  update_npcs()
 
+ main_timer.substart TimerIDs.UpdateSlices
  AdvanceSlice SliceTable.root
+ main_timer.substop TimerIDs.UpdateSlices
 
  END IF 'end gam.need_fade_page = NO
-
- IF gam.debug_timings THEN add_timing "Gameplay logic (NPCs...)", starttime
 
  ELSE
   dotimer(TIMER_BLOCKINGMENUS)
@@ -961,6 +963,8 @@ DO
   END IF
  END IF
 
+ 'IF gam.debug_timings THEN add_timing "Gameplay logic (NPCs...)", TimerIDs.Gameplay
+
  'Draw screen
  displayall()
 
@@ -983,9 +987,15 @@ DO
  END IF
 
  'DEBUG debug "swap video pages"
- starttime = TIMER
+ 
+ ' TIME_START(UpdateScreen)
+ ' swap_or_fade_page vpage, dpage
+ ' TIME_STOP(UpdateScreen)
+
+ main_timer.substart(TimerIDs.UpdateScreen)
  swap_or_fade_page vpage, dpage
- IF gam.debug_timings THEN add_timing "Update screen", starttime
+ main_timer.substop(TimerIDs.UpdateScreen)
+ 'IF gam.debug_timings THEN add_timing "Update screen", starttime
 
  IF gam.paused = NO THEN
   'DEBUG debug "fade in"
@@ -994,7 +1004,6 @@ DO
  END IF
  'DEBUG debug "tail of main loop"
 
- IF gam.debug_timings THEN add_timing "Total", mainloop_starttime
  dowait
 LOOP
 
@@ -1148,7 +1157,7 @@ END SUB
 '==========================================================================================
 
 SUB displayall()
- DIM starttime as double = TIMER
+ IF gam.debug_timings THEN main_timer.switch TimerIDs.UpdateSlices
 
  ' We need to update walkabout slice positions before calling
  ' setmapxy, in the case where the camera is following a hero
@@ -1189,8 +1198,7 @@ SUB displayall()
  IF txt.showing = YES THEN update_textbox
 
  IF gam.debug_timings THEN
-  add_timing "Update slices", starttime
-  starttime = TIMER
+  main_timer.switch TimerIDs.DrawSlices
   gfx_slice_timer.begin_timestep
   gfx_op_timer.begin_timestep
  END IF
@@ -1201,12 +1209,9 @@ SUB displayall()
  DrawSlice(SliceTable.Root, dpage)
 
  IF gam.debug_timings THEN
-  add_timing "Draw " & NumDrawnSlices & " slices", starttime
-  gfx_slice_timer.finish_timestep 500 / speedcontrol  '1/2 sec halflife
-  gfx_op_timer.finish_timestep 500 / speedcontrol
-  add_timing "    (Total slices: " & count_slices(SliceTable.root) & ")"
-  add_gfx_timings
-  starttime = TIMER
+  gfx_slice_timer.finish_timestep gam.cpu_usage.halflife
+  gfx_op_timer.finish_timestep gam.cpu_usage.halflife
+  main_timer.switch TimerIDs.DrawOther
  END IF
 
  'The order in which we update and draw things is a little strange; I'm just preserving what it was
@@ -1230,13 +1235,17 @@ SUB displayall()
   gam.showtext_ticks -= 1
   wrapprint gam.showtext, pCentered, pBottom - 10, uilook(uiText), dpage
  END IF
+
+ IF gam.debug_timings THEN main_timer.switch TimerIDs.DrawDebug
+
  IF gam.debug_npc_info > 0 THEN npc_debug_display(gam.debug_npc_info = 2)
  IF gam.debug_textbox_info THEN show_textbox_debug_info
  IF gam.debug_showtags THEN tagdisplay dpage
  IF gam.debug_scripts THEN scriptwatcher gam.debug_scripts, YES
  IF gam.debug_timings THEN
-  add_timing "Draw other (eg menus)", starttime
-  display_timings dpage
+  'main_timer.finish_timestep/begin_timestep called inside this sub
+  gam.cpu_usage.display dpage
+  main_timer.switch TimerIDs.Default
  END IF
 END SUB
 
@@ -2468,7 +2477,7 @@ SUB execute_script_fibres
 END SUB
 
 SUB interpret_scripts()
- DIM starttime as double = TIMER
+ IF gam.debug_timings THEN main_timer.substart TimerIDs.Scripts
 
  'It seems like it would be good to call this immediately before scriptinterpreter so that
  'the return values of fightformation and waitforkey are correct, however doing so might
@@ -2479,6 +2488,8 @@ SUB interpret_scripts()
 
  script_log_tick
  gam.script_log.tick += 1
+
+ IF gam.debug_timings THEN main_timer.substop TimerIDs.Scripts
 
  'Do spawned text boxes, battles, etc.
  'The actual need for these gam.want.* variables is now gone, but they are kept around for backcompat.
@@ -2527,8 +2538,6 @@ SUB interpret_scripts()
   gam.want.usenpc = 0
  END IF
  'ALSO gam.want.loadgame, gam.want.rungame
-
- IF gam.debug_timings THEN add_timing "Script interpreter", starttime
 END SUB
 
 
@@ -3201,6 +3210,7 @@ END FUNCTION
 
 SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
  'DEBUG debug "in preparemap"
+ var prev_subtimer = main_timer.switch(TimerIDs.FileIO)
 
  script_log_out !"\nLoading map " & gam.map.id & IIF(afterbat, " (reloading after a battle)", "")
 
@@ -3351,6 +3361,7 @@ SUB prepare_map (byval afterbat as bool=NO, byval afterload as bool=NO)
  check_pathfinding_for_map_change()
  
  'DEBUG debug "end of preparemap"
+ main_timer.switch(prev_subtimer)
 END SUB
 
 
