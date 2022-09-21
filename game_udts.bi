@@ -176,7 +176,8 @@ END TYPE
 
 TYPE TimingInfo
   name as string
-  time as double
+  smooth_time as double
+  frame_time as double
 END TYPE
 
 TYPE GameState

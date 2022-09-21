@@ -50,7 +50,8 @@ DECLARE SUB deletetemps
 
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display (draw_walls as bool)
-DECLARE SUB append_timing_line(name as string, ttime as double = 0.0, skip_zero as bool = NO)
+DECLARE SUB append_timing_line OVERLOAD(name as string, smooth_time as double = 0., frame_time as double = -1., skip_zero as bool = NO)
+DECLARE SUB append_timing_line OVERLOAD(name as string, exptimer as ExpSmoothedTimer, skip_zero as bool = NO)
 DECLARE SUB add_timing(name as string, starttime as double = 0.0)
 DECLARE SUB add_gfx_timings()
 DECLARE SUB display_timings(page as integer)

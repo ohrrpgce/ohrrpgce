@@ -835,20 +835,25 @@ declare function instr_nth overload (byval start as integer, s as string, substr
 declare function instr_nth overload (s as string, substring as string, byval nth as integer) as integer
 declare function length_matching (s1 as string, s2 as string) as integer
 declare function skip_over (text as string, byref idx as integer, tok as zstring ptr, maxskips as integer = -1) as integer
+declare function starts_with(s as string, prefix as string) as bool
+declare function ends_with(s as string, suffix as string) as bool
+
 declare function parse_int (stri as zstring ptr, ret as integer ptr=NULL, strict as bool=NO) as bool
 declare function str2int (stri as zstring ptr, default as integer=0, strict as bool=NO) as integer
 declare function split_str_int(z as zstring ptr, byref action as string, byref arg as integer) as bool
 declare function str2bool(q as string, default as integer = NO) as integer
 declare function rotascii (s as string, o as integer) as string
 declare function titlecase(word as string) as string
+
 declare function escape_string(s as string, chars as string) as string
 declare function replacestr overload (byref buffer as string, replacewhat as string, replacefunc as FnReplacement, arg as any ptr, maxtimes as integer = -1, caseinsensitive as bool = NO) as integer
 declare function replacestr overload (byref buffer as string, replacewhat as string, withwhat as string, maxtimes as integer = -1, caseinsensitive as bool = NO) as integer
 declare function normalize_newlines (buffer as string, newline as string = LINE_END) as string
 declare function exclude (s as string, x as string) as string
 declare function exclusive (s as string, x as string) as string
-declare function scancodename (k as KBScancode, longname as bool = NO) as string
 declare function special_char_sanitize(s as string) as string
+
+declare function scancodename (k as KBScancode, longname as bool = NO) as string
 
 declare function sign_string (n as integer, neg_str as string, zero_str as string, pos_str as string) as string
 declare function zero_default (n as integer, default_caption as string="default") as string
@@ -908,9 +913,6 @@ declare function numeric_string_compare cdecl (a as string, b as string, case_in
 declare sub invert_permutation overload (indices() as integer, inverse() as integer)
 declare sub invert_permutation overload (indices() as integer)
 
-declare function starts_with(s as string, prefix as string) as bool
-declare function ends_with(s as string, suffix as string) as bool
-
 declare function readkey () as string
 
 declare function format_date(timeser as double) as string
@@ -921,7 +923,8 @@ declare function format_date(timeser as double) as string
 #endmacro
 
 'This throws out outliers and smooths over many repeated start() to stop() timings.
-'Instances of this should tpyically be static or globals
+'In comparison to ExpSmoothedTimer this is more useful for timing/profiling code.
+'Instances of this should typically be static or globals
 type SmoothedTimer
    timing as double        'Current timing
    times as double vector  'Buffer
@@ -932,7 +935,19 @@ type SmoothedTimer
    declare function stop() as bool
    declare function tell() as string
    declare sub stop_and_print()
-end Type
+end type
+
+'Exponentially smooths over many time steps (enclosed in begin() to end() calls),
+'which are each the sum of multiple start() to stop() timings.
+type ExpSmoothedTimer
+  cur_time as double         'Current time step
+  smooth_time as double      'Smoothed time value
+
+  declare sub begin()
+  declare function finish(halflife as double) as double
+  declare sub start()
+  declare sub stop()
+end type
 
 enum TimerIDs explicit
   None = -1
@@ -959,11 +974,11 @@ end enum
 type MultiTimer
   enabled as bool
   subtimer as TimerIDs = 0  '-1 if disabled, 0 if default
-  times(TimerIDs.LAST) as double
+  timers(TimerIDs.LAST) as ExpSmoothedTimer
   'num_timer_calls as integer
 
   declare sub begin()
-  declare sub finish()
+  declare sub finish(halflife as double)
   declare function substart(new_subtimer as TimerIDs) as TimerIDs
   declare sub substop(cur_subtimer as TimerIDs)
   declare function nested_start(new_subtimer as TimerIDs) as TimerIDs

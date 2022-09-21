@@ -1202,8 +1202,8 @@ SUB displayall()
 
  IF gam.debug_timings THEN
   add_timing "Draw " & NumDrawnSlices & " slices", starttime
-  gfx_slice_timer.finish
-  gfx_op_timer.finish
+  gfx_slice_timer.finish 500 / speedcontrol  '1/2 sec halflife
+  gfx_op_timer.finish 500 / speedcontrol
   add_timing "    (Total slices: " & count_slices(SliceTable.root) & ")"
   add_gfx_timings
   starttime = TIMER

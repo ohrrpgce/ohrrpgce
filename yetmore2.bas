@@ -1007,14 +1007,24 @@ END SUB
 
 '==============================================================================
 
-SUB append_timing_line(name as string, ttime as double = 0.0, skip_zero as bool = NO)
- IF skip_zero ANDALSO ttime = 0.0 THEN EXIT SUB
+'smooth_time: the main time value, shown as a bar. Preferrably smoothed over multiple frames
+'frame_time: optional; if available, the actual time for this frame
+SUB append_timing_line(name as string, smooth_time as double = 0., frame_time as double = -1., skip_zero as bool = NO)
+ IF skip_zero ANDALSO smooth_time = 0.0 THEN EXIT SUB
  DIM idx as integer = UBOUND(gam.timings) + 1
  REDIM PRESERVE gam.timings(0 TO idx)
  WITH gam.timings(idx)
   .name = name
-  .time = ttime
+  .smooth_time = smooth_time
+  .frame_time = IIF(frame_time = -1, smooth_time, frame_time)
  END WITH
+END SUB
+
+SUB append_timing_line(name as string, exptimer as ExpSmoothedTimer, skip_zero as bool = NO)
+ IF skip_zero THEN
+  IF exptimer.cur_time = 0.0 ANDALSO exptimer.smooth_time < 0.05e-3 THEN EXIT SUB
+ END IF
+ append_timing_line name, exptimer.smooth_time, exptimer.cur_time
 END SUB
 
 SUB add_timing(name as string, starttime as double = 0.0)
@@ -1025,26 +1035,33 @@ END SUB
 
 SUB add_gfx_timings()
  append_timing_line "  By slice type:"
- append_timing_line "  -Map layers", gfx_slice_timer.times(TimerIDs.Map), YES
- append_timing_line "  -Text", gfx_slice_timer.times(TimerIDs.Text), YES
- append_timing_line "  -Other slices", gfx_slice_timer.times(TimerIDs.Default)
- append_timing_line "  By draw operation:"
- append_timing_line "  -Dissolving", gfx_op_timer.times(TimerIDs.Dissolve), YES
- append_timing_line "  -Rotate/zoom/flip", gfx_op_timer.times(TimerIDs.Rotozoom), YES
- append_timing_line "  -Blended/transparent", gfx_op_timer.times(TimerIDs.Blend), YES
- append_timing_line "  -Normal", gfx_op_timer.times(TimerIDs.Default)
+ WITH gfx_slice_timer
+  append_timing_line "  -Map layers", .timers(TimerIDs.Map), YES
+  append_timing_line "  -Text", .timers(TimerIDs.Text), YES
+  append_timing_line "  -Other slices", .timers(TimerIDs.Default)
+ END WITH
+ WITH gfx_op_timer
+  append_timing_line "  By draw operation:"
+  append_timing_line "  -Dissolving", .timers(TimerIDs.Dissolve), YES
+  append_timing_line "  -Rotate/zoom/flip", .timers(TimerIDs.Rotozoom), YES
+  append_timing_line "  -Blended/transparent", .timers(TimerIDs.Blend), YES
+  append_timing_line "  -Normal", .timers(TimerIDs.Default)
+ END WITH
 END SUB
 
 'Draw timing debug mode
 SUB display_timings(page as integer)
  DIM red as integer = findrgb(255,0,0)
+ DIM yellow as integer = findrgb(255,255,80)
+ DIM sec_to_px as double = vpages(page)->w / (1e-3 * speedcontrol)
  FOR idx as integer = 0 TO UBOUND(gam.timings)
   WITH gam.timings(idx)
    DIM text as string = .name
-   IF .time > 0. THEN
-    '.time = 0 indicates a note
-    edgebox 0, idx * 12, vpages(page)->w * .time / (1e-3 * speedcontrol), 6, red, uilook(uiBackground), page
-    text = rpad(text, "_" , 24) & " " & strprintf("%4.1f", .time * 1e3) & "ms"
+   IF .smooth_time > 0. THEN
+    '.smooth_time = 0 indicates a note
+    edgebox 0, idx * 12, .smooth_time * sec_to_px, 6, red, uilook(uiBackground), page
+    rectangle .frame_time * sec_to_px, idx * 12, 1, 6, yellow, page
+    text = rpad(text, "_" , 24) & " " & strprintf("%4.1f", .smooth_time * 1e3) & "ms"
    END IF
    edgeprint text, 0, idx * 12 + 3, uilook(uiText), page
   END WITH

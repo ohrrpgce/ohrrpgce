@@ -4623,7 +4623,6 @@ END FUNCTION
 
 '----------------------------------------------------------------------
 
-
 destructor SmoothedTimer()
   v_free times
 end destructor
@@ -4660,23 +4659,53 @@ end sub
 
 '----------------------------------------------------------------------
 
+
+'Begin a time step
+sub ExpSmoothedTimer.begin()
+  cur_time = 0.
+end sub
+
+'Finish a time step, update smooth_time with decay
+function ExpSmoothedTimer.finish(halflife as double) as double
+  dim decay as double = exp2(-1 / halflife)
+  smooth_time = decay * smooth_time + (1 - decay) * cur_time
+  return smooth_time
+end function
+
+'Start adding time to this timer
+sub ExpSmoothedTimer.start()
+  cur_time -= timer
+end sub
+
+'Stop adding time
+sub ExpSmoothedTimer.stop()
+  cur_time += timer
+end sub
+
+'----------------------------------------------------------------------
+
 'Reset state
 sub MultiTimer.begin()
-  erase times
-  times(TimerIDs.Default) = -timer
+  for idx as integer = 0 to ubound(timers)
+    timers(idx).begin()
+  next
+  timers(TimerIDs.Default).start()
   'num_timer_calls = 1
   subtimer = TimerIDs.Default
   enabled = YES
 end sub
 
 'Stop all timers
-sub MultiTimer.finish()
-  if subtimer > 0 then times(subtimer) += timer  'Shouldn't happen
-  times(TimerIDs.Default) += timer
+sub MultiTimer.finish(halflife as double)
+  if subtimer > 0 then timers(subtimer).stop()  'Shouldn't happen
+  timers(TimerIDs.Default).stop()
   'num_timer_calls += 1
   'For efficiency we don't stop/start Default timer all the time
-  for idx as integer = 1 to TimerIDs.LAST
-    times(TimerIDs.Default) -= times(idx)
+  for idx as integer = 1 to ubound(timers)
+    timers(TimerIDs.Default).cur_time -= timers(idx).cur_time
+  next
+  for idx as integer = 0 to ubound(timers)
+    timers(idx).finish(halflife)
   next
   enabled = NO
   subtimer = TimerIDs.None
@@ -4686,7 +4715,7 @@ end sub
 function MultiTimer.substart(new_subtimer as TimerIDs) as TimerIDs
   if subtimer <> TimerIDs.Default then return 0
   subtimer = new_subtimer
-  times(subtimer) -= timer
+  timers(subtimer).cur_time -= timer  '.start()
   'num_timer_calls += 1
   return subtimer
 end function
@@ -4695,7 +4724,7 @@ end function
 sub MultiTimer.substop(cur_subtimer as TimerIDs)
   if cur_subtimer <> subtimer then exit sub
   if subtimer = TimerIDs.Default then exit sub
-  times(subtimer) += timer
+  timers(subtimer).cur_time += timer  '.stop()
   'num_timer_calls += 1
   subtimer = TimerIDs.Default
 end sub
@@ -4705,19 +4734,19 @@ end sub
 function MultiTimer.nested_start(new_subtimer as TimerIDs) as TimerIDs
   dim time as double = timer
   'num_timer_calls += 1
-  if subtimer <> TimerIDs.Default then times(subtimer) += time
+  if subtimer <> TimerIDs.Default then timers(subtimer).cur_time += time  '.stop()
   function = subtimer
   subtimer = new_subtimer
-  times(subtimer) -= time
+  timers(subtimer).cur_time -= time  '.start()
 end function
 
 sub MultiTimer.nested_stop(prev_subtimer as TimerIDs)
   dim time as double = timer
   'num_timer_calls += 1
-  times(subtimer) += time
+  timers(subtimer).cur_time += time  '.stop()
   subtimer = prev_subtimer
   if subtimer = TimerIDs.Default then exit sub
-  times(subtimer) -= time
+  timers(subtimer).cur_time -= time  '.start()
 end sub
 
 
