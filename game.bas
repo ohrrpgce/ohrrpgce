@@ -5355,7 +5355,9 @@ SUB update_hero_pathfinding(byval rank as integer)
      IF xypair_manhattan_distance(t1, t2) = 1 THEN
       'One tile away from dest NPC!
       (herodir(rank)) = xypair_direction_to(t1, t2, herodir(rank))
-      usenpc 0, find_useable_npc()
+      IF vstate.active = NO THEN ' Only activate if not riding a vehicle
+       usenpc 0, find_useable_npc()
+      END IF
       IF .id < 0 THEN  'If one-time-usable, the NPC might now be disabled
        cancel_hero_pathfinding(rank)
        EXIT SUB
