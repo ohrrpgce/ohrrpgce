@@ -79,4 +79,7 @@ declare function find_preferred_target (tmask() as integer, byval who as integer
 
 declare sub try_to_reload_files_inbattle ()
 
+declare function should_enforce_hidden_untargetability(atk as AttackData) as bool
+declare function should_enforce_untargetability(atk as AttackData) as bool
+
 #ENDIF
