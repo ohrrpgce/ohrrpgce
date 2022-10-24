@@ -72,6 +72,7 @@ WHAT IS NEW?
       also show time spent on each command, and Specific Command Profiling to
       add a column for time each script spends on one command [Ralph]
     * Number of script strings increased from 100 to 256 (IDs 0-255)
+    * Attacks can directly spawn an enemy (if there is room) [James]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

@@ -158,8 +158,9 @@ CONST AtkEffectsAct = 159
 CONST AtkChangeTurncoat = 160
 CONST AtkChangeDefector = 161
 CONST AtkChangeFlipped = 162
+CONST AtkSpawnEnemy = 163
 
-'Next menu item is 163 (remember to update MnuItems)
+'Next menu item is 164 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -245,6 +246,7 @@ CONST AtkDatChangeControllable = 348
 CONST AtkDatChangeTurncoat = 349
 CONST AtkDatChangeDefector = 350
 CONST AtkDatChangeFlipped = 351
+CONST AtkDatSpawnEnemy = 352
 
 'anything past this requires expanding the data
 
@@ -404,7 +406,7 @@ DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined
 STATIC copy_recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer
 STATIC have_copy as bool
 
-CONST MnuItems = 162
+CONST MnuItems = 163
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -415,8 +417,8 @@ DIM menucapoff(MnuItems) as integer
 
 DIM capindex as integer = 0
 REDIM caption(-1 TO -1) as string
-DIM max(50) as integer
-DIM min(50) as integer
+DIM max(51) as integer
+DIM min(51) as integer
 
 'Limit(0) is not used
 
@@ -802,6 +804,10 @@ addcaption caption(), capindex, "No change"  '0
 addcaption caption(), capindex, "Flip Sprite"  '1
 addcaption caption(), capindex, "Unflip Sprite"  '2
 addcaption caption(), capindex, "Reset to default"  '3
+
+CONST AtkLimSpawnEnemy = 51
+max(AtkLimSpawnEnemy) = gen(genMaxEnemy) + 1 'Must be updated!
+min(AtkLimSpawnEnemy) = 0
 
 'next limit is 51 (remember to update the max() and min() dims)
 
@@ -1258,6 +1264,12 @@ menutype(AtkChangeFlipped) = 2000 + menucapoff(AtkChangeFlipped)
 menuoff(AtkChangeFlipped) = AtkDatChangeFlipped
 menulimits(AtkChangeFlipped) = AtkLimChangeFlipped
 
+menu(AtkSpawnEnemy) = "Spawn Enemy (If Room):"
+menutype(AtkSpawnEnemy) = 9 'enemy name
+menuoff(AtkSpawnEnemy) = AtkDatSpawnEnemy
+menulimits(AtkSpawnEnemy) = AtkLimSpawnEnemy
+
+
 '----------------------------------------------------------
 '--menu structure
 DIM workmenu(65) as integer
@@ -1356,12 +1368,13 @@ FOR i = 0 TO gen(genNumElements) - 1
  elementFailMenu(2 + i) = AtkElementalFails + i
 NEXT
 
-DIM effectsMenu(4) as integer
+DIM effectsMenu(5) as integer
 effectsMenu(0) = AtkBackAct
 effectsMenu(1) = AtkChangeControllable
 effectsMenu(2) = AtkChangeTurncoat
 effectsMenu(3) = AtkChangeDefector
 effectsMenu(4) = AtkChangeFlipped
+effectsMenu(5) = AtkSpawnEnemy
 
 '--Create the box that holds the preview
 DIM preview_box as Slice Ptr

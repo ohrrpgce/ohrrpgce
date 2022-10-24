@@ -56,7 +56,8 @@ DECLARE SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, s
 DECLARE SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB player_attack_targetting_done(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
-DECLARE SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB battle_spawn_on_enemy_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB battle_spawn_on_any_hit(atk as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -750,7 +751,8 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
   bslot(targ).vis = YES
   bslot(targ).dissolve = 0
  END IF
- IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_hit targ, bat, bslot(), formdata
+ IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_enemy_hit targ, bat, bslot(), formdata
+ battle_spawn_on_any_hit attack, bat, bslot(), formdata
  battle_counterattacks bat, h, targstat, targ, attack, bslot(), result
 
  IF bat.atk.has_consumed_costs = NO THEN
@@ -813,11 +815,12 @@ SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleS
 
 END SUB
 
-SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+SUB battle_spawn_on_enemy_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  DIM i as integer
  DIM j as integer
  DIM slot as integer
- 
+
+ 'First check if the attack triggers any elemental spawning from the enemy
  WITH bslot(targ)
   '--non-elemental hit
   IF .enemy.spawn.non_elemental_hit > 0 AND bat.atk.non_elemental THEN
@@ -829,6 +832,7 @@ SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot()
     END IF
    NEXT j
   END IF
+  '--check each different elemental
   FOR i = 0 TO gen(genNumElements) - 1
    IF .enemy.spawn.elemental_hit(i) > 0 AND bat.atk.elemental(i) THEN
     FOR j = 1 TO .enemy.spawn.how_many
@@ -842,6 +846,18 @@ SUB battle_spawn_on_hit(byval targ as integer, byref bat as BattleState, bslot()
    END IF
   NEXT i
  END WITH
+END SUB
+
+SUB battle_spawn_on_any_hit(atk as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+ '--Finally check any see if the attack itself triggers any spawning
+ DIM slot as integer
+ IF atk.spawn_enemy THEN
+  slot = find_empty_enemy_slot(formdata)
+  IF slot > -1 THEN
+   formdata.slots(slot).id = atk.spawn_enemy - 1
+   loadfoe slot, formdata, bat, bslot()
+  END IF
+ END IF
 END SUB
 
 SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
