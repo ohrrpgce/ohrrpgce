@@ -762,9 +762,8 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
 
  IF attack.fill_target_ready_meter THEN
   target.ready_meter = 1000
-  target.ready = YES
+  make_ready_or_update_turn_delays target
  END IF
-
  
  '--success!
  attacker.attack_succeeded = YES

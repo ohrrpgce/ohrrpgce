@@ -86,4 +86,6 @@ DECLARE SUB populate_battle_menu_menudef (byval hero_id as integer, menu as Menu
 DECLARE SUB populate_battle_menu_menudef_for_enemy (byref bat as BattleState, bslot() as BattleSprite, bspr as BattleSprite)
 DECLARE FUNCTION does_battle_menu_have_targets(byref bspr as BattleSprite, bslot() as BattleSprite, bat as BattleState, st() as HeroDef) as bool
 
+DECLARE SUB make_ready_or_update_turn_delays (bspr as BattleSprite)
+
 #ENDIF

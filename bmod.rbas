@@ -1213,13 +1213,7 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
    '--increment ctr by speed
    bslot(i).ready_meter = small(1000, bslot(i).ready_meter + bslot(i).stat.cur.spd)
    IF bslot(i).ready_meter = 1000 AND bat.wait_frames = 0 THEN
-    IF has_blocking_turn_delayed_attacks(i) THEN
-     'debug "Unit " & i & " " & bslot(i).name & " blocked turn #" & bslot(i).active_turn_num
-     bslot(i).ready_meter = 0
-     update_turn_delays_in_attack_queue i
-    ELSE
-     bslot(i).ready = YES
-    END IF
+    make_ready_or_update_turn_delays bslot(i)
    END IF
   END IF
 
@@ -1246,6 +1240,16 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
  
  decrement_attack_queue_delays bslot()
 
+END SUB
+
+SUB make_ready_or_update_turn_delays (bspr as BattleSprite)
+ IF has_blocking_turn_delayed_attacks(bspr.index) THEN
+  'debug "Unit " & bspr.index & " " & bspr.name & " blocked turn #" & bspr.active_turn_num
+  bspr.ready_meter = 0
+  update_turn_delays_in_attack_queue bspr.index
+ ELSE
+  bspr.ready = YES
+ END IF
 END SUB
 
 SUB do_poison(byval who as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
