@@ -1230,7 +1230,7 @@ Constructor AttackSpriteBrowser()
  Base(sprTypeAttack)
 End Constructor
 
-Sub AttackSpriteBrowser.each_tick_each_plank(byval plank as Slice Ptr)
+Sub AttackSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
  loop_sprite_helper plank, 0, 2
 End Sub
 

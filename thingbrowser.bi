@@ -253,7 +253,7 @@ End Type
 
 Type AttackSpriteBrowser extends SpriteBrowser
  declare constructor()
- declare virtual sub each_tick_each_plank(byval plank as Slice Ptr)
+ declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
 End Type
 
 Type WeaponSpriteBrowser extends SpriteBrowser
