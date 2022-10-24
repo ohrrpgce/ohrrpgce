@@ -1782,6 +1782,7 @@ DO
   '--in case new attacks/enemies/items have been added
   max(AtkLimChainTo) = gen(genMaxAttack) + 1
   max(AtkLimTransmogEnemy) = gen(genMaxEnemy) + 1
+  max(AtkLimSpawnEnemy) = gen(genMaxEnemy) + 1
   max(AtkLimItem) = gen(genMaxItem) + 1
   max(AtkLimSfx) = gen(genMaxSFX) + 1
   max(AtkLimSfxOrDefault) = gen(genMaxSFX) + 1
