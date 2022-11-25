@@ -5583,7 +5583,8 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
  NEXT
  IF slot > UBOUND(plotslices) THEN
   'If no room is available, make the array bigger.
-  REDIM PRESERVE plotslices(0 TO UBOUND(plotslices) * 1.5 + 32)
+  DIM numslots as integer = small(SLICE_HANDLE_SLOT_MASK, UBOUND(plotslices) * 1.5 + 32)
+  REDIM PRESERVE plotslices(0 TO numslots)
   plotslicesp = @plotslices(0)
  END IF
  IF slot > SLICE_HANDLE_SLOT_MASK THEN
