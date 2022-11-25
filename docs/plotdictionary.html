@@ -209,7 +209,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-09-13)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2022-10-14)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -8044,17 +8044,26 @@ fade screen in</pre>
 				</div>
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
-					If you want to increase or decrease a stat by a certain amount, just use <a href="#about-gainherostat" class="ref">gain hero stat</a>.
+					Modifying a hero's HP will turn on or off the hero's Is Alive tag as needed,
+					but will not trigger a game over if all the heroes have zero HP.
+				</div>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					If you want to permanently increase or decrease the max and base of a stat just use <a href="#about-gainherostat" class="ref">gain hero stat</a>.
 				</div>
 			
 			
 			<pre># Use this script to reset a stat to its max value
 script, reset stat, hero slot, stat, begin
   set hero stat(hero slot, stat, get hero stat(hero slot, stat, maximum stat), current stat) 
-end</pre><pre># Use this script to permanently increase (or decrease, if amount is negative) a stat, without violating stat caps
+end</pre><pre># Increase (or decrease, if amount is negative) the current value
+# of a stat (so, make a temporary change) without violating stat caps or going below zero.
+# You can use the "gain hero stat" command instead to make a permanent change.
 script, adjust stat, hero slot, stat, amount, begin 
-  set capped hero stat(hero slot, stat, get hero stat(hero slot, stat, current stat) + amount, current stat) 
-  set hero stat(hero slot, stat, get hero stat(hero slot, stat, base stat) + amount, base stat) 
+  variable (value)
+  value := get hero stat(hero slot, stat, current stat) + amount
+  if (value &lt; 0) then (value := 0)
+  set capped hero stat(hero slot, stat, value, current stat)
 end</pre>
 			<div class="seealso">See also: <ul>
 <li>
@@ -8077,7 +8086,7 @@ end</pre>
 				<h4>gain hero stat (who, stat, amount, reset to max)</h4>
 <p>
 			
-				Increase or decrease one of a hero's stats.
+				Permanently increase or decrease one of a hero's stats.
 				The base, maximum and current value of the stat are all changed, consistently.
 				<br>
 				The first argument <span class="code">who</span> is the position in your party of the hero you want

@@ -188,7 +188,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-09-13">
+<plotscript version="wip" datecode="2022-10-14">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -4111,17 +4111,25 @@ fade screen in</example>
 					Modifying the max will always modify the other by the same amount.
 				</note>
 				<note>
-					If you want to increase or decrease a stat by a certain amount, just use <ref>gainherostat</ref>.
+					Modifying a hero's HP will turn on or off the hero's Is Alive tag as needed,
+					but will not trigger a game over if all the heroes have zero HP.
+				</note>
+				<note>
+					If you want to permanently increase or decrease the max and base of a stat just use <ref>gainherostat</ref>.
 				</note>
 			</description>
 			<example># Use this script to reset a stat to its max value
 script, reset stat, hero slot, stat, begin
   set hero stat(hero slot, stat, get hero stat(hero slot, stat, maximum stat), current stat) 
 end</example>
-			<example># Use this script to permanently increase (or decrease, if amount is negative) a stat, without violating stat caps
+			<example># Increase (or decrease, if amount is negative) the current value
+# of a stat (so, make a temporary change) without violating stat caps or going below zero.
+# You can use the "gain hero stat" command instead to make a permanent change.
 script, adjust stat, hero slot, stat, amount, begin 
-  set capped hero stat(hero slot, stat, get hero stat(hero slot, stat, current stat) + amount, current stat) 
-  set hero stat(hero slot, stat, get hero stat(hero slot, stat, base stat) + amount, base stat) 
+  variable (value)
+  value := get hero stat(hero slot, stat, current stat) + amount
+  if (value &lt; 0) then (value := 0)
+  set capped hero stat(hero slot, stat, value, current stat)
 end</example>
 			<seealso>
 				<ref>gainherostat</ref>
@@ -4136,7 +4144,7 @@ end</example>
 			<canon>gain hero stat (who, stat, amount, reset to max)</canon>
 			<shortname>gain hero stat</shortname>
 			<description>
-				Increase or decrease one of a hero's stats.
+				Permanently increase or decrease one of a hero's stats.
 				The base, maximum and current value of the stat are all changed, consistently.
 				<lb/>
 				The first argument <tt>who</tt> is the position in your party of the hero you want
