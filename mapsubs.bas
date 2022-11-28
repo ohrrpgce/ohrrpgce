@@ -1093,11 +1093,14 @@ DO
    END IF
    'zones not deleted
  END IF
- IF keyval(scCtrl) > 0 ANDALSO keyval(scH) > 1 THEN 'Ctrl+H for hero start position
-  gen(genStartMap) = st.map.id
-  gen(genStartX) = st.x
-  gen(genStartY) = st.y
-  st.show_hero = YES  'Got to see what you just did
+ IF keyval(scCtrl) > 0 ANDALSO keyval(scH) > 1 THEN
+  'Ctrl+H for hero start position
+  IF yesno("Move the hero start location to " & st.x & "," & st.y & " on map " & st.map.id & "?", NO, NO) THEN
+   gen(genStartMap) = st.map.id
+   gen(genStartX) = st.x
+   gen(genStartY) = st.y
+   st.show_hero = YES  'Got to see what you just did
+  END IF
  END IF
  IF keyval(scCtrl) > 0 ANDALSO keyval(scD) > 1 THEN st.defpass XOR= YES
  IF keyval(scCtrl) > 0 ANDALSO keyval(scG) > 1 THEN st.show_grid XOR= YES
