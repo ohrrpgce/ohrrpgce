@@ -8604,8 +8604,12 @@ SUB write_game_config (key as zstring ptr, value as double)
 END SUB
 
 SUB init_battle_menu (menu as MenuDef, byval menu_id as integer=-1)
- IF menu_id = -1 THEN
-  'Create the default
+ IF menu_id > gen(genMaxMenu) THEN
+  debug "Bad battle menu " & menu_id
+  menu_id = -1
+ END IF
+ IF menu_id < 0 THEN
+  'Default hero battle menu
   ClearMenuData menu
   WITH menu
    .offset.x = -8

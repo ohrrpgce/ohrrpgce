@@ -1657,7 +1657,7 @@ SUB battleoptionsmenu ()
   max(28) = provokeLAST
   min(28) = 1  ' Can't select 'Default'
   index(29) = genDefaultBattleMenu
-  max(29) = gen(genMaxMenu) + 1
+  max(29) = gen(genMaxMenu)
   min(29) = 0
 
   generate_battlesystem_menu menu(), enabled(), greyout()
