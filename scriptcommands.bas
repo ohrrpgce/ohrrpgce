@@ -34,6 +34,7 @@ DECLARE FUNCTION get_door_on_map(byref thisdoor as Door, byval door_id as intege
 DECLARE FUNCTION allow_gmap_idx(gmap_idx as integer) as bool
 DECLARE FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2) as integer
 DECLARE SUB replace_sprite_plotslice(byval slice_argno as integer, byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2)
+DECLARE FUNCTION get_enemy_sprite_size(index as integer) as XYPair
 
 ''''' Global variables
 
@@ -2223,11 +2224,7 @@ SUB script_commands(byval cmdid as integer)
     IF form.slots(retvals(4)).id = -1 THEN slot = retvals(4)
    END IF
    IF slot >= 0 THEN
-    DIM szindex as integer = ReadShort(tmpdir & "dt1.tmp", retvals(1) * getbinsize(binDT1) + 111) 'picture size
-    DIM size as XYPair
-    IF szindex = 0 THEN size = XY(34, 34)
-    IF szindex = 1 THEN size = XY(50, 50)
-    IF szindex = 2 THEN size = XY(80, 80)
+    DIM size as XYPair = get_enemy_sprite_size(retvals(1))
     WITH form.slots(slot)
      .id = retvals(1)
      ' Convert to top-left coord
@@ -2279,12 +2276,8 @@ SUB script_commands(byval cmdid as integer)
    scriptret = form.slots(retvals(1)).pos.n(cmdid - 312)
    'now find the position of the bottom center of the enemy sprite
    IF enemy_id >= 0 THEN
-    DIM pictype as integer = ReadShort(tmpdir & "dt1.tmp", enemy_id * getbinsize(binDT1) + 111) 'picture size
-    DIM picsize as integer
-    IF pictype = 0 THEN picsize = 34
-    IF pictype = 1 THEN picsize = 50
-    IF pictype = 2 THEN picsize = 80
-    IF cmdid = 312 THEN scriptret += picsize \ 2 ELSE scriptret += picsize
+    DIM size as XYPair = get_enemy_sprite_size(enemy_id)
+    IF cmdid = 312 THEN scriptret += size.x \ 2 ELSE scriptret += size.y
    END IF
   END IF
  CASE 314'--set formation background (formation, background, animation frames, animation ticks)
@@ -6065,4 +6058,14 @@ FUNCTION allow_gmap_idx(gmap_idx as integer) as bool
   CASE 378:       RETURN YES
  END SELECT
  RETURN NO
+END FUNCTION
+
+FUNCTION get_enemy_sprite_size(index as integer) as XYPair
+ DIM szindex as integer = ReadShort(tmpdir & "dt1.tmp", index * getbinsize(binDT1) + 111) 'picture size
+ DIM sprset as integer = ReadShort(tmpdir & "dt1.tmp", index * getbinsize(binDT1) + 107) 'sprite set
+ DIM spr as Frame ptr = frame_load(sprTypeSmallEnemy + szindex, sprset)
+ DIM size as XYPair
+ IF spr THEN size = spr->Size
+ frame_unload @spr
+ RETURN size
 END FUNCTION

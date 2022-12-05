@@ -190,6 +190,8 @@ WHAT IS NEW?
     * Fix the Mac app bundles exported from the Distribute Game menu on Windows
       [James]
     * Debian packages were missing the Plotscripting Dictionary [Ralph]
+    * "add enemy to formation", "formation slot x/y" didn't use the real bottom-
+      center of enemy sprites which were not default-sized [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license
