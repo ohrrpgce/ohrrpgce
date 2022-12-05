@@ -35,4 +35,8 @@ In newly created games you normally wouldn't change any of these bitsets. When s
 
 "Non-turn attack delays can also cause turn delays" (turn-based battles only) emulates bug #1118, where non-blocking attacks with an attack delay (not a turn delay) could would get delayed to a future round. Normally the attack delay causes attacks to get delayed until the end of the current turn only.
 
+{{prefbit_320x200_battle_display}}
+(This bit also appears in the Battle Preference Bits menu.)
+
 "Use old direction key tiebreaking" is turned on automatically to keep the "fake parallax" script, and other uses of the "hero will move" script working in existing games by disabling the improved handling in Ichorescent when you press multiple direction keys at once. It's turned on automatically if you have a script called "trying to move direction".
+

@@ -266,3 +266,17 @@ FUNCTION attack_placement_over_targetpos(attack as AttackData, targpos as XYZTri
  zt += targpos.z
  RETURN TYPE<XYZTriple>(xt, yt, zt)
 END FUNCTION
+
+'The size of the battlefield_sl slice, normally 320x200 (for now)
+FUNCTION get_battlefield_size() as XYPair
+ RETURN small(XY(320, 200), XY(gen(genResolutionX), gen(genResolutionY)))
+END FUNCTION
+
+'The (max) size of the battle backdrop - equal to the resolution except in backcompat mode
+FUNCTION get_battle_res() as XYPair
+ IF prefbit(56) THEN '"!Battles display at 320x200" off
+  RETURN XY(gen(genResolutionX), gen(genResolutionY))
+ ELSE
+  RETURN get_battlefield_size()
+ END IF
+END FUNCTION

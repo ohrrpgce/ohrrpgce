@@ -8612,10 +8612,14 @@ SUB init_battle_menu (menu as MenuDef, byval menu_id as integer=-1)
   'Default hero battle menu
   ClearMenuData menu
   WITH menu
-   .offset.x = -8
-   .offset.y = 5
-   .alignhoriz = alignRight
-   .alignvert = alignTop
+   'If the resolution is <= 320x200 the default menu is placed as if the align
+   'point were -8,+5 from Top-Right, otherwise it's positioned relative to the
+   'center, next to the HP/ready bars.
+   '(Have to use center-alignment because we might draw to a compatpage.)
+   .offset.x = small(320, gen(genResolutionX)) \ 2 - 8
+   .offset.y = -small(200, gen(genResolutionY)) \ 2 + 5
+   .alignhoriz = alignCenter
+   .alignvert = alignCenter
    .anchorhoriz = alignRight
    .anchorvert = alignTop
    .textalign = alignLeft

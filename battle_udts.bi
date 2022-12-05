@@ -322,6 +322,7 @@ END TYPE
 'who's turn it is, what each character is doing, and targetting information
 TYPE BattleState
  root_sl as Slice ptr
+ view_sl as Slice ptr  'Parent for everything affected by "Battles display at 320x200"
  battlefield_sl as Slice ptr  'BattleSprite slices are parented to this
 
  turn as TurnManager

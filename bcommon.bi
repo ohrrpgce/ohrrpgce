@@ -15,4 +15,7 @@ DECLARE FUNCTION describe_formation_by_id (byval form_id as integer) as string
 
 DECLARE FUNCTION attack_placement_over_targetpos(attack as AttackData, targpos as XYZTriple, targsize as XYPair, targ_is_acting_hero as bool=NO, byval reverse as integer=0) as XYZTriple
 
+DECLARE FUNCTION get_battlefield_size() as XYPair
+DECLARE FUNCTION get_battle_res() as XYPair
+
 #ENDIF

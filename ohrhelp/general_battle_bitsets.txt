@@ -14,6 +14,9 @@ Note that there are more bitsets which affect things like stats and hero experie
 
 "Never show script timers during battles" prevents timers (see "set timer" command) from displaying during battle; they will countdown normally.
 
+{{prefbit_320x200_battle_display}}
+(This bit also appears in the Backwards-Compatibility menu.)
+
  General Options
 
 "0 damage when immune to attack elements" allows elemental attacks to do zero damage if the target takes 0% damage from that element. Normally you would have to to set the "Allow zero damage" bit on the attack to do less than 1 point of damage.

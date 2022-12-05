@@ -73,6 +73,11 @@ WHAT IS NEW?
       add a column for time each script spends on one command [Ralph]
     * Number of script strings increased from 100 to 256 (IDs 0-255)
     * Attacks can directly spawn an enemy (if there is room) [James]
+    * "Battles display at 320x200" battle/backcompat bit (default on) which you
+      can turn off to make battles run at a higher resolution. Everything
+      including enemies, the backdrop, and all the battle UI and menus will
+      remain in the same place, but not clipped to 320x200. However there may be
+      graphical glitches when attacks/attackers move on/off-screen. [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

@@ -44,15 +44,16 @@ DECLARE SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState,
 DECLARE SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
 DECLARE SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
 DECLARE SUB update_battle_slices(bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB update_battlesprite_slices(bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
-DECLARE SUB draw_damage_text(bslot() as BattleSprite, page as integer)
+DECLARE SUB draw_damage_text(bslot() as BattleSprite, battlefield_sl as Slice ptr, page as integer)
 DECLARE FUNCTION battle_time_can_pass(byref bat as BattleState) as bool
 DECLARE FUNCTION battle_meters_can_advance(byref bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE SUB battle_crappy_run_handler(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata as Formation, page as integer)
 DECLARE SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
-DECLARE SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, page as integer)
+DECLARE SUB battle_display_menus (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, page as integer)
 DECLARE SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB player_attack_targetting_done(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
@@ -111,7 +112,7 @@ DECLARE FUNCTION find_attack_in_spell_menu(byval seek_atk_id as integer, bat as 
 DECLARE FUNCTION items_menu_is_usable(bspr as BattleSprite) as bool
 DECLARE SUB remove_auto_added_skip_turn_from_battle_menu (bspr as BattleSprite)
 DECLARE SUB auto_add_skip_turn_to_battle_menu (bspr as BattleSprite)
-DECLARE FUNCTION create_default_battle_ui_layer() as Slice Ptr
+DECLARE SUB create_default_battle_ui_layer(parent as Slice ptr)
 DECLARE FUNCTION create_default_battle_ready_area() as Slice Ptr
 DECLARE FUNCTION create_default_battle_hp_area() as Slice Ptr
 DECLARE FUNCTION create_default_battle_caption_area () as Slice Ptr
@@ -172,7 +173,6 @@ FUNCTION battle (byval form as integer) as bool
  lastformation = form
 
  battle_init bat, bslot()
- DIM page as integer = compatpage()
 
  'fade to near white
  fadeout uilook(uiFadeoutEnterBattle)
@@ -265,31 +265,33 @@ FUNCTION battle (byval form as integer) as bool
 
   '-------------------- Draw the screen --------------------
 
-  'compatpage is a view onto vpage, but vpage might change, so recreate every tick
-  freepage page
-  page = compatpage()
+  'Slices, the battle menu and debug displays are drawn to vpage, while for now
+  'we continue to draw the unslicified submenus to a compatpage: uipage.
+  'Most slicified UI is parented to SL_BATTLE_UI_LAYER, which covers the same
+  'part of the screen as uipage (and it clips too).
+  'Likewise viewpage covers the same area as bat.view_sl.
+
+  'compatpage produces a view onto vpage, but vpage might change, so recreate every tick
+  DIM as integer uipage, viewpage
+  uipage = compatpage()
+  IF prefbit(56) THEN  '"!Battles display at 320x200" off
+   viewpage = vpage
+  ELSE
+   viewpage = uipage
+  END IF
 
   clearpage vpage
-  '--display the backdrop and BattleSprites
-  UpdateRootSliceSize bat.root_sl, page  'Match size of page, not vpage
   update_battle_slices bat, bslot()
-  update_battle_ui_slices bat, bslot()
-  DrawSlice bat.root_sl, page
+  DrawSlice bat.root_sl, vpage
   'Not converted to slices yet
-  draw_damage_text bslot(), page
+  draw_damage_text bslot(), bat.battlefield_sl, vpage
 
-  '--display menus and meters
-  battle_display bat, bslot(), st(), page
-  
+  '--Display toplevel battle (drawn to vpage, not uipage), item, spells menus
+  battle_display_menus bat, bslot(), st(), uipage
+
   IF bat.vic.state = vicEXITDELAY THEN bat.vic.state = vicEXIT
-  IF bat.vic.state > vicNONE THEN show_victory bat, bslot(), page
-  
-  IF bat.show_info_mode = 1 THEN
-   show_enemy_meters bat, bslot(), formdata, page
-  ELSEIF bat.show_info_mode = 2 THEN
-   display_attack_queue bslot()
-  END IF
-  
+  IF bat.vic.state > vicNONE THEN show_victory bat, bslot(), uipage
+
   IF bat.death_mode = deathENEMIES AND bat.vic.state = vicNONE THEN
    IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory bat, bslot()
   END IF
@@ -309,20 +311,29 @@ FUNCTION battle (byval form as integer) as bool
    EXIT DO
   END IF
 
-  ' Display CANNOT RUN message (attack captions are drawn in battle_display!)
+  ' Display CANNOT RUN message (attack captions are drawn in battle_display_menus!)
   IF bat.alert_ticks > 0 THEN
    bat.alert_ticks -= 1
-   centerfuz rCenter, rBottom - 10, textwidth(bat.alert) + 16, 16, 3, page
-   edgeprint bat.alert, pCentered, rBottom - 15, uilook(uiSelectedItem + bat.tog), page
+   centerfuz rCenter, rBottom - 10, textwidth(bat.alert) + 16, 16, 3, viewpage
+   edgeprint bat.alert, pCentered, rBottom - 15, uilook(uiSelectedItem + bat.tog), viewpage
   END IF
  
   IF dotimerbattle THEN
    result = NO
    EXIT DO
   END IF
- 
-  show_first_battle_timer(page)
 
+  show_first_battle_timer(viewpage)
+
+  'Debug displays
+  IF gam.debug_showtags THEN tagdisplay vpage
+  IF bat.show_info_mode = 1 THEN
+   show_enemy_meters bat, bslot(), formdata, vpage
+  ELSEIF bat.show_info_mode = 2 THEN
+   display_attack_queue bslot()
+  END IF
+
+  freepage uipage
   setvispage vpage
   check_for_queued_fade_in
   bat.ticks += 1
@@ -330,7 +341,6 @@ FUNCTION battle (byval form as integer) as bool
  LOOP
 
  battle_cleanup bat, bslot(), result
- freepage page
  evalherotags
  evalitemtags
  IF formdata.victory_tag THEN
@@ -1094,10 +1104,11 @@ SUB update_stat_meter(bat as BattleState, byref meter as double, length as integ
  END IF
 END SUB
 
-SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, page as integer)
+SUB battle_display_menus (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, page as integer)
  'display:
  'This sub historically draws the user-interface, and still handles some parts of it
- 'FIXME: It will be removed piece by piece
+ 'TODO: It will be removed piece by piece
+ 'NOTE: draws to vpage as well as page
  DIM i as integer
  DIM col as integer
  DIM bgcol as integer
@@ -1110,7 +1121,8 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
 
    WITH bslot(bat.player_turn)
     .menust.active = (bat.menu_mode = batMENUHERO)
-    draw_menu .batmenu, .menust, page
+    'Draw to vpage rather than page so as to never clip. The menu is always aligned to the screen center
+    draw_menu .batmenu, .menust, vpage
    END WITH
    IF bat.menu_mode = batMENUSPELL THEN '--draw spell menu
     edgeboxstyle 5, 6, 310, 95, 0, page
@@ -1173,7 +1185,6 @@ SUB battle_display (byref bat as BattleState, bslot() as BattleSprite, st() as H
    END IF
   END IF
  END IF'--end if bat.vic.state = vicNONE
- IF gam.debug_showtags THEN tagdisplay page
 END SUB
 
 SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -1449,15 +1460,30 @@ END SUB
 SUB setup_battle_slices(byref bat as BattleState)
  WITH bat
   .root_sl = NewSliceOfType(slContainer)
-  'root_sl not set to Fill because it should fill the page, not the screen slice
-  '(UpdateRootSliceSize called instead)
+  .root_sl->Fill = YES
 
-  .backdrop_sl = NewSliceOfType(slSprite, .root_sl)
+  'Parent for everything affected by "Battles display at 320x200".
+  'Its size is setup by update_battle_slices (supports changing things while testing game!)
+  .view_sl = NewSliceOfType(slContainer, .root_sl)
+  .view_sl->Clip = YES
+  CenterSlice .view_sl
+
+  .backdrop_sl = NewSliceOfType(slSprite, .view_sl)
   CenterSlice .backdrop_sl
-  .battlefield_sl = NewSliceOfType(slContainer, .root_sl)
-  .battlefield_sl->Fill = YES
+  .battlefield_sl = NewSliceOfType(slContainer, .view_sl)
+  'Coordinates (of BattleSprites, cursors, damage digits) are relative to battlefield_sl.
+  'For now, battlefield_sl is positioned as if it is 320x200 (or smaller) centered
+  'on the screen. This is to avoid breaking attack/attacker animations if the resolution
+  'is increased only a bit. (It also avoids needing to offset battle formation coords.)
+  .battlefield_sl->Size = get_battlefield_size()
+  CenterSlice .battlefield_sl
+
   '.battlefield_sl->AutoSort = slAutoSortBottomY
   .battlefield_sl->AutoSort = slAutoSortCustom
+
+  ' Battle UI layer for hero HUD and captions (not menus).
+  ' Parented directly to root because it shouldn't be clipped to .view_sl
+  create_default_battle_ui_layer(.root_sl)
  END WITH
 END SUB
 
@@ -1481,7 +1507,22 @@ SUB setup_enemy_slice(byref bspr as BattleSprite, bat as BattleState, keep_exist
  END WITH
 END SUB
 
+' Update all slices
 SUB update_battle_slices(bat as BattleState, bslot() as BattleSprite)
+ 'This prefbit might change due to live-editing!
+ IF prefbit(56) THEN '"!Battles display at 320x200" off
+  bat.view_sl->Fill = YES
+ ELSE
+  bat.view_sl->Fill = NO
+  bat.view_sl->Size = get_battle_res()  '320x200 or smaller
+  'bat.view_sl->ClampHoriz = alignLeft  'Shouldn't be needed
+  'bat.view_sl->ClampVert = alignTop
+ END IF
+ update_battlesprite_slices bat, bslot()
+ update_battle_ui_slices bat, bslot()
+END SUB
+
+SUB update_battlesprite_slices(bat as BattleState, bslot() as BattleSprite)
  FOR i as integer = 0 TO 24
   WITH bslot(i)
    IF .sl = NULL THEN CONTINUE FOR  'Empty slot
@@ -1511,7 +1552,7 @@ SUB update_battle_slices(bat as BattleState, bslot() as BattleSprite)
    ELSE
     .sl->Visible = NO
    END IF
-   
+
    IF .hidden THEN
     .sl->Visible = NO
    END IF
@@ -1524,14 +1565,11 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
  STATIC last_warning as double=0.0
  DIM warnings as string = ""
 
- '--Create the UI layer if it does not exist yet
  DIM ui_layer as Slice Ptr
  ui_layer = LookupSlice(SL_BATTLE_UI_LAYER, bat.root_sl)
- IF ui_layer = 0 THEN
-  ' Creating battle UI layer
-  ui_layer = create_default_battle_ui_layer()
-  SetSliceParent ui_layer, bat.root_sl
- END IF 
+ IF ui_layer = 0 THEN  '--Should never happen
+  warnings &= !"SL_BATTLE_UI_LAYER not found\n"
+ END IF
 
  '--Update hero info areas, which repeat in a grid for each hero
  DIM area as Slice Ptr = 0
@@ -1651,9 +1689,7 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
  LOOP
  
  '--Update UI layer visibility
- ui_layer->Visible = YES
- 
- IF bat.vic.state <> vicNONE THEN ui_layer->Visible = NO
+ ui_layer->Visible = (bat.vic.state = vicNONE)
  
  IF warnings <> "" ANDALSO (last_warning = 0.0 ORELSE TIMER - last_warning > 600.0) THEN
   'Only bother to log warnings if we haven't logged them for the past 10 minutes
@@ -1890,9 +1926,12 @@ SUB ExpandTextBattleSprite (code as string, result as string, byval arg0 as ANY 
  END WITH 
 END SUB
 
-FUNCTION create_default_battle_ui_layer() as Slice Ptr
- DIM layer as Slice Ptr = NewSliceOfType(slContainer, ,SL_BATTLE_UI_LAYER)
- layer->Fill = YES
+SUB create_default_battle_ui_layer(parent as Slice ptr)
+ DIM layer as Slice Ptr = NewSliceOfType(slContainer, parent, SL_BATTLE_UI_LAYER)
+ 'For now, restrict to central 320x200 (or smaller) of screen
+ layer->Size = small(XY(320, 200), XY(gen(genResolutionX), gen(genResolutionY))) ' == get_battlefield_size()
+ CenterSlice layer
+
  DIM area as Slice Ptr
  area = create_default_battle_ready_area()
  SetSliceParent area, layer
@@ -1906,8 +1945,7 @@ FUNCTION create_default_battle_ui_layer() as Slice Ptr
  SetSliceParent area, layer
  area = create_default_targetting_overlay_area()
  SetSliceParent area, layer
- RETURN layer
-END FUNCTION
+END SUB
 
 FUNCTION create_default_battle_ready_area() as Slice Ptr
  DIM area as Slice Ptr = NewSliceOfType(slGrid, , SL_BATTLE_HERO_INFO_AREA)
@@ -2099,17 +2137,17 @@ FUNCTION create_default_targ_hover_overlay_area () as Slice Ptr
  RETURN layer
 END FUNCTION
 
-SUB draw_damage_text(bslot() as BattleSprite, page as integer)
+SUB draw_damage_text(bslot() as BattleSprite, battlefield_sl as Slice ptr, page as integer)
  FOR i as integer = 0 TO 11
   WITH bslot(i).harm
    IF .ticks > 0 THEN
+    DIM pos as XYPair = battlefield_sl->ScreenPos + .pos
     DIM harm_text_offset as integer
-    IF gen(genDamageDisplayTicks) <> 0 THEN
-     harm_text_offset = gen(genDamageDisplayRise) / gen(genDamageDisplayTicks) * (gen(genDamageDisplayTicks) - .ticks)
-    ELSE
-     harm_text_offset = 0 'Avoid div by zero (which shouldn't be possible anyway)
+    DIM numticks as integer = gen(genDamageDisplayTicks)
+    IF numticks <> 0 THEN  'numticks=0 shouldn't be possible anyway
+     pos.y -= gen(genDamageDisplayRise) * ((numticks - .ticks) / numticks)
     END IF
-    edgeprint .text, .pos.x + ancCenter, .pos.y - harm_text_offset, .col, page
+    edgeprint .text, pos.x + ancCenter, pos.y, .col, page
     .ticks -= 1
     IF .ticks = 0 THEN .col = uilook(uiBattleDamage) 'reset color when the timer finishes
    END IF
@@ -2700,8 +2738,6 @@ SUB reset_battle_state (byref bat as BattleState)
 
   setup_battle_slices bat
 
-  .ticks = 0
-
   WITH .inv_scroll
    .first = 0
    .last = INT(last_inv_slot() / 3)
@@ -2716,6 +2752,7 @@ SUB reset_battle_state (byref bat as BattleState)
 
   .anim_ready = NO
   .wait_frames = 0
+  .ticks = 0
 
   .level_mp_caption = readglobalstring(160, "Level MP", 20)
   .cancel_spell_caption = readglobalstring(51, "(CANCEL)", 10)
@@ -3779,7 +3816,7 @@ FUNCTION find_attack_in_spell_menu(byval seek_atk_id as integer, bat as BattleSt
 END FUNCTION
 
 'Handle player controls while a spell menu is open.
-'The menu is setup in init_spell_menu and actually drawn in battle_display.
+'The menu is setup in init_spell_menu and actually drawn in battle_display_menus.
 SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprite)
  
  DIM do_pick as bool = NO
@@ -3908,7 +3945,7 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
 END SUB
 
 'Handle player controls while the items menu is open.
-'The menu is setup in init_spell_menu and actually drawn in battle_display.
+'The menu is setup in heromenu and actually drawn in battle_display_menus.
 SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
 
  DIM do_pick as bool = NO

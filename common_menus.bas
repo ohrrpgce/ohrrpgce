@@ -327,6 +327,9 @@ SUB edit_battle_bitsets()
  a_append bits(), 49, "Show MP meter"
  a_append bits(), 14, "Disable hero cursor"
  a_append bits(), 38, "Never show script timers during battles"
+ IF gen(genResolutionX) > 320 ORELSE gen(genResolutionY) > 200 THEN
+  a_append bits(), 56, "!Battles display at 320x200"
+ END IF
 
  a_append bits(), -1, ""
  a_append bits(), -1, " General Options"
