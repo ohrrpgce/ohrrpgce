@@ -29,6 +29,7 @@ DECLARE SUB formation_set_editor_load_preview(state as MenuState, form_id as int
 
 ' Formation editor slice lookup codes
 CONST SL_FORMEDITOR_BACKDROP = 100
+CONST SL_FORMEDITOR_BATTLEFIELD = 101
 CONST SL_FORMEDITOR_ENEMY = 200  '+0 to +7 for 8 slots
 CONST SL_FORMEDITOR_LAST_ENEMY = 299  'End of range indicating an enemy slot
 CONST SL_FORMEDITOR_CURSOR = 300
@@ -753,36 +754,48 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
  DIM sl as Slice ptr
  DeleteSlice rootslice
 
- ' Root is backdrop
+ ' Root
+ sl = NewSliceOfType(slContainer)
+ *rootslice = sl
+ sl->Size = get_battle_res()
+ sl->Clip = YES  'Trim off parts of the backdrop that are too large
+ 'In the form editor, show the formation at the bottom-right corner of the screen
+ RealignSlice sl, alignRight, alignBottom, alignRight, alignBottom
+ sl->ClampHoriz = alignLeft
+ sl->ClampVert = alignTop
+
+ ' Battlefield
+ DIM battlefield_sl as Slice ptr = NewSliceOfType(slContainer, sl)
+ battlefield_sl->Lookup = SL_FORMEDITOR_BATTLEFIELD
+ battlefield_sl->Size = get_battlefield_size()
+ CenterSlice battlefield_sl
+
+ ' Backdrop
  IF form.background < 0 THEN
-  'Used by FormationPreviewer when previewing a hero formation: show a backdrop
-  sl = NewSliceOfType(slRectangle)
-  sl->Size = XY(320, 200)  'TODO: update when battle resolution can be increased
+  'Used by FormationPreviewer when previewing a hero formation: blank background
+  sl = NewSliceOfType(slRectangle, battlefield_sl)
   ChangeRectangleSlice sl, 0, , , borderLine, transOpaque
+  sl->Fill = YES
  ELSE
-  sl = NewSliceOfType(slSprite)
+  sl = NewSliceOfType(slSprite, battlefield_sl)
   ChangeSpriteSlice sl, sprTypeBackdrop, form.background
  END IF
  sl->Lookup = SL_FORMEDITOR_BACKDROP
  'sl->AutoSort = slAutoSortBottomY
  sl->AutoSort = slAutoSortCustom
- RealignSlice sl, alignRight, alignBottom, alignRight, alignBottom
- sl->ClampHoriz = alignLeft
- sl->ClampVert = alignTop
-
- *rootslice = sl
+ CenterSlice sl
 
  ' Heroes
  FOR i as integer = 0 TO 3
   IF hero_placeholder_sprites(i) = -1 THEN
    ' Use a rectangle
-   sl = NewSliceOfType(slRectangle, *rootslice)
+   sl = NewSliceOfType(slRectangle, battlefield_sl)
    ChangeRectangleSlice sl, , boxlook(0).bgcol, boxlook(0).edgecol, , transFuzzy, 75
    sl->Width = 32
    sl->Height = 40
   ELSE
    ' Use a hero sprite
-   sl = NewSliceOfType(slSprite, *rootslice)
+   sl = NewSliceOfType(slSprite, battlefield_sl)
    ChangeSpriteSlice sl, sprTypeHero, bound(hero_placeholder_sprites(i), 0, gen(genMaxHeroPic))
   END IF
   sl->Lookup = SL_FORMEDITOR_HERO + i
@@ -804,7 +817,7 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
    loadenemydata enemy, form.slots(i).id
    WITH enemy
     ename(i) = form.slots(i).id & ":" & .name
-    sl = NewSliceOfType(slSprite, *rootslice)
+    sl = NewSliceOfType(slSprite, battlefield_sl)
     ChangeSpriteSlice sl, sprTypeSmallEnemy + bound(.size, 0, 2), .pic, .pal
     sl->Lookup = SL_FORMEDITOR_ENEMY + i
    END WITH
@@ -812,7 +825,7 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
  NEXT i
 
  ' Cursor (defaults to invisible)
- sl = NewSliceOfType(slText, *rootslice)
+ sl = NewSliceOfType(slText, battlefield_sl)
  sl->AlignHoriz = alignCenter
  sl->AnchorHoriz = alignCenter
  sl->Lookup = SL_FORMEDITOR_CURSOR
@@ -830,7 +843,7 @@ SUB draw_formation_slices(eform as Formation, hform as HeroFormation, rootslice 
  cursorsl->Visible = NO
 
  ' Set enemy positions (and maybe parent of cursor slice)
- DIM sl as Slice ptr = rootslice->FirstChild
+ DIM sl as Slice ptr = LookupSliceSafe(SL_FORMEDITOR_BATTLEFIELD, rootslice)->FirstChild
  WHILE sl
   IF sl->Lookup >= SL_FORMEDITOR_ENEMY AND sl->Lookup <= SL_FORMEDITOR_LAST_ENEMY THEN
    'Is an enemy
