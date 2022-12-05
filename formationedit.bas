@@ -769,6 +769,8 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
  battlefield_sl->Lookup = SL_FORMEDITOR_BATTLEFIELD
  battlefield_sl->Size = get_battlefield_size()
  CenterSlice battlefield_sl
+ 'battlefield_sl->AutoSort = slAutoSortBottomY
+ battlefield_sl->AutoSort = slAutoSortCustom
 
  ' Backdrop
  IF form.background < 0 THEN
@@ -781,8 +783,6 @@ SUB load_formation_slices(ename() as string, form as Formation, rootslice as Sli
   ChangeSpriteSlice sl, sprTypeBackdrop, form.background
  END IF
  sl->Lookup = SL_FORMEDITOR_BACKDROP
- 'sl->AutoSort = slAutoSortBottomY
- sl->AutoSort = slAutoSortCustom
  CenterSlice sl
 
  ' Heroes
