@@ -697,9 +697,17 @@ DECLARE OPERATOR - (lhs as RectType, rhs as XYPair) as RectType
 DECLARE OPERATOR * (lhs as RectType, rhs as integer) as RectType
 
 'Specify opposite points instead of width and height
+'NOTE: p1 and p2 don't have to be the topleft/bottomright, some code
+'might accept other opposite corners.
 TYPE RectPoints
-  p1 as XYPair
-  p2 as XYPair
+  UNION
+    p1 as XYPair
+    topleft as XYPair
+  END UNION
+  UNION
+    p2 as XYPair
+    bottomright as XYPair
+  END UNION
 END TYPE
 
 'Used for menu and slice anchor points and slice align points

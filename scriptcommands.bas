@@ -24,6 +24,7 @@
 #include "menustuf.bi"
 #include "bmod.bi"
 #include "bmodsubs.bi"
+#include "bcommon.bi"
 
 ''''' Local functions
 DECLARE SUB run_game ()
@@ -2232,12 +2233,11 @@ SUB script_commands(byval cmdid as integer)
      ' Convert to top-left coord
      .pos.x = retvals(2) - size.w \ 2
      .pos.y = retvals(3) - size.h
-     ' These are the same limits as used in the formation editor
-     ' FIXME: battles are still stuck at 320x200 for the moment, but switch to this later
-     ' .pos.x = bound(.pos.x, -size.w\2, get_resolution().w - size.w\2)
-     ' .pos.y = bound(.pos.y, -size.h\2, get_resolution().h - size.h\2)
-     .pos.x = bound(.pos.x, -size.w\2, 320 - size.w\2)
-     .pos.y = bound(.pos.y, -size.h\2, 200 - size.h\2)
+     ' These are the same limits as used in the formation editors;
+     ' they allow placing an enemy anywhere onscreen (or just off).
+     ' Note: 0,0 is not necessarily the top-left of the screen
+     DIM bounds as RectPoints = get_formation_bounds()
+     .pos = bound(.pos, bounds.topleft - size, bounds.bottomright)
     END WITH
    END IF
    SaveFormation form, retvals(0)

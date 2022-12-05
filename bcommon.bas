@@ -280,3 +280,14 @@ FUNCTION get_battle_res() as XYPair
   RETURN get_battlefield_size()
  END IF
 END FUNCTION
+
+'The valid bounds for enemy/hero formation coords, not including the sprite size
+'Coords are relative to the top-left of battlefield_sl.
+FUNCTION get_formation_bounds() as RectPoints
+ DIM screensz as XYPair = get_battle_res()
+ DIM battlefieldsz as XYPair = get_battlefield_size()
+ DIM ret as RectPoints
+ ret.topleft = -(screensz - battlefieldsz) \ 2
+ ret.bottomright = screensz + ret.topleft
+ RETURN ret
+END FUNCTION

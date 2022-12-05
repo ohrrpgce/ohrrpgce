@@ -499,7 +499,7 @@ END FUNCTION
 
 FUNCTION bound (point as XYPair, lefttop as XYPair, rightbottom as XYPair) as XYPair
  DIM ret as XYPair = any
- ret.x = IIF(point.x > rightbottom.x, rightbottom.x, IIF(point.y < lefttop.x, lefttop.x, point.x))
+ ret.x = IIF(point.x > rightbottom.x, rightbottom.x, IIF(point.x < lefttop.x, lefttop.x, point.x))
  ret.y = IIF(point.y > rightbottom.y, rightbottom.y, IIF(point.y < lefttop.y, lefttop.y, point.y))
  RETURN ret
 END FUNCTION

@@ -332,9 +332,9 @@ SUB hero_formation_editor ()
     IF readmouse.dragging AND mouseLeft THEN
      .pos += (readmouse.pos - readmouse.lastpos)
     END IF
-    'Hero positions are the bottom center of the sprite
-    .pos.x = bound(.pos.x, -500, gen(genResolutionX) + 500)
-    .pos.y = bound(.pos.y, -500, gen(genResolutionY) + 500)
+    'Hero positions are the bottom center of the sprite. Generous bounds.
+    DIM bounds as RectPoints = get_formation_bounds()
+    .pos = bound(.pos, bounds.topleft - 100, bounds.bottomright + 100)
    END WITH
   END IF
   IF positioning_mode = NO THEN
@@ -560,11 +560,10 @@ SUB FormationEditor.each_tick_positioning_mode()
   IF readmouse.dragging AND mouseLeft THEN
    .pos += (readmouse.pos - readmouse.lastpos)
   END IF
-  ' FIXME: battles are still stuck at 320x200 for the moment, but switch to this later
-  ' .pos.x = bound(.pos.x, -size.w\2, gen(genResolutionX) - size.w\2)
-  ' .pos.y = bound(.pos.y, -size.h\2, gen(genResolutionY) - size.h\2)
-  .pos.x = bound(.pos.x, -size.w\2, 320 - size.w\2)
-  .pos.y = bound(.pos.y, -size.h\2, 200 - size.h\2)
+
+  ' Allow placing an enemy anywhere onscreen (or just off), not just inside the 'battlefield'
+  DIM bounds as RectPoints = get_formation_bounds()
+  .pos = bound(.pos, bounds.topleft - size, bounds.bottomright)
  END WITH
 END SUB
 

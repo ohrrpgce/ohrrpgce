@@ -4687,9 +4687,9 @@ end</example>
 			<description>
 				Adds an enemy with given <p>enemy id</p>
 				(use the constants of the form <p>enemy:name</p> in your exported .hsi file) to the specified <p>formation</p>.
-				<p>x</p> (0 to 320) and <p>y</p> (from roughly 17 to 240, depending on enemy size)
-				give the position of the center of the bottom edge of the enemy
-				- approximately where it appears to stand.
+				give the position of the center of the bottom edge of the enemy (approximately where it appears to stand),
+				relative to the center 320x200 of the screen.
+				Use the formation editor to get coordinates to feed into this command.
 				<p>slot</p> (0 to 7) is an optional argument,
 				if you specify it, then the enemy is created in the suggested slot if empty.
 				If you omit <p>slot</p> or <p>slot</p> isn't empty, the enemy is put in the first empty slot.
@@ -4759,7 +4759,10 @@ end
 		<command id="formationslotx">
 			<canon>formation slot x (formation, slot)</canon>
 			<shortname>formation slot x</shortname>
-			<description>Returns the x position of the center of the enemy in the specified formation slot (0 to 7). An enemies position is the center of the bottom edge of the enemy - approximately where it appears to stand.</description>
+			<description>
+				Returns the x position of the center of the enemy in the specified formation slot (0 to 7).
+				An enemy's position is the center of the bottom edge of the enemy - approximately where it appears to stand.
+			</description>
 			<seealso>
 				<ref>findenemyinformation</ref>
 			</seealso>
@@ -4767,7 +4770,10 @@ end
 		<command id="formationsloty">
 			<canon>formation slot y (formation, slot)</canon>
 			<shortname>formation slot y</shortname>
-			<description>Returns the y position of the bottom edge of the enemy sprite in the specified formation slot (0 to 7). An enemies position is the center of the bottom edge of the enemy - approximately where it appears to stand.</description>
+			<description>
+				Returns the y position of the bottom edge of the enemy sprite in the specified formation slot (0 to 7).
+				An enemy's position is the center of the bottom edge of the enemy - approximately where it appears to stand.
+			</description>
 			<seealso>
 				<ref>findenemyinformation</ref>
 			</seealso>

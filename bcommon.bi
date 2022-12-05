@@ -17,5 +17,6 @@ DECLARE FUNCTION attack_placement_over_targetpos(attack as AttackData, targpos a
 
 DECLARE FUNCTION get_battlefield_size() as XYPair
 DECLARE FUNCTION get_battle_res() as XYPair
+DECLARE FUNCTION get_formation_bounds() as RectPoints
 
 #ENDIF
