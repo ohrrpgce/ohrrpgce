@@ -1985,6 +1985,7 @@ FUNCTION create_default_battle_hp_area() as Slice Ptr
  DIM templ as Slice Ptr = NewSliceOfType(slContainer, area, SL_BATTLE_HERO_INFO_TEMPLATE)
  templ->Template = YES
  templ->Fill = YES
+ 'HP meter
  DIM meter_box as Slice Ptr = NewSliceOfType(slRectangle, templ, SL_BATTLE_HP_METER)
  meter_box->Fill = YES
  meter_box->FillMode = sliceFillHoriz
@@ -1999,11 +2000,28 @@ FUNCTION create_default_battle_hp_area() as Slice Ptr
  DIM meter_filled as Slice Ptr = NewSliceOfType(slRectangle, meter_body)
  meter_filled->Fill = YES
  ChangeRectangleSlice meter_filled, , uiHealthBar * -1 - 1, , borderNone, transOpaque
+ 'Hack: when the MP meter is visible, move the HP text up 1 pixel.
+ 'Accomplished by parenting them to a Layout slice
+ DIM layout_sl as Slice Ptr = NewSliceOfType(slLayout, templ)
+ layout_sl->Fill = YES
+ 'Allow the column (primary_dir) to grow above the top of the layout slice (only needs to be -1)
+ layout_sl->PaddingTop = -10
+ layout_sl->AlignVert = alignBottom
+ layout_sl->AnchorVert = alignBottom
+ WITH *layout_sl->LayoutData
+  .primary_dir = dirUp
+  .secondary_dir = dirRight  'Not used
+  .row_alignment = alignBottom  'MP meter (first child) at the bottom
+  .skip_hidden = YES
+  .primary_padding = -1  '2px high MP bar + -1px padding = HP text moves up 1px
+ END WITH
+
  'MP meter
- DIM mp_meter as Slice Ptr = NewSliceOfType(slContainer, templ, SL_BATTLE_MP_METER)
+ DIM mp_meter as Slice Ptr = NewSliceOfType(slContainer, layout_sl, SL_BATTLE_MP_METER)
  mp_meter->Fill = YES
  mp_meter->FillMode = sliceFillHoriz
  mp_meter->Height = 2
+ 'mp_meter->Y = 1   'Sticks out 1 pixel below the bottom of this row
  mp_meter->AnchorVert = alignBottom
  mp_meter->AlignVert = alignBottom
  mp_meter->PaddingLeft = 1
@@ -2015,9 +2033,9 @@ FUNCTION create_default_battle_hp_area() as Slice Ptr
  ChangeRectangleSlice mp_filled, , uiMPBar * -1 - 1, , borderNone, transOpaque
 
  'HP text
- DIM hp_txt as Slice Ptr = NewSliceOfType(slText, templ, SL_BATTLE_TEXT_SELECTED_PLAYER)
+ DIM hp_txt as Slice Ptr = NewSliceOfType(slText, layout_sl, SL_BATTLE_TEXT_SELECTED_PLAYER)
  ChangeTextSlice hp_txt, "${HP}/${MAXHP}", uiMenuItem * -1 - 1, YES
- hp_txt->Pos = XY(0, 0)
+ hp_txt->Pos = XY(0, 1)
 
  'Status indicators box
  DIM indicator_area as Slice Ptr = NewSliceOfType(slGrid, templ, SL_BATTLE_INDICATOR_AREA)
