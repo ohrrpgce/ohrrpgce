@@ -1392,6 +1392,7 @@ env_exe ('miditest')
 env_exe ('unlump', source = ['unlump.bas'] + base_objects)
 env_exe ('relump', source = ['relump.bas'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
+# This builder arg is needed to link the necessary libraries
 env_exe ('imageconv', builder = allmodexenv.BASEXE, source = ['imageconv.bas'] + allmodex_objects)
 
 ####################  Compiling Euphoria (HSpeak)
@@ -1483,6 +1484,7 @@ UTILTEST = env_exe ('utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') 
 FILETEST = env_exe ('filetest', source = ['filetest.bas'] + base_objects)
 Depends(FILETEST, env_exe ('filetest_helper', source = ['filetest_helper.bas'] + base_objects))
 COMMONTEST = env_exe ('commontest', builder = allmodexenv.BASEXE, source = allmodexenv.BASMAINO('commontest.o', 'common.rbas') + allmodex_objects_without_common)
+GFXTEST = env_exe ('gfxtest', builder = allmodexenv.BASEXE, source = ['gfxtest.bas'] + allmodex_objects)
 
 Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
 
@@ -1823,12 +1825,13 @@ Targets (executables to build):
   xml2reload          Requires libxml2 to build.
   reloadutil          To compare two .reload documents, or time load time
  Automated tests (executables; use "test" target to build and run):
+  commontest
+  gfxtest
+  filetest
+  rbtest
   reloadtest
   utiltest
-  commontest
-  filetest
   vectortest
-  rbtest
  Non-default automated test targets (not run by "scons test"):
   hspeaktest
  Nonautomated test programs:

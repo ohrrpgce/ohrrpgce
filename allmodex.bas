@@ -5171,7 +5171,9 @@ sub ellipse (fr as Frame ptr, x as double, y as double, radius as double, col as
 	if fr->surf andalso fr->surf->format = SF_32bit then
 		'putpixel takes BGRA, not master palette index
 		col = curmasterpal(col).col
-		fillcol = curmasterpal(fillcol).col
+		if fillcol <> -1 then
+			fillcol = curmasterpal(fillcol).col
+		end if
 	end if
 
 	dim byref cliprect as ClipState = get_cliprect(fr)
