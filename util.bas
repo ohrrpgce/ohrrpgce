@@ -45,7 +45,6 @@ DIM tmpdir as string
 DIM exename as string
 
 DIM program_start_timer as double
-program_start_timer = TIMER
 
 'Dummy value used to indicate the default value of a byref arg
 DIM default_arg as integer
@@ -136,6 +135,8 @@ SUB lowlevel_init()
   'and will also, on x86 only, call fb_CpuDetect and print an error and quit if
   'the CPU isn't 686+ (Pentium Pro+) or (if compiled with -fpu sse) doesn't
   'support SSE & SSE2. We duplicate that since we don't always compile with -e
+
+  program_start_timer = TIMER
 
   'Android only
   external_log "main() started..."
