@@ -241,6 +241,7 @@ DECLARE SUB remap_to_palette OVERLOAD (fr as Frame ptr, pal as Palette16 ptr)
 DECLARE SUB remap_to_palette OVERLOAD (fr as Frame ptr, palmapping() as integer)
 
 DECLARE SUB draw_basic_mouse_cursor (page as integer)
+DECLARE FUNCTION draw_keys_overlay(page as integer) as bool
 
 '==========================================================================================
 
