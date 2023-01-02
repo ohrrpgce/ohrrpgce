@@ -6,6 +6,7 @@
 #include "allmodex.bi"
 #include "common.bi"
 
+DIM music_file as string = ""   'Leave blank, or else should be ogg, mp3, or mod/it/s3m/xm
 
 '======================== Setup directories & debug log =======================
 
@@ -46,8 +47,12 @@ load_gfx_defaults  'Loads master(), uilook(), boxlook(), current_font()
 set_resolution 320, 200
 setmodex
 
-'debuginfo musicbackendinfo  'Preliminary info before initialising backend
-'setupmusic
+IF music_file <> "" THEN
+	debuginfo musicbackendinfo  'Preliminary info before initialising backend
+	setupmusic
+
+	loadsong music_file
+END IF
 
 '=================================== Test =====================================
 
@@ -87,3 +92,7 @@ END SUB
 
 
 draw_loop
+
+closemusic
+restoremode
+debuginfo "End."
