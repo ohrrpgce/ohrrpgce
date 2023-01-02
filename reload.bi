@@ -9,6 +9,13 @@
 #include "util.bi"
 #include "lumpfile.bi"
 
+'if you find yourself debugging heap issues, define this. If the crashes go away, then I (Mike Caron)
+'somehow fscked up the private heap implementation. Or, someone else touched something without
+'understanding how it works...
+
+'#define RELOAD_NOPRIVATEHEAP
+
+
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 #if defined(RELOADINTERNAL) or __FB_DEBUG__
         type HANDLE as any ptr
