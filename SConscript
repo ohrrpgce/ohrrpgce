@@ -1315,7 +1315,8 @@ game_modules = ['game',
 
 def version_info(source, target, env):
     ohrbuild.verprint(globals(), builddir, rootdir)
-verprint_targets = [builddir + 'globals.bas', builddir + 'backendinfo.bi', '#/buildinfo.ini', '#/distver.bat']
+# globals.bas and backendinfo.bi are created in build/
+verprint_targets = ['globals.bas', 'backendinfo.bi', '#/buildinfo.ini', '#/distver.bat']
 VERPRINT = env.Command (target = verprint_targets,
                         source = ['codename.txt'], 
                         action = env.Action(version_info, "Generating version/backend info"))
@@ -1326,7 +1327,7 @@ NoCache(verprint_targets)
 ################ Data files
 
 # Files to embed in Custom+Game
-common_datafiles = Glob('sourceslices/*.slice') + ['buildinfo.ini']
+common_datafiles = Glob('sourceslices/*.slice') + ['#/buildinfo.ini']
 # Files to embed in other utilities
 util_datafiles = []
 
