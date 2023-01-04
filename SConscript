@@ -42,6 +42,9 @@ FBLINKERFLAGS = []
 
 FRAMEWORKS_PATH = os.path.expanduser("~/Library/Frameworks")  # Frameworks search path in addition to the default /Library/Frameworks
 
+builddir = Dir('.').abspath + os.path.sep
+rootdir = Dir('#').abspath + os.path.sep
+
 release = int (ARGUMENTS.get ('release', False))
 verbose = int (ARGUMENTS.get ('v', False))
 if verbose:
@@ -105,6 +108,12 @@ glibc = False  # Computed below; can also be overridden by glibc=1 cmdline argum
 target = ARGUMENTS.get ('target', None)
 cross_compiling = (target is not None)  # Possibly inaccurate, avoid!
 arch = ARGUMENTS.get ('arch', None)  # default decided below
+
+transpile_dir = ARGUMENTS.get('transpiledir', None)
+if transpile_dir:
+    transpile_dir = os.path.join(rootdir, transpile_dir)  # Ensure an absolute path
+    gengcc = True
+    linkgcc = True  # To get CCLINKFLAGS
 
 if 'android-source' in ARGUMENTS:
     # Produce .c files, and also an executable, which is an unwanted side product
@@ -448,9 +457,6 @@ for tool in ('FBC', 'CC', 'FBCC', 'CXX', 'MAKE', 'EUC', 'EUBIND'):
 
 ################ Define Builders and Scanners for FreeBASIC and ReloadBasic
 
-builddir = Dir('.').abspath + os.path.sep
-rootdir = Dir('#').abspath + os.path.sep
-
 FBFLAGS += ['-i', builddir]  # For backendinfo.bi
 
 def prefix_targets(target, source, env):
@@ -474,6 +480,9 @@ else:
 
 
 def bas_build_action(moreflags = ''):
+    if transpile_dir:
+        return ['$FBC $FBFLAGS -r $SOURCE -o $TARGET ' + moreflags]
+
     if FBCC.is_clang:
         # fbc asks FBCC to produce assembly and then runs that through as,
         # but clang produces some directives that as doesn't like.
@@ -485,21 +494,65 @@ def bas_build_action(moreflags = ''):
         # and GENGCC_CFLAGS has already been added into FBFLAGS with -Wc.
         return '$FBC $FBFLAGS -c $SOURCE -o $TARGET ' + moreflags
 
+def compile_bas_modules(target, source, env):
+    """
+    This is the emitter for BASEXE when using linkgcc: it compiles sources if needed, where
+    the first specified module is the main module (-m flag), and rest are regular modules,
+    matching behaviour of passing .bas's to fbc.
+    """
+    for i, obj in enumerate(source):
+        if str(obj).endswith('.bas'):
+            if i == 0:
+                source[i] = env.BASMAINO(obj)
+            else:
+                source[i] = env.BASO(obj)
+    return target, source
+
+
+if transpile_dir:
+    out_suffix = '.c'
+else:
+    out_suffix = '.o'
+
 #variant_baso creates Nodes/object files with filename prefixed with VAR_PREFIX environment variable
 variant_baso = Builder (action = bas_build_action(),
-                        suffix = '.o', src_suffix = '.bas', single_source = True, emitter = prefix_targets,
+                        suffix = out_suffix, src_suffix = '.bas', single_source = True, emitter = prefix_targets,
                         source_factory = translate_rb)
 baso = Builder (action = bas_build_action(),
-                suffix = '.o', src_suffix = '.bas', single_source = True, source_factory = translate_rb)
+                suffix = out_suffix, src_suffix = '.bas', single_source = True,
+                source_factory = translate_rb)
 basmaino = Builder (action = bas_build_action('-m ${SOURCE.filebase}'),
-                    suffix = '.o', src_suffix = '.bas', single_source = True,
+                    suffix = out_suffix, src_suffix = '.bas', single_source = True,
                     source_factory = translate_rb)
 
-# Only used when linking with fbc.
-# Because fbc < 1.07 ignores all but the last -Wl flag, have to concatenate them.
-basexe = Builder (action = ['$FBC $FBFLAGS -x $TARGET $SOURCES $FBLINKFLAGS ${FBLINKERFLAGS and "-Wl " + ",".join(FBLINKERFLAGS)}',
-                            check_binary],
-                  suffix = exe_suffix, src_suffix = '.bas', source_factory = translate_rb)
+def SrcFile(env, src):
+    """Replacement for env.Object(). src is an .bas/.rbas/.c/.cpp/etc file.
+    Either compile to an object file, or transpile FB to .c and leave others alone."""
+    if transpile_dir:
+        if '.bas' in str(src):
+            return env.BASO(src)  # Transpiles
+        else:
+            return File(src)  # Do nothing
+    else:
+        return env.Object(src)
+
+if transpile_dir:
+    copy_sources = Builder(generator = ohrbuild.copy_source_actions,
+                           emitter = compile_bas_modules,
+                           source_factory = translate_rb)
+    env['TRANSPILE_DIR'] = transpile_dir
+    env.Append(BUILDERS = {'COPY_SOURCES':copy_sources})
+
+if not linkgcc:
+    # Linking with fbc.
+    # Because fbc < 1.07 ignores all but the last -Wl flag, have to concatenate them.
+    basexe = Builder (action = ['$FBC $FBFLAGS -x $TARGET $SOURCES $FBLINKFLAGS ${FBLINKERFLAGS and "-Wl " + ",".join(FBLINKERFLAGS)}',
+                                check_binary],
+                      suffix = exe_suffix, src_suffix = '.bas',
+                      source_factory = translate_rb)
+else:
+    # linkgcc's basexe is defined below.
+    basexe = None
 
 # Surely there's a simpler way to do this
 def depend_on_reloadbasic_py(target, source, env):
@@ -801,10 +854,6 @@ if linkgcc:
         CCLINKFLAGS += ['-l', ':libstdc++.a']
     else:
         CCLINKFLAGS += ['-lstdc++']
-        if 'fb' in gfx:
-            # Program icon required by fbgfx, but we only provide it on Windows,
-            # because on X11 need to provide it as an XPM instead
-            CCLINKFLAGS += ['linux/fb_icon.c']
         # Android doesn't have ncurses, and libpthread is part of libc
         if not android:
             # The following are required by libfb (not libfbgfx)
@@ -815,19 +864,6 @@ if linkgcc:
             # Don't know about Mac situation.
             if not portable or mac:
                 CCLINKFLAGS += ['-lncurses']
-
-    def compile_main_module(target, source, env):
-        """
-        This is the emitter for BASEXE when using linkgcc: it compiles sources if needed, where
-        the first specified module is the main module (-m flag), and rest are regular modules.
-        """
-        for i, obj in enumerate(source):
-            if str(obj).endswith('.bas'):
-                if i == 0:
-                    source[i] = env.BASMAINO(obj)
-                else:
-                    source[i] = env.BASO(obj)
-        return target, source
 
     if pdb:
         # Note: to run cv2pdb you need Visual Studio or Visual C++ Build Tools installed,
@@ -875,10 +911,10 @@ if linkgcc:
     else:
         basexe_gcc_action = '$CC -o $TARGET $SOURCES "-Wl,-(" $CCLINKFLAGS "-Wl,-)"'
 
-    basexe_gcc = Builder (action = [basexe_gcc_action, check_binary, handle_symbols], suffix = exe_suffix,
-                          src_suffix = '.bas', emitter = compile_main_module)
+    basexe = Builder(action = [basexe_gcc_action, check_binary, handle_symbols], suffix = exe_suffix,
+                     src_suffix = '.bas', emitter = compile_bas_modules)
 
-    env['BUILDERS']['BASEXE'] = basexe_gcc
+    env['BUILDERS']['BASEXE'] = basexe
 
 if not linkgcc:
     if FBC.version >= 1060:
@@ -1198,10 +1234,22 @@ base_modules +=   ['util.bas',
 reload_modules =  ['reload.bas',
                    'reloadext.bas']
 
-# The following are built twice, for Game and Custom, so may use #ifdef to change behaviour
-# (.bas files only) 
-# (All shared FB files are here instead of common_modules so we don't have to
-# remember where using IS_GAME/IS_CUSTOM is allowed.)
+# The following are built only once and linked into Game, Custom and other
+# utilities using allmodex (commontest, gfxtest, etc).
+common_modules += ['blit.c',
+                   'matrixMath.cpp',
+                   'rasterizer.cpp',
+                   'rotozoom.c',
+                   'surface.cpp',
+                   'lib/gif.cpp',
+                   'lib/jo_jpeg.cpp',
+                   'lib/ujpeg.c']
+
+# The following are compiled up to three times, for Game, Custom and other
+# other utilities using allmodex, with IS_GAME, IS_CUSTOM or neither defined.
+# (All Game/Custom shared FB files are here instead of common_modules so we
+# don't have to remember where using IS_GAME/IS_CUSTOM is allowed.)
+# (.bas files only)
 shared_modules += ['achievements.rbas',
                    'allmodex',
                    'audiofile',
@@ -1221,8 +1269,7 @@ shared_modules += ['achievements.rbas',
                    'steam',
                    'thingbrowser',
                    'plankmenu']
-
-# (.bas files only) 
+# (.bas files only)
 edit_modules = ['custom',
                 'customsubs.rbas',
                 'specialslices',
@@ -1247,7 +1294,7 @@ edit_modules = ['custom',
                 'editorkit',
                 'distribmenu']
 
-# (.bas files only) 
+# (.bas files only)
 game_modules = ['game',
                 'achievements_runtime.rbas',
                 'bmod.rbas',
@@ -1262,16 +1309,6 @@ game_modules = ['game',
                 'oldhsinterpreter',
                 'purchase.rbas',
                 'pathfinding.bas']
-
-# The following are built only once and linked into Game and Custom
-common_modules += ['rotozoom.c',
-                   'blit.c',
-                   'matrixMath.cpp',
-                   'rasterizer.cpp',
-                   'surface.cpp',
-                   'lib/gif.cpp',
-                   'lib/jo_jpeg.cpp',
-                   'lib/ujpeg.c']
 
 
 ################ Generate files containing Version/build info
@@ -1302,11 +1339,17 @@ common_modules.append(DATAFILES_C)
 
 ################ Generate object file Nodes
 
+if linkgcc and not win32:
+    if 'fb' in gfx:
+        # Program icon required by fbgfx, but we only provide it on Windows,
+        # because on X11 need to provide it as an XPM instead
+        common_modules += ['linux/fb_icon.c']
+
 # Note that base_objects are not built in commonenv!
-base_objects = Flatten([env.Object(a) for a in base_modules])  # concatenate NodeLists
-common_objects = base_objects + Flatten ([commonenv.Object(a) for a in common_modules])
+base_objects = Flatten([SrcFile(env, a) for a in base_modules])  # concatenate NodeLists
+common_objects = base_objects + Flatten([SrcFile(commonenv, a) for a in common_modules])
 # Modules included by utilities but not Game or Custom
-base_objects += [env.Object('common_base.bas'), env.Object(UTIL_DATAFILES_C)]
+base_objects += [SrcFile(env, 'common_base.bas'), SrcFile(env, UTIL_DATAFILES_C)]
 
 gameenv = commonenv.Clone (VAR_PREFIX = 'game-', FBFLAGS = commonenv['FBFLAGS'] + \
                       ['-d','IS_GAME', '-m','game'])
@@ -1328,33 +1371,40 @@ for item in edit_modules:
 for item in shared_modules:
     editsrc.extend (editenv.VARIANT_BASO (item))
 
+allmodex_objects = common_objects[:]
+for item in shared_modules:
+    allmodex_objects.extend (allmodexenv.VARIANT_BASO (item))
+
 if win32:
     # The .rc file includes game.ico or custom.ico and is compiled to an .o file
     # (If linkgcc=0, could just pass the .rc to fbc)
     gamesrc += Depends(gameenv.RC('gicon.o', 'gicon.rc'), 'game.ico')
     editsrc += Depends(editenv.RC('cicon.o', 'cicon.rc'), 'custom.ico')
 
-allmodex_objects = common_objects[:]
-for item in shared_modules:
-    allmodex_objects.extend (allmodexenv.VARIANT_BASO (item))
-
 # Sort RB modules to the front so they get built first, to avoid bottlenecks
 gamesrc.sort (key = lambda node: 0 if '.rbas' in node.path else 1)
 editsrc.sort (key = lambda node: 0 if '.rbas' in node.path else 1)
 
 # For reload utilities
-reload_objects = base_objects + Flatten ([env.Object(a) for a in reload_modules])
+reload_objects = base_objects + Flatten ([SrcFile(env, a) for a in reload_modules])
 
 # For utiltest
-base_objects_without_util = [a for a in base_objects if str(a) != 'util.o']
-allmodex_objects_without_common = [a for a in allmodex_objects if str(a) != 'util-common.rbas.o']
+base_objects_without_util = [a for a in Flatten(base_objects) if File('util.bas') not in a.sources]
+# For commontest
+allmodex_objects_without_common = [a for a in Flatten(allmodex_objects) if File('common.rbas.bas') not in a.sources]
 
 
 ################ Executable definitions
 # Executables are explicitly placed in rootdir, otherwise they would go in build/
 
-def env_exe(name, builder=env.BASEXE, **kwargs):
-    ret = builder(rootdir + name, **kwargs)
+def env_exe(name, env = env, builder = None, source = None, **kwargs):
+    "Defines an executable. But we don't actually build it if transpiling."
+    if builder is None:
+        if transpile_dir:
+            builder = env.COPY_SOURCES
+        else:
+            builder = env.BASEXE
+    ret = builder(rootdir + name, source = source, **kwargs)
     Alias(name, ret)
     NoCache(ret)  # Executables are large but fast to link, not worth caching
     return ret[0]  # first element of the NodeList is the executable
@@ -1378,8 +1428,8 @@ if android_source:
     GAME = File(gamename)   # These shouldn't be used, only to allow rest of file to parse
     CUSTOM = File(editname)
 else:
-    GAME = env_exe(gamename, builder = gameenv.BASEXE, source = gamesrc)
-    CUSTOM = env_exe(editname, builder = editenv.BASEXE, source = editsrc)
+    GAME = env_exe(gamename, env = gameenv, source = gamesrc)
+    CUSTOM = env_exe(editname, env = editenv, source = editsrc)
     Alias('game', GAME)
     Alias('custom', CUSTOM)
     # if libdir:
@@ -1393,7 +1443,7 @@ env_exe ('unlump', source = ['unlump.bas'] + base_objects)
 env_exe ('relump', source = ['relump.bas'] + base_objects)
 env_exe ('dumpohrkey', source = ['dumpohrkey.bas'] + base_objects)
 # This builder arg is needed to link the necessary libraries
-env_exe ('imageconv', builder = allmodexenv.BASEXE, source = ['imageconv.bas'] + allmodex_objects)
+env_exe ('imageconv', env = allmodexenv, source = ['imageconv.bas'] + allmodex_objects)
 
 ####################  Compiling Euphoria (HSpeak)
 
@@ -1473,7 +1523,7 @@ RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects
 x2rsrc = ['xml2reload.bas'] + reload_objects
 if win32:
     # Hack around our provided libxml2.a lacking a function. (Was less work than recompiling)
-    x2rsrc.append (env.Object('win32/utf8toisolat1.c'))
+    x2rsrc.append (SrcFile(env, 'win32/utf8toisolat1.c'))
 XML2RELOAD = env_exe ('xml2reload', source = x2rsrc, FBLINKFLAGS = env['FBLINKFLAGS'] + ['-l','xml2'], CCLINKFLAGS = env['CCLINKFLAGS'] + ['-lxml2'])
 RELOAD2XML = env_exe ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
 RELOADUTIL = env_exe ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
@@ -1483,8 +1533,8 @@ VECTORTEST = env_exe ('vectortest', source = ['vectortest.bas'] + base_objects)
 UTILTEST = env_exe ('utiltest', source = env.BASMAINO('utiltest.o', 'util.bas') + base_objects_without_util)
 FILETEST = env_exe ('filetest', source = ['filetest.bas'] + base_objects)
 Depends(FILETEST, env_exe ('filetest_helper', source = ['filetest_helper.bas'] + base_objects))
-COMMONTEST = env_exe ('commontest', builder = allmodexenv.BASEXE, source = allmodexenv.BASMAINO('commontest.o', 'common.rbas') + allmodex_objects_without_common)
-GFXTEST = env_exe ('gfxtest', builder = allmodexenv.BASEXE, source = ['gfxtest.bas'] + allmodex_objects)
+COMMONTEST = env_exe ('commontest', env = allmodexenv, source = allmodexenv.BASMAINO('commontest.o', 'common.rbas') + allmodex_objects_without_common)
+GFXTEST = env_exe ('gfxtest', env = allmodexenv, source = ['gfxtest.bas'] + allmodex_objects)
 
 Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST, RBTEST])
 
@@ -1755,6 +1805,10 @@ Options:
                       for C++, and gcc for -gen gcc, and then try cc and c++ if
                       gcc isn't present.
                       Note that -exx is disabled if using clang for -gen gcc.
+  transpiledir=PATH   Don't build binaries, instead transpile all FB modules to
+                      .c files, and copy all .c and .cpp files together with
+                      needed headers to PATH (after deleting existing contents).
+                      Also outputs .txt files with compile/link flags.
   android-source=1    Used as part of the Android build process for Game/Custom.
                       (See wiki for explanation.) Note: defaults to the original
                       armeabi ABI, which is becoming obsolete, c.f. 'arch='.

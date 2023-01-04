@@ -17,6 +17,7 @@ import re
 import time
 import datetime
 import glob
+from SCons.Script import Mkdir, Copy, Delete, Action   #These create Action nodes
 try:
     from SCons.Util import WhereIs
 except ImportError:
@@ -67,22 +68,26 @@ include_re = re.compile(r'^\s*#include\s+"(\S+)"', re.M | re.I)
 # count as dependencies even if they don't exist in a clean build.
 generated_includes = ['backendinfo.bi']
 
-def scrub_includes(includes, builddir):
+def scrub_includes(includes, subdir, builddir):
     """Remove those include files from a list which scons should ignore
     because they're standard FB/library includes."""
     ret = []
     for fname in includes:
         if fname in generated_includes:
             ret.append(builddir + fname)
-        if os.path.isfile(fname):
+            #print("depend on ", builddir + fname)
+        # Oddly, while using transpiledir=, each .bas gets scanned multiple times,
+        # with cwd either #/ or #/build/
+        elif os.path.isfile(os.path.join(subdir, fname)):
             # scons should expect include files in rootdir, where FB looks for them
             ret.append('#' + os.path.sep + fname)
     return ret
 
 def basfile_scan(node, env, path, builddir):
     contents = node.get_text_contents()
-    included = scrub_includes(include_re.findall(contents), builddir)
-    #print str(node) + " includes", included
+    subdir = os.path.dirname(node.srcnode().path)
+    included = scrub_includes(include_re.findall(contents), subdir, builddir)
+    #print(str(node) + " includes", included)
     return env.File(included)
 
 ########################################################################
@@ -93,8 +98,8 @@ hss_include_re = re.compile(r'^\s*include\s*,\s*"?([^"\n]+)"?', re.M | re.I)
 def hssfile_scan(node, env, path):
     """Find files included into a .hss."""
     contents = node.get_text_contents()
-    included = []
     subdir = os.path.dirname(node.srcnode().path)
+    included = []
     for include in hss_include_re.findall (contents):
         include = include.strip()
         # Search for the included file in the same directory as 'node'
@@ -554,7 +559,58 @@ def generate_datafiles_c(source, target, env):
         outf.write(ret)
 
 ########################################################################
-# Android
+# Transpiling
+
+def copy_source_actions(source, target, env, for_signature):
+    """Returns a list of Actions for transpile=1 builds.
+    The actions copy (or symlink) a set of C and C++ files to env['TRANSPILE_DIR']
+    including all C/C++ sources and C-translations of .bas files and used headers,
+    and output flags to .txt files.
+    All C/C++ files go in the same directory, while paths to headers are preserved.
+    """
+    transpile_dir = env['TRANSPILE_DIR']
+    actions = [Delete(transpile_dir),
+               Mkdir(transpile_dir)]
+    # This actually creates the symlinks before the C/C++ files are generated, but that's OK
+    all_files = set()
+    for node in source:
+        # Get all headers included (directly or indirectly)
+        headers = node.get_implicit_deps(env, None, lambda scanner: (node.srcnode().get_dir(),) )
+        #def scstr(x): return ",".join(str(y) for y in x)
+        #print("node", str(node), "sources", scstr(node.sources), "headers", scstr(headers))
+        all_files.update([node] + headers)
+
+    processed_dirs = set()
+    for node in all_files:
+        src = str(node)
+        relsrc = src.replace('build' + os.path.sep, '')  #.replace(rootdir, '')
+        srcdir, fname = os.path.split(relsrc)
+        if srcdir not in processed_dirs:
+            # Create dest subdirectory
+            processed_dirs.add(srcdir)
+            newdir = os.path.join(transpile_dir, srcdir)
+            actions += [Mkdir(newdir)]
+
+        # if fname.endswith('.c') or fname.endswith('.cpp'):
+        #     # Put all source files in same directory for convenience
+        #     relsrc = fname
+        #actions += ['ln -s %s %s' % (src, os.path.join(transpile_dir, relsrc))]
+        actions += [Copy(os.path.join(transpile_dir, relsrc), src)]
+
+    def write_flags(source, target, env):
+        def write_file(fname, flags):
+            with open(os.path.join(transpile_dir, fname), 'w') as fil:
+                fil.write(' '.join(flags) + ' ')  # Append a space for 'cat'
+
+        write_file('defines.txt', [flag for flag in env['CFLAGS'] if flag.startswith('-D')])
+        write_file('cflags.txt', env['CFLAGS'])
+        write_file('cxxflags.txt', env['CXXFLAGS'])
+        write_file('fbccflags.txt', list(dict.fromkeys(env['CFLAGS'] + env['GENGCC_CFLAGS'])))  # Remove dups
+        write_file('linkflags.txt', env['CCLINKFLAGS'])
+
+    actions.append(Action(write_flags, None))  # Silenced. Can't silence Copy() in same way :(
+    return actions
+
 
 def android_source_actions (env, sourcelist, rootdir, destdir):
     """Returns a pair (source_nodes, actions) for android-source=1 builds.
