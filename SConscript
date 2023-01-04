@@ -23,7 +23,7 @@ CFLAGS = ['-Wall', '-Wno-deprecated-declarations']  # Complaints about mallinfo(
 # Not for euc, and not used on Android (because of inflexible build system).
 GENGCC_CFLAGS = []
 # In addition to GENGCC_CFLAGS, flags for -gen gcc C sources when we compile them
-# manually using FBCC (if FBCC is clang), instead of fbc. Such as ones fbc would normally pass automatically.
+# manually using FBCC (eg if FBCC is clang), instead of fbc. Such as ones fbc would normally pass automatically.
 FBCC_CFLAGS = []
 # TRUE_CFLAGS apply only to normal .c sources, NOT to C++ or those generated via gengcc=1 or euc.
 # Use gnu99 dialect instead of c99. c99 causes GCC to define __STRICT_ANSI__
@@ -215,6 +215,15 @@ if not arch:
 if arch == 'x86':
     # x86 only: whether to use SSE2 instructions. These are always available on x86 Mac & Android and on x86_64
     sse2 = int(ARGUMENTS.get('sse2', 1))
+
+# We set gengcc=True if FB will default to it; we need to know whether it's used
+if FBC.version >= 1080 and arch == 'x86_64':
+    # FB 1.08 adds gas64 backend but doesn't use it yet
+    gengcc = True
+elif arch != 'x86':
+    gengcc = True
+if mac:
+    gengcc = True
 
 ################ Other commandline arguments
 
@@ -483,7 +492,7 @@ def bas_build_action(moreflags = ''):
     if transpile_dir:
         return ['$FBC $FBFLAGS -r $SOURCE -o $TARGET ' + moreflags]
 
-    if FBCC.is_clang:
+    if gengcc and FBCC.is_clang:
         # fbc asks FBCC to produce assembly and then runs that through as,
         # but clang produces some directives that as doesn't like.
         # So we do the .c -> asm step ourselves.
@@ -674,16 +683,6 @@ elif not win32:
         # since apparently it's gcc, not ld, which is defaulting to PIE
         CCLINKFLAGS += [NO_PIE]
 
-
-# We set gengcc=True if FB will default to it; we need to know whether it's used
-if FBC.version >= 1080 and arch == 'x86_64':
-    # FB 1.08 adds gas64 backend but doesn't use it yet
-    gengcc = True
-elif arch != 'x86':
-    gengcc = True
-if mac:
-    gengcc = True
-
 if arch == 'armv5te':
     # FB puts libraries in 'arm' folder
     FBFLAGS += ["-arch", arch]
@@ -753,20 +752,22 @@ if target_prefix and target_prefix != CC.target + '-':
            "are in your PATH, or otherwise set CC, CXX, and AS environmental variables.")
     Exit(1)
 
-if gengcc and FBCC.is_clang:
-    # -exx (in fact -e) causes fbc to use computed gotos which clang can't compile
-    FB_exx = False
-    # Currently needed on x86 only: fbc outputs some asm which clang doesn't like
-    FBFLAGS += ['-asm', 'att']
-
-if FB_exx:
-    FBFLAGS.append ('-exx')
+if 'x86' in arch and gengcc:
+    if FBCC.is_clang:
+        # Currently needed on x86 only: fbc outputs some asm which clang doesn't like (-masm=intel doesn't help)
+        FBFLAGS += ['-asm', 'att']
+    else:
+        FBCC_CFLAGS += ['-masm=intel']
 
 if gengcc:
     FBFLAGS += ["-gen", "gcc"]
     if asan:
         # Use AddressSanitizer in C files produced by fbc
         GENGCC_CFLAGS.append ('-fsanitize=address')
+    if FBCC.is_clang:
+        # -exx (in fact -e) causes fbc to use computed gotos which clang can't compile
+        # due to https://bugs.llvm.org/show_bug.cgi?id=18658
+        FB_exx = False
     if FBCC.is_gcc:
         if FBCC.version >= 900 and FBC.version < 1080:
             # Workaround an error. See https://sourceforge.net/p/fbc/bugs/904/
@@ -809,6 +810,8 @@ else:
     # not even with -flto or --strip-discarded!
     CCLINKFLAGS += ['-Wl,--gc-sections']
 
+if FB_exx:
+    FBFLAGS.append ('-exx')
 
 
 ################ A bunch of stuff for linking
