@@ -37,10 +37,12 @@ dim shared SteamAPI_ManualDispatch_Init as sub()
 dim shared SteamAPI_ManualDispatch_RunFrame as sub( byval hSteamPipe as HSteamPipe )
 dim shared SteamAPI_ManualDispatch_GetNextCallback as function ( hSteamPipe as HSteamPipe, pCallbackMsg as CallbackMsg_t ptr) as boolean
 dim shared SteamAPI_ManualDispatch_FreeLastCallback as sub ( hSteamPipe as HSteamPipe)
-dim shared SteamAPI_ManualDispatch_GetAPICallResult as function ( hSteamPipe as HSteamPipe, hSteamAPICall as SteamAPICall_t, pCallback as any ptr, cubCallback as integer,  iCallbackExpected as integer, pbFAiled as boolean ptr) as boolean
+dim shared SteamAPI_ManualDispatch_GetAPICallResult as function ( hSteamPipe as HSteamPipe, hSteamAPICall as SteamAPICall_t, pCallback as any ptr, cubCallback as integer,  iCallbackExpected as integer, pbFailed as boolean ptr) as boolean
 
 ' achievements
 dim shared SteamAPI_SteamUserStats_v012 as function () as ISteamUserStats ptr
+'Only in Steamworks SDK v1.53+, so won't use it to support older libs packaged with some OHR games
+'dim shared SteamAPI_SteamUserStats as function () as ISteamUserStats ptr
 dim shared SteamAPI_ISteamUserStats_RequestCurrentStats as function(byval self as ISteamUserStats ptr) as boolean
 dim shared SteamAPI_ISteamUserStats_SetAchievement as function(byval self as ISteamUserStats ptr, byval name as const zstring ptr) as boolean
 dim shared SteamAPI_ISteamUserStats_ClearAchievement as function(byval self as ISteamUserStats ptr, byval name as const zstring ptr) as boolean
@@ -103,14 +105,15 @@ function initialize() as boolean
   MUSTLOAD(steamworks_handle, SteamAPI_ISteamUserStats_IndicateAchievementProgress)
   
   if SteamAPI_Init() = false then
-    steam_error("Unable to initialize Steamworks")
+    steam_error("Unable to initialize Steamworks, Steam not running or missing steam_appid.txt?")
     uninitialize()
     return false
   end if
 
-  ' todo: is this necessary?
+  ' This is necessary only if steam_appid.txt file doesn't exist, and not launched via Steam
   ' if SteamAPI_RestartAppIfNecessary( ourAppId ) <> false then
-  '     steam_debug("Steam seems to want to restart the application for some reason")
+  '     steam_debug("Steam asks to restart the application")
+  '     exit_gracefully()
   ' end if
 
   SteamAPI_ManualDispatch_Init()
