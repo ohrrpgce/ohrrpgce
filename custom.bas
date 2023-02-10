@@ -1291,7 +1291,9 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
   msg &= "Original file:" LINE_END
   msg &= decode_filename(sessinfo.sourcerpg) & LINE_END
 
-  IF sessinfo.sourcerpg_current_mtime < sessinfo.session_start_time THEN
+  CONST onesec as double = 1 / (24*3600)
+
+  IF sessinfo.sourcerpg_current_mtime < sessinfo.session_start_time - onesec THEN
    ' It's a bit confusing to tell the user 4 last-mod times, so skip this one.
    msg &= "Last modified " & format_date(sessinfo.sourcerpg_old_mtime) & LINE_END
   END IF
@@ -1302,7 +1304,7 @@ FUNCTION handle_dirty_workingdir (sessinfo as SessionInfo) as bool
           "}  at:        " & format_date(sessinfo.session_start_time) & LINE_END _
           "}  Last edit: " & format_date(sessinfo.last_lump_mtime)
 
-  IF sessinfo.sourcerpg_current_mtime > sessinfo.session_start_time THEN
+  IF sessinfo.sourcerpg_current_mtime > sessinfo.session_start_time + onesec THEN
    msg &= LINE_END "|" LINE_END _
           "+-> WARNING: " & decode_filename(trimpath(sessinfo.sourcerpg)) & " modified since it was loaded or saved!" _
           " Modified " & format_date(sessinfo.sourcerpg_current_mtime) ' & LINE_END
