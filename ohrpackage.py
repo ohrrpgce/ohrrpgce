@@ -489,6 +489,22 @@ def source_files(srcdir = "."):
 
     return files
 
+
+def crashrpt_files(target, srcdir = ''):
+    if target != "win":
+        raise PackageError("Can only package Windows symbols")
+
+    files = PackageContents(srcdir)
+
+    files.datafiles += [
+        "support/CrashRpt1403.dll",
+        "support/CrashSender1403.exe",
+        "support/crashrpt_lang.ini",
+        "support/LICENSE-crashrpt.txt",
+    ]
+
+    return files
+
 ############################################################################
 
 def create_win_installer(outfile, iscc = "iscc", srcdir = "."):
@@ -565,6 +581,8 @@ def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):
     elif config == "source":
         files = source_files()
         target = "unix"  # Prevent newline conversion
+    elif config == "crashrpt":
+        files = crashrpt_files(target)
     elif config == "full+vikings":
         files = engine_files(target, "full")
         add_vikings_files(files)
@@ -590,7 +608,7 @@ def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):
             create_win_installer(outfile, iscc)
         elif config == "source":
             archive_dir("ohrrpgce", outfile)
-        elif config in ("player", "symbols") or target == "win":
+        elif config in ("player", "symbols", "crashrpt") or target == "win":
             archive_dir_contents("ohrrpgce", outfile)
         else:
             archive_dir("ohrrpgce", outfile)
@@ -618,7 +636,7 @@ If outfile is omitted, files are instead placed in a directory named 'ohrrpgce'.
     parser.add_argument("target", choices = ("linux", "unix", "win", "mac"), help =
 """OS to package for (win from Unix requires wine; other cross-packaging unsupported)
 linux includes precompiled libraries and game.sh/edit.sh wrappers, unix doesn't.""")
-    parser.add_argument("config", metavar = "config", choices = ("full", "full+vikings", "nightly", "minimal", "player", "symbols", "source"), help =
+    parser.add_argument("config", metavar = "config", choices = ("full", "full+vikings", "nightly", "minimal", "player", "symbols", "source", "crashrpt"), help =
 """What to package:
 full:         Complete OHRRPGCE package (except Vikings)
 full+vikings: Adds Vikings of Midgard
@@ -627,7 +645,10 @@ minimal:      Excludes import/, plotdict.xml and unnecessary support utilities
 player:       Just Game, for distributing games
 symbols:      Windows .pdb debug symbols, for process_crashrpt_report.py
 source:       Copy of all files (with any modifications) checked into git or svn,
-              except vikings/*. Target OS ignored.""")
+              except vikings/*. Target OS ignored.)
+
+Other packages:
+crashrpt:     CrashRpt dll and CrashSender """)
     parser.add_argument("outfile", nargs = "?", help =
 """Output file path. Should end in a supported archive format (e.g. .zip, .7z)
 or .exe to create a Windows installer.
