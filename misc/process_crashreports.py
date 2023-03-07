@@ -184,8 +184,16 @@ def download_and_extract_symbols(syms_fname, args):
     if not os.path.isdir(cachedir):
         if not os.path.isfile(syms_7z):
             syms_url = SYMBOLS_ARCHIVE_URL + syms_fname
-            print('Downloading...          ', file=sys.stderr, end='\r')
-            urllib.request.urlretrieve(syms_url, syms_7z)
+            print(f'Downloading {syms_7z}...       ', file=sys.stderr, end='\r')
+            try:
+                urllib.request.urlretrieve(syms_url, syms_7z)
+            except:
+                # Interrupted download is likely corrupt
+                if os.path.isfile(syms_7z):
+                    os.unlink(syms_7z)
+                raise
+            # Wipe previous line
+            print(' ' * 79, end='\r')
         os.mkdir(cachedir)
         exe = '7za'
         if HOST_WIN32:
