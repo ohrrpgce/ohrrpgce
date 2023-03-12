@@ -17,7 +17,10 @@ import re
 import time
 import datetime
 import glob
-from SCons.Script import Mkdir, Copy, Delete, Action   #These create Action nodes
+try:
+    from SCons.Script import Mkdir, Copy, Delete, Action   #These create Action nodes
+except:
+    print("Can't import from SCons.Script, transpiling will not work.")
 try:
     from SCons.Util import WhereIs
 except ImportError:
