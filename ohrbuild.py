@@ -18,10 +18,6 @@ import time
 import datetime
 import glob
 try:
-    from SCons.Script import Mkdir, Copy, Delete, Action   #These create Action nodes
-except:
-    print("Can't import from SCons.Script, transpiling will not work.")
-try:
     from SCons.Util import WhereIs
 except ImportError:
     # If this script is imported from outside scons
@@ -571,6 +567,9 @@ def copy_source_actions(source, target, env, for_signature):
     and output flags to .txt files.
     All C/C++ files go in the same directory, while paths to headers are preserved.
     """
+    # This import likely will only work when run from SConscript
+    from SCons.Script import Mkdir, Copy, Delete, Action   #These create Action nodes
+
     transpile_dir = env['TRANSPILE_DIR']
     actions = [Delete(transpile_dir),
                Mkdir(transpile_dir)]
