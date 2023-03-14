@@ -4610,6 +4610,7 @@ script, slice tests, begin
 
   rect slice tests
   text slice tests
+  panel slice tests
   ellipse slice tests
 end
 
@@ -4789,6 +4790,42 @@ script, text slice tests, begin
 
   $2=""
   $3=""
+  free slice(sl)
+end
+
+########################################################################
+
+script, panel slice tests, begin
+  $0="Panel Slice tests"
+
+  variable(sl)
+  sl := create panel
+  assert(slice is panel(sl))
+  assert(slice type(sl) == slicetype:panel)
+  # Check initial state as expected
+  assert(get panel primary index(sl) == 0)
+  assert(get panel percent as int(sl) == 50)
+  assert(get panel padding(sl) == 0)
+  assert(get panel is vertical(sl) == false)
+  assert(get panel pixels(sl) == 0)
+
+  set panel primary index(sl, 1)
+  assert(get panel primary index(sl) == 1)
+
+  set panel percent(sl, 40)
+  assert(get panel percent as int(sl) == 40)
+
+  set panel padding(sl, 4)
+  assert(get panel padding(sl) == 4)
+
+  set panel pixels(sl, 5)
+  assert(get panel pixels(sl) == 5)
+
+  set panel is vertical(sl, true)
+  assert(get panel is vertical(sl) == true)
+
+  # TODO: check children are sized correctly
+
   free slice(sl)
 end
 

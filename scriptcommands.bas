@@ -4506,9 +4506,7 @@ SUB script_commands(byval cmdid as integer)
  CASE 613'--set panel percent
   sl = get_arg_panelsl(0)
   IF sl THEN
-   IF bound_arg(retvals(1), 0, 100, "percent") THEN
-    ChangePanelSlice sl, , , , CDBL(retvals(1))
-   END IF
+   ChangePanelSlice sl, , , , bound(retvals(1), 0, 100) * 0.01
   END IF
  CASE 614'--get panel pixels
   sl = get_arg_panelsl(0)

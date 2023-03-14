@@ -192,6 +192,7 @@ WHAT IS NEW?
     * Debian packages were missing the Plotscripting Dictionary [Ralph]
     * "add enemy to formation", "formation slot x/y" didn't use the real bottom-
       center of enemy sprites which were not default-sized [Ralph]
+    * "set panel percent" didn't work [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license
