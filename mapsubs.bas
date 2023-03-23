@@ -3342,7 +3342,7 @@ END FUNCTION
 SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem vector, gmap() as integer, gdidx() as integer, midx() as integer, script_defaults() as integer)
 
  v_new menu
- REDIM gdidx(28)
+ REDIM gdidx(32)
  gdidx(0)  = -1: append_simplemenu_item menu, "Previous Menu"
  gdidx(1)  = 1:  append_simplemenu_item menu, "Ambient Music: "
  gdidx(2)  = 379:append_simplemenu_item menu, "Main Menu Available: "
@@ -3351,33 +3351,39 @@ SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem 
  gdidx(5)  = 18: append_simplemenu_item menu, "Tile Data: "
  gdidx(6)  = 17: append_simplemenu_item menu, "NPC Data: "
 
- gdidx(7) = -1:  append_simplemenu_item menu, "", YES
- gdidx(8) = -1:  append_simplemenu_item menu, " NPC Defaults", YES, uilook(eduiHeading)
+ gdidx(7)  = -1: append_simplemenu_item menu, "", YES
+ gdidx(8)  = -1: append_simplemenu_item menu, " Hero Movement", YES, uilook(eduiHeading)
 
- gdidx(9)  = 32: append_simplemenu_item menu, "Default NPC Move Zone: "
- gdidx(10) = 33: append_simplemenu_item menu, "Default NPC Avoid Zone: "
- gdidx(11) = 378:append_simplemenu_item menu, "Default Pathfinding Rule: "
+ gdidx(9)  = 380:append_simplemenu_item menu, "Hero Move Zone: "
+ gdidx(10) = 381:append_simplemenu_item menu, "Hero Avoid Zone: "
+ gdidx(11) = 10: append_simplemenu_item menu, "Harm-Tile Flash: "   'flash colour drawn here
+ gdidx(12) = 9:  append_simplemenu_item menu, "Harm-Tile Damage: "
 
- gdidx(12) = -1: append_simplemenu_item menu, "", YES
- gdidx(13) = -1: append_simplemenu_item menu, " Display", YES, uilook(eduiHeading)
+ gdidx(13) = -1: append_simplemenu_item menu, "", YES
+ gdidx(14) = -1: append_simplemenu_item menu, " NPC Movement", YES, uilook(eduiHeading)
 
- gdidx(14) = 11: append_simplemenu_item menu, "Foot Offset: "
- gdidx(15) = 16: append_simplemenu_item menu, "Walkabout Layering: "
- gdidx(16) = 4:  append_simplemenu_item menu, "Display Map Name: "
- gdidx(17) = 10: append_simplemenu_item menu, "Harm-Tile Flash: "   'flash colour drawn here
- gdidx(18) = 9:  append_simplemenu_item menu, "Harm-Tile Damage: "
- gdidx(19) = 5:  append_simplemenu_item menu, "Map Edge Mode: "
- gdidx(20) = 6:  append_simplemenu_item menu, "Default Edge Tile: " 'edge tile drawn here
+ gdidx(15) = 32: append_simplemenu_item menu, "Default NPC Move Zone: "
+ gdidx(16) = 33: append_simplemenu_item menu, "Default NPC Avoid Zone: "
+ gdidx(17) = 378:append_simplemenu_item menu, "Default Pathfinding Rule: "
+
+ gdidx(18) = -1: append_simplemenu_item menu, "", YES
+ gdidx(19) = -1: append_simplemenu_item menu, " Display", YES, uilook(eduiHeading)
+
+ gdidx(20) = 11: append_simplemenu_item menu, "Foot Offset: "
+ gdidx(21) = 16: append_simplemenu_item menu, "Walkabout Layering: "
+ gdidx(22) = 4:  append_simplemenu_item menu, "Display Map Name: "
+ gdidx(23) = 5:  append_simplemenu_item menu, "Map Edge Mode: "
+ gdidx(24) = 6:  append_simplemenu_item menu, "Default Edge Tile: " 'edge tile drawn here
  'Extra gap is needed here for the edge tile preview anyway
- gdidx(21) = -1: append_simplemenu_item menu, "", YES
+ gdidx(25) = -1: append_simplemenu_item menu, "", YES
 
- gdidx(22) = -1: append_simplemenu_item menu, " Scripts", YES, uilook(eduiHeading)
- gdidx(23) = 7:  append_simplemenu_item menu, "Autorun Script: "
- gdidx(24) = 8:  append_simplemenu_item menu, "Autorun Script Argument: "
- gdidx(25) = 12: append_simplemenu_item menu, "After-Battle Script: "
- gdidx(26) = 13: append_simplemenu_item menu, "Instead-of-Battle Script: "
- gdidx(27) = 14: append_simplemenu_item menu, "Each-Step Script: "
- gdidx(28) = 15: append_simplemenu_item menu, "On-Keypress Script: "
+ gdidx(26) = -1: append_simplemenu_item menu, " Scripts", YES, uilook(eduiHeading)
+ gdidx(27) = 7:  append_simplemenu_item menu, "On-Load (Autorun) Script: "
+ gdidx(28) = 8:  append_simplemenu_item menu, "Autorun Script Argument: "
+ gdidx(29) = 12: append_simplemenu_item menu, "After-Battle Script: "
+ gdidx(30) = 13: append_simplemenu_item menu, "Instead-of-Battle Script: "
+ gdidx(31) = 14: append_simplemenu_item menu, "Hero Each-Step Script: "
+ gdidx(32) = 15: append_simplemenu_item menu, "On-Keypress Script: "
 
  BUG_IF(UBOUND(gdidx) + 1 <> v_len(menu), "Wrong gdidx length!")
  invert_permutation gdidx(), midx()
@@ -3432,7 +3438,7 @@ SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem 
  menu[midx(9)].text &= gmap(9)
  ' Harm tile flash
  IF gmap(10) = 0 THEN
-  menu[midx(10)].text &= "none"
+  menu[midx(10)].text &= "None"
  ELSE
   menu[midx(10)].text &= gmap(10)
  END IF
@@ -3462,12 +3468,14 @@ SUB mapedit_gmapdata_buildmenu(st as MapEditState, byref menu as SimpleMenuItem 
     menu[midx(i)].text &= "Ignore saved state, load anew"
   END SELECT
  NEXT
- ' Default zones
- FOR i as integer = 32 TO 33
-  IF gmap(i) = 0 THEN
-   menu[midx(i)].text &= "None"
+ ' NPC/Hero zones
+ STATIC zoneidx(...) as integer = {32, 33, 380, 381}
+ FOR i as integer = 0 TO UBOUND(zoneidx)
+  DIM idx as integer = zoneidx(i)
+  IF gmap(idx) = 0 THEN
+   menu[midx(idx)].text &= "None"
   ELSE
-   menu[midx(i)].text &= gmap(i) & " " & GetZoneInfo(st.map.zmap, gmap(i))->name
+   menu[midx(idx)].text &= gmap(idx) & " " & GetZoneInfo(st.map.zmap, gmap(idx))->name
   END IF
  NEXT
  ' Default Pathfinding rules
@@ -3521,6 +3529,8 @@ SUB mapedit_gmapdata(st as MapEditState)
  gdmax(33) = zoneLASTUSER:        gdmin(33) = 0
  gdmax(378) = 2:                  gdmin(378) = 0
  gdmax(379) = 1:                  gdmin(379) = 0
+ gdmax(380) = zoneLASTUSER:       gdmin(380) = 0
+ gdmax(381) = zoneLASTUSER:       gdmin(381) = 0
 
  DIM selectst as SelectTypeState
  DIM state as MenuState

@@ -78,6 +78,7 @@ WHAT IS NEW?
       including enemies, the backdrop, and all the battle UI and menus will
       remain in the same place, but not clipped to 320x200. However there may be
       graphical glitches when attacks/attackers move on/off-screen. [Ralph]
+    * Hero movement and avoidance zones, in Map general settings menu [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

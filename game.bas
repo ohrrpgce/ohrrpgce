@@ -1455,7 +1455,18 @@ SUB update_heroes(force_step_check as bool=NO)
       END IF '---NPC EXISTS
      END WITH
     NEXT i
+   END IF ' --obstruction not suspended
+
+   'Check zones, only after NPC obstruction testing. So that you can push or touch-activate an NPC
+   'across a zone-barrier, unlike walls.
+   DIM pixelpos as XYPair = herotpos(whoi) * 20
+   DIM movezone as integer = gmap(380)
+   DIM avoidzone as integer = gmap(381)
+   IF (movezone > 0 ANDALSO wrapzonecheck(movezone, pixelpos, herow(whoi).xygo) = 0) ORELSE _
+      (avoidzone > 0 ANDALSO wrapzonecheck(avoidzone, pixelpos, herow(whoi).xygo)) THEN
+    herow(whoi).xygo = 0
    END IF
+
   END IF'--this only gets run when starting a movement to a new tile
  NEXT whoi
 
@@ -2270,8 +2281,6 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
  DIM tilepos as XYPair 'Which tile is the center of the NPC on?
  tilepos.x = (npci.x + 10) \ 20
  tilepos.y = (npci.y + 10) \ 20
- DIM pixelpos as XYPair 'Tile top left corner pixel pos for passing to wrapzonecheck
- pixelpos = tilepos * 20
 
  IF readbit(gen(), genSuspendBits, suspendnpcwalls) = 0 ANDALSO npci.ignore_walls = NO THEN
   '--this only happens if NPC walls on
@@ -2280,7 +2289,9 @@ FUNCTION npc_collision_check(npci as NPCInst, npcdata as NPCType, byval xgo as i
    RETURN YES
   END IF
   '--Check for movement zones (treat the edges as walls)
+  DIM pixelpos as XYPair = tilepos * 20
   DIM zone as integer = npcdata.defaultzone
+  '(In future, want to give NPC instances their own zones)
   IF zone = 0 THEN zone = gmap(32)  'fallback to default
   IF zone > 0 ANDALSO wrapzonecheck(zone, pixelpos, XY(xgo, ygo)) = 0 THEN
    collision_type = collideMoveZone
@@ -2332,7 +2343,10 @@ END FUNCTION
 
 FUNCTION hero_collision_check(byval rank as integer, byval xgo as integer, byval ygo as integer, byref collision_type as WalkaboutCollisionType=collideNone, byval npc_ccache as NPCCollisionCache Ptr=0) as bool
  'Returns true if the hero would collide with a wall, zone, npc, hero, etc
- 
+
+ 'NOTE: this function is used only for pathfinding! Actual hero movement in update_heroes
+ 'has a separate (more complicated) implementation of collision checking.
+
  'This function works with local copies of xgo and ygo because it calls functions that modify
  'the xgo and ygo passed in, but we don't want to alter herow().xgo and herow().ygo if we are just
  'checking whether collision could possibly happen.
@@ -2353,7 +2367,19 @@ FUNCTION hero_collision_check(byval rank as integer, byval xgo as integer, byval
     RETURN YES
    END IF
   END IF
-  '--If heroes had zone restrictions like NPCs, this would be the place to check them (But they don't!)
+  '--Check for movement zones (treat the edges as walls)
+  DIM pixelpos as XYPair = tilepos * 20
+  DIM zone as integer = gmap(380)
+  IF zone > 0 ANDALSO wrapzonecheck(zone, pixelpos, XY(xgo, ygo)) = 0 THEN
+   collision_type = collideMoveZone
+   RETURN YES
+  END IF
+  '--Check for avoidance zones (treat as walls)
+  zone = gmap(381)
+  IF zone > 0 ANDALSO wrapzonecheck(zone, pixelpos, XY(xgo, ygo)) THEN
+   collision_type = collideAvoidZone
+   RETURN YES
+  END IF
  END IF
  IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 THEN
   '--this only happens if obstruction is on

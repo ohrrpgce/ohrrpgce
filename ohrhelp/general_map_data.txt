@@ -2,6 +2,7 @@ The general map data menu holds a variety of different data about your map.
 
 Use the Up and Down arrow keys to navigate the menu, and the left and right arrow keys to change the settings. You can also navigate with the PgUp, PgDn, Home, and End keys, or type part of menu item (e.g. "harm") to jump to it.
 
+
 Ambient Music: This is the background music for the map. You can type in a music ID number. You can also choose -silence- or -same as previous map-
 
 Main Menu Available: Setting this to YES allows the player to trigger the main menu (or the Menu Action script if there is one) in the usual ways (e.g. pressing ESC, from a vehicle Use or Menu key, right clicking if enabled in Mouse Options). It doesn't disable other actions attached to the ESC key while riding a vehicle or the "main menu" script command.
@@ -18,7 +19,21 @@ Save Anywhere: Setting this to YES causes "Save" to appear in the default in-gam
 
 *"Ignore saved state, load anew" means that even if the map's NPC or Tile data has been manually saved with plotscripting commands, it will not automatically be restored when you return to the map.
 
-Default NPC Move/Avoid Zone: The zone used when an NPC's Move or Avoid Zone is set to 'default' in the NPC editor.
+
+Hero Movement:
+
+Hero Move/Avoid Zone: Lets you create additional barriers that only affect the heroes. All tiles in the Avoid zone and all the ones not in the Move zone act as walls. However while you can't push an NPC or touch-activate it from the other side of a wall, you can do so even if zones stop the hero moving there.
+
+Harm Tile Flash is a color that will be used for a visual flash to indicate when a hero has been hurt by stepping on a harm tile (tiles marked with an H in passability mode). You can type in a color index or press ENTER or SPACE to browse the master palette.
+
+Harm Tile Damage is the number of health points that will be subtracted each time a hero steps on a harmtile.
+
+
+NPC Movement:
+
+Default NPC Move/Avoid Zone: The zone used when an NPC's Move or Avoid Zone is set to 'default' in the NPC editor. All tiles in an NPC's Avoid zone and all the ones not in its Move zone act as walls.
+
+Default Pathfinding Rule: The default pathfinding variant used unless overridden in the NPC editor. The global default is "NPCs Obstruct", meaning NPCs will try to pathfind around other NPCs.
 
 
 Display Settings:
@@ -29,10 +44,6 @@ Walkabout Layering: Can be "Heroes over NPCs" or "NPCs over Heroes". This determ
 
 Display Map Name: This is the number of game ticks that the map name will be automatically displayed when the player enters the map. A second is roughly 18 game ticks.
 
-Harm Tile Flash is a color that will be used for a visual flash to indicate when a hero has been hurt by stepping on a harm tile (tiles marked with an H in passability mode). You can type in a color index or press ENTER or SPACE to browse the master palette.
-
-Harm Tile Damage is the number of health points that will be subtracted each time a hero steps on a harmtile.
-
 Map Edge Mode: can be "crop", "wrap", or "use default edge tile". A cropping map cannot be scrolled past the edges at all. A wrapping map will loop around. If you go off the left edge of it, you will come around to the right edge seamlessly. "default edge tile" means that the empty space beyond the edge of the map will be filled with a default tile, maybe grass, or water, or blank void.
 
 Map Edge Tile only matters if you have set the map edge mode to "use default edge tile". You can type in a maptile ID number, or press the left and right arrows to browse. A preview of the chosen tile is displayed.
@@ -40,15 +51,17 @@ Map Edge Tile only matters if you have set the map edge mode to "use default edg
 
 Script Settings:
 
-Autorun Script: a plotscript that will be executed as soon as you enter the map. Press ENTER or SPACE to browse a list of scripts.
+Press ENTER, SPACE or CLICK on any script option to browse a list of scripts.
 
-Script Argument is an optional number that will be passed to the autorun script (if you don't feel comfortable with arguments, feel free to ignore this).
+On-Load (Autorun) Script: a plotscript that will be executed as soon as you enter the map.
+
+Autorun Script Argument is an optional number that will be passed as the first argument to the autorun script (if you don't feel comfortable with arguments, feel free to ignore this).
 
 After-Battle Script: A plotscript that will be executed right after each random battle completes. Press ENTER or SPACE to browse a list of available scripts. The script gets one argument, which is true if the player won the battle, without running away.
 
 Instead-of-Battle Script: A plotscript that will be executed instead when a random battle would normally be triggered. The script will be passed the formation number of the battle that would have occurred as the first argument, and the battle formation set as the second. Hint: you can use the "fight formation" command to trigger the battle that would have happened.
 
-Each-Step Script: A plotscript that will be run each time the hero finished taking a step on the current map. The script will be passed the X and Y coordinates of the hero and its direction as arguments in that order.
+Hero Each-Step Script: A plotscript that will be run each time the leading hero finished taking a step on the current map. The script will be passed the X and Y coordinates of the hero and its direction as arguments in that order.
 
 On-Keypress Script: A plotscript that will be run each tick that any keyboard key or joystick button is pressed (down) or the joystick stick(s) are off-center, or (when mouse controls are enabled) if any mouse button is pressed/clicked.
 Mouse controls are considered enabled if "init mouse" is called or "Click on map to move the hero" or ""any key", etc, include mouse" are turned on in the global Mouse Options menu.
