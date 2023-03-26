@@ -42,10 +42,10 @@ static inline RGBcolor alpha_blend(RGBcolor src, RGBcolor dest, unsigned int alp
 		// Equivalent to SDL2's SDL_BLENDMODE_ADD
 		unsigned int r, g, b;
 		r = src.r * alpha / 256 + dest.r;
-		if (r > 255) r = 255;
 		g = src.g * alpha / 256 + dest.g;
-		if (g > 255) g = 255;
 		b = src.b * alpha / 256 + dest.b;
+		if (r > 255) r = 255;
+		if (g > 255) g = 255;
 		if (b > 255) b = 255;
 		res.r = r;
 		res.g = g;
@@ -59,11 +59,9 @@ static inline RGBcolor alpha_blend(RGBcolor src, RGBcolor dest, unsigned int alp
 		unsigned int alpha2 = 256 - alpha;
 		//r = (src.r * dest.r + dest.r * alpha2) / 255;   // premultiplied alpha
 		r = (src.r * dest.r * alpha / 256 + dest.r * alpha2) / 256;
-		if (r > 255) r = 255;  // Is this necessary?
 		g = (src.g * dest.g * alpha / 256 + dest.g * alpha2) / 256;
-		if (g > 255) g = 255;
 		b = (src.b * dest.b * alpha / 256 + dest.b * alpha2) / 256;
-		if (b > 255) b = 255;
+		// r,g,b will be at most 255, no clipping needed
 		res.r = r;
 		res.g = g;
 		res.b = b;
