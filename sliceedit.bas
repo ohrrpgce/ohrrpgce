@@ -552,6 +552,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
 
  DIM vpages_were_32bit as bool = vpages_are_32bit()
  push_and_reset_gfxio_state
+ IF gen(gen32bitMode) THEN switch_to_32bit_vpages ELSE switch_to_8bit_vpages
+
  DO
   setwait 55
   setkeys
