@@ -815,7 +815,7 @@ END SUB
 'Print all NPCs to g_debug.txt
 SUB debug_npcs ()
  FOR p as integer = 0 to 1
-  debug IIF(p=1, "Global", "Local") & " NPC types:"
+  debug npc_pool_name(p) & " NPC types:"
   FOR i as integer = 0 TO UBOUND(npool(p).npcs)
    debug " ID " & i & ": pic=" & npool(p).npcs(i).picture & " pal=" & npool(p).npcs(i).palette
   NEXT
@@ -865,7 +865,7 @@ FUNCTION describe_npcinst(npcnum as NPCIndex) as string
    IF npc(i).id - 1 = npcid ANDALSO npc(i).pool = .pool THEN copynum += 1
   NEXT
 
-  info = IIF(.pool=1, "Global", "Local") & " ID `" & npcid & "`"
+  info = npc_pool_name(.pool) & " ID `" & npcid & "`"
   IF .id < 0 THEN
    info &= " (DISABLED)"
   ELSE

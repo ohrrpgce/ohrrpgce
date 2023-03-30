@@ -3719,7 +3719,7 @@ SUB script_commands(byval cmdid as integer)
  CASE 120'--NPC reference
   scriptret = 0
   DIM pool as integer = get_optional_arg(3, 0)
-  IF bound_arg(pool, 0, 1, "pool id") THEN
+  IF bound_arg(pool, 0, 1, "pool (local/global)") THEN
    IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npool(pool).npcs) THEN
     DIM find_disabled as bool = get_optional_arg(2, 0) <> 0
     DIM found as integer = 0
@@ -3756,7 +3756,7 @@ SUB script_commands(byval cmdid as integer)
  CASE 123'--NPC copy count
   scriptret = 0
   DIM pool as integer = get_optional_arg(1, 0)
-  IF bound_arg(pool, 0, 1, "pool id") THEN
+  IF bound_arg(pool, 0, 1, "pool (local/global)") THEN
    IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npool(pool).npcs) THEN
     FOR i as integer = 0 TO UBOUND(npc)
      IF npc(i).id - 1 = retvals(0) ANDALSO npc(i).pool = pool THEN
@@ -3772,9 +3772,9 @@ SUB script_commands(byval cmdid as integer)
   npcref = getnpcref(retvals(0), 0, IIF(pool=-1, 0, pool))
   IF npcref >= 0 THEN
    IF pool = -1 THEN pool = npc(npcref).pool
-   IF bound_arg(pool, 0, 1, "npc pool") THEN
+   IF bound_arg(pool, 0, 1, "pool (local/global)") THEN
     IF retvals(1) < 0 ORELSE retvals(1) > UBOUND(npool(pool).npcs) THEN
-     scripterr "change NPC ID: NPC ID " & retvals(1) & " (from pool " & pool & ") doesn't exist"
+     scripterr "change NPC ID: " & npc_pool_name(pool) & " NPC ID " & retvals(1) & " doesn't exist"
     ELSE
      npc(npcref).id = retvals(1) + 1
      npc(npcref).pool = pool
@@ -3788,7 +3788,7 @@ SUB script_commands(byval cmdid as integer)
  CASE 125'--create NPC
   scriptret = 0
   DIM pool as integer = get_optional_arg(4, 0)
-  IF bound_arg(pool, 0, 1, "npc pool") THEN
+  IF bound_arg(pool, 0, 1, "pool (local/global)") THEN
    IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npool(pool).npcs) THEN
     DIM i as integer
     FOR i = UBOUND(npc) TO 0 STEP -1
@@ -4958,7 +4958,7 @@ SUB script_commands(byval cmdid as integer)
   END IF
  CASE 709'-- get npc pool
   IF retvals(0) >= 0 THEN
-   scripterr current_command_name() & ": invalid npc reference " & retvals(0) & " (Can't be an ID)"
+   scripterr current_command_name() & ": invalid npc reference " & retvals(0) & " (NPC IDs not allowed)"
    scriptret = 0
   ELSE
    DIM npcref as NPCIndex = get_valid_npc(retvals(0), serrBound)
@@ -5385,7 +5385,7 @@ FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as scriptErrE
   FOR i as integer = 0 TO UBOUND(npc)
    IF npc(i).id - 1 = seekid ANDALSO npc(i).pool = pool THEN RETURN i
   NEXT
-  scripterr current_command_name() & ": invalid npc reference; no NPCs of ID " & seekid & " from pool " & pool & " exist", errlvl
+  scripterr current_command_name() & ": no " & npc_pool_name(pool) & " NPCs with ID " & seekid & " exist", errlvl
   RETURN -1
  END IF
 END FUNCTION

@@ -2313,7 +2313,7 @@ DO
   edgeprint npc_preview_text(npcdef_by_pool(st, st.cur_npc_pool, st.cur_npc)), 0, 0, uilook(uiText), dpage
   DIM copies as integer = mapedit_npc_instance_count(st, st.cur_npc, st.cur_npc_pool)
   DIM msg as string
-  msg = IIF(st.cur_npc_pool = 1, "Global", "Local") & " NPC ID " & st.cur_npc
+  msg = npc_pool_name(st.cur_npc_pool) & " NPC ID " & st.cur_npc
   edgeprint msg, pRight - 4, 24, uilook(uiText), dpage, YES
   msg = copies & " copies of " & CHR(27) & "NPC " & st.cur_npc & IIF(st.cur_npc_pool = 1, "g", "") & CHR(26) & " on this map"
   IF copies THEN msg &= ticklite(" (`C`: " & IIF(copies = 1, "goto copy)", "cycle copies)"))
@@ -2618,7 +2618,7 @@ LOCAL SUB mapedit_list_npcs_by_tile_update (st as MapEditState, pos as XYPair, m
     IF .id > 0 ANDALSO .pool = pool_i THEN
      IF .pos = pos * tilesize THEN
       DIM s as string
-      s = IIF(pool_i, "Global", "Local") & " NPC ID=" & (.id - 1) & " copy=" & npc_copy_num(.id - 1) & " facing " & dir_str(.dir)
+      s = npc_pool_name(pool_i) & " NPC ID=" & (.id - 1) & " copy=" & npc_copy_num(.id - 1) & " facing " & dir_str(.dir)
       a_append menu(), s
       a_append npcrefs(), i
      END IF

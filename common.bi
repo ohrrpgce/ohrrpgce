@@ -112,6 +112,7 @@ DECLARE FUNCTION dimbinsize (byval id as integer) as integer
 DECLARE FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
 DECLARE FUNCTION maplumpname (byval map as integer, oldext as string) as string
 DECLARE FUNCTION global_npcdef_filename (byval pool_id as integer=1) as string
+DECLARE FUNCTION npc_pool_name(pool as integer) as string
 
 DECLARE FUNCTION text_left (text as string, wide as integer, ellipsis as bool = YES, withtags as bool = YES, fontnum as integer = fontPlain) as string
 DECLARE FUNCTION text_right (text as string, wide as integer, ellipsis as bool = YES, withtags as bool = YES, fontnum as integer = fontPlain) as string

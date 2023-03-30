@@ -1428,6 +1428,12 @@ FUNCTION global_npcdef_filename (byval pool_id as integer=1) as string
  RETURN workingdir & SLASH & "globalnpcs" & pool_id & ".n"
 END FUNCTION
 
+FUNCTION npc_pool_name(pool as integer) as string
+ IF pool = 0 THEN RETURN "Local"
+ IF pool = 1 THEN RETURN "Global"
+ RETURN "Pool " & pool
+END FUNCTION
+
 'Wrapper around SYSTEM - you should usually instead call exitprogram/cleanup_and_terminate
 'to cleanly quit Game/Custom respectively, or fatal_error_shutdown for unclean quit.
 SUB terminate_program(retval as integer = 0)
