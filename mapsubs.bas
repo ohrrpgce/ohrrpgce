@@ -138,6 +138,7 @@ DECLARE SUB ToggleLayerVisible(vis() as integer, byval l as integer)
 DECLARE SUB ToggleLayerEnabled(vis() as integer, byval l as integer)
 DECLARE FUNCTION should_draw_layer(st as MapEditState, l as integer) as bool
 DECLARE SUB set_layer(st as MapEditState, layer as integer)
+DECLARE FUNCTION next_prev_layer_keys(st as MapEditState, Ctrl_L_message as bool = NO) as bool
 
 DECLARE SUB DrawDoorPair(st as MapEditState, linknum as integer, page as integer)
 
@@ -1034,26 +1035,7 @@ DO
 
  IF st.editmode = tile_mode OR st.tool = paint_tool THEN
   'Paint tool is affected by the current map layer, so that's important
-  IF keyval(scPageup) > 1 ORELSE (keyval(scCTRL) > 0 ANDALSO keyval(scPeriod) > 1) THEN
-   IF UBOUND(st.map.tiles) = 0 THEN
-    st.message = "No more layers; press Ctrl+L to add one"
-    st.message_ticks = 15
-   END IF
-   FOR i as integer = st.layer + 1 TO UBOUND(st.map.tiles)
-    IF layerisenabled(st.map.gmap(), i) THEN
-     set_layer st, i
-     EXIT FOR
-    END IF
-   NEXT i
-  END IF
-  IF keyval(scPageDown) > 1 ORELSE (keyval(scCTRL) > 0 ANDALSO keyval(scComma) > 1) THEN
-   FOR i as integer = st.layer - 1 TO 0 STEP -1
-    IF layerisenabled(st.map.gmap(), i) THEN
-     set_layer st, i
-     EXIT FOR
-    END IF
-   NEXT
-  END IF
+  next_prev_layer_keys st, YES
  END IF
 
  IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN
@@ -4470,6 +4452,30 @@ SUB set_layer(st as MapEditState, layer as integer)
  mapedit_update_layer_palettes st
 END SUB
 
+'Handle key buttons to change selected map layer, return true if it happened
+FUNCTION next_prev_layer_keys(st as MapEditState, Ctrl_L_message as bool = NO) as bool
+ IF keyval(scPageup) > 1 ORELSE (keyval(scCTRL) > 0 ANDALSO keyval(scPeriod) > 1) THEN
+  IF Ctrl_L_message ANDALSO UBOUND(st.map.tiles) = 0 THEN
+   st.message = "No more layers; press Ctrl+L to add one"
+   st.message_ticks = 15
+  END IF
+  FOR i as integer = st.layer + 1 TO UBOUND(st.map.tiles)
+   IF layerisenabled(st.map.gmap(), i) THEN
+    set_layer st, i
+    RETURN YES
+   END IF
+  NEXT i
+ END IF
+ IF keyval(scPageDown) > 1 ORELSE (keyval(scCTRL) > 0 ANDALSO keyval(scComma) > 1) THEN
+  FOR i as integer = st.layer - 1 TO 0 STEP -1
+   IF layerisenabled(st.map.gmap(), i) THEN
+    set_layer st, i
+    RETURN YES
+   END IF
+  NEXT
+ END IF
+ RETURN NO
+END FUNCTION
 
 '==========================================================================================
 '                                      Import/Export
@@ -5690,7 +5696,7 @@ SUB mapedit_pick_tileset_rect(st as MapEditState, tilesetview as TileMap, corner
  NEXT
 END SUB
 
-SUB mapedit_pickblock_setup_tileset(st as MapEditState, tilesetview as TileMap, tilesetdata as TilesetData ptr, tilepick as XYPair)
+SUB mapedit_pickblock_setup_tileset(st as MapEditState, tilesetview as TileMap, tilesetdata as TilesetData ptr, byref tilepick as XYPair, byref show_animated_tiles as bool, byref bgcolor as bgType)
  tilesetview.layernum = 1
  cleantilemap tilesetview, 16, 16
  ' If the selected tile isn't found (because we hide animated tiles if the animation
@@ -5718,6 +5724,14 @@ SUB mapedit_pickblock_setup_tileset(st as MapEditState, tilesetview as TileMap, 
   END IF
  NEXT
  tilesetview.high = tiley 
+
+ bgcolor = IIF(st.layer = 0, 0, bgChequerScroll)
+
+ 'The animated tiles are very annoying, so hide them by default unless already selected
+ show_animated_tiles = YES
+ IF st.animations_enabled = YES THEN  'If disabled, no annoyance
+  IF st.usetile(st.layer) < 160 THEN show_animated_tiles = NO
+ END IF
 END SUB
 
 'Pick either a tile from the tileset or a rectangle.
@@ -5731,8 +5745,8 @@ SUB mapedit_pickblock(st as MapEditState)
  DIM tog as integer
  DIM holdpos as XYPair
  DIM scrolly as integer = 0 'Y position in pixels of the camera/top of the screen
- DIM bgcolor as bgType = 0
- IF st.layer > 0 THEN bgcolor = bgChequerScroll
+ DIM show_animated_tiles as bool
+ DIM bgcolor as bgType
 
  DIM tilesetdata as TilesetData ptr = st.tilesets(st.layer)
 
@@ -5740,13 +5754,8 @@ SUB mapedit_pickblock(st as MapEditState)
  'have to be the same as the tileset. This is to allow more flexible tile animations
  'systems in future, and larger tilesets.
  DIM tilesetview as TileMap
- mapedit_pickblock_setup_tileset st, tilesetview, tilesetdata, tilepick
+ mapedit_pickblock_setup_tileset st, tilesetview, tilesetdata, tilepick, show_animated_tiles, bgcolor
 
- 'The animated tiles are very annoying, so hide them by default unless already selected
- DIM show_animated_tiles as bool = YES
- IF st.animations_enabled = YES THEN  'If disabled, no annoyance
-  IF st.usetile(st.layer) < 160 THEN show_animated_tiles = NO
- END IF
  DIM real_tilesetview_high as integer = tilesetview.high
 
  setkeys
@@ -5755,6 +5764,13 @@ SUB mapedit_pickblock(st as MapEditState)
   setkeys
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
+
+  IF next_prev_layer_keys(st) THEN
+   tilesetdata = st.tilesets(st.layer)
+   mapedit_pickblock_setup_tileset st, tilesetview, tilesetdata, tilepick, show_animated_tiles, bgcolor
+   real_tilesetview_high = tilesetview.high
+   dragging = NO
+  END IF
 
   tilesetview.high = IIF(show_animated_tiles, real_tilesetview_high, 10)
 
@@ -5786,8 +5802,10 @@ SUB mapedit_pickblock(st as MapEditState)
 
   ' This is NOT tile ID, it's linearised index in tilesetview
   DIM tileoffset as integer = int_from_xy(tilepick, tilesetview.wide, tilesetview.high)
-  IF slowkey(scComma, repeatms) AND tileoffset > 0 THEN tileoffset -= 1
-  IF slowkey(scPeriod, repeatms) AND tileoffset < tilesetview.wide * tilesetview.high - 1 THEN tileoffset += 1
+  IF keyval(scCtrl) = 0 THEN  'Ctrl-period/comma changes map layer
+   IF slowkey(scComma, repeatms) AND tileoffset > 0 THEN tileoffset -= 1
+   IF slowkey(scPeriod, repeatms) AND tileoffset < tilesetview.wide * tilesetview.high - 1 THEN tileoffset += 1
+  END IF
   tilepick = xy_from_int(tileoffset, tilesetview.wide, tilesetview.high)
   set_usetile st, readblock(tilesetview, tilepick.x, tilepick.y)
 
@@ -5805,7 +5823,7 @@ SUB mapedit_pickblock(st as MapEditState)
    infoline_y = pBottom
   END IF
   DIM infotext as string
-  infotext = "Tile " & st.usetile(st.layer)
+  infotext = "Layer " & st.layer &" Tile " & st.usetile(st.layer)
   DIM animpattern as integer = tile_anim_pattern_number(st.usetile(st.layer))
   IF animpattern >= 0 THEN
    infotext & = !"\nAnimation set " & animpattern
@@ -6873,7 +6891,7 @@ SUB MapSettingsMenu.update ()
  add_item 5 , , "Wall thickness (+/- adjusts): " & _
      IIF(st->wall_style = wallStyleAnts, "N/A", STR(st->wallthickness))
  add_item 6 , , "Tile animations: " & yesorno(st->animations_enabled)
- add_item 7 , , "Current tile is per-tileset: " & yesorno(st->layers_share_usetile)
+ add_item 7 , , "Tileset selected tile is: " & IIF(st->layers_share_usetile, "per-tileset", "per-map-layer")
  add_item 8 , , "Cursor follows mouse: " & yesorno(st->cursor_follows_mouse)
  add_item 9 , , "Mouse pan speed: " & pan_mult_str
  add_item 10, , "Show layer shadows when skewing: " & yesorno(st->shadows_when_skewing)
@@ -6969,10 +6987,10 @@ SUB mapedit_settings_menu (st as MapEditState)
  write_config "mapedit.show_overhead", yesorno(st.show_overhead_bit)
  write_config "mapedit.wall_style", st.wall_style
  write_config "mapedit.wall_thickness", st.wallthickness
- write_config "mapedit.per-tileset_current_tile", st.layers_share_usetile
+ write_config "mapedit.per-tileset_current_tile", yesorno(st.layers_share_usetile)
  write_config "mapedit.tile_animations_enabled", yesorno(st.animations_enabled)
  write_config "mapedit.mouse_pan_multiplier", FORMAT(st.mouse_pan_mult, "0.00")
- write_config "mapedit.shadows_when_skewing", st.shadows_when_skewing
+ write_config "mapedit.shadows_when_skewing", yesorno(st.shadows_when_skewing)
  write_config "mapedit.show_hero", yesorno(st.show_hero)
  write_config "mapedit.show_grid", yesorno(st.show_grid)
  write_config "mapedit.grid_color", IIF(st.grid_color, rgb_to_string(master(st.grid_color)), "0")

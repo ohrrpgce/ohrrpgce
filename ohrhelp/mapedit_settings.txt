@@ -10,7 +10,9 @@ Show 'O' for Overhead tiles: This affects picture (tilemap) mode only. Because O
 
 Wall thickness changes the way that the walls are drawn on the map in passability (wallmap) mode. In wallmap mode, you can also press CTRL +/- to adjust it.
 
-Current tile is per-tileset: If false, in tilemap mode, each layer has its own currently selected tile. If true, layers with the same tileset share their selected tile.
+Tileset selected tile (for Tilemap mode):
+ "per-map-layer": each layer has its own currently selected tileset tile.
+ "per-tileset": layers with the same tileset share their selected tile.
 
 Cursor follows mouse: True keyboard aficionados may want to turn this off. When off, you can still RIGHT CLICK to move the cursor (as well as LEFT CLICK). 
 

@@ -6,3 +6,5 @@ Hold SHIFT to move the cursor faster.
 
 Press A to toggle whether animated tile sets (if defined) are
 shown below the tileset (scroll down). By default they aren't.
+
+Press PAGEUP/PAGEDOWN to change the selected map layer. Map layers with the same tileset may or may not share their selected tile (set by the "Tileset selected tile" setting).
