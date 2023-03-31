@@ -4,8 +4,8 @@ script_log.txt
 # hspeak
 hs_debug.txt
 ex.err
-physpeak/hs_lib/parser.out
-physpeak/hs_lib/parsetab.py
+physpeak/hslib/parser.out
+physpeak/hslib/parsetab.py
 gmon.out
 
 #*.xml
@@ -53,6 +53,7 @@ rbtest
 utiltest
 filetest
 filetest_helper
+gfxtest
 xml2reload
 reload2xml
 reloadutil
@@ -98,9 +99,10 @@ gfx_directx.exp
 gfx_directx.ilk
 gfx_directx.lib
 gfx_directx/gfx_directx.res
-vc90.pub
+vc100.pdb
 autotest/
 autobackups/
+ohrrpgce_config.ini
 # Obsolete
 joyset.ini
 # Mac sdl frameworks
