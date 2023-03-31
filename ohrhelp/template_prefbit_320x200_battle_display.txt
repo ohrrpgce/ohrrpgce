@@ -1,0 +1,4 @@
+"Battles display at 320x200" (only appears if game resolution is more than 320x200) causes battles to run at 320x200 instead of the resolution used in the rest of the game. Black borders will be displayed around the screen, with the battle backdrop clipped to 320x200. In either case, battle backdrops can be any size and they will be centered.
+This doesn't affect the size of battle formations, they are still limited to a 320x200 area in the center of the screen, so commands like "add enemy to formation" don't need changing.
+Some UI such as the battle menu and damage digits can always appear outside of the center 320x200.
+WARNING: using a higher resolution and turning this on results in graphical glitches when heroes, enemies and attacks move to the screen edge (e.g. when fleeing): they may disappear before reaching the edge. This will be fixed eventually.
