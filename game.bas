@@ -1191,24 +1191,10 @@ SUB displayall()
  update_backdrop_slice
  IF txt.showing = YES THEN update_textbox
 
- IF gam.debug_timings THEN
-  main_timer.switch TimerIDs.DrawSlices
-  gfx_slice_timer.begin_timestep
-  gfx_op_timer.begin_timestep
- END IF
+ 'Clears the screen
+ draw_timing_root_slice SliceTable.Root, dpage
 
- clearpage dpage
-
- NumDrawnSlices = 0
- DrawSlice SliceTable.Root, dpage
-
- IF gam.debug_timings THEN
-  WITH gam.cpu_usage_mode
-   gfx_slice_timer.finish_timestep .halflife, .is_update_tick
-   gfx_op_timer.finish_timestep .halflife, .is_update_tick
-  END WITH
-  main_timer.switch TimerIDs.DrawOther
- END IF
+ IF gam.debug_timings THEN main_timer.switch TimerIDs.DrawOther
 
  'The order in which we update and draw things is a little strange; I'm just preserving what it was
  animatetilesets tilesets()
@@ -1242,6 +1228,28 @@ SUB displayall()
   'main_timer.finish_timestep/begin_timestep called inside (switch to TimerIDs.Default)
   gam.cpu_usage_mode.display dpage
   main_timer.switch TimerIDs.Default
+ END IF
+END SUB
+
+'Clears the screen and calls DrawSlice, with timing stuff.
+'You should call main_timer.switch after this if timings enabled.
+SUB draw_timing_root_slice(rootsl as Slice ptr, page as integer)
+ IF gam.debug_timings THEN
+  main_timer.switch TimerIDs.DrawSlices
+  gfx_slice_timer.begin_timestep
+  gfx_op_timer.begin_timestep
+ END IF
+
+ clearpage page
+
+ NumDrawnSlices = 0
+ DrawSlice rootsl, page
+
+ IF gam.debug_timings THEN
+  WITH gam.cpu_usage_mode
+   gfx_slice_timer.finish_timestep .halflife, .is_update_tick
+   gfx_op_timer.finish_timestep .halflife, .is_update_tick
+  END WITH
  END IF
 END SUB
 
@@ -4603,14 +4611,14 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
 
  IF dbg.def(      , scF5, "Data reload menu (F5)") THEN live_preview_menu
 
- IF dbg.def(SftCtl, scF5, "Show CPU usage (Shft/Ctrl-F5)") THEN
+ IF dbg.def(      , scF6, "NPC info overlay (F6)") THEN loopvar gam.debug_npc_info, 0, 2
+
+ IF dbg.def(SftCtl, scF6, "Show CPU usage (Shft/Ctrl-F6)") THEN
   loopvar gam.debug_timings, 0, 2
   IF gam.debug_timings = 0 THEN gam.cpu_usage_mode.disable
   gam.debug_showtags = 0
   gam.debug_scripts = NO
  END IF
-
- IF dbg.def(      , scF6, "NPC info overlay (F6)") THEN loopvar gam.debug_npc_info, 0, 2
 
  IF dbg.def(      , scF7, "Move the camera (F7)") THEN
   IF gam.debug_camera_pan THEN

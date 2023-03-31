@@ -34,7 +34,7 @@ WHAT IS NEW?
       [James]
     * New attack bitset "Block actions as a counterattack in active mode" [James]
     * New Enemy bitset "Controlled By Player" [James]
-    * New Battle debug-key Shift/Ctrl-F6 lets the player take control of all
+    * New Battle debug-key Shift/Ctrl-F7 lets the player take control of all
       enemies in the battle [James]
     * New attack option "Change Target Control" can put the target under
       player control, or make it automatically controlled, or reset to default
@@ -66,8 +66,9 @@ WHAT IS NEW?
       And it won't re-download anything if it hasn't changed. [Ralph]
     * If a utility like unzip or oggenc reports an error the terminal window
       stays open so you can read it [Ralph]
-    * "Show CPU usage" debug mode (Shift/Ctrl-F5), to help understand slowdowns
-      (to find slow scripts, use script profiling: Shift/Ctrl-F9) [Ralph]
+    * "Show CPU usage" debug mode (Shift/Ctrl-F6), to help understand slowdowns
+      (to find slow scripts, use script profiling: Shift/Ctrl-F9). Available
+      in battles too. [Ralph]
     * Script+Command Profiling (in the Debug Menu) extends script profiling to
       also show time spent on each command, and Specific Command Profiling to
       add a column for time each script spends on one command [Ralph]

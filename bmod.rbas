@@ -185,7 +185,11 @@ FUNCTION battle (byval form as integer) as bool
  DO
   setwait 55  'Adjusting framerate in-battle is not implemented
   IF running_under_Custom THEN try_to_reload_files_inbattle
+
+  main_timer.substart TimerIDs.IOBackend
   setkeys
+  main_timer.substop TimerIDs.IOBackend
+
   bat.tog XOR= 1
   playtimer
 
@@ -280,9 +284,15 @@ FUNCTION battle (byval form as integer) as bool
    viewpage = uipage
   END IF
 
-  clearpage vpage
+  IF gam.debug_timings THEN main_timer.switch TimerIDs.UpdateSlices
+
   update_battle_slices bat, bslot()
-  DrawSlice bat.root_sl, vpage
+
+  'Clears the screen
+  draw_timing_root_slice bat.root_sl, vpage
+
+  IF gam.debug_timings THEN main_timer.switch TimerIDs.DrawOther
+
   'Not converted to slices yet
   draw_damage_text bslot(), bat.battlefield_sl, vpage
 
@@ -326,15 +336,23 @@ FUNCTION battle (byval form as integer) as bool
   show_first_battle_timer(viewpage)
 
   'Debug displays
+  IF gam.debug_timings THEN main_timer.switch TimerIDs.DrawDebug
   IF gam.debug_showtags THEN tagdisplay vpage
   IF bat.show_info_mode = 1 THEN
    show_enemy_meters bat, bslot(), formdata, vpage
   ELSEIF bat.show_info_mode = 2 THEN
    display_attack_queue bslot()
   END IF
+  IF gam.debug_timings THEN
+   'main_timer.finish_timestep/begin_timestep called inside (switch to TimerIDs.Default)
+   gam.cpu_usage_mode.display vpage
+   main_timer.switch TimerIDs.Default
+  END IF
 
   freepage uipage
+  main_timer.substart(TimerIDs.UpdateScreen)
   setvispage vpage
+  main_timer.substop(TimerIDs.UpdateScreen)
   check_for_queued_fade_in
   bat.ticks += 1
   dowait
@@ -6038,7 +6056,16 @@ END FUNCTION
 ' See debug_menu_functions() for more info.
 SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 
- IF dbg.def(      , scF4, "Tag debugger (F4)") THEN gam.debug_showtags = (gam.debug_showtags + 1) MOD 3
+ IF gam.debug_timings THEN
+  IF dbg.def(      , scF1, "Help for CPU usage (F1)") THEN show_help "game_cpu_usage"
+ END IF
+
+ IF dbg.def(      , scF4, "Tag debugger (F4)") THEN
+  loopvar gam.debug_showtags, 0, 2
+  gam.debug_scripts = 0
+  gam.cpu_usage_mode.disable
+ END IF
+
  IF dbg.def(SftCtl, scF4, "View/edit slice tree (S/C-F4)") THEN slice_editor bat.root_sl
  IF dbg.def(      , scF5, "Give million experience (F5)") THEN bat.rew.exper = 1000000
  IF dbg.def(SftCtl, scF5, "Run instantly (Shft/Ctrl-F5)") THEN bat.away = 11
@@ -6049,15 +6076,14 @@ SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot()
   bat.turn.mode XOR= 1
   notification "bat.turn.mode=" & bat.turn.mode
  END IF
- IF dbg.def(SftCtl, scF6, "Player control of enemies (Shft/Ctrl-F6)") THEN
-  FOR slot as integer = 4 TO 11
-   WITH bslot(slot)
-    .under_player_control = YES
-   END WITH
-  NEXT
-  bat.player_control_debug = YES ' makes spawned and transmogrified enemies player controlled also
-  notification "Player Control Of All Enemies"
+
+ IF dbg.def(SftCtl, scF6, "Show CPU usage (Shft/Ctrl-F6)") THEN
+  loopvar gam.debug_timings, 0, 2
+  IF gam.debug_timings = 0 THEN gam.cpu_usage_mode.disable
+  gam.debug_showtags = 0
+  gam.debug_scripts = NO
  END IF
+
  IF dbg.def(      , scF7, "Kill all targetable enemies (F7)") THEN
   FOR slot as integer = 4 TO 11
    WITH bslot(slot)
@@ -6068,6 +6094,16 @@ SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot()
    END WITH
   NEXT
   fulldeathcheck -1, bat, bslot(), formdata
+ END IF
+
+ IF dbg.def(SftCtl, scF7, "Player control of enemies (Shft/Ctrl-F7)") THEN
+  FOR slot as integer = 4 TO 11
+   WITH bslot(slot)
+    .under_player_control = YES
+   END WITH
+  NEXT
+  bat.player_control_debug = YES ' makes spawned and transmogrified enemies player controlled also
+  notification "Player Control Of All Enemies"
  END IF
 
  IF dbg.def(      , scF8) THEN battle_debug_menu bat, bslot(), formdata

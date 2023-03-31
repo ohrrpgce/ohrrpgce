@@ -1056,7 +1056,7 @@ SUB CPUUsageMode.update()
  ERASE this.menu
 
  addline "Gameplay logic (NPCs...)", TimerIDs.Default
- addline "Scripts", TimerIDs.Scripts
+ addline "Scripts", TimerIDs.Scripts, YES
  addline "Input & backend processing", TimerIDs.IOBackend, YES
  addline "File IO/loading data", TimerIDs.FileIO, YES
 
@@ -1120,6 +1120,7 @@ SUB CPUUsageMode.display(page as integer)
  main_timer.switch TimerIDs.DrawDebug
 
  CONST lineheight = 12
+ CONST barheight = 7
  DIM red as integer = findrgb(255,0,0)
  DIM blue as integer = findrgb(50,50,255)
  DIM yellow as integer = findrgb(255,255,80)
@@ -1135,12 +1136,12 @@ SUB CPUUsageMode.display(page as integer)
     ' .display_time = 0 indicates a note
     DIM col as integer = IIF(.smooth_time < 0, red, blue)
     ' Draw a bar, with 100% of targettime shown as the full screen width
-    edgebox 0, idx * lineheight, ABS(.smooth_time) * sec_to_px, 6, col, uilook(uiBackground), page
-    ' If above 100%, wrap around to of screen, overlaying a red bar
+    edgebox 0, idx * lineheight, ABS(.smooth_time) * sec_to_px, barheight, col, uilook(uiBackground), page
+    ' If above 100%, wrap around to left of screen, overlaying a red bar
     IF .smooth_time > targettime THEN
-     edgebox 0, idx * lineheight, (.smooth_time - targettime) * sec_to_px, 6, red, uilook(uiBackground), page
+     edgebox 0, idx * lineheight, (.smooth_time - targettime) * sec_to_px, barheight, red, uilook(uiBackground), page
     END IF
-    rectangle (.frame_time * sec_to_px) MOD vpages(page)->w, idx * lineheight, 1, 6, yellow, page
+    rectangle (.frame_time * sec_to_px) MOD vpages(page)->w, idx * lineheight, 1, barheight, yellow, page
     text = rpad(text, "." , 27)
     IF gam.debug_timings = 1 THEN
      text &= strprintf("%5.1f", 100 * .display_time / targettime) & "%"
