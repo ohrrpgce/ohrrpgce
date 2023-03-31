@@ -374,8 +374,9 @@ TYPE BattleState
  inv_scroll as MenuState
  inv_scroll_rect as RectType
  iuse(inventoryMax / 16) as integer 'bitsets for whether items can be used by the current hero
- show_info_mode as integer '0=nothing, 1=show_enemy_meters, 2=display_attack_queue
- player_control_debug as bool
+ 'For debug keys
+ debug_show_info as integer    '0=nothing, 1=show_enemy_meters, 2=display_attack_queue
+ debug_player_control as bool  'Set .under_player_control on all (new) enemies
  'The following don't do anything right now, but are handy to leave in
  test_view_mode as integer 'used for debugging new display stuff with F9
  test_future as integer    'used for debugging new display stuff with F9

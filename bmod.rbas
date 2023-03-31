@@ -338,9 +338,9 @@ FUNCTION battle (byval form as integer) as bool
   'Debug displays
   IF gam.debug_timings THEN main_timer.switch TimerIDs.DrawDebug
   IF gam.debug_showtags THEN tagdisplay vpage
-  IF bat.show_info_mode = 1 THEN
+  IF bat.debug_show_info = 1 THEN
    show_enemy_meters bat, bslot(), formdata, vpage
-  ELSEIF bat.show_info_mode = 2 THEN
+  ELSEIF bat.debug_show_info = 2 THEN
    display_attack_queue bslot()
   END IF
   IF gam.debug_timings THEN
@@ -2769,6 +2769,7 @@ END SUB
 
 SUB reset_battle_state (byref bat as BattleState)
  'This could become a constructor for BattleState when we support the -lang fb dialect
+ '... -_-
 
  WITH bat
 
@@ -6102,7 +6103,7 @@ SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot()
     .under_player_control = YES
    END WITH
   NEXT
-  bat.player_control_debug = YES ' makes spawned and transmogrified enemies player controlled also
+  bat.debug_player_control = YES ' makes spawned and transmogrified enemies player controlled also
   notification "Player Control Of All Enemies"
  END IF
 
@@ -6114,8 +6115,8 @@ SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot()
  IF num_logged_errors THEN note = ": " & num_logged_errors & " errors" ELSE note = " log"
  IF dbg.def(      ,     , "View g_debug.txt" & note & " (S/C-F8)") THEN open_document log_dir & *app_log_filename
 
- IF dbg.def(      , scF10, "Show enemy meters (F10)") THEN bat.show_info_mode = IIF(bat.show_info_mode = 1, 0, 1)
- IF dbg.def(      , scF11, "Show attack queue (F11)") THEN bat.show_info_mode = IIF(bat.show_info_mode = 2, 0, 2)
+ IF dbg.def(      , scF10, "Show enemy meters (F10)") THEN bat.debug_show_info = IIF(bat.debug_show_info = 1, 0, 1)
+ IF dbg.def(      , scF11, "Show attack queue (F11)") THEN bat.debug_show_info = IIF(bat.debug_show_info = 2, 0, 2)
 
  'Only for documentation, scPause is checked in main loop
  IF dbg.def(      , , "Pause battle (Pause)") THEN battle_pause
