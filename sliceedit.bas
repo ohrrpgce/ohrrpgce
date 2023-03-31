@@ -210,7 +210,7 @@ DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, importing as bool = NO)
 DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
 DECLARE SUB slice_editor_import_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
-DECLARE SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
+DECLARE SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr, reexport as bool = NO)
 DECLARE FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr) as bool
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
 DECLARE FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState, lowerlimit as integer, upperlimit as integer) as bool
@@ -557,8 +557,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
  DO
   setwait 55
   setkeys
+  DIM shiftctrl as KeyBits = keyval(scShift) OR keyval(scCtrl)
 
-  IF keyval(ccCancel) > 1 THEN
+  'S/C-F4 enters the slice debugger, so exit by pressing again.
+  IF keyval(ccCancel) > 1 ORELSE (shiftctrl > 0 ANDALSO keyval(scF4) > 1) THEN
    IF ses.hide_mode <> hideNothing THEN
     ses.hide_mode = hideNothing
    ELSE
@@ -572,7 +574,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   END IF
 
   'This must be after the strgrabber above so that can handle text input
-  slice_editor_common_function_keys ses, edslice, state, NO  'F, R, V, F4, F6, F7, F8, F10, Ctrl+F3, Ctrl+F4
+  slice_editor_common_function_keys ses, edslice, state, NO  'F, R, V, F4, F6, F7, F8, F10, C/S+F3, C/S+F5
 
   #IFDEF IS_GAME
    IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
@@ -643,13 +645,16 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    END IF
   END IF
 
-  IF keyval(scF2) > 1 ANDALSO state.need_update = NO THEN slice_editor_export_prompt ses, edslice
+  IF keyval(scF2) > 1 ANDALSO state.need_update = NO THEN
+   'Export or Re-export
+   slice_editor_export_prompt ses, edslice, (shiftctrl > 0)
+  END IF
 #IFDEF IS_CUSTOM
   '--Overwriting import can't be allowed when there are certain slices expected by the engine,
   '--and no point allowing editing external files in-game, so just disable in-game.
   '--Furthermore, loading new collections when .editing_existing is unimplemented anyway
   '--(checked by slice_editor_export_key())
-  IF keyval(scF3) > 1 ANDALSO keyval(scCtrl) = 0 ANDALSO keyval(scShift) = 0 ANDALSO state.need_update = NO THEN
+  IF keyval(scF3) > 1 ANDALSO shiftctrl = 0 ANDALSO state.need_update = NO THEN
    slice_editor_import_prompt ses, edslice
   END IF
 #ENDIF
@@ -896,7 +901,7 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
    toggle_32bit_vpages
    state.need_update = YES  'smoothing menu item needs update
   END IF
-  IF keyval(scF4) > 1 ANDALSO NOT vpages_are_32bit THEN
+  IF keyval(scF5) > 1 ANDALSO NOT vpages_are_32bit THEN
    loopvar gen(gen8bitBlendAlgo), 0, blendAlgoLAST
    show_overlay_message "Blending with " & BlendAlgoCaptions(gen(gen8bitBlendAlgo)), 1.2
    state.need_update = YES
@@ -1138,15 +1143,17 @@ SUB slice_editor_import_prompt(byref ses as SliceEditState, byref edslice as Sli
 END SUB
 #ENDIF
 
-'Prompt user whether to export. Called when F2 is pressed.
-SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
+'Prompt user whether to export or reexport. Called when F2 is pressed.
+SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr, reexport as bool = NO)
  DIM filename as string
- IF keyval(scCtrl) > 0 AND LEN(ses.collection_file) THEN
+ IF reexport ANDALSO LEN(ses.collection_file) THEN
+  'Bit pointless, simply allows pressing Enter once instead of twice (confirm default filename, confirm overwrite)
   IF yesno("Save, overwriting " & simplify_path_further(ses.collection_file) & "?", NO, NO) THEN
    filename = ses.collection_file
   END IF
  ELSE
-  filename = inputfilename("Export slice collection", ".slice", trimfilename(ses.collection_file), "input_filename_export_slices")
+  'TODO: ses.collection_file isn't changed to the new filename, so reexporting unfortunately won't use it.
+  filename = inputfilename("Export slice collection", ".slice", trimfilename(ses.collection_file), "input_filename_export_slices", trimpath(trimextension(ses.collection_file)))
   IF filename <> "" THEN filename &= ".slice"
  END IF
  IF filename <> "" THEN
@@ -1367,7 +1374,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   slice_edit_detail_keys ses, state, sl, rules(), usemenu_flag
 
   'This must be after slice_edit_detail_keys so that can handle text input
-  slice_editor_common_function_keys ses, edslice, state, YES  'F, R, V, F4, F6, F7, F8, F10, Ctrl+F3, Ctrl+F4
+  slice_editor_common_function_keys ses, edslice, state, YES  'F, R, V, F4, F6, F7, F8, F10, C/S+F3, C/S+F5
 
   draw_background vpages(dpage), bgChequer
   IF ses.hide_mode <> hideSlices THEN
@@ -2894,10 +2901,13 @@ SUB SliceEditSettingsMenu.update()
  add_spacer
  add_item 20, , "Edit lookup codes"
  IF in_detail_editor = NO THEN
+  add_item 10, , "Export collection (F2)"
+  IF LEN(ses->collection_file) THEN
+   add_item 21, , "Re-export collection (Ctrl-F2)"
+  END IF
 #IFDEF IS_CUSTOM
-  add_item 9, , "Import collection (F2)"
+  add_item 9, , "Import collection (F3)"
 #ENDIF
-  add_item 10, , "Export collection (F3)"
  END IF
 
  header "Editor Settings"
@@ -2916,9 +2926,9 @@ SUB SliceEditSettingsMenu.update()
  add_item 16, , "Global Editor Options (F9)"
 #ENDIF
  add_item 19, , "Show template slices: " & yesorno(template_slices_shown) & " (F10)"
- add_item 17, , "Switch to " & IIF(vpages_are_32bit, 8, 32) & "-bit color mode (Ctrl-F3)"
+ add_item 17, , "Switch to " & IIF(vpages_are_32bit, 8, 32) & "-bit color mode (Shft/Ctrl-F3)"
  IF NOT vpages_are_32bit THEN
-  add_item 18, , "Blend algorithm: " & BlendAlgoCaptions(gen(gen8bitBlendAlgo)) & " (Ctrl-F4)"
+  add_item 18, , "Blend algorithm: " & BlendAlgoCaptions(gen(gen8bitBlendAlgo)) & " (Shft/Ctrl-F5)"
  END IF
 END SUB
 
@@ -2954,8 +2964,10 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
     changed = YES
    END IF
 #ENDIF
-  CASE 10
+  CASE 10  'Export
    IF activate THEN slice_editor_export_prompt *ses, edslice
+  CASE 21  'Re-export
+   IF activate THEN slice_editor_export_prompt *ses, edslice, YES
   CASE 11  'Hide menu/slices
    changed = intgrabber(ses->hide_mode, 0, hideLAST)
   CASE 12
@@ -2983,6 +2995,7 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
    changed = boolgrabber(template_slices_shown, state)
   CASE 20  'Edit lookup codes
    IF activate THEN edit_slice_lookup_codes *ses, , ses->slicelookup()
+  'Next free: 22
  END SELECT
  state.need_update OR= changed
 END FUNCTION
