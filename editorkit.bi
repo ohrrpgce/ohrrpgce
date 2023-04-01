@@ -141,6 +141,9 @@ type EditorKit extends ModularMenu
 	started_item as bool
 	cur_item_index as integer
 	cur_item as EditorKitItem
+	' Set by keycombo(), these are set before defitem and wiped by defitem instead of finish_defitem
+	combo_key1 as KBScancode
+	combo_key2 as KBScancode
 
 	' For record switching
 	record_id_ptr as integer ptr
@@ -239,6 +242,7 @@ type EditorKit extends ModularMenu
 	declare sub wrap_caption(caption as string)
 
 	'---- Other menu item attributes
+	declare sub keycombo(key1 as KBScancode, key2 as KBScancode = scNone)
 	declare sub set_unselectable()
 	declare sub set_id(id as integer)
 	declare sub set_helpkey(key as zstring ptr)

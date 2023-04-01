@@ -221,6 +221,9 @@ sub EditorKit.update()
 		initialised = YES
 	end if
 
+	want_exit = NO
+	want_activate = NO
+
 	run_phase(Phases.refreshing)
 end sub
 
@@ -500,6 +503,7 @@ end sub
 'max_record_max was provided.
 'Returns true if record changed.
 function EditorKit.record_id_grabber() as bool
+	' There are multiple ways to call this, only check once per tick
 	if record_id_grabber_called then return NO
 	record_id_grabber_called = YES
 
@@ -588,6 +592,17 @@ sub EditorKit.defitem(title as zstring ptr)
 	activate = process andalso want_activate
 	left_click = process andalso (readmouse.clicks and mouseLeft)
 	right_click = process andalso (readmouse.clicks and mouseRight)
+
+	if combo_key1 then
+		if combo_key2 then
+			if keyval(combo_key1) andalso keyval(combo_key2) > 1 then activate = YES
+		else
+			if keyval(combo_key1) > 1 then activate = YES
+		end if
+		' Can't wipe these in finish_defitem so have to do it here
+		combo_key1 = scNone
+		combo_key2 = scNone
+	end if
 
 	' Start new item
 	'if refresh then
@@ -732,6 +747,14 @@ end sub
 ' (TODO: if the mouse moves, depend on mouse hover instead)
 sub EditorKit.set_tooltip(text as zstring ptr)
 	if selected then base.tooltip = *text
+end sub
+
+' Sets a combo key to activate the next defitem. If used with a single key, check keyval(key1) > 1.
+' If used with two keys, the first is a modifier: keyval(key1) > 0 and keyval(key2) > 1.
+' Note: unlike all other attributes this must precede the menu item! So that 'activate' can be set.
+sub EditorKit.keycombo(key1 as KBScancode, key2 as KBScancode = scNone)
+	combo_key1 = key1
+	combo_key2 = key2
 end sub
 
 ' Set the effective value for purposes of previewing and captioning when `value`
