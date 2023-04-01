@@ -27,12 +27,13 @@ DIM SHARED remem_map_positions() as XYPair
 '---------------------------- Local subs/functions & types -------------------------------
 
 DECLARE SUB make_map_picker_menu (topmenu() as string, state as MenuState)
-DECLARE SUB mapeditor_mapping(st as MapEditState, mode_tools_map() as integer)
+DECLARE SUB mapeditor_mapping(st as MapEditState)
 DECLARE SUB mapedit_load_settings (st as MapEditState)
 DECLARE SUB mapedit_settings_menu (st as MapEditState)
 
 DECLARE SUB mapedit_window_size_updates(st as MapEditState)
 
+DECLARE SUB mapedit_reload_default_passability(st as MapEditState)
 DECLARE SUB loadpasdefaults (byref defaults as integer vector, tilesetnum as integer)
 
 DECLARE SUB mapedit_draw_walls_click(st as MapEditState, byval pos as XYPair)
@@ -397,6 +398,136 @@ END SUB
 
 
 '==========================================================================================
+'                                        Main menu
+'==========================================================================================
+
+
+SUB mapeditor_main_menu (st as MapEditState)
+
+ DIM mapeditmenu(18) as string
+ DIM mapeditmenu_display(18) as string
+
+ mapeditmenu(0) = "Previous Menu"
+ mapeditmenu(1) = "Edit General Map Data..."
+ mapeditmenu(2) = "Resize Map..."
+ mapeditmenu(3) = "Layers and Tilesets..."
+ mapeditmenu(4) = "Edit Tilemap..."
+ mapeditmenu(5) = "Edit Wallmap..."
+ mapeditmenu(6) = "Place Doors..."
+ mapeditmenu(7) = "Link Doors..."
+ mapeditmenu(8) = "Edit Local NPCs..."
+ mapeditmenu(9) = "Edit Global NPCs..."
+ mapeditmenu(10) = "Place NPCs..."
+ mapeditmenu(11) = "Edit Foemap..."
+ mapeditmenu(12) = "Edit Zones..."
+ mapeditmenu(13) = "Editor Settings..."
+ mapeditmenu(14) = "Erase Map Data..."
+ mapeditmenu(15) = "Import/Export Tilemap..."
+ mapeditmenu(16) = "Re-load Default Passability"
+ mapeditmenu(17) = "Foemap Statistics..."
+ mapeditmenu(18) = "Map name: "
+
+ DIM selectst as SelectTypeState
+ STATIC remember_menu_pt as integer = 0
+ DIM mstate as MenuState
+ mstate.size = 24
+ mstate.last = UBOUND(mapeditmenu)
+ mstate.pt = remember_menu_pt  'preserved from any other maps for convenience
+ mstate.need_update = YES
+
+ setkeys YES
+ DO
+  setwait 55
+  setkeys YES
+  IF keyval(ccCancel) > 1 THEN
+   mapedit_savemap st
+   EXIT DO
+  END IF
+  IF keyval(scF1) > 1 THEN show_help "mapedit_menu"
+  usemenu mstate
+  IF mstate.pt = 18 AND selectst.query = "" THEN
+   strgrabber st.map.name, 39
+   mstate.need_update = YES
+  ELSEIF select_by_typing(selectst) THEN
+   select_on_word_boundary mapeditmenu(), selectst, mstate
+  END IF
+
+  IF keyval(scCtrl) > 0 AND keyval(scS) > 1 THEN
+   'Since this key is also available in mapping mode...
+   mapedit_savemap st
+   show_overlay_message "Saved.", 0.5
+  END IF
+
+  IF enter_space_click(mstate) THEN
+   SELECT CASE mstate.pt
+    CASE 0
+     mapedit_savemap st
+     EXIT DO
+    CASE 1
+     mapedit_gmapdata st
+    CASE 2
+     mapedit_resize st
+    CASE 3
+     mapedit_layers st
+    CASE 4 TO 6  'Tilemap, Wallmap, Doormap
+     st.seteditmode = mstate.pt - 4
+     mapeditor_mapping st
+    CASE 7
+     mapedit_savemap st
+     mapedit_linkdoors st
+    CASE 8  'Local NPCs
+     'This may delete NPC instances, and write npc definitions to disk
+     npcdef_editor st.map, st.map.npc_def(), maplumpname(st.map.id, "n")
+     'Reload NPC graphics after we exit the editor
+     load_npc_graphics st.map.npc_def(), st.npc_imgs(0).img()
+    CASE 9  'Global NPCs
+     'This may delete NPC instances, and write local npc definitions to disk
+     global_npcdef_editor st.map, st.global_npc_def()
+     'Reload NPC graphics after we exit the editor
+     load_npc_graphics st.global_npc_def(), st.npc_imgs(1).img()
+    CASE 10 TO 12  'Place NPCs, Foemap, Zonemap
+     st.seteditmode = mstate.pt - 7
+     mapeditor_mapping st
+    CASE 13  'Settings
+     mapedit_settings_menu st
+    CASE 14
+     mapedit_delete st
+     IF st.map.id > gen(genMaxMap) THEN
+      'This was the last map, and it was deleted instead of blanked
+      EXIT DO
+     END IF
+    CASE 15
+     mapedit_import_export st
+    CASE 16
+     mapedit_reload_default_passability st
+    CASE 17
+     foemap_stats_menu st.map.foemap, "Foemap Stats for Map " & st.map.id & " " & st.map.name
+   END SELECT
+   IF channel_to_Game THEN     'If live previewing, give quick feedback
+    mapedit_savemap st
+   END IF
+  END IF
+
+  IF mstate.need_update THEN
+   mapeditmenu(18) = "Map name: " + st.map.name
+   mstate.need_update = NO
+  END IF
+
+  clearpage vpage
+  highlight_menu_typing_selection mapeditmenu(), mapeditmenu_display(), selectst, mstate
+  DIM menuopts as MenuOptions
+  menuopts.itemspacing = 1
+  standardmenu mapeditmenu_display(), mstate, 4, 2, vpage, menuopts
+  setvispage vpage
+  dowait
+ LOOP
+
+ remember_menu_pt = mstate.pt  'preserve for other maps
+
+END SUB
+
+
+'==========================================================================================
 '                                         Brushes
 '==========================================================================================
 
@@ -499,40 +630,24 @@ END FUNCTION
 
 
 '==========================================================================================
-'                               Main SUB (toplevel menu)
+'                          Map editor toplevel setup/teardown
 '==========================================================================================
 
-FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer, byval pool_id as integer) as integer
- DIM num as integer = 0
- FOR i as integer = 0 to UBOUND(st.map.npc)
-  IF st.map.npc(i).id - 1 = id ANDALSO st.map.npc(i).pool = pool_id THEN num += 1
- NEXT i
- RETURN num
-END FUNCTION
 
-SUB mapeditor (byval mapnum as integer)
+SUB mapeditor_setup (st as MapEditState, mapnum as integer)
 
-DIM st as MapEditState
 DIM pal16(288) as integer
 DIM npcnum() as integer
 DIM her as HeroDef
 
 st.editmode = 0
 st.seteditmode = -1
-DIM mode_tools_map(zone_mode, 10) as integer = { _
-   {draw_tool, box_tool, fill_tool, replace_tool, mark_tool, clone_tool, -1}, _       'tile_mode
-   {draw_wall_tool, stamp_tool, box_tool, paint_tool, mark_tool, clone_tool, -1}, _   'pass_mode
-   {-1}, _                                                                            'door_mode
-   {-1}, _                                                                            'npc_mode
-   {draw_tool, box_tool, fill_tool, replace_tool, paint_tool, mark_tool, clone_tool, -1}, _ 'foe_mode
-   {draw_tool, box_tool, fill_tool, paint_tool, mark_tool, clone_tool, -1} _          'zone_mode
-}
 
 v_new st.mode_tools
 
 REDIM st.lockedzonelist(-1 TO -1) as integer 'The zones chosen to be always displayed. At most 8 (index 0 onwards, start at -1 for fake zero-length arrays) 
 'The floating menu that displays a list of zones. These are created and updated in mapedit_update_visible_zones
-DIM zone_delete_tool as integer  'Whether Space should add or remove tiles
+'DIM zone_delete_tool as integer  'Whether Space should add or remove tiles
 
 flusharray st.visible(), , -1  'Mark all layers visible (when they're enabled)
 
@@ -692,130 +807,11 @@ REDIM PRESERVE remem_map_positions(gen(genMaxMap))
 mapedit_window_size_updates st  'Needed to set the size of st.viewport
 mapedit_move_cursor st, remem_map_positions(st.map.id)
 
-DIM mapeditmenu(18) as string
-DIM mapeditmenu_display(18) as string
-
-mapeditmenu(0) = "Previous Menu"
-mapeditmenu(1) = "Edit General Map Data..."
-mapeditmenu(2) = "Resize Map..."
-mapeditmenu(3) = "Layers and Tilesets..."
-mapeditmenu(4) = "Edit Tilemap..."
-mapeditmenu(5) = "Edit Wallmap..."
-mapeditmenu(6) = "Place Doors..."
-mapeditmenu(7) = "Link Doors..."
-mapeditmenu(8) = "Edit Local NPCs..."
-mapeditmenu(9) = "Edit Global NPCs..."
-mapeditmenu(10) = "Place NPCs..."
-mapeditmenu(11) = "Edit Foemap..."
-mapeditmenu(12) = "Edit Zones..."
-mapeditmenu(13) = "Editor Settings..."
-mapeditmenu(14) = "Erase Map Data..."
-mapeditmenu(15) = "Import/Export Tilemap..."
-mapeditmenu(16) = "Re-load Default Passability"
-mapeditmenu(17) = "Foemap Statistics..."
-mapeditmenu(18) = "Map name: "
-
-DIM selectst as SelectTypeState
-STATIC remember_menu_pt as integer = 0
-DIM mstate as MenuState
-mstate.size = 24
-mstate.last = UBOUND(mapeditmenu)
-mstate.pt = remember_menu_pt  'preserved from any other maps for convenience
-mstate.need_update = YES
-
-setkeys YES
-DO
- setwait 55
- setkeys YES
- IF keyval(ccCancel) > 1 THEN
-  mapedit_savemap st
-  EXIT DO
- END IF
- IF keyval(scF1) > 1 THEN show_help "mapedit_menu"
- usemenu mstate
- IF mstate.pt = 18 AND selectst.query = "" THEN
-  strgrabber st.map.name, 39
-  mstate.need_update = YES
- ELSEIF select_by_typing(selectst) THEN
-  select_on_word_boundary mapeditmenu(), selectst, mstate
- END IF
-
- IF keyval(scCtrl) > 0 AND keyval(scS) > 1 THEN
-  'Since this key is also available in mapping mode...
-  mapedit_savemap st
-  show_overlay_message "Saved.", 0.5
- END IF
-
- IF enter_space_click(mstate) THEN
-  SELECT CASE mstate.pt
-   CASE 0
-    mapedit_savemap st
-    EXIT DO
-   CASE 1
-    mapedit_gmapdata st
-   CASE 2
-    mapedit_resize st
-   CASE 3
-    mapedit_layers st
-   CASE 4 TO 6  'Tilemap, Wallmap, Doormap
-    st.seteditmode = mstate.pt - 4
-    mapeditor_mapping st, mode_tools_map()
-   CASE 7
-    mapedit_savemap st
-    mapedit_linkdoors st
-   CASE 8  'Local NPCs
-    'This may delete NPC instances, and write npc definitions to disk
-    npcdef_editor st.map, st.map.npc_def(), maplumpname(st.map.id, "n")
-    'Reload NPC graphics after we exit the editor
-    load_npc_graphics st.map.npc_def(), st.npc_imgs(0).img()
-   CASE 9  'Global NPCs
-    'This may delete NPC instances, and write local npc definitions to disk
-    global_npcdef_editor st.map, st.global_npc_def()
-    'Reload NPC graphics after we exit the editor
-    load_npc_graphics st.global_npc_def(), st.npc_imgs(1).img()
-   CASE 10 TO 12  'Place NPCs, Foemap, Zonemap
-    st.seteditmode = mstate.pt - 7
-    mapeditor_mapping st, mode_tools_map()
-   CASE 13  'Settings
-    mapedit_settings_menu st
-   CASE 14
-    mapedit_delete st
-    IF st.map.id > gen(genMaxMap) THEN
-     'This was the last map, and it was deleted instead of blanked
-     EXIT DO
-    END IF
-   CASE 15
-    mapedit_import_export st
-   CASE 16
-    '--reload default passability
-    IF yesno("Set default passability for whole map, overwriting your wallmap? Don't worry, you can undo this by hitting Ctrl+Z in any editing mode", NO, NO) THEN
-     FOR tx as integer = 0 TO st.map.wide - 1
-      FOR ty as integer = 0 TO st.map.high - 1
-       calculatepassblock st, tx, ty
-      NEXT ty
-     NEXT tx
-    END IF
-   CASE 17
-    foemap_stats_menu st.map.foemap, "Foemap Stats for Map " & st.map.id & " " & st.map.name
-  END SELECT
-  IF channel_to_Game THEN     'If live previewing, give quick feedback
-   mapedit_savemap st
-  END IF
- END IF
-
- IF mstate.need_update THEN
-  mapeditmenu(18) = "Map name: " + st.map.name
-  mstate.need_update = NO
- END IF
-
- clearpage vpage
- highlight_menu_typing_selection mapeditmenu(), mapeditmenu_display(), selectst, mstate
- standardmenu mapeditmenu_display(), mstate, 0, 0, vpage
- setvispage vpage
- dowait
-LOOP
+END SUB
 
 '---------------------------------- CLEANUP CODE -------------------------------------
+
+SUB mapeditor_teardown(st as MapEditState)
 
 unload_npc_graphics st.npc_imgs(0).img()
 unload_npc_graphics st.npc_imgs(1).img()
@@ -845,8 +841,15 @@ v_free st.zonemenu
 
 'Remember position
 remem_map_positions(st.map.id) = XY(st.x, st.y)
+END SUB
 
-remember_menu_pt = mstate.pt  'preserve for other maps
+'-------------------------------------------------------------------------------------
+
+SUB mapeditor (byval mapnum as integer)
+ DIM st as MapEditState
+ mapeditor_setup st, mapnum
+ mapeditor_main_menu st
+ mapeditor_teardown st
 END SUB
 
 
@@ -855,7 +858,16 @@ END SUB
 '==========================================================================================
 
 
-SUB mapeditor_mapping(st as MapEditState, mode_tools_map() as integer)
+DIM SHARED mode_tools_map(zone_mode, 10) as integer = { _
+   {draw_tool, box_tool, fill_tool, replace_tool, mark_tool, clone_tool, -1}, _       'tile_mode
+   {draw_wall_tool, stamp_tool, box_tool, paint_tool, mark_tool, clone_tool, -1}, _   'pass_mode
+   {-1}, _                                                                            'door_mode
+   {-1}, _                                                                            'npc_mode
+   {draw_tool, box_tool, fill_tool, replace_tool, paint_tool, mark_tool, clone_tool, -1}, _ 'foe_mode
+   {draw_tool, box_tool, fill_tool, paint_tool, mark_tool, clone_tool, -1} _          'zone_mode
+}
+
+SUB mapeditor_mapping(st as MapEditState)
 clearpage 2
 
 st.reset_tool = YES
@@ -3981,6 +3993,15 @@ END SUB
 '                                 NPC Instance functions
 '==========================================================================================
 
+
+FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer, byval pool_id as integer) as integer
+ DIM num as integer = 0
+ FOR i as integer = 0 to UBOUND(st.map.npc)
+  IF st.map.npc(i).id - 1 = id ANDALSO st.map.npc(i).pool = pool_id THEN num += 1
+ NEXT i
+ RETURN num
+END FUNCTION
+
 FUNCTION count_npc_slots_used(npcs() as NPCInst) as integer
  DIM count as integer = 0
  FOR i as integer = 0 to UBOUND(npcs)
@@ -5659,6 +5680,16 @@ SUB calculatepassblock(st as MapEditState, x as integer, y as integer)
  IF oldval <> n THEN
   add_undo_step st, x, y, oldval, mapIDPass
   writeblock st.map.pass, x, y, n
+ END IF
+END SUB
+
+SUB mapedit_reload_default_passability(st as MapEditState)
+ IF yesno("Set default passability for whole map, overwriting your wallmap? Don't worry, you can undo this by hitting Ctrl+Z in any editing mode", NO, NO) THEN
+  FOR tx as integer = 0 TO st.map.wide - 1
+   FOR ty as integer = 0 TO st.map.high - 1
+    calculatepassblock st, tx, ty
+   NEXT ty
+  NEXT tx
  END IF
 END SUB
 
