@@ -167,6 +167,9 @@ SUB lowlevel_init()
   'It also catches fb_Assert().
   'If nothing if hooked then the program would terminate without an exception
   'when the rtlib throws an error, and CrashRpt would not be invoked!
+  'We could almost just use atexit() instead, because fb's rtlib cleanup happens
+  '(afterwards?) in a global destructor function, except not under emscripten,
+  'and libfbgfx destroys the window before then.
   IF hook_fb_End() = NO THEN
    setup_fb_error_handler
    'Note: if --rawexx cmdline arg given, we later call remove_fb_error_handler.

@@ -230,7 +230,7 @@ typedef struct FB_HOOKSTB {
 #endif
 } FB_HOOKSTB;
 
-// This is also fairly stable. We need this to access the file table, fileTB.
+// This is also fairly stable. We need this to access the file table fileTB and exit_gfxlib2.
 typedef struct FB_RTLIB_CTX_ {
 	int             argc;
 	char          **argv;
@@ -239,7 +239,6 @@ typedef struct FB_RTLIB_CTX_ {
 	//FnDummy         pfnDevOpenHook;  used to be here, sigh
 	FB_HOOKSTB      hooks;
 	FB_FILE         fileTB[FB_MAX_FILES];
-	/* We don't care about anything after this point */
 	int             do_file_reset;
 	int             lang;
 	void          (*exit_gfxlib2)(void);
