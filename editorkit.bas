@@ -597,7 +597,7 @@ sub EditorKit.defitem(title as zstring ptr)
 		if combo_key2 then
 			if keyval(combo_key1) andalso keyval(combo_key2) > 1 then activate = YES
 		else
-			if keyval(combo_key1) > 1 then activate = YES
+			if (keyval(scCtrl) or keyval(scShift) or keyval(scAlt)) = 0 andalso keyval(combo_key1) > 1 then activate = YES
 		end if
 		' Can't wipe these in finish_defitem so have to do it here
 		combo_key1 = scNone

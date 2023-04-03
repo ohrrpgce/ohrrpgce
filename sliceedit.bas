@@ -874,25 +874,27 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
  END IF
 
 
- IF shiftctrl = 0 ANDALSO keyval(scF4) > 1 THEN ses.hide_mode = (ses.hide_mode + 1) MOD (hideLAST + 1)
- IF keyval(scF6) > 1 THEN
-  'Move around our view on this slice collection.
-  'We move around the real rool, not draw_root, as it affects screen positions
-  'even if it's not drawn. The root gets deleted when leaving slice_editor, so
-  'changes are temporary.
-  DIM true_root as Slice ptr = FindRootSlice(edslice)
-  slice_editor_xy @true_root->Pos, , ses.draw_root, edslice, ses.show_ants
-  state.need_update = YES
- END IF
- IF keyval(scF7) > 1 THEN ses.show_ants = NOT ses.show_ants
- IF keyval(scF8) > 1 THEN
-  slice_editor_settings_menu ses, edslice, in_detail_editor
-  state.need_update = YES
- END IF
- IF keyval(scF10) > 1 THEN
-  template_slices_shown XOR= YES
-  show_overlay_message "Template slices " & IIF(template_slices_shown, "shown", "hidden"), 2
-  state.need_update = YES
+ IF shiftctrl = 0 THEN
+  IF keyval(scF4) > 1 THEN loopvar ses.hide_mode, 0, hideLAST
+  IF keyval(scF6) > 1 THEN
+   'Move around our view on this slice collection.
+   'We move around the real rool, not draw_root, as it affects screen positions
+   'even if it's not drawn. The root gets deleted when leaving slice_editor, so
+   'changes are temporary.
+   DIM true_root as Slice ptr = FindRootSlice(edslice)
+   slice_editor_xy @true_root->Pos, , ses.draw_root, edslice, ses.show_ants
+   state.need_update = YES
+  END IF
+  IF keyval(scF7) > 1 THEN ses.show_ants = NOT ses.show_ants
+  IF keyval(scF8) > 1 THEN
+   slice_editor_settings_menu ses, edslice, in_detail_editor
+   state.need_update = YES
+  END IF
+  IF keyval(scF10) > 1 THEN
+   template_slices_shown XOR= YES
+   show_overlay_message "Template slices " & IIF(template_slices_shown, "shown", "hidden"), 2
+   state.need_update = YES
+  END IF
  END IF
  IF shiftctrl > 0 THEN
   IF keyval(scF3) > 1 THEN
