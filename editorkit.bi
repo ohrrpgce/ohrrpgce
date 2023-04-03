@@ -98,7 +98,7 @@ type EditorKit extends ModularMenu
 	'title as string           'Editor title, displayed at top of screen
 	'menuopts as MenuOptions
 
-	'---- State variables which can be accessed inside define_items().
+	'---- State variables which can be accessed inside define_items() while defining an item
 	selected as bool           'The current menu item is selected
 	hover as bool              'The current menu item has mouse-hover focus
 	edited as bool             'The value has been modified and needs to be written back
@@ -123,6 +123,10 @@ type EditorKit extends ModularMenu
 
 	declare function eff_value() as integer  'Effective val after applying default
 
+	'---- Global menu state variables (for access inside define_items())
+	submenu as string          'Name of current submenu, or ""
+	want_exit as bool          'Called exit_menu()
+
 	'---- The following is internal state you usually would not access
 
 	enum Phases
@@ -132,7 +136,6 @@ type EditorKit extends ModularMenu
 	end enum
 	phase as Phases            'Whenever define_items() is called, this tells why
 	want_activate as bool      'Cache enter_space_click() result
-	want_exit as bool          'Called exit_menu()
 	initialised as bool        'update() has been called at least once
 	record_id_grabber_called as bool 'Ensure is only called once a tick
 
@@ -192,6 +195,7 @@ type EditorKit extends ModularMenu
 
 	'---- Other non-menu-item methods
 	declare sub switch_record(newid as integer)
+	declare sub switch_submenu(name as string = "")
 	declare sub exit_menu()
 	declare function record_id_grabber() as bool
 
@@ -247,6 +251,7 @@ type EditorKit extends ModularMenu
 	declare sub set_id(id as integer)
 	declare sub set_helpkey(key as zstring ptr)
 	declare sub set_tooltip(text as zstring ptr)
+	declare function multiline_editable() as bool
 
 	declare sub default_effective_value(default_value as integer, effective_value as integer)
 
@@ -293,6 +298,7 @@ type EditorKit extends ModularMenu
 	declare function edit_bit(byref bits as integer, whichbit as integer) as bool
 	declare function edit_bitset(bitwords() as integer, wordnum as integer = 0, bitnum as integer) as bool
 	declare function edit_str(byref datum as string, maxlen as integer = 0) as bool
+	'See also multiline_editable()
 	'declare function edit_float(byref datum as double, ...) as bool  'TODO
 
 	' Derived types

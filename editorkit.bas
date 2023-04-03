@@ -11,8 +11,10 @@
 ' refreshing: generate an array of items for display and navigation; called
 '   whenever state.need_update is true (which define_items sets during processing)
 '
-' Then call .run(). Loading, other initialisation, saving, switching records and
-' submenus are your own responsibility, for now.
+' Then call .run(). But you probably want to load data or do other initialisation
+' first, such as setting .helpkey.
+' You can define submenus by checking the value of submenu inside define_items(),
+' and enter one by calling .switch_submenu().
 '
 ' ==== Saving, loading, and multiple records ====
 ' If you overload the load() and save() methods they will be called when
@@ -65,6 +67,8 @@
 '     if activate then edit_widget_details
 ' Or as a shortcut:
 '     if defitem_act("Edit details...") then edit_widget_details
+' Or if the submenu is defined by your class:
+'     if defitem_act("Edit details...") then switch_submenu "details"
 '
 ' ==== Data ====
 ' Items can display and (optionally) edit a field of data, which could be an
@@ -256,9 +260,14 @@ function EditorKit.each_tick() as bool
 		end if
 	end if
 
-	if want_exit andalso try_exit() then
-		save()
-		return YES
+	if want_exit then
+		if submenu <> "" then ' Exit submenu
+			submenu = ""
+			state.need_update = YES
+		elseif try_exit() then ' Exit toplevel menu
+			save()
+			return YES
+		end if
 	end if
 	return NO
 end function
@@ -472,18 +481,17 @@ function EditorKit.delete_action() as bool
 	end if
 end function
 
-' Call during 'process' or 'activate' to do a conditional exit from the menu. The try_exit()
-' virtual method will still be called, which can override it if you can implement it.
+' Call during 'process' or 'activate' to do a conditional exit from the menu.
+' Exits the submenu, if any, otherwise, the try_exit() virtual method will be called,
+' which can override the attempt to completely exit the menu.
 sub EditorKit.exit_menu()
 	want_exit = YES
 end sub
 
-/'
 sub EditorKit.switch_submenu(name as string = "")
 	submenu = name
 	state.need_update = YES
 end sub
-'/
 
 sub EditorKit.switch_record(newid as integer)
 	BUG_IF(record_id_ptr = 0, "Missing setup_record_switching")
@@ -1174,6 +1182,17 @@ function EditorKit.edit_str(byref datum as string, maxlen as integer = 0) as boo
 	return edited
 end function
 
+' Call this after edit_str (or defstr) to allow multiline editing.
+' Call set_helpkey before this to make it show help inside
+function EditorKit.multiline_editable() as bool
+	if activate then
+		valuestr = multiline_string_editor(valuestr, cur_item.helpkey)
+		edited = YES
+		write_value
+		return YES
+	end if
+end function
+
 ' TODO: multiline_string_editor
 
 '-------------------------------- Derived types --------------------------------
@@ -1198,8 +1217,10 @@ function prompt_for_enum(byref key as string, prompt_text as string, options() a
 	dim menu() as string
 	dim start_idx as integer
 	for idx as integer = 0 TO ubound(options)
-		a_append menu(), options(idx).caption
-		if key = *options(idx).key then start_idx = idx
+		with options(idx)
+			a_append menu(), iif(len(*.caption), .caption, .key)
+			if key = *.key then start_idx = idx
+		end with
 	next
 	dim choice as integer
 	choice = popup_choice(prompt_text, menu(), start_idx, -1, helpkey)
