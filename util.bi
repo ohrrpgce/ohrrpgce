@@ -334,6 +334,7 @@ Type HashTable
 
   'Construct a HashTable with information about the types, if you want to store non-opaque pointers.
   'Pass a type info struct like 'type_table(T)' if you want the key/value to be a T ptr.
+  '(You need to use DECLARE_VECTOR_OF_TYPE, DEFINE_VECTOR_* to declare/create a type_table.)
   'For example you should pass type_table(string) or type_table(zstring) to store FB or C strings;
   'do NOT use type_table(zstring_ptr)!
   'type_table(integer) as key or value is a special case, as integers are stored directly instead of
@@ -341,7 +342,9 @@ Type HashTable
   'an opaque pointer.
   'If you want the keys or values to be copied with NEW and freed with DELETE when added/removed
   'from the table, pass copy_and_delete_{keys,values} = YES. (Hint: you probably want that for keys
-  'and values which are 'string's. Otherwise, you are responsible for allocating and deleting them.
+  'and values which are 'string's.) Otherwise, you are responsible for allocating and deleting them.
+  'If you want the table to take ownership of ptrs, just delete but not copy them, then set
+  '.key_copy = NULL or .value_copy = NULL afterwards. (Or set .value_delete manually.)
   'These args have no effect when key/value_type is integer, and must not be used with any_ptr.
   declare sub construct(tablesize as integer = 31, key_type as TypeTable, copy_and_delete_keys as bool, value_type as TypeTable, copy_and_delete_values as bool)
 
@@ -359,6 +362,7 @@ Type HashTable
   'Provide either a hash, or both a key and its hash. Both key and value may be NULL.
   'However if the value is NULL you can't distinguish between NULL values and keys that aren't present!
   'NOTE: if the key already exists, it will be duplicated! Use set() instead to overwrite.
+  'The add order of duplicated keys is preserved.
   declare sub add(hash as integer, value as any ptr, _key as any ptr = NULL)  'Ignore _key
   declare sub add(hash as integer, value as integer)
   declare sub add(key as any ptr, value as any ptr)

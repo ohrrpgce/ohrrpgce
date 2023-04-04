@@ -3898,7 +3898,8 @@ startTest(HashTableStrings)
   if a <> "A" then fail  'Shouldn't have touched the originals
 
   'Try out reinitialising a table with different types.
-  'This time, don't copy the strings
+  'This time, don't copy the strings (note, this is really dangerous, will
+  'crash if the strings on the stack go out of scope, so don't do this!)
   tbl.construct(1 , type_table(string), NO, type_table(string), NO)
 
   c = "C"
@@ -3962,7 +3963,7 @@ endTest
 
 '----------------- StrHashTable -----------------
 
-sub StrHashTable.construct(tablesize as integer = 31, value_type as TypeTable = type_table(any_ptr), copy_and_delete_values as bool = NO)
+sub StrHashTable.construct(tablesize as integer = 31, value_type as TypeTable = type_table(any_ptr), copy_and_delete_values as bool)
   base.construct(tablesize, type_table(string), YES, value_type, copy_and_delete_values)
 end sub
 
@@ -4033,6 +4034,69 @@ startTest(StrStrHashTable)
   if tbl.numitems <> 2 then fail
   tbl.remove "A"
   if tbl.numitems <> 1 then fail
+endTest
+
+dim shared testdata_init_cnt as integer
+dim shared testdata_failed as bool
+
+type TestDataType
+  name as string
+  dat as integer
+  declare constructor(d as integer)
+  declare destructor()
+end type
+
+constructor TestDataType(d as integer)
+  dat = d
+  name = "data" & dat
+  testdata_init_cnt += 1
+end constructor
+
+destructor TestDataType()
+  if name <> "data" & dat then testdata_failed = YES
+  name = "blank"
+  testdata_init_cnt -= 1
+end destructor
+
+DECLARE_VECTOR_OF_TYPE(TestDataType, TestDataType)
+DEFINE_VECTOR_OF_CLASS(TestDataType, TestDataType)
+
+' Test mapping to a datatype ptr, which is owned (deleted but not copied in).
+' Also tests dupicate keys a bit.
+startTest(StrHashTable_NoCopydata)
+  dim tbl as StrHashTable
+  tbl.construct(32, type_table(TestDataType), YES)
+  tbl.value_copy = NULL   'Delete but don't copy
+
+  'Add items
+  for idx as integer = 1 to 100
+   tbl.add("key" & idx, new TestDataType(idx))
+   'Duplicate data
+   tbl.add("key" & idx, new TestDataType(1000 + idx))
+   if testdata_init_cnt <> 2*idx then fail
+  next
+
+  'Check and delete items
+  for idx as integer = 100 to 50 step -1
+   'var vptr = cptr(TestDataType ptr, tbl.get("key" & idx))
+   dim vptr as TestDataType ptr
+
+   vptr = tbl.get("key" & idx)
+   if vptr = null then fail
+   if vptr->name <> "data" & idx then fail
+   'Delete first copy of the key, then lookup the second
+   if tbl.remove("key" & idx) = NO then fail
+
+   vptr = tbl.get("key" & idx)
+   if vptr = null then fail
+   if vptr->name <> "data" & (1000 + idx) then fail
+
+   if testdata_init_cnt <> 100 + idx - 1 then fail
+  next
+
+  tbl.clear()
+  if testdata_init_cnt <> 0 then fail
+  if testdata_failed then fail
 endTest
 
 #endif
