@@ -234,7 +234,7 @@ type EditorKit extends ModularMenu
 	'---- Adding data menu items
 	declare sub defitem(title as zstring ptr)
 	declare function defitem_act(title as zstring ptr) as bool
-	declare sub defunselectable(title as zstring ptr, color as integer = 0)
+	declare sub defunselectable(title as zstring ptr, color as integer = -eduiNote-1)
 	declare sub defint(title as zstring ptr, byref datum as integer, min as integer = 0, max as integer)
 	declare sub defbool overload(title as zstring ptr, byref datum as bool)
 	declare sub defbool overload(title as zstring ptr, byref datum as boolean)

@@ -717,8 +717,7 @@ function EditorKit.defitem_act(title as zstring ptr) as bool
 end function
 
 ' Add an unselectable line. You can still use set_caption or even val_*/as_* to set a default caption
-' Doesn't use the disabled item color. Pass color = -uiDisabledItem-1 for that.
-sub EditorKit.defunselectable(title as zstring ptr, color as integer = 0)
+sub EditorKit.defunselectable(title as zstring ptr, color as integer = -eduiNote-1)
 	defitem title
 	cur_item.unselectable = YES
 	cur_item.color = color
