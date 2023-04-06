@@ -21,7 +21,7 @@ DECLARE SUB distribute_game_as_zip (dest_override as string = "")
 DECLARE SUB distribute_game_as_windows_installer (dest_override as string = "")
 DECLARE SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
 DECLARE FUNCTION get_windows_gameplayer() as string
-DECLARE FUNCTION get_linux_gameplayer(which_arch as string) as string
+DECLARE FUNCTION get_linux_gameplayer(which_arch as string, destdir as string) as string
 DECLARE FUNCTION get_mac_gameplayer(which_arch as string) as string
 DECLARE FUNCTION agreed_to_download(agree_file as string, description as string) as bool
 DECLARE FUNCTION download_gameplayer_if_needed(url as string, destfile as string, agree_filename as string, description as string) as bool
@@ -76,7 +76,6 @@ DECLARE FUNCTION is_known_license(license_code as string) as bool
 DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
 DECLARE SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = "")
 DECLARE FUNCTION fix_mac_app_executable_bit_on_windows(zipfile as string, exec_path_in_zip as string) as bool
-DECLARE FUNCTION running_64bit() as bool
 DECLARE SUB dist_basicstatus (s as string)
 DECLARE SUB itch_io_options_menu()
 DECLARE FUNCTION itch_game_url(distinfo as DistribState) as string
@@ -737,6 +736,17 @@ FUNCTION get_windows_gameplayer() as string
  RETURN dldir & SLASH & "game.exe"
 END FUNCTION
 
+' FUNCTION extract_buildinfo
+'  '--Find the unzip tool
+'  DIM unzip as string = find_helper_app("unzip", YES)
+'  IF unzip = "" THEN dist_info "ERROR: Couldn't find unzip tool": RETURN ""
+ 
+'  '--Unzip the desired files
+'  DIM args as string = "-o " & escape_filename(destzip) & " ohrrpgce-game buildinfo.ini LICENSE-binary.txt -d " & escape_filename(dldir)
+'  DIM spawn_ret as string = spawn_and_wait(unzip, args)
+'  IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: unzip failed: " & spawn_ret : RETURN ""
+' END FUNCTION
+
 FUNCTION sanity_check_buildinfo(buildinfo_file as string) as bool
  'Return YES if the sanity check has failed
  IF NOT isfile(buildinfo_file) THEN dist_info "ERROR: Failed to read buildinfo.ini" : RETURN YES
@@ -749,35 +759,26 @@ FUNCTION sanity_check_buildinfo(buildinfo_file as string) as bool
  RETURN NO
 END FUNCTION
 
-FUNCTION running_64bit() as bool
-#IFDEF __FB_64BIT__
- RETURN YES
-#ELSE
- RETURN NO
-#ENDIF
-END FUNCTION
-
-FUNCTION get_linux_gameplayer(which_arch as string) as string
- 'In most cases, download a precompiled binary of ohrrpgce-game,
- 'unzip it, and return the full path.
+FUNCTION get_linux_gameplayer(which_arch as string, destdir as string) as string
+ 'In most cases, download a precompiled Linux player package,
+ 'extract it to destdir (creating it but not clearing if already existing),
+ 'and return the full path to game.sh therein.
  '
  'Returns "" for failure.
- '
- 'On Linux, if you are running a non-debug binary of the requested
- 'architecture, then the installed binary will be used rather than
- 're-downloading.
 
-DIM arch_suffix as string
-SELECT CASE which_arch
- CASE "x86":
-  arch_suffix = ""
- CASE "x86_64":
-  arch_suffix = "-x86_64"
- CASE ELSE  'Should never happen
-  dist_info "get_linux_gameplayer: Requested unsupported arch """ & which_arch & """. The only supported vaues are x86 and x86_64"
-  RETURN ""
-END SELECT
+ DIM arch_suffix as string
+ SELECT CASE which_arch
+  CASE "x86", "x86_64":
+   arch_suffix = "-" & which_arch
+  CASE ELSE  'Should never happen
+   dist_info "get_linux_gameplayer: unsupported arch """ & which_arch & """. The only supported values are x86 and x86_64"
+   RETURN ""
+ END SELECT
 
+ /'
+ 'Don't try to use a local build, it's too much trouble to gather up and check all the necessary files,
+ 'which won't even exist if installed from a .deb or "scons install".
+ 'This old code needs update.
 #IFDEF __GNU_LINUX__
 
  '--If this is Linux, we might already have the correct version of ohrrpgce-game
@@ -789,7 +790,7 @@ END SELECT
    'If it's a portable build it's probably a release build too
    IF INSTR(playerversion, which_arch & " ") ANDALSO INSTR(playerversion, "portable") THEN
     debuginfo "Using installed binary " & installed_player
-    RETURN installed_player
+    IF copy_linux_gameplayer(installed_player, "ohrrpgce-game", destdir) THEN RETURN destdir & "/ohrrpgce-game"
    ELSE
     debuginfo installed_player & " isn't right arch or not a portable build, don't use it for distribute"
    END IF
@@ -799,6 +800,7 @@ END SELECT
  END IF
 
 #ENDIF
+'/
 
  '--For Non-Linux platforms, we need to download ohrrpgce-game
  '(NOTE: This all should work fine on Linux too, but it is best to use the installed ohrrpgce-game when possible)
@@ -813,11 +815,11 @@ END SELECT
  DIM dlfile as string
  IF version_branch = "wip" THEN
   'If using any wip release, get the latest wip release
-  dlfile = "ohrrpgce-player-linux-bin-minimal" & arch_suffix & ".zip"
+  dlfile = "ohrrpgce-player-linux" & arch_suffix & ".zip"
   url = "http://hamsterrepublic.com/ohrrpgce/nightly/" & dlfile
  ELSE
   'Use this stable release
-  dlfile = "ohrrpgce-player-linux-bin-minimal" & version_release_tag & arch_suffix & ".zip"
+  dlfile = "ohrrpgce-player-linux" & version_release_tag & arch_suffix & ".zip"
   url = "http://hamsterrepublic.com/ohrrpgce/archive/" & dlfile
  END IF
 
@@ -826,21 +828,18 @@ END SELECT
  '--Prompt & download if missing or out of date
  IF NOT download_gameplayer_if_needed(url, destzip, "linux.download.agree", "the Linux OHRRPGCE game player") THEN RETURN ""
  
- '--Find the unzip tool
- DIM unzip as string = find_helper_app("unzip", YES)
- IF unzip = "" THEN dist_info "ERROR: Couldn't find unzip tool": RETURN ""
+ IF extract_zipfile(destzip, destdir) = NO THEN RETURN ""
  
- '--Unzip the desired files
- DIM args as string = "-o " & escape_filename(destzip) & " ohrrpgce-game buildinfo.ini LICENSE-binary.txt -d " & escape_filename(dldir)
- DIM spawn_ret as string = spawn_and_wait(unzip, args)
- IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: unzip failed: " & spawn_ret : RETURN ""
+ 'Sanity check contents
+ IF NOT isfile(destdir & SLASH & "game.sh") THEN dist_info "ERROR: Failed to unzip game.sh" : RETURN ""
+ IF NOT isfile(destdir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
+ IF sanity_check_buildinfo(destdir & SLASH & "buildinfo.ini") THEN RETURN ""
  
- IF NOT isfile(dldir & SLASH & "ohrrpgce-game")      THEN dist_info "ERROR: Failed to unzip ohrrpgce-game" : RETURN ""
- IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
- IF sanity_check_buildinfo(dldir & SLASH & "buildinfo.ini") THEN RETURN ""
- 
- RETURN dldir & SLASH & "ohrrpgce-game"
+ 'All files should be distributed with games (except in .debs) except these two
+ safekill destdir & SLASH & "README-player-only.txt"
+ safekill destdir & SLASH & "buildinfo.ini"
 
+ RETURN destdir & SLASH & "game.sh"
 END FUNCTION
 
 SUB distribute_game_as_windows_installer (dest_override as string = "")
@@ -1102,10 +1101,13 @@ SUB distribute_game_as_debian_package (which_arch as string, dest_override as st
 
   debuginfo "Copy linux game player" 
   DIM gameplayer as string
-  gameplayer = get_linux_gameplayer(which_arch)
-  IF gameplayer = "" THEN dist_info "ERROR: ohrrpgce-game is not available" : EXIT DO
+  DIM extractdir as string = debtmp & SLASH "extract.tmp"
+  ' get_linux_gameplayer extracts a bunch of files which we mostly ignore, including the game.sh it returns
+  IF get_linux_gameplayer(which_arch, extractdir) = "" THEN dist_info "ERROR: Linux game player is not available" : EXIT DO
+  gameplayer = extractdir & SLASH & "linux" & SLASH & which_arch & SLASH & "ohrrpgce-game"
+  IF isfile(gameplayer) = NO THEN dist_info "ERROR: didn't find ohrrpgce-game in downloaded zip" : EXIT DO
   IF copy_linux_gameplayer(gameplayer, basename, bindir) = NO THEN EXIT DO
-  
+
   debuginfo "Create menu file"
   DIM menudir as string = debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "menu"
   makedir menudir
@@ -1817,24 +1819,15 @@ SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as str
  DO '--single pass loop for breaking
 
   DIM basename as string = distinfo.pkgname
-
-  debuginfo "Rename linux game player" 
-  DIM gameplayer as string
-  gameplayer = get_linux_gameplayer(which_arch)
-  IF gameplayer = "" THEN dist_info "ERROR: ohrrpgce-game is not available" : EXIT DO
-  debuginfo " exe: " & gameplayer
   DIM tarballdir_base as string = distinfo.pkgname & "-linux"
   DIM tarballdir as string = apptmp & SLASH & tarballdir_base
   debuginfo " tarballdir: " & tarballdir
-  makedir tarballdir
-  DIM dest_gameplayer as string = tarballdir & SLASH & basename
-  IF confirmed_copy(gameplayer, dest_gameplayer) = NO THEN dist_info "Couldn't copy " & gameplayer & " to " & dest_gameplayer : EXIT DO
-  #IFDEF __FB_UNIX__
-   'Mac and Linux fix the permissions
-   safe_shell "chmod +x " & escape_filename(dest_gameplayer)
-  #ENDIF
-  DIM license as string = finddatafile("LICENSE-binary.txt")
-  IF confirmed_copy(license, tarballdir & SLASH & "LICENSE-binary.txt") = NO THEN EXIT DO
+
+  DIM gameplayer as string
+  gameplayer = get_linux_gameplayer(which_arch, tarballdir)
+  IF gameplayer = "" THEN dist_info "ERROR: Linux game player is not available" : EXIT DO
+  debuginfo "Rename " & gameplayer
+  IF renamefile(gameplayer, tarballdir & SLASH & basename) = NO THEN dist_info "Couldn't rename " & gameplayer : EXIT DO
 
   debuginfo "Copy rpg file"
   IF copy_or_relump(sourcerpg, tarballdir & SLASH & basename & ".rpg") = NO THEN EXIT DO

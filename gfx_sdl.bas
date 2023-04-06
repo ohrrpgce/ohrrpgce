@@ -1184,7 +1184,7 @@ SUB io_sdl_keybits (byval keybdarray as KeyBits ptr)
   'Get numlock and capslock state
   #IFDEF __FB_WIN32__
     'On Windows, if numlock and capslock are on when the program starts, then SDL 1.2
-    'reports them as off, and keeps them inverted form the ral state from then on.
+    'reports them as off, and keeps them inverted from the real state from then on.
     'Work around this bug by using the winapi to get the real state.
     '(Note: we can't use SDL_SetModState() to fix the state because that triggers
     'another bug, it confuses SDL_PrivateKeyboard() into dropping all numlock/capslock

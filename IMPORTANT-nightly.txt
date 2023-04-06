@@ -18,6 +18,10 @@ http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
 
+2023-04-06:
+Exporting Linux builds from Distribute Game actually uses the latest nightly
+again, it hasn't for many months. Sorry for the delay.
+
 2022-04-18:
 "resize slice extra", "slice extra length", "append slice extra" have been
 replaced with "resize extra", "extra length", "append extra". Existing compiled
