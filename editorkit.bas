@@ -347,11 +347,15 @@ sub EditorKit.finish_defitem()
 		edited = NO
 	end if
 
+	if selected then
+		if cur_item.helpkey <> "" and tooltip = "" then tooltip = "F1 for details"
+	end if
+
 	cur_item_index += 1
 
 	if refresh then
 		with cur_item
-			dim as string title = .title, caption = .caption
+			dim as string text, title = .title, caption = .caption
 			' If there's no caption, use the current data value as a default
 			if len(caption) = 0 andalso ends_with(.title, ":") then
 				select case .dtype
@@ -366,7 +370,10 @@ sub EditorKit.finish_defitem()
 				title &= " "
 			end if
 
-			base.add_item .id, 0, title & caption, (.unselectable = NO)
+			if .color then text = fgtag(ColorIndex(.color))
+			text &= title & caption
+
+			base.add_item .id, 0, text, (.unselectable = NO)
 		end with
 	end if
 
@@ -421,7 +428,7 @@ sub EditorKit.write_value()
 	with cur_item
 		if .writer = writerNone andalso .dtype = dtypeNone then
 			' Happens if you use just defitem, do everything yourself,
-			' but set the 'edited' flag, or if you call delete_node.
+			' but set the 'edited' flag, or if you call dont_write or delete_node.
 			exit sub
 		end if
 
@@ -581,9 +588,9 @@ sub EditorKit.crop_after_record(...)
 end sub
 '/
 
-'Allow typing in/editing the record ID number. Switches record and can also add new records if
-'max_record_max was provided.
-'Returns true if record changed.
+' Allow typing in/editing the record ID number. Switches record and can also add new records if
+' max_record_max was provided.
+' Returns true if record changed.
 function EditorKit.record_id_grabber() as bool
 	' There are multiple ways to call this, only check once per tick
 	if record_id_grabber_called then return NO
@@ -710,9 +717,11 @@ function EditorKit.defitem_act(title as zstring ptr) as bool
 end function
 
 ' Add an unselectable line. You can still use set_caption or even val_*/as_* to set a default caption
-sub EditorKit.defunselectable(title as zstring ptr)
+' Doesn't use the disabled item color. Pass color = -uiDisabledItem-1 for that.
+sub EditorKit.defunselectable(title as zstring ptr, color as integer = 0)
 	defitem title
 	cur_item.unselectable = YES
+	cur_item.color = color
 end sub
 
 sub EditorKit.defint(title as zstring ptr, byref datum as integer, min as integer = 0, max as integer)
@@ -817,7 +826,13 @@ sub EditorKit.set_id(id as integer)
 	cur_item.id = id
 end sub
 
+' The color is a master palette index or -uicol - 1 for a UI constant.
+sub EditorKit.set_color(color as integer)
+	cur_item.color = color
+end sub
+
 ' Set which help page is opened by F1 while the current menu item is selected
+' Also sets a default tooltip "F1 for details" while selected
 sub EditorKit.set_helpkey(key as zstring ptr)
 	if process then
 		base.helpkey = *key
@@ -859,6 +874,26 @@ function EditorKit.eff_value() as integer
 		return value
 	end if
 end function
+
+' Call this after edit_str (or defstr or any other string type) to allow multiline editing.
+' Call set_helpkey before this to make it use that helpkey inside.
+function EditorKit.multiline_editable() as bool
+	' Note that edit_str ensures Space won't activate
+	if activate then
+		valuestr = multiline_string_editor(valuestr, cur_item.helpkey, NO)  'prompt_to_save=NO
+		edited = YES
+		write_value
+		return YES
+	end if
+end function
+
+' Don't attempt to write back the value, e.g. because it's been written manually
+' and value/valuestr/etc is stale.
+sub EditorKit.dont_write()
+	cur_item.dtype = dtypeNone
+	cur_item.writer = writerNone
+end sub
+
 
 '===============================================================================
 '                          val_* value definition functions
@@ -1019,6 +1054,16 @@ function EditorKit.val_float(byref datum as double) as double
 end function
 
 '-------------------------------- Derived types --------------------------------
+
+/'
+' WARNING: options() will point to keys() strings! This is pretty dangerous so I'll comment it.
+sub make_stringenum_array(options() as StringEnumOption, keys() as string)
+	redim options(lbound(keys) to ubound(keys))
+	for idx as integer = lbound(options) to ubound(options)
+		options(idx).key = @keys(idx)
+	next
+end sub
+'/
 
 function find_enum_index(key as string, options() as StringEnumOption) as integer
 	for idx as integer = lbound(options) to ubound(options)
@@ -1246,6 +1291,7 @@ function EditorKit.edit_bitset(bitwords() as integer, wordnum as integer = 0, bi
 	return edit_bool(value)
 end function
 
+' See also multiline_editable()
 function EditorKit.edit_str(byref datum as string, maxlen as integer = 0) as bool
 	val_str datum
 	if process_text then
@@ -1253,21 +1299,13 @@ function EditorKit.edit_str(byref datum as string, maxlen as integer = 0) as boo
 		edited or= strgrabber(valuestr, iif(maxlen, maxlen, 9999999))
 		if edited then write_value
 	end if
+	if process then
+		' Special case: SPACE should never activate a menu item that also takes text input
+		' such as one that's multiline_editable.
+		if keyval(scSpace) then activate = NO
+	end if
 	return edited
 end function
-
-' Call this after edit_str (or defstr) to allow multiline editing.
-' Call set_helpkey before this to make it show help inside
-function EditorKit.multiline_editable() as bool
-	if activate then
-		valuestr = multiline_string_editor(valuestr, cur_item.helpkey)
-		edited = YES
-		write_value
-		return YES
-	end if
-end function
-
-' TODO: multiline_string_editor
 
 '-------------------------------- Derived types --------------------------------
 
@@ -1399,8 +1437,7 @@ sub EditorKit.delete_node()
 			case else
 				showbug "EditorKit.delete_node: not a node datatype!"
 		end select
-		.dtype = dtypeNone
-		.writer = writerNone
+		dont_write
 	end with
 	edited = YES
 end sub

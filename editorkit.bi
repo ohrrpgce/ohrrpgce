@@ -45,7 +45,7 @@ enum EditorKitDataWriter
 end enum
 
 ' (Internal) Encapsulates most of the state of the current menu item, aside from
-' the actual data value.  Probably should split up into the part we through
+' the actual data value.  Probably should split up into the part we throw
 ' away, and the part that could be useful to keep.
 type EditorKitItem
 	' Data:
@@ -78,16 +78,20 @@ type EditorKitItem
 	caption as string
 	helpkey as string
 	unselectable as bool
+	color as integer       '0: default, >0: master() index, <0: -uicol - 1
 end type
 
-' An option of a string enumeration (val_str_enum)
+' An option of a string enumeration (for edit/val_str_enum).
 type StringEnumOption
-	' FB doesn't allow initialising strings in UDTs, so we use zstring ptrs
+	' FB doesn't allow initialising strings in UDTs (but it allows string arrays!), so we use zstring ptrs
 	key as zstring ptr         'The data field value. (Can be "")
 	caption as zstring ptr     'Optional, defaults to key
 	'description as zstring ptr
 end type
 
+'declare sub make_stringenum_array(options() as StringEnumOption, keys() as string)
+declare function find_enum_index(key as string, options() as StringEnumOption) as integer
+declare function prompt_for_enum(byref key as string, prompt_text as string, options() as StringEnumOption, helpkey as string) as bool
 
 ' Saved menu state for a submenu
 type SubmenuState
@@ -121,7 +125,7 @@ type EditorKit extends ModularMenu
 	' No more than one of refresh and process will be true at once.
 	refresh as bool
 	process as bool            'When called every tick to handle arbitrary input and do editing
-	process_text as bool       'Each-tick handling of text editing/input
+	process_text as bool       'Each-tick handling of text editing/input (not select-by-typing)
 	activate as bool           'If process, and the item was clicked/activated
 	left_click as bool         'If process, and start of left-click on the item
 	right_click as bool        'If process, and start of right-click on the item
@@ -230,7 +234,7 @@ type EditorKit extends ModularMenu
 	'---- Adding data menu items
 	declare sub defitem(title as zstring ptr)
 	declare function defitem_act(title as zstring ptr) as bool
-	declare sub defunselectable(title as zstring ptr)
+	declare sub defunselectable(title as zstring ptr, color as integer = 0)
 	declare sub defint(title as zstring ptr, byref datum as integer, min as integer = 0, max as integer)
 	declare sub defbool overload(title as zstring ptr, byref datum as bool)
 	declare sub defbool overload(title as zstring ptr, byref datum as boolean)
@@ -269,10 +273,12 @@ type EditorKit extends ModularMenu
 	'---- Other menu item attributes
 	declare sub keycombo(key1 as KBScancode, key2 as KBScancode = scNone)
 	declare sub set_unselectable()
+	declare sub set_color(color as integer)
 	declare sub set_id(id as integer)
 	declare sub set_helpkey(key as zstring ptr)
 	declare sub set_tooltip(text as zstring ptr)
 	declare function multiline_editable() as bool
+	declare sub dont_write()
 
 	declare sub default_effective_value(default_value as integer, effective_value as integer)
 
@@ -319,7 +325,7 @@ type EditorKit extends ModularMenu
 	declare function edit_bit(byref bits as integer, whichbit as integer) as bool
 	declare function edit_bitset(bitwords() as integer, wordnum as integer = 0, bitnum as integer) as bool
 	declare function edit_str(byref datum as string, maxlen as integer = 0) as bool
-	'See also multiline_editable()
+	' See also multiline_editable()
 	'declare function edit_float(byref datum as double, ...) as bool  'TODO
 
 	' Derived types
