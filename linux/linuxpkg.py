@@ -22,7 +22,7 @@ from ohrpackage import engine_files, copy_file_or_dir, safe_rm, safe_rmtree, qui
 ############################################################################
 ## Installing and uninstalling system-wide on Linux
 
-def build_tree(destdir, package_name, files, prefix = "/usr"):
+def build_tree(destdir, package_name, files, prefix = "/usr", debian = False):
     # Executables
     if len(files.executables):
         dest = destdir + prefix + "/games/"
@@ -40,9 +40,17 @@ def build_tree(destdir, package_name, files, prefix = "/usr"):
             shutil.copy2(files.abspath(icon), dest + icon)
     # Data files
     dest = destdir + prefix + "/share/games/" + package_name + "/"
+    destdocs = destdir + prefix + "/share/doc/" + package_name + "/"
     quiet_mkdir(dest)
+    if debian:
+        quiet_mkdir(destdocs)
     for path in files.datafiles:
-        copy_file_or_dir(files.abspath(path), dest + path)
+        if debian and path == "LICENSE-binary.txt":
+            # We should put the license here according to
+            # https://www.debian.org/doc/debian-policy/ch-docs.html#copyright-information
+            copy_file_or_dir(files.abspath(path), destdocs + "copyright")
+        else:
+            copy_file_or_dir(files.abspath(path), dest + path)
 
 def rm_tree(destdir, package_name, files, prefix = "/usr", dry_run = False):
     # Executables
@@ -103,7 +111,7 @@ def get_srcdir():
 
 package_name = "ohrrpgce"
 
-def install(destdir = '', prefix = '/usr', dry_run = False):
+def install(destdir = '', prefix = '/usr', dry_run = False, debian = False):
     """Installs the OHRRPGCE on the local machine (not including Vikings of Midgard).
     Pass destdir to install into a staging area instead of writing to /
     (dry_run is not implemented)."""
@@ -111,7 +119,7 @@ def install(destdir = '', prefix = '/usr', dry_run = False):
     files = engine_files('unix', 'full', get_srcdir())
     files.datafiles.remove('import')
 
-    build_tree(destdir, package_name, files, prefix = prefix)
+    build_tree(destdir, package_name, files, prefix = prefix, debian = debian)
     menu_entry(destdir, package_name, "OHRRPGCE Game Player", prefix + "/games/ohrrpgce-game", desktop_file_suffix="-game", icon="ohrrpgce-game.png", prefix=prefix)
     menu_entry(destdir, package_name, "OHRRPGCE Custom Editor", prefix + "/games/ohrrpgce-custom", append=True, desktop_file_suffix="-custom", icon="ohrrpgce-custom.png", prefix=prefix)
 
@@ -186,7 +194,7 @@ Description: Official Hamster Republic Role Playing Game Construction Engine
  people's games, visit http://HamsterRepublic.com/ohrrpgce/
 """
     , (package_name, calculate_size(files), maintainer, version, depends, recommends))
-    install(package_name)
+    install(package_name, debian = True)
     run_dpkg(outdir, package_name, version)
     safe_rmtree(package_name)
 
