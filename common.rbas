@@ -3855,7 +3855,7 @@ FUNCTION download_file (url as string, destfile as string) as bool
    debuginfo " rename " & wget_dest & " from " & destfile
    ' Can't use -O (outfile filename) argument with -N arg, so temporarily rename
    ' the file to match URL and use -P (destination directory) so wget will find it.
-   IF real_isfile(destfile) THEN os_rename(destfile, wget_dest)
+   IF real_isfile(destfile) THEN renamefile(destfile, wget_dest)
   END IF
 
   args = "-N -P " & escape_filename(destdir) & " " & escape_filename(url)
@@ -3866,7 +3866,7 @@ FUNCTION download_file (url as string, destfile as string) as bool
   '--Check to see if the download worked
   IF real_isfile(wget_dest) THEN
    IF need_rename THEN
-    IF os_rename(wget_dest, destfile) = NO THEN
+    IF renamefile(wget_dest, destfile) = NO THEN
      spawn_ret &= !"\nrename " & wget_dest & " to " & destfile & " failed"
     END IF
    END IF

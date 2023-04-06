@@ -48,9 +48,10 @@ DECLARE SUB write_debian_control_file(controlfile as string, basename as string,
 DECLARE SUB write_debian_copyright_file (filename as string, license_binary as string)
 DECLARE FUNCTION gzip_file (filename as string) as bool
 DECLARE FUNCTION gunzip_file (filename as string) as bool
-DECLARE FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as string) as bool
-DECLARE FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as bool
-DECLARE FUNCTION extract_tarball(into_dir as string, tarball as string, files as string) as bool
+DECLARE FUNCTION create_zipfile(zipfile as string, start_in_dir as string, files as string) as bool
+DECLARE FUNCTION extract_zipfile(zipfile as string, into_dir as string) as bool
+DECLARE FUNCTION create_tarball(tarball as string, start_in_dir as string, files as string) as bool
+DECLARE FUNCTION extract_tarball(tarball as string, into_dir as string, files as string) as bool
 DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as bool
 DECLARE SUB fix_deb_group_permissions(start_at_dir as string)
 DECLARE SUB write_debian_postrm_script (filename as string)
@@ -471,12 +472,6 @@ SUB distribute_game_as_zip (dest_override as string = "")
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
- DIM zip as string = find_helper_app("zip", YES)
- IF zip = "" THEN
-  dist_info "Can't create zip files: " & missing_helper_message("zip" DOTEXE)
-  RETURN
- END IF
-
  DIM destzip as string = trimfilename(sourcerpg)
  IF dest_override <> "" THEN destzip = dest_override
  destzip &= SLASH & distinfo.pkgname & ".zip"
@@ -522,17 +517,7 @@ SUB distribute_game_as_zip (dest_override as string = "")
   write_readme_text_file ziptmp & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)
   maybe_write_license_text_file ziptmp & SLASH & "LICENSE.txt"
 
-  'Remove the old zip
-  safekill destzip
- 
-  'Create the new zip
-  DIM args as string = "-r -j " & escape_filename(destzip) & " " & escape_filename(ziptmp)
-  spawn_ret = spawn_and_wait(zip, args)
-  IF LEN(spawn_ret) ORELSE NOT isfile(destzip) THEN
-   safekill destzip
-   dist_info "Zip file creation failed. " & spawn_ret
-   RETURN
-  END IF
+  IF create_zipfile(destzip, ziptmp, "*") = NO THEN EXIT DO
   
   dist_info "Successfully created " & shortzip, errInfo
 
@@ -1158,11 +1143,11 @@ SUB distribute_game_as_debian_package (which_arch as string, dest_override as st
   fix_deb_group_permissions debtmp & SLASH & "postinst"
   fix_deb_group_permissions debtmp & SLASH & "postrm"
 
-  IF create_tarball(debtmp, debtmp & SLASH & "control.tar.gz", "control postinst postrm") = NO THEN EXIT DO
+  IF create_tarball(debtmp & SLASH & "control.tar.gz", debtmp, "control postinst postrm") = NO THEN EXIT DO
 
   fix_deb_group_permissions debtmp & SLASH & "usr"
   
-  IF create_tarball(debtmp, debtmp & SLASH & "data.tar.gz", "usr") = NO THEN EXIT DO
+  IF create_tarball(debtmp & SLASH & "data.tar.gz", debtmp, "usr") = NO THEN EXIT DO
 
   'Remove old deb
   safekill debname
@@ -1273,22 +1258,22 @@ FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as s
  RETURN YES
 END FUNCTION
 
-FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as string) as bool
- '--Returns YES if successful, or NO if failed
-
- ' start_in_dir only applies to the zip command. The zipfile filename should still be either absolute or relative to the default CURDIR
-
- 'files is a list of space-separated filenames and directory names to include in the tarball
- 'if they contain spaces they must be quoted
- 
+'Create (replacing) zipfile, returns true on success.
+'files is a list of space-separated filenames and directory names to include in the tarball
+'relative to start_in_dir. If they contain spaces/etc they must be quoted
+FUNCTION create_zipfile(zipfile as string, start_in_dir as string, files as string) as bool
  DIM zip as string = dist_find_helper_app("zip")
  IF zip = "" THEN RETURN NO
+
+ safekill zipfile
 
  DIM spawn_ret as string
  DIM args as string
 
- args = " -r -9 " & escape_filename(zipfile) & " " & files
- 'debug zip & " " & args
+ zipfile = absolute_path(zipfile)
+
+ '-6 is default, -8 may be 2x slower, -9 much slower again
+ args = "-r -8 " & escape_filename(zipfile) & " " & files
  
  DIM olddir as string = CURDIR
  CHDIR start_in_dir
@@ -1301,7 +1286,18 @@ FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as stri
  RETURN YES
 END FUNCTION
 
-FUNCTION create_tarball(start_in_dir as string, tarball as string, files as string) as bool
+FUNCTION extract_zipfile (zipfile as string, into_dir as string) as bool
+ DIM unzip as string = dist_find_helper_app("unzip")
+ IF unzip = "" THEN RETURN NO
+
+ IF NOT isdir(into_dir) THEN makedir into_dir
+ DIM args as string = "-o " & escape_filename(zipfile) & " -d " & escape_filename(into_dir)
+ DIM spawn_ret as string = spawn_and_wait(unzip, args)
+ IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: unzip failed: " & spawn_ret : RETURN NO
+ RETURN YES
+END FUNCTION
+
+FUNCTION create_tarball(tarball as string, start_in_dir as string, files as string) as bool
  '--Returns YES if successful, or NO if failed
 
  ' start_in_dir only applies to the tar command. The tarball filename should still be either absolute or relative to the default CURDIR
@@ -1385,7 +1381,7 @@ FUNCTION create_tarball(start_in_dir as string, tarball as string, files as stri
  RETURN YES
 END FUNCTION
 
-FUNCTION extract_tarball(into_dir as string, tarball as string, files as string) as bool
+FUNCTION extract_tarball(tarball as string, into_dir as string, files as string) as bool
  '--Returns YES if successful, or NO if failed
  
  'The tarball must already be decompressed. Don't pass in a .tar.gz (this is inconsistent
@@ -1634,9 +1630,6 @@ SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = 
 
   maybe_write_license_text_file apptmp & SLASH & "LICENSE.txt"
 
-  'Remove the old copy that we are replacing
-  safekill destname
-
   'Package as a .zip file. NOTE: When created on Unix, .zip files contain file permissions
   'including the all-important +x bit in the "external attributes", but on Windows they don't.
   'On older versions of MacOS we could rely on a quirk of the old Mac Finder, which would set
@@ -1645,13 +1638,7 @@ SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = 
   'See fix_mac_app_executable_bit_on_windows(). An alternate unused solution to actually
   'create Mac .zip packages with correct file permissions from Windows, is in
   'prepare_mac_app_zip()
-  DIM olddir as string = CURDIR
-  CHDIR apptmp
-  IF create_zipfile(apptmp, destname, "*.app *.txt") = NO THEN
-   CHDIR olddir
-   EXIT DO
-  END IF
-  CHDIR olddir
+  IF create_zipfile(destname, apptmp, "*.app *.txt") = NO THEN EXIT DO
   
   'Fix the executable bit on windows
 #IFDEF __FB_WIN32__
@@ -1785,7 +1772,7 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
  
  '--Untar the desired files
  IF gunzip_file(destgz) = NO THEN RETURN ""
- IF extract_tarball(dldir, desttar, "OHRRPGCE-Game.app buildinfo.ini LICENSE-binary.txt") = NO THEN RETURN ""
+ IF extract_tarball(desttar, dldir, "OHRRPGCE-Game.app buildinfo.ini LICENSE-binary.txt") = NO THEN RETURN ""
  
  IF NOT isdir(game_app) THEN dist_info "ERROR: Failed to untar OHRRPGCE-Game.app" : RETURN ""
  IF NOT isfile(game_app & SLASH & "Contents" & SLASH & "MacOS" & SLASH & "ohrrpgce-game")   THEN dist_info "ERROR: Failed to completely untar OHRRPGCE-Game.app" : RETURN ""
@@ -1858,14 +1845,9 @@ SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as str
 
   'Remove the old copy that we are replacing
   safekill destname
-  DIM olddir as string = CURDIR
-  CHDIR apptmp
-  IF create_tarball(apptmp, destname, escape_filename(tarballdir_base)) = NO THEN
-   CHDIR olddir
-   EXIT DO
-  END IF
-  CHDIR olddir
-  
+
+  IF create_tarball(destname, apptmp, escape_filename(tarballdir_base)) = NO THEN EXIT DO
+
   dist_info trimpath(destname) & " was successfully created!", errInfo
   EXIT DO 'this loop is only ever one pass
  LOOP
@@ -2113,19 +2095,12 @@ FUNCTION itch_butler_download() as bool
   dist_info "ERROR: Failed to download itch.io butler.zip" : RETURN NO
  END IF
  
- '--Find the unzip tool
- DIM unzip as string = find_helper_app("unzip", YES)
- IF unzip = "" THEN dist_info "ERROR: Couldn't find unzip tool": RETURN NO
-
  '-- remove the old copy (if it exists)
  safekill butler_path
- 
- '--Unzip the files
- DIM args as string = "-o " & escape_filename(destzip) & " -d " & escape_filename(get_support_dir())
- DIM spawn_ret as string = spawn_and_wait(unzip, args)
- IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: unzip failed: " & spawn_ret : RETURN NO
- 
- IF NOT isfile(butler_path) THEN dist_info "ERROR: Failed to unzip itch.io butler tool" : RETURN NO
+
+ IF extract_zipfile(destzip, support_dir) = NO THEN RETURN NO
+
+ IF NOT isfile(butler_path) THEN dist_info "ERROR: Didn't find itch.io butler tool in the downloaded zip" : RETURN NO
  
  RETURN YES
 END FUNCTION
