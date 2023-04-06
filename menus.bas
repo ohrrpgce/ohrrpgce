@@ -1,5 +1,5 @@
 'OHRRPGCE - Game/Custom general menu code
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2023 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #include "config.bi"
@@ -1900,22 +1900,26 @@ SUB run_MenuDef(menu as MenuDef, each_tick as FnMenuLogic, dataptr as any ptr = 
  freepage holdscreen
 END SUB
 
-SUB ModularMenu.add_item(itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
+SUB ModularMenu.add_item(itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO, disabled as bool = NO)
  a_append itemtypes(), itemtype
  a_append itemids(), id
- a_append menu(), text
+ IF heading THEN
+  a_append menu(), fgtag(uilook(eduiHeading)) & text
+ ELSE
+  a_append menu(), text
+ END IF
  a_append selectable(), canselect
  IF canselect = NO THEN use_selectable = YES
- a_append shaded(), heading
+ a_append shaded(), disabled
 END SUB
 
 SUB ModularMenu.add_spacer()
- add_item , , , NO, YES
+ add_item , , , NO, YES, NO
 END SUB
 
 SUB ModularMenu.header(text as string)
  add_spacer
- add_item , , text, NO, YES
+ add_item , , text, NO, YES, NO
 END SUB
 
 SUB ModularMenu.clear_menu()
@@ -2026,7 +2030,6 @@ SUB ModularMenu.run()
  state.autosize_ignore_lines = 1  'For the tooltip
  'If floating, the title gets cut off when the menu is small
  IF floating = NO ANDALSO LEN(title) THEN state.autosize_ignore_lines += 2
- menuopts.disabled_col = uilook(eduiHeading)
 
  update_wrapper()
  IF floating THEN draw()   'To calculate state.rect

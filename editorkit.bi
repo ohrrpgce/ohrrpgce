@@ -1,5 +1,5 @@
 'OHRRPGCE - EditorKit framework for creating editors
-'(C) Copyright 1997-2021 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2023 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #ifndef EDITORKIT_BI
@@ -78,6 +78,7 @@ type EditorKitItem
 	caption as string
 	helpkey as string
 	unselectable as bool
+	disabled as bool
 	color as integer       '0: default, >0: master() index, <0: -uicol - 1
 end type
 
@@ -235,6 +236,7 @@ type EditorKit extends ModularMenu
 	declare sub defitem(title as zstring ptr)
 	declare function defitem_act(title as zstring ptr) as bool
 	declare sub defunselectable(title as zstring ptr, color as integer = -eduiNote-1)
+	declare sub defdisabled(title as zstring ptr)
 	declare sub defint(title as zstring ptr, byref datum as integer, min as integer = 0, max as integer)
 	declare sub defbool overload(title as zstring ptr, byref datum as bool)
 	declare sub defbool overload(title as zstring ptr, byref datum as boolean)
@@ -273,6 +275,7 @@ type EditorKit extends ModularMenu
 	'---- Other menu item attributes
 	declare sub keycombo(key1 as KBScancode, key2 as KBScancode = scNone)
 	declare sub set_unselectable()
+	declare sub set_disabled()
 	declare sub set_color(color as integer)
 	declare sub set_id(id as integer)
 	declare sub set_helpkey(key as zstring ptr)

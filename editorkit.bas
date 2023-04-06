@@ -1,5 +1,5 @@
 'OHRRPGCE - EditorKit framework for creating editors
-'(C) Copyright 1997-2021 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2023 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 ' ==== EditorKit classes ====
@@ -373,7 +373,7 @@ sub EditorKit.finish_defitem()
 			if .color then text = fgtag(ColorIndex(.color))
 			text &= title & caption
 
-			base.add_item .id, 0, text, (.unselectable = NO)
+			base.add_item .id, 0, text, (.unselectable = NO), NO, .disabled
 		end with
 	end if
 
@@ -723,6 +723,11 @@ sub EditorKit.defunselectable(title as zstring ptr, color as integer = -eduiNote
 	cur_item.color = color
 end sub
 
+sub EditorKit.defdisabled(title as zstring ptr)
+	defitem title
+	set_disabled
+end sub
+
 sub EditorKit.defint(title as zstring ptr, byref datum as integer, min as integer = 0, max as integer)
 	defitem title
 	edit_int datum, min, max
@@ -818,7 +823,23 @@ sub EditorKit.set_unselectable()
 	cur_item.unselectable = YES
 end sub
 
-' TODO: add a set_disabled() method. However ModularMenu doesn't currently support it
+' Disables editing and other processing, and changes to the disabled color.
+' That means it has to precede edit_* methods, e.g. replace "defstr X, Y" with
+'  defitem X : set_disabled : edit_str Y
+sub EditorKit.set_disabled()
+	if edited then
+		showbug "editorkit: set_disabled must precede edit_*"
+	end if
+	cur_item.disabled = YES
+	cur_item.color = NO  'Override previous set_color
+	activate = NO
+	left_click = NO
+	right_click = NO
+	' TODO: really shouldn't change process, instead add something like
+	' `editing`/`editing_text` that most things check instead.
+	process = NO
+	process_text = NO
+end sub
 
 ' The id isn't used for anything currently
 sub EditorKit.set_id(id as integer)
@@ -826,6 +847,7 @@ sub EditorKit.set_id(id as integer)
 end sub
 
 ' The color is a master palette index or -uicol - 1 for a UI constant.
+' Overrides color from a previous set_disabled().
 sub EditorKit.set_color(color as integer)
 	cur_item.color = color
 end sub
@@ -1345,7 +1367,7 @@ end function
 ' lbound(options) can be a value other than 0.
 function EditorKit.edit_str_enum(byref datum as string, options() as StringEnumOption) as bool
 	val_str_enum datum, options()
-	if activate orelse left_click then
+	if activate then
 		edited or= prompt_for_enum(valuestr, "", options(), cur_item.helpkey)
 	elseif process then
 		dim index as integer = find_enum_index(valuestr, options())

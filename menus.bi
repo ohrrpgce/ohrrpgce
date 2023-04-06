@@ -1,5 +1,5 @@
 'OHRRPGCE - Game/Custom general menu code
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2023 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #ifndef MENUS_BI
@@ -121,7 +121,7 @@ TYPE ModularMenu EXTENDS Object
 
  ' Add an item to the menu
  ' Virtual because you might want to set more per-item data
- DECLARE VIRTUAL SUB add_item (itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO)
+ DECLARE VIRTUAL SUB add_item (itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO, disabled as bool = NO)
 
  ' Add a blank line
  DECLARE SUB add_spacer()
