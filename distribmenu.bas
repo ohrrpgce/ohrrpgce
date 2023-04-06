@@ -1,5 +1,5 @@
 'OHRRPGCE CUSTOM - Distribute Game menu
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2023 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #include "config.bi"
@@ -15,6 +15,7 @@
 #include "uiconst.bi"
 #include "scrconst.bi"
 #include "vbcompat.bi"  'DATESERIAL, NOW
+#include "editorkit.bi"
 
 DECLARE SUB distribute_game_as_zip (dest_override as string = "")
 DECLARE SUB distribute_game_as_windows_installer (dest_override as string = "")
@@ -71,7 +72,6 @@ DECLARE SUB write_readme_text_file (filename as string, LE as string=LINE_END, b
 DECLARE SUB maybe_write_license_text_file (filename as string)
 DECLARE FUNCTION is_known_license(license_code as string) as bool
 DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
-DECLARE FUNCTION browse_licenses(old_license as string) as string
 DECLARE SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = "")
 DECLARE FUNCTION fix_mac_app_executable_bit_on_windows(zipfile as string, exec_path_in_zip as string) as bool
 DECLARE FUNCTION running_64bit() as bool
@@ -86,270 +86,194 @@ DECLARE FUNCTION itch_butler_download() as bool
 DECLARE SUB itch_butler_upload(distinfo as DistribState)
 DECLARE FUNCTION itch_butler_error_check(out_s as string, err_s as string) as bool
 
-CONST distmenuEXIT as integer = 1
-CONST distmenuZIP as integer = 2
-CONST distmenuWINSETUP as integer = 3
-CONST distmenuMACSETUP as integer = 4
-CONST distmenuDEBSETUP as integer = 5
-CONST distmenuDEB64SETUP as integer = 6
-CONST distmenuINFO as integer = 7
-CONST distmenuREADME as integer = 8
-CONST distmenuLINUXSETUP as integer = 9
-CONST distmenuLINUX64SETUP as integer = 10
-CONST distmenuMAC64SETUP as integer = 11
-CONST distmenuITCHUPLOAD as integer = 12
-
 DECLARE FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
 DECLARE SUB dist_info (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
 DIM SHARED auto_choose_default as bool = NO
 
-SUB distribute_game ()
- 
- DIM menu as SimpleMenuItem vector
- v_new menu, 0
- append_simplemenu_item menu, "Previous Menu...", , , distmenuEXIT
- append_simplemenu_item menu, " Game file: " & decode_filename(trimpath(sourcerpg)), YES, uilook(uiDisabledItem)
- DIM as string temp, iconbase
- iconbase = trimextension(sourcerpg)
- IF isfile(iconbase & ".ico") THEN temp = " found" ELSE temp = " not found"
- append_simplemenu_item menu, " Windows icon: " & decode_filename(trimpath(iconbase)) & ".ico" & temp, YES, uilook(uiDisabledItem)
- IF isfile(iconbase & ".icns") THEN temp = " found" ELSE temp = " not found"
- append_simplemenu_item menu, " Mac icon: " & decode_filename(trimpath(iconbase)) & ".icns" & temp, YES, uilook(uiDisabledItem)
 
- append_simplemenu_item menu, "Edit distribution info...", , , distmenuINFO
+'#################################### Menu #####################################
+
+TYPE DistribMenu EXTENDS EditorKit
+ known_licenses(9) as StringEnumOption = {(@"COPYRIGHT"), (@"PUBLICDOMAIN"), (@"GPL"), (@"MIT"), (@"CC-BY"), (@"CC-BY-SA"), (@"CC-BY-ND"), (@"CC-BY-NC"), (@"CC-BY-NC-SA"), (@"CC-BY-NC-ND")}
+
+ distinfo as DistribState
+ tools_for_mac as bool
+ tools_for_win_installer as bool
+ tools_for_linux as bool
+ tools_for_debian as bool
+ butler_logged_in as bool
+
+ DECLARE SUB refresh_tools()
+ DECLARE SUB def_dist_str(title as zstring ptr, byref datum as string, helpkey_suffix as string, multline_hint as bool = NO)
+ DECLARE SUB toplevel_menu()
+ DECLARE SUB distinfo_menu()
+ DECLARE SUB itch_io_menu()
+ DECLARE VIRTUAL SUB define_items()
+END TYPE
+
+SUB DistribMenu.refresh_tools()
+ tools_for_mac = can_make_mac_packages()
+ tools_for_win_installer = can_run_windows_exes()
+ tools_for_linux = can_make_tarballs()
+ tools_for_debian = can_make_debian_packages()
+END SUB
+
+#DEFINE presave  save_current_game 0
+
+SUB DistribMenu.toplevel_menu()
+ helpkey = "distribute_game"
+
+ IF defitem_act("Edit distribution info...") THEN enter_submenu "distinfo"
+
+ IF defitem_act("Export README text file") THEN export_readme_text_file
 
  #IFNDEF __FB_ANDROID__
 
- append_simplemenu_item menu, "Export Windows .ZIP", , , distmenuZIP
+ IF defitem_act("Export Windows .zip") THEN presave : distribute_game_as_zip
 
- IF can_run_windows_exes() THEN
-  append_simplemenu_item menu, "Export Windows Installer", , , distmenuWINSETUP
+ IF tools_for_win_installer THEN
+  IF defitem_act("Export Windows Installer") THEN presave : distribute_game_as_windows_installer
  ELSE
-  append_simplemenu_item menu, "Can't Export Windows Installer", YES, uilook(uiDisabledItem)
-  append_simplemenu_item menu, " (requires Windows or wine)", YES, uilook(uiDisabledItem)
+  'Unlike others, can't autoinstall the needed tools
+  defdisabled "Can't Export Windows Installer"
+  defunselectable " (requires Windows or wine)"
  END IF
 
- append_simplemenu_item menu, "Export Mac OS X App Bundle (64bit)", , , distmenuMAC64SETUP
- IF NOT can_make_mac_packages() THEN
-  append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
+ IF defitem_act("Export Mac OS X App Bundle (64bit)") THEN presave : distribute_game_as_mac_app "x86_64"
+ IF NOT tools_for_mac THEN
+  defunselectable " (requires tar+gzip)"
  END IF
 
- append_simplemenu_item menu, "Export Mac OS X App Bundle (old 32bit Macs)", , , distmenuMACSETUP
- IF NOT can_make_mac_packages() THEN
-  append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
+ IF defitem_act("Export Linux Tarball (64bit)") THEN presave : distribute_game_as_linux_tarball "x86_64"
+ IF NOT tools_for_linux THEN
+  defunselectable " (requires tar+gzip)"
  END IF
 
- append_simplemenu_item menu, "Export Linux Tarball (64bit)", , , distmenuLINUX64SETUP
- IF NOT can_make_tarballs() THEN
-  append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
+ IF defitem_act("Export Debian Linux Package (64bit)") THEN presave : distribute_game_as_debian_package "x86_64"
+ IF NOT tools_for_debian THEN
+  defunselectable " (requires ar+tar+gzip)"
  END IF
 
- append_simplemenu_item menu, "Export Linux Tarball (32bit)", , , distmenuLINUXSETUP
- IF NOT can_make_tarballs() THEN
-  append_simplemenu_item menu, " (requires tar+gzip)", YES, uilook(uiDisabledItem)
+ IF defitem_act("Upload this game to itch.io...") THEN enter_submenu "itch_io"
+
+ section "Obsolete targets"
+
+ IF defitem_act("Export Mac OS X App Bundle (old 32bit Macs)") THEN presave : distribute_game_as_mac_app "x86"
+ IF NOT tools_for_mac THEN
+  defunselectable " (requires tar+gzip)"
  END IF
 
- append_simplemenu_item menu, "Export Debian Linux Package (64bit)", , , distmenuDEB64SETUP
- IF NOT can_make_debian_packages() THEN
-  append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
+ IF defitem_act("Export Linux Tarball (32bit)") THEN presave : distribute_game_as_linux_tarball "x86"
+ IF NOT tools_for_linux THEN
+  defunselectable " (requires tar+gzip)"
  END IF
 
- append_simplemenu_item menu, "Export Debian Linux Package (32bit)", , , distmenuDEBSETUP
- IF NOT can_make_debian_packages() THEN
-  append_simplemenu_item menu, " (requires ar+tar+gzip)", YES, uilook(uiDisabledItem)
+ IF defitem_act("Export Debian Linux Package (32bit)") THEN presave : distribute_game_as_debian_package "x86"
+ IF NOT tools_for_debian THEN
+  defunselectable " (requires ar+tar+gzip)"
  END IF
-
- append_simplemenu_item menu, "Upload this game to itch.io ...", , , distmenuITCHUPLOAD
 
  #ENDIF
 
- append_simplemenu_item menu, "Export README text file", , , distmenuREADME
+ spacer
+ defunselectable " Game file: " & decode_filename(trimpath(sourcerpg))
 
- DIM st as MenuState
- init_menu_state st, cast(BasicMenuItem vector, menu)
+ DIM iconbase as string = trimextension(sourcerpg)
+ DIM iconname as string = decode_filename(trimpath(iconbase))
+ defunselectable " Windows icon: " & iconname & ".ico"
+ IF isfile(iconbase & ".ico") = NO THEN set_caption "not found" : set_disabled
+ defunselectable " Mac icon: " & iconname & ".icns"
+ IF isfile(iconbase & ".icns") = NO THEN set_caption "not found" : set_disabled
 
- DO
-  setwait 55
-  setkeys
+ 'Any of the distribute options might have downloaded a tool
+ IF want_activate AND NOT want_exit THEN refresh_tools
+END SUB
 
-  IF keyval(ccCancel) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "distribute_game"
-  IF enter_space_click(st) THEN
-   SELECT CASE menu[st.pt].dat
-    CASE distmenuEXIT: EXIT DO
-    CASE distmenuZIP:
-     save_current_game 0
-     distribute_game_as_zip
-    CASE distmenuWINSETUP:
-     save_current_game 0
-     distribute_game_as_windows_installer
-    CASE distmenuMAC64SETUP:
-     save_current_game 0
-     distribute_game_as_mac_app "x86_64"
-    CASE distmenuMACSETUP:
-     save_current_game 0
-     distribute_game_as_mac_app "x86"
-    CASE distmenuDEB64SETUP:
-     save_current_game 0
-     distribute_game_as_debian_package "x86_64"
-    CASE distmenuDEBSETUP:
-     save_current_game 0
-     distribute_game_as_debian_package "x86"
-    CASE distmenuLINUX64SETUP:
-     save_current_game 0
-     distribute_game_as_linux_tarball "x86_64"
-    CASE distmenuLINUXSETUP:
-     save_current_game 0
-     distribute_game_as_linux_tarball "x86"
-    CASE distmenuINFO:
-     edit_distrib_info
-    CASE distmenuREADME:
-     export_readme_text_file
-    CASE distmenuITCHUPLOAD:
-     itch_io_options_menu
-   END SELECT
+SUB DistribMenu.def_dist_str(title as zstring ptr, byref datum as string, helpkey_suffix as string, multline_hint as bool = NO)
+ defstr title, datum
+ set_helpkey "edit_distrib_info_" & helpkey_suffix
+ IF multline_hint THEN set_tooltip "Press ENTER to edit multiple lines"
+ multiline_editable
+ IF edited THEN
+  sanitize_distinfo distinfo
+  dont_write
+ END IF
+END SUB
+
+SUB DistribMenu.distinfo_menu ()
+ helpkey = "edit_distrib_info"
+
+ def_dist_str "Package name:",     distinfo.pkgname, "pkgname"
+ def_dist_str "Game name:",        distinfo.gamename, "gamename"
+ def_dist_str "Author:",           distinfo.author, "author"
+ def_dist_str "Email:",            distinfo.email, "email"
+ def_dist_str "Description:",      distinfo.description, "description", YES
+ def_dist_str "More Description:", distinfo.more_description, "more_description", YES
+ def_dist_str "Website:",          distinfo.website, "website"
+ def_dist_str "Copyright year:",   distinfo.copyright_year, "copyright_year"
+ set_tooltip generate_copyright_line(distinfo)
+
+ defitem "License:"
+ edit_str_enum distinfo.license, known_licenses()
+ set_helpkey "edit_distrib_info_license"
+ set_tooltip generate_copyright_line(distinfo)
+
+ 'Save when exiting this submenu
+ IF want_exit THEN save_distrib_state distinfo
+END SUB
+
+SUB DistribMenu.itch_io_menu ()
+ helpkey = "upload_game_itch_io"
+
+ defstr "Your itch.io username:", distinfo.itch_user, 63
+ IF edited THEN valuestr = sanitize_url_chunk(valuestr)
+
+ defstr "itch.io game name:", distinfo.itch_gamename, 63
+ caption_default_or_str "<defaults to package name>"
+ IF edited THEN valuestr = sanitize_url_chunk(valuestr)
+
+ IF butler_logged_in THEN
+  IF defitem_act("Upload to itch.io now") THEN presave : itch_butler_upload(distinfo)
+ ELSE
+  IF defitem_act("Set up itch.io butler tool now") THEN
+   itch_butler_setup()
+   butler_logged_in = itch_butler_is_logged_in()
   END IF
+ END IF
 
-  usemenu st, cast(BasicMenuItem vector, menu)
-  
-  IF st.need_update THEN
-  END IF
+ spacer
+ defunselectable " Game package name: " & distinfo.pkgname
+ IF LEN(distinfo.itch_user) = 0 THEN
+  defunselectable " Enter username to estimate URL"
+ ELSE
+  defunselectable " " & itch_game_url(distinfo)
+  defunselectable " butler target: " & itch_target(distinfo)
+ END IF
 
-  clearpage dpage
-  standardmenu cast(BasicMenuItem vector, menu), st, 0, 0, dpage
-  
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
- setkeys
- v_free menu
- 'Revert genCurrentDebugMode to the author's choice in genDebugMode
+ IF want_exit THEN save_distrib_state distinfo
+END SUB
+
+SUB DistribMenu.define_items()
+ SELECT CASE submenu
+  CASE "": toplevel_menu
+  CASE "distinfo": distinfo_menu
+  CASE "itch_io": itch_io_menu
+ END SELECT
+END SUB
+
+SUB distribute_game ()
+ DIM menu as DistribMenu
+ load_distrib_state menu.distinfo
+ menu.refresh_tools()
+ menu.butler_logged_in = itch_butler_is_logged_in()
+ menu.run()
+ 'Submenus already save menu.distinfo when leaving
+ 'Revert genCurrentDebugMode to the author's choice in genDebugMode... I think this is only needed
+ 'if using Test Game at the same time
  gen(genCurrentDebugMode) = gen(genDebugMode)
 END SUB
 
-SUB edit_distrib_info ()
-
- DIM rootsl as Slice Ptr
- rootsl = NewSliceOfType(slContainer)
- rootsl->Fill = YES
- DIM infosl as Slice Ptr
- infosl = NewSliceOfType(slText, rootsl)
- infosl->Width = 320
- infosl->AnchorVert = alignBottom
- infosl->AlignVert = alignBottom
- ChangeTextSlice infosl, , uilook(uiText), YES, YES
-
- DIM distinfo as DistribState
- load_distrib_state distinfo
-
- DIM menu as SimpleMenuItem vector
- v_new menu, 0
-
- append_simplemenu_item menu, "Previous Menu..."
-
- append_simplemenu_item menu, "Package name: " & distinfo.pkgname
- append_simplemenu_item menu, "Game name: " & distinfo.gamename
- append_simplemenu_item menu, "Author: " & distinfo.author
- append_simplemenu_item menu, "Email: " & distinfo.email
- append_simplemenu_item menu, "Description: " & distinfo.description
- append_simplemenu_item menu, "More Description: " & distinfo.more_description
- append_simplemenu_item menu, "Website: " & distinfo.website
- append_simplemenu_item menu, "Copyright year: " & distinfo.copyright_year
- append_simplemenu_item menu, "License: " & distinfo.license
-
- DIM st as MenuState
- init_menu_state st, cast(BasicMenuItem vector, menu)
- st.need_update = YES
-
- DO
-  setwait 55
-  setkeys YES
-
-  IF keyval(ccCancel) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN
-   SELECT CASE st.pt
-    CASE 1: show_help "edit_distrib_info_pkgname"
-    CASE 2: show_help "edit_distrib_info_gamename"
-    CASE 3: show_help "edit_distrib_info_author"
-    CASE 4: show_help "edit_distrib_info_email"
-    CASE 5: show_help "edit_distrib_info_description"
-    CASE 6: show_help "edit_distrib_info_more_description"
-    CASE 7: show_help "edit_distrib_info_website"
-    CASE 8: show_help "edit_distrib_info_copyright_year"
-    CASE 9: show_help "edit_distrib_info_license"
-    CASE ELSE
-     show_help "edit_distrib_info"
-   END SELECT
-  END IF
-  IF enter_space_click(st) THEN
-   SELECT CASE st.pt
-    CASE 0: EXIT DO
-   END SELECT
-  END IF
-  IF keyval(scEnter) > 1 THEN
-   SELECT CASE st.pt
-    CASE 1: distinfo.pkgname = multiline_string_editor(distinfo.pkgname, "edit_distrib_info_pkgname")
-    CASE 2: distinfo.gamename = multiline_string_editor(distinfo.gamename, "edit_distrib_info_gamename")
-    CASE 3: distinfo.author = multiline_string_editor(distinfo.author, "edit_distrib_info_author")
-    CASE 4: distinfo.email = multiline_string_editor(distinfo.email, "edit_distrib_info_email")
-    CASE 5: distinfo.description = multiline_string_editor(distinfo.description, "edit_distrib_info_description")
-    CASE 6: distinfo.more_description = multiline_string_editor(distinfo.more_description, "edit_distrib_info_more_description")
-    CASE 7: distinfo.website = multiline_string_editor(distinfo.website, "edit_distrib_info_website")
-    CASE 8: distinfo.copyright_year = multiline_string_editor(distinfo.copyright_year, "edit_distrib_info_copyright_year")
-    CASE 9: distinfo.license = browse_licenses(distinfo.license)
-   END SELECT
-   st.need_update = YES
-  END IF
-   
-  SELECT CASE st.pt
-   CASE 1: IF strgrabber(distinfo.pkgname, 32767) THEN st.need_update = YES
-   CASE 2: IF strgrabber(distinfo.gamename, 32767) THEN st.need_update = YES
-   CASE 3: IF strgrabber(distinfo.author, 32767) THEN st.need_update = YES
-   CASE 4: IF strgrabber(distinfo.email, 32767) THEN st.need_update = YES
-   CASE 5: IF strgrabber(distinfo.description, 32767) THEN st.need_update = YES
-   CASE 6: IF strgrabber(distinfo.more_description, 32767) THEN st.need_update = YES
-   CASE 7: IF strgrabber(distinfo.website, 32767) THEN st.need_update = YES
-   CASE 8: IF strgrabber(distinfo.copyright_year, 32767) THEN st.need_update = YES
-  END SELECT
-
-  IF usemenu(st, cast(BasicMenuItem vector, menu)) THEN st.need_update = YES
-  
-  IF st.need_update THEN
-   sanitize_distinfo distinfo
-   menu[1].text = "Package name: " & distinfo.pkgname
-   menu[2].text = "Game name: " & distinfo.gamename
-   menu[3].text = "Author: " & distinfo.author
-   menu[4].text = "Email: " & distinfo.email
-   menu[5].text = "Description: " & distinfo.description
-   menu[6].text = "More Description: " & distinfo.more_description
-   menu[7].text = "Website: " & distinfo.website
-   menu[8].text = "Copyright year: " & distinfo.copyright_year
-   menu[9].text = "License: " & distinfo.license
-   IF st.pt = 8 ORELSE st.pt = 9 THEN
-    ChangeTextSlice infosl, generate_copyright_line(distinfo)
-   ELSEIF (st.pt >= 5 ANDALSO st.pt <= 6) ORELSE LEN(menu[st.pt].text) >= 40 THEN
-    ChangeTextSlice infosl, "Press ENTER to edit multiple lines"
-   ELSE
-    ChangeTextSlice infosl, "Press F1 for details"
-   END IF
-   st.need_update = NO
-  END IF
-
-  clearpage dpage
-  DrawSlice rootsl, dpage
-  standardmenu cast(BasicMenuItem vector, menu), st, 0, 0, dpage
-  
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
- setkeys
- v_free menu
-
- save_distrib_state distinfo
-
-END SUB
+'################################################################################
 
 SUB sanitize_distinfo(distinfo as DistribState)
  distinfo.pkgname = sanitize_pkgname(distinfo.pkgname)
@@ -487,19 +411,6 @@ SUB write_debian_copyright_file (filename as string)
  PUT #fh, , s
  CLOSE #fh
 END SUB
-
-FUNCTION browse_licenses(old_license as string) as string
- 'duplicated known_licenses because global string arrays are a pain in the ass
- DIM known_licenses(9) as string = {"COPYRIGHT", "PUBLICDOMAIN", "GPL", "MIT", "CC-BY", "CC-BY-SA", "CC-BY-ND", "CC-BY-NC", "CC-BY-NC-SA", "CC-BY-NC-ND"}
- DIM old_index as integer = 0
- FOR i as integer = 0 TO UBOUND(known_licenses)
-  IF old_license = known_licenses(i) THEN old_index = i
- NEXT i
- DIM which as integer
- which = multichoice("Choose a copyright license", known_licenses(), old_index, , "edit_distrib_info_license")
- IF which = -1 THEN RETURN old_license
- RETURN known_licenses(which)
-END FUNCTION
 
 FUNCTION is_known_license(license_code as string) as bool
  'duplicated known_licenses because global string arrays are a pain in the ass
@@ -2122,89 +2033,6 @@ FUNCTION download_gameplayer_if_needed(url as string, destfile as string, agree_
  END IF
 END FUNCTION
 
-
-CONST itchmenuEXIT as integer = 1
-CONST itchmenuUSER as integer = 2
-CONST itchmenuUPLOAD as integer = 3
-CONST itchmenuBUTLERSETUP as integer = 4
-CONST itchmenuGAMENAME as integer = 5
-
-SUB itch_io_options_menu ()
-
- DIM distinfo as DistribState
- load_distrib_state distinfo
-
- DIM menu as SimpleMenuItem vector
- v_new menu, 0
-
- DIM st as MenuState
- st.need_update = YES
-
- DO
-  setwait 55
-  setkeys YES
-
-  IF st.need_update THEN
-   v_new menu, 0
-   append_simplemenu_item menu, "Previous Menu...", , , itchmenuEXIT
-   append_simplemenu_item menu, " Game package name: " & distinfo.pkgname, YES, uilook(uiDisabledItem)
-   append_simplemenu_item menu, "Your itch.io username: " & distinfo.itch_user, , , itchmenuUSER
-   append_simplemenu_item menu, "itch.io game name: " & IIF(LEN(distinfo.itch_gamename) = 0, "<defaults to package name>", distinfo.itch_gamename) , , , itchmenuGAMENAME
-   IF LEN(distinfo.itch_user) = 0 THEN
-    append_simplemenu_item menu, " Type username to estimate url", YES, uilook(uiDisabledItem)
-   ELSE
-    append_simplemenu_item menu, " " & itch_game_url(distinfo), YES, uilook(uiDisabledItem)
-    append_simplemenu_item menu, " butler target = " & itch_target(distinfo), YES, uilook(uiDisabledItem)
-   END IF
-   IF itch_butler_is_logged_in() THEN
-    append_simplemenu_item menu, "Upload to itch.io now", , , itchmenuUPLOAD
-   ELSE
-    append_simplemenu_item menu, "Set up itch.io butler tool now", , , itchmenuBUTLERSETUP
-   END IF
-   init_menu_state st, cast(BasicMenuItem vector, menu)
-  END IF
-
-  IF keyval(ccCancel) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "upload_game_itch_io"
-  IF enter_space_click(st) THEN
-   SELECT CASE menu[st.pt].dat
-    CASE itchmenuEXIT:
-     EXIT DO
-    CASE itchmenuBUTLERSETUP:
-     itch_butler_setup()
-    CASE itchmenuUPLOAD:
-     save_current_game 0
-     itch_butler_upload(distinfo)
-   END SELECT
-  END IF
-
-  SELECT CASE menu[st.pt].dat
-   CASE itchmenuUSER:
-    IF strgrabber(distinfo.itch_user, 63) THEN
-     distinfo.itch_user = sanitize_url_chunk(distinfo.itch_user)
-     st.need_update = YES
-    END IF
-   CASE itchmenuGAMENAME:
-    IF strgrabber(distinfo.itch_gamename, 63) THEN
-     distinfo.itch_gamename = sanitize_url_chunk(distinfo.itch_gamename)
-     st.need_update = YES
-    END IF
-  END SELECT
-
-  usemenu st, cast(BasicMenuItem vector, menu)
-  
-  clearpage dpage
-  standardmenu cast(BasicMenuItem vector, menu), st, 0, 0, dpage
-  
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
- setkeys
- v_free menu
- save_distrib_state distinfo
-END SUB
-
 FUNCTION itch_butler_setup() as bool
  ' Returns NO if setup failed
 
@@ -2317,6 +2145,8 @@ FUNCTION itch_butler_is_logged_in() as bool
  #ELSE
  butler_creds = ENVIRON("HOME") & "/.config/itch/butler_creds"
  #ENDIF
+ 'Note this creds file can be years old and still works. TODO: What if you want
+ 'to switch user?
  RETURN isfile(butler_creds)
 END FUNCTION
 
