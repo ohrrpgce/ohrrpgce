@@ -45,7 +45,7 @@ DECLARE SUB write_linux_menu_file(title as string, filename as string, basename 
 DECLARE SUB write_linux_desktop_file(title as string, filename as string, basename as string)
 DECLARE SUB write_debian_binary_file (filename as string)
 DECLARE SUB write_debian_control_file(controlfile as string, basename as string, pkgver as string, size_in_kibibytes as integer, byref distinfo as DistribState, deb_arch as string)
-DECLARE SUB write_debian_copyright_file (filename as string)
+DECLARE SUB write_debian_copyright_file (filename as string, license_binary as string)
 DECLARE FUNCTION gzip_file (filename as string) as bool
 DECLARE FUNCTION gunzip_file (filename as string) as bool
 DECLARE FUNCTION create_zipfile(start_in_dir as string, zipfile as string, files as string) as bool
@@ -69,6 +69,7 @@ DECLARE FUNCTION sanitize_url(s as string) as string
 DECLARE FUNCTION sanitize_url_chunk(byval s as string) as string
 DECLARE SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
 DECLARE SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wrap as integer=72)
+DECLARE FUNCTION get_game_license_text_file() as string
 DECLARE SUB maybe_write_license_text_file (filename as string)
 DECLARE FUNCTION is_known_license(license_code as string) as bool
 DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
@@ -370,26 +371,31 @@ SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wra
   
 END SUB
 
-SUB maybe_write_license_text_file (filename as string)
-
- 'For some types of licenses, include a text copy
-
+FUNCTION get_game_license_text_file() as string
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
- IF distinfo.license = "COPYRIGHT" THEN EXIT SUB
- IF distinfo.license = "PUBLICDOMAIN" THEN EXIT SUB
- 
+ IF distinfo.license = "COPYRIGHT" THEN RETURN ""
+ IF distinfo.license = "PUBLICDOMAIN" THEN RETURN ""
+
  DIM helpdir as string = get_help_dir()
  DIM lic_file as string = helpdir & SLASH & "license_" & LCASE(distinfo.license) & ".txt"
- 
- IF NOT isfile(lic_file) THEN debug lic_file & " does not exist": EXIT SUB
- 
- writeablecopyfile lic_file, filename
- 
+
+ IF isfile(lic_file) THEN RETURN lic_file
+ dist_info lic_file & " does not exist"
+ RETURN ""
+END FUNCTION
+
+' For some types of licenses, include a text copy
+SUB maybe_write_license_text_file (filename as string)
+
+ DIM lic_file as string = get_game_license_text_file()
+ IF lic_file <> "" THEN writeablecopyfile lic_file, filename
 END SUB
 
-SUB write_debian_copyright_file (filename as string)
+' Create /usr/share/doc/$basename/copyright file according to requirements
+' https://www.debian.org/doc/debian-policy/ch-docs.html#copyright-information
+SUB write_debian_copyright_file (filename as string, license_binary as string)
 
  DIM LF as string = CHR(10)
 
@@ -402,8 +408,17 @@ SUB write_debian_copyright_file (filename as string)
  s &= distinfo.gamename & LF
  s &= generate_copyright_line(distinfo) & LF
  IF distinfo.license = "GPL" THEN
-  s &= LF & "See /usr/share/common-licenses/GPL-3 for details" & LF
+  s &= LF & "See /usr/share/common-licenses/GPL-3 for license terms" & LF
+ ELSE
+  DIM lic_file as string = get_game_license_text_file()
+  IF lic_file <> "" THEN
+   s &= LF & string_from_file(lic_file)  'Normalises to Unix lineendings
+  END IF
  END IF
+
+ s &= LF & "The license governing the executable follows:" & LF
+ s &= "=============================================================================" & LF
+ s &= string_from_file(license_binary)
 
  '--write the file to disk
  DIM fh as integer = FREEFILE
@@ -1123,16 +1138,9 @@ SUB distribute_game_as_debian_package (which_arch as string, dest_override as st
   makedir gamedocsdir
   write_readme_text_file gamedocsdir & SLASH & "README.txt", CHR(10)
   IF gzip_file(gamedocsdir & SLASH & "README.txt") = NO THEN EXIT DO
-  write_debian_copyright_file gamedocsdir & SLASH & "copyright"
 
-  IF distinfo.license <> "GPL" THEN
-   '--only write non-GPL license files because Debian policy prefers referencing the local copy
-   DIM lic_file as string = gamedocsdir & SLASH & "LICENSE-" & distinfo.license & ".txt"
-   maybe_write_license_text_file lic_file
-   IF isfile(lic_file) THEN
-    IF gzip_file(lic_file) = NO THEN EXIT DO
-   END IF
-  END IF
+  'Write the copyright file, which contains game copyright and license and LICENSE-binary.txt
+  write_debian_copyright_file gamedocsdir & SLASH & "copyright", extractdir & SLASH & "LICENSE-binary.txt"
 
   debuginfo "Calculate Installed-Size"
   DIM size_in_kibibytes as integer = count_directory_size(debtmp & SLASH & "usr") / 1024
