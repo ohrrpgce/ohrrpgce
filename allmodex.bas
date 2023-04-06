@@ -6330,10 +6330,12 @@ sub textcolor (fg as integer, bg as integer)
 	textbg = bg
 end sub
 
+'Redundant to fgtag
 function fgcol_text(text as string, colour as integer) as string
 	return "${K" & colour & "}" & text & "${K-1}"
 end function
 
+'Redundant to bgtag
 function bgcol_text(text as string, colour as integer) as string
 	return "${KB" & colour & "}" & text & "${KB-1}"
 end function

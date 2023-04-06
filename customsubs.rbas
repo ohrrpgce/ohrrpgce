@@ -276,7 +276,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as bool=NO, byval
    IF keyval(scTab) > 1 ANDALSO tag_is_autoset(tagid[state.pt]) THEN
     tag_autoset_warning tagid[state.pt]
    END IF
-   IF keyval(scAnyEnter) > 1 ORELSE menu_click(state) THEN ' Can't call enter_space_click() because we can type spaces when editing tag names
+   IF enter_click(state) THEN ' Can't call enter_space_click() because we can type spaces when editing tag names
     IF menu[state.pt].disabled THEN
      tag_autoset_warning tagid[state.pt]
     ELSEIF picktag THEN

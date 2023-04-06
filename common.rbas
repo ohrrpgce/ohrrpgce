@@ -683,6 +683,7 @@ endTest
 
 'Return the markup tag to switch foreground color. -1 resets to initial.
 'Optionally, if you pass a string, wraps it with start/reset color tags.
+'Redundant to fgcol_text
 FUNCTION fgtag(col as integer, text as string = "") as string
  IF LEN(text) THEN
   RETURN "${K" & col & "}" & text & "${K-1}"
@@ -693,6 +694,7 @@ END FUNCTION
 
 'Return the markup tag to switch background color (0 is transparent). -1 resets to initial.
 'Optionally, if you pass a string, wraps it with start/reset color tags.
+'Redundant to bgcol_text
 FUNCTION bgtag(col as integer, text as string = "") as string
  IF LEN(text) THEN
   RETURN "${KB" & col & "}" & text & "${KB-1}"
@@ -6476,12 +6478,17 @@ FUNCTION click_dismiss () as bool
  END IF
 END FUNCTION
 
+'Sometimes space should be used for text input
+FUNCTION enter_click (state as MenuState) as bool
+ IF menu_click(state) THEN RETURN YES
+ RETURN keyval(ccUse) > 1 ORELSE keyval(scAnyEnter) > 1
+END FUNCTION
+
 'You should call usemenu before calling this, to ensure state.pt is correct!
 'Note: This also includes Ctrl in Game! (And in future, any custom Use key mappings)
 '  To avoid that, call push_and_reset_gfxio_state
 FUNCTION enter_space_click (state as MenuState) as bool
- IF menu_click(state) THEN RETURN YES
- RETURN keyval(ccUse) > 1 ORELSE keyval(scAnyEnter) > 1 ORELSE keyval(scSpace) > 1
+ RETURN enter_click(state) ORELSE keyval(scSpace) > 1
 END FUNCTION
 
 'NOTE: This also includes Ctrl in Game (see above)!
