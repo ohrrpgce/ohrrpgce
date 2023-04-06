@@ -88,6 +88,17 @@ type StringEnumOption
 	'description as zstring ptr
 end type
 
+
+' Saved menu state for a submenu
+type SubmenuState
+	'state as MenuState
+	pt as integer
+	top as integer
+end type
+
+DECLARE_VECTOR_OF_TYPE(SubmenuState, SubmenuState)
+
+
 ' See editorkit.bas for usage information
 type EditorKit extends ModularMenu
 	'---- Menu settings
@@ -124,10 +135,9 @@ type EditorKit extends ModularMenu
 	declare function eff_value() as integer  'Effective val after applying default
 
 	'---- Global menu state variables (for access inside define_items())
-	submenu as string          'Name of current submenu, or ""
+	submenu as string          'Name of current submenu; "" by default
 	want_exit as bool          'Called exit_menu()
-
-	'---- The following is internal state you usually would not access
+	want_activate as bool      'Cache enter_space_click() result
 
 	enum Phases
 		refreshing
@@ -135,11 +145,14 @@ type EditorKit extends ModularMenu
 		'activating
 	end enum
 	phase as Phases            'Whenever define_items() is called, this tells why
-	want_activate as bool      'Cache enter_space_click() result
+
+	'---- The following is internal state you usually would not access
+
+	want_submenu as string     'Called switch/enter_submenu(), otherwise "NO"
 	initialised as bool        'update() has been called at least once
 	record_id_grabber_called as bool 'Ensure is only called once a tick
 
-	default_helpkey as string  'Default, if an item doesn't call set_helpkey.
+	default_helpkey as string  'If define_items doesn't set helpkey, nor set_helpkey for the selected item
 	' Internal state to track the menu item currently being defined, while inside define_items()
 	started_item as bool
 	cur_item_index as integer
@@ -157,6 +170,11 @@ type EditorKit extends ModularMenu
 
 	record_type_name as string 'The type of data being edited, e.g. "Hero"
 
+	submenu_stack as string vector  'Excludes `submenu` (empty on the root menu (by default ""))
+	saved_submenus as StrHashTable  'name -> SubmenuState ptr map for all visited submenus
+
+	declare virtual destructor()
+
         '---- Editor setup routines (call before run())
 
 	declare constructor()
@@ -172,6 +190,8 @@ type EditorKit extends ModularMenu
 	declare sub draw_overlays()
 	declare sub run_phase(which_phase as Phases)
 	declare sub write_value()
+	declare function get_submenu_state(name as string) as SubmenuState ptr
+	declare sub apply_enter_submenu(name as string = "")
 
   public:
 
@@ -196,6 +216,7 @@ type EditorKit extends ModularMenu
 	'---- Other non-menu-item methods
 	declare sub switch_record(newid as integer)
 	declare sub switch_submenu(name as string = "")
+	declare sub enter_submenu(name as string = "")
 	declare sub exit_menu()
 	declare function record_id_grabber() as bool
 

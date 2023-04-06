@@ -13,8 +13,11 @@
 '
 ' Then call .run(). But you probably want to load data or do other initialisation
 ' first, such as setting .helpkey.
-' You can define submenus by checking the value of submenu inside define_items(),
-' and enter one by calling .switch_submenu().
+'
+' ==== Submenus ====
+' Define submenus by branching on the value of `submenu` inside .define_items()
+' and enter one by calling .enter_submenu() (which nests) or .switch_submenu().
+' For a submenu-specific help page set helpkey in define_items (not set_helpkey()!)
 '
 ' ==== Saving, loading, and multiple records ====
 ' If you overload the load() and save() methods they will be called when
@@ -67,8 +70,8 @@
 '     if activate then edit_widget_details
 ' Or as a shortcut:
 '     if defitem_act("Edit details...") then edit_widget_details
-' Or if the submenu is defined by your class:
-'     if defitem_act("Edit details...") then switch_submenu "details"
+' Or if the submenu is defined within the same class:
+'     if defitem_act("Edit details...") then enter_submenu "details"
 '
 ' ==== Data ====
 ' Items can display and (optionally) edit a field of data, which could be an
@@ -189,6 +192,8 @@
 
 using Reload.Ext
 
+DEFINE_VECTOR_OF_TYPE(SubmenuState, SubmenuState)
+
 
 '===============================================================================
 '                               Overridable methods
@@ -234,7 +239,8 @@ end sub
 function EditorKit.each_tick() as bool
 	base.helpkey = default_helpkey
 	base.tooltip = ""
-	want_exit = NO
+	want_exit = keyval(ccCancel) > 1
+	want_submenu = "NO"
 	want_activate = enter_space_click(state)
 	record_id_grabber_called = NO
 
@@ -253,7 +259,7 @@ function EditorKit.each_tick() as bool
 		' On string fields, Alt is for entering special characters.
 		' This also means we have to do this after run_phase
 		if keyval(scAlt) > 0 andalso not using_strgrabber then
-			'Disable select-by-typing, although we don't use text input
+			' Disable select-by-typing, although we don't use text input
 			using_strgrabber = YES
 
 			record_id_grabber
@@ -261,14 +267,20 @@ function EditorKit.each_tick() as bool
 	end if
 
 	if want_exit then
-		if submenu <> "" then ' Exit submenu
-			submenu = ""
-			state.need_update = YES
-		elseif try_exit() then ' Exit toplevel menu
+		if v_len(submenu_stack) then  'Exit submenu
+			want_submenu = v_pop(submenu_stack)
+		elseif try_exit() then  'Exit root menu
 			save()
 			return YES
 		end if
+		' Don't let ModularMenu handle it
+		if keyval(ccCancel) > 1 then setkeys
 	end if
+	if want_submenu <> "NO" then
+		apply_enter_submenu want_submenu
+	end if
+
+	'tooltip = v_str(submenu_stack) & " '" & submenu & "'"
 	return NO
 end function
 
@@ -285,7 +297,14 @@ end sub
 
 constructor EditorKit()
 	menuopts.itemspacing = 1
+	v_new submenu_stack
+	saved_submenus.construct(8, type_table(SubmenuState), YES)
+	saved_submenus.value_copy = NULL   'Delete but don't copy
 end constructor
+
+destructor EditorKit()
+	v_free submenu_stack
+end destructor
 
 ' Wrapper around define_items()
 sub EditorKit.run_phase(which_phase as Phases)
@@ -313,9 +332,9 @@ sub EditorKit.finish_defitem()
 	if started_item = NO then exit sub
 
 	if activate then
-		' If you enter a submenu and then exit it by hitting ESC/etc then we
+		' If you enter some editor and then exit it by hitting ESC/etc then we
 		' need to ignore that cancel key or this menu will exit.
-		' (Ideally would call setkeys regardless of how you exit the submenu,
+		' (Ideally would call setkeys regardless of how you exit the menu,
 		' but it's not possible to tell that we entered one, and if you exit
 		' it any other way there doesn't seem to be a possibility of
 		' misinterpreting input.)
@@ -352,6 +371,36 @@ sub EditorKit.finish_defitem()
 	end if
 
 	started_item = NO
+end sub
+
+' Get or create a SubmenuState
+function EditorKit.get_submenu_state(name as string) as SubmenuState ptr
+	dim ret as SubmenuState ptr
+	ret = saved_submenus.get(name)
+	if ret = null then
+		ret = new SubmenuState
+		saved_submenus.add(name, ret)
+	end if
+	return ret
+end function
+
+' Delayed switch/enter_submenu logic
+sub EditorKit.apply_enter_submenu(name as string = "")
+	state.need_update = YES
+
+	' Save old state
+	with *get_submenu_state(submenu)
+		.pt = state.pt
+		.top = state.top
+	end with
+
+	submenu = name
+
+	' Restore previous state (blank if never visted)
+	with *get_submenu_state(name)
+		state.pt = .pt
+		state.top = .top
+	end with
 end sub
 
 ' Helper for writeNodePath*
@@ -488,9 +537,34 @@ sub EditorKit.exit_menu()
 	want_exit = YES
 end sub
 
+' Enter a submenu, forming a stack of submenus, or if it's already on the stack,
+' return to it and don't push the current menu.
+' Regardless of whether a submenu is on the stack, its menu cursor is saved.
+' The main visible effect of this is setting 'submenu'.
+sub EditorKit.enter_submenu(name as string = "")
+	if name = submenu then
+		' This would mess up the stack
+		'debug "noop enter_submenu(" & name & "), stack=" & v_str(submenu_stack)
+		exit sub
+	end if
+
+	' If already stacked (open) go back to that stack frame, otherwise push onto stack
+	dim idx as integer = v_find(submenu_stack, name)
+	if idx > -1 then
+		v_delete_slice(submenu_stack, idx, v_len(submenu_stack))
+	else
+		v_append(submenu_stack, submenu)
+	end if
+
+	' Delay changing state.pt, because it would mess up 'selected', 'activate', etc.
+	want_submenu = name
+end sub
+
+' Enter a submenu, which becomes the root menu (exiting from it exits completely).
+' Good for a tabbed menu.
 sub EditorKit.switch_submenu(name as string = "")
-	submenu = name
-	state.need_update = YES
+	v_resize(submenu_stack, 0)
+	want_submenu = name
 end sub
 
 sub EditorKit.switch_record(newid as integer)

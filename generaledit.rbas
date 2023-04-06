@@ -1409,11 +1409,9 @@ END SUB
 
 TYPE AchievementsEditor EXTENDS EditorKit
   DECLARE VIRTUAL SUB define_items()
-  DECLARE VIRTUAL FUNCTION try_exit() as bool
 
   root as Node ptr
   cur_ach as Node ptr   'When in the subeditor for an achievement, its node, else NULL
-  remem_pt as integer
   next_id as integer
 END TYPE
 
@@ -1442,17 +1440,10 @@ SUB achievements_editor()
   FreeDocument doc
 END SUB
 
-FUNCTION AchievementsEditor.try_exit() as bool
-  IF cur_ach = NULL THEN RETURN YES
-  cur_ach = NULL  'Leave submenu
-  SWAP remem_pt, state.pt
-  state.need_update = YES
-  RETURN NO
-END FUNCTION
-
 SUB AchievementsEditor.define_items()
-  IF cur_ach = NULL THEN  '---- Toplevel menu
-    default_helpkey = "achievements_list"
+  IF submenu = "" THEN  '---- Toplevel menu
+    cur_ach = NULL
+    helpkey = "achievements_list"
 
     defitem "Achievements are:"
     edit_node_exists root, "/permanent"
@@ -1464,9 +1455,8 @@ SUB AchievementsEditor.define_items()
       DIM nextach as Node ptr = NextSibling(ach, "achievement")
       'IF defitem_act(GetString(ach) & " " & blank_default(ach."name".string, "[unnamed]")) THEN
       IF defitem_act(GetString(ach) & " " & ach."name".string) THEN
-        cur_ach = ach  'Enter submenu
-        SWAP remem_pt, state.pt
-        state.need_update = YES
+        cur_ach = ach
+        enter_submenu "detail"
       END IF
       deletable_node ach, "achievement"
       set_tooltip "Enter to edit, Delete to remove"
@@ -1475,13 +1465,12 @@ SUB AchievementsEditor.define_items()
 
     IF defitem_act("Add achievement...") THEN
       cur_ach = AppendChildNode(root, "achievement", next_id)
-      SWAP remem_pt, state.pt
       next_id += 1
-      state.need_update = YES
+      enter_submenu "detail"
     END IF
 
-  ELSE  '---- Editing an achievement
-    default_helpkey = "achievement"
+  ELSEIF submenu = "detail" then  '---- Editing an achievement
+    helpkey = "achievement"
 
     defitem "Name:"
     edit_node_str cur_ach, "/name", , 80  'Not sure what limit to set
