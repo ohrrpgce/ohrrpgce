@@ -17,9 +17,12 @@
 #include "vbcompat.bi"  'DATESERIAL, NOW
 #include "editorkit.bi"
 
+TYPE FnGatherFiles as FUNCTION (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
+
 DECLARE SUB distribute_game_as_windows_zip (dest_override as string = "")
 DECLARE SUB distribute_game_as_windows_installer (dest_override as string = "")
 DECLARE SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
+DECLARE FUNCTION gather_files_for_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
 DECLARE FUNCTION get_windows_gameplayer() as string
 DECLARE FUNCTION get_linux_gameplayer(which_arch as string, destdir as string) as string
 DECLARE FUNCTION get_mac_gameplayer(which_arch as string) as string
@@ -1757,56 +1760,79 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
  RETURN game_app
 END FUNCTION
 
-SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
- debuginfo "  distribute_game_as_linux_tarball():"
-
+'Create an archive named <gamename> & fname_suffix, (ending in either a .zip or .tar.gz) in dest_override
+'or else next to the .rpg.
+'use_subdir: whether the archive should contain a directory named <gamename>
+'gather_files: a function called to copy all files into a temp directory.
+FUNCTION package_game (which_arch as string, fname_suffix as string, dest_override as string = "", use_subdir as bool, gather_files as FnGatherFiles) as bool
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
- IF NOT valid_arch(which_arch, "x86, x86_64") THEN EXIT SUB
-
  DIM destname as string = trimfilename(sourcerpg)
  IF dest_override <> "" THEN destname = dest_override
- destname &= SLASH & distinfo.pkgname & "-linux-" & which_arch & ".tar.gz"
+ destname &= SLASH & distinfo.pkgname & fname_suffix
 
- IF dist_prompt_overwrite_file(destname) = NO THEN RETURN
+ debuginfo "--package_game: " & destname
 
- DIM apptmp as string = dist_make_temp_dir()
- IF apptmp = "" THEN RETURN
+ IF dist_prompt_overwrite_file(destname) = NO THEN RETURN NO
 
+ DIM pkgtmp as string = dist_make_temp_dir()
+ IF pkgtmp = "" THEN RETURN NO
 
- DO '--single pass loop for breaking
+ DIM ret as bool = NO
 
-  DIM basename as string = distinfo.pkgname
-  DIM tarballdir_base as string = distinfo.pkgname & "-linux"
-  DIM tarballdir as string = apptmp & SLASH & tarballdir_base
-  debuginfo " tarballdir: " & tarballdir
+ DIM subdir as string
+ IF use_subdir THEN subdir = SLASH & distinfo.pkgname '& "-linux"
+ DO
+  IF gather_files(which_arch, distinfo.pkgname, pkgtmp & SLASH & subdir, distinfo) = NO THEN EXIT DO
 
-  DIM gameplayer as string
-  gameplayer = get_linux_gameplayer(which_arch, tarballdir)
-  IF gameplayer = "" THEN dist_info "ERROR: Linux game player is not available" : EXIT DO
-  debuginfo "Rename " & gameplayer
-  IF renamefile(gameplayer, tarballdir & SLASH & basename) = NO THEN dist_info "Couldn't rename " & gameplayer : EXIT DO
+  DIM files_arg as string
+  IF use_subdir THEN files_arg = escape_filename(subdir) ELSE files_arg = "*"
 
-  debuginfo "Copy rpg file"
-  IF copy_or_relump(sourcerpg, tarballdir & SLASH & basename & ".rpg") = NO THEN EXIT DO
+  IF ends_with(fname_suffix, ".tar.gz") THEN
+   IF create_tarball(destname, pkgtmp, files_arg) = NO THEN EXIT DO
+  ELSEIF ends_with(fname_suffix, ".zip") THEN
+   IF create_zipfile(destname, pkgtmp, files_arg) = NO THEN EXIT DO
+  ELSE
+   showbug ""
+   EXIT DO
+  END IF
 
-  write_readme_text_file tarballdir & SLASH & "README-" & basename & ".txt", CHR(10)
+  dist_info decode_filename(trimpath(destname)) & " was successfully created!", errInfo
+  ret = YES
 
-  maybe_write_license_text_file tarballdir & SLASH & "LICENSE.txt"
-
-  'Remove the old copy that we are replacing
-  safekill destname
-
-  IF create_tarball(destname, apptmp, escape_filename(tarballdir_base)) = NO THEN EXIT DO
-
-  dist_info trimpath(destname) & " was successfully created!", errInfo
-  EXIT DO 'this loop is only ever one pass
+  EXIT DO
  LOOP
 
  '--Cleanup temp files
- killdir apptmp, YES
+ killdir pkgtmp, YES
+ RETURN ret
+END FUNCTION
 
+'Creates a temp directory and copies all the needed files in there for a linux tarball, then returns the path.
+'Returns true on success
+FUNCTION gather_files_for_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
+ DIM gameplayer as string
+ 'Creates destdir
+ gameplayer = get_linux_gameplayer(which_arch, destdir)
+ IF gameplayer = "" THEN dist_info "ERROR: Linux game player is not available" : RETURN NO
+
+ IF renamefile(gameplayer, destdir & SLASH & basename) = NO THEN dist_info "Couldn't rename " & gameplayer : RETURN NO
+
+ IF copy_or_relump(sourcerpg, destdir & SLASH & basename & ".rpg") = NO THEN RETURN NO
+
+ write_readme_text_file destdir & SLASH & "README-" & basename & ".txt", CHR(10)
+
+ maybe_write_license_text_file destdir & SLASH & "LICENSE.txt"
+
+ RETURN YES
+END FUNCTION
+
+SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
+ IF NOT valid_arch(which_arch, "x86, x86_64") THEN EXIT SUB
+
+ 'use_subdir = YES
+ package_game which_arch, "-linux-" & which_arch & ".tar.gz", dest_override, YES, @gather_files_for_linux
 END SUB
 
 FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
