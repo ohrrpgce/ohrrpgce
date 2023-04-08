@@ -3106,7 +3106,6 @@ FUNCTION makedir (directory as string) as integer
     debuginfo "makedir: " & directory & " already exists"
     RETURN 0
   END IF
-  debuginfo "makedir(" & directory & ")"
 #ifdef DEBUG_FILE_IO
   debuginfo "makedir(" & directory & ")"
 #endif

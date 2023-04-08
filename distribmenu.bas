@@ -17,7 +17,7 @@
 #include "vbcompat.bi"  'DATESERIAL, NOW
 #include "editorkit.bi"
 
-DECLARE SUB distribute_game_as_zip (dest_override as string = "")
+DECLARE SUB distribute_game_as_windows_zip (dest_override as string = "")
 DECLARE SUB distribute_game_as_windows_installer (dest_override as string = "")
 DECLARE SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
 DECLARE FUNCTION get_windows_gameplayer() as string
@@ -26,6 +26,10 @@ DECLARE FUNCTION get_mac_gameplayer(which_arch as string) as string
 DECLARE FUNCTION agreed_to_download(agree_file as string, description as string) as bool
 DECLARE FUNCTION download_gameplayer_if_needed(url as string, destfile as string, agree_filename as string, description as string) as bool
 DECLARE FUNCTION sanity_check_buildinfo(buildinfo_file as string) as bool
+DECLARE FUNCTION valid_arch(which_arch as string, options as string) as bool
+DECLARE FUNCTION dist_prompt_overwrite_file(destname as string) as bool
+DECLARE FUNCTION dist_make_temp_dir() as string
+DECLARE FUNCTION gameplayer_dir() as string
 DECLARE FUNCTION find_or_download_innosetup () as string
 DECLARE FUNCTION find_innosetup () as string
 DECLARE FUNCTION win_or_wine_drive(letter as string) as string
@@ -77,6 +81,7 @@ DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
 DECLARE SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = "")
 DECLARE FUNCTION fix_mac_app_executable_bit_on_windows(zipfile as string, exec_path_in_zip as string) as bool
 DECLARE SUB dist_basicstatus (s as string)
+
 DECLARE SUB itch_io_options_menu()
 DECLARE FUNCTION itch_game_url(distinfo as DistribState) as string
 DECLARE FUNCTION itch_target(distinfo as DistribState) as string
@@ -130,7 +135,7 @@ SUB DistribMenu.toplevel_menu()
 
  #IFNDEF __FB_ANDROID__
 
- IF defitem_act("Export Windows .zip") THEN presave : distribute_game_as_zip
+ IF defitem_act("Export Windows .zip") THEN presave : distribute_game_as_windows_zip
 
  IF tools_for_win_installer THEN
   IF defitem_act("Export Windows Installer") THEN presave : distribute_game_as_windows_installer
@@ -319,12 +324,10 @@ SUB export_readme_text_file (LE as string=LINE_END, byval wrap as integer=72)
 
  DIM txtfile as string = trimfilename(sourcerpg) & SLASH & "README-" & distinfo.pkgname & ".txt"
  
- DIM shortname as string = decode_filename(trimpath(txtfile))
- IF isfile(txtfile) THEN
-  IF dist_yesno(shortname & " already exists, are you sure you want to overwrite it?", NO) = NO THEN RETURN
- END IF
+ IF dist_prompt_overwrite_file(txtfile) = NO THEN RETURN
+
  write_readme_text_file txtfile, LE
- IF isfile(txtfile) THEN dist_info "Created " & shortname, errInfo
+ dist_info "Created " & trimpath(txtfile), errInfo
  
 END SUB
 
@@ -465,8 +468,49 @@ FUNCTION generate_copyright_line(distinfo as DistribState) as string
  END SELECT
 END FUNCTION
 
-SUB distribute_game_as_zip (dest_override as string = "")
- debuginfo "  distribute_game_as_zip():"
+
+' Check which_arch is in options.
+' options should be a comma delimited string like "x86, x86_64"
+FUNCTION valid_arch(which_arch as string, options as string) as bool
+ ' Prevent x86 from matching against x86_64
+ IF INSTR(options & ",", which_arch & ",") THEN RETURN YES
+ dist_info "Unknown arch """ & which_arch & """. The only supported values for this target are " & options
+END FUNCTION
+
+FUNCTION dist_prompt_overwrite_file(destname as string) as bool
+ IF isfile(destname) THEN
+  IF dist_yesno(decode_filename(trimpath(destname)) & " already exists. Overwrite it?") = NO THEN RETURN NO
+  'Okay to overwrite! (but actually do the overwriting later on)
+ END IF
+ RETURN YES
+END FUNCTION
+
+FUNCTION dist_make_temp_dir() as string
+ DIM pkgtmp as string = trimfilename(sourcerpg) & SLASH & "package.tmp"
+ IF isdir(pkgtmp) THEN
+  killdir pkgtmp, YES
+ END IF
+ IF makedir(pkgtmp) THEN
+  dist_info "ERROR: unable to create temporary folder " & pkgtmp
+  RETURN ""
+ END IF
+ RETURN pkgtmp
+END FUNCTION
+
+'Find/create the folder that we are going to download ohrrpgce-player-* archives into
+FUNCTION gameplayer_dir() as string
+ DIM dldir as string = settings_dir & SLASH & "_gameplayer"
+ IF NOT isdir(dldir) THEN
+  IF makedir(dldir) THEN
+   dist_info "ERROR: Unable to create """ & dldir & """ directory"
+   RETURN ""
+  END IF
+ END IF
+ RETURN dldir
+END FUNCTION
+
+SUB distribute_game_as_windows_zip (dest_override as string = "")
+ debuginfo "  distribute_game_as_windows_zip():"
 
  DIM distinfo as DistribState
  load_distrib_state distinfo
@@ -475,15 +519,11 @@ SUB distribute_game_as_zip (dest_override as string = "")
  IF dest_override <> "" THEN destzip = dest_override
  destzip &= SLASH & distinfo.pkgname & ".zip"
  DIM shortzip as string = decode_filename(trimpath(destzip))
- IF isfile(destzip) THEN
-  IF dist_yesno(shortzip & " already exists. Overwrite it?") = NO THEN RETURN
-  'Okay to overwrite, but do the overwrite later
- END IF
 
- DIM ziptmp as string = trimfilename(sourcerpg) & SLASH & "zip.tmp"
- IF isdir(ziptmp) THEN
-  killdir ziptmp
- END IF
+ IF dist_prompt_overwrite_file(destzip) = NO THEN RETURN
+
+ DIM ziptmp as string = dist_make_temp_dir()
+ IF ziptmp = "" THEN RETURN
 
  DIM use_gameplayer as bool = YES
  DIM gameplayer as string
@@ -492,14 +532,6 @@ SUB distribute_game_as_zip (dest_override as string = "")
   IF dist_yesno("game.exe is not available, continue anyway?", NO) = NO THEN RETURN
   use_gameplayer = NO
  END IF
-
- makedir ziptmp
- IF NOT isdir(ziptmp) THEN
-  dist_info "ERROR: unable to create temporary folder"
-  RETURN
- END IF
-
- DIM spawn_ret as string
 
  DO 'Single-pass loop for operations after ziptmp exists
   
@@ -680,10 +712,8 @@ FUNCTION get_windows_gameplayer() as string
  '--For Non-Windows platforms, we need to download game.exe
  '(NOTE: This all should work fine on Windows too, but it is best to use the installed game.exe)
 
- '--Find the folder that we are going to download game.exe into
- DIM dldir as string = settings_dir & SLASH & "_gameplayer"
- IF NOT isdir(dldir) THEN makedir dldir
- IF NOT isdir(dldir) THEN dist_info "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
+ DIM dldir as string = gameplayer_dir()
+ IF dldir = "" THEN RETURN ""
   
  '--Decide which url to download
  DIM url as string
@@ -736,17 +766,6 @@ FUNCTION get_windows_gameplayer() as string
  RETURN dldir & SLASH & "game.exe"
 END FUNCTION
 
-' FUNCTION extract_buildinfo
-'  '--Find the unzip tool
-'  DIM unzip as string = find_helper_app("unzip", YES)
-'  IF unzip = "" THEN dist_info "ERROR: Couldn't find unzip tool": RETURN ""
- 
-'  '--Unzip the desired files
-'  DIM args as string = "-o " & escape_filename(destzip) & " ohrrpgce-game buildinfo.ini LICENSE-binary.txt -d " & escape_filename(dldir)
-'  DIM spawn_ret as string = spawn_and_wait(unzip, args)
-'  IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: unzip failed: " & spawn_ret : RETURN ""
-' END FUNCTION
-
 FUNCTION sanity_check_buildinfo(buildinfo_file as string) as bool
  'Return YES if the sanity check has failed
  IF NOT isfile(buildinfo_file) THEN dist_info "ERROR: Failed to read buildinfo.ini" : RETURN YES
@@ -760,20 +779,13 @@ FUNCTION sanity_check_buildinfo(buildinfo_file as string) as bool
 END FUNCTION
 
 FUNCTION get_linux_gameplayer(which_arch as string, destdir as string) as string
- 'In most cases, download a precompiled Linux player package,
+ 'Download a precompiled Linux player package,
  'extract it to destdir (creating it but not clearing if already existing),
  'and return the full path to game.sh therein.
  '
  'Returns "" for failure.
 
- DIM arch_suffix as string
- SELECT CASE which_arch
-  CASE "x86", "x86_64":
-   arch_suffix = "-" & which_arch
-  CASE ELSE  'Should never happen
-   dist_info "get_linux_gameplayer: unsupported arch """ & which_arch & """. The only supported values are x86 and x86_64"
-   RETURN ""
- END SELECT
+ IF NOT valid_arch(which_arch, "x86, x86_64") THEN RETURN ""
 
  /'
  'Don't try to use a local build, it's too much trouble to gather up and check all the necessary files,
@@ -800,26 +812,21 @@ FUNCTION get_linux_gameplayer(which_arch as string, destdir as string) as string
  END IF
 
 #ENDIF
-'/
+ '/
 
- '--For Non-Linux platforms, we need to download ohrrpgce-game
- '(NOTE: This all should work fine on Linux too, but it is best to use the installed ohrrpgce-game when possible)
-
- '--Find the folder that we are going to download ohrrpgce-game into
- DIM dldir as string = settings_dir & SLASH & "_gameplayer"
- IF NOT isdir(dldir) THEN makedir dldir
- IF NOT isdir(dldir) THEN dist_info "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
+ DIM dldir as string = gameplayer_dir()
+ IF dldir = "" THEN RETURN ""
   
  '--Decide which url to download
  DIM url as string
  DIM dlfile as string
  IF version_branch = "wip" THEN
   'If using any wip release, get the latest wip release
-  dlfile = "ohrrpgce-player-linux" & arch_suffix & ".zip"
+  dlfile = "ohrrpgce-player-linux-" & which_arch & ".zip"
   url = "http://hamsterrepublic.com/ohrrpgce/nightly/" & dlfile
  ELSE
   'Use this stable release
-  dlfile = "ohrrpgce-player-linux" & version_release_tag & arch_suffix & ".zip"
+  dlfile = "ohrrpgce-player-linux" & version_release_tag & "-" & which_arch & ".zip"
   url = "http://hamsterrepublic.com/ohrrpgce/archive/" & dlfile
  END IF
 
@@ -853,20 +860,14 @@ SUB distribute_game_as_windows_installer (dest_override as string = "")
  IF dest_override <> "" THEN installer = dest_override
  installer &= SLASH & "setup-" & basename & ".exe"
 
- IF isfile(installer) THEN
-  IF dist_yesno(decode_filename(trimpath(installer)) & " already exists. Overwrite it?") = NO THEN RETURN
-  'Okay to overwrite (but actually do the overwrite later)
- END IF
+ IF dist_prompt_overwrite_file(installer) = NO THEN RETURN
 
  DIM iscc as string = find_or_download_innosetup()
  IF iscc = "" THEN RETURN
- 
- DIM isstmp as string = trimfilename(sourcerpg) & SLASH & "innosetup.tmp"
- IF isdir(isstmp) THEN
-  killdir isstmp
- END IF
- makedir isstmp
 
+ DIM isstmp as string = dist_make_temp_dir()
+ IF isstmp = "" THEN RETURN
+ 
  DO '--single pass loop for breaking
 
   IF copy_or_relump(sourcerpg, isstmp & SLASH & basename & ".rpg") = NO THEN EXIT DO
@@ -908,8 +909,7 @@ SUB distribute_game_as_windows_installer (dest_override as string = "")
  LOOP
 
  '--Cleanup temp files
- IF isdir(isstmp & SLASH & "Output") THEN killdir isstmp & SLASH & "Output"
- killdir isstmp
+ killdir isstmp, YES
  
 END SUB
 
@@ -1053,15 +1053,11 @@ END FUNCTION
 SUB distribute_game_as_debian_package (which_arch as string, dest_override as string = "")
  debuginfo "  distribute_game_as_debian_package():"
 
+ IF NOT valid_arch(which_arch, "x86, x86_64") THEN EXIT SUB
  DIM deb_arch as string
  SELECT CASE which_arch
-  CASE "x86":
-   deb_arch = "i386"
-  CASE "x86_64":
-   deb_arch = "amd64"
-  CASE ELSE:
-   dist_info "Unknown arch """ & which_arch & """ should be one of x86 or x86_64"
-   EXIT SUB
+  CASE "x86":    deb_arch = "i386"
+  CASE "x86_64": deb_arch = "amd64"
  END SELECT
 
  DIM distinfo as DistribState
@@ -1073,19 +1069,12 @@ SUB distribute_game_as_debian_package (which_arch as string, dest_override as st
  IF dest_override <> "" THEN debname = dest_override
  debname &= SLASH & basename & "_" & pkgver & "_" & deb_arch & ".deb"
 
- IF isfile(debname) THEN
-  IF dist_yesno(trimpath(debname) & " already exists. Overwrite it?") = NO THEN RETURN
-  'Okay to overwrite, but do it later
- END IF
+ IF dist_prompt_overwrite_file(debname) = NO THEN RETURN
 
- DIM debtmp as string = trimfilename(sourcerpg) & SLASH & "debpkg.tmp"
- IF isdir(debtmp) THEN
-  debuginfo "Clean up old " & debtmp
-  killdir debtmp, YES
- END IF
+ DIM debtmp as string = dist_make_temp_dir()
+ IF debtmp = "" THEN RETURN
  
  debuginfo "Prepare package data files..."
- makedir debtmp
  makedir debtmp & SLASH & "usr"
  makedir debtmp & SLASH & "usr" & SLASH & "share"
  makedir debtmp & SLASH & "usr" & SLASH & "share" & SLASH & "games"
@@ -1261,7 +1250,7 @@ FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as s
 END FUNCTION
 
 'Create (replacing) zipfile, returns true on success.
-'files is a list of space-separated filenames and directory names to include in the tarball
+'files is a list of space-separated filenames and directory names or wildcards to include in the zip
 'relative to start_in_dir. If they contain spaces/etc they must be quoted
 FUNCTION create_zipfile(zipfile as string, start_in_dir as string, files as string) as bool
  DIM zip as string = dist_find_helper_app("zip")
@@ -1300,7 +1289,7 @@ FUNCTION extract_zipfile (zipfile as string, into_dir as string) as bool
 END FUNCTION
 
 FUNCTION create_tarball(tarball as string, start_in_dir as string, files as string) as bool
- '--Returns YES if successful, or NO if failed
+ 'Create a .tar.gz file (requiring that extension). Returns true on success.
 
  ' start_in_dir only applies to the tar command. The tarball filename should still be either absolute or relative to the default CURDIR
 
@@ -1364,13 +1353,14 @@ FUNCTION create_tarball(tarball as string, start_in_dir as string, files as stri
   END IF
  #ENDIF
  
- DIM uncompressed as string = trimextension(tarball)
+ DIM uncompressed as string = trimextension(tarball)  'Remove just .gz
  DIM args as string
 
  args = " -c " & more_args & " -f " & escape_filename(uncompressed) & " " & files
 
  DIM olddir as string = CURDIR
  CHDIR start_in_dir
+
  DIM spawn_ret as string
  spawn_ret = spawn_and_wait(tar, args)
  CHDIR olddir
@@ -1379,7 +1369,6 @@ FUNCTION create_tarball(tarball as string, start_in_dir as string, files as stri
 
  IF gzip_file(uncompressed) = NO THEN RETURN NO
  
- IF NOT isfile(tarball) THEN dist_info "Could not create " & tarball : RETURN NO
  RETURN YES
 END FUNCTION
 
@@ -1419,6 +1408,7 @@ FUNCTION gzip_file (filename as string) as bool
  DIM gzip as string = dist_find_helper_app("gzip")
  IF gzip = "" THEN RETURN NO
  
+ safekill filename & ".gz"
  DIM args as string
  args = escape_filename(filename)
  DIM spawn_ret as string
@@ -1581,20 +1571,11 @@ SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = 
  ELSE
   destname &= "-mac.zip"
  END IF
- DIM destshortname as string = trimpath(destname)
 
- IF isfile(destname) THEN
-  IF dist_yesno(destshortname & " already exists. Overwrite it?") = NO THEN RETURN
-  'Okay to overwrite! (but actually do the overwriting later on)
- END IF
+ IF dist_prompt_overwrite_file(destname) = NO THEN RETURN
 
- DIM apptmp as string = trimfilename(sourcerpg) & SLASH & "macapp.tmp"
- IF isdir(apptmp) THEN
-  debuginfo "Clean up old " & apptmp
-  killdir apptmp, YES
- END IF
- 
- makedir apptmp
+ DIM apptmp as string = dist_make_temp_dir()
+ IF apptmp = "" THEN RETURN
 
  DO '--single pass loop for breaking
 
@@ -1650,10 +1631,10 @@ SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = 
   END IF
 #ENDIF
 
-  dist_info destshortname & " was successfully created!", errInfo
+  dist_info trimpath(destname) & " was successfully created!", errInfo
   'I have seen someone -- on Linux, even -- wipe the +x flag on ohrrpgce-game
   'by unzipping and rezipping.
-  dist_info "Note: Don't unzip and re-zip " & destshortname & ": that might wipe critical metadata from " _
+  dist_info "Note: Don't unzip and re-zip " & trimpath(destname) & ": that might wipe critical metadata from " _
             & basename & ".app and prevent it from running!", errInfo
   EXIT DO 'this loop is only ever one pass
  LOOP
@@ -1727,24 +1708,16 @@ FUNCTION prepare_mac_app_zip(zipfile as string, gamename as string) as bool
 END FUNCTION
 '/
 
+
 FUNCTION get_mac_gameplayer(which_arch as string) as string
  'Download OHRRPGCE-Game.app,
  'unzip it, and return the full path.
  'Returns "" for failure.
 
- DIM arch_suffix as string
- SELECT CASE which_arch
-  CASE "x86", "x86_64":
-   arch_suffix = "-" & which_arch
-  CASE ELSE:
-   dist_info "Unknown arch """ & which_arch & """; should be one of x86 or x86_64"
-   RETURN ""
- END SELECT
+ IF NOT valid_arch(which_arch, "x86, x86_64") THEN RETURN ""
 
- '--Find the folder that we are going to download OHRRPGCE-Game.app into
- DIM dldir as string = settings_dir & SLASH & "_gameplayer"
- IF NOT isdir(dldir) THEN makedir dldir
- IF NOT isdir(dldir) THEN dist_info "ERROR: Unable to create """ & dldir & """ directory": RETURN ""
+ DIM dldir as string = gameplayer_dir()
+ IF dldir = "" THEN RETURN ""
   
  '--Decide which url to download
  DIM url as string
@@ -1752,11 +1725,11 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
 
  IF version_branch = "wip" THEN
   'If using any wip release, get the latest wip release
-  dlfile = "ohrrpgce-mac-minimal" & arch_suffix & ".tar.gz"
+  dlfile = "ohrrpgce-mac-minimal-" & which_arch & ".tar.gz"
   url = "http://hamsterrepublic.com/ohrrpgce/nightly/" & dlfile
  ELSE
   'Use this stable release
-  dlfile = "ohrrpgce-mac-minimal" & version_release_tag & arch_suffix & ".tar.gz"
+  dlfile = "ohrrpgce-mac-minimal" & version_release_tag & "-" & which_arch & ".tar.gz"
   url = "http://hamsterrepublic.com/ohrrpgce/archive/" & dlfile
  END IF
 
@@ -1787,34 +1760,20 @@ END FUNCTION
 SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
  debuginfo "  distribute_game_as_linux_tarball():"
 
- DIM arch_suffix as string
- SELECT CASE which_arch
-  CASE "x86", "x86_64":
-   arch_suffix = "-" & which_arch
-  CASE ELSE:
-   dist_info "Unknown arch """ & which_arch & """; should be one of x86 or x86_64"
-   EXIT SUB
- END SELECT
-
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
+ IF NOT valid_arch(which_arch, "x86, x86_64") THEN EXIT SUB
+
  DIM destname as string = trimfilename(sourcerpg)
  IF dest_override <> "" THEN destname = dest_override
- destname &= SLASH & distinfo.pkgname & "-linux" & arch_suffix & ".tar.gz"
+ destname &= SLASH & distinfo.pkgname & "-linux-" & which_arch & ".tar.gz"
 
- IF isfile(destname) THEN
-  IF dist_yesno(trimpath(destname) & " already exists. Overwrite it?") = NO THEN RETURN
-  'Okay to overwrite! (but actually do the overwriting later on)
- END IF
+ IF dist_prompt_overwrite_file(destname) = NO THEN RETURN
 
- DIM apptmp as string = trimfilename(sourcerpg) & SLASH & "linuxtarball.tmp"
- IF isdir(apptmp) THEN
-  debuginfo "Clean up old " & apptmp
-  killdir apptmp, YES
- END IF
- 
- makedir apptmp
+ DIM apptmp as string = dist_make_temp_dir()
+ IF apptmp = "" THEN RETURN
+
 
  DO '--single pass loop for breaking
 
@@ -1868,7 +1827,7 @@ SUB auto_export_distribs (distrib_type as string)
 
  auto_choose_default = YES
  IF distrib_type = "zip" ORELSE distrib_type = "all" THEN
-  distribute_game_as_zip
+  distribute_game_as_windows_zip
  END IF
  IF distrib_type = "win" ORELSE distrib_type = "all" THEN
   IF can_run_windows_exes() THEN
@@ -2166,7 +2125,7 @@ SUB itch_butler_upload(distinfo as DistribState)
  debuginfo "Exporting files to " & itch_temp_dir
  auto_choose_default = YES
  dist_basicstatus "Exporting for Windows..."
- distribute_game_as_zip itch_temp_dir
+ distribute_game_as_windows_zip itch_temp_dir
  dist_basicstatus "Exporting for Mac..."
  distribute_game_as_mac_app "x86_64", itch_temp_dir
  dist_basicstatus "Exporting for Linux..."
