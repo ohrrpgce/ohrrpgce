@@ -1170,6 +1170,7 @@ TYPE DistribState
   copyright_year as string
   itch_user as string
   itch_gamename as string
+  steam_appid as integer
 END TYPE
 
 'Holds the contents of a RELOAD node like general_reld."editor_version" or rsav."client_version"

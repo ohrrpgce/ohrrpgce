@@ -95,6 +95,12 @@ DECLARE FUNCTION itch_butler_download() as bool
 DECLARE SUB itch_butler_upload(distinfo as DistribState)
 DECLARE FUNCTION itch_butler_error_check(out_s as string, err_s as string) as bool
 
+DECLARE FUNCTION steamworks_zip() as string
+DECLARE SUB download_steamworks()
+DECLARE FUNCTION add_steamworks_lib(libpath as string, outdir as string) as string
+DECLARE SUB distribute_game_for_steam_linux (which_arch as string)
+DECLARE SUB distribute_game_for_steam_windows (which_arch as string)
+
 DECLARE FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
 DECLARE SUB dist_info (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
 DIM SHARED auto_choose_default as bool = NO
@@ -111,12 +117,16 @@ TYPE DistribMenu EXTENDS EditorKit
  tools_for_linux as bool
  tools_for_debian as bool
  butler_logged_in as bool
+ have_steamworks_libs as bool
 
  DECLARE SUB refresh_tools()
  DECLARE SUB def_dist_str(title as zstring ptr, byref datum as string, helpkey_suffix as string, multline_hint as bool = NO)
+ DECLARE FUNCTION def_steam_export(title as zstring ptr) as bool
+
  DECLARE SUB toplevel_menu()
  DECLARE SUB distinfo_menu()
  DECLARE SUB itch_io_menu()
+ DECLARE SUB steam_menu()
  DECLARE VIRTUAL SUB define_items()
 END TYPE
 
@@ -164,6 +174,7 @@ SUB DistribMenu.toplevel_menu()
  END IF
 
  IF defitem_act("Upload this game to itch.io...") THEN enter_submenu "itch_io"
+ IF defitem_act("Package for Steam...") THEN enter_submenu "steam"
 
  section "Obsolete targets"
 
@@ -232,7 +243,7 @@ SUB DistribMenu.distinfo_menu ()
 END SUB
 
 SUB DistribMenu.itch_io_menu ()
- helpkey = "upload_game_itch_io"
+ helpkey = "distribute_game_itch_io"
 
  defstr "Your itch.io username:", distinfo.itch_user, 63
  IF edited THEN valuestr = sanitize_url_chunk(valuestr)
@@ -262,11 +273,41 @@ SUB DistribMenu.itch_io_menu ()
  IF want_exit THEN save_distrib_state distinfo
 END SUB
 
+FUNCTION DistribMenu.def_steam_export(title as zstring ptr) as bool
+ defitem title
+ IF distinfo.steam_appid = 0 ORELSE have_steamworks_libs = NO THEN set_disabled
+ RETURN activate
+END FUNCTION
+
+SUB DistribMenu.steam_menu()
+ helpkey = "distribute_game_steam"
+
+ defint "Steam appid:", distinfo.steam_appid, 0, INT_MAX
+ IF edited THEN save_distrib_state distinfo
+ set_helpkey "edit_distrib_info_steam_appid"
+
+ 'IF def_steam_export("Export Windows build for Steam") THEN presave : distribute_game_for_steam_windows "x86"
+ IF def_steam_export("Export Linux 64-bit build for Steam") THEN presave : distribute_game_for_steam_linux "x86_64"
+ IF def_steam_export("Export Linux 32-bit (obsolete) build for Steam") THEN presave : distribute_game_for_steam_linux "x86"
+
+ IF distinfo.steam_appid = 0 THEN
+  defunselectable " (Missing appid)"
+ END IF
+ IF have_steamworks_libs = NO THEN
+  defunselectable " (Missing steamworks)"
+  IF defitem_act("Download Steamworks libraries...") THEN
+   download_steamworks()
+   have_steamworks_libs = isfile(steamworks_zip())
+  END IF
+ END IF
+END SUB
+
 SUB DistribMenu.define_items()
  SELECT CASE submenu
   CASE "": toplevel_menu
   CASE "distinfo": distinfo_menu
   CASE "itch_io": itch_io_menu
+  CASE "steam": steam_menu
  END SELECT
 END SUB
 
@@ -275,6 +316,7 @@ SUB distribute_game ()
  load_distrib_state menu.distinfo
  menu.refresh_tools()
  menu.butler_logged_in = itch_butler_is_logged_in()
+ menu.have_steamworks_libs = isfile(steamworks_zip())
  menu.run()
  'Submenus already save menu.distinfo when leaving
  'Revert genCurrentDebugMode to the author's choice in genDebugMode... I think this is only needed
@@ -1828,11 +1870,36 @@ FUNCTION gather_files_for_linux (which_arch as string, basename as string, destd
  RETURN YES
 END FUNCTION
 
+FUNCTION gather_files_for_steam_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
+ IF gather_files_for_linux(which_arch, basename, destdir, distinfo) = NO THEN RETURN NO
+
+ DIM libpath as string
+ libpath = IIF(which_arch = "x86", "linux32", "linux64") & SLASH "libsteam_api.so"
+
+ IF add_steamworks_lib(libpath, destdir & SLASH & "linux" & SLASH & which_arch) = "" THEN RETURN NO
+
+ write_file destdir & SLASH & "steam_appid.txt", STR(distinfo.steam_appid)
+
+ RETURN YES
+END FUNCTION
+
 SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
  IF NOT valid_arch(which_arch, "x86, x86_64") THEN EXIT SUB
 
  'use_subdir = YES
  package_game which_arch, "-linux-" & which_arch & ".tar.gz", dest_override, YES, @gather_files_for_linux
+END SUB
+
+SUB distribute_game_for_steam_linux (which_arch as string)
+ IF NOT valid_arch(which_arch, "x86, x86_64") THEN EXIT SUB
+
+ 'use_subdir = NO
+ IF package_game(which_arch, "-steam-linux-" & which_arch & ".zip", , NO, @gather_files_for_steam_linux) THEN
+  DIM distinfo as DistribState
+  load_distrib_state distinfo
+  DIM launchername as string = distinfo.pkgname
+  dist_info "In steamworks, create a Launch Option for Linux that runs '" & launchername & "'", errInfo
+ END IF
 END SUB
 
 FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
@@ -2192,4 +2259,41 @@ SUB itch_butler_upload(distinfo as DistribState)
 
 END SUB
 
+
+CONST steamworks_version = 155
+
+FUNCTION steamworks_zip() as string
+ RETURN get_support_dir(NO) & SLASH & "steamworks_v" & steamworks_version & ".zip"
+END FUNCTION
+
+SUB download_steamworks()
+ DIM dlfile as string = steamworks_zip()
+ DIM fname as string = trimpath(dlfile)
+ DIM download_url as string = "http://HamsterRepublic.com/ohrrpgce/support/" & fname
+ IF yesno("Download the redistributable libraries for Steam from " & url_hostname(download_url) & "?") THEN
+  IF NOT download_file(download_url, dlfile) THEN
+   visible_debug "Unable to download " & download_url
+  END IF
+ END IF
+END SUB
+
+'libpath: path inside the steamworks .zip
+FUNCTION add_steamworks_lib(libpath as string, destdir as string) as string
+ DIM outfile as string = destdir & SLASH & trimpath(libpath)
+ 
+ DIM unzip as string = dist_find_helper_app("unzip")
+ IF unzip = "" THEN RETURN ""
+
+ DIM arglist as string
+ ' -q quiet -o overwrite -j junk directories
+ arglist =  " -qoj " & escape_filename(steamworks_zip()) & " " & escape_filename("sdk/redistributable_bin/" & libpath) & " -d " & escape_filename(destdir)
+ DIM spawn_ret as string
+ spawn_ret = spawn_and_wait(unzip, arglist)
+ IF NOT isfile(outfile) THEN
+  visible_debug "Unable to unzip " & libpath & " from " & steamworks_zip()
+  RETURN ""
+ END IF
+
+ RETURN outfile
+END FUNCTION
 

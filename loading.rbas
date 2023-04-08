@@ -4951,6 +4951,7 @@ SUB load_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
   distinfo.copyright_year   = node."copyright_year".string
   distinfo.itch_user        = node."itch_user".string
   distinfo.itch_gamename    = node."itch_gamename".string
+  distinfo.steam_appid      = node."steam_appid".integer
  END READNODE
 
  '--Set up defaults
@@ -5000,6 +5001,7 @@ SUB save_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
  SetChildNode node, "copyright_year", distinfo.copyright_year
  SetChildNode node, "itch_user",   distinfo.itch_user
  SetChildNode node, "itch_gamename", distinfo.itch_gamename
+ SetChildNode node, "steam_appid", distinfo.steam_appid
 END SUB
 
 
