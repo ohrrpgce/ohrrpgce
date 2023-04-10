@@ -7,8 +7,8 @@
 USES=$(grep -oh "readglobalstring(\([^()]\|([^)]*)\)*)" *.*bas | perl -pe 's~readglobalstring\((.*)\)$~\1~' | sort -n | uniq)
 
 # Get list from Global Text Strings menu
-# This strips out the description of the global string, and trailing comments and whitespace
-DEFNS=$(grep -o "GTS_add_to_menu menu, [^']*" *.*bas | perl -e 's/^.*?".*?".*?, *//;' -pe 's/ +$//' | sort -n)
+# This converts each line to (offset, default, length), skipping the description and trailing args and comments
+DEFNS=$(grep -o "^ add_item [0-9][^']*" globalstredit.bas | perl -e 's/ add_item ([0-9]+), *".*?", *(".*?"), *([0-9]*).*/$1, $2, $3/;' -p | sort -n)
 
 #echo "$USES"
 #echo "$DEFNS"

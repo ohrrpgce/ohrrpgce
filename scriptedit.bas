@@ -150,12 +150,12 @@ FUNCTION exportnames (outdir as string = "") as string
 
  printstr "slot names", 0, pl * 8, 0: pl = pl + 1
  REDIM u(0) as string
- IF sanitize_script_identifier(LCASE(readglobalstring(38, "Weapon"))) <> "weapon" THEN
+ IF sanitize_script_identifier(LCASE(readglobalstring(38, "Weapon", 10))) <> "weapon" THEN
   writeconstant fh, 1, "Weapon", u(), "slot"
  END IF
- writeconstant fh, 1, readglobalstring(38, "Weapon"), u(), "slot"
+ writeconstant fh, 1, readglobalstring(38, "Weapon", 10), u(), "slot"
  FOR i as integer = 0 TO 3
-  writeconstant fh, i + 2, readglobalstring(25 + i, "Armor" & i+1), u(), "slot"
+  writeconstant fh, i + 2, readglobalstring(25 + i, "Armor" & i+1, 10), u(), "slot"
  NEXT i
  setvispage 0
 
