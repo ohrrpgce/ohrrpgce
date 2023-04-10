@@ -2610,7 +2610,12 @@ FUNCTION escape_filename (filename as string) as string
   RETURN """" & escape_string(filename, """`\$") & """"
 #ELSE
   'Note " is not allowed in filenames
-  RETURN """" & filename & """"
+  IF RIGHT(filename, 1) = "\" ANDALSO RIGHT(filename, 2) <> "\\" THEN
+   'If the filename ends in \ then the \ would escape the ", escape it
+   RETURN """" & filename & "\"""
+  ELSE
+   RETURN """" & filename & """"
+  END IF
 #ENDIF
 END FUNCTION
 
