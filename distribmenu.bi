@@ -5,7 +5,7 @@
 #ifndef DISTRIBMENU_BI
 #define DISTRIBMENU_BI
 
-DECLARE SUB distribute_game ()
+DECLARE SUB distribute_game_menu ()
 DECLARE SUB auto_export_distribs (distrib_type as string)
 
 #endif

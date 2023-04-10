@@ -17,11 +17,12 @@
 #include "vbcompat.bi"  'DATESERIAL, NOW
 #include "editorkit.bi"
 
-TYPE FnGatherFiles as FUNCTION (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
+TYPE FnGatherFiles as FUNCTION (build_variant as string, basename as string, destdir as string, distinfo as DistribState) as bool
 
 DECLARE SUB distribute_game_as_windows_zip (dest_override as string = "")
 DECLARE SUB distribute_game_as_windows_installer (dest_override as string = "")
 DECLARE SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
+DECLARE FUNCTION gather_files_for_windows (buildname as string, basename as string, destdir as string, distinfo as DistribState) as bool
 DECLARE FUNCTION gather_files_for_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
 DECLARE FUNCTION add_windows_gameplayer(basename as string, destdir as string) as string
 DECLARE FUNCTION add_linux_gameplayer(which_arch as string, basename as string, destdir as string) as string
@@ -310,7 +311,7 @@ SUB DistribMenu.define_items()
  END SELECT
 END SUB
 
-SUB distribute_game ()
+SUB distribute_game_menu ()
  DIM menu as DistribMenu
  load_distrib_state menu.distinfo
  menu.refresh_tools()
@@ -549,49 +550,6 @@ FUNCTION gameplayer_dir() as string
  END IF
  RETURN dldir
 END FUNCTION
-
-SUB distribute_game_as_windows_zip (dest_override as string = "")
- debuginfo "  distribute_game_as_windows_zip():"
-
- DIM distinfo as DistribState
- load_distrib_state distinfo
-
- DIM destzip as string = trimfilename(sourcerpg)
- IF dest_override <> "" THEN destzip = dest_override
- destzip &= SLASH & distinfo.pkgname & ".zip"
- DIM shortzip as string = decode_filename(trimpath(destzip))
-
- IF dist_prompt_overwrite_file(destzip) = NO THEN RETURN
-
- DIM ziptmp as string = dist_make_temp_dir()
- IF ziptmp = "" THEN RETURN
-
- DO 'Single-pass loop for operations after ziptmp exists
-  
-  DIM basename as string = distinfo.pkgname
-
-  DIM gameplayer as string
-  gameplayer = add_windows_gameplayer(basename, ziptmp)
-  IF gameplayer = "" THEN EXIT DO
-  
-  IF copy_or_relump(sourcerpg, ziptmp & SLASH & basename & ".rpg") = NO THEN EXIT DO
-
-  insert_windows_exe_icon gameplayer, trimextension(sourcerpg) & ".ico"
- 
-  'Write readme with DOS/Window line endings
-  write_readme_text_file ziptmp & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)
-  maybe_write_license_text_file ziptmp & SLASH & "LICENSE.txt"
-
-  IF create_zipfile(destzip, ziptmp, "*") = NO THEN EXIT DO
-  
-  dist_info "Successfully created " & shortzip, errInfo
-
-  EXIT DO 'single pass, never really loops.
- LOOP
- 'Cleanup ziptmp
- killdir ziptmp
- 
-END SUB
 
 SUB dist_basicstatus (s as string)
  basic_textbox s, uilook(uiText), vpage
@@ -907,19 +865,8 @@ SUB distribute_game_as_windows_installer (dest_override as string = "")
  IF isstmp = "" THEN RETURN
  
  DO '--single pass loop for breaking
+  IF gather_files_for_windows("sdl2", basename, isstmp, distinfo) = NO THEN EXIT DO
 
-  IF copy_or_relump(sourcerpg, isstmp & SLASH & basename & ".rpg") = NO THEN EXIT DO
- 
-  DIM gameplayer as string = add_windows_gameplayer(basename, isstmp)
-  IF gameplayer = "" THEN dist_info "ERROR: game.exe is not available" : EXIT DO
-
-  insert_windows_exe_icon gameplayer, trimextension(sourcerpg) & ".ico"
-
-  'Write readme with DOS/Window line endings
-  write_readme_text_file isstmp & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)
-
-  maybe_write_license_text_file isstmp & SLASH & "LICENSE.txt"
-  
   write_innosetup_script basename, distinfo.gamename, isstmp
 
   DIM iss_script as string = isstmp & SLASH & "innosetup_script.iss"
@@ -1781,9 +1728,10 @@ END FUNCTION
 
 'Create an archive named <gamename> & fname_suffix, (ending in either a .zip or .tar.gz) in dest_override
 'or else next to the .rpg.
+'build_variant: arch or buildname (varies by target)
 'use_subdir: whether the archive should contain a directory named <gamename>
 'gather_files: a function called to copy all files into a temp directory.
-FUNCTION package_game (which_arch as string, fname_suffix as string, dest_override as string = "", use_subdir as bool, gather_files as FnGatherFiles) as bool
+FUNCTION package_game (build_variant as string, fname_suffix as string, dest_override as string = "", use_subdir as bool, gather_files as FnGatherFiles) as bool
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
@@ -1800,10 +1748,14 @@ FUNCTION package_game (which_arch as string, fname_suffix as string, dest_overri
 
  DIM ret as bool = NO
 
- DIM subdir as string
- IF use_subdir THEN subdir = distinfo.pkgname
  DO
-  IF gather_files(which_arch, distinfo.pkgname, pkgtmp & SLASH & subdir, distinfo) = NO THEN EXIT DO
+  DIM subdir as string
+  IF use_subdir THEN
+   subdir = distinfo.pkgname
+   IF makedir(pkgtmp & SLASH & subdir) THEN EXIT DO
+  END IF
+
+  IF gather_files(build_variant, distinfo.pkgname, pkgtmp & SLASH & subdir, distinfo) = NO THEN EXIT DO
 
   DIM files_arg as string
   IF use_subdir THEN files_arg = escape_filename(subdir) ELSE files_arg = "*"
@@ -1828,10 +1780,30 @@ FUNCTION package_game (which_arch as string, fname_suffix as string, dest_overri
  RETURN ret
 END FUNCTION
 
-'Creates a temp directory and copies all the needed files in there for a linux tarball, then returns the path.
-'Returns true on success
+'Copies all the needed files for a windows distribution into destdir. Returns true on success.
+FUNCTION gather_files_for_windows (buildname as string, basename as string, destdir as string, distinfo as DistribState) as bool
+ DIM gameplayer as string
+ gameplayer = add_windows_gameplayer(basename, destdir)
+ IF gameplayer = "" THEN RETURN NO
+
+ IF copy_or_relump(sourcerpg, destdir & SLASH & basename & ".rpg") = NO THEN RETURN NO
+
+ insert_windows_exe_icon gameplayer, trimextension(sourcerpg) & ".ico"
+
+ 'Write readme with DOS/Window line endings
+ write_readme_text_file destdir & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)
+
+ maybe_write_license_text_file destdir & SLASH & "LICENSE.txt"
+
+ RETURN YES
+END FUNCTION
+
+SUB distribute_game_as_windows_zip (dest_override as string = "")
+ package_game "sdl2", ".zip", dest_override, NO, @gather_files_for_windows
+END SUB
+
+'Copies all the needed files for a linux tarball into destdir. Returns true on success
 FUNCTION gather_files_for_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
- 'Creates destdir
  IF add_linux_gameplayer(which_arch, basename, destdir) = "" THEN RETURN NO
 
  IF copy_or_relump(sourcerpg, destdir & SLASH & basename & ".rpg") = NO THEN RETURN NO
