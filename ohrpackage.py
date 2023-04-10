@@ -288,7 +288,8 @@ def symbols_files(target, srcdir = ''):
     return files
 
 def needed_windows_libs(buildinfo):
-    "List of the Windows libraries needed by all compiled-in backends"
+    """List of the Windows libraries needed by all compiled-in backends.
+    Matches needed_windows_libs in distribmenu.bas"""
     gfxlibs = {
         "fb":      [],
         "sdl":     ["SDL.dll"],

@@ -23,8 +23,8 @@ DECLARE SUB distribute_game_as_windows_zip (dest_override as string = "")
 DECLARE SUB distribute_game_as_windows_installer (dest_override as string = "")
 DECLARE SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
 DECLARE FUNCTION gather_files_for_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
-DECLARE FUNCTION get_windows_gameplayer() as string
-DECLARE FUNCTION get_linux_gameplayer(which_arch as string, destdir as string) as string
+DECLARE FUNCTION add_windows_gameplayer(basename as string, destdir as string) as string
+DECLARE FUNCTION add_linux_gameplayer(which_arch as string, basename as string, destdir as string) as string
 DECLARE FUNCTION get_mac_gameplayer(which_arch as string) as string
 DECLARE FUNCTION agreed_to_download(agree_file as string, description as string) as bool
 DECLARE FUNCTION download_gameplayer_if_needed(url as string, destfile as string, agree_filename as string, description as string) as bool
@@ -38,12 +38,11 @@ DECLARE FUNCTION find_innosetup () as string
 DECLARE FUNCTION win_or_wine_drive(letter as string) as string
 DECLARE FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
 DECLARE SUB write_innosetup_script (basename as string, gamename as string, isstmp as string)
-DECLARE SUB add_innosetup_file (s as string, filename as string)
 DECLARE FUNCTION win_path (filename as string) as string
 DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as bool
-DECLARE FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as bool
+DECLARE FUNCTION find_and_copy_windows_gameplayer (basename as string, destdir as string) as bool
 DECLARE SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
-DECLARE SUB find_required_dlls(gameplayer as string, byref files as string vector)
+DECLARE SUB needed_windows_libs(gameplayer as string, byref files as string vector, buildinfo() as string)
 DECLARE FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as bool
 DECLARE SUB distribute_game_as_debian_package (which_arch as string, dest_override as string = "")
 DECLARE FUNCTION get_debian_package_version() as string
@@ -567,24 +566,17 @@ SUB distribute_game_as_windows_zip (dest_override as string = "")
  DIM ziptmp as string = dist_make_temp_dir()
  IF ziptmp = "" THEN RETURN
 
- DIM use_gameplayer as bool = YES
- DIM gameplayer as string
- gameplayer = get_windows_gameplayer()
- IF gameplayer = "" THEN
-  IF dist_yesno("game.exe is not available, continue anyway?", NO) = NO THEN RETURN
-  use_gameplayer = NO
- END IF
-
  DO 'Single-pass loop for operations after ziptmp exists
   
   DIM basename as string = distinfo.pkgname
+
+  DIM gameplayer as string
+  gameplayer = add_windows_gameplayer(basename, ziptmp)
+  IF gameplayer = "" THEN EXIT DO
   
   IF copy_or_relump(sourcerpg, ziptmp & SLASH & basename & ".rpg") = NO THEN EXIT DO
 
-  IF use_gameplayer THEN
-   IF copy_windows_gameplayer(gameplayer, basename, ziptmp) = NO THEN EXIT DO
-   insert_windows_exe_icon ziptmp & SLASH & basename & ".exe", trimextension(sourcerpg) & ".ico"
-  END IF
+  insert_windows_exe_icon gameplayer, trimextension(sourcerpg) & ".ico"
  
   'Write readme with DOS/Window line endings
   write_readme_text_file ziptmp & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)
@@ -625,22 +617,59 @@ FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as boo
  RETURN YES
 END FUNCTION
 
-FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, destdir as string) as bool
+'Run game to extract its embedded buildinfo.ini into destdir
+FUNCTION extract_buildinfo(gameplayer as string, destdir as string) as bool
+ DIM spawn_ret as string
+ DIM olddir as string = CURDIR
+ CHDIR destdir
+ safekill "buildinfo.ini"
+ spawn_ret = spawn_and_wait(gameplayer, "--dump-embed buildinfo.ini")
+ DIM exists as bool = isfile("buildinfo.ini")
+ CHDIR olddir
+
+ IF LEN(spawn_ret) THEN dist_info spawn_ret
+ IF exists = NO THEN dist_info "ERROR: Couldn't extract buildinfo.ini from game.exe"
+ RETURN exists
+END FUNCTION
+
+#IFDEF __FB_WIN32__
+FUNCTION find_and_copy_windows_gameplayer (basename as string, destdir as string) as bool
+ 'This is used only when not using a downloaded Windows build (on Windows)
  'Returns true on success, false on failure
- DIM dest_exe as string = destdir & SLASH & basename & ".exe"
- IF confirmed_copy(gameplayer, dest_exe) = NO THEN RETURN NO
- 
- DIM gamedir as string = trimfilename(gameplayer)
- 
+
+ DIM game_exe as string = exepath & SLASH & "game.exe"
+ IF isfile(game_exe) = NO THEN
+  dist_info "game.exe wasn't found in the same folder as custom.exe. Downloading instead."
+  RETURN NO
+ END IF
+
+ REDIM buildinfo() as string
+ IF extract_buildinfo(game_exe, destdir) THEN
+  lines_from_file buildinfo(), destdir & SLASH & "buildinfo.ini"
+  debuginfo "Found game.exe, version: " & read_ini_str(buildinfo(), "long_version")
+ END IF
+
+ 'Check buildname
+ DIM buildname as string
+ buildname = read_ini_str(buildinfo(), "buildname", "unknown (obsolete version?)")
+ IF buildname <> "sdl2" THEN
+  IF buildname = "" THEN buildname = "blank (unofficial build)"
+  IF dist_yesno("ERROR: game.exe next to custom.exe doesn't appear to be a default (sdl2) official build (its buildname is " & buildname & "). Download an official build instead? (Recommended)") THEN RETURN NO
+ END IF
+
+ 'Vector of all files to copy
  DIM otherf as string vector
  v_new otherf
+ v_append otherf, "game.exe"
  v_append otherf, "LICENSE-binary.txt"
+ needed_windows_libs game_exe, otherf, buildinfo()
 
- find_required_dlls gameplayer, otherf
- 
  FOR i as integer = 0 TO v_len(otherf) - 1
-  IF confirmed_copy(gamedir & SLASH & otherf[i], destdir & SLASH & otherf[i]) = NO THEN
+  DIM dest_fname as string = otherf[i]
+  IF otherf[i] = "game.exe" THEN dest_fname = basename & ".exe"
+  IF confirmed_copy(exepath & SLASH & otherf[i], destdir & SLASH & dest_fname) = NO THEN
    v_free otherf
+   dist_info otherf[i] & " missing/unreadable. Using your existing game.exe failed, so downloading instead."
    RETURN NO
   END IF
  NEXT i
@@ -648,6 +677,7 @@ FUNCTION copy_windows_gameplayer (gameplayer as string, basename as string, dest
  v_free otherf
  RETURN YES
 END FUNCTION
+#ENDIF
 
 SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
  IF NOT isfile(exe_name) THEN debuginfo exe_name & " not found, ignoring attempt to change its icon" : EXIT SUB
@@ -662,36 +692,27 @@ SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
  IF LEN(spawn_ret) > 0 THEN dist_info "WARNING: rcedit failed when trying to set the icon: " & spawn_ret : EXIT SUB
 END SUB
 
-SUB find_required_dlls(gameplayer as string, byref files as string vector)
-
 #IFDEF __FB_WIN32__
- IF gameplayer = exepath & SLASH & "game.exe" THEN
-  '--If we are using a copy of the current Windows version,
-  '--the backend might be non-default
-  DIM gfxbackend_to_use as string = gfxbackend
-  IF gen(genResolutionX) <> 320 OR gen(genResolutionY) <> 200 THEN
-   'Note: This code is duplicated in apply_game_window_settings
-   'This really seems too complicated...
-   IF gfx_supports_variable_resolution() = NO THEN
-    DIM varresbackends(...) as string = {"sdl2", "sdl", "fb"}
-    FOR idx as integer = 0 TO UBOUND(varresbackends)
-     IF have_gfx_backend(varresbackends(idx)) THEN
-      gfxbackend_to_use = varresbackends(idx)
-      EXIT FOR
-     END IF
-    NEXT
-   END IF
-  END IF
+SUB needed_windows_libs(gameplayer as string, byref files as string vector, buildinfo() as string)
+ 'Add .dlls to files needed by the gfx/music backends in buildinfo(). This is
+ 'used only not using a downloaded ohrrpgce-player-* zip (on Windows).
+ 'Matches needed_windows_libs in ohrpackage.py.
+ DIM as string gfx(), music()
 
-  SELECT CASE gfxbackend_to_use
+ split read_ini_str(buildinfo(), "gfx", "sdl2"), gfx()
+ FOR idx as integer = 0 TO UBOUND(gfx)
+  SELECT CASE gfx(idx)
    CASE "directx":  v_append_once files, "gfx_directx.dll"
    CASE "sdl":      v_append_once files, "SDL.dll"
    CASE "sdl2":     v_append_once files, "SDL2.dll"
    CASE "alleg":    v_append_once files, "alleg40.dll"
-   CASE "fb":
-    'gfx_fb requires no dll files
+   CASE "fb":       'None
   END SELECT
-  SELECT CASE musicbackend
+ NEXT
+
+ split read_ini_str(buildinfo(), "music", "sdl2"), music()
+ FOR idx as integer = 0 TO UBOUND(music)
+  SELECT CASE music(idx)
    CASE "sdl":
     v_append_once files, "SDL.dll"
     v_append_once files, "SDL_mixer.dll"
@@ -700,26 +721,17 @@ SUB find_required_dlls(gameplayer as string, byref files as string vector)
     v_append_once files, "SDL2_mixer.dll"
    CASE "native", "native2":
     v_append_once files, "audiere.dll"
+   CASE "allegro":
+    v_append_once files, "alleg40.dll"
    CASE "silence":
-    'music_silence requires no dll files
+    'None
   END SELECT
-  EXIT SUB
- END IF
-#ENDIF 
- 
- '-- for all other cases and all other platforms, we just use whatever
- '-- *.dll files are found in the same folder where we downloaded the
- '-- game player
- DIM filelist() as string
- DIM dirname as string = trimfilename(gameplayer)
- findfiles dirname, "*.dll", fileTypeFile, YES, filelist()
- FOR i as integer = 0 TO UBOUND(filelist)
-  v_append_once files, filelist(i)
- NEXT i
+ NEXT
 END SUB
+#ENDIF
 
 FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as bool
- 'Returns true on success, false on failure
+ 'Used only for debian. Returns true on success.
  IF confirmed_copy(gameplayer, destdir & SLASH & basename) = NO THEN RETURN NO
 #IFDEF __FB_UNIX__
   '--just in case we are playing with a debug build,
@@ -731,23 +743,18 @@ FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdi
  RETURN YES
 END FUNCTION
 
-FUNCTION get_windows_gameplayer() as string
- 'On Windows, Return the full path to game.exe
- 'On other platforms, download game.exe, unzip it, and return the full path
+
+FUNCTION add_windows_gameplayer(basename as string, destdir as string) as string
+ 'Add game.exe and all other files for the Windows game player (including LICENSE-binary.txt) in destdir.
+ 'On Windows, try to copy game.exe and libraries. Otherwise, download an ohrrpgce-player package.
+ 'game.exe is renamed to $basename.exe, and its full path is returned.
  'Returns "" for failure.
 
+ DIM destexe as string = destdir & SLASH & basename & ".exe"
+
 #IFDEF __FB_WIN32__
-
- '--If this is Windows, we already have the correct version of game.exe
- IF isfile(exepath & SLASH & "game.exe") THEN
-  RETURN exepath & SLASH & "game.exe"
- ELSE
-  dist_info "ERROR: game.exe wasn't found in the same folder as custom.exe. (This shouldn't happen!)" : RETURN ""
- END IF
-
+ IF find_and_copy_windows_gameplayer(basename, destdir) THEN RETURN destexe
 #ENDIF
- '--For Non-Windows platforms, we need to download game.exe
- '(NOTE: This all should work fine on Windows too, but it is best to use the installed game.exe)
 
  DIM dldir as string = gameplayer_dir()
  IF dldir = "" THEN RETURN ""
@@ -779,28 +786,19 @@ FUNCTION get_windows_gameplayer() as string
  '--Prompt & download if missing or out of date
  IF NOT download_gameplayer_if_needed(url, destzip, "win.download.agree", "the Windows OHRRPGCE game player") THEN RETURN ""
  
- '--Find the unzip tool
- DIM unzip as string = dist_find_helper_app("unzip")
- IF unzip = "" THEN RETURN ""
+ IF extract_zipfile(destzip, destdir) = NO THEN RETURN ""
  
- '--remove the old files first
- safekill dldir & SLASH & "game.exe"
- safekill dldir & SLASH & "LICENSE-binary.txt"
- safekill_pattern dldir, "*.dll"
- 
- '--Unzip the desired files
- DIM args as string = "-o " & escape_filename(destzip) & " game.exe buildinfo.ini SDL2.dll SDL2_mixer.dll LICENSE-binary.txt -d " & escape_filename(dldir)
- DIM spawn_ret as string = spawn_and_wait(unzip, args)
- IF LEN(spawn_ret) > 0 THEN dist_info "ERROR: unzip failed: " & spawn_ret : RETURN ""
+ 'Sanity check contents
+ IF NOT isfile(destdir & SLASH & "game.exe") THEN dist_info "ERROR: Failed to unzip game.exe" : RETURN ""
+ IF NOT isfile(destdir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
+ IF sanity_check_buildinfo(destdir & SLASH & "buildinfo.ini") THEN RETURN ""
 
- IF NOT isfile(dldir & SLASH & "game.exe")           THEN dist_info "ERROR: Failed to unzip game.exe" : RETURN ""
- IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
- IF sanity_check_buildinfo(dldir & SLASH & "buildinfo.ini") THEN RETURN ""
- '--We might be downloading a future version, and don't know with certainty what dll files it might include
- IF NOT isfile(dldir & SLASH & "SDL2.dll")           THEN debuginfo "WARN: Expected to unzip SDL2.dll but it wasn't there"
- IF NOT isfile(dldir & SLASH & "SDL2_mixer.dll")     THEN debuginfo "WARN: Expected to unzip SDL2_mixer.dll but it wasn't there"
+ 'All files should be distributed with games (except in .debs) except these two
+ safekill destdir & SLASH & "README-player-only.txt"
+ safekill destdir & SLASH & "buildinfo.ini"
 
- RETURN dldir & SLASH & "game.exe"
+ IF renamefile(destdir & SLASH & "game.exe", destexe) = NO THEN dist_info "Couldn't rename game.exe" : RETURN ""
+ RETURN destexe
 END FUNCTION
 
 FUNCTION sanity_check_buildinfo(buildinfo_file as string) as bool
@@ -815,12 +813,14 @@ FUNCTION sanity_check_buildinfo(buildinfo_file as string) as bool
  RETURN NO
 END FUNCTION
 
-FUNCTION get_linux_gameplayer(which_arch as string, destdir as string) as string
+FUNCTION add_linux_gameplayer(which_arch as string, basename as string, destdir as string) as string
  'Download a precompiled Linux player package,
  'extract it to destdir (creating it but not clearing if already existing),
  'and return the full path to game.sh therein.
  '
  'Returns "" for failure.
+
+ DIM destexe as string = destdir & SLASH & basename
 
  IF NOT valid_arch(which_arch, "x86, x86_64") THEN RETURN ""
 
@@ -883,7 +883,8 @@ FUNCTION get_linux_gameplayer(which_arch as string, destdir as string) as string
  safekill destdir & SLASH & "README-player-only.txt"
  safekill destdir & SLASH & "buildinfo.ini"
 
- RETURN destdir & SLASH & "game.sh"
+ IF renamefile(destdir & SLASH & "game.sh", destexe) = NO THEN dist_info "ERROR: Couldn't rename game.sh" : RETURN ""
+ RETURN destexe
 END FUNCTION
 
 SUB distribute_game_as_windows_installer (dest_override as string = "")
@@ -909,12 +910,10 @@ SUB distribute_game_as_windows_installer (dest_override as string = "")
 
   IF copy_or_relump(sourcerpg, isstmp & SLASH & basename & ".rpg") = NO THEN EXIT DO
  
-  DIM gameplayer as string
-  gameplayer = get_windows_gameplayer()
+  DIM gameplayer as string = add_windows_gameplayer(basename, isstmp)
   IF gameplayer = "" THEN dist_info "ERROR: game.exe is not available" : EXIT DO
-  IF copy_windows_gameplayer(gameplayer, basename, isstmp) = NO THEN EXIT DO
-  
-  insert_windows_exe_icon isstmp & SLASH & basename & ".exe", trimextension(sourcerpg) & ".ico"
+
+  insert_windows_exe_icon gameplayer, trimextension(sourcerpg) & ".ico"
 
   'Write readme with DOS/Window line endings
   write_readme_text_file isstmp & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)
@@ -978,21 +977,7 @@ SUB write_innosetup_script (basename as string, gamename as string, isstmp as st
  s &= "Name: ""eng""; MessagesFile: ""compiler:Default.isl""" & E
 
  s &= E & "[Files]" & E
- add_innosetup_file s, isstmp & SLASH & basename & ".rpg"
- add_innosetup_file s, isstmp & SLASH & basename & ".exe"
-
- 'include whichever .dll files are in the isstmp folder
- DIM dlls() as string
- findfiles isstmp, "*.dll", fileTypeFile, YES, dlls()
- FOR i as integer = 0 TO UBOUND(dlls)
-  add_innosetup_file s, isstmp & SLASH & dlls(i)
- NEXT i
- 
- add_innosetup_file s, isstmp & SLASH & "LICENSE-binary.txt"
- add_innosetup_file s, isstmp & SLASH & "README-" & basename & ".txt"
- IF isfile(isstmp & SLASH & "LICENSE.txt") THEN
-  add_innosetup_file s, isstmp & SLASH & "LICENSE.txt"
- END IF
+ s &= "Source: ""*""; Excludes: ""innosetup_script.iss""; DestDir: ""{app}""; Flags: ignoreversion recursesubdirs" & E
 
  s &= E & "[Icons]" & E
  s &= "Name: ""{userdesktop}\" & gamename & """; Filename: ""{app}\" & basename & ".exe""; WorkingDir: ""{app}"";" & E
@@ -1128,8 +1113,8 @@ SUB distribute_game_as_debian_package (which_arch as string, dest_override as st
   debuginfo "Copy linux game player" 
   DIM gameplayer as string
   DIM extractdir as string = debtmp & SLASH "extract.tmp"
-  ' get_linux_gameplayer extracts a bunch of files which we mostly ignore, including the game.sh it returns
-  IF get_linux_gameplayer(which_arch, extractdir) = "" THEN dist_info "ERROR: Linux game player is not available" : EXIT DO
+  ' Extracts a bunch of files which we mostly ignore, including the path to game.sh it returns
+  IF add_linux_gameplayer(which_arch, "dummy", extractdir) = "" THEN EXIT DO
   gameplayer = extractdir & SLASH & "linux" & SLASH & which_arch & SLASH & "ohrrpgce-game"
   IF isfile(gameplayer) = NO THEN dist_info "ERROR: didn't find ohrrpgce-game in downloaded zip" : EXIT DO
   IF copy_linux_gameplayer(gameplayer, basename, bindir) = NO THEN EXIT DO
@@ -1816,7 +1801,7 @@ FUNCTION package_game (which_arch as string, fname_suffix as string, dest_overri
  DIM ret as bool = NO
 
  DIM subdir as string
- IF use_subdir THEN subdir = SLASH & distinfo.pkgname '& "-linux"
+ IF use_subdir THEN subdir = distinfo.pkgname
  DO
   IF gather_files(which_arch, distinfo.pkgname, pkgtmp & SLASH & subdir, distinfo) = NO THEN EXIT DO
 
@@ -1846,12 +1831,8 @@ END FUNCTION
 'Creates a temp directory and copies all the needed files in there for a linux tarball, then returns the path.
 'Returns true on success
 FUNCTION gather_files_for_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
- DIM gameplayer as string
  'Creates destdir
- gameplayer = get_linux_gameplayer(which_arch, destdir)
- IF gameplayer = "" THEN dist_info "ERROR: Linux game player is not available" : RETURN NO
-
- IF renamefile(gameplayer, destdir & SLASH & basename) = NO THEN dist_info "Couldn't rename " & gameplayer : RETURN NO
+ IF add_linux_gameplayer(which_arch, basename, destdir) = "" THEN RETURN NO
 
  IF copy_or_relump(sourcerpg, destdir & SLASH & basename & ".rpg") = NO THEN RETURN NO
 
@@ -1890,7 +1871,7 @@ SUB distribute_game_for_steam_linux (which_arch as string)
   DIM distinfo as DistribState
   load_distrib_state distinfo
   DIM launchername as string = distinfo.pkgname
-  dist_info "In steamworks, create a Launch Option for Linux that runs '" & launchername & "'", errInfo
+  dist_info "In Steamworks, create a Launch Option for Linux+SteamOS that runs '" & launchername & "'", errInfo
  END IF
 END SUB
 
