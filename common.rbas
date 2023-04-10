@@ -3574,11 +3574,14 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
 
  waitforkeyrelease
 
- IF wait_on_error ANDALSO is_windows_9x() = NO THEN
+ IF wait_on_error ANDALSO is_windows_9x() = NO ANDALSO get_wine_version() = NULL THEN
   'I've no clue why the "exit !ERRORLEVEL!" is necessary to get the exit code, it's
   'not needed without the || pause even though that doesn't change the errorlevel!
   '& is a command separator like ; in Unix
   '/y:on turns on delayed variable expansion, for !ERRORLEVEL!
+  'This doesn't seem to work under Wine. It seems that regardless of the exitcode,
+  'it always pauses and it never returns a nonzero exitcode! Also it prints everything to
+  'stdout instead of in a new console window.
   args = "/y:on /c """ & escape_filename(app) & " " & args & " || pause & exit !ERRORLEVEL!"""
   app = "cmd.exe"
  END IF

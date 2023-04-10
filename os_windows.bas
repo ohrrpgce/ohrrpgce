@@ -136,6 +136,15 @@ function is_windows_9x () as bool
 	return cached
 end function
 
+'If running under wine return its version string (e.g. "8.4"), otherwise NULL
+function get_wine_version () as zstring ptr
+	dim handle as any ptr = GetModuleHandleA("ntdll.dll")
+	if handle = NULL then return NO  'Not Windows NT... could be Wine emulating Win9x?
+	type FnGetVersion as function cdecl () as zstring ptr
+	var get_ver = cptr(FnGetVersion, GetProcAddress(handle, "wine_get_version"))
+	return iif(get_ver, get_ver(), NULL)
+end function
+
 'Note: this returns Windows 8 on Windows 8.1 and 10, because GetVersionEx lies to preserve compatibility!
 'To fix that need to include a manifest: https://msdn.microsoft.com/en-us/library/windows/desktop/dn481241%28v=vs.85%29.aspx
 function get_windows_version () as string
@@ -160,6 +169,8 @@ function get_windows_version () as string
 		end select
 		ret += " " + verinfo.szCSDVersion
 	end if
+	var wine_ver = get_wine_version()
+	if wine_ver then ret += " Wine " + *wine_ver
 	return ret
 end function
 
