@@ -1482,10 +1482,7 @@ SUB receive_file_updates ()
 
   IF pieces(0) = "M" THEN  'file modified/created/deleted
    line_in = MID(line_in, 3)
-   DIM at as integer = v_find(modified_lumps, line_in)
-   IF at = -1 THEN
-    v_append modified_lumps, line_in
-   END IF
+   v_append_once modified_lumps, line_in
 
   ELSEIF pieces(0) = "CM" THEN  'please close music file
    DIM songnum as integer = str2int(pieces(1))

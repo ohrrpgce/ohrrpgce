@@ -478,10 +478,7 @@ END SUB
 FUNCTION is_known_license(license_code as string) as bool
  'duplicated known_licenses because global string arrays are a pain in the ass
  DIM known_licenses(9) as string = {"COPYRIGHT", "PUBLICDOMAIN", "GPL", "MIT", "CC-BY", "CC-BY-SA", "CC-BY-ND", "CC-BY-NC", "CC-BY-NC-SA", "CC-BY-NC-ND"}
- FOR i as integer = 0 TO UBOUND(known_licenses)
-  IF license_code = known_licenses(i) THEN RETURN YES
- NEXT i
- RETURN NO
+ RETURN a_find(known_licenses(), license_code) > -1
 END FUNCTION
 
 FUNCTION generate_copyright_line(distinfo as DistribState) as string
@@ -665,11 +662,6 @@ SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
  IF LEN(spawn_ret) > 0 THEN dist_info "WARNING: rcedit failed when trying to set the icon: " & spawn_ret : EXIT SUB
 END SUB
 
-SUB add_file(byref files as string vector, fname as string)
- 'Could use a StrHashTable instead of a vector
- IF v_find(files, fname) = -1 THEN v_append(files, fname)
-END SUB
-
 SUB find_required_dlls(gameplayer as string, byref files as string vector)
 
 #IFDEF __FB_WIN32__
@@ -692,22 +684,22 @@ SUB find_required_dlls(gameplayer as string, byref files as string vector)
   END IF
 
   SELECT CASE gfxbackend_to_use
-   CASE "directx":  add_file files, "gfx_directx.dll"
-   CASE "sdl":      add_file files, "SDL.dll"
-   CASE "sdl2":     add_file files, "SDL2.dll"
-   CASE "alleg":    add_file files, "alleg40.dll"
+   CASE "directx":  v_append_once files, "gfx_directx.dll"
+   CASE "sdl":      v_append_once files, "SDL.dll"
+   CASE "sdl2":     v_append_once files, "SDL2.dll"
+   CASE "alleg":    v_append_once files, "alleg40.dll"
    CASE "fb":
     'gfx_fb requires no dll files
   END SELECT
   SELECT CASE musicbackend
    CASE "sdl":
-    add_file files, "SDL.dll"
-    add_file files, "SDL_mixer.dll"
+    v_append_once files, "SDL.dll"
+    v_append_once files, "SDL_mixer.dll"
    CASE "sdl2":
-    add_file files, "SDL2.dll"
-    add_file files, "SDL2_mixer.dll"
+    v_append_once files, "SDL2.dll"
+    v_append_once files, "SDL2_mixer.dll"
    CASE "native", "native2":
-    add_file files, "audiere.dll"
+    v_append_once files, "audiere.dll"
    CASE "silence":
     'music_silence requires no dll files
   END SELECT
@@ -722,7 +714,7 @@ SUB find_required_dlls(gameplayer as string, byref files as string vector)
  DIM dirname as string = trimfilename(gameplayer)
  findfiles dirname, "*.dll", fileTypeFile, YES, filelist()
  FOR i as integer = 0 TO UBOUND(filelist)
-  add_file files, filelist(i)
+  v_append_once files, filelist(i)
  NEXT i
 END SUB
 

@@ -2398,10 +2398,9 @@ SUB append_enemy_attacks_to_battle_menu(ai_attack_list() as integer, byref bspr 
  FOR i as integer = 0 TO UBOUND(ai_attack_list)
   IF ai_attack_list(i) > 0 THEN
    atk_id = ai_attack_list(i) - 1
-   IF v_find(already, atk_id) = -1 THEN
+   IF v_append_once(already, atk_id) THEN
     caption = readattackname(atk_id)
     append_menu_item(bspr.batmenu, caption, batmenu_ATTACK, atk_id)
-    v_append already, atk_id
    END IF
   END IF
  NEXT i

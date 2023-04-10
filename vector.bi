@@ -72,7 +72,9 @@ declare sub array_new (byref this as any vector, byval length as int32, byval re
 'Undocumented, if you need this, you're probably doing something wrong
 declare function array_is_temp (byval this as any vector) as boolint
 
-end extern
+'Needed for v_append_once wrapper
+declare function array_append (byref this as any vector, byval value as any ptr) as any vector
+declare function array_find (byval this as any vector, byval value as any ptr) as int32
 
 'Current FB -gen -gcc bug: can't have multiple prototypes aliased to the same function.
 'So need to declare a single prototype for the vector functions, and use macros to point at them.
@@ -81,7 +83,6 @@ end extern
 'Functions which take a literal as argument need special treatment; they have wrapper functions
 'in DECLARE_VECTOR_OF_TYPE.
 #IF __FB_GCC__
-  extern "C"
   declare sub array_free (byref this as any vector)
   declare sub array_assign (byref dest as any vector, byref src as any vector)
   declare sub array_assign_d (byref dest as any vector, byref src as any vector)
@@ -93,20 +94,17 @@ end extern
   declare function array_index (byval this as any vector, byval index as int32) as any ptr
   declare function array_end (byval this as any vector) as any ptr
   declare function array_type (byval this as any vector) as TypeTable ptr
-  declare function array_append (byref this as any vector, byval value as any ptr) as any vector
   declare function array_extend (byref this as any vector, byref append as any vector) as any vector
   declare function array_extend_d (byref this as any vector, byref append as any vector) as any vector
   declare function array_sort (byval this as any vector, byval compfunc as FnCompare = 0) as any vector
   declare function array_reverse (byref this as any vector) as any vector
   declare function array_equal (byval lhs as any vector, byval rhs as any vector) as boolint
   declare function array_inequal (byref lhs as any vector, byref rhs as any vector) as boolint
-  declare function array_find (byval this as any vector, byval value as any ptr) as int32
   declare function array_insert (byref this as any vector, byval pos as int32, byval value as any ptr) as any vector
   declare function array_remove (byref this as any vector, byval value as any ptr) as int32
   declare function array_delete_slice (byref this as any vector, byval from as int32, byval to as int32) as any vector
   declare sub array_heappop (byref this as any vector, byval compfunc as FnCompare = 0)
   declare function array_heappush (byref this as any vector, byval value as any ptr, byval compfunc as FnCompare = 0) as int32
-  end extern
 
   'Some of the following are commented out because they're defined below as wrapper functions
   #DEFINE v_free array_free
@@ -136,7 +134,9 @@ end extern
   '#DEFINE v_delete_slice(this, from, to) cast(typeof(this), array_delete_slice(this, from, to))
   #DEFINE v_heappop array_heappop
   '#DEFINE v_heappush array_heappush
+
 #ENDIF
+end extern
 
 #define v_last(array)  (v_end(array)[-1])
 
@@ -214,6 +214,9 @@ end extern
 
   'Returns 'this'
   declare function v_append overload alias "array_append" (byref this as T vector, byref value as T) as T vector
+
+  'If not already in the vector, append value and return true
+  declare function v_append_once overload (byref this as T vector, byref value as T) as bool
 
   'Concatenate two vectors. Returns 'this'
   'Note: brackets around the argument list aren't optional: gengcc builds will break
@@ -301,6 +304,15 @@ end extern
   end function
 
 #ENDIF
+
+  extern "C"
+  private function v_append_once overload (byref this as T vector, byref value as T) as bool
+    if array_find(this, @value) = -1 then
+      array_append(this, @value)
+      return YES
+    end if
+  end function
+  end extern
 
 #ENDMACRO
 

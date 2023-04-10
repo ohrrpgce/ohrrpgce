@@ -205,6 +205,11 @@ startTest(findInsertDeleteInteger)
 	assertVector(arr, "[101, 0, 0, 0]")
 	v_delete_slice arr, 0, v_len(arr)
 	assertVector(arr, "[]")
+
+	if v_append_once(arr, 100) = NO then fail
+	if v_append_once(arr, 100) then fail
+	if v_append_once(arr, 101) = NO then fail
+	assertVector(arr, "[100, 101]")
 	v_free arr
 endTest
 
@@ -734,7 +739,7 @@ startTest(VecMap)
 endTest
 
 startTest(PolymorphismTest)
-	'Test polymorphism: v_new, v_append, v_insert, v_find, v_remove are the only functions which
+	'Test polymorphism: v_new, v_append, v_append_unique, v_insert, v_find, v_remove are the only functions which
 	'require that the target vector variable has exactly the right type, either (v_new) so that
 	'it can reference the right type table, or (all others) for obvious reason.
 	'So we can use polymorphism in this way; the type table for a vector contains sufficient data

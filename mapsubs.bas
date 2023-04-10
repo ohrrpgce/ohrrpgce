@@ -1365,7 +1365,7 @@ DO
     FOR i as integer = 0 TO UBOUND(st.map.npc)
      WITH st.map.npc(i)
       IF .id > 0 ANDALSO .pos = st.pos * tilesize THEN
-       IF v_find(idlist, XY(.id - 1, .pool)) = -1 THEN v_append idlist, XY(.id - 1, .pool)
+       v_append_once idlist, XY(.id - 1, .pool)
       END IF
      END WITH
     NEXT i
