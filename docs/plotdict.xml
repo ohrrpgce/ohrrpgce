@@ -188,7 +188,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2022-10-14">
+<plotscript version="wip" datecode="2023-04-10">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -5771,6 +5771,17 @@ get hero name (1, find hero (leader))
 			<shortname>get attack caption</shortname>
 			<description>This command will take the caption of <p>attack</p> and stick it in string #<p>ID</p>, overwriting its contents. Use the <p>atk:name</p> constants from your HSI file.
 			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
+			</description>
+		</command>
+		<command id="getstatname">
+			<canon>get stat name (ID, stat)</canon>
+			<shortname>get stat name</shortname>
+			<description>
+				Gets the name of a <p>stat</p> and puts it in string #<p>ID</p>.
+				The <p>stat</p> index can be a constant like <tt>stat:hp</tt> for stats 0-11 (but beware the names of these change to match the stats so are no use for portable scripts) or an in-battle register stat (stats 12-15 for poison, regen, stun and mute registers).
+				<lb/>
+				Safe to use with an out-of-range <p>stat</p>: returns <tt>false</tt> and sets a blank string without showing an error.
+				Otherwise returns <tt>true</tt>.
 			</description>
 		</command>
 		<command id="getsongname">

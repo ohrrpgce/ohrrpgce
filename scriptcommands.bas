@@ -5172,6 +5172,16 @@ SUB script_commands(byval cmdid as integer)
   IF curcmd->argc > 0 THEN
    scriptret = retvals(randint(curcmd->argc))
   END IF
+ CASE 749 '--get stat name(stringid, stat)
+  IF valid_plotstr(retvals(0)) THEN
+   IF retvals(1) >= 0 ANDALSO retvals(1) <= statLastRegister THEN
+    plotstr(retvals(0)).s = battle_statnames(retvals(1))
+    scriptret = 1
+   ELSE
+    'Don't show an error, because in future the number of stats will be variable
+    plotstr(retvals(0)).s = ""
+   END IF
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

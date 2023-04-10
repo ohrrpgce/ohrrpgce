@@ -209,7 +209,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2022-10-14)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2023-04-10)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1004,6 +1004,7 @@ function toggleContent(target) {
 		<a href="#about-getspritesetnumber" class="ref">get sprite set number (handle)</a><br>
 		<a href="#about-getspritetrans" class="ref">get sprite trans (handle)</a><br>
 		<a href="#about-getspritetype" class="ref">get sprite type (handle)</a><br>
+		<a href="#about-getstatname" class="ref">get stat name (ID, stat)</a><br>
 		<a href="#about-gettextbg" class="ref">get text bg(handle)</a><br>
 		<a href="#about-gettextcolor" class="ref">get text color(handle)</a><br>
 		<a href="#about-gettileanimationoffset" class="ref">get tile animation offset (animation pattern, layer)</a><br>
@@ -8928,9 +8929,9 @@ end</pre>
 			
 				Adds an enemy with given <span class="param">enemy id</span>
 				(use the constants of the form <span class="param">enemy:name</span> in your exported .hsi file) to the specified <span class="param">formation</span>.
-				<span class="param">x</span> (0 to 320) and <span class="param">y</span> (from roughly 17 to 240, depending on enemy size)
-				give the position of the center of the bottom edge of the enemy
-				- approximately where it appears to stand.
+				give the position of the center of the bottom edge of the enemy (approximately where it appears to stand),
+				relative to the center 320x200 of the screen.
+				Use the formation editor to get coordinates to feed into this command.
 				<span class="param">slot</span> (0 to 7) is an optional argument,
 				if you specify it, then the enemy is created in the suggested slot if empty.
 				If you omit <span class="param">slot</span> or <span class="param">slot</span> isn't empty, the enemy is put in the first empty slot.
@@ -9018,7 +9019,10 @@ end
 			<a name="about-formationslotx"></a>
 				<h4>formation slot x (formation, slot)</h4>
 <p>
-			Returns the x position of the center of the enemy in the specified formation slot (0 to 7). An enemies position is the center of the bottom edge of the enemy - approximately where it appears to stand.
+			
+				Returns the x position of the center of the enemy in the specified formation slot (0 to 7).
+				An enemy's position is the center of the bottom edge of the enemy - approximately where it appears to stand.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-findenemyinformation" class="ref">find enemy in formation</a></li></ul>
@@ -9029,7 +9033,10 @@ end
 			<a name="about-formationsloty"></a>
 				<h4>formation slot y (formation, slot)</h4>
 <p>
-			Returns the y position of the bottom edge of the enemy sprite in the specified formation slot (0 to 7). An enemies position is the center of the bottom edge of the enemy - approximately where it appears to stand.
+			
+				Returns the y position of the bottom edge of the enemy sprite in the specified formation slot (0 to 7).
+				An enemy's position is the center of the bottom edge of the enemy - approximately where it appears to stand.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-findenemyinformation" class="ref">find enemy in formation</a></li></ul>
@@ -10090,6 +10097,7 @@ There is no limit on string length.<br>
 		<a href="#about-readattackname" class="ref">get attack name</a><br>
 		<a href="#about-readattackname" class="ref">read attack name (ID, attack)</a><br>
 		<a href="#about-getattackcaption" class="ref">get attack caption (ID, attack)</a><br>
+		<a href="#about-getstatname" class="ref">get stat name (ID, stat)</a><br>
 		<a href="#about-getsongname" class="ref">get song name (ID, song)</a><br>
 </ul>
 <ul></ul>
@@ -10555,6 +10563,22 @@ get hero name (1, find hero (leader))
 			This command will take the caption of <span class="param">attack</span> and stick it in string #<span class="param">ID</span>, overwriting its contents. Use the <span class="param">atk:name</span> constants from your HSI file.
 			<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.</div>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getstatname"></a>
+				<h4>get stat name (ID, stat)</h4>
+<p>
+			
+				Gets the name of a <span class="param">stat</span> and puts it in string #<span class="param">ID</span>.
+				The <span class="param">stat</span> index can be a constant like <span class="code">stat:hp</span> for stats 0-11 (but beware the names of these change to match the stats so are no use for portable scripts) or an in-battle register stat (stats 12-15 for poison, regen, stun and mute registers).
+				<br>
+				Safe to use with an out-of-range <span class="param">stat</span>: returns <span class="code">false</span> and sets a blank string without showing an error.
+				Otherwise returns <span class="code">true</span>.
 			
 			
 			
@@ -22722,7 +22746,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 944 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 945 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

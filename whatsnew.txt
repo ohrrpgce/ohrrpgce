@@ -124,6 +124,7 @@ WHAT IS NEW?
     * "random choice" [Ralph]
     * "move slice to screen pos" "gently reparent", "gently realign slice" [James]
     * "lookup ancestor" [James]
+    * "get stat name" [Ralph]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

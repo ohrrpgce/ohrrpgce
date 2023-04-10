@@ -6362,6 +6362,16 @@ script, string load tests, begin
   get attack caption(2, 0 + 1)
   assert(string compare(1,2))
 
+  # Stat names
+  assert(get stat name(1, stat:hp) == true)
+  assert(string compare(1, $2="HP"))
+  get stat name(1, stat:hits)  # Last stat
+  assert(string compare(1, $2="Hits"))
+  get stat name(1, 15)  # Last register
+  assert(string compare(1, $2="mute register"))
+  assert(get stat name(1, 16) == false)  # Out of bounds
+  assert(string compare(1, $2=""))
+
   embedding global := -1234
   $3="<embedded> "
 
