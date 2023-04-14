@@ -199,6 +199,7 @@ Enum 'SliceTypes
  slLayout
  slLine
  'Remember to update slicetype constants in plotscr.hsd
+ slAddCollection      'Not a real type, used only by slice_edit_detail_browse_slicetype
 End Enum
 
 Enum AttachTypes

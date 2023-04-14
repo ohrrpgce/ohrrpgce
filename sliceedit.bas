@@ -211,6 +211,7 @@ DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slic
 DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
 DECLARE SUB slice_editor_import_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
 DECLARE SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr, reexport as bool = NO)
+DECLARE FUNCTION slice_editor_import_copy(byref ses as SliceEditState) as Slice ptr
 DECLARE FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr) as bool
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
 DECLARE FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState, lowerlimit as integer, upperlimit as integer) as bool
@@ -223,7 +224,7 @@ DECLARE SUB slice_editor_focus_on_slice(byref ses as SliceEditState, edslice as 
 DECLARE SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
 DECLARE SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byval kindlimit as integer=kindlimitANYTHING)
 DECLARE FUNCTION special_code_kindlimit_check(byval kindlimit as integer, byval slicekind as SliceTypes, byval sl as Slice ptr) as bool
-DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as SliceTypes) as bool
+DECLARE FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as SliceTypes, add_collection as bool = NO) as bool
 DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
 DECLARE SUB slice_editor_settings_menu(byref ses as SliceEditState, byref edslice as Slice ptr, in_detail_editor as bool)
 DECLARE SUB slice_editor_save_settings(byref ses as SliceEditState)
@@ -660,11 +661,20 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
 #ENDIF
   IF state.need_update = NO AND (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
    DIM slice_type as SliceTypes
-   IF slice_edit_detail_browse_slicetype(slice_type, editable_slice_types()) THEN
-    IF ses.curslice <> NULL ANDALSO ses.curslice <> edslice THEN
-     InsertSliceBefore ses.curslice, NewSliceOfType(slice_type)
+   DIM newsl as Slice ptr
+   IF slice_edit_detail_browse_slicetype(slice_type, editable_slice_types(), YES) THEN
+    IF slice_type = slAddCollection THEN
+     newsl = slice_editor_import_copy(ses)
     ELSE
-     cursor_seek = NewSliceOfType(slice_type, edslice)
+     newsl = NewSliceOfType(slice_type)
+    END IF
+   END IF
+   IF newsl THEN  'Didn't cancel
+    IF ses.curslice <> NULL ANDALSO ses.curslice <> edslice THEN
+     InsertSliceBefore ses.curslice, newsl
+    ELSE
+     cursor_seek = newsl
+     SetSliceParent(cursor_seek, edslice)
     END IF
     state.need_update = YES
    END IF
@@ -1131,6 +1141,30 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
   init_slice_editor_for_collection_group(ses, ses.collection_group_number)
  END IF
 END SUB
+
+FUNCTION slice_editor_import_copy(byref ses as SliceEditState) as Slice ptr
+ DIM choice as integer = 0
+ 'choice = twochoice("Import from where?", "Another slice collection", "A .slice file")
+ IF choice = -1 THEN RETURN NULL
+ IF choice = 0 THEN
+  'Temporary! Yuck!
+  DIM collidstr as string
+  IF prompt_for_string(collidstr, "Slice collection ID to import?", 6) = NO THEN RETURN NULL
+  'ID input
+  DIM collid as integer
+  IF parse_int(collidstr, @collid) THEN
+   DIM ret as Slice ptr = LoadSliceCollection(SL_COLLECT_USERDEFINED, collid)
+   IF ret ANDALSO ret->context THEN
+    'The SliceCollectionContext marks which the collection it was loaded from,
+    'Which is actually probably useful, but also duplicates the collection name.
+    'Have to think about it more.
+    DELETE ret->context
+    ret->context = NULL
+   END IF
+   RETURN ret
+  END IF
+ END IF
+END FUNCTION
 
 #IFDEF IS_CUSTOM
 'Prompt user whether to import. Called when F3 is pressed.
@@ -2238,8 +2272,8 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
  END IF
 END SUB
 
-'Pick a slice type in allowed_types(), return YES if didn't cancel
-FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as SliceTypes) as bool
+'Pick a slice type in allowed_types() or slAddCollection, return YES if didn't cancel
+FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allowed_types() as SliceTypes, add_collection as bool = NO) as bool
  IF UBOUND(allowed_types) < 0 THEN RETURN NO
  DIM as integer default, choice
  DIM menu(UBOUND(allowed_types)) as string
@@ -2247,9 +2281,14 @@ FUNCTION slice_edit_detail_browse_slicetype(byref slice_type as SliceTypes, allo
   menu(i) = SliceTypeName(allowed_types(i))
   IF allowed_types(i) = slice_type THEN default = i
  NEXT i
+ IF add_collection THEN a_append menu(), "Copy of a slice collection..."
  choice = multichoice("What type of slice?", menu(), default, -1, "sliceedit_browse_slicetype")
  IF choice = -1 THEN RETURN NO
- slice_type = allowed_types(choice)
+ IF choice > UBOUND(allowed_types) THEN
+  slice_type = slAddCollection
+ ELSE
+  slice_type = allowed_types(choice)
+ END IF
  RETURN YES
 END FUNCTION
 
