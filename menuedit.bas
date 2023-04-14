@@ -550,12 +550,13 @@ SUB reposition_menu (menu as MenuDef, mstate as MenuState, viewport_page as inte
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "reposition_menu"
 
-  DIM speed as integer = IIF(keyval(scShift) > 0, 10, 1)
+  DIM speed as integer = IIF(keyval(scShift), 12, 1)
+  DIM delay as integer = IIF(keyval(scShift), 55, 90)
   WITH menu.offset
-   IF slowkey(ccUp, 100)  THEN .y -= speed
-   IF slowkey(ccDown, 100)  THEN .y += speed
-   IF slowkey(ccLeft, 100)  THEN .x -= speed
-   IF slowkey(ccRight, 100)  THEN .x += speed
+   IF slowkey(ccUp, delay)  THEN .y -= speed
+   IF slowkey(ccDown, delay)  THEN .y += speed
+   IF slowkey(ccLeft, delay)  THEN .x -= speed
+   IF slowkey(ccRight, delay)  THEN .x += speed
   END WITH
 
   clearpage dpage
