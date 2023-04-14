@@ -1,0 +1,3 @@
+You are shifting the position the slice collection on the screen (which is only a temporary change, it doesn't change the slice collection).
+
+{{sliceedit_xy_shared}}

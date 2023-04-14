@@ -207,7 +207,7 @@ DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
 DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
-DECLARE SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Slice ptr, rootsl as Slice ptr, byref show_ants as bool, ctrl_msg as string = "")
+DECLARE SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Slice ptr, rootsl as Slice ptr, byref show_ants as bool, ctrl_msg as string = "", helpkey as string = "sliceedit_xy")
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, importing as bool = NO)
 DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
@@ -960,7 +960,7 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
    'even if it's not drawn. The root gets deleted when leaving slice_editor, so
    'changes are temporary.
    DIM true_root as Slice ptr = FindRootSlice(edslice)
-   slice_editor_xy @true_root->Pos, , ses.draw_root, edslice, ses.show_ants
+   slice_editor_xy @true_root->Pos, , ses.draw_root, edslice, ses.show_ants, , "sliceedit_xy_viewport"
    state.need_update = YES
   END IF
   IF keyval(scF7) > 1 THEN ses.show_ants = NOT ses.show_ants
@@ -1560,10 +1560,12 @@ SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
   IF dataptr = @.Width THEN
    disable_horiz_fill(sl)
    .CoverChildren AND= NOT coverHoriz
+   IF sl->SliceType <> slLine THEN sl->Width = large(0, sl->Width)
   END IF
   IF dataptr = @.Height THEN
    disable_vert_fill(sl)
    .CoverChildren AND= NOT coverVert
+   IF sl->SliceType <> slLine THEN sl->Height = large(0, sl->Height)
   END IF
   'NOTE: Sprite slices can't be resized, unless they Fill Parent.
   'That restriction is actually enforced in LoadSpriteSliceImage rather than in sliceedit;
@@ -1830,22 +1832,39 @@ FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
  END IF
 END FUNCTION
 
-'Editor to visually edit an x/y position or a width/height or both at once
+'Editor to visually edit an x/y position or width/height of some property of focussl
+'(not necessarily .Pos or .Size), or both at once.
 'ctrl_msg is used to tell what CTRL does (modifies xy2 instead of xy1)
-SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Slice ptr, rootsl as Slice ptr, byref show_ants as bool, ctrl_msg as string = "")
- DIM msg as string = "Arrow keys to move, SHIFT for speed. " & ctrl_msg
+SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Slice ptr, rootsl as Slice ptr, byref show_ants as bool, ctrl_msg as string = "", helpkey as string = "sliceedit_xy")
+ DIM msg as string = "Drag or arrow keys to move, SHIFT for speed. " & ctrl_msg
  setkeys
+ DIM drag_initial_pair as XYPair
+ DIM altmode as bool
  DO
   setwait 55
   setkeys
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF enter_or_space() THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "sliceedit_xy"
+  IF keyval(scF1) > 1 THEN show_help helpkey
   IF keyval(scF7) > 1 THEN show_ants = NOT show_ants
   DIM speed as integer = IIF(keyval(scShift) > 0, 10, 1)
   'The following calls to slice_edit_updates only do something if x/y are focussl->Width/Height.
   'Perfectly harmless otherwise.
-  DIM byref pair as XYPair = *IIF(keyval(scCtrl) > 0, xy2, xy1)
+  DIM byref pair as XYPair = *IIF(altmode, xy2, xy1)
+  IF (readmouse.buttons OR readmouse.release) AND mouseLeft THEN
+   IF readmouse.dragging = NO THEN
+    drag_initial_pair = pair 'readmouse.pos - focussl->ScreenPos
+   ELSE
+    'Changing the size of a slice will cause it to move if not top-left anchored, so it
+    'wouldn't work to resize the slice so its corner is at the mouse position. Just
+    'adjust by the drag amount.
+    pair = drag_initial_pair + (readmouse.pos - readmouse.clickstart)
+    slice_edit_updates focussl, @pair.x
+    slice_edit_updates focussl, @pair.y
+   END IF
+  ELSE
+   altmode = xy2 <> NULL ANDALSO keyval(scCtrl) > 0
+  END IF
   IF keyval(ccUp)    > 0 THEN pair.y -= speed : slice_edit_updates focussl, @pair.y
   IF keyval(ccRight) > 0 THEN pair.x += speed : slice_edit_updates focussl, @pair.x
   IF keyval(ccDown)  > 0 THEN pair.y += speed : slice_edit_updates focussl, @pair.y
@@ -1855,7 +1874,7 @@ SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Sli
   RefreshSliceTreeScreenPos focussl
   DrawSlice rootsl, dpage
   IF show_ants THEN DrawSliceAnts focussl, dpage
-  wrapprint msg, 0, pBottom, uilook(uiText), dpage
+  wrapprint pair & !"\n" & msg, 0, pBottom, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -3086,7 +3105,7 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
   CASE 13  'Shift viewport
    IF activate THEN
     DIM true_root as Slice ptr = FindRootSlice(edslice)
-    slice_editor_xy @true_root->Pos, , ses->draw_root, edslice, ses->show_ants
+    slice_editor_xy @true_root->Pos, , ses->draw_root, edslice, ses->show_ants, , "sliceedit_xy_viewport"
    END IF
   CASE 14
    changed = boolgrabber(ses->show_ants, state)

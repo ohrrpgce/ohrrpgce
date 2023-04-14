@@ -1,7 +1,5 @@
-You are editing the position or size of a slice, or shifting the position the slice collection on the screen (which is only a temporary change, it doesn't change the slice collection).
+You are editing the position or size of a slice.
 
-Press arrow keys to change the position/size, and hold down Shift to move more quickly.
+{{sliceedit_xy_shared}}
 
-If you're editing a slice's position or size then you can hold Ctrl to modify size/position instead.
-
-Press F7 to toggle whether the slice outline is shown.
+When you're editing a slice's position or size then you can hold Ctrl to modify size or position instead.

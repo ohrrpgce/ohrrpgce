@@ -82,6 +82,7 @@ WHAT IS NEW?
     * Hero movement and avoidance zones, in Map general settings menu [Ralph]
     * You can insert a copy of one slice collection into another when you press
       + in the slice collection editor [Ralph]
+    * Mouse support while repositioning or resizing in the slice editor [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]
