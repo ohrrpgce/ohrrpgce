@@ -1249,6 +1249,7 @@ Sub SliceCollectionContext.load(node as Reload.Nodeptr)
 End Sub
 
 Sub SliceCollectionContext.save(node as Reload.Nodeptr)
+ if dont_save then exit sub
  SaveProp node, "collection_name", name
  'id not saved
 End Sub
@@ -1257,6 +1258,8 @@ Function SliceCollectionContext.description() as string
  dim ret as string = "Collection"
  if id > -1 then ret &= " " & id
  if len(name) then ret &= " " & name
+ 'Try to indicate that no link with the original collection remains
+ if dont_save then ret = "From " & ret
  return ret
 End Function
 

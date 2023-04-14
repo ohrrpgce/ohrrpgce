@@ -80,6 +80,8 @@ WHAT IS NEW?
       remain in the same place, but not clipped to 320x200. However there may be
       graphical glitches when attacks/attackers move on/off-screen. [Ralph]
     * Hero movement and avoidance zones, in Map general settings menu [Ralph]
+    * You can insert a copy of one slice collection into another when you press
+      + in the slice collection editor [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

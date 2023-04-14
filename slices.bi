@@ -250,6 +250,7 @@ Type SliceCollectionContext Extends SliceContext
  Declare Virtual Sub save(node as Reload.Nodeptr)
  Declare Virtual Sub load(node as Reload.Nodeptr)
  name as string
+ dont_save as bool       'Set when insert-importing a collection: this context is temporary, unsaved
  id as integer = -1      'Only used by user collections. Not saved. -1 means unknown
 End Type
 

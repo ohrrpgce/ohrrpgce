@@ -182,6 +182,8 @@ CONST slgrEXTRA = 32768
 
 '==============================================================================
 
+DECLARE FUNCTION create_draw_root OVERLOAD (ses as SliceEditState) as Slice ptr
+DECLARE FUNCTION create_draw_root OVERLOAD (solid as bool, use_game_res as bool = YES) as Slice ptr
 DECLARE SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, initial_slice as Slice ptr = NULL)
 
 'Functions that might go better in slices.bas ... we shall see
@@ -211,7 +213,7 @@ DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slic
 DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
 DECLARE SUB slice_editor_import_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
 DECLARE SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr, reexport as bool = NO)
-DECLARE FUNCTION slice_editor_import_copy(byref ses as SliceEditState) as Slice ptr
+DECLARE FUNCTION slice_editor_insert_import(byref ses as SliceEditState, edslice as Slice Ptr) as Slice ptr
 DECLARE FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr) as bool
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
 DECLARE FUNCTION lookup_code_grabber(byref code as integer, byref ses as SliceEditState, lowerlimit as integer, upperlimit as integer) as bool
@@ -322,6 +324,63 @@ END FUNCTION
 
 '==============================================================================
 
+
+TYPE SlicePickerMenu EXTENDS ModularMenu
+ id as integer
+ ret as integer
+ draw_root as Slice ptr
+ collectionsl as Slice ptr
+ DECLARE SUB update ()
+ DECLARE FUNCTION each_tick () as bool
+ DECLARE SUB draw_underlays()
+END TYPE
+
+SUB SlicePickerMenu.update ()
+ DeleteSlice @collectionsl
+ DIM name as string
+ collectionsl = LoadSliceCollection(SL_COLLECT_USERDEFINED, id)
+ IF collectionsl THEN
+  SetSliceParent collectionsl, draw_root
+  VAR context = collection_context(collectionsl)
+  IF context THEN name = context->name
+ END IF
+
+ add_item 0, , "Cancel"
+ add_item 1, , "ID: " & id & IIF(collectionsl = NULL, " (blank)", "")
+ add_item 2, , " Name: " & name, NO  'Unselectable
+END SUB
+
+FUNCTION SlicePickerMenu.each_tick () as bool
+ tooltip = ""
+ SELECT CASE itemtypes(state.pt)
+  CASE 0
+   IF enter_space_click(state) THEN RETURN YES
+  CASE 1
+   IF enter_space_click(state) THEN ret = id : RETURN YES
+   tooltip = "ENTER/CLICK to pick"
+   state.need_update OR= intgrabber(id, 0, 32767)
+ END SELECT
+END FUNCTION
+
+SUB SlicePickerMenu.draw_underlays()
+ draw_background vpages(vpage), bgChequer
+ DrawSlice draw_root, vpage
+END SUB
+
+'Pick a USERDEFINED (normal) slice collection. Returns ID or -1 if cancelled
+FUNCTION slice_collection_picker(initial_id as integer = 0) as integer
+ DIM menu as SlicePickerMenu
+ menu.id = initial_id
+ menu.ret = -1
+ menu.draw_root = create_draw_root(NO)  'solid=NO
+ menu.state.pt = 1
+ menu.run()
+ DeleteSlice @menu.draw_root
+ RETURN menu.ret
+END FUNCTION
+
+'==============================================================================
+
 SUB init_slice_editor_for_collection_group(byref ses as SliceEditState, byval group as integer)
  ERASE ses.specialcodes
  SELECT CASE group
@@ -396,16 +455,25 @@ SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byva
 END SUB
 
 LOCAL FUNCTION create_draw_root (ses as SliceEditState) as Slice ptr
+ DIM use_game_res as bool = ses.collection_group_number <> SL_COLLECT_EDITOR
+ RETURN create_draw_root(YES, use_game_res)
+END FUNCTION
+
+LOCAL FUNCTION create_draw_root (solid as bool, use_game_res as bool = YES) as Slice ptr
  'Instead of parenting to the actual screen slice, parent to a
  'fake screen slice which is the size of the ingame screen.
  'Also, center, so that if you're running at a higher resolution than in-game, the
  'menu doesn't overlap so much.
 
- DIM use_game_res as bool = ses.collection_group_number <> SL_COLLECT_EDITOR
-
  DIM rect as RectangleSliceData
- rect.bgcol = uilook(uiBackground)
- rect.border = borderNone
+ IF solid THEN
+  rect.bgcol = uilook(uiBackground)
+  rect.border = borderNone
+ ELSE
+  rect.translucent = transHollow
+  rect.fgcol = uilook(uiBackground)
+  rect.border = borderLine
+ END IF
  DIM ret as Slice ptr = NewRectangleSlice(NULL, rect)
  WITH *ret
   .Pos = remember_draw_root_pos
@@ -664,7 +732,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    DIM newsl as Slice ptr
    IF slice_edit_detail_browse_slicetype(slice_type, editable_slice_types(), YES) THEN
     IF slice_type = slAddCollection THEN
-     newsl = slice_editor_import_copy(ses)
+     newsl = slice_editor_insert_import(ses, edslice)
     ELSE
      newsl = NewSliceOfType(slice_type)
     END IF
@@ -1142,24 +1210,26 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
  END IF
 END SUB
 
-FUNCTION slice_editor_import_copy(byref ses as SliceEditState) as Slice ptr
+FUNCTION slice_editor_insert_import(byref ses as SliceEditState, edslice as Slice Ptr) as Slice ptr
  DIM choice as integer = 0
  'choice = twochoice("Import from where?", "Another slice collection", "A .slice file")
  IF choice = -1 THEN RETURN NULL
  IF choice = 0 THEN
-  'Temporary! Yuck!
-  DIM collidstr as string
-  IF prompt_for_string(collidstr, "Slice collection ID to import?", 6) = NO THEN RETURN NULL
-  'ID input
-  DIM collid as integer
-  IF parse_int(collidstr, @collid) THEN
-   DIM ret as Slice ptr = LoadSliceCollection(SL_COLLECT_USERDEFINED, collid)
+  'Save before browsing
+  IF ses.use_index THEN
+   slice_editor_save_when_leaving(ses, edslice)
+  END IF
+  remember_draw_root_pos = ses.draw_root->Pos
+
+  DIM collection_id as integer = slice_collection_picker()
+  IF collection_id > -1 THEN
+   DIM ret as Slice ptr = LoadSliceCollection(SL_COLLECT_USERDEFINED, collection_id)
    IF ret ANDALSO ret->context THEN
     'The SliceCollectionContext marks which the collection it was loaded from,
-    'Which is actually probably useful, but also duplicates the collection name.
-    'Have to think about it more.
-    DELETE ret->context
-    ret->context = NULL
+    'Which is actually probably useful, but also duplicates the collection name,
+    'so better not save it, at least for now.
+    VAR collcontext = collection_context(ret)
+    IF collcontext THEN collcontext->dont_save = YES
    END IF
    RETURN ret
   END IF
@@ -2310,7 +2380,7 @@ FUNCTION slice_caption (byref ses as SliceEditState, edslice as Slice ptr, sl as
   IF sl->Context THEN
    'Hide the Context of the root slice of a collection because it duplicates collection name, ID
    IF sl <> edslice ORELSE (*sl->Context IS SliceCollectionContext) = NO THEN
-    s &= sl->Context->description()
+    s &= sl->Context->description() & " "
    END IF
   END IF
   s &= SliceLookupCodeName(.Lookup, ses.slicelookup())  'returns "Lookup" & .Lookup if not recognied

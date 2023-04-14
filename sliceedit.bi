@@ -9,6 +9,8 @@
 DECLARE SUB slice_editor OVERLOAD (byval group as integer = SL_COLLECT_USERDEFINED, filename as string = "", privileged as bool = NO)
 DECLARE SUB slice_editor OVERLOAD (byref edslice as Slice Ptr, byval group as integer = SL_COLLECT_USERDEFINED, filename as string = "", recursive as bool = NO, privileged as bool = NO, initial_slice as Slice ptr = NULL)
 
+DECLARE FUNCTION slice_collection_picker(initial_id as integer = 0) as integer
+
 DECLARE FUNCTION slice_collection_has_changed(sl as Slice ptr, filename as string) as bool
 
 DECLARE FUNCTION align_caption(align as AlignType, vertical as bool) as string
