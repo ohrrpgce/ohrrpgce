@@ -8,13 +8,23 @@ Child slices are grouped together with their parent, and they move as a group.
 
 While holding Ctrl you can press up and down to move to the previous and next siblings of a slice; and press left and right to select the parent and the first child.
 
+Tools:
+
+Pick (press P) is the default mode. Click on a slice to select it. Arrow keys change the selected slice in the list of slices.
+
+Even when Pick isn't the current tool, you can still select slices by Right-clicking.
+
+Move (press M): move a slice with arrow keys and mouse drags.
+
+Resize (press R): resize a slice with arrow keys and mouse drags.
+
 (Tip: Most of the following keys are also listed when you select a slice and press F8 for the Settings menu.)
 
 Press V to toggle a slice visible/invisible. This doesn't work on the children of Select slices. Invisible slices have a different colour in the menu.
 
 Press H to hide the children of a slice in the editor menu, but the children can still be visible in the collection
 
-Press R to reset a slice's position: to position 0,0, aligned and anchored to top-left corner, and not filling parent.
+Press Z to reset a slice's position: to position 0,0, aligned and anchored to top-left corner, and not filling parent.
 
 Press F to focus on the selected slice, shifting the view of the slice tree (like F6) to put it near the screen center.
 
