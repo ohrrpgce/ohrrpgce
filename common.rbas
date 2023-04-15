@@ -2383,6 +2383,19 @@ FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin
  RETURN (old <> n)
 END FUNCTION
 
+FUNCTION xy_grabber(byref pos as XYPair, speed as integer = 1, drag_button as MouseButton = mouseNone) as bool
+ DIM oldpos as XYPair = pos
+ DIM ms as integer = IIF(speed = 1, 90, 55)
+ IF slowkey(ccLeft, ms) THEN pos.x -= speed
+ IF slowkey(ccRight, ms) THEN pos.x += speed
+ IF slowkey(ccUp, ms) THEN pos.y -= speed
+ IF slowkey(ccDown, ms) THEN pos.y += speed
+ IF drag_button AND readmouse.dragging THEN
+  pos += readmouse.pos - readmouse.lastpos
+ END IF
+ RETURN oldpos <> pos
+END FUNCTION
+
 ' Handle all key combinations for deleting a character or word forward or backwards:
 ' Backspace, Delete, Alt/Ctrl-Backspace/Delete
 ' On Mac, Option- (which is Alt) Backspace/Delete are used instead of Ctrl-Backspace/Delete

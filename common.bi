@@ -254,6 +254,8 @@ DECLARE FUNCTION intgrabber OVERLOAD (byref n as longint, min as longint, max as
 DECLARE FUNCTION zintgrabber (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight) as bool
 DECLARE FUNCTION xintgrabber (byref n as integer, pmin as integer, pmax as integer, nmin as integer=1, nmax as integer=1, less as KBScancode=ccLeft, more as KBScancode=ccRight) as integer
 
+DECLARE FUNCTION xy_grabber(byref pos as XYPair, speed as integer = 1, drag_button as MouseButton = mouseNone) as bool
+
 DECLARE SUB console_reset (top as integer = 0, bottom as integer = 0)
 DECLARE SUB console_show_message (s as string)
 DECLARE SUB console_append_message (s as string)
