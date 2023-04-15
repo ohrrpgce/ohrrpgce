@@ -84,6 +84,8 @@ WHAT IS NEW?
       + in the slice collection editor [Ralph]
     * Slice Editor tools to Pick, Move and Resize with the mouse or keyboard.
       Aand mouse support while repositioning/resizing the old way [Ralph]
+    * Left/Right in the Slice Editor (in Pick mode) now collapse/expand part
+      of the menu, press repeatedly to hide/show more. [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

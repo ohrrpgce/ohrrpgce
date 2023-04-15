@@ -657,7 +657,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   END IF
 
   'This must be after the strgrabber above so that can handle text input
-  slice_editor_common_function_keys ses, edslice, state, NO  'F, R, V, F4, F6, F7, F8, F10, C/S+F3, C/S+F5
+  slice_editor_common_function_keys ses, edslice, state, NO  'F, Z, V, F4, F6, F7, F8, F10, C/S+F3, C/S+F5
 
   #IFDEF IS_GAME
    IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
@@ -671,7 +671,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   END IF
 
   IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
-   IF keyval(scH) > 1 THEN
+   IF keyval(scH) > 1 ORELSE keyval(scMinus) > 1 THEN
     'Toggle editor visibility of children
     IF ses.curslice->NumChildren > 0 THEN
      ses.curslice->EditorHideChildren XOR= YES
@@ -679,6 +679,36 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
      ses.curslice->EditorHideChildren = NO
     END IF
     state.need_update = YES
+   END IF
+
+   IF keyval(scCtrl) = 0 ANDALSO keyval(scShift) = 0 THEN
+    'Left: hide even more of the tree
+    IF keyval(ccLeft) > 1 THEN
+     IF ses.curslice->EditorHideChildren ORELSE ses.curslice->NumChildren = 0 THEN
+      'Up one level
+      cursor_seek = ses.curslice->parent
+      'Check parent <> edslice?
+      ses.curslice->parent->EditorHideChildren = YES
+     ELSEIF ses.curslice->NumChildren > 0 THEN
+      ses.curslice->EditorHideChildren = YES
+     END IF
+     state.need_update = YES
+    END IF
+
+    'Right: show even more of the tree
+    IF keyval(ccRight) > 1 THEN
+     IF ses.curslice->EditorHideChildren THEN
+      ses.curslice->EditorHideChildren = NO
+     ELSE
+      'Show all descendents
+      DIM desc as Slice ptr = NextDescendent(ses.curslice, ses.curslice)
+      WHILE desc
+       desc->EditorHideChildren = NO
+       desc = NextDescendent(desc, ses.curslice)
+      WEND
+     END IF
+     state.need_update = YES
+    END IF
    END IF
   END IF
 
@@ -875,11 +905,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     END IF
 
    ELSE '--neither shift nor ctrl
-
-    IF keyval(ccLeft) > 1 THEN
-     cursor_seek = (ses.curslice)->parent
-     state.need_update = YES
-    END IF
 
    END IF
 

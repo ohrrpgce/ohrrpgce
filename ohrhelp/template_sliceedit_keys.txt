@@ -22,7 +22,9 @@ Resize (press R): resize a slice with arrow keys and mouse drags.
 
 Press V to toggle a slice visible/invisible. This doesn't work on the children of Select slices. Invisible slices have a different colour in the menu.
 
-Press H to hide the children of a slice in the editor menu, but the children can still be visible in the collection
+Press H or - to hide (and again to show) the children of a slice in the editor menu. That is, collapse part of the slice tree.
+
+Or press Left/Right to show/hide the slice children. Press them repeatedly to show or hide even more of the slice tree.
 
 Press Z to reset a slice's position: to position 0,0, aligned and anchored to top-left corner, and not filling parent.
 
