@@ -6426,6 +6426,9 @@ SUB load_gfx_defaults ()
  textcolor uilook(uiText), 0
 END SUB
 
+'Normally, clicking on a menu item selects it on mouse down and then menu_click returns
+'true on release. But if state.select_by_mouse_release then menu_click returns false
+'if the item isn't selected yet: you need to click twice.
 'You should probably be calling enter_space_click() instead of calling this directly
 'You should call usemenu before calling this, to ensure state.pt is correct!
 FUNCTION menu_click (state as MenuState) as bool

@@ -201,6 +201,15 @@ SUB mouse_update_selection (state as MenuState)
  END IF
 END SUB
 
+'Handle just mouse controls, not keyboard. Doesn't support selectable()
+'or .autosize!
+SUB usemenu_mouse_only(state as MenuState)
+ IF mouse_update_hover(state) THEN 'ANDALSO selectable(.hover) THEN
+  mouse_update_selection(state)
+ END IF
+ mouse_scroll_menu state
+END SUB
+
 ' This does a subset of what usemenu does, call this after modifying .pt, .last, .first or .size
 ' if not immediately calling usemenu.
 SUB correct_menu_state (state as MenuState)
@@ -285,8 +294,9 @@ FUNCTION usemenu (byref state as MenuState, byval deckey as KBScancode = ccUp, b
   END IF
   correct_menu_state state  'Update .top and .pt
 
-  IF mouse_update_hover(state) THEN mouse_update_selection(state)
-  mouse_scroll_menu state
+  usemenu_mouse_only state
+  'IF mouse_update_hover(state) THEN mouse_update_selection(state)
+  'mouse_scroll_menu state
 
   IF oldptr = .pt AND oldtop = .top THEN
    RETURN NO

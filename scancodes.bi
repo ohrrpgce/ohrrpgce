@@ -280,6 +280,7 @@ TYPE JoyAxis as integer
 '------------------------------------------------------------------------------
 
 ENUM MouseButton
+  mouseNone = 0
   mouseLeft = 1
   mouseRight = 2
   mouseMiddle = 4

@@ -158,8 +158,9 @@ TYPE MenuState
                        'For standardmenu only! For MenuDef menus, set menu.max_rows=0
   autosize_ignore_pixels as integer 'Often you only want *most* of the screen to be filled
   autosize_ignore_lines as integer = 0
-  select_by_mouse_release as bool   'Prevents button-down from changing selection; if you want
-                                    'the selection
+  select_by_mouse_release as bool   'Prevents button-down from changing selection.
+                                    'Has the side effect of requiring clicking twice to activate
+                                    'menu items (with menu_click()/enter_space_click()).
                                     'This is important for menus where you need to be able to
                                     'focus an item and pick an item with separate clicks.
   drag_selecting as MouseButton     'Set this to allow moving pt while dragging with this mouse
