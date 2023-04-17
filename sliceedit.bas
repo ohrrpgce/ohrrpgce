@@ -204,6 +204,7 @@ DECLARE SUB SliceAdoptNiece (byval sl as Slice Ptr)
 
 'Functions only used locally
 DECLARE FUNCTION tool_text(toolname as string, selected as bool) as string
+DECLARE SUB expand_slice_ancestors(sl as Slice ptr)
 DECLARE FUNCTION find_special_lookup_code(specialcodes() as SpecialLookupCode, code as integer) as integer
 DECLARE FUNCTION lookup_code_forbidden(specialcodes() as SpecialLookupCode, code as integer) as bool
 DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "", clean as bool = NO, byref ret as integer = 0) as integer
@@ -719,6 +720,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    ' Right-click to select, even when not Picking
    IF topmost ANDALSO (readmouse().release AND mouseRight) THEN
     cursor_seek = topmost
+    expand_slice_ancestors topmost
     state.need_update = YES
    END IF
 
@@ -728,6 +730,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     CASE SliceTool.pick
      IF topmost ANDALSO (readmouse().release AND (mouseLeft OR mouseRight)) THEN
       cursor_seek = topmost
+      expand_slice_ancestors topmost
       state.need_update = YES
      END IF
     CASE SliceTool.move
@@ -2509,6 +2512,7 @@ END FUNCTION
 
 'Update slice states and the menu listing the slices
 'NOTE: cursor_seek may be an invalid pointer, e.g. after switching to another slice collection!
+'Also, it will fail to find the slice if it's in a collapsed subtree. Use expand_slice_ancestors.
 SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
  'DIM timing as double = TIMER
  ERASE ses.slicemenu
@@ -2593,6 +2597,15 @@ SUB slice_editor_refresh_recurse (ses as SliceEditState, byref indent as integer
    indent -= 1
   END IF
  END WITH
+END SUB
+
+'Expand out the subtrees containing a slice. Necessary for cursor_seek to work on a slice.
+SUB expand_slice_ancestors(sl as Slice ptr)
+ sl = sl->Parent
+ WHILE sl
+  sl->EditorHideChildren = NO
+  sl = sl->Parent
+ WEND
 END SUB
 
 SUB SliceAdoptSister (byval sl as Slice Ptr)
