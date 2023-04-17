@@ -1168,7 +1168,7 @@ SUB script_commands(byval cmdid as integer)
   END IF
  CASE 619'--menu item at pixel
   FOR menuslot = topmenu TO 0 STEP -1
-   mislot = find_menu_item_at_point(mstates(menuslot), retvals(0), retvals(1))
+   mislot = find_menu_item_at_point(mstates(menuslot), XY(retvals(0), retvals(1)))
    IF mislot >= mstates(menuslot).first THEN
     scriptret = menu_item_handle_by_slot(menuslot, mislot)
     EXIT FOR

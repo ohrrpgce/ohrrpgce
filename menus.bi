@@ -34,11 +34,13 @@ DECLARE FUNCTION menu_item_color(state as MenuState, itemno as integer, disabled
 
 
 '' Mouse support
-DECLARE FUNCTION find_menu_item_at_point (state as MenuState, x as integer, y as integer) as integer
+DECLARE FUNCTION find_menu_item_at_point (state as MenuState, pos as XYPair) as integer
 DECLARE FUNCTION mouse_update_hover (state as MenuState) as bool
 DECLARE SUB mouse_update_selection (state as MenuState)
 DECLARE SUB mouse_scroll_menu(byref state as MenuState)
 DECLARE SUB mouse_drag_menu(byref state as MenuState, byval button as MouseButton=mouseLeft, byval threshold as integer=10, byval magnify as double=1.0)
+DECLARE FUNCTION menutext_hit_tester(menutext as string, state as MenuState, index as integer, pos as XYPair) as bool
+DECLARE FUNCTION stringmenu_hit_tester(state as MenuState, index as integer, pos as XYPair) as bool
 
 '' Selection by typing
 DECLARE FUNCTION select_by_typing (selectst as SelectTypeState, byval allow_numbers as bool = YES) as bool

@@ -148,18 +148,37 @@ SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as zstr
  END WITH
 END SUB
 
-FUNCTION find_menu_item_at_point (state as MenuState, x as integer, y as integer) as integer
+'Is pos on menutext, which is the 'index'th menu item in the menu with given state?
+FUNCTION menutext_hit_tester(menutext as string, state as MenuState, index as integer, pos as XYPair) as bool
+ 'IF NOT state.position_known THEN RETURN NO   'Unnecessary?
+ DIM itempos as XYPair = state.rect.xy
+ itempos.y += state.spacing * (index - state.top)
+ RETURN rect_collide_point(XY_WH(itempos, textsize(menutext)), pos)
+END FUNCTION
+
+'A function usable as MenuState.hit_test if using standardmenu with a string array.
+'Set state.hit_test_data = @menu(0)
+FUNCTION stringmenu_hit_tester(state as MenuState, index as integer, pos as XYPair) as bool
+ IF state.hit_test_data = NULL THEN RETURN NO
+ DIM byref menutext as string = cptr(string ptr, state.hit_test_data)[index]
+ RETURN menutext_hit_tester(menutext, state, index, pos)
+END FUNCTION
+
+FUNCTION find_menu_item_at_point (state as MenuState, pos as XYPair) as integer
  'If the on-screen position overlaps a MenuState, return the index of the menu item it is touching.
  'Return a value < state.first if it's not on any menu item.
  WITH state
   IF .position_known THEN
-   DIM mpt as integer = rect_collide_point_vertical_chunk(.rect, XY(x, y), .spacing)
+   DIM mpt as integer = rect_collide_point_vertical_chunk(.rect, pos, .spacing)
    IF mpt > -1 THEN
     mpt += .top
     ' Need to check against size, as there might be a few pixels inside .rect after
     ' the last visible menu item, where the next item isn't drawn
     IF mpt >= .first ANDALSO mpt <= .last ANDALSO mpt <= .top + .size THEN
-     RETURN mpt
+     ' Optionally do a fine-grained test that it is horizontally on the menu item
+     IF state.hit_test = NULL ORELSE state.hit_test(state, mpt, pos) THEN
+      RETURN mpt  'Success
+     END IF
     END IF
    END IF
   END IF
@@ -175,12 +194,12 @@ FUNCTION mouse_update_hover (state as MenuState) as bool
  use_mouse = get_gen_bool("/mouse/mouse_menus") OR (force_use_mouse > 0)
 #ENDIF
  IF use_mouse ANDALSO readmouse.active THEN
-  state.hover = find_menu_item_at_point(state, readmouse.x, readmouse.y)
+  state.hover = find_menu_item_at_point(state, readmouse.pos)
   RETURN state.hover >= state.first
  ELSE
   state.hover = state.first - 1
+  RETURN NO
  END IF
- RETURN NO
 END FUNCTION
 
 ' Updates state.pt. This should be called only after mouse_update_hover has

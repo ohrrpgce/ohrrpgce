@@ -143,6 +143,9 @@ TYPE MenuDef
   Declare Destructor()
 END TYPE
 
+TYPE MenuStateFwd as MenuState
+TYPE FnHitTest as Function(state as MenuStateFwd, index as integer, pos as XYPair) as bool
+
 TYPE MenuState
   active    as bool = YES
   pt        as integer 'currently selected item (.first - 1 if none, eg. menu is empty)
@@ -166,6 +169,9 @@ TYPE MenuState
   drag_selecting as MouseButton     'Set this to allow moving pt while dragging with this mouse
                                     'button down, and activating on release. Used for popup menus.
   drag_start_top as integer         'Used internally by mouse_drag_menu()
+
+  hit_test as FnHitTest    'Called find_menu_item_at_point to shrink the clickable size of a menu item
+  hit_test_data as any ptr 'A place to store extra data for hit_test (probably the menu items)
 
   '--These are populated when the menu is drawn. They should and can be set
   '--manually when drawing a menu manually without standardmenu/draw_menu

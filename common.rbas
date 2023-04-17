@@ -6430,7 +6430,7 @@ END SUB
 'true on release. But if state.select_by_mouse_release then menu_click returns false
 'if the item isn't selected yet: you need to click twice.
 'You should probably be calling enter_space_click() instead of calling this directly
-'You should call usemenu before calling this, to ensure state.pt is correct!
+'You should call usemenu before calling this, to ensure state.pt & state.hover are correct!
 FUNCTION menu_click (state as MenuState) as bool
  DIM use_mouse as bool = YES
 #IFDEF IS_GAME
