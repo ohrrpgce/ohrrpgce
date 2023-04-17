@@ -35,6 +35,12 @@ ENUM HideMode
  hideLAST = 3
 END ENUM
 
+'Like MapMouseAttention
+ENUM SliceEdMouseFocus
+ focusMenu
+ focusCollection
+END ENUM
+
 ENUM SliceMenuItemID
  mnidInvalid = -1
  mnidText = 0            'Not editable
@@ -88,6 +94,7 @@ TYPE SliceEditState
  expand_sort as bool
 
  tool as SliceTool
+ mouse_focus as SliceEdMouseFocus  'What gets mouse input. Normally what it's over, except when dragging.
 
  recursive as bool
  draw_root as Slice Ptr    'The slice to actually draw; either edslice or its parent.
@@ -205,10 +212,11 @@ DECLARE SUB SliceAdoptNiece (byval sl as Slice Ptr)
 'Functions only used locally
 DECLARE FUNCTION tool_text(toolname as string, selected as bool) as string
 DECLARE SUB expand_slice_ancestors(sl as Slice ptr)
+DECLARE FUNCTION slicemenu_hit_tester(state as MenuState, index as integer, pos as XYPair) as bool
 DECLARE FUNCTION find_special_lookup_code(specialcodes() as SpecialLookupCode, code as integer) as integer
 DECLARE FUNCTION lookup_code_forbidden(specialcodes() as SpecialLookupCode, code as integer) as bool
 DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "", clean as bool = NO, byref ret as integer = 0) as integer
-DECLARE FUNCTION slice_editor_mouse_over (edslice as Slice ptr, menu() as SliceEditMenuItem, state as MenuState) as Slice ptr
+DECLARE FUNCTION slice_editor_mouse_over (byref ses as SliceEditState, edslice as Slice ptr) as Slice ptr
 DECLARE SUB slice_editor_common_function_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
 DECLARE SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice Ptr=0)
@@ -610,9 +618,11 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
  WITH state
   .need_update = YES
   .autosize = YES
-  .autosize_ignore_pixels = 14
+  .autosize_ignore_pixels = 22
   'Require clicking on an unselected menu item twice to open the detail editor
   .select_by_mouse_release = YES
+  .hit_test = @slicemenu_hit_tester
+  .hit_test_data = @ses
  END WITH
  DIM menuopts as MenuOptions
  WITH menuopts
@@ -682,7 +692,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     state.need_update = YES
    END IF
 
-   IF keyval(scCtrl) = 0 ANDALSO keyval(scShift) = 0 THEN
+   IF ses.tool = SliceTool.pick ANDALSO keyval(scAlt) = 0 ANDALSO keyval(scCtrl) = 0 ANDALSO keyval(scShift) = 0 THEN
     'Left: hide even more of the tree
     IF keyval(ccLeft) > 1 THEN
      IF ses.curslice->EditorHideChildren ORELSE ses.curslice->NumChildren = 0 THEN
@@ -713,46 +723,69 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    END IF
   END IF
 
-  IF state.need_update = NO THEN
-   DIM topmost as Slice ptr
-   topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
-
-   ' Right-click to select, even when not Picking
-   IF topmost ANDALSO (readmouse().release AND mouseRight) THEN
-    cursor_seek = topmost
-    expand_slice_ancestors topmost
-    state.need_update = YES
+  ' Update state.hover for now (but we later set it to -1 if the menu doesn't have focus)
+  mouse_update_hover state
+  ' Update ses.mouse_focus, unless dragging
+  IF readmouse.dragging = mouseNone THEN
+   IF state.hover = -1 THEN
+    ses.mouse_focus = focusCollection
+   ELSE
+    ses.mouse_focus = focusMenu
    END IF
+  END IF
+
+  ' Update menu item highlights for slices under the mouse and return the topmost.
+  ' When ses.mouse_focus <> focusCollection, topmost is NULL.
+  DIM topmost as Slice ptr
+  topmost = slice_editor_mouse_over(ses, edslice)
+
+  ' Tools, clicking and dragging slices
+  'While holding Ctrl/Alt arrow keys act on the menu (Ctrl/Alt-clicking is unassigned
+  'so don't care that those are also disabled)
+  IF state.need_update = NO ANDALSO keyval(scCtrl) = 0 ANDALSO keyval(scAlt) = 0 THEN
+   'Button clicks which select slices. (Always in right-click, even when not Picking)
+   DIM select_buttons as MouseButton = mouseRight
+   'Button for dragging to edit slices
+   DIM drag_buttons as MouseButton = mouseNone
+   IF ses.mouse_focus = focusCollection THEN drag_buttons = mouseLeft
+   DIM speed as integer = IIF(keyval(scShift) > 0, 10, 1)
 
    ' Tools
-   DIM speed as integer = IIF(keyval(scShift) > 0, 10, 1)
    SELECT CASE ses.tool
     CASE SliceTool.pick
-     IF topmost ANDALSO (readmouse().release AND (mouseLeft OR mouseRight)) THEN
-      cursor_seek = topmost
-      expand_slice_ancestors topmost
-      state.need_update = YES
-     END IF
+     select_buttons = mouseLeft OR mouseRight
+
     CASE SliceTool.move
      IF ses.curslice THEN
-      state.need_update OR= xy_grabber(ses.curslice->Pos, speed, mouseLeft)
+      state.need_update OR= xy_grabber(ses.curslice->Pos, speed, drag_buttons)
      END IF
+
     CASE SliceTool.resize
      IF ses.curslice THEN
-      IF xy_grabber(ses.curslice->Size, speed, mouseLeft) THEN
+      IF xy_grabber(ses.curslice->Size, speed, drag_buttons) THEN
        slice_edit_updates ses.curslice, @ses.curslice->Width
        slice_edit_updates ses.curslice, @ses.curslice->Height
        state.need_update = YES
       END IF
      END IF
    END SELECT
+
+   ' Click selection
+   IF topmost ANDALSO (readmouse.release AND select_buttons) THEN
+    cursor_seek = topmost
+    expand_slice_ancestors topmost
+    state.need_update = YES
+   END IF
+
   END IF
 
   ' Changing tools
   IF ses.curslice = NULL THEN ses.tool = SliceTool.pick
-  IF keyval(scP) > 1 THEN ses.tool = SliceTool.pick
-  IF keyval(scM) > 1 THEN ses.tool = SliceTool.move
-  IF keyval(scR) > 1 THEN ses.tool = SliceTool.resize
+  IF state.need_update = NO THEN  'strgrabber not used
+   IF keyval(scP) > 1 THEN ses.tool = SliceTool.pick
+   IF keyval(scM) > 1 THEN ses.tool = SliceTool.move
+   IF keyval(scR) > 1 THEN ses.tool = SliceTool.resize
+  END IF
 
   DIM menuitemid as integer = mnidInvalid
   IF state.pt <= UBOUND(ses.slicemenu) THEN menuitemid = ses.slicemenu(state.pt).id
@@ -860,7 +893,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    END IF
   END IF
 
-  IF state.need_update = NO ANDALSO ses.curslice <> NULL ANDALSO ses.tool = SliceTool.pick THEN
+  IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
 
    IF keyval(scCtrl) > 0 ANDALSO keyval(scF) > 1 THEN
     'Edit this slice alone ("fullscreen")
@@ -869,7 +902,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     slice_editor_load_settings ses
     state.need_update = YES
 
-   ELSEIF keyval(scShift) > 0 THEN
+   ELSEIF keyval(scShift) > 0 ANDALSO ses.tool = SliceTool.pick THEN
+    'Otherwise Shift is for fast move/resize
 
     IF keyval(ccUp) > 1 THEN
      SwapSiblingSlices ses.curslice, ses.curslice->PrevSibling
@@ -892,6 +926,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     END IF
 
    ELSEIF keyval(scCtrl) > 0 THEN '--ctrl, not shift
+    'Even when not Picking
 
     IF keyval(ccUp) > 1 THEN
      cursor_seek = ses.curslice->prevSibling
@@ -908,6 +943,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     END IF
 
    ELSE '--neither shift nor ctrl
+    'Holding Alt: Arrow keys are for normal usemenu movement, handled below
 
    END IF
 
@@ -916,33 +952,33 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   ' Window size change
   IF UpdateScreenSlice() THEN state.need_update = YES
 
-  DIM topmost as Slice ptr
+  ' Change menu selection
+  IF state.need_update = NO THEN
+   'Don't check mouse_focus because it mustn't affect keyboard, and the menu is always on top anyway
+   IF keyval(scAlt) > 0 ORELSE ses.tool = SliceTool.pick THEN
+    'Arrow keys, clicking on menu items
+    usemenu state
+   ELSE
+    'Clicking on menu items. (Arrows are used by move & resize tools)
+    usemenu_mouse_only state
+   END IF
+  END IF
+
+  DIM updated as bool = state.need_update
 
   IF state.need_update THEN
    slice_editor_refresh(ses, edslice, cursor_seek)
    state.need_update = NO
    cursor_seek = NULL
-   topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
-  ELSE
-   topmost = slice_editor_mouse_over(edslice, ses.slicemenu(), state)
-   ' If there's slice under the mouse, clicking should focus on that, not any menu item there.
-   ' Mainly because menu item hitboxes still extend across the whole width of the menu (screen).
-   ' (Right-clicking still works to select a menu item)
-   IF ses.tool = SliceTool.pick THEN
-    IF topmost = NULL ORELSE (readmouse.buttons AND mouseLeft) = 0 THEN
-     ' Arrow keys, clicking on menu items
-     usemenu state
-    END IF
-   ELSE
-    IF topmost = NULL THEN
-     'Clicking on menu items
-     usemenu_mouse_only state
-    END IF
-   END IF
+   'Update
+   topmost = slice_editor_mouse_over(ses, edslice)
   END IF
 
   draw_background vpages(dpage), bgChequer
 
+  IF ses.mouse_focus <> focusMenu THEN state.hover = -1
+
+  ' Draw slices & ants
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
   END IF
@@ -950,15 +986,21 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    IF ses.curslice THEN
     DrawSliceAnts ses.curslice, dpage
    END IF
+   IF state.hover > -1 ANDALSO ses.slicemenu(state.hover).handle THEN
+    DrawSliceAnts ses.slicemenu(state.hover).handle, dpage
+   END IF
    'Only draw ants for topmost when clicking would select it. Right-clicking always selects.
+   '(topmost null if ses.mouse_focus <> focusCollection)
    IF topmost ANDALSO (ses.tool = SliceTool.pick ORELSE (readmouse.buttons AND mouseRight)) THEN
     DrawSliceAnts topmost, dpage
    END IF
   END IF
+
+  ' Draw menu
   IF ses.hide_mode <> hideMenu THEN
 
    'Determine the colour for each menu item: copy the visible part of the menu into plainmenu()
-   REDIM plainmenu(state.last) as string
+   REDIM PRESERVE plainmenu(state.last) as string
    FOR i as integer = state.top TO small(UBOUND(plainmenu), state.top + state.size)
     plainmenu(i) = ses.slicemenu(i).s
     DIM sl as Slice ptr = ses.slicemenu(i).handle
@@ -987,16 +1029,20 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     'toolbar &= tool_text("`Z`ero pos", NO)
     IF ses.tool = SliceTool.move THEN toolbar &= "  Pos=" & ses.curslice->Pos
     IF ses.tool = SliceTool.resize THEN toolbar &= "  Size=" & ses.curslice->Size
+    'toolbar &= "  f" & ses.mouse_focus & " h" & state.hover  & " u" & updated
     IF ses.tool = SliceTool.pick then
-     toolbar &= !"\n`+` add slice. SHIFT+arrows to reorder"
+     toolbar &= !"\n`+` add slice. SHIFT" & CHR(27,28,29,26) & " to reorder"  'SHIFT arrows
     ELSE
-     toolbar &= !"\n`+` add slice. SHIFT for speed"
+     toolbar &= !"\n`+` add slice. SHIFT for speed. ALT" & CHR(28,29) & " select"  'ALT updown
     END IF
    ELSE
-    toolbar = !"\n`+` add slice"
+    toolbar &= !"\n`+` add slice"
    END IF
+   toolbar &= ". CTRL" & CHR(27,28,29,26) & " walk tree"  'CTRL arrows
+
    toolbar = ticklite(toolbar)
-   wrapprintbg toolbar, 8, pBottom, uilook(uiMenuItem), dpage, menuopts.drawbg, 9999  'never wraps
+   'The up/down arrows are probably not in the game font. And don't wrap.
+   wrapprintbg toolbar, 8, pBottom, uilook(uiMenuItem), dpage, menuopts.drawbg, 9999, , fontBuiltinEdged
   END IF
 
   SWAP vpage, dpage
@@ -1017,8 +1063,21 @@ END SUB
 
 FUNCTION tool_text(toolname as string, selected as bool) as string
  DIM ret as string = ticklite(toolname) + "  "
- replacestr ret, "${K-1}", "${K" & uilook(IIF(selected, uiText, uiMenuItem)) & "}"
+ IF selected THEN
+  ret = fgtag(uilook(uiText)) & ret
+  '${K-1} doesn't undo the previous color tag, it returns to the initial color
+  replacestr ret, "${K-1}", fgtag(uilook(uiText))
+  ret &= fgtag(-1)
+ END IF
  return ret
+END FUNCTION
+
+'We don't want menu item hitboxes to extend across the screen
+FUNCTION slicemenu_hit_tester(state as MenuState, index as integer, pos as XYPair) as bool
+ DIM ses as SliceEditState ptr = state.hit_test_data
+ 'Normally this bounds checking isn't necessary in a hit_tester, but plainmenu might be stale
+ 'IF index < 0 ORELSE index > UBOUND(ses->slicemenu) THEN RETURN NO
+ RETURN menutext_hit_tester(ses->slicemenu(index).s, state, index, pos)
 END FUNCTION
 
 'Get the SliceCollectionContext in which shared data for this slice collection is stored
@@ -1113,13 +1172,15 @@ SUB preview_SelectSlice_parents (byval sl as Slice ptr)
 END SUB
 
 'Sets ->EditorColor for each slice in menu() to highlight the slices that the mouse is over.
-'Returns the topmost non-ignored slice that the mouse is over, or NULL if none.
-FUNCTION slice_editor_mouse_over (edslice as Slice ptr, slicemenu() as SliceEditMenuItem, state as MenuState) as Slice ptr
- FOR idx as integer = 0 TO UBOUND(slicemenu)
-  IF slicemenu(idx).handle THEN
-   slicemenu(idx).handle->EditorColor = -1  'default, ie uilook(uiMenuItem)
+'Returns the topmost non-ignored slice that the mouse is over (if the collection has focus) or NULL if none.
+FUNCTION slice_editor_mouse_over (byref ses as SliceEditState, edslice as Slice ptr) as Slice ptr
+ FOR idx as integer = 0 TO UBOUND(ses.slicemenu)
+  IF ses.slicemenu(idx).handle THEN
+   ses.slicemenu(idx).handle->EditorColor = -1  'default, ie uilook(uiMenuItem)
   END IF
  NEXT
+
+ IF ses.mouse_focus <> focusCollection THEN RETURN NULL
 
  DIM parent as Slice ptr = edslice
  'We want to allow finding edslice too (FindSliceAtPoint will ignore parent), but this
