@@ -6399,7 +6399,8 @@ END SUB
 #include "fontdata.bi"
 
 'Embedded copy of import/fonts/OHRRPGCE Default.ohf
-'Latin-1 font, plus icons in the 127-160 free space, and icons for Custom in low characters
+'Latin-1 font, plus icons in the 127-160 free space, and icons for Custom in characters 1-31
+'(most but not all of which will also be in the game's font)
 SUB getdefaultfont(fnt() as integer)
  FOR i as integer = 0 TO 1023
   fnt(i) = default_font(i)
