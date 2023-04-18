@@ -82,8 +82,8 @@ WHAT IS NEW?
     * Hero movement and avoidance zones, in Map general settings menu [Ralph]
     * You can insert a copy of one slice collection into another when you press
       + in the slice collection editor [Ralph]
-    * Slice Editor tools to Pick, Move and Resize with the mouse or keyboard.
-      Aand mouse support while repositioning/resizing the old way [Ralph]
+    * Slice Editor tools to Pick, Move, Resize, Pan with the mouse or keyboard.
+      And mouse support while repositioning/resizing the old way [Ralph]
     * Left/Right in the Slice Editor (in Pick mode) now collapse/expand part
       of the menu, press repeatedly to hide/show more. [Ralph]
 

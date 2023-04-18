@@ -11,7 +11,7 @@ Press F1 on the other menu items for more detail about each of them.
 
 Press F4 to switch between hiding the menu background, the menu (so you can see the slice collection unobstructed), hiding the slices, or showing both.
 
-Press F6 to shift around your view of the whole slice collection around. This does not modify the collection, it is only for help while editing.
+Right-drag with the mouse or press F6 to pan your view of the whole slice collection. This does not modify the collection, it is only for help while editing.
 
 Press F7 to toggle whether an outline box is drawn around the currently selected slice.
 

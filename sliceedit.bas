@@ -25,6 +25,7 @@ ENUM SliceTool
  pick = 0
  move
  resize
+ pan
 END ENUM
 
 ENUM HideMode
@@ -668,7 +669,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   END IF
 
   'This must be after the strgrabber above so that can handle text input
-  slice_editor_common_function_keys ses, edslice, state, NO  'F, Z, V, F4, F6, F7, F8, F10, C/S+F3, C/S+F5
+  slice_editor_common_function_keys ses, edslice, state, NO  'F, Z, V, F4, F7, F8, F10, C/S+F3, C/S+F5
 
   #IFDEF IS_GAME
    IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
@@ -745,19 +746,23 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   IF state.need_update = NO ANDALSO keyval(scCtrl) = 0 ANDALSO keyval(scAlt) = 0 THEN
    'Button clicks which select slices. (Always in right-click, even when not Picking)
    DIM select_buttons as MouseButton = mouseRight
-   'Button for dragging to edit slices
-   DIM drag_buttons as MouseButton = mouseNone
-   IF ses.mouse_focus = focusCollection THEN drag_buttons = mouseLeft
+   'Buttons for dragging to edit slices
+   DIM drag_buttons as MouseButton = IIF(ses.mouse_focus = focusCollection, mouseLeft, mouseNone)
+   'Buttons for dragging to pan
+   DIM drag_pan_buttons as MouseButton = IIF(ses.mouse_focus = focusCollection, mouseRight, mouseNone)
    DIM speed as integer = IIF(keyval(scShift) > 0, 10, 1)
 
    ' Tools
    SELECT CASE ses.tool
     CASE SliceTool.pick
      select_buttons = mouseLeft OR mouseRight
+     'Implemented below
 
     CASE SliceTool.move
      IF ses.curslice THEN
       state.need_update OR= xy_grabber(ses.curslice->Pos, speed, drag_buttons)
+     ELSE
+      ses.tool = SliceTool.pick
      END IF
 
     CASE SliceTool.resize
@@ -767,7 +772,16 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
        slice_edit_updates ses.curslice, @ses.curslice->Height
        state.need_update = YES
       END IF
+     ELSE
+      ses.tool = SliceTool.pick
      END IF
+
+    CASE SliceTool.pan
+     'There's no point allowing left-dragging for panning when right-dragging does so
+     '(except ancient Mac mice) so we could assign it to something else if it were useful.
+     drag_pan_buttons = mouseLeft OR mouseRight
+     'Implemented below
+
    END SELECT
 
    ' Click selection
@@ -777,14 +791,24 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     state.need_update = YES
    END IF
 
+   ' Pan the slice collection
+   IF ses.tool = SliceTool.pan ORELSE (readmouse.dragging AND drag_pan_buttons) THEN
+    'We move around the real rool, not draw_root, as it affects screen positions
+    'even if it's not drawn. The root gets deleted when leaving slice_editor, so
+    'changes are temporary.
+    DIM true_root as Slice ptr = FindRootSlice(edslice)
+    state.need_update OR= xy_grabber(true_root->Pos, speed * 4, drag_pan_buttons)
+   END IF
+
   END IF
 
   ' Changing tools
-  IF ses.curslice = NULL THEN ses.tool = SliceTool.pick
   IF state.need_update = NO THEN  'strgrabber not used
    IF keyval(scP) > 1 THEN ses.tool = SliceTool.pick
    IF keyval(scM) > 1 THEN ses.tool = SliceTool.move
    IF keyval(scR) > 1 THEN ses.tool = SliceTool.resize
+   IF keyval(scN) > 1 THEN ses.tool = SliceTool.pan
+   IF keyval(scF6) > 1 THEN ses.tool = SliceTool.pan
   END IF
 
   DIM menuitemid as integer = mnidInvalid
@@ -1023,6 +1047,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    draw_fullscreen_scrollbar state, 0, dpage, alignLeft
    DIM toolbar as string
    toolbar &= tool_text("`P`ick", ses.tool = SliceTool.pick)
+   toolbar &= tool_text("Pa`n`", ses.tool = SliceTool.pan)
    IF ses.curslice THEN
     toolbar &= tool_text("`M`ove", ses.tool = SliceTool.move)
     toolbar &= tool_text("`R`esize", ses.tool = SliceTool.resize)
@@ -1117,15 +1142,6 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
 
  IF shiftctrl = 0 THEN
   IF keyval(scF4) > 1 THEN loopvar ses.hide_mode, 0, hideLAST
-  IF keyval(scF6) > 1 THEN
-   'Move around our view on this slice collection.
-   'We move around the real rool, not draw_root, as it affects screen positions
-   'even if it's not drawn. The root gets deleted when leaving slice_editor, so
-   'changes are temporary.
-   DIM true_root as Slice ptr = FindRootSlice(edslice)
-   slice_editor_xy @true_root->Pos, , ses.draw_root, edslice, ses.show_ants, , "sliceedit_xy_viewport"
-   state.need_update = YES
-  END IF
   IF keyval(scF7) > 1 THEN ses.show_ants = NOT ses.show_ants
   IF keyval(scF8) > 1 THEN
    slice_editor_settings_menu ses, edslice, in_detail_editor
@@ -1645,7 +1661,15 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   slice_edit_detail_keys ses, state, sl, rules(), usemenu_flag
 
   'This must be after slice_edit_detail_keys so that can handle text input
-  slice_editor_common_function_keys ses, edslice, state, YES  'F, R, V, F4, F6, F7, F8, F10, C/S+F3, C/S+F5
+  slice_editor_common_function_keys ses, edslice, state, YES  'F, R, V, F4, F7, F8, F10, C/S+F3, C/S+F5
+
+  'Pan collection: right-drag, or F6 to enter lousy subeditor
+  DIM true_root as Slice ptr = FindRootSlice(edslice)  'See expanation for SliceTool.pan
+  IF keyval(scF6) > 1 THEN
+   slice_editor_xy @true_root->Pos, , ses.draw_root, edslice, ses.show_ants, , "sliceedit_xy_viewport"
+  ELSEIF readmouse.dragging AND mouseRight THEN
+   true_root->Pos += readmouse.pos - readmouse.lastpos  'Equivalently, call xy_grabber
+  END IF
 
   draw_background vpages(dpage), bgChequer
   IF ses.hide_mode <> hideSlices THEN

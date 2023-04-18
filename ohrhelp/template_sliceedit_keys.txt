@@ -10,13 +10,17 @@ While holding Ctrl you can press up and down to move to the previous and next si
 
 Tools:
 
-Pick (press P) is the default mode. Click on a slice to select it. Arrow keys change the selected slice in the list of slices.
+Pick (press P) is the default mode (pressing ESC goes back to Pick). Click on a slice to select it. Arrow keys change the selected slice in the list of slices.
 
 Even when Pick isn't the current tool, you can still select slices by Right-clicking, or with ALT+up/down, and also with CTRL+arrow keys (see above).
 
 Move (press M): move a slice with arrow keys and mouse drags.
 
 Resize (press R): resize a slice with arrow keys and mouse drags.
+
+Right-Dragging with the mouse always lets you pan (move around) the slice collection.
+
+Pan (press N or F6): lets you also pan the view of the collection with the arrow keys in addition to Right-Dragging. Panning doesn't modify the collection, it is only for help while editing.
 
 (Tip: Most of the following keys are also listed when you select a slice and press F8 for the Settings menu.)
 
@@ -28,7 +32,7 @@ Or press Left/Right to show/hide the slice children. Press them repeatedly to sh
 
 Press Z to reset a slice's position: to position 0,0, aligned and anchored to top-left corner, and not filling parent.
 
-Press F to focus on the selected slice, shifting the view of the slice tree (like F6) to put it near the screen center.
+Press F to focus on the selected slice, shifting (panning) the view of the slice tree to put it near the screen center.
 
 Press Delete if you want to remove the selected slice. Select the root slice or "<- Collection # ->" to delete the whole collection.
 
@@ -46,8 +50,6 @@ Press F4 to switch between hiding the menu background, hiding the menu (so you c
 
 Press F5 to toggle whether the root slice is shown. For a slice collection, the root slice is by default a container set to fill its parent (which results in it filling the whole screen in the editor). "load slice collection" returns a handle to this root slice. You can freely change any of the properties of the root slice or even turn it into something else if you don't want an extra container.
 NOTE: if you add no children to the root slice, it won't be saved!
-
-Press F6 to shift around your view of the whole slice collection around. This does not modify the collection, it is only for help while editing.
 
 Press F7 to toggle whether outline boxes are drawn around the currently selected slice and the one under the mouse.
 
