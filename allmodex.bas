@@ -6320,7 +6320,7 @@ end sub
 'text drawing functions, and there ought to be a markup code to enable it.
 sub wrapprintbg (text as string, x as RelPos, y as RelPos, col as integer = -1, page as integer, drawbg as bool = YES, wrapx as RelPos = rWidth, withtags as bool = YES, fontnum as integer = fontEdged)
 	if drawbg then
-		trans_rectangle vpages(page), TYPE(x, y, textwidth(text), 10), master(uilook(uiBackground)), 0.55
+		trans_rectangle vpages(page), XYWH(x, y, textwidth(text), 10), master(uilook(uiBackground)), 0.55
 	end if
 	wrapprint text, x, y, col, page, wrapx, withtags, fontnum
 end sub

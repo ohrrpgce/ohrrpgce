@@ -57,6 +57,7 @@ TYPE SliceEditMenuItem
  s as string
  handle as Slice Ptr
  id as SliceMenuItemID
+ indent as integer       'Used only by mnidSlice
 END TYPE
 
 TYPE SpecialLookupCode
@@ -97,6 +98,9 @@ TYPE SliceEditState
  tool as SliceTool
  mouse_focus as SliceEdMouseFocus  'What gets mouse input. Normally what it's over, except when dragging.
 
+ want_show_tooltip as bool 'Whatever's under the mouse should set 'tooltip'
+ tooltip as string
+
  recursive as bool
  draw_root as Slice Ptr    'The slice to actually draw; either edslice or its parent.
  hide_mode as HideMode
@@ -112,6 +116,9 @@ TYPE SliceEditState
 
  slicelookup(any) as string
  specialcodes(any) as SpecialLookupCode
+
+ slice_type_icons(slLAST) as Frame ptr
+
  slicemenu(any) as SliceEditMenuItem 'The top-level menu (which lists all slices)
  slicemenust as MenuState            'State of slicemenu() menu
 
@@ -200,6 +207,7 @@ CONST slgrEXTRA = 32768
 
 DECLARE FUNCTION create_draw_root OVERLOAD (ses as SliceEditState) as Slice ptr
 DECLARE FUNCTION create_draw_root OVERLOAD (solid as bool, use_game_res as bool = YES) as Slice ptr
+DECLARE SUB slice_editor_load_icons(byref ses as SliceEditState)
 DECLARE SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice Ptr, initial_slice as Slice ptr = NULL)
 
 'Functions that might go better in slices.bas ... we shall see
@@ -212,6 +220,7 @@ DECLARE SUB SliceAdoptNiece (byval sl as Slice Ptr)
 
 'Functions only used locally
 DECLARE FUNCTION tool_text(toolname as string, selected as bool) as string
+DECLARE SUB slice_editor_draw_icon(byref ses as SliceEditState, icon as Frame ptr, byref pos as XYPair, tooltip as string, page as integer)
 DECLARE SUB expand_slice_ancestors(sl as Slice ptr)
 DECLARE FUNCTION slicemenu_hit_tester(state as MenuState, index as integer, pos as XYPair) as bool
 DECLARE FUNCTION find_special_lookup_code(specialcodes() as SpecialLookupCode, code as integer) as integer
@@ -220,7 +229,7 @@ DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcod
 DECLARE FUNCTION slice_editor_mouse_over (byref ses as SliceEditState, edslice as Slice ptr) as Slice ptr
 DECLARE SUB slice_editor_common_function_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
-DECLARE SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice Ptr=0)
+DECLARE SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice ptr = 0, indent as integer = 0)
 DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
 DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice Ptr)
@@ -473,6 +482,19 @@ SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byva
  END WITH
 END SUB
 
+'Reload these when entering the editor, to remap to current master()
+SUB slice_editor_load_icons(byref ses as SliceEditState)
+ 'No error if missing since Game doesn't always have data/
+ DIM iconsfile as string = finddatafile("icons/slice_type_icons_8x8.bmp", NO)
+ IF LEN(iconsfile) = 0 THEN EXIT SUB
+ DIM iconset as Frame ptr = image_import_as_frame_8bit(iconsfile, master())
+ IF iconset = 0 THEN EXIT SUB
+ FOR idx as integer = 0 TO slLAST
+  ses.slice_type_icons(idx) = frame_resized(iconset, 9, 8, idx * -9, 0)
+ NEXT
+ frame_unload @iconset
+END SUB
+
 LOCAL FUNCTION create_draw_root (ses as SliceEditState) as Slice ptr
  DIM use_game_res as bool = ses.collection_group_number <> SL_COLLECT_EDITOR
  RETURN create_draw_root(YES, use_game_res)
@@ -601,6 +623,7 @@ END SUB
 ' The main function of the slice editor is not called directly, call a slice_editor() overload instead.
 SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, initial_slice as Slice ptr = NULL)
  slice_editor_load_settings ses
+ slice_editor_load_icons ses
 
  REDIM PRESERVE editable_slice_types(9)  'Remove slLayout if previously added it
  IF ses.privileged THEN a_append editable_slice_types(), slLayout
@@ -650,6 +673,9 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   setwait 55
   setkeys
   DIM shiftctrl as KeyBits = keyval(scShift) OR keyval(scCtrl)
+
+  ses.want_show_tooltip = (readmouse.moved_dist <= 1)
+  ses.tooltip = ""
 
   'ESC to exit mode or the menu
   'S/C-F4 enters the slice debugger, so exit by pressing again.
@@ -785,7 +811,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    END SELECT
 
    ' Click selection
-   IF topmost ANDALSO (readmouse.release AND select_buttons) THEN
+   IF topmost ANDALSO (readmouse.release AND select_buttons) ANDALSO readmouse.dragging = mouseNone THEN
     cursor_seek = topmost
     expand_slice_ancestors topmost
     state.need_update = YES
@@ -1045,6 +1071,17 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    menuopts.drawbg = (ses.hide_mode <> hideMenuBG)
    standardmenu plainmenu(), state, 8, 0, dpage, menuopts
    draw_fullscreen_scrollbar state, 0, dpage, alignLeft
+
+   ' Draw icons
+   FOR i as integer = state.top TO small(state.last, state.top + state.size)
+    'This is actually 2 pixels left of the item
+    DIM itempos as XYPair = XY(6 + ses.slicemenu(i).indent * 8, 1 + (i - state.top) * state.spacing)
+    DIM sl as Slice ptr = ses.slicemenu(i).handle
+    IF sl THEN
+     slice_editor_draw_icon ses, ses.slice_type_icons(sl->SliceType), itempos, SliceTypeName(sl), dpage
+    END IF
+   NEXT
+
    DIM toolbar as string
    toolbar &= tool_text("`P`ick", ses.tool = SliceTool.pick)
    toolbar &= tool_text("Pa`n`", ses.tool = SliceTool.pan)
@@ -1070,6 +1107,11 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    wrapprintbg toolbar, 8, pBottom, uilook(uiMenuItem), dpage, menuopts.drawbg, 9999, , fontBuiltinEdged
   END IF
 
+  IF LEN(ses.tooltip) THEN
+   DIM tippos as XYPair = pick_tooltip_pos()
+   wrapprintbg ses.tooltip, tippos.x, tippos.y, uilook(uiText), dpage, , , , fontBuiltinEdged
+  END IF
+
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -1081,6 +1123,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   switch_to_32bit_vpages
  END IF
  pop_gfxio_state
+
+ FOR i as integer = 0 TO UBOUND(ses.slice_type_icons)
+  frame_unload @ses.slice_type_icons(i)
+ NEXT
 
  template_slices_shown = NO
  slice_editor_save_settings ses
@@ -1096,6 +1142,18 @@ FUNCTION tool_text(toolname as string, selected as bool) as string
  END IF
  return ret
 END FUNCTION
+
+'Draw icon, check tooltip, and move pos to the right
+SUB slice_editor_draw_icon(byref ses as SliceEditState, icon as Frame ptr, byref pos as XYPair, tooltip as string, page as integer)
+ IF icon = NULL THEN EXIT SUB
+ frame_draw icon, , pos.x, pos.y, , dpage
+ 'Shouldn't really be here, but so convenient
+ IF ses.want_show_tooltip ANDALSO rect_collide_point(XY_WH(pos, icon->size), readmouse.pos) THEN
+  ses.tooltip = tooltip
+  ses.want_show_tooltip = NO
+ END IF
+ pos.x += icon->w
+END SUB
 
 'We don't want menu item hitboxes to extend across the screen
 FUNCTION slicemenu_hit_tester(state as MenuState, index as integer, pos as XYPair) as bool
@@ -2573,17 +2631,19 @@ END FUNCTION
 FUNCTION slice_caption (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice ptr) as string
  DIM s as string
  WITH *sl
-  s = SliceTypeName(sl) & " "
   IF ses.show_positions THEN s &= (.ScreenPos - ses.draw_root->ScreenPos)
-  IF ses.show_sizes THEN s &= "(" & .Size.wh & ")"
+  IF ses.show_positions AND ses.show_sizes THEN s &= "("
+  IF ses.show_sizes THEN s &= .Size.wh
+  IF ses.show_positions AND ses.show_sizes THEN s &= ")"
+  IF ses.show_positions XOR ses.show_sizes THEN s &= " "  'Not needed after )
+  IF .Lookup = 0 THEN s = SliceTypeName(sl) & " "
   IF sl = edslice AND .Lookup <> SL_ROOT THEN
-   s &= " [root]"
+   s &= "[root] "
   END IF
-  s = RTRIM(s)
   IF sl->Template THEN
-   s &= fgcol_text(" TEMPLATE", findrgb(255, 200, 0))
+   s &= fgcol_text("TEMPLATE ", findrgb(255, 200, 0))
   END IF
-  s &= "${K" & uilook(uiText) & "} "
+  s &= "${K" & uilook(uiText) & "}"
   IF sl->Context THEN
    'Hide the Context of the root slice of a collection because it duplicates collection name, ID
    IF sl <> edslice ORELSE (*sl->Context IS SliceCollectionContext) = NO THEN
@@ -2648,26 +2708,29 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
  'debuginfo "refresh in " & cint(timing * 1e6) & "us, slices: " & UBOUND(ses.slicemenu) + 1
 END SUB
 
-SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice Ptr=0)
+SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice ptr = 0, indent as integer = 0)
  DIM index as integer = UBOUND(ses.slicemenu) + 1
  REDIM PRESERVE ses.slicemenu(index) as SliceEditMenuItem
  WITH ses.slicemenu(index)
   .id = id
   .s = caption
   .handle = sl
+  .indent = indent
  END WITH
 END SUB
 
 SUB slice_editor_refresh_recurse (ses as SliceEditState, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
  WITH *sl
   DIM caption as string
-  caption = STRING(indent, " ")
+  'Add 1 space for the type icon
+  DIM spaces as integer = indent + 1
+  caption = STRING(spaces, " ")
   IF sl->EditorHideChildren ANDALSO sl->NumChildren THEN
    caption &= "${K" & uilook(uiText) & "}+[" & sl->NumChildren & "]${K-1}"
   END IF
   caption &= slice_caption(ses, edslice, sl)
   IF sl <> hidden_slice THEN
-   slice_editor_refresh_append ses, mnidSlice, caption, sl
+   slice_editor_refresh_append ses, mnidSlice, caption, sl, indent
    indent += 1
   END IF
   IF NOT sl->EditorHideChildren THEN

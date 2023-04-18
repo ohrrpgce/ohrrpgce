@@ -3390,6 +3390,16 @@ FUNCTION popup_choice(capt as string="", choices() as string, defaultval as inte
  RETURN multichoice(capt, choices(), defaultval, escval, helpkey, extra_message, where, popup_style)
 END FUNCTION
 
+'Figure out where to draw a tooltip when using the OS mouse cursor (so its size isn't obvious)
+FUNCTION pick_tooltip_pos() as XYPair
+ DIM ret as XYPair = readmouse.pos
+ DIM winstate as WindowState ptr = gfx_getwindowstate()
+ DIM zoom as integer = IIF(winstate, winstate->zoom, 2)
+ ret.x += 16 \ zoom + showLeft  'Clamp to screen
+ ret.y += 16 \ zoom + showTop
+ RETURN ret
+END FUNCTION
+
 SUB playsongnum (byval songnum as integer)
   DIM songfile as string = find_music_lump(songnum)
   IF songfile = "" THEN EXIT SUB

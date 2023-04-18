@@ -1002,7 +1002,6 @@ Sub ReplaceSliceType(byval sl as Slice ptr, byref newsl as Slice ptr)
   sl->ChildrenRefresh = .ChildrenRefresh
   sl->ChildDraw = .ChildDraw
   sl->SliceData = .SliceData
-  sl->SliceType = .SliceType
   'Break slice connection to data
   .SliceData = 0
   'Now destroy newsl

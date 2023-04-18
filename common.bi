@@ -273,6 +273,7 @@ DECLARE FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultva
 DECLARE FUNCTION twochoice(capt as zstring ptr, strA as zstring ptr=@"Yes", strB as zstring ptr=@"No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as zstring ptr=@"") as integer
 DECLARE FUNCTION yesno(capt as zstring ptr, byval defaultval as bool=YES, byval escval as bool=NO) as bool
 DECLARE FUNCTION popup_choice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", extra_message as zstring ptr=@"") as integer
+DECLARE FUNCTION pick_tooltip_pos() as XYPair
 
 DECLARE FUNCTION confirmed_copy (srcfile as string, destfile as string) as bool
 DECLARE FUNCTION confirmed_copydirectory(src as string, dest as string) as bool

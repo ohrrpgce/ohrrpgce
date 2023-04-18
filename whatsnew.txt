@@ -86,6 +86,7 @@ WHAT IS NEW?
       And mouse support while repositioning/resizing the old way [Ralph]
     * Left/Right in the Slice Editor (in Pick mode) now collapse/expand part
       of the menu, press repeatedly to hide/show more. [Ralph]
+    * Slice Editor makes use of icons [Kiefer, Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]
