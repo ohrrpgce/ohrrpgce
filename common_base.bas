@@ -78,7 +78,7 @@ END SUB
 '   debugc errShowBug, msg
 ' END SUB
 
-SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context as zstring ptr = NULL)
+SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context as zstring ptr = NULL, context_slice as Slice ptr = NULL)
  DIM full_msg as string = *msg
  IF context THEN
   full_msg = *context & ": "

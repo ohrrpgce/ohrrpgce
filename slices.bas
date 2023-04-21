@@ -1955,12 +1955,6 @@ Sub ChangeTextSlice(byval sl as Slice ptr,_
  UpdateTextSlice sl
 end sub
 
-Function GetTextSliceString(byval sl as Slice ptr) as string
- if sl = 0 then debug "GetTextSliceString null ptr" : return ""
- ASSERT_SLTYPE(sl, slText, "")
- return sl->TextData->s
-End Function
-
 '--Sprite-----------------------------------------------------------------
 
 Declare Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
@@ -4323,6 +4317,21 @@ Function SliceIsInvisibleOrClipped(byval sl as Slice Ptr) as bool
  return NO
 End Function
 
+'Get a slice's DrawOptions, or NULL if it doesn't have any.
+'required: whether to throw an error on wrong type.
+Function SliceDrawOpts(sl as Slice ptr, required as bool = YES) as DrawOptions ptr
+ BUG_IF(sl = NULL, "null ptr", NULL)
+ if sl->SliceType = slSprite then
+  return @sl->SpriteData->drawopts
+ elseif sl->SliceType = slMap then
+  return @sl->MapData->drawopts
+ elseif required then
+  slice_bad_op sl, "doesn't have blending settings. Only Sprite or Map layer slices do."
+ end if
+ return NULL
+End Function
+
+
 Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
  'Don't confuse this with a slice's .Fill member. This is a one-shot attempt
  'to fit sl2 inside sl1 without doing any resizing.
@@ -4882,6 +4891,18 @@ FUNCTION DescribeSlice(sl as Slice ptr) as string
   RETURN "(invalid slice)"
  END IF
 END FUNCTION
+
+'For script commands to raise slice errors with information about the slice.
+'message can contain $SL which is replaced with e.g. "Sprite slice 11". If $SL isn't used,
+'the slice is instead prepended
+SUB slice_bad_op(sl as Slice ptr, message as zstring ptr, errlev as scriptErrEnum = serrBadOp)
+ DIM sliceinfo as string = DescribeSlice(sl)
+ DIM fullmsg as string = *message
+ IF replacestr(fullmsg, "$SL", sliceinfo) = 0 THEN
+  fullmsg = sliceinfo & " " & fullmsg
+ END IF
+ reporterr fullmsg, errlev, , sl
+END SUB
 
 Sub report_slice_type_err(sl as Slice ptr, expected as SliceTypes)
  reporterr "Attempt to treat " & DescribeSlice(sl) & " (at " & SlicePath(sl) & ") as a " & SliceTypeName(expected)

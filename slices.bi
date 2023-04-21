@@ -687,6 +687,7 @@ DECLARE Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref nu
 
 DECLARE Function SliceIsInvisible(byval sl as Slice Ptr) as bool
 DECLARE Function SliceIsInvisibleOrClipped(byval sl as Slice Ptr) as bool
+DECLARE FUNCTION SliceDrawOpts(sl as Slice ptr, required as bool = YES) as DrawOptions ptr
 
 DECLARE Sub ScrollToChild(byval sl as Slice ptr, byval desc as Slice ptr, byval apply_padding as bool = YES)
 DECLARE Sub ScrollAllChildren(byval sl as slice ptr, byval xmove as integer, byval ymove as integer)
@@ -733,6 +734,7 @@ DECLARE Sub SliceSetPaused( byval s as Slice ptr, byval b as bool )
 DECLARE Sub SliceSetClipping( byval s as Slice ptr, byval b as bool )
 
 DECLARE FUNCTION DescribeSlice(sl as Slice ptr) as string
+DECLARE SUB slice_bad_op(sl as Slice ptr, message as zstring ptr, errlev as scriptErrEnum = serrBadOp)
 
 #IFDEF ENABLE_SLICE_DEBUG
 DECLARE SUB SliceDebugRemember(sl as Slice Ptr)
@@ -769,7 +771,6 @@ DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
                       byval outline as integer=-2,_
                       byval wrap as integer=-2,_
                       byval bgcol as integer=colInvalid)
-DECLARE Function GetTextSliceString(byval sl as slice ptr) as string
 DECLARE Function TextSliceCharPos(sl as Slice ptr, charnum as integer) as XYPair
 
 DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)

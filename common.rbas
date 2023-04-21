@@ -5970,7 +5970,8 @@ END FUNCTION
 'just like scripterr.
 'context overrides the name of the current script command, if any. It does not override
 'the context_string global, which is also reported.
-SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context as zstring ptr = NULL)
+'context_slice is passed on to scripterr and thence the slice debugger, but currently not used in Custom.
+SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context as zstring ptr = NULL, context_slice as Slice ptr = NULL)
  'It's possible to be currently executing a script command, and for
  'context_string to be set, eg "advance textbox" calls advance_text_box, which
  'can cause an error. If we have both contexts, then the script command is
@@ -5984,12 +5985,12 @@ SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context a
   full_msg = context_string & ": " & full_msg
  END IF
 #IFDEF IS_GAME
- IF insideinterpreter THEN
-  IF context = NULL THEN
+ IF insideinterpreter ORELSE context_slice <> NULL THEN
+  IF insideinterpreter ANDALSO context = NULL THEN
    full_msg = interpreter_context_name() & full_msg
   END IF
   'Let scripterr deal with whether to show the error
-  scripterr full_msg, errlvl
+  scripterr full_msg, errlvl, context_slice
   EXIT SUB
  END IF
  IF should_display_error_to_user(errlvl) = NO THEN

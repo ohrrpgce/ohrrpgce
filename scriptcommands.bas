@@ -4851,7 +4851,7 @@ SUB script_commands(byval cmdid as integer)
   sl = get_arg_slice(0)
   IF sl THEN
    'Non-blendable slice types allowed
-   DIM drawopts as DrawOptions ptr = get_slice_drawopts(sl, NO)
+   DIM drawopts as DrawOptions ptr = SliceDrawOpts(sl, NO)
    IF drawopts <> NULL ANDALSO drawopts->with_blending THEN
     scriptret = 100 * drawopts->opacity
    ELSE
@@ -4861,7 +4861,7 @@ SUB script_commands(byval cmdid as integer)
  CASE 696 '--set opacity (slice, opacity)
   sl = get_arg_slice(0)
   IF sl THEN
-   DIM drawopts as DrawOptions ptr = get_slice_drawopts(sl)
+   DIM drawopts as DrawOptions ptr = SliceDrawOpts(sl)
    IF drawopts THEN
     'Setting opacity to a value outside 0-100% is not an error
     drawopts->opacity = bound(retvals(1), 0, 100) * 0.01
@@ -4873,7 +4873,7 @@ SUB script_commands(byval cmdid as integer)
   sl = get_arg_slice(0)
   IF sl THEN
    'Non-blendable slice types allowed
-   DIM drawopts as DrawOptions ptr = get_slice_drawopts(sl, NO)
+   DIM drawopts as DrawOptions ptr = SliceDrawOpts(sl, NO)
    IF drawopts <> NULL ANDALSO drawopts->with_blending THEN
     scriptret = 1
    END IF
@@ -4881,14 +4881,14 @@ SUB script_commands(byval cmdid as integer)
  CASE 698 '--set blending enabled (slice, bool)
   sl = get_arg_slice(0)
   IF sl THEN
-   DIM drawopts as DrawOptions ptr = get_slice_drawopts(sl)
+   DIM drawopts as DrawOptions ptr = SliceDrawOpts(sl)
    IF drawopts THEN drawopts->with_blending = retvals(1) <> 0
   END IF
  CASE 699 '--get blend mode (slice)
   sl = get_arg_slice(0)
   IF sl THEN
    'Non-blendable slice types allowed
-   DIM drawopts as DrawOptions ptr = get_slice_drawopts(sl, NO)
+   DIM drawopts as DrawOptions ptr = SliceDrawOpts(sl, NO)
    IF drawopts <> NULL ANDALSO drawopts->with_blending THEN
     scriptret = drawopts->blend_mode
    ELSE
@@ -4898,7 +4898,7 @@ SUB script_commands(byval cmdid as integer)
  CASE 700 '--set blend mode (slice, blendmode)
   sl = get_arg_slice(0)
   IF sl ANDALSO bound_arg(retvals(1), 0, blendModeLast, "blend mode", , serrBadOp) THEN
-   DIM drawopts as DrawOptions ptr = get_slice_drawopts(sl)
+   DIM drawopts as DrawOptions ptr = SliceDrawOpts(sl)
    IF drawopts THEN
     drawopts->blend_mode = retvals(1)
     drawopts->with_blending = YES
@@ -5443,18 +5443,6 @@ END FUNCTION
 '==========================================================================================
 
 
-'For script commands to raise slice errors with information about the slice.
-'message can contain $SL which is replaced with e.g. "Sprite slice 11". If $SL isn't used,
-'the slice is instead prepended
-SUB slice_bad_op(sl as Slice ptr, message as zstring ptr, errlev as scriptErrEnum = serrBadOp)
- DIM sliceinfo as string = DescribeSlice(sl)
- DIM fullmsg as string = *message
- IF replacestr(fullmsg, "$SL", sliceinfo) = 0 THEN
-  fullmsg = sliceinfo & " " & fullmsg
- END IF
- scripterr current_command_name() & ": " & fullmsg, errlev, sl
-END SUB
-
 'Return the Slice ptr for a slice handle, or throw an error
 'and return NULL if not valid
 FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum = serrBadOp) as Slice ptr
@@ -5667,20 +5655,6 @@ LOCAL SUB replace_sprite_plotslice(byval slice_argno as integer, byval spritetyp
   END IF
  END IF
 END SUB
-
-'Get a slice's DrawOptions, or NULL if it doesn't have any.
-'required: whether to throw an error on wrong type.
-FUNCTION get_slice_drawopts(sl as Slice ptr, required as bool = YES) as DrawOptions ptr
- BUG_IF(sl = NULL, "null ptr", NULL)
- IF sl->SliceType = slSprite THEN
-  RETURN @sl->SpriteData->drawopts
- ELSEIF sl->SliceType = slMap THEN
-  RETURN @sl->MapData->drawopts
- ELSEIF required THEN
-  slice_bad_op sl, "doesn't have blending settings. This command only works on Sprite or Map layer slices"
- END IF
- RETURN NULL
-END FUNCTION
 
 
 '==========================================================================================
