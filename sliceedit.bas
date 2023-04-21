@@ -117,7 +117,10 @@ TYPE SliceEditState
  slicelookup(any) as string
  specialcodes(any) as SpecialLookupCode
 
- slice_type_icons(slLAST) as Frame ptr
+ slice_type_icons as Frame ptr
+ fill_mode_icons as Frame ptr
+ blend_icons as Frame ptr
+ other_icons as Frame ptr
 
  slicemenu(any) as SliceEditMenuItem 'The top-level menu (which lists all slices)
  slicemenust as MenuState            'State of slicemenu() menu
@@ -220,7 +223,7 @@ DECLARE SUB SliceAdoptNiece (byval sl as Slice Ptr)
 
 'Functions only used locally
 DECLARE FUNCTION tool_text(toolname as string, selected as bool) as string
-DECLARE SUB slice_editor_draw_icon(byref ses as SliceEditState, icon as Frame ptr, byref pos as XYPair, tooltip as string, page as integer)
+DECLARE SUB slice_editor_draw_icon(byref ses as SliceEditState, icon as Frame ptr, framenum as integer, byref pos as XYPair, tooltip as string, page as integer)
 DECLARE SUB expand_slice_ancestors(sl as Slice ptr)
 DECLARE FUNCTION slicemenu_hit_tester(state as MenuState, index as integer, pos as XYPair) as bool
 DECLARE FUNCTION find_special_lookup_code(specialcodes() as SpecialLookupCode, code as integer) as integer
@@ -293,7 +296,7 @@ TransCaptions(2) = "Hollow"      'transHollow
 TransCaptions(3) = "Blend (transparent)" 'transBlend
 REDIM SHARED AutoSortCaptions(0 TO 5) as string
 AutoSortCaptions(0) = "None"
-AutoSortCaptions(1) = "Custom"
+AutoSortCaptions(1) = "by custom order"
 AutoSortCaptions(2) = "by Y"
 AutoSortCaptions(3) = "by top edge"
 AutoSortCaptions(4) = "by center Y"
@@ -484,15 +487,10 @@ END SUB
 
 'Reload these when entering the editor, to remap to current master()
 SUB slice_editor_load_icons(byref ses as SliceEditState)
- 'No error if missing since Game doesn't always have data/
- DIM iconsfile as string = finddatafile("icons/slice_type_icons_8x8.bmp", NO)
- IF LEN(iconsfile) = 0 THEN EXIT SUB
- DIM iconset as Frame ptr = image_import_as_frame_8bit(iconsfile, master())
- IF iconset = 0 THEN EXIT SUB
- FOR idx as integer = 0 TO slLAST
-  ses.slice_type_icons(idx) = frame_resized(iconset, 9, 8, idx * -9, 0)
- NEXT
- frame_unload @iconset
+ ses.slice_type_icons = load_icon_spritesheet("icons/slice_types_8x8.bmp", XY(9,8), slLAST+1)
+ ses.fill_mode_icons = load_icon_spritesheet("icons/slice_fill_modes_8x8.bmp", XY(9,8), 3)
+ ses.blend_icons = load_icon_spritesheet("icons/slice_blend_modes_8x8.bmp", XY(9,8), 3)
+ ses.other_icons = load_icon_spritesheet("icons/slice_other_8x8.bmp", XY(9,8), 6)
 END SUB
 
 LOCAL FUNCTION create_draw_root (ses as SliceEditState) as Slice ptr
@@ -674,7 +672,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   setkeys
   DIM shiftctrl as KeyBits = keyval(scShift) OR keyval(scCtrl)
 
-  ses.want_show_tooltip = (readmouse.moved_dist <= 1)
+  ses.want_show_tooltip = (readmouse.moved_dist <= 2)
   ses.tooltip = ""
 
   'ESC to exit mode or the menu
@@ -1078,7 +1076,36 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     DIM itempos as XYPair = XY(6 + ses.slicemenu(i).indent * 8, 1 + (i - state.top) * state.spacing)
     DIM sl as Slice ptr = ses.slicemenu(i).handle
     IF sl THEN
-     slice_editor_draw_icon ses, ses.slice_type_icons(sl->SliceType), itempos, SliceTypeName(sl), dpage
+     slice_editor_draw_icon ses, ses.slice_type_icons, sl->SliceType, itempos, SliceTypeName(sl), dpage
+     IF sl->Fill THEN
+      slice_editor_draw_icon ses, ses.fill_mode_icons, sl->FillMode, itempos, "Fill " & FillModeCaptions(sl->FillMode), dpage
+     END IF
+     IF sl->Clip THEN
+      slice_editor_draw_icon ses, ses.other_icons, 0, itempos, "Clip children", dpage
+     END IF
+     IF sl->AutoSort THEN
+      slice_editor_draw_icon ses, ses.other_icons, 1, itempos, "Autosort " & AutoSortCaptions(sl->AutoSort), dpage
+     END IF
+     IF sl->Protect THEN
+      slice_editor_draw_icon ses, ses.other_icons, 5, itempos, "Protected", dpage
+     END IF
+     IF sl->ExtraVec THEN
+      DIM elem as string = "Extra=["
+      FOR idx as integer = 0 to small(5, v_len(sl->ExtraVec)) - 1
+       elem &= sl->ExtraVec[idx] & " "
+      NEXT
+      IF v_len(sl->ExtraVec) > 5 THEN elem &= "..."
+      elem = RTRIM(elem) & "]"
+      slice_editor_draw_icon ses, ses.other_icons, 2, itempos, elem, dpage
+     END IF
+     'Any blendable slice type... a bit excessive maybe
+     DIM drawopts as DrawOptions ptr = get_slice_drawopts(sl, NO)
+     IF drawopts <> NULL ANDALSO drawopts->with_blending THEN
+      slice_editor_draw_icon ses, ses.blend_icons, drawopts->blend_mode, itempos, BlendModeCaptions(drawopts->blend_mode) & " blend " & CINT(100 * drawopts->opacity) & "%", dpage
+     END IF
+     IF sl->Lookup THEN
+      slice_editor_draw_icon ses, ses.other_icons, IIF(sl->Lookup < 0, 4, 3), itempos, "", dpage
+     END IF
     END IF
    NEXT
 
@@ -1124,9 +1151,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
  END IF
  pop_gfxio_state
 
- FOR i as integer = 0 TO UBOUND(ses.slice_type_icons)
-  frame_unload @ses.slice_type_icons(i)
- NEXT
+ frame_unload @ses.slice_type_icons
+ frame_unload @ses.fill_mode_icons
+ frame_unload @ses.blend_icons
+ frame_unload @ses.other_icons
 
  template_slices_shown = NO
  slice_editor_save_settings ses
@@ -1144,15 +1172,15 @@ FUNCTION tool_text(toolname as string, selected as bool) as string
 END FUNCTION
 
 'Draw icon, check tooltip, and move pos to the right
-SUB slice_editor_draw_icon(byref ses as SliceEditState, icon as Frame ptr, byref pos as XYPair, tooltip as string, page as integer)
- IF icon = NULL THEN EXIT SUB
- frame_draw icon, , pos.x, pos.y, , dpage
+SUB slice_editor_draw_icon(byref ses as SliceEditState, icon as Frame ptr, framenum as integer = 0, byref pos as XYPair, tooltip as string, page as integer)
+ IF icon = NULL ORELSE framenum >= icon->arraylen THEN EXIT SUB
+ frame_draw @icon[framenum], , pos.x, pos.y, , dpage
  'Shouldn't really be here, but so convenient
  IF ses.want_show_tooltip ANDALSO rect_collide_point(XY_WH(pos, icon->size), readmouse.pos) THEN
   ses.tooltip = tooltip
   ses.want_show_tooltip = NO
  END IF
- pos.x += icon->w
+ pos.x += icon->w - 1  'The spritesheets have an extra pixel between icons
 END SUB
 
 'We don't want menu item hitboxes to extend across the screen
@@ -2633,24 +2661,27 @@ FUNCTION slice_caption (byref ses as SliceEditState, edslice as Slice ptr, sl as
  WITH *sl
   IF ses.show_positions THEN s &= (.ScreenPos - ses.draw_root->ScreenPos)
   IF ses.show_positions AND ses.show_sizes THEN s &= "("
-  IF ses.show_sizes THEN s &= .Size.wh
+  IF ses.show_sizes THEN s &= .Size.w & CHR(1) & .Size.h
   IF ses.show_positions AND ses.show_sizes THEN s &= ")"
   IF ses.show_positions XOR ses.show_sizes THEN s &= " "  'Not needed after )
-  IF .Lookup = 0 THEN s = SliceTypeName(sl) & " "
+  'Only ho
+  IF .Lookup = 0 ANDALSO .Context = 0 ANDALSO ses.show_typenames THEN s &= SliceTypeName(sl) & " "
   IF sl = edslice AND .Lookup <> SL_ROOT THEN
    s &= "[root] "
+  END IF
+  IF .Lookup THEN
+   s &= SliceLookupCodeName(.Lookup, ses.slicelookup()) & " "  'returns "Lookup" & .Lookup if not recognised
+  END IF
+  's = RTRIM(s) & "${K" & uilook(uiText) & "} "
+  IF .Context THEN
+   'Hide the Context of the root slice of a collection because it duplicates collection name, ID
+   IF sl <> edslice ORELSE (*.Context IS SliceCollectionContext) = NO THEN
+    s &= .Context->description()
+   END IF
   END IF
   IF sl->Template THEN
    s &= fgcol_text("TEMPLATE ", findrgb(255, 200, 0))
   END IF
-  s &= "${K" & uilook(uiText) & "}"
-  IF sl->Context THEN
-   'Hide the Context of the root slice of a collection because it duplicates collection name, ID
-   IF sl <> edslice ORELSE (*sl->Context IS SliceCollectionContext) = NO THEN
-    s &= sl->Context->description() & " "
-   END IF
-  END IF
-  s &= SliceLookupCodeName(.Lookup, ses.slicelookup())  'returns "Lookup" & .Lookup if not recognied
  END WITH
  RETURN RTRIM(s)
 END FUNCTION
@@ -2722,8 +2753,16 @@ END SUB
 SUB slice_editor_refresh_recurse (ses as SliceEditState, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
  WITH *sl
   DIM caption as string
-  'Add 1 space for the type icon
-  DIM spaces as integer = indent + 1
+  DIM spaces as integer = indent
+  spaces += 1  'Add 1 space for the type icon
+  'Space for other icons:
+  IF sl->Fill THEN spaces += 1
+  IF sl->Clip THEN spaces += 1
+  IF sl->AutoSort THEN spaces += 1
+  IF sl->ExtraVec THEN spaces += 1
+  IF sl->Lookup THEN spaces += 1
+  DIM drawopts as DrawOptions ptr = get_slice_drawopts(sl, NO)
+  IF drawopts <> NULL ANDALSO drawopts->with_blending THEN spaces += 1
   caption = STRING(spaces, " ")
   IF sl->EditorHideChildren ANDALSO sl->NumChildren THEN
    caption &= "${K" & uilook(uiText) & "}+[" & sl->NumChildren & "]${K-1}"

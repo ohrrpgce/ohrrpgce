@@ -163,6 +163,7 @@ DECLARE FUNCTION rgfx_load_global_animations (rgfxdoc as Doc ptr) as SpriteSet p
 DECLARE FUNCTION default_global_animations (sprtype as SpriteType) as SpriteSet ptr
 DECLARE SUB default_frame_group_info(sprtype as SpriteType, info() as FrameGroupInfo)
 
+DECLARE FUNCTION split_spritesheet(sheet as Frame ptr, framesize as XYPair, numframes as integer) as Frame ptr
 DECLARE FUNCTION spriteset_to_basic_spritesheet(ss as Frame ptr) as Frame ptr
 DECLARE FUNCTION spriteset_from_basic_spritesheet(sheet as Frame ptr, sprtype as SpriteType, numframes as integer) as Frame ptr
 

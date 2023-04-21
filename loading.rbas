@@ -3438,17 +3438,34 @@ FUNCTION spriteset_to_basic_spritesheet(ss as Frame ptr) as Frame ptr
   RETURN spritesheet
 END FUNCTION
 
-'Split up a spriteset in the original import/export format.
-FUNCTION spriteset_from_basic_spritesheet(sheet as Frame ptr, sprtype as SpriteType, numframes as integer) as Frame ptr
+'Cut up a sheet Frame into an Frame array. The sheet may be too large or small and is trimmed/expanded.
+FUNCTION split_spritesheet(sheet as Frame ptr, framesize as XYPair, numframes as integer) as Frame ptr
   DIM ss as Frame ptr
-  ss = frame_new(large(1, sheet->w \ numframes), sheet->h, numframes, YES)
+  'IF numframes = -1 THEN numframes = sheet->w \ framesize.w
+  ss = frame_new(framesize.w, framesize.h, numframes, YES)
 
   FOR fridx as integer = 0 TO ss->arraylen - 1
     frame_draw sheet, , -fridx * ss->w, 0, NO, @ss[fridx]
   NEXT
-  initialise_backcompat_pt_frameids ss, sprtype
-
   RETURN ss
+END FUNCTION
+
+'Split up a spriteset in the original import/export format.
+FUNCTION spriteset_from_basic_spritesheet(sheet as Frame ptr, sprtype as SpriteType, numframes as integer) as Frame ptr
+  DIM ss as Frame ptr = split_spritesheet(sheet, XY(large(1, sheet->w \ numframes), sheet->h), numframes)
+  initialise_backcompat_pt_frameids ss, sprtype
+  RETURN ss
+END FUNCTION
+
+'Load a Frame array from a file
+FUNCTION load_spriteset_from_file(file as string, framesize as XYPair, numframes as integer) as Frame ptr
+  DIM sheet as Frame ptr = image_import_as_frame_8bit(file, master())
+  DIM ret as Frame ptr
+  IF sheet THEN
+    ret = split_spritesheet(sheet, framesize, numframes)
+    frame_unload @sheet
+  END IF
+  RETURN ret
 END FUNCTION
 
 
