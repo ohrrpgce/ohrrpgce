@@ -67,6 +67,9 @@ Note that for all three chain types, if the target class and target setting of t
 [NOTE: Different-Target Chains]
 When the target class or target setting are different, the chained attack will pick a new target automatically according to its "preferred target" rules. This will not be interrupted if the first attack's target dies.
 
+
+Chain if attack misses or fails: This causes the attack's chain to happen even if the attack doesn't hit. (Also in the Attack Bitsets submenu.)
+
   Counterattacks
 
 Counterattacks to an attack are defined in the enemy editor, but here you can control whether this attack will trigger them if it hits, misses, or fails. The Default value is set in the Battle System Options menu.

@@ -144,5 +144,5 @@ In Active-time battles their ready meter will start filling again without waitin
 In Turn-based battles, this only matters for attacks that have turn delays, it means the attacker will get their next turn as normal.
 In both battle modes non-blocking status is inherited by all attacks that chain from a non-blocking attack.
 
-* Don't chain if attack misses or fails
-This causes the attack's chain to be ignored if the attack doesn't hit instead of continuing.
+* Chain if attack misses or fails
+This (on by default) causes the attack's chain to happen even if the attack doesn't hit. (Also in the Chaining submenu.)

@@ -166,6 +166,8 @@ DECLARE SUB default_frame_group_info(sprtype as SpriteType, info() as FrameGroup
 DECLARE FUNCTION split_spritesheet(sheet as Frame ptr, framesize as XYPair, numframes as integer) as Frame ptr
 DECLARE FUNCTION spriteset_to_basic_spritesheet(ss as Frame ptr) as Frame ptr
 DECLARE FUNCTION spriteset_from_basic_spritesheet(sheet as Frame ptr, sprtype as SpriteType, numframes as integer) as Frame ptr
+DECLARE FUNCTION load_spriteset_from_file(file as string, framesize as XYPair, numframes as integer) as Frame ptr
+
 
 DECLARE SUB loaditemdata OVERLOAD (array() as integer, byval index as integer)
 DECLARE SUB loaditemdata OVERLOAD (item as ItemDef, index as integer)

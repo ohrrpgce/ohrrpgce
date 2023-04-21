@@ -159,8 +159,9 @@ CONST AtkChangeTurncoat = 160
 CONST AtkChangeDefector = 161
 CONST AtkChangeFlipped = 162
 CONST AtkSpawnEnemy = 163
+CONST AtkChainOnFailOrMissBit = 164
 
-'Next menu item is 164 (remember to update MnuItems)
+'Next menu item is 165 (remember to update MnuItems)
 
 
 '--Offsets in the attack data record (combined DT6 + ATTACK.BIN)
@@ -357,7 +358,7 @@ a_append atkbit(), -1, " Misc"
 a_append atkbit(), 89, "!Useable in battle from spell lists"
 a_append atkbit(), 59, "Useable outside battle from Spells menu"
 a_append atkbit(), 84, "Delay doesn't block further actions"
-a_append atkbit(), 71, "Don't chain if attack misses or fails"
+a_append atkbit(), 71, "!Chain if attack misses or fails"  'Also in Spawning & Counterattacks menu
 a_append atkbit(), 97, "Exclude from hero auto-battle"
 
 DIM dmgbit(-1 TO 128) as string
@@ -406,7 +407,7 @@ DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined
 STATIC copy_recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer
 STATIC have_copy as bool
 
-CONST MnuItems = 163
+CONST MnuItems = 164
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
@@ -1189,6 +1190,9 @@ menulimits(AtkCounterProvoke) = AtkLimCounterProvoke
 menu(AtkTriggerElementalCounters) = " Never trigger elemental counterattacks:"
 menutype(AtkTriggerElementalCounters) = 7000 + 87  'Attack bit 87
 
+menu(AtkChainOnFailOrMissBit) = "!Chain if attack misses or fails:"
+menutype(AtkChainOnFailOrMissBit) = 7000 + 71  'Attack bit 71, inverted
+
 menu(AtkElementFailAct) = "Elemental failure conditions..."
 menutype(AtkElementFailAct) = 1
 
@@ -1318,7 +1322,7 @@ costMenu(7) = AtkItemCost2
 costMenu(8) = AtkItem3
 costMenu(9) = AtkItemCost3
 
-DIM chainMenu(24) as integer
+DIM chainMenu(25) as integer
 chainMenu(0) = AtkBackAct
 chainMenu(1) = AtkChainBrowserAct
 chainMenu(2) = AtkChainHeader
@@ -1342,8 +1346,9 @@ chainMenu(19) = AtkInsteadChainBits
 chainMenu(20) = AtkInsteadChainMode
 chainMenu(21) = AtkInsteadChainVal1
 chainMenu(22) = AtkInsteadChainVal2
-chainMenu(23) = AtkCounterProvoke
-chainMenu(24) = AtkTriggerElementalCounters
+chainMenu(23) = AtkChainOnFailOrMissBit
+chainMenu(24) = AtkCounterProvoke
+chainMenu(25) = AtkTriggerElementalCounters
 
 DIM tagMenu(6) as integer
 tagMenu(0) = AtkBackAct
@@ -2502,6 +2507,7 @@ FUNCTION editflexmenu (state as MenuState, nowindex as integer, menutype() as in
 '                     If menucapoff() is non-zero it's used instead of NO/YES
 '           7000-7999=attack bitset, either NO/YES or captioned
 '                     The attack bit number is type - 7000, menuoff() ignored.
+'                     If the item title starts with '!', the bit is inverted.
 '                     If menucapoff() is non-zero it's used instead of NO/YES
 '           8000-8999=value of stat 8000+statnum
 'menuoff() is the offsets into the data block where each menu data is stored
@@ -2819,6 +2825,10 @@ FOR i = 0 TO size
    DIM as integer wordnum, bitnum, thebit
    flexmenu_bitset_word_and_bit menutype(nowdat(i)), menuoff(nowdat(i)), wordnum, bitnum
    thebit = readbit(datablock(), wordnum, bitnum)
+   IF LEFT(nowmenu(i), 1) = "!" THEN  'Invert bit
+    nowmenu(i) = MID(nowmenu(i), 2)
+    thebit XOR= 1
+   END IF
    IF menucapoff(nowdat(i)) THEN
     datatext = caption(menucapoff(nowdat(i) + thebit))
    ELSE

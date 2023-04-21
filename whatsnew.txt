@@ -83,10 +83,11 @@ WHAT IS NEW?
     * You can insert a copy of one slice collection into another when you press
       + in the slice collection editor [Ralph]
     * Slice Editor tools to Pick, Move, Resize, Pan with the mouse or keyboard.
+      Right-drag with the mouse to pan the collection around.
       And mouse support while repositioning/resizing the old way [Ralph]
     * Left/Right in the Slice Editor (in Pick mode) now collapse/expand part
       of the menu, press repeatedly to hide/show more. [Ralph]
-    * Slice Editor uses icons to show slice type and makes use of icons [Ralph, Kiefer]
+    * Slice Editor uses icons to show slice type and other info [Ralph, Kiefer]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

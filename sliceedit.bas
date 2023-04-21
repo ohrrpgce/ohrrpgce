@@ -108,6 +108,7 @@ TYPE SliceEditState
  show_ants as bool = YES   'Whether to draw a box around the selected slice
  show_sizes as bool        'Display sizes in the slice list?
  show_positions as bool    'Display screen positions in the slice list?
+ show_typenames as bool    'Display type names always
  privileged as bool        'Whether can edit properties that are normally off-limits. Non-user collections only.
 
  ' Internal state of lookup_code_grabber
@@ -484,6 +485,13 @@ SUB append_specialcode (byref ses as SliceEditState, byval code as integer, byva
   .kindlimit = kindlimit
  END WITH
 END SUB
+
+FUNCTION load_icon_spritesheet(datapath as string, framesize as XYPair, numframes as integer) as Frame ptr
+ 'No error if missing since Game doesn't always have data/
+ DIM path as string = finddatafile(datapath, NO)
+ IF LEN(path) = 0 THEN RETURN NULL
+ RETURN load_spriteset_from_file(path, framesize, numframes)
+END FUNCTION
 
 'Reload these when entering the editor, to remap to current master()
 SUB slice_editor_load_icons(byref ses as SliceEditState)
@@ -1099,7 +1107,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
       slice_editor_draw_icon ses, ses.other_icons, 2, itempos, elem, dpage
      END IF
      'Any blendable slice type... a bit excessive maybe
-     DIM drawopts as DrawOptions ptr = get_slice_drawopts(sl, NO)
+     DIM drawopts as DrawOptions ptr = SliceDrawOpts(sl, NO)
      IF drawopts <> NULL ANDALSO drawopts->with_blending THEN
       slice_editor_draw_icon ses, ses.blend_icons, drawopts->blend_mode, itempos, BlendModeCaptions(drawopts->blend_mode) & " blend " & CINT(100 * drawopts->opacity) & "%", dpage
      END IF
@@ -1180,7 +1188,7 @@ SUB slice_editor_draw_icon(byref ses as SliceEditState, icon as Frame ptr, frame
   ses.tooltip = tooltip
   ses.want_show_tooltip = NO
  END IF
- pos.x += icon->w - 1  'The spritesheets have an extra pixel between icons
+ pos.x += icon->w
 END SUB
 
 'We don't want menu item hitboxes to extend across the screen
@@ -2664,15 +2672,18 @@ FUNCTION slice_caption (byref ses as SliceEditState, edslice as Slice ptr, sl as
   IF ses.show_sizes THEN s &= .Size.w & CHR(1) & .Size.h
   IF ses.show_positions AND ses.show_sizes THEN s &= ")"
   IF ses.show_positions XOR ses.show_sizes THEN s &= " "  'Not needed after )
-  'Only ho
-  IF .Lookup = 0 ANDALSO .Context = 0 ANDALSO ses.show_typenames THEN s &= SliceTypeName(sl) & " "
+  IF (.Lookup = 0 ANDALSO .Context = 0) ORELSE ses.show_typenames THEN s &= SliceTypeName(sl) & " "
   IF sl = edslice AND .Lookup <> SL_ROOT THEN
    s &= "[root] "
   END IF
   IF .Lookup THEN
+   IF ses.show_typenames THEN
+    s = RTRIM(s) & "${K" & uilook(uiText) & "} "
+   'ELSE
+   ' s &= ":"
+   END IF
    s &= SliceLookupCodeName(.Lookup, ses.slicelookup()) & " "  'returns "Lookup" & .Lookup if not recognised
   END IF
-  's = RTRIM(s) & "${K" & uilook(uiText) & "} "
   IF .Context THEN
    'Hide the Context of the root slice of a collection because it duplicates collection name, ID
    IF sl <> edslice ORELSE (*.Context IS SliceCollectionContext) = NO THEN
@@ -2680,7 +2691,7 @@ FUNCTION slice_caption (byref ses as SliceEditState, edslice as Slice ptr, sl as
    END IF
   END IF
   IF sl->Template THEN
-   s &= fgcol_text("TEMPLATE ", findrgb(255, 200, 0))
+   s &= fgcol_text("TEMPLATE", findrgb(255, 200, 0))
   END IF
  END WITH
  RETURN RTRIM(s)
@@ -3425,7 +3436,9 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
    changed = boolgrabber(template_slices_shown, state)
   CASE 20  'Edit lookup codes
    IF activate THEN edit_slice_lookup_codes *ses, , ses->slicelookup()
-  'Next free: 22
+  CASE 22
+   changed = boolgrabber(ses->show_typenames, state)
+  'Next free: 23
  END SELECT
  state.need_update OR= changed
 END FUNCTION
@@ -3448,6 +3461,7 @@ END SUB
 SUB slice_editor_save_settings(byref ses as SliceEditState)
  write_config "sliceedit.show_positions", yesorno(ses.show_positions)
  write_config "sliceedit.show_sizes", yesorno(ses.show_sizes)
+ write_config "sliceedit.show_typenames", yesorno(ses.show_typenames)
  'show_ants, hide_mode and template_slices_shown are not saved.
  'sliceedit.show_root was renamed to sliceedit.show_root2 to ignore previous setting
  'While in the recursive slice editor, show_root gets set to YES by default
@@ -3457,6 +3471,7 @@ END SUB
 SUB slice_editor_load_settings(byref ses as SliceEditState)
  ses.show_positions = read_config_bool("sliceedit.show_positions", NO)
  ses.show_sizes = read_config_bool("sliceedit.show_sizes", NO)
+ ses.show_typenames = read_config_bool("sliceedit.show_typenames", NO)
  'See above
  IF ses.recursive = NO THEN ses.show_root = read_config_bool("sliceedit.show_root2", YES)
 END SUB
