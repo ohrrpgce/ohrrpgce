@@ -57,7 +57,8 @@ TYPE SliceEditMenuItem
  s as string
  handle as Slice Ptr
  id as SliceMenuItemID
- indent as integer       'Used only by mnidSlice
+ indent as integer       'Used only for slice type icons
+ icon_group_x as integer 'X position to put the other icons
 END TYPE
 
 TYPE SpecialLookupCode
@@ -233,7 +234,7 @@ DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcod
 DECLARE FUNCTION slice_editor_mouse_over (byref ses as SliceEditState, edslice as Slice ptr) as Slice ptr
 DECLARE SUB slice_editor_common_function_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
-DECLARE SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice ptr = 0, indent as integer = 0)
+DECLARE SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice ptr = 0, indent as integer = 0, icon_group_x as integer = 0)
 DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
 DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice Ptr)
@@ -657,7 +658,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
  DIM menuopts as MenuOptions
  WITH menuopts
   .edged = YES
-  .itemspacing = -1
+  .itemspacing = 0 '-1
   .highlight_selection = YES
   .no_scrollbar = YES  'We draw it ourselves, on the left
  END WITH
@@ -1080,11 +1081,16 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
 
    ' Draw icons
    FOR i as integer = state.top TO small(state.last, state.top + state.size)
-    'This is actually 2 pixels left of the item
-    DIM itempos as XYPair = XY(6 + ses.slicemenu(i).indent * 8, 1 + (i - state.top) * state.spacing)
+    'Start 3 pixels left of the item, because the icons are spaced 9px wide
+    DIM itempos as XYPair = XY(8 - 1 + ses.slicemenu(i).indent * 8, 1 + (i - state.top) * state.spacing)
     DIM sl as Slice ptr = ses.slicemenu(i).handle
     IF sl THEN
      slice_editor_draw_icon ses, ses.slice_type_icons, sl->SliceType, itempos, SliceTypeName(sl), dpage
+     IF sl->Lookup ANDALSO ses.show_typenames = NO THEN
+      'sl: or sli: icon
+      'slice_editor_draw_icon ses, ses.other_icons, IIF(sl->Lookup < 0, 4, 3), itempos, "", dpage
+     END IF
+     itempos.x = 8 + 1 + ses.slicemenu(i).icon_group_x
      IF sl->Fill THEN
       slice_editor_draw_icon ses, ses.fill_mode_icons, sl->FillMode, itempos, "Fill " & FillModeCaptions(sl->FillMode), dpage
      END IF
@@ -1110,9 +1116,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
      DIM drawopts as DrawOptions ptr = SliceDrawOpts(sl, NO)
      IF drawopts <> NULL ANDALSO drawopts->with_blending THEN
       slice_editor_draw_icon ses, ses.blend_icons, drawopts->blend_mode, itempos, BlendModeCaptions(drawopts->blend_mode) & " blend " & CINT(100 * drawopts->opacity) & "%", dpage
-     END IF
-     IF sl->Lookup THEN
-      slice_editor_draw_icon ses, ses.other_icons, IIF(sl->Lookup < 0, 4, 3), itempos, "", dpage
      END IF
     END IF
    NEXT
@@ -2750,7 +2753,7 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
  'debuginfo "refresh in " & cint(timing * 1e6) & "us, slices: " & UBOUND(ses.slicemenu) + 1
 END SUB
 
-SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice ptr = 0, indent as integer = 0)
+SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice ptr = 0, indent as integer = 0, icon_group_x as integer = 0)
  DIM index as integer = UBOUND(ses.slicemenu) + 1
  REDIM PRESERVE ses.slicemenu(index) as SliceEditMenuItem
  WITH ses.slicemenu(index)
@@ -2758,29 +2761,33 @@ SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuIte
   .s = caption
   .handle = sl
   .indent = indent
+  .icon_group_x = icon_group_x
  END WITH
 END SUB
 
 SUB slice_editor_refresh_recurse (ses as SliceEditState, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
  WITH *sl
   DIM caption as string
-  DIM spaces as integer = indent
-  spaces += 1  'Add 1 space for the type icon
-  'Space for other icons:
-  IF sl->Fill THEN spaces += 1
-  IF sl->Clip THEN spaces += 1
-  IF sl->AutoSort THEN spaces += 1
-  IF sl->ExtraVec THEN spaces += 1
-  IF sl->Lookup THEN spaces += 1
-  DIM drawopts as DrawOptions ptr = get_slice_drawopts(sl, NO)
-  IF drawopts <> NULL ANDALSO drawopts->with_blending THEN spaces += 1
+  'Add a space for the type icon
+  DIM spaces as integer = indent + 1
+  'Space for sl:/sli: icon (This is in the wrong place)
+  'IF sl->Lookup ANDALSO ses.show_typenames = NO THEN spaces += 1
   caption = STRING(spaces, " ")
   IF sl->EditorHideChildren ANDALSO sl->NumChildren THEN
    caption &= "${K" & uilook(uiText) & "}+[" & sl->NumChildren & "]${K-1}"
   END IF
   caption &= slice_caption(ses, edslice, sl)
+  'Trailing space for other icons, used to draw the background behind the icons
+  spaces = 0
+  IF sl->Fill THEN spaces += 1
+  IF sl->Clip THEN spaces += 1
+  IF sl->AutoSort THEN spaces += 1
+  IF sl->ExtraVec THEN spaces += 1
+  DIM drawopts as DrawOptions ptr = SliceDrawOpts(sl, NO)
+  IF drawopts <> NULL ANDALSO drawopts->with_blending THEN spaces += 1
+
   IF sl <> hidden_slice THEN
-   slice_editor_refresh_append ses, mnidSlice, caption, sl, indent
+   slice_editor_refresh_append ses, mnidSlice, caption & SPACE(spaces), sl, indent, textwidth(caption)
    indent += 1
   END IF
   IF NOT sl->EditorHideChildren THEN
@@ -3356,6 +3363,7 @@ SUB SliceEditSettingsMenu.update()
  IF in_detail_editor = NO THEN
   add_item 7, , "Show positions: " & yesorno(ses->show_positions)
   add_item 8, , "Show sizes: " & yesorno(ses->show_sizes)
+  add_item 22, , "Always show type names: " & yesorno(ses->show_typenames)
  END IF
  add_item 11, , safe_caption(hide_captions(), ses->hide_mode) & " (F4)"
  add_item 12, , "Show root slice: " & yesorno(ses->show_root) & " (F5)"
