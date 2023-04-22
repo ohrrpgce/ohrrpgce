@@ -12,7 +12,7 @@ Tools:
 
 Pick (press P) is the default mode (pressing ESC goes back to Pick). Click on a slice to select it. Arrow keys change the selected slice in the list of slices.
 
-Even when Pick isn't the current tool, you can still select slices by Right-clicking, or with ALT+up/down, and also with CTRL+arrow keys (see above).
+Even when Pick isn't the current tool, you can still select slices by Right-clicking, or with ALT+up/down, and also with CTRL+arrow keys (see above). Hold CTRL to click on invisible slices including containers, panels, etc.
 
 Move (press M): move a slice with arrow keys and mouse drags.
 

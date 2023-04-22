@@ -680,6 +680,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   setwait 55
   setkeys
   DIM shiftctrl as KeyBits = keyval(scShift) OR keyval(scCtrl)
+  DIM altctrl as KeyBits = keyval(scAlt) OR keyval(scCtrl)
 
   ses.want_show_tooltip = (readmouse.moved_dist <= 2)
   ses.tooltip = ""
@@ -774,9 +775,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   topmost = slice_editor_mouse_over(ses, edslice)
 
   ' Tools, clicking and dragging slices
-  'While holding Ctrl/Alt arrow keys act on the menu (Ctrl/Alt-clicking is unassigned
-  'so don't care that those are also disabled)
-  IF state.need_update = NO ANDALSO keyval(scCtrl) = 0 ANDALSO keyval(scAlt) = 0 THEN
+  IF state.need_update = NO THEN
    'Button clicks which select slices. (Always in right-click, even when not Picking)
    DIM select_buttons as MouseButton = mouseRight
    'Buttons for dragging to edit slices
@@ -793,14 +792,18 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
 
     CASE SliceTool.move
      IF ses.curslice THEN
-      state.need_update OR= xy_grabber(ses.curslice->Pos, speed, drag_buttons)
+      'While holding Ctrl/Alt arrow keys act on the menu
+      IF altctrl = 0 THEN
+       state.need_update OR= xy_grabber(ses.curslice->Pos, speed, drag_buttons)
+      END IF
      ELSE
       ses.tool = SliceTool.pick
      END IF
 
     CASE SliceTool.resize
      IF ses.curslice THEN
-      IF xy_grabber(ses.curslice->Size, speed, drag_buttons) THEN
+      'While holding Ctrl/Alt arrow keys act on the menu
+      IF altctrl = 0 ANDALSO xy_grabber(ses.curslice->Size, speed, drag_buttons) THEN
        slice_edit_updates ses.curslice, @ses.curslice->Width
        slice_edit_updates ses.curslice, @ses.curslice->Height
        state.need_update = YES
@@ -817,8 +820,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
 
    END SELECT
 
-   ' Click selection
-   IF topmost ANDALSO (readmouse.release AND select_buttons) ANDALSO readmouse.dragging = mouseNone THEN
+   ' Click selection (but ignore drags)
+   IF topmost ANDALSO (readmouse.release AND select_buttons) ANDALSO readmouse.drag_dist < 3 THEN
     cursor_seek = topmost
     expand_slice_ancestors topmost
     state.need_update = YES
@@ -1128,7 +1131,10 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     toolbar &= tool_text("`R`esize", ses.tool = SliceTool.resize)
     'toolbar &= tool_text("`Z`ero pos", NO)
     IF ses.tool = SliceTool.move THEN toolbar &= "  Pos=" & ses.curslice->Pos
-    IF ses.tool = SliceTool.resize THEN toolbar &= "  Size=" & ses.curslice->Size
+    IF ses.tool = SliceTool.resize THEN
+     toolbar &= "  Size=" & ses.curslice->Size
+     IF SlicePossiblyResizable(ses.curslice) = NO THEN toolbar &= "  Not resizable"
+    END IF
     'toolbar &= "  f" & ses.mouse_focus & " h" & state.hover  & " u" & updated
     IF ses.tool = SliceTool.pick then
      toolbar &= !"\n`+` add slice. SHIFT" & CHR(27,28,29,26) & " to reorder"  'SHIFT arrows
@@ -1138,7 +1144,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    ELSE
     toolbar &= !"\n`+` add slice"
    END IF
-   toolbar &= ". CTRL" & CHR(27,28,29,26) & " walk tree"  'CTRL arrows
+   toolbar &= ". CTRL" & CHR(27,28,29,26) & " walk tree. CTRL-click select invisible"  'CTRL arrows
 
    toolbar = ticklite(toolbar)
    'The up/down arrows are probably not in the game font. And don't wrap.
@@ -1307,7 +1313,8 @@ FUNCTION slice_editor_mouse_over (byref ses as SliceEditState, edslice as Slice 
   ' (FindSliceAtPoint returns slices starting from the bottommost. We loop through every
   ' slice at this point (indexed by 'idx'))
   DIM temp as integer = idx  'modified byref
-  DIM sl as Slice ptr = FindSliceAtPoint(parent, mouse.pos, temp, YES, YES)
+  DIM visible_only as bool = IIF(keyval(scCtrl), NO, YES)
+  DIM sl as Slice ptr = FindSliceAtPoint(parent, mouse.pos, temp, YES, visible_only)
   IF sl = 0 THEN EXIT DO
 
   'Ignore various invisible types of slices. Don't ignore Scroll slices because they may have a scrollbar.
@@ -1325,6 +1332,9 @@ FUNCTION slice_editor_mouse_over (byref ses as SliceEditState, edslice as Slice 
      topmost = sl
     END IF
   END SELECT
+
+  'Hold Ctrl to select invisible slices too
+  IF visible_only = NO THEN topmost = sl
 
   sl->EditorColor = uilook(uiText)
   idx += 1
