@@ -123,10 +123,12 @@
 
 
 'Reload helper functions used by saving/loading
+DECLARE Sub SavePropBool OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as boolean)
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as integer)
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as double)
 DECLARE Sub SaveProp OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, s as string)
 
+DECLARE Sub SavePropBoolAlways OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as boolean)
 DECLARE Sub SavePropAlways OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as integer)
 DECLARE Sub SavePropAlways OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, byval value as double)
 DECLARE Sub SavePropAlways OVERLOAD (node as Reload.Nodeptr, propname as zstring ptr, s as string)
@@ -2304,7 +2306,7 @@ Sub SaveSpriteSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "flipv", dat->flipVert
  SaveProp node, "scaled", dat->scaled
  SavePropAlways node, "trans", dat->trans
- SaveProp node, "dissolving", cint(dat->dissolving)  'FB demands a cint on just certain booleans. It's buggy (sf#826)
+ SavePropBool node, "dissolving", dat->dissolving
  SaveProp node, "d_type", dat->d_type
  SaveProp node, "d_time", dat->d_time
  SaveProp node, "d_tick", dat->d_tick
@@ -4547,6 +4549,17 @@ Sub SaveProp(node as Reload.Nodeptr, propname as zstring ptr, byval value as int
  if value <> 0 then SavePropAlways node, propname, value
 End Sub
 
+'This function only exists because of FB bug sf#826 "Weird overload resolution with booleans", fixed in FB 1.10
+Sub SavePropBoolAlways(node as Reload.Nodeptr, propname as zstring ptr, byval value as boolean)
+ if node = 0 then debug "SaveProp null node ptr": Exit Sub
+ Reload.SetChildNode(node, propname, CLNGINT(value))
+END Sub
+
+'Ditto
+Sub SavePropBool(node as Reload.Nodeptr, propname as zstring ptr, byval value as boolean)
+ if value then SavePropBoolAlways node, propname, value
+End Sub
+
 Sub SavePropAlways(node as Reload.Nodeptr, propname as zstring ptr, byval value as double)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
  Reload.SetChildNode(node, propname, value)
@@ -4574,17 +4587,17 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  '--Save standard slice properties
  'NOTE: if something has a non-zero default load value, then you must use SavePropAlways
  SaveProp node, "type", SliceTypeName(sl)
- SaveProp node, "template", sl->template
+ SavePropBool node, "template", sl->template
  SaveProp node, "lookup", sl->lookup
  SaveProp node, "x", sl->x
  SaveProp node, "y", sl->Y
  'Have to save size even if set to fill
  SavePropAlways node, "w", sl->Width
  SavePropAlways node, "h", sl->Height
- SavePropAlways node, "vis", sl->Visible
- SaveProp node, "editorhidechildren", sl->EditorHideChildren
- SaveProp node, "paused", sl->Paused
- SaveProp node, "clip", sl->Clip
+ SavePropBoolAlways node, "vis", sl->Visible
+ SavePropBool node, "editorhidechildren", sl->EditorHideChildren
+ SavePropBool node, "paused", sl->Paused
+ SavePropBool node, "clip", sl->Clip
  SaveProp node, "vx", sl->Velocity.X
  SaveProp node, "vy", sl->Velocity.Y
  SaveProp node, "vtickx", sl->VelTicks.X
@@ -4601,13 +4614,13 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  SaveProp node, "anchorv", sl->AnchorVert
  if sl->ClampHoriz <> alignNone then SavePropAlways node, "clamph", sl->ClampHoriz
  if sl->ClampVert  <> alignNone then SavePropAlways node, "clampv", sl->ClampVert
- SaveProp node, "clamptoscreen", sl->ClampToScreen
+ SavePropBool node, "clamptoscreen", sl->ClampToScreen
  SaveProp node, "padt", sl->PaddingTop
  SaveProp node, "padl", sl->PaddingLeft
  SaveProp node, "padr", sl->PaddingRight
  SaveProp node, "padb", sl->PaddingBottom
  SaveProp node, "cover", sl->CoverChildren
- SaveProp node, "fill", sl->Fill
+ SavePropBool node, "fill", sl->Fill
  SaveProp node, "fillmode", sl->FillMode
  SaveProp node, "sort", sl->Sorter
  SaveProp node, "autosort", sl->AutoSort
