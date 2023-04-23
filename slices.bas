@@ -169,7 +169,7 @@ ReDim Shared SliceDebug(50) as Slice Ptr
 DIM NumDrawnSlices as integer
 
 'Whether template slices should be reveal - used in the slice editor
-DIM template_slices_shown as bool
+DIM template_slices_shown as boolean
 
 'ScreenSlice is used by other slices with ->Attach = slScreen
 DIM SHARED ScreenSlice as Slice Ptr
@@ -200,8 +200,8 @@ EXTERN "C"
 
 '==General slice code==========================================================
 
-Function Slice.IsShown() as bool
- return this.Visible andalso (this.Template = NO orelse template_slices_shown)
+Function Slice.IsShown() as boolean
+ return this.Visible andalso (this.Template = false orelse template_slices_shown)
 End Function
 
 'Whether this slice should be skipped for certain purposes (e.g. slice collisions, laying out or
@@ -1213,11 +1213,11 @@ End Sub
 
 'FillMode is so painful to deal with that we need these
 'TODO: find a proper solution
-Function Slice.FillHoriz() as bool
+Function Slice.FillHoriz() as boolean
  return this.Fill andalso this.FillMode <> sliceFillVert
 End Function
 
-Function Slice.FillVert() as bool
+Function Slice.FillVert() as boolean
  return this.Fill andalso this.FillMode <> sliceFillHoriz
 End Function
 
@@ -1476,7 +1476,7 @@ Sub SaveRectangleSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if dat->fuzzfactor <> 50 then
   SavePropAlways node, "fuzzfactor", dat->fuzzfactor
  end if
- SaveProp node, "fz_stationary", dat->fuzz_stationary
+ SaveProp node, "fz_stationary", cint(dat->fuzz_stationary)
  if dat->fuzz_zoom <> 1 then
   SavePropAlways node, "fz_zoom", dat->fuzz_zoom
  end if
@@ -2304,12 +2304,12 @@ Sub SaveSpriteSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "flipv", dat->flipVert
  SaveProp node, "scaled", dat->scaled
  SavePropAlways node, "trans", dat->trans
- SaveProp node, "dissolving", dat->dissolving
+ SaveProp node, "dissolving", cint(dat->dissolving)  'FB demands a cint on just certain booleans. It's buggy (sf#826)
  SaveProp node, "d_type", dat->d_type
  SaveProp node, "d_time", dat->d_time
  SaveProp node, "d_tick", dat->d_tick
- SaveProp node, "d_back", dat->d_back
- SaveProp node, "d_auto", dat->d_auto
+ SaveProp node, "d_back", cint(dat->d_back)
+ SaveProp node, "d_auto", cint(dat->d_auto)
  SaveDrawOpts dat->drawopts, node
 end sub
 
@@ -2505,7 +2505,7 @@ Function SpriteSliceIsDissolving(byval sl as Slice ptr, byval only_auto as bool=
  if sl = 0 then debug "SpriteSliceIsDissolving null ptr" : return NO
  if sl->SliceType <> slSprite then return NO  'Not an error
  with *sl->SpriteData
-  if only_auto andalso not .d_auto then return NO
+  if only_auto <> NO andalso not .d_auto then return NO
   return .dissolving
  end with
 end function

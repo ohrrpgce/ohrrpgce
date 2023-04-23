@@ -1070,7 +1070,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     IF sl THEN
      IF sl->Visible = NO THEN
       col = uilook(uiSelectedDisabled + IIF(state.pt = i, global_tog, 0))
-     ELSEIF sl->EditorColor > -1 ANDALSO state.pt <> i THEN
+     ELSEIF sl->EditorColor > 0 ANDALSO state.pt <> i THEN
       'Don't override normal highlight
       col = sl->EditorColor
      END IF
@@ -1297,7 +1297,7 @@ END SUB
 FUNCTION slice_editor_mouse_over (byref ses as SliceEditState, edslice as Slice ptr) as Slice ptr
  FOR idx as integer = 0 TO UBOUND(ses.slicemenu)
   IF ses.slicemenu(idx).handle THEN
-   ses.slicemenu(idx).handle->EditorColor = -1  'default, ie uilook(uiMenuItem)
+   ses.slicemenu(idx).handle->EditorColor = 0  'default, ie uilook(uiMenuItem)
   END IF
  NEXT
 
@@ -2814,7 +2814,7 @@ SUB slice_editor_refresh_recurse (ses as SliceEditState, byref indent as integer
   'Space for sl:/sli: icon (This is in the wrong place)
   'IF sl->Lookup ANDALSO ses.show_typenames = NO THEN spaces += 1
   caption = STRING(spaces, " ")
-  IF sl->EditorHideChildren ANDALSO sl->NumChildren THEN
+  IF sl->EditorHideChildren ANDALSO sl->NumChildren <> 0 THEN
    caption &= "${K" & uilook(uiText) & "}+[" & sl->NumChildren & "]${K-1}"
   END IF
   caption &= slice_caption(ses, edslice, sl)
@@ -3429,9 +3429,9 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
   CASE 0
    IF activate THEN RETURN YES
   CASE 1  'Toggle visible
-   changed = boolgrabber(ses->curslice->Visible, state)
+   changed = booleangrabber(ses->curslice->Visible, state)
   CASE 2  'Toggle subtree hidden
-   changed = boolgrabber(ses->curslice->EditorHideChildren, state)
+   changed = booleangrabber(ses->curslice->EditorHideChildren, state)
   CASE 3  'Reset position/align
    IF activate THEN
     slice_editor_reset_slice *ses, ses->curslice
@@ -3482,7 +3482,7 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
   CASE 18  'Blend algo
    changed = intgrabber(gen(gen8bitBlendAlgo), 0, blendAlgoLAST)
   CASE 19  'Show templates
-   changed = boolgrabber(template_slices_shown, state)
+   changed = booleangrabber(template_slices_shown, state)
   CASE 20  'Edit lookup codes
    IF activate THEN edit_slice_lookup_codes *ses, , ses->slicelookup()
   CASE 22

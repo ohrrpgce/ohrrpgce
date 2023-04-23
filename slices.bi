@@ -332,13 +332,13 @@ Type Slice
     Size as XYPair
   End Union
 
-  Visible as bool
+  Visible as boolean
   'A slice is shown if Visible=YES and it's not a template (or template_slices_shown=YES)
-  Declare Function IsShown() as bool
+  Declare Function IsShown() as boolean
 
-  Template as bool 'Is a template slice, meaning it's normally completely hidden
-  Paused as bool  'Whether to not apply target and velocity movement to this slice tree
-  Clip as bool
+  Template as boolean      'Is a template slice, meaning it's normally completely hidden
+  Paused as boolean        'Whether to not apply target and velocity movement to this slice tree
+  Clip as boolean
 
   'moving at a constant pixels-per-tick speed (direct setting should cancel targ)
   Velocity as XYPair
@@ -355,8 +355,15 @@ Type Slice
                        'The script handle is stored at plotslices(.TableSlot).handle.
   Lookup as integer
 
-  EditorColor as integer 'Not saved, used only by slice editor. -1 if not overridden
-  EditorHideChildren as bool 'Saved, but only matters for the editor
+  EditorColor as ubyte     'Not saved, used only by slice editor. 0 if not overridden
+  EditorHideChildren as boolean 'Saved, but only matters for the editor
+
+  'Protect is used to mark slices that script authors should not be
+  'allowed to directly delete or reparent.
+  'Note that this is only checked when a slice is directly freed or
+  'moved, so if a Protected slice has an unprotected ancestor, then
+  'it can still be deleted or moved indirectly.
+  Protect as boolean
 
   AutoSort as AutoSortModes
   Sorter as integer        'Sort order, used by CustomSortChildSlices. Lower to the bottom.
@@ -366,23 +373,23 @@ Type Slice
   Declare Property Extra(index as integer) as integer
   Declare Property Extra(index as integer, newval as integer)
 
+  as integer PaddingTop, PaddingLeft, PaddingRight, PaddingBottom
+
   AlignHoriz as AlignType  'Relative to parent. Only used when not filling
   AlignVert as AlignType   'Relative to parent. Only used when not filling
   AnchorHoriz as AlignType 'Relative to self. Only used when not filling
   AnchorVert as AlignType  'Relative to self. Only used when not filling
   ClampHoriz as AlignType  'alignNone for no clamping. Only used when not filling
-  ClampVert as AlignType  'alignNone for no clamping. Only used when not filling
-  ClampToScreen as bool 'NO means clamp to parent, YES means clamp to screen
-
-  as integer PaddingTop, PaddingLeft, PaddingRight, PaddingBottom
+  ClampVert as AlignType   'alignNone for no clamping. Only used when not filling
+  ClampToScreen as boolean 'Clamp to screen rather than parent
 
   ' Note that setting a slice to Fill causes its size to be modified, and its
   ' position to be ignored. This inconsistency is unfortunate. It also means
   ' the size of non-resizeable slices can be changed, which is a bug.
-  Fill as bool
+  Fill as boolean
   FillMode as FillModes
-  Declare Function FillHoriz() as bool
-  Declare Function FillVert() as bool
+  Declare Function FillHoriz() as boolean
+  Declare Function FillVert() as boolean
 
   CoverChildren as CoverModes
 
@@ -441,13 +448,6 @@ Type Slice
     PanelData    as PanelSliceDataFwd ptr
   End Union
 
-  'Protect is used to mark slices that script authors should not be
-  'allowed to directly delete or reparent.
-  'Note that this is only checked when a slice is directly freed or
-  'moved, so if a Protected slice has an unprotected ancestor, then
-  'it can still be deleted or moved indirectly.
-  Protect as bool
-
   'NOTE: When adding to this, remember to update CloneSliceTree, SliceLoadFromNode and SliceSaveToNode
 End Type
 
@@ -462,15 +462,15 @@ Type RectangleSliceData
  border as RectBorderTypes = borderLine   'borderNone/borderLine/0-14 for box style's border
  translucent as RectTransTypes
  fuzzfactor as integer = 50     'For transFuzzy and transBlend (as opacity)
- fuzz_stationary as bool
+ fuzz_stationary as boolean
  fuzz_zoom as integer = 1
  bgcol as integer
  'if style is changed then set style_loaded = NO
  style as integer = -1    '-1: None, 0-14: style
- style_loaded as bool 'Used internally flag whether a change of style has been applied to fgcol, bgcol, or border
+ style_loaded as boolean 'Used internally flag whether a change of style has been applied to fgcol, bgcol, or border
 
  'When use_raw_box_border is YES, ignore .border and use .raw_box_border instead.
- use_raw_box_border as bool
+ use_raw_box_border as boolean
  raw_box_border as integer
 
  'Declare constructor (byval style as integer = -1, byval bgcol as integer=0, byval translucent as bool = NO, byval fgcol as integer = -1, byval border as integer = -1)
@@ -478,7 +478,7 @@ End Type
 
 Type LineSliceData
  col as integer
- 'flipped as bool
+ 'flipped as boolean
 
  Declare Sub SetColor(color as integer)
 End Type
@@ -537,13 +537,13 @@ Type SpriteSliceData
  drawopts as DrawOptions = def_drawoptions
 
  'dissolve state data
- dissolving as bool
+ dissolving as boolean
+ d_back as boolean ' backwards: NO dissolve away, YES dissolve back in
+ d_auto as boolean ' YES if the dissolve is animating automatically
+                   ' (d_tick advances when drawn) (FIXME: wrong place for that)
  d_time as integer ' number of ticks that the dissolve should last
  d_tick as integer ' counts which tick the dissolve is in right now
  d_type as integer ' id number of the dissolve animation
- d_back as bool ' backwards: NO dissolve away, YES dissolve back in
- d_auto as bool ' YES if the dissolve is animating automatically
-                ' (d_tick advances when drawn) (FIXME: wrong place for that)
 End Type
 
 'Shows the currently loaded map at the given slice pos
@@ -844,7 +844,7 @@ DECLARE Sub CalcPanelSupport (byref support as RectType, byval par as Slice ptr,
 
 
 EXTERN NumDrawnSlices as integer
-EXTERN template_slices_shown as bool
+EXTERN template_slices_shown as boolean
 
 End Extern
 
