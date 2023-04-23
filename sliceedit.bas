@@ -147,6 +147,7 @@ CONST kindlimitPOSITIONING = 7      'Either Grid or Layout
 ENUM EditRuleMode
   erNone              'Used for labels and links
   erIntgrabber
+  erBytegrabber
   erEnumgrabber       'Must be used for anything that's an Enum
   erShortStrgrabber   'No full-screen text editor
   erStrgrabber        'Press ENTER for full-screen text editor
@@ -162,9 +163,9 @@ TYPE EditRule
   mode as EditRuleMode
   lower as integer    'Interpreted as percent for percent_grabber
   upper as integer    'Interpreted as percent for percent_grabber
-  default as integer  'Currently only supported by erEnumgrabber! Value selected by Delete key
+  default as integer  'Value selected by Delete/Backspace key. Not supported by strings, bools, floats
   group as integer    'Marks this rule as a member of a numbered group, the meaning of which is defined in the implementation
-  helpkey as string   'actually appended to "sliceedit_" to get the full helpkey
+  helpkey as zstring ptr 'Suffix appended to "sliceedit_" to get the full helpkey
 END TYPE
 
 '==============================================================================
@@ -267,14 +268,15 @@ DECLARE SUB slice_editor_load_settings(byref ses as SliceEditState)
 DECLARE FUNCTION collection_context(edslice as Slice ptr) as SliceCollectionContext ptr
 
 'Slice EditRule convenience functions
-DECLARE SUB sliceed_rule (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
-DECLARE SUB sliceed_rule_str (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as string ptr, upper as integer=0, group as integer = 0)
-DECLARE SUB sliceed_rule_enum (rules() as EditRule, helpkey as string, dataptr as ssize_t ptr, lower as integer=0, upper as integer=0, default as integer=0, group as integer = 0)
-DECLARE SUB sliceed_rule_double (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as double ptr, lower as integer=0, upper as integer=100, group as integer = 0)
-DECLARE SUB sliceed_rule_single (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as single ptr, lower as integer=0, upper as integer=100, group as integer = 0)
-DECLARE SUB sliceed_rule_tog overload (rules() as EditRule, helpkey as string, dataptr as bool ptr, group as integer=0)
-DECLARE SUB sliceed_rule_tog overload (rules() as EditRule, helpkey as string, dataptr as boolean ptr, group as integer=0)
-DECLARE SUB sliceed_rule_none (rules() as EditRule, helpkey as string, group as integer = 0)
+DECLARE SUB sliceed_rule (rules() as EditRule, helpkey as zstring ptr, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
+DECLARE SUB sliceed_rule_byte (rules() as EditRule, helpkey as zstring ptr, dataptr as byte ptr, lower as integer=0, upper as integer=127, group as integer = 0)
+DECLARE SUB sliceed_rule_str (rules() as EditRule, helpkey as zstring ptr, mode as EditRuleMode, dataptr as string ptr, upper as integer=0, group as integer = 0)
+DECLARE SUB sliceed_rule_enum (rules() as EditRule, helpkey as zstring ptr, dataptr as ssize_t ptr, lower as integer=0, upper as integer=0, group as integer = 0)
+DECLARE SUB sliceed_rule_double (rules() as EditRule, helpkey as zstring ptr, mode as EditRuleMode, dataptr as double ptr, lower as integer=0, upper as integer=100, group as integer = 0)
+DECLARE SUB sliceed_rule_single (rules() as EditRule, helpkey as zstring ptr, mode as EditRuleMode, dataptr as single ptr, lower as integer=0, upper as integer=100, group as integer = 0)
+DECLARE SUB sliceed_rule_tog overload (rules() as EditRule, helpkey as zstring ptr, dataptr as bool ptr, group as integer=0)
+DECLARE SUB sliceed_rule_tog overload (rules() as EditRule, helpkey as zstring ptr, dataptr as boolean ptr, group as integer=0)
+DECLARE SUB sliceed_rule_none (rules() as EditRule, helpkey as zstring ptr, group as integer = 0)
 
 '==============================================================================
 
@@ -1732,7 +1734,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   setkeys YES
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN
-   DIM helpkey as string = rules(state.pt).helpkey
+   DIM helpkey as string = *rules(state.pt).helpkey
    show_help "sliceedit_" & IIF(LEN(helpkey), helpkey, "detail")
   END IF
   IF keyval(scTab) > 1 THEN
@@ -1891,24 +1893,41 @@ END SUB
 
 SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
  DIM rule as EditRule = rules(state.pt)
+ DIM set_default as bool
+ IF rule.default <> 0 ANDALSO (keyval(scDelete) OR keyval(scBackspace)) > 0 THEN
+  set_default = YES
+  state.need_update = YES
+ END IF
  SELECT CASE rule.mode
   CASE erIntgrabber
    DIM n as integer ptr = rule.dataptr
-   IF intgrabber(*n, rule.lower, rule.upper, , , , , NO) THEN  'Don't autoclamp
+   IF set_default THEN
+    *n = rule.default
+   ELSEIF intgrabber(*n, rule.lower, rule.upper, , , , , NO) THEN  'Don't autoclamp
+    state.need_update = YES
+   END IF
+  CASE erBytegrabber
+   DIM n as byte ptr = rule.dataptr
+   DIM dat as integer = *n
+   IF set_default THEN
+    *n = rule.default
+   ELSEIF intgrabber(dat, rule.lower, rule.upper, , , , , NO) THEN  'Don't autoclamp
+    *n = dat
     state.need_update = YES
    END IF
   CASE erEnumgrabber
    ' In 64 bit builds, enums are 64 bit.
    DIM n as ssize_t ptr = rule.dataptr
-   IF (keyval(scDelete) OR keyval(scBackspace)) > 0 THEN
+   IF set_default THEN
     *n = rule.default
-    state.need_update = YES
    ELSEIF intgrabber(*n, cast(ssize_t, rule.lower), cast(ssize_t, rule.upper), , , , , NO) THEN  'Don't autoclamp
     state.need_update = YES
    END IF
   CASE erToggle
    DIM n as integer ptr = rule.dataptr
-   IF boolgrabber(*n, state) THEN
+   IF set_default THEN
+    *n = rule.default
+   ELSEIF boolgrabber(*n, state) THEN
     state.need_update = YES
    END IF
   CASE erToggleBoolean
@@ -2177,7 +2196,7 @@ SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Sli
 END SUB
 
 'Add a menu item to edit a piece of data (EditRule) to rules()
-SUB sliceed_rule (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
+SUB sliceed_rule (rules() as EditRule, helpkey as zstring ptr, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
  DIM index as integer = UBOUND(rules) + 1
  REDIM PRESERVE rules(index) as EditRule
  WITH rules(index)
@@ -2190,44 +2209,53 @@ SUB sliceed_rule (rules() as EditRule, helpkey as string, mode as EditRuleMode, 
  END WITH
 END SUB
 
-'We have a lot of apparently redundant functions to allow error compile-
+'Set default value when pressing Delete. Must be called after one of the other sliceedit_rule_* subs
+'Not supported by strings, bools/toggles, or floats.
+SUB sliceed_rule_set_default (rules() as EditRule, default as integer=0)
+ rules(UBOUND(rules)).default = default
+END SUB
+
+SUB sliceed_rule_byte (rules() as EditRule, helpkey as zstring ptr, dataptr as byte ptr, lower as integer=0, upper as integer=127, group as integer = 0)
+ sliceed_rule rules(), helpkey, erBytegrabber, cast(integer ptr, dataptr), lower, upper, group
+END SUB
+
+'We have a lot of apparently redundant functions to allow compile-
 'and possibly also run-time error checking. In particular, in 64 bit builds,
 'enums are 64 bit, so to catch errors we shouldn't allow passing them to sliceed_rule
 'by giving it "dataptr as any ptr" argument.
 
-SUB sliceed_rule_enum (rules() as EditRule, helpkey as string, dataptr as ssize_t ptr, lower as integer=0, upper as integer=0, default as integer=0, group as integer = 0)
+SUB sliceed_rule_enum (rules() as EditRule, helpkey as zstring ptr, dataptr as ssize_t ptr, lower as integer=0, upper as integer=0, group as integer = 0)
  sliceed_rule rules(), helpkey, erEnumgrabber, cast(integer ptr, dataptr), lower, upper, group
- rules(UBOUND(rules)).default = default
 END SUB
 
 'lower and upper are in percent
-SUB sliceed_rule_double (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as double ptr, lower as integer=0, upper as integer=100, group as integer = 0)
+SUB sliceed_rule_double (rules() as EditRule, helpkey as zstring ptr, mode as EditRuleMode, dataptr as double ptr, lower as integer=0, upper as integer=100, group as integer = 0)
  sliceed_rule rules(), helpkey, mode, cast(integer ptr, dataptr), lower, upper, group
 END SUB
 
 'lower and upper are in percent
-SUB sliceed_rule_single (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as single ptr, lower as integer=0, upper as integer=100, group as integer = 0)
+SUB sliceed_rule_single (rules() as EditRule, helpkey as zstring ptr, mode as EditRuleMode, dataptr as single ptr, lower as integer=0, upper as integer=100, group as integer = 0)
  sliceed_rule rules(), helpkey, mode, cast(integer ptr, dataptr), lower, upper, group
 END SUB
 
 ' upper is the maximum string length
-SUB sliceed_rule_str (rules() as EditRule, helpkey as string, mode as EditRuleMode, dataptr as string ptr, upper as integer=0, group as integer = 0)
+SUB sliceed_rule_str (rules() as EditRule, helpkey as zstring ptr, mode as EditRuleMode, dataptr as string ptr, upper as integer=0, group as integer = 0)
  sliceed_rule rules(), helpkey, mode, cast(integer ptr, dataptr), 0, upper, group
 END SUB
 
-SUB sliceed_rule_none(rules() as EditRule, helpkey as string, group as integer = 0)
+SUB sliceed_rule_none(rules() as EditRule, helpkey as zstring ptr, group as integer = 0)
  sliceed_rule rules(), helpkey, erNone, 0, 0, 0, group
 END SUB
 
-SUB sliceed_rule_tog(rules() as EditRule, helpkey as string, dataptr as bool ptr, group as integer=0)
+SUB sliceed_rule_tog(rules() as EditRule, helpkey as zstring ptr, dataptr as bool ptr, group as integer=0)
  sliceed_rule rules(), helpkey, erToggle, dataptr, -1, 0, group
 END SUB
 
-SUB sliceed_rule_tog(rules() as EditRule, helpkey as string, dataptr as boolean ptr, group as integer=0)
+SUB sliceed_rule_tog(rules() as EditRule, helpkey as zstring ptr, dataptr as boolean ptr, group as integer=0)
  sliceed_rule rules(), helpkey, erToggleBoolean, cast(integer ptr, dataptr), -1, 0, group
 END SUB
 
-SUB sliceed_header(menu() as string, rules() as EditRule, text as string, dataptr as bool ptr = NULL, helpkey as string = "")
+SUB sliceed_header(menu() as string, rules() as EditRule, text as string, dataptr as bool ptr = NULL, helpkey as zstring ptr = @"")
  a_append menu(), fgtag(uilook(eduiHeading), text)
  IF dataptr THEN
   sliceed_rule_tog rules(), helpkey, dataptr
@@ -2260,7 +2288,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
 
  REDIM menu(0) as string
  REDIM rules(0) as EditRule
- rules(0).helpkey = "detail"
+ rules(0).helpkey = @"detail"
  menu(0) = "Previous Menu"
  WITH *sl
 
@@ -2356,7 +2384,8 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      sliceed_rule rules(), "rect_raw_box_border", erIntgrabber, @(dat->raw_box_border), 0, gen(genMaxBoxBorder), slgrBROWSEBOXBORDER
     ELSE
      a_append menu(), "   Border Style: " & caption_or_int(BorderCaptions(), dat->border)
-     sliceed_rule_enum rules(), "rect_border", @(dat->border), -2, 14, borderLine, slgrUPDATERECTCUSTOMSTYLE
+     sliceed_rule_enum rules(), "rect_border", @(dat->border), -2, 14, slgrUPDATERECTCUSTOMSTYLE
+     sliceed_rule_set_default rules(), borderLine
     END IF
     a_append menu(), " Translucency: " & TransCaptions(dat->translucent)
     sliceed_rule_enum rules(), "rect_trans", @(dat->translucent), 0, transLAST
@@ -2403,7 +2432,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     DIM byref sizeinfo as SpriteSize = sprite_sizes(dat->spritetype)
     a_append menu(), " Type: " & sizeinfo.name
     DIM mintype as SpriteType = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, sprTypeFrame, 0)
-    sliceed_rule_enum rules(), "sprite_type", @(dat->spritetype), mintype, sprTypeLastPickable, , slgrUPDATESPRITE
+    sliceed_rule_enum rules(), "sprite_type", @(dat->spritetype), mintype, sprTypeLastPickable, slgrUPDATESPRITE
     IF dat->spritetype = sprTypeFrame THEN
      IF dat->assetfile = NULL THEN
       a_append menu(), " Raw Frame: " & frame_describe(dat->img.sprite)
@@ -2588,12 +2617,14 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    DIM clamping as bool = NO
    IF fillhoriz = NO THEN
     a_append menu(), " Clamp horiz.: " & clamp_caption(.ClampHoriz, NO)
-    sliceed_rule_enum rules(), "clamp", @.ClampHoriz, 0, 3, alignNone
+    sliceed_rule_enum rules(), "clamp", @.ClampHoriz, 0, 3
+    sliceed_rule_set_default rules(), alignNone
     clamping OR= (.ClampHoriz <> alignNone)
    END IF
    IF fillvert = NO THEN
     a_append menu(), " Clamp vert.: " & clamp_caption(.ClampVert, YES)
-    sliceed_rule_enum rules(), "clamp", @.ClampVert, 0, 3, alignNone
+    sliceed_rule_enum rules(), "clamp", @.ClampVert, 0, 3
+    sliceed_rule_set_default rules(), alignNone
     clamping OR= (.ClampVert <> alignNone)
    END IF
    IF clamping THEN
