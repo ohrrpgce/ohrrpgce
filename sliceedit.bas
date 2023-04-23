@@ -2348,13 +2348,13 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule rules(), "size", erIntgrabber, @.Height, minsize, 9999, slgrPICKWH
   IF ses.privileged THEN
    a_append menu(), " Cover Children: " & CoverModeCaptions(.CoverChildren)
-   sliceed_rule_enum rules(), "cover", @.CoverChildren, 0, 3
+   sliceed_rule_byte rules(), "cover", @.CoverChildren, 0, 3
   END IF
   a_append menu(), " Fill Parent: " & yesorno(.Fill)
   sliceed_rule_tog rules(), "fill", @.Fill
   IF .Fill THEN
    a_append menu(), "  Fill Type: " & FillModeCaptions(.FillMode)
-   sliceed_rule_enum rules(), "fill", @.FillMode, 0, 2
+   sliceed_rule_byte rules(), "fill", @.FillMode, 0, 2
   END IF
  END IF
 
@@ -2565,9 +2565,9 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      sliceed_rule_tog rules(), "layout_last_row_justified", @dat->last_row_justified
     END IF
     a_append menu(), " Row alignment: " & dir_align_caption(dat->primary_dir, dat->row_alignment)
-    sliceed_rule_enum rules(), "layout_row_alignment", @dat->row_alignment, 0, 2
+    sliceed_rule_byte rules(), "layout_row_alignment", @dat->row_alignment, 0, 2
     a_append menu(), " Within-row alignment: " & dir_align_caption(dat->secondary_dir, dat->cell_alignment)
-    sliceed_rule_enum rules(), "layout_cell_alignment", @dat->cell_alignment, 0, 2
+    sliceed_rule_byte rules(), "layout_cell_alignment", @dat->cell_alignment, 0, 2
     IF dat->justified THEN
      a_append menu(), " Minimum within-row padding: " & dat->primary_padding
     ELSE
@@ -2600,30 +2600,30 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   IF ses.expand_alignment THEN
    IF fillhoriz = NO THEN
     a_append menu(), " Align horiz. to: " & HorizCaptions(.AlignHoriz)
-    sliceed_rule_enum rules(), "align", @.AlignHoriz, 0, 2
+    sliceed_rule_byte rules(), "align", @.AlignHoriz, alignLeft, alignRight
    END IF
    IF fillvert = NO THEN
     a_append menu(), " Align vert.  to: " & VertCaptions(.AlignVert)
-    sliceed_rule_enum rules(), "align", @.AlignVert, 0, 2
+    sliceed_rule_byte rules(), "align", @.AlignVert, alignLeft, alignRight
    END IF
    IF fillhoriz = NO THEN
     a_append menu(), " Anchor horiz. at: " & HorizCaptions(.AnchorHoriz)
-    sliceed_rule_enum rules(), "anchor", @.AnchorHoriz, 0, 2
+    sliceed_rule_byte rules(), "anchor", @.AnchorHoriz, alignLeft, alignRight
    END IF
    IF fillvert = NO THEN
     a_append menu(), " Anchor vert.  at: " & VertCaptions(.AnchorVert)
-    sliceed_rule_enum rules(), "anchor", @.AnchorVert, 0, 2
+    sliceed_rule_byte rules(), "anchor", @.AnchorVert, alignLeft, alignRight
    END IF
    DIM clamping as bool = NO
    IF fillhoriz = NO THEN
     a_append menu(), " Clamp horiz.: " & clamp_caption(.ClampHoriz, NO)
-    sliceed_rule_enum rules(), "clamp", @.ClampHoriz, 0, 3
+    sliceed_rule_byte rules(), "clamp", @.ClampHoriz, alignLeft, alignBoth
     sliceed_rule_set_default rules(), alignNone
     clamping OR= (.ClampHoriz <> alignNone)
    END IF
    IF fillvert = NO THEN
     a_append menu(), " Clamp vert.: " & clamp_caption(.ClampVert, YES)
-    sliceed_rule_enum rules(), "clamp", @.ClampVert, 0, 3
+    sliceed_rule_byte rules(), "clamp", @.ClampVert, alignLeft, alignBoth
     sliceed_rule_set_default rules(), alignNone
     clamping OR= (.ClampVert <> alignNone)
    END IF
@@ -2666,7 +2666,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
 
  sliceed_header menu(), rules(), "[Sorting]", @ses.expand_sort
  IF ses.expand_sort THEN
-  sliceed_rule_enum rules(), "autosort", @.AutoSort, 0, 5
+  sliceed_rule_byte rules(), "autosort", @.AutoSort, 0, slAutoSortLAST
   a_append menu(), " Auto-sort children: " & AutoSortCaptions(.AutoSort)
   sliceed_rule rules(), "sortorder", erIntgrabber, @.Sorter, INT_MIN, INT_MAX
   DIM sortNA as string

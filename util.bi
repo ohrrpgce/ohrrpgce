@@ -716,7 +716,8 @@ END TYPE
 
 'Used for menu and slice anchor points and slice align points
 'Not to be confused with the rCenter, ancCenter, etc, constants!
-Enum AlignType
+Type AlignType as byte
+Enum 'AlignType
   alignLeft = 0
   alignTop = 0
   alignMiddle = 1

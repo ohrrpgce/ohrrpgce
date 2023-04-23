@@ -203,12 +203,14 @@ Enum 'SliceTypes
  slAddCollection      'Not a real type, used only by slice_edit_detail_browse_slicetype
 End Enum
 
-Enum AttachTypes
+Type AttachTypes as byte
+Enum 'AttachTypes
  slSlice
  slScreen
 End Enum
 
-Enum AutoSortModes
+Type AutoSortModes as byte
+Enum 'AutoSortModes
  slAutoSortNone = 0
  slAutoSortCustom = 1
  slAutoSortY = 2
@@ -218,13 +220,15 @@ Enum AutoSortModes
  slAutoSortLAST = 5
 End Enum
 
-Enum FillModes
+Type FillModes as byte
+Enum 'FillModes
  sliceFillFull = 0
  sliceFillHoriz = 1
  sliceFillVert = 2
 End Enum
 
-Enum CoverModes
+Type CoverModes as byte
+Enum 'CoverModes
  coverNone = 0
  coverHoriz = 1
  coverVert = 2
@@ -343,8 +347,7 @@ Type Slice
 
   'moving to a destination in constant time. (replaces velocity)
   Targ as XYPair
-  TargResidue_X as double
-  TargResidue_Y as double
+  TargResidue as Float2    'Not saved
   TargTicks as integer
 
   Context as SliceContext ptr  'NULL if none

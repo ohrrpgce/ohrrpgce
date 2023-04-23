@@ -3906,8 +3906,8 @@ end Function
 Sub SetSliceTarg(byval s as Slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
  if s = 0 then debug "SetSliceTarg null ptr": exit sub
  with *s
-  .TargResidue_X = 0.0
-  .TargResidue_Y = 0.0
+  .TargResidue.X = 0.0
+  .TargResidue.Y = 0.0
   .Targ.X = x
   .Targ.Y = y
   .TargTicks = ticks
@@ -3942,13 +3942,13 @@ Local Sub SeekSliceTarg(byval s as Slice ptr)
   if .TargTicks > 0 then
     dim as double temp
     dim as integer movestep
-    temp = s->TargResidue_X + (s->Targ.X - .X) / s->TargTicks
+    temp = s->TargResidue.X + (s->Targ.X - .X) / s->TargTicks
     movestep = temp
-    s->TargResidue_X = temp - movestep
+    s->TargResidue.X = temp - movestep
     .X += movestep
-    temp = s->TargResidue_Y + (s->Targ.Y - .Y) / s->TargTicks
+    temp = s->TargResidue.Y + (s->Targ.Y - .Y) / s->TargTicks
     movestep = temp
-    s->TargResidue_Y = temp - movestep
+    s->TargResidue.Y = temp - movestep
     .Y += movestep
 
    .TargTicks -= 1
@@ -4479,8 +4479,8 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
   .VelTicks.Y = sl->VelTicks.Y
   .Targ.X = sl->Targ.X
   .Targ.Y = sl->Targ.Y
-  .TargResidue_X = sl->TargResidue_X
-  .TargResidue_Y = sl->TargResidue_Y
+  .TargResidue.X = sl->TargResidue.Y
+  .TargResidue.Y = sl->TargResidue.Y
   .TargTicks = sl->TargTicks
   .AlignHoriz = sl->AlignHoriz
   .AlignVert = sl->AlignVert

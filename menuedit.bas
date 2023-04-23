@@ -192,7 +192,9 @@ SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuD
     reposition_anchor menudata, mstate, viewport_page
    END IF
   CASE 11 ' text align
-   IF intgrabber(menudata.textalign, alignLeft, alignRight) THEN state.need_update = YES
+   DIM temp as integer = menudata.textalign  'byte to integer
+   IF intgrabber(temp, alignLeft, alignRight) THEN state.need_update = YES
+   menudata.textalign = temp
   CASE 12 ' Minimum width in chars
    IF intgrabber(menudata.min_chars, 0, 200) THEN state.need_update = YES
   CASE 13 ' Maximum width in chars
