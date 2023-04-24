@@ -90,6 +90,7 @@ WHAT IS NEW?
     * Slice Editor uses icons to show slice type and other info [Ralph, Kiefer]
     * Distribute Game for Steam on Windows or Linux options, which add the
       libraries needed for Steam achievements [Ralph]
+    * Distribute Game submenu to Customize Package Contents [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

@@ -4956,6 +4956,8 @@ END SUB
 SUB load_distrib_state(byref distinfo as DistribState, byval node as Reload.NodePtr)
  IF NodeName(node) <> "distrib" THEN debug "root node is not distrib"
 
+ ERASE distinfo.extra_files
+
  READNODE node, default
   distinfo.pkgname          = node."pkgname".string
   distinfo.gamename         = node."gamename".string
@@ -4969,6 +4971,12 @@ SUB load_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
   distinfo.itch_user        = node."itch_user".string
   distinfo.itch_gamename    = node."itch_gamename".string
   distinfo.steam_appid      = node."steam_appid".integer
+  distinfo.omit_readme      = node."omit_readme".exists
+  distinfo.omit_license     = node."omit_license".exists
+  node."extra_file".ignore
+ END READNODE
+ READNODE node, ignoreall
+  a_append distinfo.extra_files(), node."extra_file".string
  END READNODE
 
  '--Set up defaults
@@ -5019,6 +5027,11 @@ SUB save_distrib_state(byref distinfo as DistribState, byval node as Reload.Node
  SetChildNode node, "itch_user",   distinfo.itch_user
  SetChildNode node, "itch_gamename", distinfo.itch_gamename
  SetChildNode node, "steam_appid", distinfo.steam_appid
+ IF distinfo.omit_readme THEN SetChildNode node, "omit_readme", 1
+ IF distinfo.omit_license THEN SetChildNode node, "omit_license", 1
+ FOR idx as integer = 0 TO UBOUND(distinfo.extra_files)
+  AppendChildNode node, "extra_file", distinfo.extra_files(idx)
+ NEXT
 END SUB
 
 

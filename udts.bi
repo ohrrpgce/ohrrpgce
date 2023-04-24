@@ -1178,6 +1178,9 @@ TYPE DistribState
   itch_user as string
   itch_gamename as string
   steam_appid as integer
+  omit_readme as bool
+  omit_license as bool
+  extra_files(any) as string
 END TYPE
 
 'Holds the contents of a RELOAD node like general_reld."editor_version" or rsav."client_version"
