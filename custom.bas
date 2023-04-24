@@ -751,7 +751,7 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
  IF show_quit_msg ANDALSO read_config_bool("show_quit_msg", YES) ANDALSO getquitflag() = NO THEN
   clearpage vpage
   ' Don't let Spoonweaver's cat near your power cord!
-  pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a cat-induced hard-drive crash or a little brother might delete your files!", YES
+  pop_warning !"Remember to keep backup copies of your work!\n\nYou never know when an unknown bug, a cat-induced hard-drive crash or a little brother might delete your files!", YES
  END IF
  IF cleanup_workingdir_on_exit THEN
   empty_workingdir workingdir

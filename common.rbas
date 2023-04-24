@@ -2664,6 +2664,7 @@ SUB pop_warning(msg as zstring ptr, byval autoquit as bool = NO)
  dat->line_limit = 15
 
  DIM deadkeys as integer = 15
+ DIM mouse_moved as integer = 0
  DIM scrollbar_state as MenuState
  scrollbar_state.size = 16
 
@@ -2674,10 +2675,15 @@ SUB pop_warning(msg as zstring ptr, byval autoquit as bool = NO)
   setkeys
 
   IF autoquit THEN
+   'Make it easy to dismiss the message by ignoring it
    DIM winstate as WindowState ptr = gfx_getwindowstate()
-   IF winstate andalso winstate->focused = NO THEN EXIT DO
+   IF winstate ANDALSO winstate->focused = NO THEN EXIT DO
+   'Because readmouse.moved_dist doesn't work when not on the window
+   IF winstate ANDALSO winstate->mouse_over = NO THEN mouse_moved += 2
+   mouse_moved += readmouse.moved_dist
+   IF mouse_moved > 150 THEN EXIT DO
   END IF
-  
+
   IF deadkeys = 0 THEN
    IF keyval(ccCancel) > 1 OR enter_or_space() OR click_dismiss() THEN EXIT DO
    IF keyval(ccUp) > 1 THEN dat->first_line -= 1
