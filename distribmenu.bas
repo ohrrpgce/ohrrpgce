@@ -22,6 +22,7 @@ TYPE FnGatherFiles as FUNCTION (build_variant as string, basename as string, des
 DECLARE SUB distribute_game_as_windows_zip (dest_override as string = "")
 DECLARE SUB distribute_game_as_windows_installer (dest_override as string = "")
 DECLARE SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
+DECLARE FUNCTION gather_common_files (basename as string, destdir as string, newline as string) as bool
 DECLARE FUNCTION gather_files_for_windows (buildname as string, basename as string, destdir as string, distinfo as DistribState) as bool
 DECLARE FUNCTION gather_files_for_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
 DECLARE FUNCTION gather_files_for_mac (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
@@ -414,12 +415,7 @@ SUB write_readme_text_file (filename as string, LE as string=LINE_END, byval wra
   replacestr(s, LF, LE)
  END IF
 
- '--write the file to disk
- DIM fh as integer = FREEFILE
- OPEN filename for binary access write as #fh
- PUT #fh, , s
- CLOSE #fh
-  
+ write_file filename, s
 END SUB
 
 FUNCTION get_game_license_text_file() as string
@@ -471,11 +467,7 @@ SUB write_debian_copyright_file (filename as string, license_binary as string)
  s &= "=============================================================================" & LF
  s &= string_from_file(license_binary)
 
- '--write the file to disk
- DIM fh as integer = FREEFILE
- OPEN filename for binary as #fh
- PUT #fh, , s
- CLOSE #fh
+ write_file filename, s
 END SUB
 
 FUNCTION is_known_license(license_code as string) as bool
@@ -751,28 +743,22 @@ FUNCTION add_windows_gameplayer(basename as string, destdir as string) as string
  IF extract_zipfile(destzip, destdir) = NO THEN RETURN ""
  
  'Sanity check contents
+ IF sanity_check_buildinfo(destdir & SLASH & "buildinfo.ini") = NO THEN RETURN ""
  IF NOT isfile(destdir & SLASH & "game.exe") THEN dist_info "ERROR: Failed to unzip game.exe" : RETURN ""
- IF NOT isfile(destdir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
- IF sanity_check_buildinfo(destdir & SLASH & "buildinfo.ini") THEN RETURN ""
-
- 'All files should be distributed with games (except in .debs) except these two
- safekill destdir & SLASH & "README-player-only.txt"
- safekill destdir & SLASH & "buildinfo.ini"
 
  IF renamefile(destdir & SLASH & "game.exe", destexe) = NO THEN dist_info "Couldn't rename game.exe" : RETURN ""
  RETURN destexe
 END FUNCTION
 
 FUNCTION sanity_check_buildinfo(buildinfo_file as string) as bool
- 'Return YES if the sanity check has failed
- IF NOT isfile(buildinfo_file) THEN dist_info "ERROR: Failed to read buildinfo.ini" : RETURN YES
+ 'Return YES if the sanity check has passed
  DIM ver as integer = read_ini_int(buildinfo_file, "packaging_version", 0)
  IF ver > 1 THEN
-  dist_info "ERROR: The buildinfo version is " & ver & " but your copy of the OHRRPGCE only supports version 1. This means you should upgrade to a newer version if you want to keep using the Distribute Game feature.": RETURN YES
- ELSEIF ver < 1 THEN
-  dist_info "ERROR: The buildinfo version is missing or invalid. Please report this as a bug to the OHRRPGCE developers": RETURN YES
+  dist_info "ERROR: The buildinfo version in this downloaded game player is " & ver & " but your copy of the OHRRPGCE only supports version 1. This means you should upgrade to a newer version if you want to keep using the Distribute Game feature.": RETURN NO
+ ELSEIF ver < 1 THEN  'Including a missing file
+  dist_info "ERROR: The buildinfo version in this downloaded game player is missing or invalid. Please report this as a bug to the OHRRPGCE developers": RETURN NO
  END IF
- RETURN NO
+ RETURN YES
 END FUNCTION
 
 FUNCTION add_linux_gameplayer(which_arch as string, basename as string, destdir as string) as string
@@ -783,8 +769,6 @@ FUNCTION add_linux_gameplayer(which_arch as string, basename as string, destdir 
  'Returns "" for failure.
 
  DIM destexe as string = destdir & SLASH & basename
-
- IF NOT valid_arch(which_arch, "x86, x86_64") THEN RETURN ""
 
  /'
  'Don't try to use a local build, it's too much trouble to gather up and check all the necessary files,
@@ -837,13 +821,8 @@ FUNCTION add_linux_gameplayer(which_arch as string, basename as string, destdir 
  IF extract_zipfile(destzip, destdir) = NO THEN RETURN ""
  
  'Sanity check contents
+ IF sanity_check_buildinfo(destdir & SLASH & "buildinfo.ini") = NO THEN RETURN ""
  IF NOT isfile(destdir & SLASH & "game.sh") THEN dist_info "ERROR: Failed to unzip game.sh" : RETURN ""
- IF NOT isfile(destdir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to unzip LICENSE-binary.txt" : RETURN ""
- IF sanity_check_buildinfo(destdir & SLASH & "buildinfo.ini") THEN RETURN ""
- 
- 'All files should be distributed with games (except in .debs) except these two
- safekill destdir & SLASH & "README-player-only.txt"
- safekill destdir & SLASH & "buildinfo.ini"
 
  IF renamefile(destdir & SLASH & "game.sh", destexe) = NO THEN dist_info "ERROR: Couldn't rename game.sh" : RETURN ""
  RETURN destexe
@@ -1512,10 +1491,7 @@ FUNCTION gather_files_for_mac (which_arch as string, basename as string, destdir
   confirmed_copy(icns_file, resources & SLASH & "game.icns")
  END IF
 
- write_readme_text_file destdir & SLASH & "README-" & basename & ".txt", CHR(10)
- maybe_write_license_text_file destdir & SLASH & "LICENSE.txt"
-
- RETURN YES
+ RETURN gather_common_files(basename, destdir, !"\n")
 END FUNCTION
 
 SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = "")
@@ -1659,13 +1635,9 @@ FUNCTION add_mac_gameplayer(which_arch as string, basename as string, destdir as
  IF extracted = NO THEN RETURN ""
 
  'Sanity checks
+ IF sanity_check_buildinfo(destdir & SLASH & "buildinfo.ini") = NO THEN RETURN ""
  IF NOT isdir(game_app) THEN dist_info "ERROR: Failed to untar OHRRPGCE-Game.app" : RETURN ""
  IF NOT isfile(game_app & SLASH & "Contents" & SLASH & "MacOS" & SLASH & "ohrrpgce-game")   THEN dist_info "ERROR: Failed to completely untar OHRRPGCE-Game.app" : RETURN ""
- IF NOT isfile(destdir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to untar LICENSE-binary.txt" : RETURN ""
- IF sanity_check_buildinfo(destdir & SLASH & "buildinfo.ini") THEN RETURN ""
-
- safekill destdir & SLASH & "README-player-only.txt"
- safekill destdir & SLASH & "buildinfo.ini"
 
  IF renamefile(game_app, dest_app) = NO THEN dist_info "Couldn't rename OHRRPGCE-Game.app" : RETURN ""
 
@@ -1732,6 +1704,21 @@ FUNCTION package_game (build_variant as string, fname as string, dest_override a
  RETURN ret
 END FUNCTION
 
+'Add files common to all targets, and remove common unwanted ones
+FUNCTION gather_common_files(basename as string, destdir as string, newline as string) as bool
+ IF NOT isfile(destdir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: LICENSE-binary.txt missing" : RETURN NO
+
+ 'All files in the ohrrpgce-player-* archives should be distributed with games (except in .debs) except these two
+ safekill destdir & SLASH & "README-player-only.txt"
+ safekill destdir & SLASH & "buildinfo.ini"
+
+ write_readme_text_file destdir & SLASH & "README-" & basename & ".txt", newline
+
+ maybe_write_license_text_file destdir & SLASH & "LICENSE.txt"
+
+ RETURN YES
+END FUNCTION
+
 'Copies all the needed files for a windows distribution into destdir. Returns true on success.
 FUNCTION gather_files_for_windows (buildname as string, basename as string, destdir as string, distinfo as DistribState) as bool
  DIM gameplayer as string
@@ -1743,11 +1730,7 @@ FUNCTION gather_files_for_windows (buildname as string, basename as string, dest
  insert_windows_exe_icon gameplayer, trimextension(sourcerpg) & ".ico"
 
  'Write readme with DOS/Window line endings
- write_readme_text_file destdir & SLASH & "README-" & basename & ".txt", CHR(13) & CHR(10)
-
- maybe_write_license_text_file destdir & SLASH & "LICENSE.txt"
-
- RETURN YES
+ RETURN gather_common_files(basename, destdir, !"\r\n")
 END FUNCTION
 
 SUB distribute_game_as_windows_zip (dest_override as string = "")
@@ -1764,11 +1747,7 @@ FUNCTION gather_files_for_linux (which_arch as string, basename as string, destd
 
  IF copy_or_relump(sourcerpg, destdir & SLASH & basename & ".rpg") = NO THEN RETURN NO
 
- write_readme_text_file destdir & SLASH & "README-" & basename & ".txt", CHR(10)
-
- maybe_write_license_text_file destdir & SLASH & "LICENSE.txt"
-
- RETURN YES
+ RETURN gather_common_files(basename, destdir, !"\n")
 END FUNCTION
 
 FUNCTION gather_files_for_steam_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
