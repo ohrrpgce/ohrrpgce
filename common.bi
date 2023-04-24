@@ -44,6 +44,7 @@ DECLARE SUB debug_reload (nod as Node ptr)
 'Other debug and error reporting functions are declared in common_base.bi
 
 DECLARE FUNCTION filesize (file as string) as string
+DECLARE FUNCTION format_filesize (size as integer) as string
 
 DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as integer, byval offset as integer, byval maxlen as integer)
 DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as short, byval offset as integer, byval maxlen as integer)

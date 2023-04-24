@@ -494,7 +494,7 @@ declare function isfile(filename as string) as bool
 declare function real_isfile(filename as string) as bool
 declare function is_not_file(filename as string) as bool
 declare function isdir (filename as string) as bool
-declare function count_directory_size(directory as string) as integer
+declare function count_directory_size(directory as string, byref file_count as integer = 0, limit as integer = 999999) as integer
 
 declare function read_file (filename as string, expect_exists as bool = YES, byref success as bool = NO) as string
 declare sub write_file (filename as string, outdata as string)

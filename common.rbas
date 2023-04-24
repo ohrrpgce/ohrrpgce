@@ -399,24 +399,26 @@ END SUB
 
 FUNCTION filesize (file as string) as string
  'returns size of a file in formatted string
- DIM as integer size, spl
- DIM as string fsize, units
  IF isfile(file) THEN
-  size = FILELEN(file)
-  units = " B"
-  spl = 0
-  IF size > 1024 THEN spl = 1 : units = " KB"
-  IF size > 1048576 THEN spl = 1 : size = size / 1024 : units = " MB"
-  fsize = STR(size)
-  IF spl <> 0 THEN
-   size = size / 102.4
-   fsize = STR(size \ 10)
-   IF size < 1000 THEN fsize = fsize + "." + STR(size MOD 10)
-  END IF
-  RETURN fsize + units
+  RETURN format_filesize(FILELEN(file))
  ELSE
   RETURN "N/A"
  END IF
+END FUNCTION
+
+FUNCTION format_filesize (size as integer) as string
+ DIM as bool fractional = (size > 1024)
+ DIM as string fsize, units
+ units = " B"
+ IF size > 1024 THEN units = " KB"
+ IF size > 1048576 THEN size = size / 1024 : units = " MB"
+ fsize = STR(size)
+ IF fractional THEN
+  size = size / 102.4
+  fsize = STR(size \ 10)
+  IF size < 1000 THEN fsize = fsize + "." + STR(size MOD 10)
+ END IF
+ RETURN fsize + units
 END FUNCTION
 
 ' If c/g_debug.txt already exists, archive it and create a new one.

@@ -4362,25 +4362,31 @@ FUNCTION ends_with(s as string, suffix as string) as bool
  RETURN RIGHT(s, LEN(suffix)) = suffix
 END FUNCTION
 
-FUNCTION count_directory_size(directory as string) as integer
+FUNCTION count_directory_size(directory as string, byref file_count as integer = 0, limit as integer = 999999) as integer
  '--Count the bytes in all the files in a directory and all subdirectories.
  '--This doesn't consider the space taken by the directories themselves,
  '--nor does it consider blocksize or any other filesystem details.
+ 'file_count: returns total number of files/directories
+ 'limit: number of files to consider before stopping early. <= 0 for no limit.
  DIM bytes as integer = 0
  DIM filelist() as string
- 
+
  '--First count files
  findfiles directory, ALLFILES, fileTypeFile, YES, filelist()
  FOR i as integer = 0 TO UBOUND(filelist)
   bytes += filelen(directory & SLASH & filelist(i))
+  file_count += 1
+  IF file_count >= limit THEN RETURN bytes
  NEXT
- 
+
  '--Then count subdirectories
  findfiles directory, ALLFILES, fileTypeDirectory, YES, filelist()
  FOR i as integer = 0 TO UBOUND(filelist)
-  bytes += count_directory_size(directory & SLASH & filelist(i))
+  bytes += count_directory_size(directory & SLASH & filelist(i), file_count, limit)
+  file_count += 1
+  IF file_count >= limit THEN RETURN bytes
  NEXT
- 
+
  RETURN bytes
 END FUNCTION
 
