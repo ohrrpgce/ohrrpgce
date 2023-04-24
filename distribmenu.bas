@@ -24,9 +24,11 @@ DECLARE SUB distribute_game_as_windows_installer (dest_override as string = "")
 DECLARE SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
 DECLARE FUNCTION gather_files_for_windows (buildname as string, basename as string, destdir as string, distinfo as DistribState) as bool
 DECLARE FUNCTION gather_files_for_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
+DECLARE FUNCTION gather_files_for_mac (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
 DECLARE FUNCTION add_windows_gameplayer(basename as string, destdir as string) as string
 DECLARE FUNCTION add_linux_gameplayer(which_arch as string, basename as string, destdir as string) as string
-DECLARE FUNCTION get_mac_gameplayer(which_arch as string) as string
+DECLARE FUNCTION add_mac_gameplayer(which_arch as string, basename as string, destdir as string) as string
+DECLARE FUNCTION package_game (build_variant as string, byref destname as string, dest_override as string = "", use_subdir as bool, gather_files as FnGatherFiles, byref basename as string = "") as string
 DECLARE FUNCTION agreed_to_download(agree_file as string, description as string) as bool
 DECLARE FUNCTION download_gameplayer_if_needed(url as string, destfile as string, agree_filename as string, description as string) as bool
 DECLARE FUNCTION sanity_check_buildinfo(buildinfo_file as string) as bool
@@ -58,7 +60,7 @@ DECLARE FUNCTION gunzip_file (filename as string) as bool
 DECLARE FUNCTION create_zipfile(zipfile as string, start_in_dir as string, files as string) as bool
 DECLARE FUNCTION extract_zipfile(zipfile as string, into_dir as string) as bool
 DECLARE FUNCTION create_tarball(tarball as string, start_in_dir as string, files as string) as bool
-DECLARE FUNCTION extract_tarball(tarball as string, into_dir as string, files as string) as bool
+DECLARE FUNCTION extract_tarball(tarball as string, into_dir as string, files as string = "") as bool
 DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as bool
 DECLARE FUNCTION create_win_installer(installer as string, isstmp as string, basename as string, distinfo as DistribState) as bool
 DECLARE SUB fix_deb_group_permissions(start_at_dir as string)
@@ -1311,7 +1313,7 @@ FUNCTION create_tarball(tarball as string, start_in_dir as string, files as stri
  RETURN YES
 END FUNCTION
 
-FUNCTION extract_tarball(tarball as string, into_dir as string, files as string) as bool
+FUNCTION extract_tarball(tarball as string, into_dir as string, files as string = "") as bool
  '--Returns YES if successful, or NO if failed
  
  'The tarball must already be decompressed. Don't pass in a .tar.gz (this is inconsistent
@@ -1319,10 +1321,9 @@ FUNCTION extract_tarball(tarball as string, into_dir as string, files as string)
 
  ' into_dir only applies to the tar command. The tarball filename should still be either absolute or relative to the default CURDIR
 
- 'files is a list of space-separated filenames and directory names to extract from the tarball
- 'if they contain spaces they must be quoted
- 
- 
+ 'files is a list of space-separated files and directories to extract from the tarball, or blank for all.
+ 'If they contain spaces they must be quoted
+
  DIM tar as string = dist_find_helper_app("tar")
  IF tar = "" THEN RETURN NO
 
@@ -1330,8 +1331,7 @@ FUNCTION extract_tarball(tarball as string, into_dir as string, files as string)
  DIM args as string
 
  args = " -x -f " & escape_filename(tarball) & " " & files
- 'debug tar & " " & args
- 
+
  DIM olddir as string = CURDIR
  CHDIR into_dir
  spawn_ret = spawn_and_wait(tar, args)
@@ -1494,16 +1494,34 @@ FUNCTION can_make_mac_packages () as bool
  RETURN YES
 END FUNCTION
 
+FUNCTION gather_files_for_mac (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
+ DIM app as string
+ app = add_mac_gameplayer(which_arch, basename, destdir)
+ IF app = "" THEN RETURN NO 'dist_info "ERROR: OHRRPGCE-Game.app for " & which_arch & " is not available" : EXIT DO
+
+ debuginfo "Copy rpg file"
+ 'Renaming the .rpg file to pkgname only for consistency with all other packagers
+ DIM resources as string
+ resources = app & SLASH & "Contents" & SLASH & "Resources"
+ IF copy_or_relump(sourcerpg, resources & SLASH & basename & ".rpg") = NO THEN RETURN NO
+
+ write_file resources & SLASH & "bundledgame", basename
+
+ DIM icns_file as string = trimextension(sourcerpg) & ".icns"
+ IF isfile(icns_file) THEN
+  confirmed_copy(icns_file, resources & SLASH & "game.icns")
+ END IF
+
+ write_readme_text_file destdir & SLASH & "README-" & basename & ".txt", CHR(10)
+ maybe_write_license_text_file destdir & SLASH & "LICENSE.txt"
+
+ RETURN YES
+END FUNCTION
+
 SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = "")
- debuginfo "  distribute_game_as_mac_app():"
+ IF NOT valid_arch(which_arch, "x86, x86_64") THEN RETURN
 
- DIM distinfo as DistribState
- load_distrib_state distinfo
-
- DIM basename as string = distinfo.pkgname
- DIM destname as string = trimfilename(sourcerpg)
- IF dest_override <> "" THEN destname = dest_override
- destname &= SLASH & basename
+ DIM destname as string = "$pkgname"
  IF which_arch = "x86" THEN
   'This is an obsolete arch, add a suffix
   destname &= "-mac-32bit.zip"
@@ -1511,47 +1529,9 @@ SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = 
   destname &= "-mac.zip"
  END IF
 
- IF dist_prompt_overwrite_file(destname) = NO THEN RETURN
-
- DIM apptmp as string = dist_make_temp_dir()
- IF apptmp = "" THEN RETURN
-
- DO '--single pass loop for breaking
-
-  debuginfo "Rename mac game player" 
-  DIM gameplayer as string
-  gameplayer = get_mac_gameplayer(which_arch)
-  IF gameplayer = "" THEN dist_info "ERROR: OHRRPGCE-Game.app for " & which_arch & " is not available" : EXIT DO
-  DIM app as string = apptmp & SLASH & basename & ".app"
-#IFDEF __FB_WIN32__
-  IF confirmed_copydirectory(gameplayer, app) = NO THEN dist_info "Couldn't copy " & gameplayer & " to " & app : EXIT DO
-#ELSE
-  'Mac and Linux do it this way to preserve symlinks and permissions
-  IF os_shell_move(gameplayer, app) = NO THEN dist_info "Couldn't move " & gameplayer & " to " & app : EXIT DO
-#ENDIF
-  IF confirmed_copy(trimfilename(gameplayer) & SLASH & "LICENSE-binary.txt", apptmp & SLASH & "LICENSE-binary.txt") = NO THEN EXIT DO
-
-  debuginfo "Copy rpg file"
-  'Renaming the .rpg file to pkgname only for consistency with all other packagers
-  DIM resources as string
-  resources = app & SLASH & "Contents" & SLASH & "Resources"
-  IF copy_or_relump(sourcerpg, resources & SLASH & basename & ".rpg") = NO THEN EXIT DO
-  
-  debuginfo "Create bundledgame file"
-  DIM fh as integer = FREEFILE
-  OPEN resources & SLASH & "bundledgame" FOR OUTPUT AS #fh
-  PRINT #fh, basename
-  CLOSE #fh
-  
-  DIM icns_file as string = trimextension(sourcerpg) & ".icns"
-  IF isfile(icns_file) THEN
-   confirmed_copy(icns_file, resources & SLASH & "game.icns")
-  END IF
-
-  write_readme_text_file apptmp & SLASH & "README-" & basename & ".txt", CHR(10)
-
-  maybe_write_license_text_file apptmp & SLASH & "LICENSE.txt"
-
+ DIM basename as string
+ destname = package_game(which_arch, destname, dest_override, NO, @gather_files_for_mac, basename)
+ IF destname <> "" THEN
   'Package as a .zip file. NOTE: When created on Unix, .zip files contain file permissions
   'including the all-important +x bit in the "external attributes", but on Windows they don't.
   'On older versions of MacOS we could rely on a quirk of the old Mac Finder, which would set
@@ -1560,27 +1540,23 @@ SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = 
   'See fix_mac_app_executable_bit_on_windows(). An alternate unused solution to actually
   'create Mac .zip packages with correct file permissions from Windows, is in
   'prepare_mac_app_zip()
-  IF create_zipfile(destname, apptmp, "*.app *.txt") = NO THEN EXIT DO
-  
-  'Fix the executable bit on windows
+  DIM warnxbit as bool = YES
 #IFDEF __FB_WIN32__
+  'So fix the executable bit on windows.
   DIM execname as string = basename & ".app/Contents/MacOS/ohrrpgce-game"
   IF fix_mac_app_executable_bit_on_windows(destname, execname) = NO THEN
-   dist_info "Was not able to set the executable bit on the Mac app bundle zip file. The app may not work as expected."
+   dist_info "WARNING: Couldn't set the executable bit on the executable the zip file. The app likely won't run on recent macOS."
+   warnxbit = NO
   END IF
 #ENDIF
 
-  dist_info trimpath(destname) & " was successfully created!", errInfo
   'I have seen someone -- on Linux, even -- wipe the +x flag on ohrrpgce-game
   'by unzipping and rezipping.
-  dist_info "Note: Don't unzip and re-zip " & trimpath(destname) & ": that might wipe critical metadata from " _
-            & basename & ".app and prevent it from running!", errInfo
-  EXIT DO 'this loop is only ever one pass
- LOOP
-
- '--Cleanup temp files
- killdir apptmp, YES
-
+  IF warnxbit THEN
+   dist_info "Note: Don't unzip and re-zip " & trimpath(destname) & ": that might wipe critical metadata from " _
+             & basename & ".app and prevent it from running!", errInfo
+  END IF
+ END IF
 END SUB
 
 FUNCTION fix_mac_app_executable_bit_on_windows(zipfile as string, exec_path_in_zip as string) as bool
@@ -1647,13 +1623,8 @@ FUNCTION prepare_mac_app_zip(zipfile as string, gamename as string) as bool
 END FUNCTION
 '/
 
-
-FUNCTION get_mac_gameplayer(which_arch as string) as string
- 'Download OHRRPGCE-Game.app,
- 'unzip it, and return the full path.
- 'Returns "" for failure.
-
- IF NOT valid_arch(which_arch, "x86, x86_64") THEN RETURN ""
+'Copies all the needed files for a Mac package into destdir. Returns true on success
+FUNCTION add_mac_gameplayer(which_arch as string, basename as string, destdir as string) as string
 
  DIM dldir as string = gameplayer_dir()
  IF dldir = "" THEN RETURN ""
@@ -1678,33 +1649,40 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
  '--Prompt & download if missing or out of date
  IF NOT download_gameplayer_if_needed(url, destgz, "mac.download.agree", "the Mac OHRRPGCE game player") THEN RETURN ""
 
- DIM game_app as string = dldir & SLASH & "OHRRPGCE-Game.app"
-
- '--remove the old uncompressed files
- safekill dldir & SLASH & "LICENSE-binary.txt"
- IF isdir(game_app) THEN killdir game_app, YES
+ DIM game_app as string = destdir & SLASH & "OHRRPGCE-Game.app"
+ DIM dest_app as string = destdir & SLASH & basename & ".app"
  
- '--Untar the desired files
+ 'Extract (Would be nice if we had a tar.exe that could invoke gzip)
  IF gunzip_file(destgz) = NO THEN RETURN ""
- IF extract_tarball(desttar, dldir, "OHRRPGCE-Game.app buildinfo.ini LICENSE-binary.txt") = NO THEN RETURN ""
- 
+ DIM extracted as bool = extract_tarball(desttar, destdir)
+ safekill desttar
+ IF extracted = NO THEN RETURN ""
+
+ 'Sanity checks
  IF NOT isdir(game_app) THEN dist_info "ERROR: Failed to untar OHRRPGCE-Game.app" : RETURN ""
  IF NOT isfile(game_app & SLASH & "Contents" & SLASH & "MacOS" & SLASH & "ohrrpgce-game")   THEN dist_info "ERROR: Failed to completely untar OHRRPGCE-Game.app" : RETURN ""
- IF NOT isfile(dldir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to untar LICENSE-binary.txt" : RETURN ""
- IF sanity_check_buildinfo(dldir & SLASH & "buildinfo.ini") THEN RETURN ""
- 
- RETURN game_app
+ IF NOT isfile(destdir & SLASH & "LICENSE-binary.txt") THEN dist_info "ERROR: Failed to untar LICENSE-binary.txt" : RETURN ""
+ IF sanity_check_buildinfo(destdir & SLASH & "buildinfo.ini") THEN RETURN ""
+
+ safekill destdir & SLASH & "README-player-only.txt"
+ safekill destdir & SLASH & "buildinfo.ini"
+
+ IF renamefile(game_app, dest_app) = NO THEN dist_info "Couldn't rename OHRRPGCE-Game.app" : RETURN ""
+
+ RETURN dest_app
 END FUNCTION
 
-'Create an archive named fname (ending in either .zip, .tar.gz or .exe) in dest_override
-'or else next to the .rpg.
+'Create an archive named fname (ending in either .zip, .tar.gz, or .exe for a Windows installer).
 'build_variant: arch or buildname (varies by target)
-'fname: filename to use; '$pkgname' in it is replaced with distinfo.pkgname
-'use_subdir: whether the archive should contain a directory named <gamename>
+'fname: filename (without path) to write; '$pkgname' in it is replaced with distinfo.pkgname.
+'dest_override: directory to place it, or next to the .rpg if blank.
+'use_subdir: whether the game should be placed in a directory in the archive named $pkgname
 'gather_files: a function called to copy all files into a temp directory.
-FUNCTION package_game (build_variant as string, fname as string, dest_override as string = "", use_subdir as bool, gather_files as FnGatherFiles) as bool
+'basename: passed back for convenience
+FUNCTION package_game (build_variant as string, fname as string, dest_override as string = "", use_subdir as bool, gather_files as FnGatherFiles, byref basename as string = "") as string
  DIM distinfo as DistribState
  load_distrib_state distinfo
+ basename = distinfo.pkgname
 
  DIM destname as string = trimfilename(sourcerpg)
  IF dest_override <> "" THEN destname = dest_override
@@ -1713,21 +1691,20 @@ FUNCTION package_game (build_variant as string, fname as string, dest_override a
 
  debuginfo "--package_game: " & destname
 
- IF dist_prompt_overwrite_file(destname) = NO THEN RETURN NO
+ IF dist_prompt_overwrite_file(destname) = NO THEN RETURN ""
 
  DIM pkgtmp as string = dist_make_temp_dir()
- IF pkgtmp = "" THEN RETURN NO
+ IF pkgtmp = "" THEN RETURN ""
 
- DIM ret as bool = NO
+ DIM ret as string = ""
 
  DO
   DIM subdir as string
   IF use_subdir THEN
-   subdir = distinfo.pkgname
+   subdir = basename
    IF makedir(pkgtmp & SLASH & subdir) THEN EXIT DO
   END IF
 
-  DIM basename as string = distinfo.pkgname
   IF gather_files(build_variant, basename, pkgtmp & SLASH & subdir, distinfo) = NO THEN EXIT DO
 
   DIM files_arg as string
@@ -1745,7 +1722,7 @@ FUNCTION package_game (build_variant as string, fname as string, dest_override a
   END IF
 
   dist_info decode_filename(trimpath(destname)) & " was successfully created!", errInfo
-  ret = YES
+  ret = destname
 
   EXIT DO
  LOOP
@@ -1818,11 +1795,9 @@ SUB distribute_game_for_steam_linux (which_arch as string)
  IF NOT valid_arch(which_arch, "x86, x86_64") THEN EXIT SUB
 
  'use_subdir = NO
- IF package_game(which_arch, "$pkgname-steam-linux-" & which_arch & ".zip", , NO, @gather_files_for_steam_linux) THEN
-  DIM distinfo as DistribState
-  load_distrib_state distinfo
-  DIM launchername as string = distinfo.pkgname
-  dist_info "In Steamworks, create a Launch Option for Linux+SteamOS that runs '" & launchername & "'", errInfo
+ DIM basename as string
+ IF package_game(which_arch, "$pkgname-steam-linux-" & which_arch & ".zip", , NO, @gather_files_for_steam_linux, basename) <> "" THEN
+  dist_info "In Steamworks, create a Launch Option for Linux+SteamOS that runs '" & basename & "'", errInfo
  END IF
 END SUB
 
