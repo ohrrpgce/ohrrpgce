@@ -32,13 +32,13 @@ DECLARE FUNCTION download_gameplayer_if_needed(url as string, destfile as string
 DECLARE FUNCTION sanity_check_buildinfo(buildinfo_file as string) as bool
 DECLARE FUNCTION valid_arch(which_arch as string, options as string) as bool
 DECLARE FUNCTION dist_prompt_overwrite_file(destname as string) as bool
-DECLARE FUNCTION dist_make_temp_dir() as string
+DECLARE FUNCTION dist_make_temp_dir(dirname as string = "package") as string
 DECLARE FUNCTION gameplayer_dir() as string
 DECLARE FUNCTION find_or_download_innosetup () as string
 DECLARE FUNCTION find_innosetup () as string
 DECLARE FUNCTION win_or_wine_drive(letter as string) as string
 DECLARE FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
-DECLARE SUB write_innosetup_script (basename as string, gamename as string, isstmp as string)
+DECLARE FUNCTION write_innosetup_script (basename as string, gamename as string, isstmp as string) as string
 DECLARE FUNCTION win_path (filename as string) as string
 DECLARE FUNCTION copy_or_relump (src_rpg_or_rpgdir as string, dest_rpg as string) as bool
 DECLARE FUNCTION find_and_copy_windows_gameplayer (basename as string, destdir as string) as bool
@@ -60,6 +60,7 @@ DECLARE FUNCTION extract_zipfile(zipfile as string, into_dir as string) as bool
 DECLARE FUNCTION create_tarball(tarball as string, start_in_dir as string, files as string) as bool
 DECLARE FUNCTION extract_tarball(tarball as string, into_dir as string, files as string) as bool
 DECLARE FUNCTION create_ar_archive(start_in_dir as string, archive as string, files as string) as bool
+DECLARE FUNCTION create_win_installer(installer as string, isstmp as string, basename as string, distinfo as DistribState) as bool
 DECLARE SUB fix_deb_group_permissions(start_at_dir as string)
 DECLARE SUB write_debian_postrm_script (filename as string)
 DECLARE SUB write_debian_postinst_script (filename as string)
@@ -527,8 +528,8 @@ FUNCTION dist_prompt_overwrite_file(destname as string) as bool
  RETURN YES
 END FUNCTION
 
-FUNCTION dist_make_temp_dir() as string
- DIM pkgtmp as string = trimfilename(sourcerpg) & SLASH & "package.tmp"
+FUNCTION dist_make_temp_dir(dirname as string = "package") as string
+ DIM pkgtmp as string = trimfilename(sourcerpg) & SLASH & dirname & ".tmp"
  IF isdir(pkgtmp) THEN
   killdir pkgtmp, YES
  END IF
@@ -604,6 +605,7 @@ FUNCTION find_and_copy_windows_gameplayer (basename as string, destdir as string
  REDIM buildinfo() as string
  IF extract_buildinfo(game_exe, destdir) THEN
   lines_from_file buildinfo(), destdir & SLASH & "buildinfo.ini"
+  safekill destdir & SLASH & "buildinfo.ini"
   debuginfo "Found game.exe, version: " & read_ini_str(buildinfo(), "long_version")
  END IF
 
@@ -653,7 +655,7 @@ END SUB
 #IFDEF __FB_WIN32__
 SUB needed_windows_libs(gameplayer as string, byref files as string vector, buildinfo() as string)
  'Add .dlls to files needed by the gfx/music backends in buildinfo(). This is
- 'used only not using a downloaded ohrrpgce-player-* zip (on Windows).
+ 'used only when not using a downloaded ohrrpgce-player-* zip (on Windows).
  'Matches needed_windows_libs in ohrpackage.py.
  DIM as string gfx(), music()
 
@@ -845,58 +847,33 @@ FUNCTION add_linux_gameplayer(which_arch as string, basename as string, destdir 
  RETURN destexe
 END FUNCTION
 
-SUB distribute_game_as_windows_installer (dest_override as string = "")
- debuginfo "  distribute_game_as_windows_installer():"
-
- DIM distinfo as DistribState
- load_distrib_state distinfo
-
- DIM basename as string = distinfo.pkgname
- DIM installer as string = trimfilename(sourcerpg)
- IF dest_override <> "" THEN installer = dest_override
- installer &= SLASH & "setup-" & basename & ".exe"
-
- IF dist_prompt_overwrite_file(installer) = NO THEN RETURN
-
+'isstmp: directory containing files to package
+FUNCTION create_win_installer(installer as string, isstmp as string, basename as string, distinfo as DistribState) as bool
  DIM iscc as string = find_or_download_innosetup()
- IF iscc = "" THEN RETURN
+ IF iscc = "" THEN RETURN NO
 
- DIM isstmp as string = dist_make_temp_dir()
- IF isstmp = "" THEN RETURN
+ DIM iss_script as string
+ iss_script = write_innosetup_script(basename, distinfo.gamename, isstmp)
  
- DO '--single pass loop for breaking
-  IF gather_files_for_windows("sdl2", basename, isstmp, distinfo) = NO THEN EXIT DO
-
-  write_innosetup_script basename, distinfo.gamename, isstmp
-
-  DIM iss_script as string = isstmp & SLASH & "innosetup_script.iss"
+ DIM args as string
+ 'FIXME: The following does not escape all problem characters that could occur in iss_script,
+ 'but I'm not sure what the best way to do that is, so leaving it for now.
+ args = """" & win_path(iss_script) & """"
  
-  DIM args as string
-  'FIXME: The following does not escape all problem characters that could occur in iss_script,
-  'but I'm not sure what the best way to do that is, so leaving it for now.
-  args = """" & win_path(iss_script) & """"
-  
-  DIM spawn_ret as string
-  spawn_ret = win_or_wine_spawn_and_wait(iscc, args)
-  IF LEN(spawn_ret) THEN dist_info "ERROR: iscc.exe failed: " & spawn_ret : EXIT DO
-  'Remove the old copy of the installer
-  safekill installer
-  'Move the new installer to the correct location
-  IF confirmed_copy(isstmp & SLASH & "Output" & SLASH & "setup-" & basename & ".exe", installer) = NO THEN
-   dist_info "ERROR: iscc.exe completed but installer was not created"
-   EXIT DO
-  END IF
+ DIM spawn_ret as string
+ spawn_ret = win_or_wine_spawn_and_wait(iscc, args)
+ IF LEN(spawn_ret) THEN dist_info "ERROR: iscc.exe failed: " & spawn_ret : RETURN NO
+ safekill installer
+ 'Move the new installer to the correct location
+ IF renamefile(isstmp & SLASH & "Output" & SLASH & "setup.exe", installer) = NO THEN
+  dist_info "ERROR: iscc.exe completed but installer was not created"
+  RETURN NO
+ END IF
 
-  dist_info trimpath(installer) & " was successfully created!", errInfo
-  EXIT DO 'this loop is only ever one pass
- LOOP
+ RETURN YES
+END FUNCTION
 
- '--Cleanup temp files
- killdir isstmp, YES
- 
-END SUB
-
-SUB write_innosetup_script (basename as string, gamename as string, isstmp as string)
+FUNCTION write_innosetup_script (basename as string, gamename as string, isstmp as string) as string
 
  DIM iss_script as string = isstmp & SLASH & "innosetup_script.iss"
 
@@ -914,7 +891,7 @@ SUB write_innosetup_script (basename as string, gamename as string, isstmp as st
  s &= "DefaultDirName={pf}\" & gamename & E
  s &= "DefaultGroupName=" & gamename & E
  s &= "SolidCompression=yes" & E
- s &= "OutputBaseFilename=setup-" & basename & E
+ s &= "OutputBaseFilename=setup" & E
  s &= "InfoAfterFile=README-" & basename & ".txt" & E
  IF isfile(isstmp & SLASH & "LICENSE.txt") THEN
   s &= "LicenseFile=LICENSE.txt" & E
@@ -930,19 +907,12 @@ SUB write_innosetup_script (basename as string, gamename as string, isstmp as st
  s &= "Name: ""{userdesktop}\" & gamename & """; Filename: ""{app}\" & basename & ".exe""; WorkingDir: ""{app}"";" & E
  s &= "Name: ""{group}\" & gamename & """; Filename: ""{app}\" & basename & ".exe""; WorkingDir: ""{app}"";" & E
  
- debuginfo s
- 
- DIM fh as integer = FREEFILE
- OPEN iss_script FOR BINARY AS #fh
- PUT #fh, 1, s
- CLOSE #fh
+ 'debuginfo s
 
-END SUB
+ write_file iss_script, s
 
-SUB add_innosetup_file (s as string, filename as string)
- DIM E as string = !"\r\n" ' E is End of line
- s &= "Source: """ & win_path(filename) & """; DestDir: ""{app}""; Flags: ignoreversion" & E
-END SUB
+ RETURN iss_script
+END FUNCTION
 
 FUNCTION win_path (filename as string) as string
 #IFDEF __FB_WIN32__
@@ -1726,18 +1696,20 @@ FUNCTION get_mac_gameplayer(which_arch as string) as string
  RETURN game_app
 END FUNCTION
 
-'Create an archive named <gamename> & fname_suffix, (ending in either a .zip or .tar.gz) in dest_override
+'Create an archive named fname (ending in either .zip, .tar.gz or .exe) in dest_override
 'or else next to the .rpg.
 'build_variant: arch or buildname (varies by target)
+'fname: filename to use; '$pkgname' in it is replaced with distinfo.pkgname
 'use_subdir: whether the archive should contain a directory named <gamename>
 'gather_files: a function called to copy all files into a temp directory.
-FUNCTION package_game (build_variant as string, fname_suffix as string, dest_override as string = "", use_subdir as bool, gather_files as FnGatherFiles) as bool
+FUNCTION package_game (build_variant as string, fname as string, dest_override as string = "", use_subdir as bool, gather_files as FnGatherFiles) as bool
  DIM distinfo as DistribState
  load_distrib_state distinfo
 
  DIM destname as string = trimfilename(sourcerpg)
  IF dest_override <> "" THEN destname = dest_override
- destname &= SLASH & distinfo.pkgname & fname_suffix
+ destname &= SLASH & fname
+ replacestr destname, "$pkgname", distinfo.pkgname
 
  debuginfo "--package_game: " & destname
 
@@ -1755,15 +1727,18 @@ FUNCTION package_game (build_variant as string, fname_suffix as string, dest_ove
    IF makedir(pkgtmp & SLASH & subdir) THEN EXIT DO
   END IF
 
-  IF gather_files(build_variant, distinfo.pkgname, pkgtmp & SLASH & subdir, distinfo) = NO THEN EXIT DO
+  DIM basename as string = distinfo.pkgname
+  IF gather_files(build_variant, basename, pkgtmp & SLASH & subdir, distinfo) = NO THEN EXIT DO
 
   DIM files_arg as string
   IF use_subdir THEN files_arg = escape_filename(subdir) ELSE files_arg = "*"
 
-  IF ends_with(fname_suffix, ".tar.gz") THEN
+  IF ends_with(fname, ".tar.gz") THEN
    IF create_tarball(destname, pkgtmp, files_arg) = NO THEN EXIT DO
-  ELSEIF ends_with(fname_suffix, ".zip") THEN
+  ELSEIF ends_with(fname, ".zip") THEN
    IF create_zipfile(destname, pkgtmp, files_arg) = NO THEN EXIT DO
+  ELSEIF ends_with(fname, ".exe") THEN
+   IF create_win_installer(destname, pkgtmp, basename, distinfo) = NO THEN EXIT DO
   ELSE
    showbug ""
    EXIT DO
@@ -1799,7 +1774,11 @@ FUNCTION gather_files_for_windows (buildname as string, basename as string, dest
 END FUNCTION
 
 SUB distribute_game_as_windows_zip (dest_override as string = "")
- package_game "sdl2", ".zip", dest_override, NO, @gather_files_for_windows
+ package_game "sdl2", "$pkgname.zip", dest_override, NO, @gather_files_for_windows
+END SUB
+
+SUB distribute_game_as_windows_installer (dest_override as string = "")
+ package_game "sdl2", "$pkgname-setup.exe", dest_override, NO, @gather_files_for_windows
 END SUB
 
 'Copies all the needed files for a linux tarball into destdir. Returns true on success
@@ -1832,14 +1811,14 @@ SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as str
  IF NOT valid_arch(which_arch, "x86, x86_64") THEN EXIT SUB
 
  'use_subdir = YES
- package_game which_arch, "-linux-" & which_arch & ".tar.gz", dest_override, YES, @gather_files_for_linux
+ package_game which_arch, "$pkgname-linux-" & which_arch & ".tar.gz", dest_override, YES, @gather_files_for_linux
 END SUB
 
 SUB distribute_game_for_steam_linux (which_arch as string)
  IF NOT valid_arch(which_arch, "x86, x86_64") THEN EXIT SUB
 
  'use_subdir = NO
- IF package_game(which_arch, "-steam-linux-" & which_arch & ".zip", , NO, @gather_files_for_steam_linux) THEN
+ IF package_game(which_arch, "$pkgname-steam-linux-" & which_arch & ".zip", , NO, @gather_files_for_steam_linux) THEN
   DIM distinfo as DistribState
   load_distrib_state distinfo
   DIM launchername as string = distinfo.pkgname
@@ -2158,8 +2137,10 @@ SUB itch_butler_upload(distinfo as DistribState)
 
  IF dist_yesno("This will replace the older version of this game at " & itch_game_url(distinfo) & ", are you sure you want to continue?", NO) = NO THEN EXIT SUB
 
- DIM itch_temp_dir as string = CURDIR & SLASH & "_itch_io_exports.tmp"
- makedir itch_temp_dir
+ 'Needs to be on the same filesystem as other other dist_make_temp_dir directories
+ DIM itch_temp_dir as string = dist_make_temp_dir("itch_io_exports")
+ IF itch_temp_dir = "" THEN EXIT SUB
+
  debuginfo "Exporting files to " & itch_temp_dir
  auto_choose_default = YES
  dist_basicstatus "Exporting for Windows..."
