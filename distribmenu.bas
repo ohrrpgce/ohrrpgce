@@ -101,9 +101,9 @@ DECLARE FUNCTION itch_butler_error_check(out_s as string, err_s as string) as bo
 
 DECLARE FUNCTION steamworks_zip() as string
 DECLARE SUB download_steamworks()
-DECLARE FUNCTION add_steamworks_lib(libpath as string, outdir as string) as string
+DECLARE FUNCTION add_steamworks_lib(libname as string, outdir as string) as string
 DECLARE SUB distribute_game_for_steam_linux (which_arch as string)
-DECLARE SUB distribute_game_for_steam_windows (which_arch as string)
+DECLARE SUB distribute_game_for_steam_windows ()
 
 DECLARE FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
 DECLARE SUB dist_info (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
@@ -290,7 +290,7 @@ SUB DistribMenu.steam_menu()
  IF edited THEN save_distrib_state distinfo
  set_helpkey "edit_distrib_info_steam_appid"
 
- 'IF def_steam_export("Export Windows build for Steam") THEN presave : distribute_game_for_steam_windows "x86"
+ IF def_steam_export("Export Windows build for Steam") THEN presave : distribute_game_for_steam_windows
  IF def_steam_export("Export Linux 64-bit build for Steam") THEN presave : distribute_game_for_steam_linux "x86_64"
  IF def_steam_export("Export Linux 32-bit (obsolete) build for Steam") THEN presave : distribute_game_for_steam_linux "x86"
 
@@ -1733,12 +1733,26 @@ FUNCTION gather_files_for_windows (buildname as string, basename as string, dest
  RETURN gather_common_files(basename, destdir, !"\r\n")
 END FUNCTION
 
+FUNCTION gather_files_for_steam_windows (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
+ IF gather_files_for_windows(which_arch, basename, destdir, distinfo) = NO THEN RETURN NO
+
+ IF add_steamworks_lib("steam_api.dll", destdir) = "" THEN RETURN NO
+
+ write_file destdir & SLASH & "steam_appid.txt", STR(distinfo.steam_appid)
+
+ RETURN YES
+END FUNCTION
+
 SUB distribute_game_as_windows_zip (dest_override as string = "")
  package_game "sdl2", "$pkgname.zip", dest_override, NO, @gather_files_for_windows
 END SUB
 
 SUB distribute_game_as_windows_installer (dest_override as string = "")
  package_game "sdl2", "$pkgname-setup.exe", dest_override, NO, @gather_files_for_windows
+END SUB
+
+SUB distribute_game_for_steam_windows ()
+ package_game "sdl2", "$pkgname-steam-windows.zip", , NO, @gather_files_for_steam_windows
 END SUB
 
 'Copies all the needed files for a linux tarball into destdir. Returns true on success
@@ -1753,10 +1767,10 @@ END FUNCTION
 FUNCTION gather_files_for_steam_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
  IF gather_files_for_linux(which_arch, basename, destdir, distinfo) = NO THEN RETURN NO
 
- DIM libpath as string
- libpath = IIF(which_arch = "x86", "linux32", "linux64") & SLASH "libsteam_api.so"
+ DIM libname as string
+ libname = IIF(which_arch = "x86", "linux32", "linux64") & SLASH "libsteam_api.so"
 
- IF add_steamworks_lib(libpath, destdir & SLASH & "linux" & SLASH & which_arch) = "" THEN RETURN NO
+ IF add_steamworks_lib(libname, destdir & SLASH & "linux" & SLASH & which_arch) = "" THEN RETURN NO
 
  write_file destdir & SLASH & "steam_appid.txt", STR(distinfo.steam_appid)
 
@@ -2157,20 +2171,21 @@ SUB download_steamworks()
  END IF
 END SUB
 
-'libpath: path inside the steamworks .zip
-FUNCTION add_steamworks_lib(libpath as string, destdir as string) as string
- DIM outfile as string = destdir & SLASH & trimpath(libpath)
+'Extract a library from the steamworks zip into destdir.
+'libname: the filename and its parent directory, inside the steamworks .zip
+FUNCTION add_steamworks_lib(libname as string, destdir as string) as string
+ DIM outfile as string = destdir & SLASH & trimpath(libname)
  
  DIM unzip as string = dist_find_helper_app("unzip")
  IF unzip = "" THEN RETURN ""
 
  DIM arglist as string
  ' -q quiet -o overwrite -j junk directories
- arglist =  " -qoj " & escape_filename(steamworks_zip()) & " " & escape_filename("sdk/redistributable_bin/" & libpath) & " -d " & escape_filename(destdir)
+ arglist =  " -qoj " & escape_filename(steamworks_zip()) & " " & escape_filename("sdk/redistributable_bin/" & libname) & " -d " & escape_filename(destdir)
  DIM spawn_ret as string
  spawn_ret = spawn_and_wait(unzip, arglist)
  IF NOT isfile(outfile) THEN
-  visible_debug "Unable to unzip " & libpath & " from " & steamworks_zip()
+  visible_debug "Unable to unzip " & libname & " from " & steamworks_zip()
   RETURN ""
  END IF
 

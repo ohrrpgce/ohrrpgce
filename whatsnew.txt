@@ -88,6 +88,8 @@ WHAT IS NEW?
     * Left/Right in the Slice Editor (in Pick mode) now collapse/expand part
       of the menu, press repeatedly to hide/show more. [Ralph]
     * Slice Editor uses icons to show slice type and other info [Ralph, Kiefer]
+    * Distribute Game for Steam on Windows or Linux options, which add the
+      libraries needed for Steam achievements [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]
