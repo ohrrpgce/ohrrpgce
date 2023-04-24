@@ -19,9 +19,9 @@
 
 TYPE FnGatherFiles as FUNCTION (build_variant as string, basename as string, destdir as string, distinfo as DistribState) as bool
 
-DECLARE SUB distribute_game_as_windows_zip (dest_override as string = "")
-DECLARE SUB distribute_game_as_windows_installer (dest_override as string = "")
-DECLARE SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
+DECLARE FUNCTION distribute_game_as_windows_zip (dest_override as string = "") as string
+DECLARE FUNCTION distribute_game_as_windows_installer (dest_override as string = "") as string
+DECLARE FUNCTION distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "") as string
 DECLARE FUNCTION gather_common_files (basename as string, destdir as string, newline as string) as bool
 DECLARE FUNCTION gather_files_for_windows (buildname as string, basename as string, destdir as string, distinfo as DistribState) as bool
 DECLARE FUNCTION gather_files_for_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
@@ -48,7 +48,7 @@ DECLARE FUNCTION find_and_copy_windows_gameplayer (basename as string, destdir a
 DECLARE SUB insert_windows_exe_icon (exe_name as string, ico_name as string)
 DECLARE SUB needed_windows_libs(gameplayer as string, byref files as string vector, buildinfo() as string)
 DECLARE FUNCTION copy_linux_gameplayer (gameplayer as string, basename as string, destdir as string) as bool
-DECLARE SUB distribute_game_as_debian_package (which_arch as string, dest_override as string = "")
+DECLARE FUNCTION distribute_game_as_debian_package (which_arch as string, dest_override as string = "") as string
 DECLARE FUNCTION get_debian_package_version() as string
 DECLARE FUNCTION get_debian_package_name() as string
 DECLARE SUB write_linux_menu_file(title as string, filename as string, basename as string)
@@ -102,8 +102,8 @@ DECLARE FUNCTION itch_butler_error_check(out_s as string, err_s as string) as bo
 DECLARE FUNCTION steamworks_zip() as string
 DECLARE SUB download_steamworks()
 DECLARE FUNCTION add_steamworks_lib(libname as string, outdir as string) as string
-DECLARE SUB distribute_game_for_steam_linux (which_arch as string)
-DECLARE SUB distribute_game_for_steam_windows ()
+DECLARE FUNCTION distribute_game_for_steam_linux (which_arch as string) as string
+DECLARE FUNCTION distribute_game_for_steam_windows () as string
 
 DECLARE FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
 DECLARE SUB dist_info (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
@@ -970,10 +970,10 @@ FUNCTION win_or_wine_spawn_and_wait (cmd as string, args as string="") as string
  
 END FUNCTION
 
-SUB distribute_game_as_debian_package (which_arch as string, dest_override as string = "")
+FUNCTION distribute_game_as_debian_package (which_arch as string, dest_override as string = "") as string
  debuginfo "  distribute_game_as_debian_package():"
 
- IF NOT valid_arch(which_arch, "x86, x86_64") THEN EXIT SUB
+ IF NOT valid_arch(which_arch, "x86, x86_64") THEN RETURN ""
  DIM deb_arch as string
  SELECT CASE which_arch
   CASE "x86":    deb_arch = "i386"
@@ -989,10 +989,10 @@ SUB distribute_game_as_debian_package (which_arch as string, dest_override as st
  IF dest_override <> "" THEN debname = dest_override
  debname &= SLASH & basename & "_" & pkgver & "_" & deb_arch & ".deb"
 
- IF dist_prompt_overwrite_file(debname) = NO THEN RETURN
+ IF dist_prompt_overwrite_file(debname) = NO THEN RETURN ""
 
  DIM debtmp as string = dist_make_temp_dir()
- IF debtmp = "" THEN RETURN
+ IF debtmp = "" THEN RETURN ""
  
  debuginfo "Prepare package data files..."
  makedir debtmp & SLASH & "usr"
@@ -1072,8 +1072,9 @@ SUB distribute_game_as_debian_package (which_arch as string, dest_override as st
 
  '--Cleanup temp files
  killdir debtmp, YES
- 
-END SUB
+
+ RETURN debname
+END FUNCTION
 
 SUB write_debian_postinst_script (filename as string)
  DIM LF as string = CHR(10)
@@ -1494,8 +1495,8 @@ FUNCTION gather_files_for_mac (which_arch as string, basename as string, destdir
  RETURN gather_common_files(basename, destdir, !"\n")
 END FUNCTION
 
-SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = "")
- IF NOT valid_arch(which_arch, "x86, x86_64") THEN RETURN
+FUNCTION distribute_game_as_mac_app (which_arch as string, dest_override as string = "") as string
+ IF NOT valid_arch(which_arch, "x86, x86_64") THEN RETURN ""
 
  DIM destname as string = "$pkgname"
  IF which_arch = "x86" THEN
@@ -1533,7 +1534,9 @@ SUB distribute_game_as_mac_app (which_arch as string, dest_override as string = 
              & basename & ".app and prevent it from running!", errInfo
   END IF
  END IF
-END SUB
+
+ RETURN destname
+END FUNCTION
 
 FUNCTION fix_mac_app_executable_bit_on_windows(zipfile as string, exec_path_in_zip as string) as bool
  'Return YES on success, NO on failure
@@ -1743,17 +1746,17 @@ FUNCTION gather_files_for_steam_windows (which_arch as string, basename as strin
  RETURN YES
 END FUNCTION
 
-SUB distribute_game_as_windows_zip (dest_override as string = "")
- package_game "sdl2", "$pkgname.zip", dest_override, NO, @gather_files_for_windows
-END SUB
+FUNCTION distribute_game_as_windows_zip (dest_override as string = "") as string
+ RETURN package_game("sdl2", "$pkgname.zip", dest_override, NO, @gather_files_for_windows)
+END FUNCTION
 
-SUB distribute_game_as_windows_installer (dest_override as string = "")
- package_game "sdl2", "$pkgname-setup.exe", dest_override, NO, @gather_files_for_windows
-END SUB
+FUNCTION distribute_game_as_windows_installer (dest_override as string = "") as string
+ RETURN package_game("sdl2", "$pkgname-setup.exe", dest_override, NO, @gather_files_for_windows)
+END FUNCTION
 
-SUB distribute_game_for_steam_windows ()
- package_game "sdl2", "$pkgname-steam-windows.zip", , NO, @gather_files_for_steam_windows
-END SUB
+FUNCTION distribute_game_for_steam_windows () as string
+ RETURN package_game("sdl2", "$pkgname-steam-windows.zip", , NO, @gather_files_for_steam_windows)
+END FUNCTION
 
 'Copies all the needed files for a linux tarball into destdir. Returns true on success
 FUNCTION gather_files_for_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
@@ -1777,22 +1780,24 @@ FUNCTION gather_files_for_steam_linux (which_arch as string, basename as string,
  RETURN YES
 END FUNCTION
 
-SUB distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "")
- IF NOT valid_arch(which_arch, "x86, x86_64") THEN EXIT SUB
+FUNCTION distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "") as string
+ IF NOT valid_arch(which_arch, "x86, x86_64") THEN RETURN ""
 
  'use_subdir = YES
- package_game which_arch, "$pkgname-linux-" & which_arch & ".tar.gz", dest_override, YES, @gather_files_for_linux
-END SUB
+ RETURN package_game(which_arch, "$pkgname-linux-" & which_arch & ".tar.gz", dest_override, YES, @gather_files_for_linux)
+END FUNCTION
 
-SUB distribute_game_for_steam_linux (which_arch as string)
- IF NOT valid_arch(which_arch, "x86, x86_64") THEN EXIT SUB
+FUNCTION distribute_game_for_steam_linux (which_arch as string) as string
+ IF NOT valid_arch(which_arch, "x86, x86_64") THEN RETURN ""
 
  'use_subdir = NO
  DIM basename as string
- IF package_game(which_arch, "$pkgname-steam-linux-" & which_arch & ".zip", , NO, @gather_files_for_steam_linux, basename) <> "" THEN
+ VAR ret = package_game(which_arch, "$pkgname-steam-linux-" & which_arch & ".zip", , NO, @gather_files_for_steam_linux, basename)
+ IF ret <> "" THEN
   dist_info "In Steamworks, create a Launch Option for Linux+SteamOS that runs '" & basename & "'", errInfo
  END IF
-END SUB
+ RETURN ret
+END FUNCTION
 
 FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
  IF auto_choose_default THEN RETURN defaultval
@@ -2013,7 +2018,7 @@ FUNCTION itch_butler_platform_version() as string
  RETURN prefix & "-" & suffix
 END FUNCTION
 
-'TODO: couldn't this be merged with install_windows_helper_app?
+'Somewhat similar to install_windows_helper_app
 FUNCTION itch_butler_download() as bool
  DIM support_dir as string = get_support_dir()
  DIM butler_path as string = support_dir & SLASH & "butler" DOTEXE
@@ -2112,26 +2117,16 @@ SUB itch_butler_upload(distinfo as DistribState)
  debuginfo "Exporting files to " & itch_temp_dir
  auto_choose_default = YES
  dist_basicstatus "Exporting for Windows..."
- distribute_game_as_windows_zip itch_temp_dir
+ DIM win_zip as string = distribute_game_as_windows_zip(itch_temp_dir)
+ IF win_zip = "" THEN dist_info "Aborting itch.io upload" : EXIT SUB
  dist_basicstatus "Exporting for Mac..."
- distribute_game_as_mac_app "x86_64", itch_temp_dir
+ DIM mac_app as string = distribute_game_as_mac_app("x86_64", itch_temp_dir)
+ IF mac_app = "" THEN dist_info "Aborting itch.io upload" : EXIT SUB
  dist_basicstatus "Exporting for Linux..."
- distribute_game_as_linux_tarball "x86_64", itch_temp_dir
+ DIM linux_tarball as string = distribute_game_as_linux_tarball("x86_64", itch_temp_dir)
+ IF linux_tarball = "" THEN dist_info "Aborting itch.io upload" : EXIT SUB
  auto_choose_default = NO
 
- dist_basicstatus "Verifying exported files..."
- DIM win_zip as string = itch_temp_dir & SLASH & distinfo.pkgname & ".zip"
- DIM mac_app as string = itch_temp_dir & SLASH & distinfo.pkgname & "-mac.zip"
- DIM linux_tarball as string = itch_temp_dir & SLASH & distinfo.pkgname & "-linux-x86_64.tar.gz"
- err_s = ""
- IF NOT isfile(win_zip) THEN err_s &= !"\nWindows zip failed!"
- IF NOT isfile(mac_app) THEN err_s &= !"\nMacOS App failed!"
- IF NOT isfile(linux_tarball) THEN err_s &= !"\nLinux tarball failed!"
- IF err_s <> "" THEN
-  dist_info !"Some files failed to export:" & err_s
-  EXIT SUB
- END IF
- 
  debuginfo "Upload exports with butler..."
 
  dist_basicstatus "Upload " & itch_gametarg(distinfo) & " (Windows) ..."

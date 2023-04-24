@@ -3803,7 +3803,6 @@ END FUNCTION
 
 'Returns "" on failure, otherwise path to the executable
 '(This can get run on Unix too!)
-'(Note that itch_butler_download is a partial duplicate of this)
 FUNCTION install_windows_helper_app (appname as string, download_url as string="") as string
  DIM support as string = get_support_dir()
  DIM apppath as string = support & SLASH & appname & ".exe"
