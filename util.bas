@@ -1498,7 +1498,11 @@ MAKE_ARRAY_INSERT(integer)
   IF which = -&h7FFFFFFF THEN which = UBOUND(array)
   IF which >= LBOUND(array) ANDALSO which <= UBOUND(array) THEN
    a_shuffle_to_end array(), which
-   REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1)
+   IF LBOUND(array) < UBOUND(array) THEN
+    REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1)
+   ELSE
+    ERASE array
+   END IF
   END IF
  END SUB
 #ENDMACRO
@@ -1590,7 +1594,12 @@ startTest(array_operators)
  IF arr(1) <> 103 THEN fail
  IF a_remove(arr(), 101) <> 0 THEN fail  'Remove arr(0)
  IF UBOUND(arr) <> 0 THEN fail
- IF arr(0) <> 103 THEN fail
+ IF arr(0) <> 103 THEN fail  'arr = {103}
+ a_pop arr()
+ IF LBOUND(arr) <> 0 THEN fail
+ IF UBOUND(arr) <> -1 THEN fail
+ a_pop arr()  'noop, already empty
+ IF UBOUND(arr) <> -1 THEN fail
 endTest
 
 'Test how static dynamic behave in FB, especially before they are first REDIMed.
