@@ -612,9 +612,10 @@ SUB prompt_for_save_and_quit()
  quit_menu(2) = "Save changes and quit"
  quit_menu(3) = "Discard changes and quit"
  setquitflag NO  'Stop firing esc's, if the user asked to quit the program
- 
+
  DIM quitnow as integer
- quitnow = sublist(quit_menu(), "quit_and_save")
+ quitnow = multichoice("", quit_menu(), 0, 0, "quit_and_save")
+
  IF getquitflag() THEN '2nd quit request? Right away!
   DIM basename as string = trimextension(sourcerpg)
   DIM lumpfile as string
@@ -644,10 +645,7 @@ SUB prompt_for_save_and_quit()
   save_current_game
  END IF
  IF quitnow = 3 THEN
-  DIM quit_confirm(1) as string
-  quit_confirm(0) = "I changed my mind! Don't quit!"
-  quit_confirm(1) = "I am sure I don't want to save."
-  IF sublist(quit_confirm()) <= 0 THEN quitnow = 0
+  IF twochoice("", "I changed my mind! Don't quit!", "I am sure I don't want to save.", 0, 0) = 0 THEN quitnow = 0
   cleanup_workingdir_on_exit = YES  'This only makes a difference if a previous attempt to save failed
  END IF
  setkeys YES

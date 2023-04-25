@@ -1902,41 +1902,6 @@ FUNCTION describe_two_tag_condition(prefix as string, truetext as string, falset
   RETURN ret
 END FUNCTION
 
-FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byval y as integer=0, byval page as integer=-1) as integer
- DIM state as MenuState
- state.pt = 0
- state.last = UBOUND(s)
- state.size = 22
-
- DIM holdscreen as integer
- holdscreen = allocatepage
- IF page > -1 THEN
-  copypage page, holdscreen
- ELSE
-  clearpage holdscreen
- END IF
-
- setkeys YES
- DO
-  setwait 55
-  setkeys YES
-  usemenu state
-  IF keyval(ccCancel) > 1 THEN
-   sublist = -1
-   EXIT DO
-  END IF
-  IF keyval(scF1) > 1 AND helpkey <> "" THEN show_help helpkey
-  IF enter_space_click(state) THEN
-   sublist = state.pt
-   EXIT DO
-  END IF
-  copypage holdscreen, vpage
-  standardmenu s(), state, pMenuX + x, pMenuY + y, vpage
-  setvispage vpage
-  dowait
- LOOP
-END FUNCTION
-
 'Get a list of the first letters (lowercase) of every word in each menu() string, except
 'those words listed in excludewords. excludewords should be a space-separated
 'list (case matters).
@@ -2412,9 +2377,7 @@ FUNCTION save_current_game (byval genDebugMode_override as integer=-1) as bool
  xbsave game + ".gen", gen(), 1000
  save_edit_time
 
- clearpage vpage
- textcolor uilook(uiText), 0
- printstr "LUMPING DATA: please wait.", pMenuX, pMenuY, vpage
+ basic_textbox "LUMPING DATA: please wait.", , vpage, , , YES  'shrink
  setvispage vpage, NO
  '--verify various stuff
  rpg_sanity_checks
@@ -2425,7 +2388,7 @@ FUNCTION save_current_game (byval genDebugMode_override as integer=-1) as bool
   IF automatic_backup(sourcerpg) = NO THEN
    visible_debug "Successfully saved the game, but couldn't write automatic backup to autobackups folder"
   ELSE
-   show_overlay_message "Saved, and copied to autobackups", 0.6
+   show_overlay_message "Saved, and copied to autobackups", 1.1
   END IF
   RETURN YES
  END IF

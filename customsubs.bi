@@ -71,7 +71,6 @@ DECLARE SUB draw_textured_background(page as integer)
 DECLARE FUNCTION gameres_page() as integer
 DECLARE SUB draw_viewport_page(srcpage as integer, destpage as integer, byval where as RelPosXY = XY(pRight, pBottom))
 
-DECLARE FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byval y as integer=0, byval page as integer=-1) as integer
 DECLARE SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as string, excludewords as string = "")
 DECLARE FUNCTION experience_chart (byval expcurve as double=0.2) as double
 DECLARE SUB stat_growth_chart ()
