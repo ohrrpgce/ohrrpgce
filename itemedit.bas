@@ -297,15 +297,16 @@ FUNCTION individual_item_editor(item_id as integer) as integer
 
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, shaded(), 0, 0, dpage
+  standardmenu menu_display(), state, shaded(), , , dpage
   IF item_is_equippable_in_slot(itembuf(), 0) THEN
    'Is a weapon
+   DIM weappos as XYPair = XY(280, 145)  'Near the weapon options
    DIM frame as integer = 0
    IF state.pt = 17 THEN frame = 1
-   frame_draw wep_img.sprite + 1 - frame, wep_img.pal, 280, 160, , dpage
-   DIM handle as XYPair
-   handle.x = 280 + itembuf(78 + frame * 2)
-   handle.y = 160 + itembuf(79 + frame * 2)
+   frame_draw wep_img.sprite + 1 - frame, wep_img.pal, weappos.x, weappos.y, , dpage
+   DIM handle as XYPair = weappos
+   handle.x += itembuf(78 + frame * 2)
+   handle.y += itembuf(79 + frame * 2)
    DIM col as integer = uilook(uiSelectedItem) + state.tog
    drawline handle.x - 2, handle.y    , handle.x - 1, handle.y    , col, dpage
    drawline handle.x    , handle.y - 2, handle.x    , handle.y - 1, col, dpage
@@ -314,7 +315,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
   END IF
 
   'Tooltip and textbox preview
-  DIM tooltipy as RelPos = pBottom
+  DIM tooltipy as RelPos = pInfoY
   IF itembuf(51) < 0 THEN
    edgeprint box_preview, 0, pBottom, uilook(uiText), dpage
    tooltipy -= 10
@@ -332,7 +333,7 @@ FUNCTION individual_item_editor(item_id as integer) as integer
     tooltip = "Alt-C to copy item definition"
    END IF
   END IF
-  edgeprint tooltip, 0, tooltipy, uilook(uiDisabledItem), dpage
+  edgeprint tooltip, pInfoX, tooltipy, uilook(uiDisabledItem), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -487,7 +488,7 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
 
   clearpage vpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, st
-  standardmenu menu_display(), st, 0, 0, vpage
+  standardmenu menu_display(), st, , , vpage
   setvispage vpage
   dowait
  LOOP
@@ -562,7 +563,7 @@ SUB item_editor_stat_bonuses(itembuf() as integer)
 
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, dpage
+  standardmenu menu_display(), state, , , dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait

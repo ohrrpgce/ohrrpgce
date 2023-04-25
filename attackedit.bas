@@ -1280,7 +1280,7 @@ DIM workmenu(65) as integer
 DIM dispmenu(65) as string
 DIM state as MenuState
 state.autosize = YES
-state.autosize_ignore_pixels = 12
+state.autosize_ignore_pixels = 16
 DIM menuopts as MenuOptions
 menuopts.fullscreen_scrollbar = YES
 
@@ -1823,7 +1823,7 @@ DO
 
  'Damage preview, blank on most menus.
  'It really can get 13 lines long! *shudder*
- wrapprint damagepreview, 0, 77, uilook(uiMenuItem), dpage, , , fontPlain
+ wrapprint damagepreview, pMenuX, 81, uilook(eduiNote), dpage, , , fontPlain
 
  'Cost preview
  IF helpkey = "attack_cost" THEN
@@ -1843,9 +1843,9 @@ DO
  END IF
 
  DIM nowindex as integer = workmenu(state.pt)
- edgeprint flexmenu_tooltip(menutype(nowindex), recbuf(menuoff(nowindex))), pLeft, pBottom, uilook(uiDisabledItem), dpage
+ edgeprint flexmenu_tooltip(menutype(nowindex), recbuf(menuoff(nowindex))), pInfoX, pInfoY, uilook(uiDisabledItem), dpage
 
- standardmenu dispmenu(), state, 0, 0, dpage, menuopts
+ standardmenu dispmenu(), state, , , dpage, menuopts
  IF keyval(scAlt) > 0 OR show_name_ticks > 0 THEN 'holding ALT or just tab-flipped, show ID and name
    show_name_ticks = large(0, show_name_ticks - 1)
    tmpstr = readattackname(recbuf()) & " " & recindex
@@ -3128,17 +3128,16 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
    CASE 6:
     IF intgrabber(reverse, 0, 1) THEN state.need_update = YES
   END SELECT
-  
+
   clearpage vpage
   'Paint preview
   atk_edit_preview attack.anim_pattern, atk_spr
   DrawSlice preview_box, vpage
   IF prefbit(36) THEN
-   edgeprint """Old attack positioning"" bitset is on", 0, pBottom - 10, uilook(uiText), vpage 
-   edgeprint "Which disables attack alignment", 0, pBottom - 0, uilook(uiText), vpage 
+   wrapprint """Old attack positioning"" bitset is on, which disables attack alignment", pInfoX, pInfoY, uilook(uiText), vpage
   END IF
   'Show menu
-  standardmenu menu(), state, 0, 0, vpage
+  standardmenu menu(), state, , , vpage
   setvispage vpage
   dowait
  LOOP

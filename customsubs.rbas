@@ -303,7 +303,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as bool=NO, byval
   END IF
 
   clearpage dpage
-  standardmenu menu, state, 0, 0, dpage, menuopts
+  standardmenu menu, state, , , dpage, menuopts
   DIM tmpstr as string
   IF int_browsing THEN
    textcolor uilook(uiText), uilook(uiHighlight)
@@ -312,14 +312,14 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as bool=NO, byval
    textcolor uilook(uiDisabledItem), 0
    tmpstr = "Alt:Tag #"
   END IF
-  printstr tmpstr, pRight, 0, dpage
-  
+  printstr tmpstr, pInfoRight, pMenuY, dpage
+
   IF NOT int_browsing THEN
    tmpstr = "CTRL+F Search"
-   printstr tmpstr, pRight, 10, dpage
+   printstr tmpstr, pInfoRight, pMenuY + 10, dpage
    IF LEN(searchstring) > 0 THEN
     tmpstr = "F3 Again"
-    printstr tmpstr, pRight, 20, dpage
+    printstr tmpstr, pInfoRight, pMenuY + 20, dpage
    END IF
   END IF
 
@@ -335,20 +335,20 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as bool=NO, byval
    textcolor uilook(uiText), 0
    DIM signrect as RectType
    signrect = str_rect(signstr, 0 , 0)
-   signrect.x = vpages(dpage)->w - signrect.size.x
+   signrect.x = vpages(dpage)->w - 4 - signrect.size.x
    signrect.y = vpages(dpage)->h - 16
    IF rect_collide_point(signrect, readmouse.pos) THEN
     textcolor uilook(uiSelectedItem + state.tog), uilook(uiHighlight)
     IF readmouse.release AND mouseLeft THEN tagsign *= -1
    END IF
-   printstr signstr, pRight, pBottom - 8, dpage
+   printstr signstr, pRight - 4, pBottom - 8, dpage
   END IF
   
   IF tag_is_autoset(tagid[state.pt]) THEN
    'Showing tag autoset status is not important when using picktag for a tag check
    'so we only show it when in set-tag more or non-tag-picking mode
    textcolor uilook(uiDisabledItem), 0
-   printstr "An auto-set tag. Press TAB for details", 0, pBottom, dpage
+   printstr "An auto-set tag. Press TAB for details", pInfoX, pInfoY, dpage
   END IF
 
   SWAP vpage, dpage
@@ -960,7 +960,7 @@ SUB percent_cond_editor (cond as AttackElementCondition, byval min as double, by
   usemenu st
 
   clearpage vpage
-  standardmenu menu(), st, 0, 0, vpage
+  standardmenu menu(), st, , , vpage
   setvispage vpage
   dowait
  LOOP
@@ -1126,7 +1126,7 @@ SUB ui_color_editor(palnum as integer)
  state.pt = -1
  state.last = UBOUND(color_menu)
  state.autosize = YES
- state.autosize_ignore_pixels = 12
+ state.autosize_ignore_pixels = 18
 
  setkeys
  DO
@@ -1185,12 +1185,12 @@ SUB ui_color_editor(palnum as integer)
   '--draw screen
   clearpage dpage
   IF draw_sample THEN draw_menu sample_menu, sample_state, dpage
-  standardmenu color_menu(), state, 10, 0, dpage
+  standardmenu color_menu(), state, 10, pMenuY, dpage
   FOR i as integer = large(state.top, 0) TO small(state.top + state.size, state.last)
-   rectangle 0, 8 * (i - state.top), 8, 8, uilook(i), dpage
+   rectangle 0, pMenuY + 9 * (i - state.top), 9, 9, uilook(i), dpage
   NEXT i
   DIM msg as string = "Ctrl+D to revert to default"
-  edgeprint msg, pCentered, pBottom, uilook(uiText), dpage
+  edgeprint msg, pCentered, pInfoY, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -1228,7 +1228,7 @@ SUB ui_boxstyle_editor(palnum as integer)
  state.first = -1
  state.last = UBOUND(color_menu)
  state.autosize = YES
- state.autosize_ignore_pixels = 12
+ state.autosize_ignore_pixels = 18
 
  setkeys
  DO
@@ -1299,19 +1299,19 @@ SUB ui_boxstyle_editor(palnum as integer)
   '--draw screen
   clearpage dpage
   IF state.pt >= 0 THEN draw_menu sample_menu, sample_state, dpage
-  standardmenu color_menu(), state, 10, 0, dpage
+  standardmenu color_menu(), state, 10, pMenuY, dpage
   FOR i as integer = large(state.top, 0) TO small(state.top + state.size, state.last)
    WITH boxlook(i \ NUM_BOXSTYLE_OPTIONS)
     DIM itemtype as integer = i MOD NUM_BOXSTYLE_OPTIONS
     IF itemtype = 0 THEN
-     rectangle 0, 8 * (i - state.top), 8, 8, .bgcol, dpage
+     rectangle 0, pMenuY + 9 * (i - state.top), 9, 9, .bgcol, dpage
     ELSEIF itemtype = 1 THEN
-     rectangle 0, 8 * (i - state.top), 8, 8, .edgecol, dpage
+     rectangle 0, pMenuY + 9 * (i - state.top), 9, 9, .edgecol, dpage
     END IF
    END WITH
   NEXT i
   DIM msg as string = "Ctrl+D to revert to default"
-  edgeprint msg, pCentered, pBottom, uilook(uiText), dpage
+  edgeprint msg, pCentered, pInfoY, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -1802,8 +1802,8 @@ SUB xy_position_on_sprite (spr as GraphicPair, byref x as integer, byref y as in
   IF tog = 0 THEN col = uilook(uiSelectedItem)
   draw_crosshairs topleft + XY(x, y) * zoom, 1, zoom, col, dpage
 
-  wrapprint caption, pCentered, 0, uilook(uiText), dpage
-  wrapprint XY(x, y) & !"  Shift for speed\nPosition point and press Enter, Space, or Click", 0, pBottom, uilook(uiText), dpage
+  wrapprint caption, pCentered, pMenuY, uilook(uiText), dpage
+  wrapprint XY(x, y) & !"  Shift for speed\nPosition point and press Enter, Space, or Click", pInfoX, pInfoY, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -1931,7 +1931,7 @@ FUNCTION sublist (s() as string, helpkey as string="", byval x as integer=0, byv
    EXIT DO
   END IF
   copypage holdscreen, vpage
-  standardmenu s(), state, x, y, vpage
+  standardmenu s(), state, pMenuX + x, pMenuY + y, vpage
   setvispage vpage
   dowait
  LOOP
@@ -1991,8 +1991,6 @@ FUNCTION experience_chart (byval expcurve as double=0.2) as double
   .last = UBOUND(menu)
   .need_update = YES
  END WITH
- DIM menuopts as MenuOptions
- menuopts.wide = 312
 
  STATIC first_view as bool = YES
 
@@ -2075,7 +2073,7 @@ FUNCTION experience_chart (byval expcurve as double=0.2) as double
   END IF
 
   clearpage vpage
-  standardmenu menu(), state, 0, 0, vpage, menuopts
+  standardmenu menu(), state, , , vpage
   setvispage vpage
   dowait
 
@@ -2136,7 +2134,7 @@ SUB stat_growth_chart ()
 
   'Draw screen
   clearpage vpage
-  standardmenu menu(), state, 0, 0, vpage
+  standardmenu menu(), state, , , vpage
 
   'Draw a 150x150 graph
   'axes
@@ -2415,8 +2413,8 @@ FUNCTION save_current_game (byval genDebugMode_override as integer=-1) as bool
  save_edit_time
 
  clearpage vpage
- textcolor uilook(uiText), vpage
- printstr "LUMPING DATA: please wait.", 0, 0, vpage
+ textcolor uilook(uiText), 0
+ printstr "LUMPING DATA: please wait.", pMenuX, pMenuY, vpage
  setvispage vpage, NO
  '--verify various stuff
  rpg_sanity_checks

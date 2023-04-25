@@ -92,9 +92,9 @@ FUNCTION exportnames (outdir as string = "") as string
  clearpage 0
  setvispage 0
  textcolor uilook(uiText), 0
- DIM pl as integer = 0
- printstr "Exporting HamsterSpeak Definitions to:", 0, pl * 8, 0: pl = pl + 1
- printstr RIGHT(outf, 40), 0, pl * 8, 0: pl = pl + 1
+ DIM as integer linex = pMenuX, liney = pMenuY
+ printstr "Exporting HamsterSpeak Definitions to:", linex, liney, 0: liney += 9
+ printstr RIGHT(outf, 40), linex, liney, 0: liney += 9
  setvispage 0, NO
 
  DIM fh as integer
@@ -103,52 +103,52 @@ FUNCTION exportnames (outdir as string = "") as string
  PRINT #fh, ""
  PRINT #fh, "define constant, begin"
 
- printstr "tag names", 0, pl * 8, 0: pl = pl + 1
+ printstr "tag names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  FOR i as integer = 2 TO gen(genMaxTagname)
   writeconstant fh, i, load_tag_name(i), u(), "tag"
  NEXT i
 
- printstr "song names", 0, pl * 8, 0: pl = pl + 1
+ printstr "song names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  FOR i as integer = 0 TO gen(genMaxSong)
   writeconstant fh, i, getsongname(i), u(), "song"
  NEXT i
 
- printstr "sound effect names", 0, pl * 8, 0: pl = pl + 1
+ printstr "sound effect names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  FOR i as integer = 0 TO gen(genMaxSFX)
   writeconstant fh, i, getsfxname(i), u(), "sfx"
  NEXT i
  setvispage 0
 
- printstr "hero names", 0, pl * 8, 0: pl = pl + 1
+ printstr "hero names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  FOR i as integer = 0 TO gen(genMaxHero)
   loadherodata her, i
   writeconstant fh, i, her.name, u(), "hero"
  NEXT i
 
- printstr "item names", 0, pl * 8, 0: pl = pl + 1
+ printstr "item names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  FOR i as integer = 0 TO gen(genMaxItem)
   writeconstant fh, i, readitemname(i), u(), "item"
  NEXT i
  setvispage 0
 
- printstr "stat names", 0, pl * 8, 0: pl = pl + 1
+ printstr "stat names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  FOR i as integer = 0 TO UBOUND(statnames)
   writeconstant fh, i, statnames(i), u(), "stat"
  NEXT i
 
- printstr "element names", 0, pl * 8, 0: pl = pl + 1
+ printstr "element names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  FOR i as integer = 0 TO gen(genNumElements) - 1
   writeconstant fh, i, elementnames(i), u(), "element"
  NEXT i
 
- printstr "slot names", 0, pl * 8, 0: pl = pl + 1
+ printstr "slot names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  IF sanitize_script_identifier(LCASE(readglobalstring(38, "Weapon", 10))) <> "weapon" THEN
   writeconstant fh, 1, "Weapon", u(), "slot"
@@ -159,41 +159,41 @@ FUNCTION exportnames (outdir as string = "") as string
  NEXT i
  setvispage 0
 
- printstr "map names", 0, pl * 8, 0: pl = pl + 1
+ printstr "map names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  FOR i as integer = 0 TO gen(genMaxMap)
   writeconstant fh, i, getmapname(i), u(), "map"
  NEXT i
 
- printstr "attack names", 0, pl * 8, 0: pl = pl + 1
+ printstr "attack names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  FOR i as integer = 0 TO gen(genMaxAttack)
   writeconstant fh, i + 1, readattackname(i), u(), "atk"
  NEXT i
  setvispage 0
 
- printstr "shop names", 0, pl * 8, 0: pl = pl + 1
+ printstr "shop names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  FOR i as integer = 0 TO gen(genMaxShop)
   writeconstant fh, i, readshopname(i), u(), "shop"
  NEXT i
  setvispage 0
 
- printstr "menu names", 0, pl * 8, 0: pl = pl + 1
+ printstr "menu names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  FOR i as integer = 0 TO gen(genMaxMenu)
   writeconstant fh, i, getmenuname(i), u(), "menu"
  NEXT i
  setvispage 0
 
- printstr "enemy names", 0, pl * 8, 0: pl = pl + 1
+ printstr "enemy names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  FOR i as integer = 0 TO gen(genMaxEnemy)
   writeconstant fh, i, readenemyname(i), u(), "enemy"
  NEXT i
  setvispage 0
 
- printstr "slice lookup names", 0, pl * 8, 0: pl = pl + 1
+ printstr "slice lookup names", linex, liney, 0: liney += 9
  REDIM u(0) as string
  REDIM slicelookup(0) as string
  load_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
@@ -205,7 +205,7 @@ FUNCTION exportnames (outdir as string = "") as string
  PRINT #fh, "end"
  CLOSE #fh
 
- printstr "done", 0, pl * 8, 0: pl = pl + 1
+ printstr "Done", linex, liney, 0: liney += 9
  setvispage 0, NO
 
  RETURN outf
@@ -571,7 +571,7 @@ SUB script_management ()
 
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, dpage
+  standardmenu menu_display(), state, , , dpage
   wrapprint "Press F9 to Compile & Import your scripts anywhere from any menu.", _
             20, pBottom - 12, uilook(uiText), dpage, rWidth - 40
 
@@ -915,9 +915,9 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
 
   clearpage dpage
   textcolor uilook(uiText), 0
-  printstr "Pick " & LCASE(scrtype), 0, 0, dpage
+  printstr "Pick " & LCASE(scrtype), pCentered, pMenuY, dpage
   highlight_menu_typing_selection scriptnames(), scriptnames_display(), selectst, state
-  standardmenu scriptnames_display(), state, 8, 10, dpage, menuopts
+  standardmenu scriptnames_display(), state, pMenuX, pMenuY + 10, dpage, menuopts
   SWAP dpage, vpage
   setvispage vpage
   dowait
@@ -1345,7 +1345,7 @@ SUB script_usage_list ()
 
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, dpage
+  standardmenu menu_display(), state, , , dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -1406,7 +1406,7 @@ SUB script_broken_trigger_list()
   usemenu state
 
   clearpage dpage
-  standardmenu missing_script_trigger_list(), state, 0, 0, dpage
+  standardmenu missing_script_trigger_list(), state, , , dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -1547,7 +1547,7 @@ SUB general_scripts_menu ()
 
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, dpage
+  standardmenu menu_display(), state, , , dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -1642,7 +1642,7 @@ SUB script_error_mode_menu ()
    clearpage dpage
    DrawSlice root, dpage
    highlight_menu_typing_selection menu(), menu_display(), selectst, state
-   standardmenu menu_display(), state, 0, 0, dpage 
+   standardmenu menu_display(), state, , , dpage
 
    SWAP vpage, dpage
    setvispage vpage

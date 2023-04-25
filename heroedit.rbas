@@ -195,7 +195,7 @@ FUNCTION hero_editor (hero_id as integer) as integer
 
   '--Draw screen
   clearpage dpage
-  standardmenu menu(), mstate, 0, 0, dpage
+  standardmenu menu(), mstate, , , dpage
 
   draw_hero_preview st, her
   SWAP vpage, dpage
@@ -256,7 +256,7 @@ FUNCTION hero_editor_add_new (st as HeroEditState, her as HeroDef, byref recinde
     END IF
 
     clearpage vpage
-    standardmenu menu(), state, 0, 0, vpage
+    standardmenu menu(), state, , , vpage
     IF state.pt = 2 THEN
       draw_hero_preview st, her
     END IF
@@ -343,7 +343,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
  graph->default_maxy = 20
  DIM graph_sl as Slice ptr
  graph_sl = NewClassSlice(rootsl, graph)
- graph_sl->Pos = XY(0, 141)
+ 'Position set below
 
  DIM mstate as MenuState
  WITH mstate
@@ -428,7 +428,10 @@ SUB hero_editor_stats_menu (her as HeroDef)
 
   'Update graph
   graph_sl->Visible = (statnum >= 0)
-  graph_sl->Size = get_resolution() - graph_sl->Pos - XY(0, 12)
+  DIM show_title as bool = (vpages(dpage)->h > 250)  'Only when there's plenty of room
+  graph_sl->Pos = XY(0, pMenuY + 9 * (mstate.last + 1) + 2)  '2px below the bottom of the menu
+  IF show_title THEN graph_sl->Y += 10
+  graph_sl->Size = get_resolution() - graph_sl->Pos - XY(0, 4)
   IF statnum >= 0 THEN
    n0 = her.Lev0.sta(statnum)
    nMax = her.LevMax.sta(statnum)
@@ -444,27 +447,27 @@ SUB hero_editor_stats_menu (her as HeroDef)
   END IF
 
   ' Menu positions
-  DIM rightmenux as integer = small(270, get_resolution().w - 135)
+  DIM rightmenux as integer = small(274, get_resolution().w - 110)
   DIM midmenux as integer = rightmenux \ 2
 
   '--Draw screen
   clearpage dpage
   DrawSlice rootsl, dpage
-  IF statnum >= 0 THEN
+  IF statnum >= 0 ANDALSO show_title THEN
    textcolor uilook(uiDescription), 0
-   printstr statnames(statnum) & " by level", pCentered, graph_sl->ScreenY + ancBottom, dpage
+   printstr statnames(statnum) & " by level", pCentered, graph_sl->ScreenY + ancBottom + 2, dpage
   END IF
 
   'Note that exactly one of the following two standardmenus should be active, since they share 'state'
   IF activemenu = 0 THEN
-   standardmenu leftmenu, mstate, 0, 0, dpage
-   IF twomenus THEN standardmenu rightmenu, inactive_state, rightmenux, 0, dpage
+   standardmenu leftmenu, mstate, , , dpage
+   IF twomenus THEN standardmenu rightmenu, inactive_state, rightmenux, , dpage
   ELSE 'activemenu = 1
-   standardmenu leftmenu, inactive_state, 0, 0, dpage
-   IF twomenus THEN standardmenu rightmenu, mstate, rightmenux, 0, dpage
+   standardmenu leftmenu, inactive_state, , , dpage
+   IF twomenus THEN standardmenu rightmenu, mstate, rightmenux, , dpage
   END IF
   IF gen(genMaxLevel) <> 99 ANDALSO gen(genMaxLevel) > 0 THEN
-   standardmenu middlemenu, inactive_state, midmenux, 0, dpage
+   standardmenu middlemenu, inactive_state, midmenux, , dpage
   END IF
 
 /'
@@ -498,7 +501,7 @@ SUB hero_editor_stats_menu (her as HeroDef)
    END IF
    statval = atlevel(whatlevel, her.Lev0.sta(statnum), her.LevMax.sta(statnum))
    textcolor uilook(uiMenuItem), 0
-   printstr stat_value_caption(statnum, statval), 0, pBottom, dpage
+   printstr stat_value_caption(statnum, statval), pInfoX, pInfoY, dpage
   END IF
 
   SWAP vpage, dpage
@@ -549,10 +552,10 @@ SUB hero_editor_spell_lists_toplevel (her as HeroDef)
    menu(1 + i) =  "Spell list " & i & ": " & her.list_name(i)
   NEXT i
   clearpage dpage
-  standardmenu menu(), mstate, 0, 0, dpage
+  standardmenu menu(), mstate, , , dpage
   IF listnum >= 0 THEN
-   edgeprint spell_list_types(her.list_type(listnum)), 0, pBottom - 10, uilook(uiSelectedDisabled), dpage
-   edgeprint "Type a name; ENTER to edit spells", 0, pBottom, uilook(uiDisabledItem), dpage
+   edgeprint spell_list_types(her.list_type(listnum)), pInfoX, pInfoY - 10, uilook(uiSelectedDisabled), dpage
+   edgeprint "Type a name; ENTER to edit spells", pInfoX, pInfoY, uilook(uiDisabledItem), dpage
   END IF
   SWAP vpage, dpage
   setvispage vpage
@@ -580,7 +583,7 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
  spellbox = NewSliceOfType(slRectangle, root)
  WITH *spellbox
   .x = 2
-  .y = 44
+  .y = 48
   .width = 308
   .height = 80
   ChangeRectangleSlice spellbox, 1
@@ -607,7 +610,7 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
   .size = 30   'For pageup/down
   .need_update = YES
  END WITH
- menu(0) = "Previous Menu..."
+ menu(0) = "Previous Menu"
  menu(3) = "Spells:"
  flusharray selectable(), , YES
  selectable(3 - 4) = NO  '"Spells:"
@@ -618,7 +621,8 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
   setkeys YES
   IF keyval(scF1) > 1 THEN show_help "hero_spells"
   IF keyval(ccCancel) > 1 THEN EXIT DO
-  
+
+  'FIXME: this menu doesn't support mouse controls
   IF mstate.pt >= 0 THEN
    IF usemenu(mstate, selectable(), ccLeft, ccRight) THEN
     mstate.need_update = YES
@@ -709,7 +713,7 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
   FOR i as integer = 0 TO 3
    col = uiLook(uiMenuItem)
    IF mstate.pt + 4 = i THEN col = uiLook(uiSelectedItem) + mstate.tog
-   edgeprint menu(i), 0, 10 * i, col, dpage
+   edgeprint menu(i), pMenuX, pMenuY + 10 * i, col, dpage
   NEXT i
   FOR i as integer = 0 TO mstate.last
    col = uiLook(uiMenuItem)
@@ -719,7 +723,7 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
     bgcol = uilook(uiHighlight)
    END IF
    textcolor col, bgcol
-   printstr spellnames(i), 12 + (i MOD 3) * 104, 50 + (i \ 3) * 8, dpage
+   printstr spellnames(i), 12 + (i MOD 3) * 104, 54 + (i \ 3) * 8, dpage
   NEXT i
 
   SWAP vpage, dpage
@@ -733,7 +737,7 @@ END SUB
 SUB hero_editor_edit_spell_list_slot (slot as SpellList)
 
  DIM menu as MenuDef
- append_menu_item menu, "Previous menu..."
+ append_menu_item menu, "Previous Menu"
  append_menu_item menu, "Attack:"
  append_menu_item menu, "Learned at level:"
  append_menu_item menu, "Learned from an item:"
@@ -818,7 +822,7 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
  DIM st as MenuState
  st.active = YES
  st.autosize = YES
- st.autosize_ignore_pixels = 12
+ st.autosize_ignore_pixels = 18
  st.need_update = YES
  
  DIM prst as MenuState
@@ -839,7 +843,7 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
    InitLikeStandardMenu menu
    init_battle_menu preview, gen(genDefaultBattleMenu) - 1
 
-   append_menu_item menu, "Previous menu..."
+   append_menu_item menu, "Previous Menu"
    ' So much duplication with the in-game code :(
    READNODE hero_node."battle_menus" as batmen, ignoreall
     WITHNODE batmen."menu" as bmenu
@@ -941,8 +945,8 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
     
   clearpage dpage
   preview_menu preview, prst, viewport_page, dpage
-  edgeprint "INSERT=add SHIFT=move DEL=delete F1=help", 0, pBottom, uilook(uiSelectedDisabled), dpage
-  edgeprint "Preview", pRight - 10, 0, uilook(uiText), dpage
+  edgeprint "INSERT=add SHIFT=move DEL=delete F1=help", pInfoX, pInfoY, uilook(uiSelectedDisabled), dpage
+  edgeprint "Preview", pRight - 10, pMenuY, uilook(uiText), dpage
   draw_menu menu, st, dpage
   SWAP vpage, dpage
   setvispage vpage
@@ -1402,7 +1406,7 @@ SUB hero_editor_tags (byval hero_id as integer, byref hero as HeroDef)
   END IF
 
   clearpage dpage
-  standardmenu tagmenu.menu(), st, tagmenu.shaded(), 0, 0, dpage, menuopts
+  standardmenu tagmenu.menu(), st, tagmenu.shaded(), , , dpage, menuopts
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -1642,7 +1646,7 @@ SUB hero_editor_appearance(byref st as HeroEditState, byref her as HeroDef)
   IF st.changed THEN update_hero_appearance_menu st, menu(), her
 
   clearpage dpage
-  standardmenu menu(), state, 8, 0, dpage
+  standardmenu menu(), state, , , dpage
   draw_hero_preview st, her
   SWAP vpage, dpage
   setvispage vpage
@@ -1680,7 +1684,7 @@ SUB hero_editor_equipment_list (byval hero_id as integer, byref her as HeroDef)
    END IF
   END IF
   clearpage dpage
-  standardmenu menu(), state, 0, 0, dpage
+  standardmenu menu(), state, , , dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait

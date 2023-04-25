@@ -415,10 +415,10 @@ DO
  END IF
 
  clearpage dpage
- standardmenu menu(), state, 0, 0, dpage
+ standardmenu menu(), state, , , dpage
  'Allow newlines in metadata but don't wrap, to cut off long comments
- edgeprint metadata, 0, 9 * (UBOUND(menu) + 2), uilook(uiMenuItem), dpage, YES, YES
- edgeprint "F2: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
+ edgeprint metadata, pMenuX, pMenuY + 9 * (UBOUND(menu) + 2), uilook(uiMenuItem), dpage, YES, YES
+ edgeprint "F2: change preview volume", pInfoRight, pInfoY, uilook(uiMenuItem), dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -765,10 +765,10 @@ DO
  END IF
 
  clearpage dpage
- standardmenu menu(), state, 0, 0, dpage
+ standardmenu menu(), state, , , dpage
  'Allow newlines in metadata but don't wrap, to cut off long comments
- edgeprint metadata, 0, 9 * (UBOUND(menu) + 2), uilook(uiMenuItem), dpage, YES, YES
- edgeprint "F2: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
+ edgeprint metadata, pMenuX, pMenuY + 9 * (UBOUND(menu) + 2), uilook(uiMenuItem), dpage, YES, YES
+ edgeprint "F2: change preview volume", pInfoRight, pInfoY, uilook(uiMenuItem), dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -1011,7 +1011,7 @@ SUB generalmusicsfxmenu ()
           disp(idx) = menu(idx) & "Same as map"
         END IF
       NEXT
-    END IF    
+    END IF
 
     IF select_by_typing(selectst, NO) THEN
       select_on_word_boundary disp(), selectst, state
@@ -1019,8 +1019,8 @@ SUB generalmusicsfxmenu ()
 
     clearpage dpage
     highlight_menu_typing_selection disp(), menu_display(), selectst, state
-    standardmenu menu_display(), state, 0, 0, dpage 
-    edgeprint "F2: change preview volume", pRight, pBottom, uilook(uiMenuItem), dpage
+    standardmenu menu_display(), state, , , dpage
+    edgeprint "F2: change preview volume", pInfoRight, pInfoY, uilook(uiMenuItem), dpage
 
     SWAP vpage, dpage
     setvispage vpage

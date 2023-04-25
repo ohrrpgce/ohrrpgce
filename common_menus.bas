@@ -128,8 +128,8 @@ FUNCTION editbitset (array() as integer, wof as integer, bits() as IntStrPair, h
   END IF
  NEXT
 
- DIM menupos as XYPair
- IF LEN(title) THEN menupos.y = 14
+ DIM menupos as XYPair = XY(pMenuX, pMenuY)
+ IF LEN(title) THEN menupos.y += 12
 
  DIM state as MenuState
  state.pt = remem_pt
@@ -137,7 +137,7 @@ FUNCTION editbitset (array() as integer, wof as integer, bits() as IntStrPair, h
  state.first = -1
  state.last = UBOUND(bitmenu)
  state.autosize = YES
- state.autosize_ignore_pixels = menupos.y
+ state.autosize_ignore_pixels = menupos.y + 2
  calc_menu_rect state, MenuOptions(), XY(0, 0)   'For autosize
  correct_menu_state state
 
@@ -175,7 +175,9 @@ FUNCTION editbitset (array() as integer, wof as integer, bits() as IntStrPair, h
   IF LEN(title) THEN edgeprint title, pCentered, menupos.y - 12, uilook(uiMenuItem), dpage
   FOR i as integer = state.top TO small(state.top + state.size, state.last)
    DIM drawat as XYPair = menupos
-   drawat.x += 8 + IIF(state.pt = i, showRight, 0)
+   IF i > -1 THEN  'Don't indent prevmenu line
+    drawat.x += 8 + IIF(state.pt = i, showRight, 0)
+   END IF
    drawat.y += (i - state.top) * state.spacing
    DIM biton as integer
    DIM col as integer

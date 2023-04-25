@@ -111,7 +111,7 @@ SUB editor_editor()
  st.state.need_update = YES
  st.state.active = YES
  st.state.autosize = YES
- st.state.autosize_ignore_pixels = 12
+ st.state.autosize_ignore_pixels = 18
 
  InitLikeStandardMenu st.menu
  
@@ -168,7 +168,7 @@ SUB editor_editor()
 
   clearpage dpage
   draw_menu st.menu, st.state, dpage
-  edgeprint "F1=Help  TAB=mode (" & IIF(st.type_data, "data node", "widget caption") & ")", 0, pBottom, uilook(uiText), dpage
+  edgeprint "F1=Help  TAB=mode (" & IIF(st.type_data, "data node", "widget caption") & ")", pInfoX, pInfoY, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -726,7 +726,7 @@ FUNCTION widget_editor(byval widget as NodePtr) as bool
 
   clearpage dpage
   draw_menu st.menu, st.state, dpage
-  edgeprint "F1=Help", 0, pBottom, uilook(uiText), dpage
+  edgeprint "F1=Help", pInfoX, pInfoY, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage

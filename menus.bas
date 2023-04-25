@@ -727,7 +727,7 @@ CONST SELECT_TYPE_TIMEOUT as double = 0.7
 '  END IF
 '
 '  highlight_menu_typing_selection menu(), menu_display(), selectst, state
-'  standardmenu menu_display(), state, 0, 0, dpage 
+'  standardmenu menu_display(), state, , , dpage
 '
 FUNCTION select_by_typing(selectst as SelectTypeState, byval allow_numbers as bool = YES) as bool
  WITH selectst
@@ -1998,7 +1998,7 @@ SUB ModularMenu.draw()
   IF LEN(title) THEN
    titlesize = textsize(title, rWidth - 20, fontEdged)
    where.y += 8 + titlesize.h \ 2
-   state.autosize_ignore_pixels = 12 + titlesize.h
+   state.autosize_ignore_pixels = 14 + titlesize.h
   END IF
   calc_menu_rect state, menuopts, where, vpage, basicmenu
   v_free basicmenu
@@ -2024,7 +2024,7 @@ SUB ModularMenu.draw()
  END IF
 
  IF LEN(tooltip) THEN
-  wrapprintbg tooltip, pTooltipX, pTooltipY, uilook(uiText), vpage
+  wrapprintbg tooltip, pInfoX, pInfoY, uilook(uiText), vpage
  END IF
 
  draw_overlays()

@@ -651,7 +651,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
  WITH state
   .need_update = YES
   .autosize = YES
-  .autosize_ignore_pixels = 22
+  .autosize_ignore_pixels = 25
   'Require clicking on an unselected menu item twice to open the detail editor
   .select_by_mouse_release = YES
   .hit_test = @slicemenu_hit_tester
@@ -1081,13 +1081,14 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    NEXT i
 
    menuopts.drawbg = (ses.hide_mode <> hideMenuBG)
-   standardmenu plainmenu(), state, 8, 0, dpage, menuopts
+   DIM menupos as XYPair = XY(8, pMenuY)
+   standardmenu plainmenu(), state, menupos.x, menupos.y, dpage, menuopts
    draw_fullscreen_scrollbar state, 0, dpage, alignLeft
 
    ' Draw icons
    FOR i as integer = state.top TO small(state.last, state.top + state.size)
-    'Start 3 pixels left of the item, because the icons are spaced 9px wide
-    DIM itempos as XYPair = XY(8 - 1 + ses.slicemenu(i).indent * 8, 1 + (i - state.top) * state.spacing)
+    'Type icon. Icons are 8px wide, so need to move 1 pixel left to not touch the text
+    DIM itempos as XYPair = menupos + XY(-1 + ses.slicemenu(i).indent * 8, (i - state.top) * state.spacing)
     DIM sl as Slice ptr = ses.slicemenu(i).handle
     IF sl THEN
      slice_editor_draw_icon ses, ses.slice_type_icons, sl->SliceType, itempos, SliceTypeName(sl), dpage
@@ -1150,7 +1151,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
 
    toolbar = ticklite(toolbar)
    'The up/down arrows are probably not in the game font. And don't wrap.
-   wrapprintbg toolbar, 8, pBottom, uilook(uiMenuItem), dpage, menuopts.drawbg, 9999, , fontBuiltinEdged
+   wrapprintbg toolbar, 8, pBottom - 1, uilook(uiMenuItem), dpage, menuopts.drawbg, 9999, , fontBuiltinEdged
   END IF
 
   IF LEN(ses.tooltip) THEN
@@ -1789,7 +1790,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   END IF
   IF ses.hide_mode <> hideMenu THEN
    menuopts.drawbg = (ses.hide_mode <> hideMenuBG)
-   standardmenu menu(), state, 0, 0, dpage, menuopts
+   standardmenu menu(), state, , , dpage, menuopts
   END IF
 
   SWAP vpage, dpage
@@ -3248,7 +3249,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   END IF
 
   clearpage dpage
-  standardmenu cast(BasicMenuItem vector, menu), st, 0, 0, dpage, menuopts
+  standardmenu cast(BasicMenuItem vector, menu), st, , , dpage, menuopts
 
   SWAP vpage, dpage
   setvispage vpage

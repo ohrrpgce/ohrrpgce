@@ -586,7 +586,7 @@ DIM workmenu(93) as integer
 DIM dispmenu(93) as string
 DIM state as MenuState
 state.autosize = YES
-state.autosize_ignore_pixels = 12
+state.autosize_ignore_pixels = 18
 state.need_update = YES
 DIM menuopts as MenuOptions
 menuopts.fullscreen_scrollbar = YES
@@ -990,7 +990,7 @@ DO
   wrapprint rewards_preview, 0, 112, uilook(uiMenuItem), vpage, , , fontPlain
  END IF
 
- standardmenu dispmenu(), state, 0, 0, vpage, menuopts
+ standardmenu dispmenu(), state, , , vpage, menuopts
  IF keyval(scAlt) > 0 OR show_name_ticks > 0 THEN 'holding ALT or just pressed TAB
   show_name_ticks = large(0, show_name_ticks - 1)
   DIM tmpstr as string = readenemyname(recbuf()) & " " & recindex
@@ -998,7 +998,7 @@ DO
   printstr tmpstr, pRight, 0, vpage
  END IF
  nowindex = workmenu(state.pt)
- edgeprint flexmenu_tooltip(menutype(nowindex), recbuf(menuoff(nowindex))), pLeft, pBottom, uilook(uiDisabledItem), vpage
+ edgeprint flexmenu_tooltip(menutype(nowindex), recbuf(menuoff(nowindex))), pInfoX, pInfoY, uilook(uiDisabledItem), vpage
 
  setvispage vpage
  dowait

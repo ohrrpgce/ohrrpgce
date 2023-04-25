@@ -286,19 +286,19 @@ SUB global_text_strings_editor()
 
   clearpage dpage
   menuopts.highlight_selection = (state.pt <> 0) 'Don't hightlight Return to Main Menu
-  standardmenu menu.text(), state, 232, 0, dpage, menuopts
+  standardmenu menu.text(), state, pMenuX + 232, , dpage, menuopts
   'Since both halves of the menu share the same state and both are active,
   'they both toggle state.tog. So work around that
   state.tog XOR= 1
 
   menuopts2.disabled_col = uilook(eduiHeading)
-  standardmenu menu.descriptions(), state, menu.shaded(), 0, 0, dpage, menuopts2
-  edgeprint "CTRL+S Search", 0, pBottom, uilook(uiDisabledItem), dpage
+  standardmenu menu.descriptions(), state, menu.shaded(), , , dpage, menuopts2
+  edgeprint "CTRL+S Search", pInfoX, pInfoY, uilook(uiDisabledItem), dpage
   IF LEN(menu.defaults(state.pt)) THEN
-   edgeprint "Default: " & menu.defaults(state.pt), pRight, pBottom, uilook(uiDisabledItem), dpage
+   edgeprint "Default: " & menu.defaults(state.pt), pInfoRight, pInfoY, uilook(uiDisabledItem), dpage
   END IF
   IF LEN(menu.help(state.pt)) THEN
-   edgeprint "Press F1 for help about this string", 0, pBottom - 10, uilook(uiDisabledItem), dpage
+   edgeprint "Press F1 for help", pInfoX, pInfoY - 9, uilook(uiDisabledItem), dpage
   END IF
   IF menu.index(state.pt) >= 0 THEN
    edgeboxstyle rCenter - (menu.maxlens(state.pt) * 4), pBottom, 8 * menu.maxlens(state.pt) + 4, 10, 0, dpage, transOpaque, YES

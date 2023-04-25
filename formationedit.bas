@@ -107,7 +107,6 @@ SUB formation_editor
  menu(3) = "Edit Hero Formations..."
 
  DIM state as MenuState
- state.size = 24
  state.last = UBOUND(menu)
 
  setkeys
@@ -125,7 +124,7 @@ SUB formation_editor
   END IF
 
   clearpage dpage
-  standardmenu menu(), state, 0, 0, dpage
+  standardmenu menu(), state, , , dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -154,11 +153,11 @@ FUNCTION formation_set_editor (set_id as integer = -1) as integer
  DIM rootslice as Slice ptr
  DIM state as MenuState
  state.last = UBOUND(menu)
- state.size = 24
+ state.autosize = YES
+ state.autosize_ignore_pixels = 20
  state.need_update = YES
  DIM menuopts as MenuOptions
  menuopts.edged = YES
- menuopts.itemspacing = -1
 
  LoadFormationSet formset, set_id
 
@@ -206,14 +205,14 @@ FUNCTION formation_set_editor (set_id as integer = -1) as integer
    clearpage dpage
   END IF
   IF state.pt >= 4 THEN
-   edgeprint THINGGRABBER_TOOLTIP, 0, pBottom, uilook(uiMenuItem), dpage
+   edgeprint THINGGRABBER_TOOLTIP, pInfoX, pInfoY, uilook(uiMenuItem), dpage
   END IF
   menu(0) = "Previous Menu"
   menu(1) = CHR(27) & "Formation Set " & set_id & CHR(26)
   menu(2) = "Battle Frequency: " & formset.frequency & " (" & formset_step_estimate(formset.frequency, " steps") & ")"
   menu(3) = tag_condition_caption(formset.tag, "Only if tag", "No tag check")
 
-  standardmenu menu(), state, 0, 0, dpage, menuopts
+  standardmenu menu(), state, , , dpage, menuopts
 
   SWAP vpage, dpage
   setvispage vpage
@@ -394,9 +393,9 @@ SUB hero_formation_editor ()
   draw_formation_slices eform, hform, rootslice, slot, dpage, YES
 
   IF positioning_mode THEN
-   edgeprint "Arrow keys or mouse-drag", 0, 0, uilook(uiText), dpage
-   edgeprint "ESC or right-click when done", 0, pBottom, uilook(uiText), dpage
-   edgeprint "x=" & hform.slots(slot).pos.x & " y=" & hform.slots(slot).pos.y, pRight, 0, uilook(uiMenuItem), dpage
+   edgeprint "Arrow keys or mouse-drag", pMenuX, pMenuY, uilook(uiText), dpage
+   edgeprint "ESC or right-click when done", pInfoX, pInfoY, uilook(uiText), dpage
+   edgeprint "x=" & hform.slots(slot).pos.x & " y=" & hform.slots(slot).pos.y, pInfoRight, pMenuY, uilook(uiMenuItem), dpage
   ELSE
    menu(0) = "Previous Menu"
    menu(1) = CHR(27) + "Hero Formation " & hero_form_id & CHR(26)
@@ -406,7 +405,7 @@ SUB hero_formation_editor ()
     placeholder = IIF(hero_placeholder_sprites(i) = -1, "Rect", "Sprite " & hero_placeholder_sprites(i))
     menu(first_hero_item + i) = "Hero Slot " & i & "  " & CHR(27) & "Preview:" & placeholder & CHR(26)
    NEXT i
-   standardmenu menu(), state, 0, 0, dpage, menuopts
+   standardmenu menu(), state, , , dpage, menuopts
   END IF
   SWAP vpage, dpage
   setvispage vpage
@@ -728,9 +727,9 @@ SUB FormationEditor.draw_underlays()
  draw_formation_slices form, rootslice, slot, vpage
 
  IF positioning_mode THEN
-  edgeprint "Arrow keys or mouse-drag", 0, 0, uilook(uiText), vpage
-  edgeprint "ESC or right-click when done", 0, pBottom, uilook(uiText), vpage
-  edgeprint "x=" & form.slots(slot).pos.x & " y=" & form.slots(slot).pos.y, pRight, 0, uilook(uiMenuItem), vpage
+  edgeprint "Arrow keys or mouse-drag", pMenuX, pMenuY, uilook(uiText), vpage
+  edgeprint "ESC or right-click when done", pInfoX, pInfoY, uilook(uiText), vpage
+  edgeprint "x=" & form.slots(slot).pos.x & " y=" & form.slots(slot).pos.y, pInfoRight, pMenuY, uilook(uiMenuItem), vpage
  END IF
 END SUB
 

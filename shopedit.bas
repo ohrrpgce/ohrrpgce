@@ -135,7 +135,7 @@ FUNCTION shop_editor (shop_id as integer) as integer
   END IF
   
   clearpage dpage
-  standardmenu shopst.menu(), shopst.st, shopst.shaded(), 0, 0, dpage 
+  standardmenu shopst.menu(), shopst.st, shopst.shaded(), , , dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -231,7 +231,7 @@ SUB shop_add_new (shopst as ShopEditState)
     END IF
 
     clearpage vpage
-    standardmenu menu(), state, 0, 0, vpage
+    standardmenu menu(), state, 20, 20, vpage
     setvispage vpage
     dowait
   LOOP
@@ -273,7 +273,7 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
  DIM stuf as ShopStuffState
  stuf.thing = stuff_id
  stuf.thingname = ""
- 
+
  stuf.st.pt = 0
  stuf.st.last = 2
  stuf.st.size = 24
@@ -414,14 +414,14 @@ FUNCTION shop_stuff_edit (byval stuff_id as integer, byval shop_id as integer) a
   END IF
 
   clearpage dpage
-  standardmenu stuf.menu(), stuf.st, 0, 0, dpage
+  standardmenu stuf.menu(), stuf.st, , , dpage
 
   IF stuf.st.pt = 1 THEN  'thing ID selection
    textcolor uilook(uiDisabledItem), 0
-   printstr "SHIFT + Left/Right to reorder", pRight, pBottom, dpage
+   printstr "SHIFT + Left/Right to reorder", pInfoRight, pInfoY, dpage
   END IF
 
-  IF show_stockidx THEN edgeprint "Stockidx " & stufbuf(37) - 1, pLeft, pBottom, uilook(uiMenuItem), dpage
+  IF show_stockidx THEN edgeprint "Stockidx " & stufbuf(37) - 1, pInfoX, pInfoY, uilook(uiMenuItem), dpage
 
   SWAP vpage, dpage
   setvispage vpage

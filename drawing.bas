@@ -192,7 +192,7 @@ SUB import_export_tilesets ()
  mstate.last = UBOUND(menu)
  DIM menuopts as MenuOptions
  menuopts.edged = YES
- menu(0) = "Return to Main Menu"
+ menu(0) = "Previous Menu"
  menu(1) = CHR(27) + "Browse 0" + CHR(26)
  menu(2) = "Replace current tileset"
  menu(3) = "Append a new tileset"
@@ -273,7 +273,7 @@ SUB import_export_tilesets ()
   clearpage dpage
   frame_draw_with_background vpages(2), , 0, 0, bgcolor, chequer_scroll, vpages(dpage)
   IF mstate.pt <> 8 THEN
-   standardmenu menu(), mstate, 0, 0, dpage, menuopts
+   standardmenu menu(), mstate, , , dpage, menuopts
   END IF
   SWAP vpage, dpage
   setvispage vpage
@@ -383,7 +383,7 @@ SUB backdrop_browser ()
 
   IF mstate.need_update THEN
    mstate.need_update = NO
-   menu(0) = "Return to Main Menu"
+   menu(0) = "Previous Menu"
    menu(1) = CHR(27) + "Backdrop " & backdrop_id & CHR(26)
    menu(2) = "Replace current backdrop"
    menu(3) = "Append a new backdrop"
@@ -400,7 +400,7 @@ SUB backdrop_browser ()
   drawbox pRight + 1, pBottom + 1, backdrop->w + 2, backdrop->h + 2, uilook(uiMenuItem), 1, vpage
   frame_draw_with_background backdrop, , pRight + showLeft, pBottom + showTop, bgcolor, chequer_scroll, vpages(vpage)
   IF mstate.pt <> 8 THEN
-   standardmenu menu(), mstate, 0, 0, vpage, menuopts
+   standardmenu menu(), mstate, , , vpage, menuopts
   END IF
   setvispage vpage
   dowait
@@ -418,7 +418,6 @@ LOCAL SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
  DIM prev_menu_selected as bool  ' "Previous Menu" is current selection
  DIM cx as integer
  DIM cy as integer
- DIM mouse as MouseInfo
  DIM image_pos as XYPair
 
  hidemousecursor
@@ -430,10 +429,9 @@ LOCAL SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
   setkeys
   tog = tog XOR 1
   image_pos = get_resolution() - image->size
-  mouse = readmouse()
-  WITH mouse
+  WITH readmouse()
    IF .release AND mouseleft THEN
-    IF rect_collide_point(str_rect("Previous Menu", 0, 0), .pos) THEN
+    IF rect_collide_point(str_rect("Previous Menu", pMenuX, pMenuY), .pos) THEN
      EXIT DO
     ELSE
      DIM rect as RectType
@@ -443,7 +441,7 @@ LOCAL SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
      'Click on a palette colour
      FOR xidx as integer = 0 TO 15
       FOR yidx as integer = 0 TO 15
-       rect.topleft = XY(xidx * 10, 8 + yidx * 10)
+       rect.topleft = XY(pMenuX + xidx * 10, pMenuY + 8 + yidx * 10)
        IF rect_collide_point(rect, .pos) THEN col = yidx * 16 + xidx
       NEXT
      NEXT
@@ -480,16 +478,14 @@ LOCAL SUB select_disabled_import_colors(pmask() as RGBcolor, image as Frame ptr)
   frame_draw image, , image_pos.x, image_pos.y, NO, dpage
   textcolor uilook(uiMenuItem), 0
   IF prev_menu_selected THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr "Previous Menu", 0, 0, dpage
-  IF prev_menu_selected = NO THEN rectangle 0 + cx * 10, 8 + cy * 10, 10, 10, uilook(uiSelectedItem + tog), dpage
+  printstr "Previous Menu", pMenuX, pMenuY, dpage
+  IF prev_menu_selected = NO THEN rectangle pMenuX + cx * 10, pMenuY + 8 + cy * 10, 10, 10, uilook(uiSelectedItem + tog), dpage
   FOR i as integer = 0 TO 15
    FOR o as integer = 0 TO 15
-    rectangle 1 + o * 10, 9 + i * 10, 8, 8, i * 16 + o, dpage
+    rectangle pMenuX + 1 + o * 10, pMenuY + 9 + i * 10, 8, 8, i * 16 + o, dpage
    NEXT o
   NEXT i
-  IF mouse.active THEN
-   printstr CHR(2), mouse.x - 2, mouse.y - 2, dpage
-  END IF
+  printstr CHR(2), readmouse.x - 2, readmouse.y - 2, dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -801,7 +797,7 @@ DO
  IF state.need_update THEN
   state.need_update = NO
   REDIM menu(-1 TO gen(genMaxTile))
-  menu(-1) = "Return to Main Menu"
+  menu(-1) = "Previous Menu"
   FOR i as integer = 0 TO gen(genMaxTile)
    menu(i) = "Tile Set " & i
   NEXT
@@ -812,7 +808,7 @@ DO
  frame_draw_with_background vpages(3), , 0, 0, bgcolor, chequer_scroll, vpages(dpage)
  DIM menuopts as MenuOptions
  menuopts.edged = YES
- standardmenu menu(), state, 10, 4, dpage, menuopts
+ standardmenu menu(), state, , , dpage, menuopts
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -870,7 +866,7 @@ SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref 
   clearpage dpage
   frame_draw_with_background vpages(3), , 0, 0, bgcolor, chequer_scroll, vpages(dpage)
   menu(5) = "View with background: " & bgcolor_caption(bgcolor)
-  standardmenu menu(), state, 10, 8, dpage, menuopt
+  standardmenu menu(), state, , , dpage, menuopt
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -914,12 +910,12 @@ SUB tile_animation(byval tilesetnum as integer)
    END SELECT
   END IF
   IF state.need_update THEN
-   menu(1) = CHR(27) & "Animation set " & taset & CHR(26)
+   menu(1) = CHR(27) & "Animation Set " & taset & CHR(26)
    menu(4) = tag_condition_caption(tastuf(1 + 20 * taset), "Disable if Tag", "No tag check")
    state.need_update = YES
   END IF
   clearpage dpage
-  standardmenu menu(), state, 0, 0, dpage
+  standardmenu menu(), state, , , dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -943,7 +939,7 @@ SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tiles
   IF keyval(ccLeft) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 1, 0)
   IF keyval(ccRight) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 1, 112)
   WITH readmouse
-   over_esc = rect_collide_point(str_rect("ESC when done", 0, 0), .pos)
+   over_esc = rect_collide_point(str_rect("ESC when done", pInfoX, pInfoY), .pos)
    IF (.release AND mouseleft) ANDALSO over_esc THEN
     EXIT DO
    ELSEIF (.buttons AND mouseLeft) ANDALSO .pos < XY(320, 200) THEN
@@ -953,7 +949,7 @@ SUB tile_anim_set_range(tastuf() as integer, byval taset as integer, byval tiles
   clearpage dpage
   copypage 3, dpage
   tile_anim_draw_range tastuf(), taset, dpage
-  edgeprint "ESC when done", 0, 0, uilook(IIF(over_esc, uiMouseHoverItem, uiMenuItem)), dpage
+  edgeprint "ESC when done", pInfoX, pInfoY, uilook(IIF(over_esc, uiMouseHoverItem, uiMenuItem)), dpage
   SWAP vpage, dpage
   setvispage vpage
   dowait
@@ -1074,10 +1070,10 @@ SUB setanimpattern (tastuf() as integer, taset as integer, tilesetnum as integer
   '--Draw screen
   clearpage dpage
   state.active = (context = 0)
-  standardmenu menu(), state, 0, 0, dpage
+  standardmenu menu(), state, , , dpage
   IF state.pt > 0 THEN
    state2.active = (context = 1)
-   standardmenu menu2(), state2, 0, 100, dpage
+   standardmenu menu2(), state2, pMenuX, 105, dpage
   END IF
   SWAP vpage, dpage
   setvispage vpage
@@ -1417,7 +1413,7 @@ DO
  ELSEIF tmode = 0 THEN
   msg = "Tile to edit: " & bnum
  END IF
- edgeprint msg, 0, IIF(get_resolution().h >= 210 OR bnum < 112, pBottom, 0), uilook(uiText), dpage
+ edgeprint msg, pInfoX, IIF(get_resolution().h >= 210 OR bnum < 112, pInfoY, pMenuY), uilook(uiText), dpage
 
  IF tmode = 3 THEN
   FOR o as integer = 0 TO 9
@@ -3088,7 +3084,7 @@ FUNCTION pick_image_pixel(image as Frame ptr, pal16 as Palette16 ptr = NULL, byr
    END IF
   END IF
 
-  edgeprint message, 0, pBottom, uilook(uiText), dpage, YES, YES
+  edgeprint message, pInfoX, pInfoY, uilook(uiText), dpage, YES, YES
   'edgeprint "SHIFT: move faster", pRight, pBottom, uilook(uiMenuItem), dpage, YES, YES
   SWAP vpage, dpage
   setvispage vpage
@@ -5354,9 +5350,9 @@ SUB AnimationEditor.toplevel()
 
     clearpage vpage
     textcolor uilook(uiMenuItem), 0
-    printstr ticklite("e`x`port"), pRight, pBottom, vpage, YES
+    printstr ticklite("e`x`port"), pInfoRight, pInfoY, vpage, YES
     frame_draw sprstate->cur_frame(), pal, pCentered, pBottom - 30, , vpage
-    standardmenu topmenu(), topstate, 0, 0, vpage
+    standardmenu topmenu(), topstate, , , vpage
     setvispage vpage
     dowait
   LOOP

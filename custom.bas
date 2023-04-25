@@ -287,7 +287,7 @@ prompt_for_password
 
 clearpage vpage
 textcolor uilook(uiText), 0
-printstr "UNLUMPING DATA: please wait.", 0, 0, vpage
+printstr "UNLUMPING DATA: please wait.", pMenuX, pMenuY, vpage
 setvispage vpage, NO
 
 touchfile workingdir + SLASH + "__danger.tmp"
@@ -389,7 +389,7 @@ SUB main_editor_menu()
  DIM state as MenuState
  state.last = UBOUND(menu)
  state.autosize = YES
- state.autosize_ignore_pixels = 24
+ state.autosize_ignore_pixels = 36
 
  setkeys YES
  DO
@@ -452,13 +452,13 @@ SUB main_editor_menu()
 
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, dpage
+  standardmenu menu_display(), state, , , dpage
 
-  textcolor uilook(uiSelectedDisabled), 0
-  printstr version_code, 0, pBottom - 16, dpage, , fontBuiltinPlain
-  printstr version_build & " In use: " & gfxbackend & "/" & musicbackend, 0, pBottom - 8, dpage, , fontBuiltinPlain
+  textcolor uilook(eduiNote), 0
+  printstr version_code, pInfoX, pInfoY - 18, dpage, , fontBuiltinPlain
+  printstr version_build & " In use: " & gfxbackend & "/" & musicbackend, pInfoX, pInfoY - 9, dpage, , fontBuiltinPlain
   textcolor uilook(uiText), 0
-  printstr "Press F1 for help on any menu!", 0, pBottom, dpage, , fontBuiltinPlain
+  printstr "Press F1 for help on any menu!", pInfoX, pInfoY, dpage, , fontBuiltinPlain
  
   SWAP vpage, dpage
   setvispage vpage
@@ -533,7 +533,7 @@ SUB gfx_editor_menu()
  
   clearpage dpage
   highlight_menu_typing_selection menu(), menu_display(), selectst, state
-  standardmenu menu_display(), state, 0, 0, dpage
+  standardmenu menu_display(), state, , , dpage
  
   SWAP vpage, dpage
   setvispage vpage
@@ -623,14 +623,14 @@ SUB prompt_for_save_and_quit()
    lumpfile = basename & ".rpg_" & i & ".bak"
    i += 1
   LOOP WHILE isfile(lumpfile)
-  clearpage 0
-  printstr "Saving as " & lumpfile, 0, 0, 0
-  printstr "LUMPING DATA: please wait...", 0, 10, 0
-  setvispage 0, NO
+  clearpage vpage
+  printstr "Saving as " & lumpfile, pMenuX, pMenuY, vpage
+  printstr "LUMPING DATA: please wait...", pMenuX, pMenuY + 10, vpage
+  setvispage vpage, NO
   write_rpg_or_rpgdir workingdir, lumpfile
   cleanup_and_terminate
   EXIT SUB
- END IF 
+ END IF
 
  IF (quitnow = 2 OR quitnow = 3) ANDALSO channel_to_Game THEN
   'Prod the channel to see whether it's still up (send ping)
@@ -925,11 +925,11 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
  ' Error already shown if missing
  IF NOT isfile(templatefile) THEN RETURN NO
  textcolor uilook(uiSelectedDisabled), 0
- printstr "Please Wait...", 0, 100, vpage
- printstr "Creating RPG File", 0, 110, vpage
+ printstr "Please Wait...", pMenuX, 100, vpage
+ printstr "Creating RPG File", pMenuX, 110, vpage
  setvispage vpage, NO
  writeablecopyfile templatefile, newrpg
- printstr "Unlumping", 0, 120, vpage
+ printstr "Unlumping", pMenuX, 120, vpage
  setvispage vpage, NO
  unlump newrpg, workingdir + SLASH
 
@@ -956,7 +956,7 @@ FUNCTION newRPGfile (templatefile as string, newrpg as string) as bool
 
  close_general_reld
 
- printstr "Finalumping", 0, 130, vpage
+ printstr "Finalumping", pMenuX, 130, vpage
  setvispage vpage, NO
  '--re-lump files as NEW rpg file
  RETURN write_rpg_or_rpgdir(workingdir, newrpg)
@@ -1236,10 +1236,10 @@ FUNCTION recover_workingdir (sessinfo as SessionInfo) as bool
  DIM destfile as string
  destfile = pick_recovered_rpg_filename(origname)
 
- printstr "Saving as " + decode_filename(destfile), 0, 180, vpage
- printstr "LUMPING DATA: please wait...", 0, 190, vpage
+ printstr "Saving as " + decode_filename(destfile), pMenuX, 180, vpage
+ printstr "LUMPING DATA: please wait...", pMenuX, 190, vpage
  setvispage vpage, NO
- '--re-lump recovered files as RPG file
+ '--re-lump recovered files as RPG filep
  IF write_rpg_or_rpgdir(sessinfo.workingdir, destfile) = NO THEN
   RETURN NO
  END IF
@@ -1422,7 +1422,7 @@ SUB secret_menu ()
   END IF
   usemenu st
   clearpage vpage
-  standardmenu menu(), st, 0, 0, vpage
+  standardmenu menu(), st, , , vpage
   setvispage vpage
   dowait
  LOOP
@@ -1505,7 +1505,7 @@ SUB resolution_menu ()
   menu(8) = "Game horizontal resolution: " & gen(genResolutionX) & " pixels"
   menu(9) = "Game vertical resolution: " & gen(genResolutionY) & " pixels"
   clearpage vpage
-  standardmenu menu(), st, 0, 0, vpage
+  standardmenu menu(), st, , , vpage
   setvispage vpage
   dowait
  LOOP
@@ -1559,7 +1559,7 @@ SUB condition_test_menu ()
   menu(6) = " If " & condition_string(cond4, (st.pt = 6), "Never", 45)
   menu(7) = "Fail vs damage from <fire>" & atkcond_repr
   menu(8) = "percent_grabber : " & float_repr
-  standardmenu menu(), st, 0, 0, vpage
+  standardmenu menu(), st, , , vpage
   printstr STR(tmp), 0, 190, vpage
   setvispage vpage
   dowait
@@ -1677,7 +1677,7 @@ SUB quad_transforms_menu ()
 
   draw_background vpages(vpage)
   textcolor uilook(uiText), 0
-  wrapprint info, 0, 0, , vpage
+  wrapprint info, pMenuX, pMenuY, , vpage
 
   normdrawtime.start()
   frame_draw sprpair.sprite, sprpair.pal, pCentered + 30, 50, , vpages(vpage), drawopts
@@ -2152,7 +2152,7 @@ SUB CreateProcess_tests()
   menu(3) = "CreateProcess: " & CPopts(CreateProc_opts)
 
   clearpage vpage
-  standardmenu menu(), state, 0, 0, vpage
+  standardmenu menu(), state, , , vpage
   setvispage vpage
   dowait
  LOOP

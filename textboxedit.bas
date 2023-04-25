@@ -133,7 +133,7 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
   END IF
  END IF
 
- st.menu(0) = "Return to Previous Menu"
+ st.menu(0) = "Previous Menu"
  st.menu(1) = "Text Box"
  st.menu(2) = "Edit Text"
  st.menu(3) = "Edit Conditionals"
@@ -299,9 +299,9 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
   textbox_edit_preview box, st, dpage, 96
 
   textcolor uilook(uiText), uilook(uiHighlight)
-  printstr "+ to copy", 248, 0, dpage
-  printstr "ALT+C copy style", 192, 8, dpage
-  IF style_clip > 0 THEN printstr "ALT+V paste style", 184, 16, dpage
+  printstr "+ to copy", pRight, 0, dpage
+  printstr "ALT+C copy style", pRight, 8, dpage
+  IF style_clip > 0 THEN printstr "ALT+V paste style", pRight, 16, dpage
   IF state.pt = 6 THEN
    DIM tooltip as string
    IF box.after THEN
@@ -309,9 +309,9 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
    ELSE
     tooltip = "+/INSERT/ENTER/Ctrl" & CHR(27,ASC("/"),26) & ": link to textbox"
    END IF
-   edgeprint tooltip, 0, pBottom, uilook(uiDisabledItem), dpage
+   edgeprint tooltip, pInfoX, pInfoY, uilook(uiDisabledItem), dpage
   END IF
-  standardmenu st.menu(), state, 0, 0, dpage, menuopts
+  standardmenu st.menu(), state, , , dpage, menuopts
 
   SWAP vpage, dpage
   setvispage vpage
@@ -451,7 +451,7 @@ SUB textbox_conditionals(byref box as TextBox)
   clearpage dpage
   FOR i as integer = state.top TO state.top + state.size
    IF i > state.last THEN CONTINUE FOR
-   DIM drawy as integer = (i - state.top) * state.spacing
+   DIM drawy as integer = pMenuY + (i - state.top) * state.spacing
    DIM disabled as bool
    IF grey(i) = YES THEN  'Section heading
     DIM bgcol as integer
@@ -470,7 +470,7 @@ SUB textbox_conditionals(byref box as TextBox)
     disabled = (box_conditional_is_enabled(box, i) = NO)
    END IF
    textcolor menu_item_color(state, i, disabled), 0
-   printstr menu(i), 0, drawy, dpage
+   printstr menu(i), pMenuX, drawy, dpage
   NEXT i
   rectangle pRight, 0, 8, rHeight, uilook(uiBackground), dpage  'Background rect for the scrollbar
   draw_fullscreen_scrollbar state, , dpage

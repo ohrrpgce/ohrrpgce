@@ -123,9 +123,9 @@ SUB reload_editor()
   clearpage dpage
   draw_menu st.menu, st.state, dpage
   IF st.doc = NULL THEN
-   edgeprint "(No Document loaded)", 0, 0, uilook(uiText), dpage
+   edgeprint "(No Document loaded)", pMenuX, pMenuY, uilook(uiText), dpage
   END IF
-  edgeprint "F1=Help TAB=Mode (" & st.mode_name(st.mode) & ") ", 0, pBottom, uilook(uiText), dpage
+  edgeprint "F1=Help TAB=Mode (" & st.mode_name(st.mode) & ") ", pInfoX, pInfoY, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage

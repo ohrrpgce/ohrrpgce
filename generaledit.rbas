@@ -225,7 +225,7 @@ SUB vehicle_editor
         END IF
     END SELECT
     clearpage dpage
-    standardmenu menu(), state, 0, 0, dpage
+    standardmenu menu(), state, , , dpage
     SWAP vpage, dpage
     setvispage vpage
     dowait
@@ -251,8 +251,8 @@ SUB export_master_palette ()
 END SUB
 
 'Position of master palette in masterpalettemenu
-CONST colgridx = 33, colgridy = 100
-CONST cellheight = 6
+CONST colgridx = 33, colgridy = 114
+CONST cellheight = 5
 
 PRIVATE SUB highlight_col(colidx as integer, state as MenuState)
   drawbox colgridx + (colidx MOD 16) * 16, colgridy + (colidx \ 16) * cellheight, 16, cellheight, uilook(uiHighlight + state.tog), 1, dpage
@@ -384,7 +384,7 @@ SUB masterpalettemenu
     'draw the menu
     clearpage dpage
     highlight_menu_typing_selection menu(), menu_display(), selectst, state
-    standardmenu menu_display(), state, shaded(), 0, 0, dpage
+    standardmenu menu_display(), state, shaded(), , , dpage
 
     FOR i as integer = 0 TO 255
       rectangle colgridx + (i MOD 16) * 16, colgridy + (i \ 16) * cellheight, 16, cellheight, i, dpage
@@ -1702,7 +1702,7 @@ SUB battleoptionsmenu ()
      preview_menu preview, prst, viewport_page, vpage
     END IF
     highlight_menu_typing_selection menu(), menu_display(), selectst, state
-    standardmenu menu_display(), state, greyout(), 0, 0, vpage, menuopts
+    standardmenu menu_display(), state, greyout(), , , vpage, menuopts
     setvispage vpage
     dowait
   LOOP
@@ -1767,7 +1767,7 @@ SUB statcapsmenu
 
     clearpage vpage
     highlight_menu_typing_selection m(), menu_display(), selectst, state
-    standardmenu menu_display(), state, 0, 0, vpage
+    standardmenu menu_display(), state, , , vpage
     setvispage vpage
     dowait
   LOOP
@@ -1937,7 +1937,7 @@ SUB equipmergemenu
         textcolor uilook(uiMenuItem), 0
         IF st.pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
       END IF
-      printstr menu(i), 0, i * 8, vpage, YES
+      printstr menu(i), pMenuX, pMenuY + i * 8, vpage, YES
     NEXT i
     setvispage vpage
     dowait
@@ -2018,9 +2018,9 @@ SUB startingdatamenu
     END IF
 
     clearpage vpage
-    IF state.pt = 6 THEN edgeprint THINGGRABBER_TOOLTIP, 0, pBottom, uilook(uiDisabledItem), vpage
+    IF state.pt = 6 THEN edgeprint THINGGRABBER_TOOLTIP, pInfoX, pInfoY, uilook(uiDisabledItem), vpage
     highlight_menu_typing_selection m(), menu_display(), selectst, state
-    standardmenu menu_display(), state, 0, 0, vpage
+    standardmenu menu_display(), state, , , vpage
     setvispage vpage
     dowait
   LOOP

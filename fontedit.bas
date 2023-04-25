@@ -70,9 +70,9 @@ SUB font_test_menu
 
   clearpage vpage, findrgb(80,80,80)
   'edgeboxstyle 10, 10, 300, 185, 0, vpage
-  standardmenu menu(), st, 0, 0, vpage
+  standardmenu menu(), st, , , vpage
   textcolor uilook(uiText), 0
-  wrapprint controls, 0, rBottom + ancBottom, , vpage
+  wrapprint controls, pInfoX, pInfoY, , vpage
 
   FOR i as integer = 0 TO 15
    DIM row as string
@@ -254,7 +254,7 @@ SUB font_editor (fnt() as integer)
     menu(6) = " (Characters 127-160 are icons)"
    END IF
 
-   standardmenu menu(), state, 0, 0, dpage
+   standardmenu menu(), state, , , dpage
   END IF
 
   IF mode >= 0 THEN

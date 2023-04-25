@@ -324,7 +324,7 @@ SUB make_map_picker_menu(topmenu() as string, state as MenuState)
   a_append topmenu(), "Map " & i & ": " + getmapname(i)
  NEXT
  a_append topmenu(), "Add a New Map"
- a_append topmenu(), "Edit global NPC pool shared by all maps"
+ a_append topmenu(), "Edit Global NPCs"
 
  state.last = UBOUND(topmenu)
 END SUB
@@ -389,7 +389,7 @@ SUB map_picker ()
 
   REDIM topmenu_display(LBOUND(topmenu) TO UBOUND(topmenu)) as string
   highlight_menu_typing_selection topmenu(), topmenu_display(), selectst, state
-  standardmenu topmenu_display(), state, 0, 0, vpage, menuopts
+  standardmenu topmenu_display(), state, , , vpage, menuopts
   setvispage vpage
   dowait
  LOOP
@@ -2640,8 +2640,8 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
   END IF
 
   clearpage dpage
-  edgeprint UBOUND(npcrefs) & " NPCs at tile X=" & pos.x & " Y=" & pos.y, 0, 0, uilook(uiSelectedDisabled), dpage
-  standardmenu menu(), state, 0, 10, dpage
+  edgeprint UBOUND(npcrefs) & " NPCs at tile X=" & pos.x & " Y=" & pos.y, pMenuX, pMenuY, uilook(uiSelectedDisabled), dpage
+  standardmenu menu(), state, pMenuX, pMenuY + 10, dpage
   IF npcdef THEN
    edgeprint !"Enter/Space/Click to edit\nDelete to remove", 0, pBottom - 21, uilook(uiSelectedDisabled), dpage, , YES
    'Display a frame in right direction
@@ -3629,7 +3629,7 @@ SUB mapedit_layers (st as MapEditState)
  state.top = 0
  state.size = 19
  state.autosize = YES
- state.autosize_ignore_pixels = 26
+ state.autosize_ignore_pixels = 33
 
  mapedit_makelayermenu st, menu, state, YES, st.layer, layerpreview
 
@@ -3774,26 +3774,26 @@ SUB mapedit_layers (st as MapEditState)
    'Shift over 6 pixels to avoid the scrollbar if any
    frame_draw layerpreview, , pRight + showLeft - 6, pTop, NO, dpage
   END IF
-  standardmenu cast(BasicMenuItem vector, menu), state, 0, 0, dpage, menuopts
+  standardmenu cast(BasicMenuItem vector, menu), state, , , dpage, menuopts
 
-  DIM liney as integer = vpages(dpage)->h - 10
-  edgeprint "SHIFT+arrows to move layers, - to delete", 0, liney, uilook(uiText), dpage
-  liney -= 10
+  DIM liney as integer = vpages(dpage)->h - 12
+  edgeprint "SHIFT+arrows to move layers, - to delete", pInfoX, liney, uilook(uiText), dpage
+  liney -= 9
   IF UBOUND(map.tiles) < maplayerMax THEN
    IF layerno > -1 THEN
-    edgeprint "+ to add a new layer after this one", 0, liney, uilook(uiText), dpage
+    edgeprint "+ to add a new layer after this one", pInfoX, liney, uilook(uiText), dpage
    ELSE
-    edgeprint "+ to add a new layer", 0, liney, uilook(uiText), dpage
+    edgeprint "+ to add a new layer", pInfoX, liney, uilook(uiText), dpage
    END IF
-   liney -= 10
+   liney -= 9
   END IF
   WITH menu[state.pt]
    IF .role = ltLayerName THEN
-    edgeprint "Type to name this layer", 0, liney, uilook(uiText), dpage
-    liney -= 10
+    edgeprint "Type to name this layer", pInfoX, liney, uilook(uiText), dpage
+    liney -= 9
    ELSEIF .role = ltLayerEnabled AND .layernum <> 0 THEN
-    edgeprint "ENTER to disable/enable", 0, liney, uilook(uiText), dpage
-    liney -= 10
+    edgeprint "ENTER to disable/enable", pInfoX, liney, uilook(uiText), dpage
+    liney -= 9
    END IF
   END WITH
 
@@ -4791,7 +4791,7 @@ SUB mapedit_import_export(st as MapEditState)
   END IF
 
   clearpage vpage
-  standardmenu menu(), state, 0, 0, vpage
+  standardmenu menu(), state, , , vpage
   setvispage vpage
   dowait
  LOOP
@@ -6440,7 +6440,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
  DIM selectst as SelectTypeState
  WITH ed.state
   .autosize = YES
-  .autosize_ignore_pixels = 24
+  .autosize_ignore_pixels = 30
   .need_update = YES
  END WITH
  DIM menuopts as MenuOptions
@@ -6575,7 +6575,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   '--Draw screen
   clearpage dpage
   highlight_menu_typing_selection cast(BasicMenuItem vector, ed.menu), menu_display, selectst, ed.state
-  standardmenu menu_display, ed.state, 0, 0, dpage, menuopts
+  standardmenu menu_display, ed.state, , , dpage, menuopts
   npcdefedit_preview_npc npcdata, npc_img, ed.boxpreview, 4 + wtog_to_frame(wtog), (itemid = 4)
 
   SWAP vpage, dpage
@@ -6718,7 +6718,7 @@ DIM state as MenuState
 state.top = -1
 state.first = -1
 state.spacing = 25
-state.rect.xy = XY(0, 0)
+state.rect.xy = XY(pMenuX, 0)
 state.position_known = YES  'We don't call standardmenu()
 
 state.last = UBOUND(npc_def)
@@ -6739,7 +6739,7 @@ DO
  IF keyval(scDelete) = 0 THEN
   intgrabber state.pt, -1, state.last, , , , NO  'use_clipboard=NO
  END IF
- corners_to_rect XY(0,0), vpages(dpage)->size, state.rect
+ state.rect.size = vpages(dpage)->size - state.rect.xy
  usemenu state
  IF enter_space_click(state) THEN
   IF state.pt = -1 THEN
@@ -6827,7 +6827,7 @@ DO
    printstr "Add new " & IIF(pool_id = 1, "Global ", "") & "NPC", x, y + 5, dpage
   ELSE
    '--An NPC
-   printstr STR(i), x, y + 5, dpage
+   printstr STR(i), x, y + 4, dpage
    WITH npc_img(i)
     '--Down A frame
     frame_draw .sprite + 4, .pal, x + 32, (i - state.top) * 25, , dpage

@@ -7845,9 +7845,8 @@ END FUNCTION
 
 FUNCTION str_rect(s as string, byval x as integer, byval y as integer) as RectType
  DIM r as RectType
- r.x = x
- r.y = y
  r.size = textsize(s, rWidth)  'Wrapped to screen size
+ r.xy = relative_pos(XY(x, y), vpages(vpage)->size, r.size)
  RETURN r
 END FUNCTION
 
