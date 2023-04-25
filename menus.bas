@@ -126,6 +126,8 @@ SUB calc_menustate_size (byref state as MenuState)
    IF .position_known = YES THEN debugc errBug, "calc_menustate_size: .spacing didn't get set"
    EXIT SUB
   END IF
+  'By default, leave padding of 4 pixels at the top and 2 at the bottom
+  IF .autosize_ignore_pixels = 0 AND .autosize_ignore_lines = 0 THEN .autosize_ignore_pixels = 6
   DIM ignorepix as integer = .autosize_ignore_pixels + .autosize_ignore_lines * large(.spacing, 10)
   .size = (vpages(dpage)->h - ignorepix) \ .spacing - 1
  END WITH
@@ -508,8 +510,7 @@ END SUB
 SUB calc_menu_rect(state as MenuState, menuopts as MenuOptions, pos as RelPosXY, page as integer = -1, menu as BasicMenuItem vector = NULL)
  IF page = -1 THEN page = vpage
  WITH state
-  IF menuopts.edged THEN .spacing = 9 ELSE .spacing = 8
-  .spacing += menuopts.itemspacing
+  .spacing = 9 + menuopts.itemspacing
 
   ' TODO: calc_menu_rect used to call calc_menustate_size unconditionally. So still
   ' need to call it if .size is 0. But would be cleaner to just default .autosize to YES
@@ -556,7 +557,7 @@ SUB calc_menu_rect(state as MenuState, menuopts as MenuOptions, pos as RelPosXY,
  END WITH
 END SUB
 
-SUB standardmenu (menu() as string, byref state as MenuState, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions)
+SUB standardmenu (menu() as string, byref state as MenuState, x as RelPos = pMenuX, y as RelPos = pMenuY, page as integer, menuopts as MenuOptions)
  DIM basicmenu as BasicMenuItem vector
  standard_to_basic_menu menu(), state, basicmenu
  'Shift menu items so that state.first = 0
@@ -577,7 +578,7 @@ END SUB
 
 'Version which allows items to be "shaded" (they are both disabled/greyed out and
 'unselectable (not affected by mouse hover)... which is often not what you want)
-SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions)
+SUB standardmenu (menu() as string, byref state as MenuState, shaded() as bool, x as RelPos = pMenuX, y as RelPos = pMenuY, page as integer, menuopts as MenuOptions)
  BUG_IF(LBOUND(shaded) > LBOUND(menu) ORELSE UBOUND(shaded) < UBOUND(menu), "shaded() too small")
  DIM basicmenu as BasicMenuItem vector
  standard_to_basic_menu menu(), state, basicmenu, @shaded(0)
@@ -602,7 +603,7 @@ END SUB
 'menu may in fact be a vector of any type inheriting from BasicMenuItem:
 ' standardmenu cast(BasicMenuItem vector, menu), ...
 'The vector's internal typetable tells the size in bytes of each menu item
-SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions)
+SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as RelPos = pMenuX, y as RelPos = pMenuY, page as integer, menuopts as MenuOptions)
 
  'The following doesn't affect simple string array menus which are converted to BasicMenuItem menus
  BUG_IF(state.first <> 0, "state.first <> 0 not supported for BasicMenuItem menus!")
@@ -612,6 +613,11 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
  'calc_menu_rect solved from RelPos to screen positions
  x = state.rect.x
  y = state.rect.y
+ IF menuopts.edged THEN
+  'Edged font is drawn at +1,+1
+  IF x > 0 THEN x -= 1
+  IF y > 0 THEN y -= 1
+ END IF
 
  IF state.active THEN
   state.tog XOR= 1
@@ -965,9 +971,7 @@ SUB InitLikeStandardMenu(menu as MenuDef)
   .anchorhoriz = alignLeft
   .anchorvert = alignTop
   .min_chars = 9999  'Fill screen
-  'border should be -8 to be like standardmenu, but drawing the menu at 4,4 looks better
-  .bordersize = -4
-  .itemspacing = -1
+  .bordersize = -pMenuX  'Draw at 4,4
   .withtags = YES
  END WITH
 END SUB
@@ -1981,7 +1985,7 @@ SUB ModularMenu.draw()
  draw_underlays()
 
  DIM titlesize as XYPair
- DIM where as XYPair = (4, 4)
+ DIM where as XYPair = (pMenuX, pMenuY)
 
  IF floating THEN
   'state.rect wouldn't be calculated until standardmenu is called, so need
@@ -2020,7 +2024,7 @@ SUB ModularMenu.draw()
  END IF
 
  IF LEN(tooltip) THEN
-  wrapprintbg tooltip, 0, pBottom, uilook(uiText), vpage
+  wrapprintbg tooltip, pTooltipX, pTooltipY, uilook(uiText), vpage
  END IF
 
  draw_overlays()

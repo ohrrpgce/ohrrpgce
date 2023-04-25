@@ -296,7 +296,6 @@ end sub
 '                                   Internal
 
 constructor EditorKit()
-	menuopts.itemspacing = 1
 	v_new submenu_stack
 	saved_submenus.construct(8, type_table(SubmenuState), YES)
 	saved_submenus.value_copy = NULL   'Delete but don't copy

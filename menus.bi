@@ -8,6 +8,15 @@
 #include "udts.bi"
 #include "uiconst.bi"
 
+' Default placement (top-left) of editor menus
+CONST pMenuX = 4
+CONST pMenuY = 4
+' Default placement of info/help line (called the "tooltip" in many menus)
+CONST pInfoX = pLeft + 4
+CONST pInfoY = pBottom - 2
+' Something in the bottom-right or top-right corner
+CONST pInfoRight = pRight - 4
+
 '' Generic MenuState Stuff
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, menu() as SimpleMenuItem, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB init_menu_state OVERLOAD (byref state as MenuState, byval menu as BasicMenuItem vector, menuopts as MenuOptions = MenuOptions())
@@ -23,9 +32,9 @@ DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, selectable() as bool, byv
 DECLARE SUB usemenu_mouse_only (state as MenuState)
 DECLARE FUNCTION scrollmenu (state as MenuState, byval deckey as KBScancode = ccUp, byval inckey as KBScancode = ccDown) as bool
 DECLARE SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref basicmenu as BasicMenuItem vector, byval shaded as bool ptr = NULL)
-DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions = MenuOptions())
-DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, shaded() as bool, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions = MenuOptions())
-DECLARE SUB standardmenu OVERLOAD (byval menu as BasicMenuItem vector, state as MenuState, x as RelPos, y as RelPos, page as integer, menuopts as MenuOptions = MenuOptions())
+DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, x as RelPos = pMenuX, y as RelPos = pMenuY, page as integer, menuopts as MenuOptions = MenuOptions())
+DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, shaded() as bool, x as RelPos = pMenuX, y as RelPos = pMenuY, page as integer, menuopts as MenuOptions = MenuOptions())
+DECLARE SUB standardmenu OVERLOAD (byval menu as BasicMenuItem vector, state as MenuState, x as RelPos = pMenuX, y as RelPos = pMenuY, page as integer, menuopts as MenuOptions = MenuOptions())
 DECLARE SUB calc_menustate_size OVERLOAD (byref state as MenuState)
 DECLARE SUB calc_menustate_size OVERLOAD (byref state as MenuState, menu as MenuDef, page as integer)
 DECLARE SUB calc_menu_rect OVERLOAD (state as MenuState, menuopts as MenuOptions, xy as RelPosXY, page as integer = -1, menu as BasicMenuItem vector = NULL)
