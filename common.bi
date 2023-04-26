@@ -299,12 +299,13 @@ DECLARE FUNCTION onoroff (byval n as integer) as string
 DECLARE FUNCTION describe_tag_condition(tag as integer, zerocap as string, maxwidth as integer = 320) as string
 DECLARE FUNCTION yesorno (byval n as integer, yes_cap as zstring ptr=@"YES", no_cap as zstring ptr=@"NO") as string
 
-DECLARE FUNCTION format_float (byval float as double, byval sigfigs as integer = 5) as string
-
+DECLARE FUNCTION format_float OVERLOAD (byref float as double, byval sigfigs as integer = 5) as string
+DECLARE FUNCTION format_float OVERLOAD (byref float as single, byval sigfigs as integer = 5) as string
 DECLARE FUNCTION format_percent OVERLOAD (byref float as double, byval sigfigs as integer = 5) as string
 DECLARE FUNCTION format_percent OVERLOAD (byref float as single, byval sigfigs as integer = 5) as string
-DECLARE FUNCTION percent_grabber OVERLOAD (byref float as double, byref repr as string = "", min as double, max as double, decimalplaces as integer = 4, ret_if_repr_changed as bool = YES) as bool
-DECLARE FUNCTION percent_grabber OVERLOAD (byref float as single, byref repr as string = "", min as double, max as double, decimalplaces as integer = 4, ret_if_repr_changed as bool = YES) as bool
+DECLARE FUNCTION percent_grabber OVERLOAD (byref float as double, byref repr as string = "", min as double, max as double, decimalplaces as integer = 4, ret_if_repr_changed as bool = YES, is_percent as bool = YES) as bool
+DECLARE FUNCTION percent_grabber OVERLOAD (byref float as single, byref repr as string = "", min as double, max as double, decimalplaces as integer = 4, ret_if_repr_changed as bool = YES, is_percent as bool = YES) as bool
+#DEFINE float_grabber(float, repr, min, max, decimalplaces, ret_if_repr_changed)  percent_grabber(float, repr, min, max, decimalplaces, ret_if_repr_changed, NO)
 
 DECLARE FUNCTION bitgrabber (byref bitsets as integer, whichbit as integer, byref state as MenuState) as bool
 DECLARE FUNCTION bitsetgrabber (bitwords() as integer, wordnum as integer, bitnum as integer, byref state as MenuState) as bool
