@@ -3771,12 +3771,12 @@ Function SliceYAnchor(byval sl as Slice Ptr) as integer
 End Function
 
 'Like the "realign slice" script command
-Sub RealignSlice(sl as Slice ptr, halign as AlignType = -1, valign as AlignType = -1, hanchor as AlignType = -1, vanchor as AlignType = -1)
+Sub RealignSlice(sl as Slice ptr, halign as AlignType = alignINVALID, valign as AlignType = alignINVALID, hanchor as AlignType = alignINVALID, vanchor as AlignType = alignINVALID)
  if sl = 0 then debug "SliceRealign null ptr" : exit sub
- if halign <> -1  then sl->AlignHoriz  = halign
- if valign <> -1  then sl->AlignVert   = valign
- if hanchor <> -1 then sl->AnchorHoriz = hanchor
- if vanchor <> -1 then sl->AnchorVert  = vanchor
+ if halign <> alignINVALID  then sl->AlignHoriz  = halign
+ if valign <> alignINVALID  then sl->AlignVert   = valign
+ if hanchor <> alignINVALID then sl->AnchorHoriz = hanchor
+ if vanchor <> alignINVALID then sl->AnchorVert  = vanchor
 End Sub
 
 'Like "center slice" command

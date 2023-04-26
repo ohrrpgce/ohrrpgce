@@ -203,13 +203,13 @@ Enum 'SliceTypes
  slAddCollection      'Not a real type, used only by slice_edit_detail_browse_slicetype
 End Enum
 
-Type AttachTypes as byte
+Type AttachTypes as ubyte
 Enum 'AttachTypes
  slSlice
  slScreen
 End Enum
 
-Type AutoSortModes as byte
+Type AutoSortModes as ubyte
 Enum 'AutoSortModes
  slAutoSortNone = 0
  slAutoSortCustom = 1
@@ -220,14 +220,14 @@ Enum 'AutoSortModes
  slAutoSortLAST = 5
 End Enum
 
-Type FillModes as byte
+Type FillModes as ubyte
 Enum 'FillModes
  sliceFillFull = 0
  sliceFillHoriz = 1
  sliceFillVert = 2
 End Enum
 
-Type CoverModes as byte
+Type CoverModes as ubyte
 Enum 'CoverModes
  coverNone = 0
  coverHoriz = 1
@@ -679,7 +679,7 @@ DECLARE Function SliceYAnchor(byval sl as Slice Ptr) as integer
 DECLARE Function SliceEdgeX(byval sl as Slice Ptr, byval edge as AlignType) as integer
 DECLARE Function SliceEdgeY(byval sl as Slice Ptr, byval edge as AlignType) as integer
 
-DECLARE Sub RealignSlice(sl as Slice ptr, halign as AlignType = -1, valign as AlignType = -1, hanchor as AlignType = -1, vanchor as AlignType = -1)
+DECLARE Sub RealignSlice(sl as Slice ptr, halign as AlignType = alignINVALID, valign as AlignType = alignINVALID, hanchor as AlignType = alignINVALID, vanchor as AlignType = alignINVALID)
 DECLARE Sub CenterSlice(sl as Slice ptr)
 
 DECLARE Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as bool
