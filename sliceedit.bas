@@ -2295,7 +2295,7 @@ SUB sliceed_header(menu() as string, rules() as EditRule, text as string, datapt
  END IF
 END SUB
 
-SUB sliceed_add_blend_edit_rules(menu() as string, rules() as EditRule, drawopts as DrawOptions ptr)
+SUB sliceed_add_blend_edit_rules(byref ses as SliceEditState, menu() as string, rules() as EditRule, drawopts as DrawOptions ptr)
  WITH *drawopts
   a_append menu(), " Blending: " & iif(.with_blending, "Enabled", "Disabled")
   sliceed_rule_tog rules(), "blending", @(.with_blending)
@@ -2308,6 +2308,15 @@ SUB sliceed_add_blend_edit_rules(menu() as string, rules() as EditRule, drawopts
     sliceed_header menu(), rules(), "  [Global]"
     a_append menu(), "   Algorithm: " & BlendAlgoCaptions(gen(gen8bitBlendAlgo))
     sliceed_rule rules(), "blend_algo", erIntgrabber, @gen(gen8bitBlendAlgo), 0, blendAlgoLAST
+   END IF
+
+   IF ses.privileged THEN
+    a_append menu(), "  Modulate red: " & .argbModifier.R
+    sliceed_rule_ubyte rules(), "modulate", @.argbModifier.R, 0, 255
+    a_append menu(), "  Modulate green: " & .argbModifier.G
+    sliceed_rule_ubyte rules(), "modulate", @.argbModifier.G, 0, 255
+    a_append menu(), "  Modulate blue: " & .argbModifier.B
+    sliceed_rule_ubyte rules(), "modulate", @.argbModifier.B, 0, 255
    END IF
   END IF
  END WITH
@@ -2434,7 +2443,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
 
    CASE slMap
     DIM dat as MapSliceData ptr = .SliceData
-    sliceed_add_blend_edit_rules menu(), rules(), @dat->drawopts
+    sliceed_add_blend_edit_rules ses, menu(), rules(), @dat->drawopts
 
    CASE slLine
     DIM dat as LineSliceData ptr = .SliceData
@@ -2492,7 +2501,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     a_append menu(), " Transparent: " & yesorno(dat->trans)
     sliceed_rule_tog rules(), "sprite_trans", @(dat->trans), slgrUPDATESPRITE
 
-    sliceed_add_blend_edit_rules menu(), rules(), @dat->drawopts
+    sliceed_add_blend_edit_rules ses, menu(), rules(), @dat->drawopts
 
     IF ses.privileged THEN
      'None of these actually need slgrUPDATESPRITE, but it's the right thing to do.
