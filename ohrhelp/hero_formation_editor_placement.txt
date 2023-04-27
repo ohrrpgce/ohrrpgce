@@ -3,3 +3,7 @@ Use the arrow keys to position the hero rectangle, and press ENTER or SPACE to c
 Use SHIFT+arrow keys to move the rectangle more quickly.
 
 You can also move the hero by dragging with your mouse.
+
+Press CTRL+D if you want to revert the slot to its default position
+
+The hero position coordinates are relative to the top left of a hidden hero container slice, which is not currently customizable (In case you were wondering why 0,0 is neither the corner of the screen nor the middle of the screen)

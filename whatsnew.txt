@@ -207,6 +207,8 @@ WHAT IS NEW?
     * "add enemy to formation", "formation slot x/y" didn't use the real bottom-
       center of enemy sprites which were not default-sized [Ralph]
     * "set panel percent" didn't work [Ralph]
+    * Hero formation positions don't have overly restrictive boundary limits
+      anymore [James]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

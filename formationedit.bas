@@ -332,9 +332,9 @@ SUB hero_formation_editor ()
     IF readmouse.dragging AND mouseLeft THEN
      .pos += (readmouse.pos - readmouse.lastpos)
     END IF
-    'Hero positions are the bottom center of the sprite. Generous bounds.
+    'Hero positions are the bottom center of the sprite. Very generous bounds.
     DIM bounds as RectPoints = get_formation_bounds()
-    .pos = bound(.pos, bounds.topleft - 100, bounds.bottomright + 100)
+    .pos = bound(.pos, bounds.topleft - 1000, bounds.bottomright + 1000)
    END WITH
   END IF
   IF positioning_mode = NO THEN
@@ -353,13 +353,6 @@ SUB hero_formation_editor ()
     END IF
     IF slot <> -1 THEN 'a hero slot
      positioning_mode = YES
-    END IF
-   END IF
-   IF slot <> -1 THEN
-    IF keyval(scCtrl) > 0 ANDALSO keyval(scD) > 1 THEN
-     'Revert to default
-     hform.slots(slot).pos = default_hform.slots(slot).pos
-     hero_placeholder_sprites(slot) = -1
     END IF
    END IF
    IF state.pt = 2 THEN
@@ -388,6 +381,14 @@ SUB hero_formation_editor ()
 
   END IF '--end positioning_mode=NO
 
+  IF slot <> -1 THEN
+   IF keyval(scCtrl) > 0 ANDALSO keyval(scD) > 1 THEN
+    'Revert to default
+    hform.slots(slot).pos = default_hform.slots(slot).pos
+    hero_placeholder_sprites(slot) = -1
+   END IF
+  END IF
+
   ' Draw screen
   update_formation_background eform, rootslice, bgctr, bgwait
   draw_formation_slices eform, hform, rootslice, slot, dpage, YES
@@ -406,6 +407,9 @@ SUB hero_formation_editor ()
     menu(first_hero_item + i) = "Hero Slot " & i & "  " & CHR(27) & "Preview:" & placeholder & CHR(26)
    NEXT i
    standardmenu menu(), state, , , dpage, menuopts
+  END IF
+  IF slot <> -1 THEN
+   edgeprint "CTRL+D to revert to default pos", 1, pBottom - IIF(positioning_mode, 10, 1), uilook(uiText), dpage
   END IF
   SWAP vpage, dpage
   setvispage vpage
