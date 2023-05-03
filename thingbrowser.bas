@@ -28,9 +28,6 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
  this.or_none = or_none
  this.skip_zero = skip_zero
 
- dim holdscreen as integer = allocatepage
- copypage vpage, holdscreen
-
  can_edit = (editor_func <> 0)
  helpkey = init_helpkey() 'Do this after we know if editing is available
 
@@ -329,14 +326,13 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   ChangeTextSlice filter_text_sl, IIF(filter_text <> "", "Showing Only: *" & filter_text & "*", "")
   ChangeTextSlice type_query_sl, selectst.query
 
-  copypage holdscreen, vpage
+  clearpage vpage
   DrawSlice root, vpage
   setvispage vpage
   dowait
  loop
  leave_browser
  setkeys
- freepage holdscreen
  DeleteSlice @root
  if plank_template then DeleteSlice @plank_template
  return result
