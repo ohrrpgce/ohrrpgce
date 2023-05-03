@@ -865,7 +865,7 @@ FUNCTION blob_to_string (byval str_ptr as zstring ptr, byval str_len as integer)
  RETURN ret
 END FUNCTION
 
-'Add padding to the right of a string, and possible clip it to 'size'
+'Add padding to the right of a string to reach 'size' length, and possibly clip it to 'size'
 FUNCTION rpad (s as string, pad_char as zstring ptr = @" ", size as integer, clip as clipDir = clipNone) as string
  IF clip = clipNone AND LEN(s) >= size THEN RETURN s
  DIM temp as string
@@ -873,7 +873,7 @@ FUNCTION rpad (s as string, pad_char as zstring ptr = @" ", size as integer, cli
  RETURN temp & STRING(size - LEN(temp), *pad_char)
 END FUNCTION
 
-'Add padding to the left of a string, and possible clip it to 'size'
+'Add padding to the left of a string to reach 'size' length, and possibly clip it to 'size'
 FUNCTION lpad (s as string, pad_char as zstring ptr = @" ", size as integer, clip as clipDir = clipNone) as string
  IF clip = clipNone AND LEN(s) >= size THEN RETURN s
  DIM temp as string

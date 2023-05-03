@@ -6247,6 +6247,20 @@ FUNCTION format_percent(byref float as double, byval sigfigs as integer = 5) as 
  RETURN _format_percent(float, sigfigs)
 END FUNCTION
 
+'Format a float showing a fixed number of decimal places, and never use scientific notation.
+'Internal to percent_grabber.
+FUNCTION _format_float_decimals(byval float as double, byval decimal_places as integer) as string
+ 'Avoid FORMAT due to locale specific nastiness, see _format_float.
+ DIM num as longint = float * 10 ^ decimal_places
+ DIM digits as string = STR(ABS(num))
+ digits = lpad(digits, "0", decimal_places + 1)
+ IF decimal_places <> 0 THEN
+  digits = LEFT(digits, LEN(digits) - decimal_places) & "." & RIGHT(digits, decimal_places)
+ END IF
+ IF num < 0 THEN RETURN "-" & digits
+ RETURN digits
+END FUNCTION
+
 'Edit a floating point value (displayed as a percentage if is_percent) and its string
 'representation simultaneously (repr stores the editing state). You can either:
 '-initialise repr with "" (or format_percent(float)/format_float(float)) and then
@@ -6290,7 +6304,7 @@ FUNCTION percent_grabber(byref float as double, byref repr as string = "", min a
  IF keyval(scBackspace) > 1 AND LEN(repr) > 0 THEN repr = LEFT(repr, LEN(repr) - 1)
  repr += exclusive(getinputtext, "0123456789.")
 
- 'Exclude all but firstperiod
+ 'Exclude all but first period
  DIM period as integer = INSTR(repr, ".")
  repr = LEFT(repr, period) + exclude(MID(repr, period + 1), ".")
 
@@ -6308,8 +6322,10 @@ FUNCTION percent_grabber(byref float as double, byref repr as string = "", min a
  IF float = 0.0 ANDALSO sign = -1 THEN repr = MID(repr, 2)  'Convert -0 to 0
  DIM increment as double = 1.0 / mult
  period = INSTR(repr, ".")
+ DIM edit_decimals as integer = 0  'Current number of decimals in repr
  IF period THEN
-  increment *= 0.1 ^ (LEN(repr) - period)
+  edit_decimals = LEN(repr) - period
+  increment *= 0.1 ^ edit_decimals
  END IF
 
  DIM changed as bool = NO  'Whether to replace repr
@@ -6335,13 +6351,12 @@ FUNCTION percent_grabber(byref float as double, byref repr as string = "", min a
  float = bound(float, min, max)
  IF changed OR float <> temp THEN
   IF is_percent THEN
-   repr = _format_percent(float, decimalplaces)
+   repr = _format_float_decimals(float * 100, edit_decimals)
   ELSE
-   repr = _format_float(float, decimalplaces)
+   repr = _format_float_decimals(float, edit_decimals)
   END IF
- ELSE
-  IF is_percent THEN repr += "%"
  END IF
+ IF is_percent THEN repr += "%"
  editing_float_ptr = @float
  editing_float_repr = repr
 
