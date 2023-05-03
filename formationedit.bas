@@ -334,7 +334,7 @@ SUB hero_formation_editor ()
     END IF
     'Hero positions are the bottom center of the sprite. Very generous bounds.
     DIM bounds as RectPoints = get_formation_bounds()
-    .pos = bound(.pos, bounds.topleft - 1000, bounds.bottomright + 1000)
+    .pos = bound(.pos, bounds.topleft - HERO_FORM_OFFSET - 1000, bounds.bottomright - HERO_FORM_OFFSET + 1000)
    END WITH
   END IF
   IF positioning_mode = NO THEN
@@ -396,7 +396,8 @@ SUB hero_formation_editor ()
   IF positioning_mode THEN
    edgeprint "Arrow keys or mouse-drag", pMenuX, pMenuY, uilook(uiText), dpage
    edgeprint "ESC or right-click when done", pInfoX, pInfoY, uilook(uiText), dpage
-   edgeprint "x=" & hform.slots(slot).pos.x & " y=" & hform.slots(slot).pos.y, pInfoRight, pMenuY, uilook(uiMenuItem), dpage
+   DIM pos as XYPair = hform.slots(slot).pos + HERO_FORM_OFFSET
+   edgeprint "x=" & pos.x & " y=" & pos.y, pInfoRight, pMenuY, uilook(uiMenuItem), dpage
   ELSE
    menu(0) = "Previous Menu"
    menu(1) = CHR(27) + "Hero Formation " & hero_form_id & CHR(26)
@@ -871,7 +872,7 @@ SUB draw_formation_slices(eform as Formation, hform as HeroFormation, rootslice 
  DIM hrect as Slice Ptr
  FOR i as integer = 0 TO 3
   hrect = LookupSlice(SL_FORMEDITOR_HERO + i, rootslice)
-  hrect->Pos = hform.slots(i).pos + XY(240, 82)
+  hrect->Pos = hform.slots(i).pos + HERO_FORM_OFFSET
   ' Set layering, like slAutoSortBottomY but break ties according to the order in bslot()
   ' (Hero slices are anchored by the bottom-center edge)
   hrect->Sorter = hrect->Y * 1000 + i

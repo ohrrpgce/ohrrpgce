@@ -2220,7 +2220,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     setup_battlesprite_slice bslot(i), bat, sprTypeHero, hero.battle_pic, hero.battle_pal
 
     'hero_form specifies bottom center relative to the original hero zone
-    .basepos = hero_form.slots(i).pos + XY(240, 82) - XY(.w \ 2, .h)
+    .basepos = hero_form.slots(i).pos + HERO_FORM_OFFSET - XY(.w \ 2, .h)
     (.pos) = .basepos
     .vis = YES
 

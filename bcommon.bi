@@ -19,4 +19,6 @@ DECLARE FUNCTION get_battlefield_size() as XYPair
 DECLARE FUNCTION get_battle_res() as XYPair
 DECLARE FUNCTION get_formation_bounds() as RectPoints
 
+#DEFINE HERO_FORM_OFFSET XY(240, 82)
+
 #ENDIF
