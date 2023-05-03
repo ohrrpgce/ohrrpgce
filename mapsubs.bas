@@ -2498,7 +2498,7 @@ SUB mapedit_draw_cursor(st as MapEditState)
 
  'Normal cursor
  drawcube vpages(dpage), tool_rect, tool_cube_offset(st), uilook(uiMenuItem)
- tool_rect += st.per_layer_skew * st.layer / 10
+ tool_rect.xy += st.per_layer_skew * st.layer / 10
  frame_draw st.cursor.sprite + global_tog, st.cursor.pal, tool_rect.x, tool_rect.y, , dpage
 END SUB
 
@@ -6172,7 +6172,7 @@ FUNCTION map_to_screen(st as MapEditState, map_pos as XYPair) as XYPair
 END FUNCTION
 
 FUNCTION map_to_screen(st as MapEditState, map_rect as RectType) as RectType
- RETURN map_rect - st.camera + st.viewport.topleft
+ RETURN XY_WH(map_rect.xy - st.camera + st.viewport.topleft, map_rect.wh)
 END FUNCTION
 
 'Translate a pixel position on the screen to a pixel position on the map;

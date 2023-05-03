@@ -370,14 +370,6 @@ OPERATOR + (lhs as RectType, rhs as RectType) as RectType
   RETURN XYWH(lhs.x + rhs.x, lhs.y + rhs.y, lhs.wide + rhs.wide, lhs.high + rhs.high)
 END OPERATOR
 
-OPERATOR + (lhs as RectType, rhs as XYPair) as RectType
-  RETURN XYWH(lhs.x + rhs.x, lhs.y + rhs.y, lhs.wide, lhs.high)
-END OPERATOR
-
-OPERATOR - (lhs as RectType, rhs as XYPair) as RectType
-  RETURN XYWH(lhs.x - rhs.x, lhs.y - rhs.y, lhs.wide, lhs.high)
-END OPERATOR
-
 OPERATOR * (lhs as RectType, rhs as integer) as RectType
   RETURN XYWH(lhs.x * rhs, lhs.y * rhs, lhs.wide * rhs, lhs.high * rhs)
 END OPERATOR

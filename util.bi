@@ -702,8 +702,6 @@ END UNION
 DECLARE OPERATOR = (lhs as RectType, rhs as RectType) as bool
 DECLARE OPERATOR <> (lhs as RectType, rhs as RectType) as bool
 DECLARE OPERATOR + (lhs as RectType, rhs as RectType) as RectType
-DECLARE OPERATOR + (lhs as RectType, rhs as XYPair) as RectType
-DECLARE OPERATOR - (lhs as RectType, rhs as XYPair) as RectType
 DECLARE OPERATOR * (lhs as RectType, rhs as integer) as RectType
 
 'Specify opposite points instead of width and height

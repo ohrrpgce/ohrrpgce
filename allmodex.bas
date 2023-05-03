@@ -4632,8 +4632,8 @@ end sub
 'Note, thickness doesn't affect the four angled lines
 sub drawcube(dest as Frame ptr, rect as RectType, off as XYPair, col as integer, thickness as integer = 1)
 	drawbox dest, rect.x, rect.y, rect.wide, rect.high, col, thickness
-	dim shifted as RectType = rect + off
-	drawbox dest, shifted.x, shifted.y, shifted.wide, shifted.high, col, thickness
+	dim shifted as XYPair = rect.xy + off
+	drawbox dest, shifted.x, shifted.y, rect.wide, rect.high, col, thickness
 
 	dim br as XYPair = rect.topleft + rect.size - 1  'bottom-right
 	drawline dest, rect.x, rect.y, rect.x + off.x, rect.y + off.y, col
