@@ -2176,6 +2176,7 @@ END FUNCTION
 SUB draw_damage_text(bslot() as BattleSprite, battlefield_sl as Slice ptr, page as integer)
  FOR i as integer = 0 TO 11
   WITH bslot(i).harm
+   IF LEN(.text) = 0 THEN .ticks = 0  'E.g. No Damage attacks that don't Show Attack Name
    IF .ticks > 0 THEN
     DIM pos as XYPair = battlefield_sl->ScreenPos + .pos
     DIM harm_text_offset as integer

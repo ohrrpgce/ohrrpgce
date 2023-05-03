@@ -366,6 +366,14 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
   NEXT i
   attacker.stored_targs_can_be_dead = NO
  END IF
+
+ WITH target
+  .harm.text = ""
+  .harm.ticks = gen(genDamageDisplayTicks)
+  .harm.col = uilook(uiBattleDamage)
+  .harm.pos.x = .x + (.w * .5)
+  .harm.pos.y = .y + (.h * .5)
+ END WITH
  
  'If not 'no damage' (which skips hit/miss/fail checking)
  IF attack.damage_math <> 4 THEN
@@ -373,11 +381,6 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
  
   'init
   WITH target
-   .harm.text = ""
-   .harm.ticks = gen(genDamageDisplayTicks)
-   .harm.col = uilook(uiBattleDamage)
-   .harm.pos.x = .x + (.w * .5)
-   .harm.pos.y = .y + (.h * .5)
   
    targstat = bound(attack.targ_stat, 0, UBOUND(.stat.cur.sta))
    'backcompat MP-targstat
