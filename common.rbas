@@ -6270,6 +6270,7 @@ END FUNCTION
 'Returns true if float or repr changed
 'sigfigs: the max number of digits for fractional values, not enforced for whole
 '    values (e.g. if sigfigs=2, this acts like intgrabber for values >= 100).
+'    No more than 7.
 'Note: min and max are not in percent: max=1 is 100%
 FUNCTION percent_grabber(byref float as double, byref repr as string = "", min as double, max as double, sigfigs as integer = 4, ret_if_repr_changed as bool = YES, is_percent as bool = YES) as bool
  STATIC clip as double
@@ -6280,13 +6281,17 @@ FUNCTION percent_grabber(byref float as double, byref repr as string = "", min a
  IF @float <> editing_float_ptr THEN editing_float_repr = ""
  IF LEN(repr) = 0 THEN repr = editing_float_repr
 
- DIM mindelta as double = 0.5 * (0.1 ^ (sigfigs - 1))
+ 'What counts as a real change
+ DIM epsilon as double = 0.5 * (0.1 ^ (sigfigs - 1))
+ 'In case we're editing a single precision and there are several digits in front of the decimal
+ epsilon = large(epsilon, float * mult * 1e-7)
+
  DIM oldrepr as string = repr
 
  'In case we forget to initialise repr (e.g. maybe we got called before a
  ''need_update' block), we don't want to overwrite float with garbage.
  'So for safety if repr is bad, throw it away.
- IF LEN(repr) = 0 ORELSE ABS(VAL(repr) - float * mult) > mindelta THEN
+ IF LEN(repr) = 0 ORELSE ABS(VAL(repr) - float * mult) > epsilon THEN
   IF is_percent THEN
    repr = _format_percent(float, sigfigs)
   ELSE
@@ -6310,7 +6315,7 @@ FUNCTION percent_grabber(byref float as double, byref repr as string = "", min a
  DIM period as integer = INSTR(repr, ".")
  repr = LEFT(repr, period) + exclude(MID(repr, period + 1), ".")
 
- 'Enforce sig. fig.s/decimal places limit
+ 'Enforce sig. figs limit
  IF period THEN repr = LEFT(repr, large(period, sigfigs + 1))
 
  'Trim leading 0's
@@ -6362,7 +6367,7 @@ FUNCTION percent_grabber(byref float as double, byref repr as string = "", min a
  editing_float_ptr = @float
  editing_float_repr = repr
 
- DIM ret as bool = ABS(oldfloat - float) * mult > mindelta
+ DIM ret as bool = ABS(oldfloat - float) * mult > epsilon
  IF ret_if_repr_changed THEN ret OR= (oldrepr <> repr)
  RETURN ret
 END FUNCTION
