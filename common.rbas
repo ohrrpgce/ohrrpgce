@@ -6268,9 +6268,10 @@ END FUNCTION
 '-or just ignore the repr arg (pass ""), then the repr state is stored in a global
 ' variable and will be returned by format_percent(float)/format_float(float)
 'Returns true if float or repr changed
-'decimalplaces actually limits the number of sig. fig.s too, except in front of the decimal point.
+'sigfigs: the max number of digits for fractional values, not enforced for whole
+'    values (e.g. if sigfigs=2, this acts like intgrabber for values >= 100).
 'Note: min and max are not in percent: max=1 is 100%
-FUNCTION percent_grabber(byref float as double, byref repr as string = "", min as double, max as double, decimalplaces as integer = 4, ret_if_repr_changed as bool = YES, is_percent as bool = YES) as bool
+FUNCTION percent_grabber(byref float as double, byref repr as string = "", min as double, max as double, sigfigs as integer = 4, ret_if_repr_changed as bool = YES, is_percent as bool = YES) as bool
  STATIC clip as double
  DIM oldfloat as double = float
  DIM mult as double = IIF(is_percent, 100.0, 1.0)
@@ -6279,16 +6280,17 @@ FUNCTION percent_grabber(byref float as double, byref repr as string = "", min a
  IF @float <> editing_float_ptr THEN editing_float_repr = ""
  IF LEN(repr) = 0 THEN repr = editing_float_repr
 
+ DIM mindelta as double = 0.5 * (0.1 ^ (sigfigs - 1))
  DIM oldrepr as string = repr
 
  'In case we forget to initialise repr (e.g. maybe we got called before a
  ''need_update' block), we don't want to overwrite float with garbage.
  'So for safety if repr is bad, throw it away.
- IF LEN(repr) = 0 ORELSE ABS(VAL(repr) - float * mult) > 0.5 * (0.1 ^ decimalplaces) THEN
+ IF LEN(repr) = 0 ORELSE ABS(VAL(repr) - float * mult) > mindelta THEN
   IF is_percent THEN
-   repr = _format_percent(float, decimalplaces)
+   repr = _format_percent(float, sigfigs)
   ELSE
-   repr = _format_float(float, decimalplaces)
+   repr = _format_float(float, sigfigs)
   END IF
   'debug "percent_grabber: resetting " & oldrepr & " to " & repr
  END IF
@@ -6309,7 +6311,7 @@ FUNCTION percent_grabber(byref float as double, byref repr as string = "", min a
  repr = LEFT(repr, period) + exclude(MID(repr, period + 1), ".")
 
  'Enforce sig. fig.s/decimal places limit
- IF period THEN repr = LEFT(repr, large(period, decimalplaces + 1))
+ IF period THEN repr = LEFT(repr, large(period, sigfigs + 1))
 
  'Trim leading 0's
  repr = LTRIM(repr, "0")
@@ -6360,16 +6362,16 @@ FUNCTION percent_grabber(byref float as double, byref repr as string = "", min a
  editing_float_ptr = @float
  editing_float_repr = repr
 
- DIM ret as bool = ABS(oldfloat - float) * mult > 0.5 * 0.1 ^ decimalplaces
+ DIM ret as bool = ABS(oldfloat - float) * mult > mindelta
  IF ret_if_repr_changed THEN ret OR= (oldrepr <> repr)
  RETURN ret
 END FUNCTION
 
-FUNCTION percent_grabber(byref float as single, byref repr as string = "", min as double, max as double, decimalplaces as integer = 4, ret_if_repr_changed as bool = YES, is_percent as bool = YES) as bool
+FUNCTION percent_grabber(byref float as single, byref repr as string = "", min as double, max as double, sigfigs as integer = 4, ret_if_repr_changed as bool = YES, is_percent as bool = YES) as bool
  DIM temp as double = float
  'percent_grabber needs to know whether it's called with the same float as previously
  IF @float = editing_float_ptr THEN editing_float_ptr = @temp
- DIM ret as bool = percent_grabber(temp, repr, min, max, decimalplaces, ret_if_repr_changed, is_percent)
+ DIM ret as bool = percent_grabber(temp, repr, min, max, sigfigs, ret_if_repr_changed, is_percent)
  float = temp
  editing_float_ptr = @float
  RETURN ret
