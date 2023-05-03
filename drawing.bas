@@ -1225,7 +1225,7 @@ SUB picktiletoedit (byref tmode as integer, byval tilesetnum as integer, mapfile
 STATIC cutnpaste(19, 19) as integer
 STATIC oldpaste as integer
 DIM ts as TileEditState
-DIM area(24) as MouseArea
+DIM area(25) as MouseArea
 DIM mouse as MouseInfo
 ts.tilesetnum = tilesetnum
 ts.drawframe = frame_new(20, 20, , YES)
@@ -1298,6 +1298,11 @@ area(24).x = 40  'scroll tool
 area(24).y = 42
 area(24).w = 8
 area(24).h = 8
+area(25).x = 4  'Back button
+area(25).y = 3
+area(25).w = textwidth("Back")
+area(25).h = 8
+
 
 DIM pastogkey(7) as KBScancode
 DIM bitmenu(7) as string
@@ -1330,6 +1335,8 @@ DO
  setkeys
  mouse = readmouse
  IF keyval(ccCancel) > 1 THEN EXIT DO
+ 'In passmode, right clicking has a use
+ IF tmode <> 3 ANDALSO (mouse.release AND mouseRight) THEN EXIT DO
  IF keyval(scF1) > 1 THEN
   IF tmode = 3 THEN
    show_help "default_passability"
@@ -1607,6 +1614,7 @@ DO
 
  ts.delay = large(ts.delay - 1, 0)
  ts.justpainted = large(ts.justpainted - 1, 0)
+
  IF keyval(ccCancel) > 1 THEN
   IF ts.hold = YES THEN
    ts.hold = NO
@@ -1614,6 +1622,10 @@ DO
    EXIT DO
   END IF
  END IF
+ IF ts.zone - 1 = 25 THEN  'Back button
+  IF mouse.release AND mouseLeft THEN EXIT DO
+ END IF
+
  IF keyval(scF1) > 1 THEN show_help "editmaptile"
  'Debug keys
  IF keyval(scCtrl) > 0 AND keyval(sc2) > 1 THEN setvispage 2: waitforanykey
@@ -1851,9 +1863,11 @@ DO
  'Draw tool overlay, at 8x zoom
  frame_draw overlay, iif(overlay_use_palette, overlaypal, NULL), 80, 0, YES, dpage, scale8
 
+ textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone - 1 = 25 THEN textcolor uilook(uiMenuItem), uilook(uiSelectedDisabled)
+ printstr "Back", area(25).x, area(25).y, dpage
  textcolor uilook(uiText), uilook(uiHighlight)
- printstr toolinfo(ts.tool).name, 8, 8, dpage
- printstr "Tool", 8, 16, dpage
+ printstr toolinfo(ts.tool).name, 8, 15, dpage
+ printstr "Tool", 8, 23, dpage
  printstr "Undo", 274, 1, dpage
  FOR i as integer = 0 TO UBOUND(toolinfo)
   fgcol = uilook(uiMenuItem)

@@ -3294,6 +3294,7 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
  END IF
  menu.withtags = YES
  menu.suppress_borders = YES
+ menu.itemspacing = 1
  IF popup_style THEN
   menu.bordersize = -6
   menu.textalign = alignLeft

@@ -1,6 +1,6 @@
 Use the arrow keys to choose a tile to edit/cut. Press ENTER or SPACE to open the tile editor/cutter.
 
-Press ESC to go back to the previous menu.
+Press ESC or RIGHT CLICK to go back to the previous menu.
 
 You can also use the mouse here. Click on a tile to edit it.
 
