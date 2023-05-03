@@ -242,6 +242,11 @@ OPERATOR XYPair.LET (value as integer)
   y = value
 END OPERATOR
 
+OPERATOR XYPair.LET (rhs as Float2)
+  x = rhs.x
+  y = rhs.y
+END OPERATOR
+
 OPERATOR + (lhs as XYPair, rhs as XYPair) as XYPair
   RETURN TYPE(lhs.x + rhs.x, lhs.y + rhs.y)
 END OPERATOR
@@ -310,6 +315,14 @@ END OPERATOR
 OPERATOR Float2.+= (rhs as Float2)
   x += rhs.x
   y += rhs.y
+END OPERATOR
+
+OPERATOR = (lhs as Float2, rhs as Float2) as bool
+  RETURN lhs.x = rhs.x andalso lhs.y = rhs.y
+END OPERATOR
+
+OPERATOR <> (lhs as Float2, rhs as Float2) as bool
+  RETURN lhs.x <> rhs.x orelse lhs.y <> rhs.y
 END OPERATOR
 
 OPERATOR + (lhs as Float2, rhs as Float2) as Float2

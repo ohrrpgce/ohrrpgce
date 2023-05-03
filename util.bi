@@ -553,9 +553,12 @@ UNION Float2
    v as single
   END TYPE
   DECLARE OPERATOR CAST () as string
-  'DECLARE OPERATOR CAST () as XYPair
+  'DECLARE OPERATOR CAST () as XYPairFwd   'FB doesn't allow casting to an incomplete type
   DECLARE OPERATOR += (rhs as Float2)
 END UNION
+
+DECLARE OPERATOR = (lhs as Float2, rhs as Float2) as bool
+DECLARE OPERATOR <> (lhs as Float2, rhs as Float2) as bool
 DECLARE OPERATOR + (lhs as Float2, rhs as Float2) as Float2
 DECLARE OPERATOR + (lhs as Float2, rhs as double) as Float2
 DECLARE OPERATOR - (lhs as Float2, rhs as Float2) as Float2
@@ -601,7 +604,9 @@ UNION XYPair
   DECLARE OPERATOR CAST () as string
   DECLARE OPERATOR CAST () as Float2
   DECLARE OPERATOR LET (value as integer)
+  DECLARE OPERATOR LET (f2 as Float2)  'Not as good as a constructor or cast Operator :(
 END UNION
+
 DECLARE OPERATOR =  (lhs as XYPair, rhs as XYPair) as bool
 DECLARE OPERATOR =  (lhs as XYPair, rhs as integer) as bool
 DECLARE OPERATOR <> (lhs as XYPair, rhs as XYPair) as bool
@@ -629,6 +634,7 @@ DECLARE OPERATOR ABS (lhs as XYPair) as XYPair
 DECLARE OPERATOR MOD (lhs as XYPair, rhs as XYPair) as XYPair
 DECLARE OPERATOR MOD (lhs as XYPair, rhs as integer) as XYPair
 DECLARE OPERATOR - (lhs as XYPair) as XYPair
+
 
 #DEFINE XY(x, y) TYPE<XYPair>(x, y)
 #DEFINE XYF(x, y) TYPE<Float2>(x, y)

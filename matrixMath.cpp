@@ -1,5 +1,5 @@
 /* OHRRPGCE - Matrix routines
- * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+ * (C) Copyright 1997-2022 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
  * Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
  *
  * Functions for creating 3x3 2d transformation matrices, multiplying them, and multiplying 3d vectors (x,y,w) against them
@@ -20,8 +20,10 @@ void matrixLocalTransform( float3x3* pMatrixOut, float angle, const float2& scal
 
    pMatrixOut->_11 = cos(angle) * scale.x;
    pMatrixOut->_12 = sin(angle) * scale.x;
+   pMatrixOut->_13 = 0.0f;
    pMatrixOut->_21 = -sin(angle) * scale.y;
    pMatrixOut->_22 = cos(angle) * scale.y;
+   pMatrixOut->_23 = 0.0f;
    pMatrixOut->_31 = position.x;
    pMatrixOut->_32 = position.y;
    pMatrixOut->_33 = 1.0f;
@@ -117,3 +119,16 @@ void vec3GenerateCorners( float3* pVecArrayOut, int destSize, const float2& size
    pVecArrayOut[3].w = 1.0f;
 }
 */
+
+double vec2Distance( float2* p1, float2* p2 )
+{
+   float2 diff = (*p2 - *p1);
+   return sqrt(diff.x * diff.x + diff.y * diff.y);
+}
+
+
+double vec3Distance( float3* p1, float3* p2 )
+{
+   float3 diff = (*p2 - *p1);
+   return sqrt(diff.x * diff.x + diff.y * diff.y + diff.w * diff.w);
+}

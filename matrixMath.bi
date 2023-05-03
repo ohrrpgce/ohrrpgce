@@ -1,5 +1,5 @@
 'OHRRPGCE - Matrix routines
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2022 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 '
 'exposes functions for creating 3x3 2d transformation matrices, multiplying them, and multiplying 3d vectors (x,y,w) against them
@@ -56,6 +56,10 @@ DECLARE SUB vec2Transform( byval pVec2ArrayOut as float2 ptr, byval destSize as 
 'as input to vec2Transform/vec3Transform
 DECLARE SUB vec2GenerateCorners( byval pVecArrayOut as Float2 ptr, byval destSize as integer, byref size as Float2, byref center as Float2)
 'DECLARE SUB vec3GenerateCorners( byval pVecArrayOut as Float3 ptr, byval destSize as integer, byref size as Float3, byref center as Float3)
+
+'Calculate Euclidean distance between two points
+DECLARE FUNCTION vec2Distance( byref p1 as Float2, byref p2 as Float2 ) as double
+DECLARE FUNCTION vec3Distance( byref p1 as Float3, byref p2 as Float3 ) as double
 
 END EXTERN
 

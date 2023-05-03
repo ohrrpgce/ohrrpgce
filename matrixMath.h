@@ -1,5 +1,5 @@
 /* OHRRPGCE - Matrix routines
- * (C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+ * (C) Copyright 1997-2022 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
  * Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
  *
  * Functions for creating 3x3 2d transformation matrices, multiplying them, and multiplying 3d vectors (x,y,w) against them
@@ -40,6 +40,11 @@ struct float2 {
 
 struct float3 {
 	float x, y, w;
+
+	float3 operator+(const float3& rhs) const {return float3{x+rhs.x, y+rhs.y, w+rhs.w};}
+	float3 operator-(const float3& rhs) const {return float3{x-rhs.x, y-rhs.y, w-rhs.w};}
+	float3 operator*(const float3& rhs) const {return float3{x*rhs.x, y*rhs.y, w*rhs.w};}
+	float3 operator/(const float3& rhs) const {return float3{x/rhs.x, y/rhs.y, w/rhs.w};}
 };
 
 struct float3x3 {
@@ -67,6 +72,8 @@ void vec2Transform( float2* pVec2ArrayOut, int destSize, const float2* pVec2Arra
 //void vec3Transform( float3* pVec3ArrayOut, int destSize, const float3* pVec3ArrayIn, int srcSize, const float3x3& transformMatrix );
 void vec2GenerateCorners( float2* pVecArrayOut, int destSize, const float2& size, const float2& center );
 //void vec3GenerateCorners( float3* pVecArrayOut, int destSize, const float& size, const float2& center );
+double vec2Distance( float2* p1, float2* p2 );
+double vec3Distance( float3* p1, float3* p2 );
 
 }
 
