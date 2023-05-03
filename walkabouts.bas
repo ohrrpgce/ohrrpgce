@@ -713,12 +713,11 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
 
   ' Ignore coincidental alignment if not moving in that direction.
 
-  DIM ret as integer = 0
+  DIM ret as integer
 
   ' Could write (pos.x - nextalign.x) MOD = 0 instead, though that would lose
   ' sub-pixel precision (which isn't important)
-  DIM xaligned as bool = (pos.x = nextalign.x ANDALSO go.x <> 0)
-  IF xaligned THEN
+  IF pos.x = nextalign.x ANDALSO go.x <> 0 THEN
    ' xtile,ytile iterates over each of the tiles immediately in front of the box
    ' and dir is direction from that tile towards the box.
    IF go.x > 0 THEN
@@ -742,8 +741,7 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
    NEXT
   END IF
 
-  DIM yaligned as bool = (pos.y = nextalign.y ANDALSO go.y <> 0)
-  IF yaligned THEN
+  IF pos.y = nextalign.y ANDALSO go.y <> 0 THEN
    IF go.y > 0 THEN
     whichdir = dirDown
     ytile = BR_tile.y + 1  'bottom
@@ -775,7 +773,7 @@ FUNCTION check_wallmap_collision (byval startpos as XYPair, byref pos as XYPair,
   ' Note that have to do this even if we hit the corner a fraction of a pixel in
   ' one axis before the other, in which case one of nextalign.x or .y have
   ' already been incremented, meaning that we can't check (pos = nextalign).
-  IF xaligned ANDALSO yaligned THEN
+  IF go.x ANDALSO go.y ANDALSO (pos - nextalign) MOD tilesize = 0 THEN
    DIM as DirNum xdir, ydir
    IF go.x < 0 THEN
     xtile = TL_tile.x - 1
