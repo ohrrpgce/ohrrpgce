@@ -1228,6 +1228,11 @@ FUNCTION slicemenu_hit_tester(state as MenuState, index as integer, pos as XYPai
  RETURN menutext_hit_tester(ses->slicemenu(index).s, state, index, pos)
 END FUNCTION
 
+FUNCTION slice_detail_menu_hit_tester(state as MenuState, index as integer, pos as XYPair) as bool
+ DIM menu as string ptr = state.hit_test_data
+ RETURN menutext_hit_tester(menu[index], state, index, pos)
+END FUNCTION
+
 'Get the SliceCollectionContext in which shared data for this slice collection is stored
 '(edslice may be a subtree, so we search up the tree)
 FUNCTION collection_context(edslice as Slice ptr) as SliceCollectionContext ptr
@@ -1739,6 +1744,9 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   .pt = remember_pt
   .need_update = YES
   .autosize = YES
+  'Right-dragging the collection around (and other mouse editing in future) shouldn't select menu items
+  .hit_test = @slice_detail_menu_hit_tester
+  .hit_test_data = @menu(0)  'Updated when menu() refreshed
  END WITH
  DIM menuopts as MenuOptions
  WITH menuopts
@@ -2186,7 +2194,7 @@ SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Sli
  DO
   setwait 55
   setkeys
-  IF keyval(ccCancel) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 ORELSE (readmouse.release AND mouseRight) THEN EXIT DO
   IF enter_or_space() THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help helpkey
   IF keyval(scF7) > 1 THEN show_ants = NOT show_ants
@@ -2719,6 +2727,8 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
  END IF
 
  END WITH
+
+ state.hit_test_data = @menu(0)  'Must be before init_menu_state
 
  init_menu_state state, menu(), menuopts
 

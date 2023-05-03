@@ -1,4 +1,6 @@
 Press arrow keys or click and drag the mouse to change the position/size.
 Hold down Shift to move more quickly with the arrow keys.
 
+Right Click or Esc to exit.
+
 Press F7 to toggle whether the slice outline is shown.
