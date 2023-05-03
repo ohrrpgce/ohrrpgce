@@ -22,7 +22,8 @@
 '==============================================================================
 
 ENUM SliceTool
- pick = 0
+ invalid = 0
+ pick
  move
  resize
  pan
@@ -96,7 +97,7 @@ TYPE SliceEditState
  expand_extra as bool
  expand_sort as bool
 
- tool as SliceTool
+ tool as SliceTool = SliceTool.pick
  mouse_focus as SliceEdMouseFocus  'What gets mouse input. Normally what it's over, except when dragging.
 
  want_show_tooltip as bool 'Whatever's under the mouse should set 'tooltip'
@@ -855,11 +856,14 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
 
   ' Changing tools
   IF state.need_update = NO THEN  'strgrabber not used
-   IF keyval(scP) > 1 THEN ses.tool = SliceTool.pick
-   IF keyval(scM) > 1 THEN ses.tool = SliceTool.move
-   IF keyval(scR) > 1 THEN ses.tool = SliceTool.resize
-   IF keyval(scN) > 1 THEN ses.tool = SliceTool.pan
-   IF keyval(scF6) > 1 THEN ses.tool = SliceTool.pan
+   DIM newtool as SliceTool
+   IF keyval(scP) > 1 THEN newtool = SliceTool.pick
+   IF keyval(scM) > 1 THEN newtool = SliceTool.move
+   IF keyval(scR) > 1 THEN newtool = SliceTool.resize
+   IF keyval(scN) > 1 THEN newtool = SliceTool.pan
+   IF keyval(scF6) > 1 THEN newtool = SliceTool.pan
+   ' Press any tool shortcut again to deselect: The Pick tool is essentially None.
+   IF newtool THEN ses.tool = IIF(ses.tool = newtool, SliceTool.pick, newtool)
   END IF
 
   DIM menuitemid as integer = mnidInvalid

@@ -8,6 +8,7 @@ Child slices are grouped together with their parent, and they move as a group.
 
 While holding Ctrl you can press up and down to move to the previous and next siblings of a slice; and press left and right to select the parent and the first child.
 
+
 Tools:
 
 Pick (press P) is the default mode (pressing ESC goes back to Pick). Click on a slice to select it. Arrow keys change the selected slice in the list of slices.
@@ -21,6 +22,11 @@ Resize (press R): resize a slice with arrow keys and mouse drags.
 Right-Dragging with the mouse always lets you pan (move around) the slice collection.
 
 Pan (press N or F6): lets you also pan the view of the collection with the arrow keys in addition to Right-Dragging. Panning doesn't modify the collection, it is only for help while editing.
+
+Press a tool's shortcut key again to deselect it.
+
+
+Extra functions:
 
 (Tip: Most of the following keys are also listed when you select a slice and press F8 for the Settings menu.)
 
