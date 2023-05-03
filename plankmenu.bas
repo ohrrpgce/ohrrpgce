@@ -261,7 +261,7 @@ SUB plank_menu_scroll_page (byref ps as PlankState, byval scrolldir as integer, 
  DIM scroll as Slice ptr = find_plank_scroll(ps.m)
 
  DIM targpos as XYPair
- targpos = ps.cur->ScreenPos + ps.cur->Size / 2
+ targpos = ps.cur->ScreenPos + ps.cur->Size \ 2
  IF scroll THEN targpos.y += scroll->Height * scrolldir
 
  REDIM planks(any) as Slice Ptr

@@ -812,7 +812,7 @@ END SUB
 
 '==============================================================================
 
-'Print all NPCs to g_debug.txt
+'Print all NPCs to g_debug.txt (not used)
 SUB debug_npcs ()
  FOR p as integer = 0 to 1
   debug npc_pool_name(p) & " NPC types:"
@@ -821,14 +821,14 @@ SUB debug_npcs ()
   NEXT
  NEXT p
  debug "NPC instances:"
- FOR i as integer = 0 TO 299
+ FOR i as integer = 0 TO UBOUND(npc)
   WITH npc(i)
    IF .id <> 0 THEN
     DIM npcinfo as string
-    npcinfo = " " & i & ": ID=" & (ABS(.id) - 1) & IIF(.id < 0, " (hidden)", "") & " x=" & .x & " y=" & .y
+    npcinfo = " " & i & ": ID=" & (ABS(.id) - 1) & IIF(.id < 0, " (hidden)", "") & " pos=" & .pos
     DIM where as XYPair
     IF framewalkabout(npc(i).pos + XY(0, gmap(11)), where, mapsizetiles * 20, gmap(5), 0) THEN
-     npcinfo &= " screenx=" & where.x & " screeny=" & where.y
+     npcinfo &= " screenpos=" & where
     END IF
     debug npcinfo
    END IF

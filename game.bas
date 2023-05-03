@@ -2394,7 +2394,7 @@ FUNCTION hero_collision_check(byval rank as integer, byval xgo as integer, byval
   '---Check for hero-NPC collision
   IF npc_ccache <> 0 THEN
    'An NPC collision cache is available, check it
-   DIM tpos as XYPair = TYPE(heropos(rank) - XY(xgo, ygo)) / 20
+   DIM tpos as XYPair = ((heropos(rank) - XY(xgo, ygo)) / 20)
    wrapxy tpos
    IF npc_ccache->obstruct(tpos.x, tpos.y) THEN
     collision_type = collideNPC
@@ -5486,6 +5486,7 @@ FUNCTION user_triggered_main_menu() as bool
  RETURN NO
 END FUNCTION
 
+/'
 SUB debug_mouse_state()
  DIM s as string
  WITH readmouse()
@@ -5494,6 +5495,7 @@ SUB debug_mouse_state()
  gam.showtext = s
  gam.showtext_ticks = 1
 END SUB
+'/
 
 SUB embedslicetree (byval sl as Slice Ptr, byval saveslot as integer=-1, repeatable as bool=NO, byval callback as FnEmbedCode=0, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
  IF sl->SliceType = slText THEN

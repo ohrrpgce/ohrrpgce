@@ -3087,7 +3087,7 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
    attack.targ_valign = valign
    loadenemydata enemy, enemy_id
    ChangeSpriteSlice targ_spr, sprTypeSmallEnemy + enemy.size, enemy.pic, enemy.pal
-   targ_spr->pos = preview_box->size / 2 - targ_spr->size / 2
+   targ_spr->pos = (preview_box->size - targ_spr->size) \ 2
    previewpos = attack_placement_over_targetpos(attack, TYPE<XYZTriple>(targ_spr->x, targ_spr->y, 0), targ_spr->size, NO, reverse)
    atk_spr->X = previewpos.x
    atk_spr->Y = previewpos.y - previewpos.z
