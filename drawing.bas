@@ -828,12 +828,13 @@ END SUB
 SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref bgcolor as bgType)
  DIM chequer_scroll as integer
  DIM menu(6) as string
- menu(0) = "Draw Tiles"
- menu(1) = "Cut Tiles from Tilesets"
- menu(2) = "Cut Tiles from Backdrops"
- menu(3) = "Set Default Passability"
- menu(4) = "Define Tile Animation"
- menu(6) = "Cancel"
+ menu(0) = "Previous Menu"
+ menu(1) = "Draw Tiles"
+ menu(2) = "Cut Tiles from Tilesets"
+ menu(3) = "Cut Tiles from Backdrops"
+ menu(4) = "Set Default Passability"
+ menu(5) = "Define Tile Animation"
+ 'menu(6) = "View with background: "
 
  DIM state as MenuState
  init_menu_state state, menu()
@@ -852,20 +853,20 @@ SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref 
   usemenu state
   IF enter_space_click(state) THEN
    SELECT CASE state.pt
-    CASE 0, 1, 2, 3
-     picktiletoedit state.pt, tilesetnum, mapfile, bgcolor
-    CASE 4
-     tile_animation tilesetnum
-    CASE 5
-     bgcolor = color_browser_256(large(bgcolor, 0))
-    CASE 6
+    CASE 0
      EXIT DO
+    CASE 1, 2, 3, 4
+     picktiletoedit state.pt - 1, tilesetnum, mapfile, bgcolor
+    CASE 5
+     tile_animation tilesetnum
+    CASE 6
+     bgcolor = color_browser_256(large(bgcolor, 0))
    END SELECT
   END IF
-  IF state.pt = 5 THEN intgrabber(bgcolor, bgFIRST, 255)
+  IF state.pt = 6 THEN intgrabber(bgcolor, bgFIRST, 255)
   clearpage dpage
   frame_draw_with_background vpages(3), , 0, 0, bgcolor, chequer_scroll, vpages(dpage)
-  menu(5) = "View with background: " & bgcolor_caption(bgcolor)
+  menu(6) = "View with background: " & bgcolor_caption(bgcolor)
   standardmenu menu(), state, , , dpage, menuopt
   SWAP vpage, dpage
   setvispage vpage
