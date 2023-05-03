@@ -1240,7 +1240,7 @@ menutype(AtkDramaticPause) = 19'ticks
 menuoff(AtkDramaticPause) = AtkDatDramaticPause
 menulimits(AtkDramaticPause) = AtkLimDramaticPause
 
-menu(AtkDamageColor) = "Damage Color Override:"
+menu(AtkDamageColor) = "Damage Color:"
 menutype(AtkDamageColor) = 23'color
 menuoff(AtkDamageColor) = AtkDatDamageColor
 menulimits(AtkDamageColor) = AtkLimColorIndex

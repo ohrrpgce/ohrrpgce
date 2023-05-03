@@ -173,3 +173,6 @@ Display Caption: Controls how long the attack caption is displayed. Press left a
   battle instead.
 
 Delay Before Caption: Allows you to specify a delay in game ticks before the caption appears. This can be useful for attack animations that have a long lead-in, or for captions that are supposed to represent something that the attacker says after the attack has completed. If you are using a "Dramatic Pause" the caption delay starts counting from the beginning of the dramatic pause.
+
+
+Damage Color overrides the normal/heal/regen/poison damage digit colors. It is also used for the attack name if 'Show Attack Name' is used. It isn't used for Miss/Fail text.

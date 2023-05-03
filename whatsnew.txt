@@ -209,6 +209,8 @@ WHAT IS NEW?
     * "set panel percent" didn't work [Ralph]
     * Hero formation positions don't have overly restrictive boundary limits
       anymore [James]
+    * The Attack Damage Color setting showed the wrong color, it was off by 1.
+      Also it was ignored by "Don't display damage" or "No damage" attacks [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license
