@@ -2155,6 +2155,62 @@ SUB reset_menu_edit_state ()
  editing_float_repr = ""
 END SUB
 
+'Like "IIF(keyval(key) > 1, 1, 0)" except that it initially repeats slowly, and returns
+'progressively larger values the longer the key is down, up to a maximum of maxspeed.
+FUNCTION accelerating_keydown(key as KBScancode, maxspeed as integer) as integer
+
+ STATIC last_keydown_timestamp as double  'Timer
+ STATIC key_momentum as integer  'Memory of effective milliseconds the key was down
+
+ CONST STARTMS = 350        'Delay before key repeat (1 every 180ms)
+ CONST STARTSPEEDMS = 1700  'Delay before repeat accelerates (to 1 every tick)
+ CONST MAXSPEEDMS = 5000    'Time before maxspeed reached
+
+ IF keyval(key) > 0 THEN
+  'This function will be called multiple times with different scancodes, so
+  'mustn't do anything when the key is up. Instead, compare keypress_time with
+  'last_keydown_timestamp to see whether it's been down the whole time
+  DIM t as double = TIMER
+  DIM time_gap as integer = 1000 * (t - last_keydown_timestamp)  'milliseconds
+  last_keydown_timestamp = t
+
+  DIM ms as integer = keypress_time(key)
+
+  VAR downtime = small(time_gap, ms)  'ms down since last call
+  VAR uptime = time_gap - downtime    'ms up since last call
+
+  key_momentum -= 3 * uptime  'Releasing the key slows down quickly
+  IF uptime > 750 then key_momentum -= 1000  'Quickly reset momentum
+
+  'Use remembered key down time
+  'ms = large(key_momentum, ms)
+  IF key_momentum > ms THEN
+   'If the user releases a key for a moment, it halves the acceleration
+   'rate until keypress_time catches back up to key_momentum.
+   ms = key_momentum
+   key_momentum += downtime \ 2
+  ELSE
+   key_momentum += downtime
+  END IF
+
+  key_momentum = bound(key_momentum, 0, MAXSPEEDMS)
+
+  IF ms < STARTSPEEDMS THEN
+   'RETURN IIF(keyval(key) > 1, 1, 0)  but slower
+   RETURN IIF(player_keyval(key, , , STARTMS, 180) > 1, 1, 0)
+  END IF
+
+  'x goes from 0 to 1 at MAXSPEEDMS
+  DIM x as double = small(1.0, (ms - STARTSPEEDMS) / (MAXSPEEDMS - STARTSPEEDMS))
+
+  'Map interval [0,1] -> [0,1], slope going from 2/3 to 4/3
+  'x = 2*x/3 + x*x/3
+
+  'Always start at speed 1
+  RETURN large(1, maxspeed * (10^(x * 3) - 1) / 999.0)
+ END IF
+END FUNCTION
+
 'keygrabber is like intgrabber (or usemenu) except it only watches the two keys passed as arguments, not
 'number keys, page up/down, copy/paste, minus, etc.
 FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight) as bool
@@ -2193,12 +2249,17 @@ FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as
  ELSEIF scrollwheel = wheelAlways THEN
   updown = readmouse().wheel_clicks
  END IF
- IF more <> scNone ANDALSO keyval(more) > 1 THEN updown += 1
- IF less <> scNone ANDALSO keyval(less) > 1 THEN updown -= 1
+ DIM maxspeed as integer = small(1000, (max - min) \ 10)
+ IF more <> scNone THEN updown += accelerating_keydown(more, maxspeed)
+ IF less <> scNone THEN updown -= accelerating_keydown(less, maxspeed)
 
  IF updown THEN
-  n = bound(n, min, max)
-  loopvar n, min, max, updown
+  'Don't wrap while acceleration is active, it's confusing
+  IF ABS(updown) = 1 THEN
+   loopvar n, min, max, updown
+  ELSE
+   n = bound(n + updown, min, max)
+  END IF
   typed = YES
  ELSEIF keyval(scDelete) > 1 THEN
   n = bound(0, min, max)
@@ -6340,8 +6401,10 @@ FUNCTION percent_grabber(byref float as double, byref repr as string = "", min a
 
  DIM updown as integer = 0
  IF readmouse().buttons AND mouseright THEN updown = readmouse().wheel_clicks
- IF keyval(ccLeft) > 1 THEN updown -= 1
- IF keyval(ccRight) > 1 THEN updown += 1
+ DIM maxspeed as integer = small(1000, 0.1 * (max - min) / increment)
+ updown -= accelerating_keydown(ccLeft, maxspeed)
+ updown += accelerating_keydown(ccRight, maxspeed)
+
  float += updown * increment
  IF updown THEN changed = YES
 

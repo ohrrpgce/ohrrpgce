@@ -91,6 +91,8 @@ WHAT IS NEW?
     * Distribute Game for Steam on Windows or Linux options, which add the
       libraries needed for Steam achievements [Ralph]
     * Distribute Game submenu to Customize Package Contents [Ralph]
+    * As you hold down Left/Right keys while editing a value the rate of change
+      accelerates. Release it for a moment to slow down [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]
