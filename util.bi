@@ -941,6 +941,8 @@ declare function format_date(timeser as double) as string
     debuginfo __FUNCTION__ "(" & extrainfo & ") took " & CINT((TIMER - starttime) * 1000) & "ms"
 #endmacro
 
+declare function measure_timer_overhead() as double
+
 'This throws out outliers and smooths over many repeated start() to stop() timings.
 'In comparison to ExpSmoothedTimer this is more useful for timing/profiling code.
 'Instances of this should typically be static or globals

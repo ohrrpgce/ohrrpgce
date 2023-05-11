@@ -2741,8 +2741,9 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   a_append menu(), " Screen Y: " & .ScreenY
   sliceed_rule_none rules(), "screen_pos"
 
-  DIM framefrac as double = benchmarking_draw_timer.smoothtime / (gen(genMillisecPerFrame) / 1000)
-  a_append menu(), strprintf(" Drawn in %dus (%.2f%% of a frame)", CINT(1e6 * benchmarking_draw_timer.smoothtime), 100 * framefrac)
+  DIM drawtime as double = large(0.0, benchmarking_draw_timer.smoothtime - measure_timer_overhead())
+  DIM framefrac as double =  drawtime / (gen(genMillisecPerFrame) / 1000)
+  a_append menu(), strprintf(" Drawn in %dus (%.2f%% of a frame)", CINT(1e6 * drawtime), 100 * framefrac)
   sliceed_rule_none rules(), "draw_time"
 
  END IF
