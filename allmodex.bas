@@ -8613,7 +8613,7 @@ sub GIFRecorder.record_frame(fr as Frame ptr, pal() as RGBcolor)
 	if sf andalso sf->format = SF_32bit then
 		bits = 32
 		if sf->width <> sf->pitch then _gif_pitch_fail "32-bit Surface"
-		ret = GifWriteFrame(@this.writer, sf->pColorData, sf->width, sf->height, delay, 8, NO)
+		ret = GifWriteFrame(@this.writer, sf->pColorData, sf->width, sf->height, delay, 8, YES)
 	else
 		' 8-bit Surface-backed Frames and regular Frames.
 		bits = 8

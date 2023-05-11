@@ -541,6 +541,16 @@ void GifDitherImage( const GifRGBA* lastFrame, const GifRGBA* nextFrame, GifRGBA
             GifRGBA& outPix = outFrame[yy*width+xx];  // output
             const GifRGBA* lastPix = lastFrame? &lastFrame[yy*width+xx] : NULL;
 
+            // If this pixel didn't change in this frame then don't output anything here,
+            // it creates flickering and bad compression. Though we could still propagate
+            // the difference between searchColor and lastPix.
+            if( lastFrame && GifRGBEqual(nextPix, *lastPix) )
+            {
+                outPix = nextPix;
+                outPix.a = kGifTransIndex;
+                continue;
+            }
+
             // Cap the diffused error to prevent excessive bleeding.
             errorPix.r = GifIMin( kGifMaxAccumError * 256, GifIMax( -kGifMaxAccumError * 256, errorPix.r) );
             errorPix.g = GifIMin( kGifMaxAccumError * 256, GifIMax( -kGifMaxAccumError * 256, errorPix.g) );
@@ -556,15 +566,6 @@ void GifDitherImage( const GifRGBA* lastFrame, const GifRGBA* nextFrame, GifRGBA
             searchColor.b = (uint8_t)GifIMin(255, GifIMax(0, (errorPix.b + 127) / 256));
             searchColor.a = 0;
 
-            // if it happens that we want the color from last frame, then just write out
-            // a transparent pixel
-            if( lastFrame && GifRGBEqual(searchColor, *lastPix) )
-            {
-                outPix = searchColor;
-                outPix.a = kGifTransIndex;
-                continue;
-            }
-
             int32_t bestDiff = 1000000;
             int32_t bestInd = kGifTransIndex;
 
@@ -573,13 +574,26 @@ void GifDitherImage( const GifRGBA* lastFrame, const GifRGBA* nextFrame, GifRGBA
             GIF_STATS(stats.searches++;)
             GIF_STATS(stats.totalDiff += bestDiff;)
 
-            // Write the result to the temp buffer
-            outPix = tree->pal.colors[bestInd];
-            outPix.a = bestInd;
+            GifRGBA selectedColor = tree->pal.colors[bestInd];
 
-            int32_t r_err = errorPix.r - outPix.r * 256;
-            int32_t g_err = errorPix.g - outPix.g * 256;
-            int32_t b_err = errorPix.b - outPix.b * 256;
+            // Write the result to the temp buffer
+            // If it happens that we want the color from last frame, then just write out
+            // a transparent pixel
+            if( lastFrame && GifRGBEqual(selectedColor, *lastPix) )
+            {
+                outPix = nextPix;  // (lastPix might point to outPix, can't hoist out)
+                outPix.a = kGifTransIndex;
+            }
+            else
+            {
+                //outPix = selectedColor;  // More correct but breaks delta coding
+                outPix = nextPix;
+                outPix.a = bestInd;
+            }
+
+            int32_t r_err = errorPix.r - selectedColor.r * 256;
+            int32_t g_err = errorPix.g - selectedColor.g * 256;
+            int32_t b_err = errorPix.b - selectedColor.b * 256;
 
             // Propagate the error to the four adjacent locations
             // that we haven't touched yet
@@ -1035,7 +1049,7 @@ bool GifWriteFrame( GifWriter* writer, const GifRGBA* image, uint32_t width, uin
     writer->firstFrame = false;
 
     GifKDTree tree;
-    GifMakePalette((dither? NULL : oldImage), image, width, height, bitDepth, dither, &tree);
+    GifMakePalette(oldImage, image, width, height, bitDepth, dither, &tree);
 
     if(dither)
         GifDitherImage(oldImage, image, writer->oldImage, width, height, &tree);
