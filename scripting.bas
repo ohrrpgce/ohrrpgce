@@ -1195,16 +1195,23 @@ END FUNCTION
 'Measure how long a TIMER call takes
 FUNCTION measure_timer_overhead() as double
  DIM as double besttime = 1e99, thistime, timestamp
+ 'Time 5 times and take the lowest, because OS interruptions cause large spikes on Linux
  FOR attempt as integer = 1 TO 5
+  'Don't count initial TIMER, we're timing the interval between two TIMER calls.
+  DIM counter as integer = 0
   READ_TIMER(timestamp)
   thistime = -timestamp
   FOR i as integer = 0 TO 1999
    READ_TIMER(timestamp)
+   counter += 1
+   'Stop early after 1ms
+   IF (i AND 255) = 0 ANDALSO thistime + timestamp > 1e-3 THEN EXIT FOR
   NEXT
   thistime += timestamp
+  thistime /= counter
   IF thistime < besttime THEN besttime = thistime
  NEXT
- RETURN besttime / 2000
+ RETURN besttime
 END FUNCTION
 
 'Print profiling information on scripts to g_debug.txt
