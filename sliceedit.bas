@@ -96,6 +96,7 @@ TYPE SliceEditState
  expand_padding as bool
  expand_extra as bool
  expand_sort as bool
+ expand_meta as bool
 
  tool as SliceTool = SliceTool.pick
  mouse_focus as SliceEdMouseFocus  'What gets mouse input. Normally what it's over, except when dragging.
@@ -1736,6 +1737,8 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
 
  IF sl = 0 THEN EXIT SUB
 
+ benchmarking_slice = sl
+
  REDIM menu(0) as string
  REDIM rules(0) as EditRule
 
@@ -1768,7 +1771,8 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
    WITH ses
     DIM expand as bool
     expand = .expand_dimensions OR .expand_visible OR .expand_alignment OR _
-             .expand_special OR .expand_padding OR .expand_extra OR .expand_sort
+             .expand_special OR .expand_padding OR .expand_extra OR .expand_sort OR _
+             .expand_meta
     expand XOR= YES
     .expand_dimensions = expand
     .expand_visible = expand
@@ -1777,11 +1781,14 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
     .expand_padding = expand
     .expand_extra = expand
     .expand_sort = expand
+    .expand_meta = expand
    END WITH
    state.need_update = YES
   END IF
 
   IF UpdateScreenSlice() THEN state.need_update = YES
+
+  IF ses.expand_meta AND benchmarking_draw_timer.smooth_updated THEN state.need_update = YES
 
   IF state.need_update THEN
    'Invisible slices won't be updated by DrawSlice
@@ -1824,6 +1831,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
  LOOP
 
  remember_pt = state.pt
+ benchmarking_slice = NULL
 
 END SUB
 
@@ -2459,7 +2467,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
 
    CASE slLine
     DIM dat as LineSliceData ptr = .SliceData
-    a_append menu(), "  Color: " & slice_color_caption(dat->col)
+    a_append menu(), " Color: " & slice_color_caption(dat->col)
     sliceed_rule rules(), "line_col", erIntgrabber, @dat->col, LowColorCode(), 255, slgrPICKCOL
     ' a_append menu(), "  Flipped: " & yesorno(dat->flipped)
     ' sliceed_rule_tog rules(), "line_flipped", @dat->flipped
@@ -2724,6 +2732,19 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   DIM sortNA as string
   IF .Parent = NULL ORELSE .Parent->AutoSort <> slAutoSortCustom THEN sortNA = " (N/A)"
   a_append menu(), " Custom sort order" & sortNA & ": " & .Sorter
+ END IF
+
+ sliceed_header menu(), rules(), "[Metadata]", @ses.expand_meta
+ IF ses.expand_meta THEN
+  a_append menu(), " Screen X: " & .ScreenX
+  sliceed_rule_none rules(), "screen_pos"
+  a_append menu(), " Screen Y: " & .ScreenY
+  sliceed_rule_none rules(), "screen_pos"
+
+  DIM framefrac as double = benchmarking_draw_timer.smoothtime / (gen(genMillisecPerFrame) / 1000)
+  a_append menu(), strprintf(" Drawn in %dus (%.2f%% of a frame)", CINT(1e6 * benchmarking_draw_timer.smoothtime), 100 * framefrac)
+  sliceed_rule_none rules(), "draw_time"
+
  END IF
 
  END WITH

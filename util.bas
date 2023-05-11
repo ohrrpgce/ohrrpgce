@@ -4727,8 +4727,14 @@ end sub
 'Returns true if smoothed value was updated
 function SmoothedTimer.stop() as bool
   timing = timer - timing
+  return add_time(timing)
+end function
+
+'Add time and update
+function SmoothedTimer.add_time(time as double) as bool
+  ran = YES
   if times = NULL then v_new times
-  v_append times, timing
+  v_append times, time
   if v_len(times) = 9 then
     'Update with median buffer value
     v_sort times
@@ -4738,8 +4744,10 @@ function SmoothedTimer.stop() as bool
       smoothtime = smoothtime * 0.6 + 0.4 * times[4]
     end if
     v_new times  'Clear buffer
+    smooth_updated = YES
     return YES
   end if
+  smooth_updated = NO
 end function
 
 function SmoothedTimer.tell() as string

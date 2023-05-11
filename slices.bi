@@ -845,6 +845,9 @@ DECLARE Sub CalcPanelSupport (byref support as RectType, byval par as Slice ptr,
 
 EXTERN NumDrawnSlices as integer
 EXTERN template_slices_shown as boolean
+EXTERN benchmarking_slice as Slice ptr
+EXTERN benchmarking_draw_timer as SmoothedTimer
+
 
 End Extern
 

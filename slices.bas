@@ -170,6 +170,9 @@ ReDim Shared SliceDebug(50) as Slice Ptr
 'Number of non-trivial drawn slices (Container, Special, Root and invisible excluded)
 DIM NumDrawnSlices as integer
 
+DIM benchmarking_slice as Slice ptr    'Which slice's Draw() to time with benchmarking_draw_timer
+DIM benchmarking_draw_timer as SmoothedTimer
+
 'Whether template slices should be reveal - used in the slice editor
 DIM template_slices_shown as boolean
 
@@ -3246,6 +3249,9 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
  DefaultChildDraw sl, p
 
  'Then proceed with the scrollbars
+
+ if benchmarking_slice = sl then benchmarking_draw_timer.start()
+
  dim dat as ScrollSliceData ptr = sl->SliceData
 
  dim min as XYPair
@@ -3280,6 +3286,8 @@ Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
    rectangle vpages(p), slider, boxlook(dat->style).edgecol
   end if
  next axis
+
+ if benchmarking_slice = sl then benchmarking_draw_timer.stop()
 
 end sub
 
@@ -4019,7 +4027,13 @@ Local Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childind
 
   if s->Draw then
    NumDrawnSlices += 1
-   s->Draw(s, page)
+   if s = benchmarking_slice then
+    benchmarking_draw_timer.start()
+    s->Draw(s, page)
+    benchmarking_draw_timer.stop()
+   else
+    s->Draw(s, page)
+   end if
   end if
 
   AutoSortChildren(s)
@@ -4036,9 +4050,11 @@ end sub
 'Draw a slice tree
 Sub DrawSlice(byval s as Slice ptr, byval page as integer)
  blend_algo = gen(gen8bitBlendAlgo)  'Bit kludgy, but easiest to set this here
+ benchmarking_draw_timer.ran = NO
  v_new context_stack
  DrawSliceRecurse s, page
  v_free context_stack
+ if benchmarking_draw_timer.ran = NO then benchmarking_draw_timer.add_time(0.0)
 end sub
 
 'Draw a slice tree (usually a subtree of the full tree) as if it were parented

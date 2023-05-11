@@ -95,6 +95,7 @@ WHAT IS NEW?
       accelerates. Release it for a moment to slow down [Ralph]
     * .gifs recorded while running in 24-bit color depth are smaller, smoother
       (dithered) and flicker less [Ralph]
+    * Slice Editor Metadata section shows Screen X/Y and Draw timings [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

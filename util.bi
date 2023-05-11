@@ -948,10 +948,13 @@ type SmoothedTimer
    timing as double        'Current timing
    times as double vector  'Buffer
    smoothtime as double    'Smoothed timing value
+   ran as bool             'Whether stop() has been called (not automatically set to false)
+   smooth_updated as bool  'Whether smoothtime updated on the last stop() call
 
    declare destructor()
    declare sub start()
    declare function stop() as bool
+   declare function add_time(time as double) as bool
    declare function tell() as string
    declare sub stop_and_print()
 end type
