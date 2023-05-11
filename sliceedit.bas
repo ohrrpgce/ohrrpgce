@@ -2706,24 +2706,6 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   sliceed_rule rules(), "padding", erIntgrabber, @.PaddingLeft, -9999, 9999
  END IF
 
- sliceed_header menu(), rules(), "[Extra Data]", @ses.expand_extra
- IF ses.expand_extra THEN
-  DIM length as integer = IIF(sl->ExtraVec, v_len(sl->ExtraVec), 3)
-  a_append menu(), " Length: " & length
-  sliceed_rule_none rules(), "extra_length", slgrEXTRALENGTH
-  FOR i as integer = 0 TO small(10, length) - 1
-   a_append menu(), " extra " & i & ": " & .Extra(i)
-   'Put the index in rule.lower
-   sliceed_rule rules(), "extra", erNone, NULL, i, , slgrEXTRA
-  NEXT
-  IF length > 10 THEN
-   a_append menu(), " ..."
-   sliceed_rule_none rules(), ""
-  END IF
-  a_append menu(), " View/edit all extra data..."
-  sliceed_rule_none rules(), "", slgrEXTRAEDITOR
- END IF
-
  sliceed_header menu(), rules(), "[Sorting]", @ses.expand_sort
  IF ses.expand_sort THEN
   sliceed_rule_ubyte rules(), "autosort", @.AutoSort, 0, slAutoSortLAST
@@ -2745,7 +2727,24 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   DIM framefrac as double =  drawtime / (gen(genMillisecPerFrame) / 1000)
   a_append menu(), strprintf(" Drawn in %dus (%.2f%% of a frame)", CINT(1e6 * drawtime), 100 * framefrac)
   sliceed_rule_none rules(), "draw_time"
+ END IF
 
+ sliceed_header menu(), rules(), "[Extra Data]", @ses.expand_extra
+ IF ses.expand_extra THEN
+  DIM length as integer = IIF(sl->ExtraVec, v_len(sl->ExtraVec), 3)
+  a_append menu(), " Length: " & length
+  sliceed_rule_none rules(), "extra_length", slgrEXTRALENGTH
+  FOR i as integer = 0 TO small(10, length) - 1
+   a_append menu(), " extra " & i & ": " & .Extra(i)
+   'Put the index in rule.lower
+   sliceed_rule rules(), "extra", erNone, NULL, i, , slgrEXTRA
+  NEXT
+  IF length > 10 THEN
+   a_append menu(), " ..."
+   sliceed_rule_none rules(), ""
+  END IF
+  a_append menu(), " View/edit all extra data..."
+  sliceed_rule_none rules(), "", slgrEXTRAEDITOR
  END IF
 
  END WITH
