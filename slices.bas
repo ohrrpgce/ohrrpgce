@@ -4915,6 +4915,7 @@ FUNCTION DescribeSlice(sl as Slice ptr) as string
   DIM sliceinfo as string = SliceTypeName(sl) & " slice"
   IF sl->TableSlot THEN sliceinfo &= " " & sl->TableSlot
   IF sl->Lookup THEN sliceinfo &= " (" & SliceLookupCodename(sl) & ")"
+  RETURN sliceinfo
  ELSE
   'Normally this sub shouldn't be called with a null ptr
   RETURN "(invalid slice)"
