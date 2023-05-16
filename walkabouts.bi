@@ -71,9 +71,9 @@ DECLARE SUB reload_vehicle()
 DECLARE SUB dump_vehicle_state()
 DECLARE SUB forcedismount ()
 DECLARE SUB update_vehicle_state ()
+DECLARE SUB vehicle_controls ()
 DECLARE FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as integer) as integer
 DECLARE SUB vehicle_graceful_dismount ()
-DECLARE FUNCTION vehscramble(byval target as XYPair) as bool
 DECLARE SUB try_mount_vehicle(vehid as integer, npci as NPCIndex, force_mount as bool = NO)
 DECLARE SUB forcemountvehicle (byval npcnum as NPCIndex)
 

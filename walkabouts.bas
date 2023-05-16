@@ -1,5 +1,5 @@
 'OHRRPGCE GAME
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2023 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 '
 ' This module contains code for:
@@ -22,6 +22,8 @@
 #include "walkabouts.bi"
 
 DECLARE FUNCTION user_triggered_vehicle_use_action() as bool
+DECLARE FUNCTION vehscramble(byval target as XYPair) as bool
+DECLARE SUB vehicle_button_action(action as integer)
 
 
 '==========================================================================================
@@ -1051,38 +1053,36 @@ SUB update_vehicle_state ()
   END IF
  END IF
 
- 'Handle Use and Menu keys according to vehicle-specific settings
- IF vstate.active = YES ANDALSO normal_controls_disabled() = NO ANDALSO herow(0).xygo = 0 THEN
-  REDIM button(1) as integer
-  REDIM user_trigger(1) as integer
-  button(0) = vstate.dat.use_button
-  button(1) = vstate.dat.menu_button
-  user_trigger(0) = user_triggered_vehicle_use_action()
-  user_trigger(1) = user_triggered_main_menu()
-  FOR i as integer = 0 TO 1
-   IF user_trigger(i) THEN
-    SELECT CASE button(i)
-     CASE -2
-      '-disabled
-     CASE -1
-      IF gmap(379) <= 0 THEN 'Main menu available
-       add_menu 0
-       menusound gen(genAcceptSFX)
-      END IF
-     CASE 0
-      '--dismount
-      vehicle_graceful_dismount
-     CASE IS > 0
-      trigger_script button(i), 0, YES, "vehicle button " & i, "", mainFibreGroup
-    END SELECT
-   END IF
-  NEXT i
- END IF
-
+ 'This is also done in update_npcs()
  IF vstate.active THEN npc(vstate.npc).z = heroz(0)
 END SUB
 
-FUNCTION user_triggered_vehicle_use_action() as bool
+SUB vehicle_controls ()
+ 'Handle Use and Menu keys according to vehicle-specific settings
+ IF vstate.active = YES ANDALSO normal_controls_disabled() = NO ANDALSO herow(0).xygo = 0 THEN
+  IF user_triggered_vehicle_use_action() THEN vehicle_button_action vstate.dat.use_button
+  IF user_triggered_main_menu() THEN vehicle_button_action vstate.dat.menu_button
+ END IF
+END SUB
+
+LOCAL SUB vehicle_button_action(action as integer)
+ SELECT CASE action
+  CASE -2
+   '-disabled
+  CASE -1
+   IF gmap(379) <= 0 THEN 'Main menu available
+    add_menu 0
+    menusound gen(genAcceptSFX)
+   END IF
+  CASE 0
+   '--dismount
+   vehicle_graceful_dismount
+  CASE IS > 0
+   trigger_script action, 0, YES, "vehicle button", "", mainFibreGroup
+ END SELECT
+END SUB
+
+LOCAL FUNCTION user_triggered_vehicle_use_action() as bool
  IF carray(ccUse) > 1 THEN RETURN YES
  IF get_gen_bool("/mouse/move_hero") THEN
   IF readmouse().release AND mouseLeft THEN
@@ -1093,7 +1093,6 @@ FUNCTION user_triggered_vehicle_use_action() as bool
  END IF
  RETURN NO
 END FUNCTION
-
 
 SUB vehicle_graceful_dismount ()
  herow(0).xgo = 0
@@ -1232,8 +1231,9 @@ FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as in
  RETURN v <> 0
 END FUNCTION
 
+'Causes heroes to walk on or off a vehicle
 'Returns true if the scramble is finished
-FUNCTION vehscramble(byval target as XYPair) as bool
+LOCAL FUNCTION vehscramble(byval target as XYPair) as bool
  DIM scrambled_heroes as integer = 0
  'Maybe this should actually be caterpillar_count(), so that if caterpillar
  'mode is suspended, the other heroes don't mount the vehicle?

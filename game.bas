@@ -812,7 +812,7 @@ DO
  'DEBUG debug "Player controls"
 
  'Main menu controls
- 'NOTE: while on a vehicle, menu and use keys are handled in update_vehicle_state()
+ 'NOTE: while on a vehicle, menu and use keys are handled in vehicle_controls()
  IF normal_controls_disabled() = NO ANDALSO gmap(379) <= 0 ANDALSO vstate.active = NO THEN  'gmap(379): menu available
   'Menu key/click/joy button is enabled (provided you're stationary)
   update_hero_pathfinding_menu_queue()
@@ -844,7 +844,7 @@ DO
    END IF
   END IF
   IF herow(0).xygo = 0 THEN
-   'While on a vehicle, menu and use keys are handled in update_vehicle_state()
+   'While on a vehicle, menu and use keys are handled in vehicle_controls()
    IF carray(ccUse) > 1 ANDALSO vstate.active = NO ANDALSO usenpc(0, find_useable_npc()) THEN
     cancel_hero_pathfinding(0)
    ELSE
@@ -902,6 +902,7 @@ DO
  IF vstate.active THEN
   'DEBUG debug "evaluate vehicles"
   update_vehicle_state()
+  vehicle_controls()
  END IF
 
  'DEBUG debug "hero movement"
