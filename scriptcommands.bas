@@ -5182,6 +5182,12 @@ SUB script_commands(byval cmdid as integer)
     plotstr(retvals(0)).s = ""
    END IF
   END IF
+ CASE 750 '--suspend walkabouts
+  setbit gen(), genSuspendBits, suspendwalkabouts, 1
+ CASE 751 '--resume walkabouts
+  setbit gen(), genSuspendBits, suspendwalkabouts, 0
+ CASE 752 '--walkabouts are suspended
+  scriptret = readbit(gen(), genSuspendBits, suspendwalkabouts)
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

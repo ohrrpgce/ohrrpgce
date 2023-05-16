@@ -831,7 +831,7 @@ DO
  END IF
 
  'Hero movement and NPC activation
- IF normal_controls_disabled() = NO AND menus_allow_player() THEN
+ IF movement_controls_enabled() THEN
   IF get_gen_bool("/mouse/move_hero") THEN
    IF readmouse.clicks AND mouseLeft THEN
     cancel_hero_pathfinding(0)
@@ -882,11 +882,13 @@ DO
    END IF
   END IF
  END IF
- FOR i as integer = 0 TO 3
-  IF herow(i).xygo = 0 THEN
-   update_hero_pathfinding(i)
-  END IF
- NEXT i
+ IF readbit(gen(), genSuspendBits, suspendwalkabouts) = 0 THEN
+  FOR i as integer = 0 TO 3
+   IF herow(i).xygo = 0 THEN
+    update_hero_pathfinding(i)
+   END IF
+  NEXT i
+ END IF
 
  'Textbox controls
  IF txt.fully_shown = YES THEN
@@ -901,15 +903,20 @@ DO
  'Vehicle logic and special use/menu controls
  IF vstate.active THEN
   'DEBUG debug "evaluate vehicles"
-  update_vehicle_state()
+  IF readbit(gen(), genSuspendBits, suspendwalkabouts) = 0 THEN
+   update_vehicle_state()
+  END IF
+  '(If suspendwalkabouts then this will just handle the Menu key, not Use)
   vehicle_controls()
  END IF
 
- 'DEBUG debug "hero movement"
- update_heroes()
+ IF readbit(gen(), genSuspendBits, suspendwalkabouts) = 0 THEN
+  'DEBUG debug "hero movement"
+  update_heroes()
 
- 'DEBUG debug "NPC movement"
- update_npcs()
+  'DEBUG debug "NPC movement"
+  update_npcs()
+ END IF
 
  main_timer.substart TimerIDs.UpdateSlices
  AdvanceSlice SliceTable.root
@@ -1550,7 +1557,7 @@ SUB update_heroes(force_step_check as bool=NO)
   '--trailing heroes jumping over tiles without damage, when caterpillar is enabled.
 
   IF didgo(whoi) ANDALSO notmidstep(whoi) THEN
-   '--Stuff that should only happen when a hero finishs a step
+   '--Stuff that should only happen when a hero finishes a step
 
    '--Run each-step zone triggers
    process_zone_eachstep_triggers "hero" & whoi, herow(whoi).curzones
@@ -2918,6 +2925,11 @@ END SUB
 FUNCTION normal_controls_disabled () as bool
  RETURN txt.showing ORELSE gam.need_fade_in ORELSE gam.debug_camera_pan _
         ORELSE readbit(gen(), genSuspendBits, suspendplayer) ORELSE vehicle_is_animating()
+END FUNCTION
+
+FUNCTION movement_controls_enabled () as bool
+ RETURN normal_controls_disabled() = NO ANDALSO menus_allow_player() _
+        ANDALSO readbit(gen(), genSuspendBits, suspendwalkabouts) = 0
 END FUNCTION
 
 FUNCTION menus_allow_gameplay () as bool
@@ -5301,6 +5313,8 @@ END SUB
 
 SUB update_hero_pathfinding_menu_queue()
  IF gam.hero_pathing(0).mode = HeroPathingMode.NONE THEN EXIT SUB
+ 'You can open the menu while walkabouts are suspended, but don't queue it.
+ IF readbit(gen(), genSuspendBits, suspendwalkabouts) THEN EXIT SUB
  IF user_triggered_main_menu() THEN
   IF get_gen_bool("/mouse/move_hero/cancel_on_menu") THEN
    gam.hero_pathing(0).queued_menu = YES
@@ -5331,7 +5345,9 @@ SUB update_hero_pathfinding(byval rank as integer)
 
  IF gam.hero_pathing(rank).by_user ANDALSO player_is_suspended() THEN
   'Auto-cancel built-in user pathing when suspendplayer is active
-   cancel_hero_pathfinding(rank, YES)
+  'Note: this function isn't even called when gameplay is suspended (by a menu),
+  'or walkabouts are suspended (which is for imitating menus)
+  cancel_hero_pathfinding(rank, YES)
   EXIT SUB
  END IF
  

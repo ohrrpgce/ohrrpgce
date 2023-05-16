@@ -209,7 +209,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2023-04-10)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2023-05-17)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1307,6 +1307,7 @@ function toggleContent(target) {
 		<a href="#about-resumerandomenemies" class="ref">resume random enemys</a><br>
 		<a href="#about-resumetextboxcontrols" class="ref">resume text box controls</a><br>
 		<a href="#about-resumetimers" class="ref">resume timers</a><br>
+		<a href="#about-resumewalkabouts" class="ref">resume walkabouts</a><br>
 		<a href="#about-return" class="ref">return(value)</a><br>
 		<a href="#about-rgb" class="ref">RGB (red, green, blue)</a><br>
 		<a href="#about-right" class="ref">right</a><br>
@@ -1610,6 +1611,7 @@ function toggleContent(target) {
 		<a href="#about-suspendrandomenemies" class="ref">suspend random enemys</a><br>
 		<a href="#about-suspendtextboxcontrols" class="ref">suspend text box controls</a><br>
 		<a href="#about-suspendtimers" class="ref">suspend timers</a><br>
+		<a href="#about-suspendwalkabouts" class="ref">suspend walkabouts</a><br>
 		<a href="#about-swapbyname" class="ref">swap by name (name,name)</a><br>
 		<a href="#about-swapbyposition" class="ref">swap by position (slot1, slot2)</a><br>
 		<a href="#about-swapinhero" class="ref">swap in hero (who)</a><br>
@@ -1673,6 +1675,7 @@ function toggleContent(target) {
 		<a href="#about-waitforslice" class="ref">wait for slice (handle)</a><br>
 		<a href="#about-waitforsound" class="ref">wait for sound (num)</a><br>
 		<a href="#about-waitfortextbox" class="ref">wait for text box</a><br>
+		<a href="#about-walkaboutsaresuspended" class="ref">walkabouts are suspended</a><br>
 		<a href="#about-walkhero" class="ref">walk hero (who, direction, distance)</a><br>
 		<a href="#about-walkherotox" class="ref">walk hero to x (who,x)</a><br>
 		<a href="#about-walkherotoy" class="ref">walk hero to y (who,x)</a><br>
@@ -3101,6 +3104,9 @@ resume NPCs</pre>
 		<a href="#about-suspendnpcs" class="ref">suspend NPCs</a><br>
 		<a href="#about-resumenpcs" class="ref">resume NPCs</a><br>
 		<a href="#about-npcsaresuspended" class="ref">npcs are suspended</a><br>
+		<a href="#about-suspendwalkabouts" class="ref">suspend walkabouts</a><br>
+		<a href="#about-resumewalkabouts" class="ref">resume walkabouts</a><br>
+		<a href="#about-walkaboutsaresuspended" class="ref">walkabouts are suspended</a><br>
 		<a href="#about-suspendobstruction" class="ref">suspend obstruction</a><br>
 		<a href="#about-resumeobstruction" class="ref">resume obstruction</a><br>
 		<a href="#about-obstructionissuspended" class="ref">obstruction is suspended</a><br>
@@ -3148,11 +3154,11 @@ resume NPCs</pre>
 				Blocks the player from controlling the game, so the plotscript can have exclusive control.
 				The exceptions to this are text boxes and menus.
 				<br>
-				The player can advance text boxes no matter what, unless you use <a href="#about-suspendboxadvance" class="ref">suspend box advance</a>.
+				The player can still advance text boxes unless you use <a href="#about-suspendboxadvance" class="ref">suspend box advance</a>.
 				<br>
 				<span class="code">suspend player</span> prevents the player from opening the main menu using the menu key (ESC/etc),
 				but it doesn't suspend controls on any menu or the player's ability to close menus with
-				the menu key.
+				the cancel key.
 				(You can change that with <a href="#about-setmenubit" class="ref">set menu bit</a><span class="code">(menu handle, menubit:no controls, true)</span>
 				where <span class="code">menu handle</span> might for example be <a href="#about-topmenu" class="ref">top menu</a>.)
 			
@@ -3190,7 +3196,7 @@ resume player</pre>
 				<h4>suspend NPCs</h4>
 <p>
 			
-				Stops NPCs from walking around automatically (ie, suspends NPC AI).
+				Stops NPCs from walking around automatically (ie., suspends NPC AI).
 				When <span class="code">suspend NPCs</span> is run, all NPCs stop in their tracks once they've
 				finished their current step to the next tile, ready for you to control them
 				with commands like <a href="#about-walknpc" class="ref">walk NPC</a> and <a href="#about-pathfindnpcto" class="ref">pathfind NPC to</a>.
@@ -3199,6 +3205,10 @@ resume player</pre>
 				cause tile misalignment).
 				<br>
 				Use <a href="#about-setnpcmoves" class="ref">set NPC moves</a>(who, false) instead to prevent a single NPC from moving.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					If you want NPCs to stop immediately without finishing their current steps, consider <a href="#about-suspendwalkabouts" class="ref">suspend walkabouts</a> instead.
+				</div>
 			
 			
 			<pre>suspend NPCs
@@ -3209,7 +3219,9 @@ resume NPCs</pre>
 <a href="#about-waitfornpc" class="ref">wait for NPC</a>, </li>
 <li>
 <a href="#about-waitforall" class="ref">wait for all</a>, </li>
-<li><a href="#about-setnpcmoves" class="ref">set NPC moves</a></li>
+<li>
+<a href="#about-setnpcmoves" class="ref">set NPC moves</a>, </li>
+<li><a href="#about-suspendwalkabouts" class="ref">suspend walkabouts</a></li>
 </ul>
 </div>
 		</p>
@@ -3231,6 +3243,72 @@ resume NPCs</pre>
 				<h4>npcs are suspended</h4>
 <p>
 			Returns true if <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> is active.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-suspendwalkabouts"></a>
+				<h4>suspend walkabouts</h4>
+<p>
+			
+				Suspends (pauses) all NPC and hero movement immediately and completely, as well as
+				NPC AI, player movement controls, NPC activation, Walk In Place animations,
+				and vehicle mounting/dismounting/rising/falling animations.
+				Unlike <a href="#about-suspendnpcs" class="ref">suspend NPCs</a>, NPCs stop moving immediately rather than finishing their step.
+				<br>
+				This doesn't suspend updating of the hero/NPCs slices.
+				For example, <a href="#about-puthero" class="ref">put hero</a>, <a href="#about-putnpc" class="ref">put NPC</a>, <a href="#about-setheroz" class="ref">set hero z</a>, <a href="#about-setheroframe" class="ref">set hero frame</a>,
+				etc. still cause the hero/NPC slices to move, change frame, etc.
+				<br>
+				Although player movement is suspended, this doesn't suspend everything <a href="#about-suspendplayer" class="ref">suspend player</a> does:
+				the player can still open the menu (or the vehicle's menu setting or Instead-of-menu script)
+				and advance text boxes.
+				They can't activate NPCs or dismount vehicles.
+				<div class="notice danger" title="Danger">
+<img src="Plotdanger.png" alt="[Danger]" class="icon">
+					While walkabouts are suspended, <a href="#about-waitforhero" class="ref">wait for hero</a> and <a href="#about-waitfornpc" class="ref">wait for NPC</a> commands will freeze forever,
+					and commands like <a href="#about-walkhero" class="ref">walk hero</a> and <a href="#about-walknpc" class="ref">walk NPC</a> won't cause any movement until you <a href="#about-resumewalkabouts" class="ref">resume walkabouts</a>.
+
+				</div>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					This is one of the main effects of menus set to "Suspend gameplay &amp; scripts",
+					along with <a href="#about-suspendplayer" class="ref">suspend player</a>, <a href="#about-suspendtimers" class="ref">suspend timers</a>, <a href="#about-suspendboxadvance" class="ref">suspend box advance</a>,
+					<a href="#about-suspendtextboxcontrols" class="ref">suspend text box controls</a>, pausing scripts and script triggers,
+					and suspending slice movement.
+
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-suspendplayer" class="ref">suspend player</a>, </li>
+<li><a href="#about-suspendnpcs" class="ref">suspend NPCs</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-resumewalkabouts"></a>
+				<h4>resume walkabouts</h4>
+<p>
+			
+				Undoes <a href="#about-suspendwalkabouts" class="ref">suspend walkabouts</a>.
+				Has no effect if walkabout movement is actually suspended by a menu set to "Suspend gameplay &amp; scripts".
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-walkaboutsaresuspended"></a>
+				<h4>walkabouts are suspended</h4>
+<p>
+			Returns true if <a href="#about-suspendwalkabouts" class="ref">suspend walkabouts</a> is active.
 			
 			
 			
@@ -22746,7 +22824,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 945 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 948 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

@@ -1083,6 +1083,7 @@ LOCAL SUB vehicle_button_action(action as integer)
 END SUB
 
 LOCAL FUNCTION user_triggered_vehicle_use_action() as bool
+ IF readbit(gen(), genSuspendBits, suspendwalkabouts) THEN RETURN NO
  IF carray(ccUse) > 1 THEN RETURN YES
  IF get_gen_bool("/mouse/move_hero") THEN
   IF readmouse().release AND mouseLeft THEN

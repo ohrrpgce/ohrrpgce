@@ -461,6 +461,7 @@ script, hero tests, begin
   # The party now contains heroes 0, 1, 2, 3 in that order
   hero appearance tests
   hero caterpillar tests
+  suspend walkabouts tests
   hero exp and levels tests
   hero stat growth test
   hero stat tests
@@ -1163,6 +1164,70 @@ script, do hero cater tests, who, begin
 
   put hero(who, px, py), w
 end
+
+
+script, suspend walkabouts tests, begin
+  $0="suspend walkabouts tests"
+
+  # There's an awful lot of things that could be tested, including NPC and hero movement.
+  # Mostly just test heroes.
+
+  trace(0)
+  trace value (herox, heroy)
+
+  # Check initial conditions
+  assert(get hero speed(me) == 4)
+  assert(hero is walking(me) == false)
+  variable (initial x)
+  initial x := hero x(me)
+
+  walk hero(me, left, 1)
+  wait(1)
+  variable (px)
+  px := hero pixel x(me)
+
+  suspend walkabouts
+  assert(walkabouts are suspended)
+
+  # Check movement paused
+  wait(2)
+  assert(px == hero pixel x(me))
+  assert(hero is walking(me))
+
+  resume walkabouts
+  assert(walkabouts are suspended == false)
+
+  # Check moving
+  wait(1)
+  assert(px <> hero pixel x(me))
+  # Cancel move
+  walk hero(me, left, 0)
+  wait(1)
+  assert(hero is walking(me) == false)
+
+  suspend walkabouts
+  # Can still move the hero while suspended
+  assert(hero x(me) <> initial x)
+  set hero position(me, initial x, hero y(me))
+  assert(hero x(me) == initial x)
+  wait(1)
+  # Walk commands don't take effect while suspended
+  assert(hero direction(me) == left)
+  walk hero(me, right, 1)
+  assert(hero direction(me) == right)  # walkhero changes the direction directly
+  wait(1)
+  assert(hero pixel x(me) == initial x * 20)
+
+  # But do once resumed
+  resume walkabouts
+  wait(1)
+  assert(hero pixel x(me) <> initial x * 20)
+
+  # Cleanup
+  set hero position(me, initial x, hero y(me))
+  walk hero(me, left, 0)
+end
+
 
 script, expect hero walls, who, wn, we, ws, ww, begin
   assert(check hero wall(who, north) == wn)

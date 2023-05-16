@@ -233,6 +233,7 @@ CONST suspendambientmusic = 9
 CONST suspenddoors = 10
 CONST suspendtimers = 11
 CONST suspendtextboxcontrols = 12
+CONST suspendwalkabouts = 13
 
 '--- Camera mode constants (gen(genCameraMode))
 CONST herocam = 0
@@ -344,7 +345,7 @@ CONST scriptTableSize = 512  'hash table size, power of 2 please
 CONST scriptCheckDelay = 1.1     'How long, in seconds, before the script interpreter becomes interruptable
 CONST scriptCheckInterval = 0.1  'How often, in seconds, that the script interpreter should perform checks
 
-CONST maxScriptCmdID = 749  'Max ID number of any supported script command (checked when saving or loading game)
+CONST maxScriptCmdID = 752  'Max ID number of any supported script command (checked when saving or loading game)
 
 '--- Binary files in BINSIZE.BIN for getbinsize()
 CONST binATTACK = 0

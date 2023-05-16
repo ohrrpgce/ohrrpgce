@@ -188,7 +188,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2023-04-10">
+<plotscript version="wip" datecode="2023-05-17">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -1128,11 +1128,11 @@ resume NPCs</example>
 				Blocks the player from controlling the game, so the plotscript can have exclusive control.
 				The exceptions to this are text boxes and menus.
 				<lb/>
-				The player can advance text boxes no matter what, unless you use <ref>suspendboxadvance</ref>.
+				The player can still advance text boxes unless you use <ref>suspendboxadvance</ref>.
 				<lb/>
 				<tt>suspend player</tt> prevents the player from opening the main menu using the menu key (ESC/etc),
 				but it doesn't suspend controls on any menu or the player's ability to close menus with
-				the menu key.
+				the cancel key.
 				(You can change that with <ref>setmenubit</ref><tt>(menu handle, menubit:no controls, true)</tt>
 				where <tt>menu handle</tt> might for example be <ref>topmenu</ref>.)
 			</description>
@@ -1151,11 +1151,12 @@ resume player</example>
 			<shortname>player is suspended</shortname>
 			<description>Returns true if <ref>suspendplayer</ref> is active.</description>
 		</command>
+
 		<command id="suspendnpcs">
 			<canon>suspend NPCs</canon>
 			<shortname>suspend NPCs</shortname>
 			<description>
-				Stops NPCs from walking around automatically (ie, suspends NPC AI).
+				Stops NPCs from walking around automatically (ie., suspends NPC AI).
 				When <tt>suspend NPCs</tt> is run, all NPCs stop in their tracks once they've
 				finished their current step to the next tile, ready for you to control them
 				with commands like <ref>walknpc</ref> and <ref>pathfindnpcto</ref>.
@@ -1164,6 +1165,9 @@ resume player</example>
 				cause tile misalignment).
 				<lb/>
 				Use <ref>setnpcmoves</ref>(who, false) instead to prevent a single NPC from moving.
+				<note>
+					If you want NPCs to stop immediately without finishing their current steps, consider <ref>suspendwalkabouts</ref> instead.
+				</note>
 			</description>
 			<example>suspend NPCs
 # do stuff
@@ -1172,6 +1176,7 @@ resume NPCs</example>
 				<ref>waitfornpc</ref>
 				<ref>waitforall</ref>
 				<ref>setnpcmoves</ref>
+				<ref>suspendwalkabouts</ref>
 			</seealso>
 		</command>
 		<command id="resumenpcs">
@@ -1185,6 +1190,57 @@ resume NPCs</example>
 			<shortname>npcs are suspended</shortname>
 			<description>Returns true if <ref>suspendnpcs</ref> is active.</description>
 		</command>
+
+		<command id="suspendwalkabouts">
+			<canon>suspend walkabouts</canon>
+			<shortname>suspend walkabouts</shortname>
+			<description>
+				Suspends (pauses) all NPC and hero movement immediately and completely, as well as
+				NPC AI, player movement controls, NPC activation, Walk In Place animations,
+				and vehicle mounting/dismounting/rising/falling animations.
+				Unlike <ref>suspendnpcs</ref>, NPCs stop moving immediately rather than finishing their step.
+				<lb/>
+				This doesn't suspend updating of the hero/NPCs slices.
+				For example, <ref>puthero</ref>, <ref>putnpc</ref>, <ref>setheroz</ref>, <ref>setheroframe</ref>,
+				etc. still cause the hero/NPC slices to move, change frame, etc.
+				<lb/>
+				Although player movement is suspended, this doesn't suspend everything <ref>suspendplayer</ref> does:
+				the player can still open the menu (or the vehicle's menu setting or Instead-of-menu script)
+				and advance text boxes.
+				They can't activate NPCs or dismount vehicles.
+				<danger>
+					While walkabouts are suspended, <ref>waitforhero</ref> and <ref>waitfornpc</ref> commands will freeze forever,
+					and commands like <ref>walkhero</ref> and <ref>walknpc</ref> won't cause any movement until you <ref>resumewalkabouts</ref>.
+
+				</danger>
+				<note>
+					This is one of the main effects of menus set to "Suspend gameplay &amp; scripts",
+					along with <ref>suspendplayer</ref>, <ref>suspendtimers</ref>, <ref>suspendboxadvance</ref>,
+					<ref>suspendtextboxcontrols</ref>, pausing scripts and script triggers,
+					and suspending slice movement.
+
+				</note>
+			</description>
+			<seealso>
+				<ref>suspendplayer</ref>
+				<ref>suspendnpcs</ref>
+			</seealso>
+		</command>
+		<command id="resumewalkabouts">
+			<canon>resume walkabouts</canon>
+			<shortname>resume walkabouts</shortname>
+			<description>
+				Undoes <ref>suspendwalkabouts</ref>.
+				Has no effect if walkabout movement is actually suspended by a menu set to "Suspend gameplay &amp; scripts".
+			</description>
+		</command>
+		<command id="walkaboutsaresuspended">
+			<canon>walkabouts are suspended</canon>
+			<shortname>walkabouts are suspended</shortname>
+			<description>Returns true if <ref>suspendwalkabouts</ref> is active.</description>
+		</command>
+
+
 		<command id="suspendobstruction">
 			<canon>suspend obstruction</canon>
 			<shortname>suspend obstruction</shortname>
