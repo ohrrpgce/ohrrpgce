@@ -2718,9 +2718,9 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
 
  sliceed_header menu(), rules(), "[Metadata]", @ses.expand_meta
  IF ses.expand_meta THEN
-  a_append menu(), " Screen X: " & .ScreenX
+  a_append menu(), " Screen X: " & (.ScreenX - ses.draw_root->ScreenX)
   sliceed_rule_none rules(), "screen_pos"
-  a_append menu(), " Screen Y: " & .ScreenY
+  a_append menu(), " Screen Y: " & (.ScreenY - ses.draw_root->ScreenY)
   sliceed_rule_none rules(), "screen_pos"
 
   DIM drawtime as double = large(0.0, benchmarking_draw_timer.smoothtime - measure_timer_overhead())
