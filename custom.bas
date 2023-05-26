@@ -467,7 +467,7 @@ SUB main_editor_menu()
 END SUB
 
 SUB gfx_editor_menu()
- DIM menu(15) as string
+ DIM menu(16) as string
  DIM menu_display(UBOUND(menu)) as string
 
  menu(0) = "Return to Main Menu"
@@ -485,7 +485,8 @@ SUB gfx_editor_menu()
  menu(12) = "Import/Export Backdrops"
  menu(13) = "Change User-Interface Colors"
  menu(14) = "Change Box Styles"
- menu(15) = "Edit Font"
+ menu(15) = "Master Palettes"
+ menu(16) = "Edit Font"
 
  DIM selectst as SelectTypeState
  DIM state as MenuState
@@ -526,7 +527,8 @@ SUB gfx_editor_menu()
    IF state.pt = 12 THEN backdrop_browser
    IF state.pt = 13 THEN ui_color_editor(activepalette)
    IF state.pt = 14 THEN ui_boxstyle_editor(activepalette)
-   IF state.pt = 15 THEN font_editor current_font()
+   IF state.pt = 15 THEN master_palette_menu
+   IF state.pt = 16 THEN font_editor current_font()
    '--always resave the .GEN lump after any menu
    xbsave game + ".gen", gen(), 1000
   END IF

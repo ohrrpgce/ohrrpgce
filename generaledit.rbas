@@ -20,7 +20,6 @@
 #include "slices.bi"
 
 'local subs and functions
-DECLARE SUB masterpalettemenu ()
 DECLARE SUB statcapsmenu ()
 DECLARE SUB mark_non_elemental_elementals ()
 DECLARE SUB battleoptionsmenu ()
@@ -250,7 +249,7 @@ SUB export_master_palette ()
   gfx_surfaceDestroy(@outsurf)
 END SUB
 
-'Position of master palette in masterpalettemenu
+'Position of master palette in master_palette_menu
 CONST colgridx = 33, colgridy = 114
 CONST cellheight = 5
 
@@ -258,7 +257,7 @@ PRIVATE SUB highlight_col(colidx as integer, state as MenuState)
   drawbox colgridx + (colidx MOD 16) * 16, colgridy + (colidx \ 16) * cellheight, 16, cellheight, uilook(uiHighlight + state.tog), 1, dpage
 END SUB
 
-SUB masterpalettemenu
+SUB master_palette_menu ()
   DIM menu(11) as string
   DIM menu_display(11) as string
   DIM shaded(11) as bool
@@ -2099,7 +2098,7 @@ SUB GeneralSettingsMenu.define_items()
 
   '-------------------------
   section "Graphics"
-  IF defitem_act("Master Palettes...")     THEN masterpalettemenu
+  IF defitem_act("Master Palettes...")     THEN master_palette_menu
   IF defitem_act("Window-Size Options...") THEN resolution_menu
 
   defitem "Framerate:"

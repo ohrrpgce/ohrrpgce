@@ -77,8 +77,8 @@ CONST colInvalid = -999
 'add them to ColorIndex.
 
 'Although not requiring manual updating, other places UI colours are looped over:
-'-automatic remapping in remappalette in subs4.bas
-'-used master palette colours indicated in masterpalettemenu in subs4.bas
+'-automatic remapping in remappalette
+'-used master palette colours indicated in master_palette_menu
 
 'TODO: editor UI constants. Not implemented yet, these are just aliases.
 

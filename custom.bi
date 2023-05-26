@@ -3,7 +3,7 @@
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 'Many modules would only have a couple of functions (editors) in their header files,
-'so those functions are declared here instead. See customsubs.bi for util functions.
+'so those functions are declared here instead. Mostly misc util functions go in customsubs.rbas/.bi
 
 #ifndef CUSTOM_BI
 #define CUSTOM_BI
@@ -42,6 +42,7 @@ DECLARE FUNCTION formation_picker_or_none (recindex as integer = -1) as integer
 
 
 DECLARE SUB import_export_tilesets ()
+DECLARE SUB master_palette_menu ()
 DECLARE FUNCTION importmasterpal OVERLOAD (filename as string = "", palnum as integer) as bool
 DECLARE SUB importmasterpal OVERLOAD (newmaster() as RGBcolor, palnum as integer)
 DECLARE SUB vehicle_editor ()

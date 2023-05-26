@@ -26,5 +26,7 @@ Choose "Change User-Interface Colors" to pick colors for various menu-related an
 
 Choose "Change Box Styles" to change the appearance of the boxes which form textboxes, menus and other rectangle slices. Certain box styles are used in each of the built-in menus like Save, Load, Items, etc. See the wiki for details. You can also restore these box styles to their defaults in this menu.
 
+Choose "Master Palettes" to import, export or switch between master palettes.
+
 Choose "Edit Font" to draw, import or export the font that is used everywhere in-game and in this game editor.
 
