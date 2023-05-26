@@ -17,7 +17,7 @@ When you import a paletted image file (e.g. a 1-, 4-, or 8-bit BMP) with a palet
 
 Sometimes certain colors match poorly. You can use "Disable palette colors for import" to disable the colors that look bad, then you can re-import and the importer will be forced to choose different colors.  See the help file in that menu for more info.
 
-You can also export a backdrop, as a BMP file.
+You can also export a backdrop, as a PNG (or BMP) file.
 
 "View with background" specifies how color 0 is drawn, and affects this menu only (it does nothing in-game!) Whether the backdrop is drawn transparently is NOT a property of the backdrop, it depends on how it used. For example textboxes and backdrop slices have an option to say whether the backdrop should be transparent.
 

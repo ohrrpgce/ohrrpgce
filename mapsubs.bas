@@ -4664,7 +4664,7 @@ SUB color_for_each_tile (tileset as TilesetData ptr, colors() as RGBcolor)
  NEXT
 END SUB
 
-SUB layer_to_bmp(st as MapEditState, imgfile as string, layer as integer)
+SUB layer_to_image(st as MapEditState, imgfile as string, layer as integer)
  DIM colors(255) as RGBcolor
  color_for_each_tile st.tilesets(layer), colors()
  DIM fr as Frame ptr
@@ -4674,7 +4674,7 @@ SUB layer_to_bmp(st as MapEditState, imgfile as string, layer as integer)
    putpixel fr, x, y, readblock(st.map.tiles(layer), x, y)
   NEXT
  NEXT
- frame_export_bmp8 imgfile, fr, colors()
+ frame_export_image fr, imgfile, colors()
  frame_unload @fr
 END SUB
 
@@ -4696,13 +4696,15 @@ SUB mapedit_export_tilemap_image(st as MapEditState)
  DIM defaultname as string
  defaultname = game_fname & " map " & st.map.id & " layer " & (choice - 1) & " " & read_map_layer_name(st.map.gmap(), choice - 1)
  defaultname = TRIM(defaultname)  'If no layer name
- outfile = inputfilename("Export tilemap to which file?", ".bmp", "", "input_file_export_bmp_tilemap", defaultname)
- IF LEN(outfile) THEN layer_to_bmp st, outfile + ".bmp", choice - 1
+ DIM extension as string = "." & pick_graphics_export_format()
+ outfile = inputfilename("Export tilemap to which file?", extension, "", "input_file_export_tilemap_image", defaultname)
+ IF LEN(outfile) THEN layer_to_image st, outfile + extension, choice - 1
 END SUB
 
 'Export the map at full resolution
 SUB mapedit_export_map_image(st as MapEditState)
  DIM filename as string
+ 'Not using pick_graphics_export_format() because it's not a graphic asset.
  filename = inputfilename("Filename to save as?", ".png", "", "", _
                           game_fname & " map " & st.map.id & " " & st.map.name)
  IF LEN(filename) = 0 THEN EXIT SUB

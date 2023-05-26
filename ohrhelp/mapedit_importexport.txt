@@ -1,7 +1,7 @@
-This menu provides several options for importing and exporting your tilemaps (map layers) from/to .tilemap files and .bmp or .png images. .tilemap files don't include any information about tilesets, layer names, overhead tiles, or anything else.
+This menu provides several options for importing and exporting your tilemaps (map layers) from/to .tilemap files and images. .tilemap files don't include any information about tilesets, layer names, overhead tiles, or anything else. If you want to export non-tilemap data or a whole map from one game to another that can be done by copying data lump files; ask about it.
 
 Be careful when overwriting existing layers! This can't be undone, so backup your game first if unsure.
 
-Exporting to a tile-a-pixel .bmp file allows doing very basic map editing of a single map layer with a graphics editor, such as adding the shape of continents or islands on a world map before importing it in again. Pixels with indistinguishable colors may correspond to different tiles in the tileset.
+Exporting to a tile-a-pixel .png/.bmp file allows doing very basic map editing of a single map layer with a graphics editor, such as adding the shape of continents or islands on a world map before importing it in again. Pixels with indistinguishable colors may correspond to different tiles in the tileset.
 
-Export as full image draws the map at full resolution, optionally with NPCs, and writes to a .bmp file.
+Export as full image draws the map at full resolution, optionally with NPCs, as a .png file.

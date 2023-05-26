@@ -197,7 +197,7 @@ SUB import_export_tilesets ()
  menu(2) = "Replace current tileset"
  menu(3) = "Append a new tileset"
  menu(4) = "Disable palette colors for import"
- menu(5) = "Export tileset as BMP"
+ menu(5) = "Export tileset"
  menu(6) = "View with background: " & bgcolor_caption(bgcolor)
  menu(7) = "Remap transparent color"
  menu(8) = "Full screen view"
@@ -255,11 +255,12 @@ SUB import_export_tilesets ()
     select_disabled_import_colors pmask(), vpages(2)
    END IF
    IF mstate.pt = 5 THEN
+    DIM extension as string = "." & pick_graphics_export_format()
     DIM outfile as string
-    outfile = inputfilename("Name of file to export to?", ".bmp", defaultdir, "input_file_export_screen", game_fname & " tileset" & pt)
+    outfile = inputfilename("Name of file to export to?", extension, defaultdir, "input_file_export_screen", game_fname & " tileset" & pt)
     '--Re-load the page to vpages(2) just in case it got clobbered by inputfilename() calling the file browser
     loadmxs filename, pt, vpages(2)
-    IF outfile <> "" THEN frame_export_bmp8 outfile & ".bmp", vpages(2), master()
+    IF outfile <> "" THEN frame_export_image vpages(2), outfile & extension, master()
    END IF
    IF mstate.pt = 6 THEN
     bgcolor = color_browser_256(large(bgcolor, 0))
@@ -369,9 +370,10 @@ SUB backdrop_browser ()
    END IF
    IF mstate.pt = 5 THEN
     DIM outfile as string
-    outfile = inputfilename("Name of file to export to?", ".bmp", "", "input_file_export_screen", _
+    DIM extension as string = "." & pick_graphics_export_format()
+    outfile = inputfilename("Name of file to export to?", extension, "", "input_file_export_screen", _
                             game_fname & " backdrop" & backdrop_id)
-    IF outfile <> "" THEN frame_export_bmp8 outfile & ".bmp", backdrop, master()
+    IF outfile <> "" THEN frame_export_image backdrop, outfile & extension, master()
    END IF
    IF mstate.pt = 7 THEN
     importimage_change_background_color backdrop
@@ -388,7 +390,7 @@ SUB backdrop_browser ()
    menu(2) = "Replace current backdrop"
    menu(3) = "Append a new backdrop"
    menu(4) = "Disable palette colors for import"
-   menu(5) = "Export backdrop as BMP"
+   menu(5) = "Export backdrop"
    menu(6) = "View with background: " & bgcolor_caption(bgcolor)
    menu(7) = "Remap transparent color"
    menu(8) = "Hide menu"
@@ -2790,12 +2792,29 @@ FUNCTION default_export_name (sprtype as SpriteType, setnum as integer, framenum
  RETURN s
 END FUNCTION
 
+'Customisable export format for graphic assets. Not intended for screenshots and the like.
+'Returns png/bmp. In future could depend on the particular sprite or spritetype.
+FUNCTION pick_graphics_export_format() as string
+ DIM image_format as string = read_config_str("graphics_export_format", "png")
+ IF image_file_type("x." & image_format) = imUnknown THEN
+  debug "Bad graphics_export_format " & image_format
+  image_format = "png"
+ END IF
+ 'Sadly we don't support .gif import yet, so disabling that for sanity
+ IF image_format = "jpg" OR image_format = "jpeg" OR image_format = "gif" THEN
+  debug "Dumb graphics_export_format " & image_format
+  image_format = "png"
+ END IF
+ RETURN image_format
+END FUNCTION
+
 SUB spriteedit_export(default_name as string, sprite as Frame ptr, pal as Palette16 ptr)
  STATIC defaultdir as string
+ DIM extension as string = "." & pick_graphics_export_format()
  DIM outfile as string
- outfile = inputfilename("Export to bitmap file", ".bmp", defaultdir, "input_file_export_sprite", default_name)
+ outfile = inputfilename("Export as image", extension, defaultdir, "input_file_export_sprite", default_name)
  IF outfile <> "" THEN
-  frame_export_image sprite, outfile & ".bmp", master(), pal
+  frame_export_image sprite, outfile & extension, master(), pal
  END IF
 END SUB
 

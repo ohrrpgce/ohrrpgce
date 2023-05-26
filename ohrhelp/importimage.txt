@@ -14,7 +14,7 @@ When you import a paletted image with a palette different from the master palett
 
 Sometimes certain colors match poorly. You can use "Disable palette colors for import" to disable the colors that look bad, then you can re-import and the importer will be forced to choose different colors.  See the help file in that menu for more info.
 
-You can also export a tileset, as a 320x200 BMP file.
+You can also export a tileset, as a 320x200 image file (defaulting to PNG).
 
 "View with background" specifies how color 0 is drawn, and affects this menu only (it does nothing in-game!) Whether the tileset is drawn transparently is NOT a property of the tileset, it depends on how it used. Tilesets used for map layer 1 and higher are always transparent.
 

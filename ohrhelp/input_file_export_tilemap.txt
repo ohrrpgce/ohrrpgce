@@ -1,4 +1,8 @@
-Type in a name for the .TILEMAP file to be exported containing the tilemap layers for the current map. The file will be exported to the same location as the .RPG file for your game.
+Type in a name for the .tilemap file to be exported containing the tilemap layers for the current map.
+
+.tilemap files contain only the tile number at each position. No information about the tileset at all!
+
+The directory defaults to the same location as the .rpg file for your game.
 
 Press ENTER to confirm the file name and export.
 

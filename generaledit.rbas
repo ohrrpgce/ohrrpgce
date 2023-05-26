@@ -234,11 +234,11 @@ SUB vehicle_editor
 END SUB
 
 SUB export_master_palette ()
+  DIM extension as string = "." & pick_graphics_export_format()
   DIM filename as string
-
-  filename = inputfilename("Name of file to export to?", ".bmp", "", "input_file_export_masterpal")
+  filename = inputfilename("File to export to?", extension, "", "input_file_export_masterpal")
   IF filename = "" THEN EXIT SUB
-  filename &= ".bmp"
+  filename &= extension
 
   DIM outsurf as Surface ptr
   gfx_surfaceCreate(16, 16, SF_32bit, SU_Staging, @outsurf)
@@ -246,7 +246,7 @@ SUB export_master_palette ()
   FOR i as integer = 0 TO 255
     outsurf->pColorData[i] = master(i)
   NEXT
-  surface_export_bmp24(filename, outsurf)
+  surface_export_image(outsurf, filename)
   gfx_surfaceDestroy(@outsurf)
 END SUB
 

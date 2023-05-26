@@ -153,6 +153,8 @@ WHAT IS NEW?
       don't count up from 1, in order to fix "slice is valid". (Handles for
       slices in old saves still work) [Ralph]
     * "free slice" on an already freed slice no longer shows a warning [Ralph]
+    * Graphics export as .png instead of .bmp (a setting in ohrrpgce_config.ini)
+      [Ralph]
 
   *** Bugfixes
     * Various gfx_sdl2 window size/position/resizing and mouse glitches when
