@@ -8621,8 +8621,8 @@ END SUB
 FUNCTION read_config_str (key as zstring ptr, default as zstring ptr=@"") as string
  IF game_config_file <> "" THEN
   'Settings in the game's .ini file override others
-  DIM ret as string = read_ini_prefixed_str(game_config_file, key, @!"\0")
-  IF ret <> CHR(0) THEN RETURN ret
+  DIM ret as string = read_ini_prefixed_str(game_config_file, key, @CHR(1))
+  IF ret <> CHR(1) THEN RETURN ret
  END IF
  RETURN read_ini_prefixed_str(global_config_file, key, default)
 END FUNCTION
