@@ -1,8 +1,8 @@
 Welcome to the 16-color sprite editor!
 
-The box on the left is the drawing area. You can click here with the mouse, or use the arrow keys to move the cursor.  In the drawing area, press SPACE or left-click to draw.  Press ENTER or right-click to select the color under the cursor.
+The box on the left is the drawing area. You can click here with the mouse, or use the arrow keys to move the cursor.  In the drawing area, press SPACE or left-click to draw.  Press ENTER or right-click or G (grab) to select the color under the cursor.
 
-The big block of small colored boxes at the top right is the "master palette". Right below it is a row of 16 small boxes, which is your current 16-color palette. Press < and > to choose which color in your 16-color palette you are working with, or type in a number. ALT+arrow keys changes which color from your master palette is assigned to the selected slot in your 16-color palette. You can also click on the palettes with your mouse.
+The big block of small colored boxes at the top right is the "master palette". Right below it is a row of 16 small boxes, which is your current 16-color palette. Press < and > to choose which color in your 16-color palette you are working with, or type in a number (multi-digit numbers work). ALT+arrow keys changes which color from your master palette is assigned to the selected slot in your 16-color palette. You can also click on the palettes with your mouse.
 
 Press [ and ] to change which 16 color palette you are working with. You can also press P to open the palette browser.
 

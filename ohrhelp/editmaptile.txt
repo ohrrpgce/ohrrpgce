@@ -1,7 +1,7 @@
 You can use arrow keys or the mouse.
 
 Left-Click on pixels to draw (or press SPACE).
-Right-Click to select the color under the cursor (or press ENTER).
+Right-Click to select the color under the cursor (or press ENTER or G (Grab)).
 
 Left click on a color in the palette at the bottom to select it. (ALT + arrow keys will pick palette colors too!)
 

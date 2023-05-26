@@ -1695,7 +1695,14 @@ DO
   ts.didscroll = NO  'save a new undo block upon scrolling
  END IF
  IF keyval(scSpace) > 0 THEN clicktile ts, keyval(scSpace) AND 4, clone
- IF keyval(scAnyEnter) > 1 ORELSE keyval(scG) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
+ IF keyval(scAnyEnter) > 1 ORELSE keyval(scG) > 1 THEN
+  ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
+  'If the tool is a non-drawing tool, switch back to draw
+  IF ts.tool = scroll_tool OR ts.tool = mark_tool OR ts.tool = clone_tool THEN
+   tileedit_set_tool ts, toolinfo(), draw_tool
+  END IF
+ END IF
+
  SELECT CASE ts.zone
  CASE 1
   'Drawing area
@@ -1718,7 +1725,7 @@ DO
      ts.adjustpos.y = ts.y
     END IF
    END IF
-  ELSEIF ts.tool = scroll_tool THEN
+  ELSEIF ts.tool = scroll_tool ANDALSO (mouse.buttons AND mouseLeft) THEN
    'Handle scrolling by dragging the mouse
    'Did this drag start inside the sprite box? If not, ignore
    IF mouse.dragging ANDALSO mouseover(mouse.clickstart.x, mouse.clickstart.y, 0, 0, 0, area()) = 1 THEN
@@ -1728,6 +1735,8 @@ DO
    'for all other tools, pick a color
    IF mouse.buttons AND mouseRight THEN
     ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
+    'If the tool is a non-drawing tool, switch back to draw
+    IF ts.tool = scroll_tool THEN tileedit_set_tool ts, toolinfo(), draw_tool
    END IF
   END IF
   IF mouse.buttons AND mouseLeft THEN clicktile ts, (mouse.clicks AND mouseLeft), clone
@@ -3872,7 +3881,7 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
   END IF
  END IF
  FOR i as integer = 0 TO UBOUND(ss.toolinfo)
-  'Check tool selection
+  'Check tool selection (clicking icon or shortcut key)
   'Alt is used for alt+c and alt+v
   IF (ss.mouse.clicks > 0 AND ss.zonenum = ss.toolinfo(i).areanum + 1) OR _
      (keyval(scAlt) = 0 AND keyval(scCtrl) = 0 AND keyval(scShift) = 0 AND _
@@ -3891,8 +3900,10 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
    spriteedit_edit ss, frame_rotated_90(ss.sprite)  'anticlockwise
   END IF
  END IF
+ DIM normal_enter_rclick as bool = YES
  IF ss.tool = clone_tool THEN
   ' For clone brush tool, enter/right-click moves the handle point
+  normal_enter_rclick = NO
   IF ss.readjust THEN
    IF keyval(scEnter) = 0 AND ss.mouse.buttons = 0 THEN ' click or key release
     ss.readjust = NO
@@ -3917,13 +3928,18 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
     frame_assign @ss_save.clone_brush, frame_rotated_90(ss_save.clone_brush)  'anticlockwise
    END IF
   END IF
- ELSE
-  ' For all other tools, pick a color
-  IF keyval(scEnter) > 1 ORELSE keyval(scG) > 1 ORELSE (ss.zonenum = 1 AND ss.mouse.buttons = mouseRight) THEN
-   ss.palindex = readpixel(ss.sprite, ss.x, ss.y)
-   ss.showcolnum = COLORNUM_SHOW_TICKS
+ END IF
+ ' For all other tools, pick a color
+ IF keyval(scG) > 1 ORELSE normal_enter_rclick ANDALSO (keyval(scEnter) > 1 ORELSE (ss.zonenum = 1 AND ss.mouse.buttons = mouseRight)) THEN
+  ss.palindex = readpixel(ss.sprite, ss.x, ss.y)
+  ss.showcolnum = COLORNUM_SHOW_TICKS
+  ' If the tool is a non-drawing tool, switch back to draw
+  IF ss.tool = scroll_tool OR ss.tool = mark_tool OR ss.tool = clone_tool THEN
+   ss.tool = draw_tool
+   spriteedit_reset_tool ss
   END IF
  END IF
+
  IF keyval(scBackspace) > 1 OR (ss.zonenum = 4 AND ss.mouse.clicks > 0) THEN
   writeundospr ss
   frame_flip_horiz ss.sprite
