@@ -50,7 +50,8 @@ extern "C"
 declare sub calculate_and_set_screen_res(fullscreen as bool)
 declare sub update_mouse_visibility()
 
-dim shared nogfx as bool = NO
+dim shared nogfx as bool = NO   'Run as a console program only
+dim shared noinput as bool = NO  'Only when nogfx: don't accept key input from stdin either (which freezes if it isn't a tty)
 dim shared screen_buffer_offset as XYPair  'Position of the image on the window/screen, in screen pixels
 dim shared window_state as WindowState
 dim shared want_toggle_fullscreen as bool  'Alt-Enter pressed, change pending
@@ -315,6 +316,10 @@ function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as
 		debug "nogfx"
 		nogfx = YES
 		ret = 1
+	elseif *opt = "noinput" then
+		debug "noinput"
+		noinput = YES
+		ret = 1
 	end if
 	'all these take an optional numeric argument, so gobble the arg if it is
 	'a number, whether or not it was valid
@@ -411,7 +416,8 @@ end sub
 function gfx_fb_describe_options() as zstring ptr
 	return @"-z -zoom [1...16]   Scale screen to 1,2, ... up to 16x normal size (2x default)" LINE_END _
 	        "-s -smooth          Enable smoothing filter for zoom modes (default off)" LINE_END _
-		"-nogfx              (Unix only) Don't create a window, commandline only. Combine with --print."
+		"-nogfx              (Unix only) Don't create a window, commandline only. Combine with --print." LINE_END _
+		"-noinput            (Unix only) Combine with --nogfx to not read key input, allows running without a tty."
 end function
 
 '------------- IO Functions --------------
@@ -443,6 +449,8 @@ private sub debug_key_event(e as Event, eventname as zstring ptr)
 end sub
 
 sub process_events()
+	if noinput then exit sub
+
 	static last_enter_state as integer
 	dim e as Event
 	while ScreenEvent(@e)
