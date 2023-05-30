@@ -9781,7 +9781,7 @@ set horiz align(sl, edge:right)
 				<p>dissolve:sink into ground</p>,
 				<p>dissolve:squash</p>,
 				<p>dissolve:melt</p>,
-				<p>dissolve:vapourise</p>,
+				<p>dissolve:vaporize (or dissolve:vaporise)</p>,
 				<p>dissolve:phase out</p>,
 				<p>dissolve:squeeze</p>,
 				<p>dissolve:shrink</p>,

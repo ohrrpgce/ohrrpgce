@@ -2090,7 +2090,7 @@ Jan 08 2010 [Ypsiliform]
     * You can test enemy dissolve animations in the enemy editor [Ralph]
     * The random scatter (default) enemy dissolve animation now fades
       out smoothly and completely [Ralph]
-    * Added new enemy dissolve animations: Squash, Melt, Vapourise
+    * Added new enemy dissolve animations: Squash, Melt, Vaporise
       and Phase out [Ralph]
     * When a script error occurs, you are now shown the script callstack
       and given options such as entering the slightly improved script

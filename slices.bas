@@ -2490,7 +2490,7 @@ Sub DissolveSpriteSlice(byval sl as Slice ptr, byval dissolve_type as integer, b
   '(Note that the bounds checking here and in LoadSpriteSlice is bypassed by the slice editor)
   .d_type = bound(dissolve_type, 0, dissolveTypeMax)
   .d_time = over_ticks
-  'Allow -1 (when backwards) and length+1 so that can set Vapourise and Phase Out animations to a totally blank state.
+  'Allow -1 (when backwards) and length+1 so that can set Vaporise and Phase Out animations to a totally blank state.
   .d_tick = bound(start_tick, -1, large(over_ticks + 1, 0))
   .d_back = backwards <> 0
   .d_auto = auto_animate <> 0

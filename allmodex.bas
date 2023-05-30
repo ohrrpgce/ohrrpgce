@@ -10551,7 +10551,7 @@ function frame_dissolved(spr as Frame ptr, tlength as integer, t as integer, sty
 					height(sx) = height(sx - 1) \ 4 + height(sx) \ 2 + height(sx + 1) \ 4
 				next
 			next
-		case 6 'vapourise
+		case 6 'vaporize
 			'vapoury is the bottommost vapourised row
 			dim vapoury as integer = (cpy->h - 1) * (t / tlength)
 			dim vspeed as integer = large(cint(cpy->h / tlength), 1)

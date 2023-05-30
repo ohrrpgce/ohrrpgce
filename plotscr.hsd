@@ -2330,6 +2330,8 @@ define constant, begin
 3,dissolve:sink into ground
 4,dissolve:squash
 5,dissolve:melt
+6,dissolve:vaporise
+6,dissolve:vaporize
 6,dissolve:vapourise
 7,dissolve:phase out
 8,dissolve:squeeze
