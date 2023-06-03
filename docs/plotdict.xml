@@ -805,6 +805,7 @@ end
   show textbox(17)
 end</example>
 				<p>levels</p> tells how many nested loops/blocks to break out of.
+				It must be at least 1.
 				Remember that other flow control blocks such as <tt>if/then/else</tt> and <tt>case() do()</tt> don't count, only those listed above.
 				<example># Randomly pick one of the flowers on the map that hasn't bloomed yet and make it bloom
 plotscript, a flower blooms, begin
@@ -839,7 +840,9 @@ end</example>
 				(or in an isolated <ref>do</ref> block),
 				<tt>continue</tt> skips the rest of the <tt>do</tt> block and continues on to the next loop, if any.
 				That's equivalent to jumping to the bottom of the loop, so its effect is like enclosing
-				the rest of the loop in an <ref>if</ref>.
+				the rest of the loop in an <ref>if</ref>
+				(except for isolated <tt>do</tt> blocks, in which case it jumps straight to the top
+				of the loop because there's no condition to check).
 				<lb/>
 				When used inside a <ref>switch</ref> statement, <tt>continue</tt> causes a jump into
 				the next <ref>case</ref>'s <tt>do()</tt> block, even if the <tt>case</tt> doesn't match,
@@ -849,6 +852,7 @@ end</example>
 				<lb/>
 				<p>levels</p> is optional (defaulting to 1), and is almost never used.
 				When inside several nested loops/blocks it tells which one to continue.
+				It must be at least 1.
 				For example if there are 3 nested <tt>for</tt> loops, <tt>continue(3)</tt> continues the outermost one,
 				in the process  breaking out of the inner two.
 				For example:

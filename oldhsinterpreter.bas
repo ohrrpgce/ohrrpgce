@@ -225,17 +225,28 @@ DO
         .state = streturn'---return
        CASE flowbreak
         popstack(scrst, temp)
-        unwindtodo(scrat(nowscript), temp)
-        '--for and while need to be broken
-        IF curcmd->kind = tyflow AND (curcmd->value = flowfor OR curcmd->value = flowwhile) THEN
-         dumpandreturn()
+        IF temp <= 0 THEN
+         scripterr "break(" & temp & ") is illegal", serrBadOp
+         .state = streturn  'Ignore it
+        ELSE
+         unwindtodo(scrat(nowscript), temp)
+         '--for and while need to be broken
+         IF curcmd->kind = tyflow AND (curcmd->value = flowfor OR curcmd->value = flowwhile) THEN
+          dumpandreturn()
+         END IF
         END IF
         'If the break goes all the way to the root of the script (which is a do()) it is exited (for back-compat)
        CASE flowcontinue
         '--continue could be used to cause an infinite loop (including in a floating do), so also needs these checks
         IF interpreter_occasional_checks THEN CONTINUE DO
         popstack(scrst, temp)
-        unwindtodo(scrat(nowscript), temp)
+        IF temp <= 0 THEN
+         scripterr "continue(" & temp & ") is illegal", serrBadOp
+         .state = streturn  'Ignore it
+         CONTINUE DO
+        ELSE
+         unwindtodo(scrat(nowscript), temp)
+        END IF
         IF curcmd->kind = tyflow AND curcmd->value = flowswitch THEN
          '--set state to 2
          scrst.pos -= 2

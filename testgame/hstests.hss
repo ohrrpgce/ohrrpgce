@@ -96,6 +96,8 @@ script, switch B, x, begin
   return(1)
   switch(x) do(
     case(5) do()
+    case(10) continue
+    case(7) do(continue)
     case(2) do(
       return(100)
       break
@@ -105,6 +107,8 @@ script, switch B, x, begin
     case((2+1), 2*2, zero)
       if(x) then(return(103))
       else(return(104))
+    case(9) continue
+    case(8) continue
     else(return(99))
   )
 end
@@ -128,6 +132,10 @@ script, switch tests, begin
   assert(switch B(4) == 103)
   assert(switch B(5) == 1)
   assert(switch B(6) == 99)
+  assert(switch B(7) == 100)
+  assert(switch B(8) == 99)
+  assert(switch B(9) == 99)
+  assert(switch B(10) == 100)
 end
 
 ########################################################################
@@ -174,6 +182,400 @@ script, exit tests, begin
   assert(return 2 == 2)
 end
 
+# This script does quite a bit more testing of continue than break.
+script, continue break tests, begin
+  variable(ctr1, ctr2, ctr3, ctr4)
+
+  subscript, simple continue test, begin
+    variable(i)
+    for (i, 1, 4) do (
+      continue
+      ctr1 += 1
+    )
+    ctr2 := i
+  end
+  simple continue test
+  assert(ctr1 == 0)
+  assert(ctr2 == 5)
+  ctr1 := 0
+  ctr2 := 0
+
+  subscript, simple break test, begin
+    variable(i)
+    for (i, 1, 4) do (
+      ctr1 += 1
+      break
+      ctr1 += 1
+    )
+    ctr2 := i
+  end
+  simple break test
+  assert(ctr1 == 1)
+  assert(ctr2 == 1)
+  ctr1 := 0
+  ctr2 := 0
+
+  subscript, conditional continue test, begin
+    variable(i)
+    for (i, 1, 4) do (
+      if (i == 3) then (continue (1))
+      ctr1 += i
+    )
+    ctr2 := i
+  end
+  conditional continue test
+  assert(ctr1 == 7)
+  assert(ctr2 == 5)
+  ctr1 := 0
+  ctr2 := 0
+
+  # Check only the topmost loop is exited
+  subscript, basic nesting continue test, begin
+    variable(i, j)
+    for (i, 1, 3) do (
+      for (j, 2, 4) do (
+        ctr1 += 1
+        if (j > i) then (continue)
+        ctr2 += 1
+      )
+      ctr3 += 10
+    )
+  end
+  basic nesting continue test
+  assert(ctr1 == 9)
+  assert(ctr2 == 3)
+  assert(ctr3 == 30)
+  ctr1 := 0
+  ctr2 := 0
+  ctr3 := 0
+
+  subscript, continue 2 test, begin
+    variable(i, j)
+    for (i, 1, 4) do (
+      for (j, 1, 4) do (
+        if (j > i) then (continue (2))
+        ctr1 += 1
+      )
+      ctr2 += 1
+    )
+  end
+  continue 2 test
+  assert(ctr1 == 10)
+  assert(ctr2 == 1)
+  ctr1 := 0
+  ctr2 := 0
+
+  subscript, continue while test, begin
+    variable(i, j)
+    i := 10
+    while (i -= 1) do (
+      ctr1 += 1
+      if (i > 4) then (continue (1))
+      ctr2 += i
+    )
+  end
+  continue while test
+  assert(ctr1 == 9)
+  assert(ctr2 == 10)
+  ctr1 := 0
+  ctr2 := 0
+
+  subscript, break while test, begin
+    variable(i, j)
+    i := 4
+    while (i -= 1) do (
+      ctr1 += 1
+      if (i == 1) then (break (1))
+      ctr2 += i
+    )
+  end
+  break while test
+  assert(ctr1 == 3)
+  assert(ctr2 == 5)
+  ctr1 := 0
+  ctr2 := 0
+
+  subscript, while for continue 2 test, begin
+    variable(i, j)
+    i := 5
+    while (i) do (
+      i -= 1
+      ctr1 += 1
+      for (j, 0, 3) do (
+        ctr2 += 1
+        continue (2)
+        ctr3 += 1
+      )
+      ctr4 += 1
+    )
+  end
+  while for continue 2 test
+  assert(ctr1 == 5)
+  assert(ctr2 == 5)
+  assert(ctr3 == 0)
+  assert(ctr4 == 0)
+  ctr1 := 0
+  ctr2 := 0
+  ctr3 := 0
+  ctr4 := 0
+
+  subscript, nested while for continue test 2, begin
+    variable(i, j)
+    i := 10
+    while (i) do (
+      ctr1 += 1
+      for (j, -2, 0) do (
+        ctr2 += 1
+        if (j) then (i -= 1) else (continue (2))
+        ctr3 += 1
+        continue
+      )
+      ctr4 += 1
+    )
+  end
+  nested while for continue test 2
+  assert(ctr1 == 5)
+  assert(ctr2 == 15)
+  assert(ctr3 == 10)
+  assert(ctr4 == 0)
+  ctr1 := 0
+  ctr2 := 0
+  ctr3 := 0
+  ctr4 := 0
+
+  subscript, continue break do test, begin
+    variable(i)
+    i := 0
+    ctr1 += 1
+    do (
+      i += 1
+      ctr2 += i
+      if (i == 3) then (break)
+      continue
+      ctr3 += 1
+    )
+    ctr4 += 1
+  end
+  continue break do test
+  assert(ctr1 == 1)
+  assert(ctr2 == 6)
+  assert(ctr3 == 0)
+  assert(ctr4 == 1)
+  ctr1 := 0
+  ctr2 := 0
+  ctr3 := 0
+  ctr4 := 0
+
+  subscript, continue break nested do test, begin
+    variable(i, j)
+    i := 0
+    do (
+      i += 1
+      ctr1 += i
+      j := 0
+      do (
+        j += 1
+        ctr2 += j
+        if (i == 1) then (continue (2))
+        if (i == 3) then (break (2))
+        if (j < 2) then (continue)
+        ctr3 += 1
+      )
+      ctr4 += 1
+      continue
+    )
+  end
+  continue break nested do test
+  assert(ctr1 == 6)
+  assert(ctr2 == 5)
+  assert(ctr3 == 1)
+  assert(ctr4 == 1)
+  ctr1 := 0
+  ctr2 := 0
+  ctr3 := 0
+  ctr4 := 0
+
+  # continue(0) is illegal, but if you ignore it it does nothing
+  subscript, continue 0 test, begin
+    do (
+      ctr1 += 1
+      continue(0)
+      ctr2 += 1
+      break
+    )
+  end
+  write general(205, 0)  # genCurrentDebugMode, hide errors (release mode)
+  continue 0 test
+  write general(205, 1)  # show errors (debug mode)
+  assert(ctr1 == 1)
+  assert(ctr2 == 1)
+  ctr1 := 0
+  ctr2 := 0
+
+  # break(0) is illegal, but if you ignore it it does nothing
+  subscript, break 0 test, begin
+    do (
+      ctr1 += 10
+      break(0)
+      ctr2 += 10
+      break
+    )
+  end
+  write general(205, 0)  # genCurrentDebugMode, hide errors (release mode)
+  break 0 test
+  write general(205, 1)  # show errors (debug mode)
+  assert(ctr1 == 10)
+  assert(ctr2 == 10)
+  ctr1 := 0
+  ctr2 := 0
+
+  # Regular continue/break inside switch is tested in switch tests
+
+  subscript, for switch continue 2 test, begin
+    variable(i, j)
+    for (i, 0, 3) do (
+      ctr1 += i
+      switch (i) do (
+        case (1) do (
+          ctr2 += 1
+          continue
+          ctr2 += 1
+        )
+        case (3) do (
+          ctr1 += 10
+          continue (2)
+        )
+        case (else) do (
+          ctr3 += 1
+          continue
+          ctr3 += 1
+        )
+      )
+      ctr4 += 1
+    )
+    ctr4 += 10
+  end
+  for switch continue 2 test
+  assert(ctr1 == 26)
+  assert(ctr2 == 1)
+  assert(ctr3 == 2)
+  assert(ctr4 == 12)
+  ctr1 := 0
+  ctr2 := 0
+  ctr3 := 0
+  ctr4 := 0
+
+  subscript, for switch break 2 test, begin
+    variable(i, j)
+    for (i, 0, 3) do (
+      ctr1 += i
+      switch (i) do (
+        case (1) do (
+          ctr2 += 1
+          break
+          ctr2 += 1
+        )
+        case (3) do (
+          ctr1 += 10
+          break (2)
+        )
+        case (else) do (
+          ctr3 += 1
+          break
+          ctr3 += 1
+        )
+      )
+      ctr4 += 1
+    )
+    ctr4 += 10
+  end
+  for switch break 2 test
+  assert(ctr1 == 16)
+  assert(ctr2 == 1)
+  assert(ctr3 == 2)
+  assert(ctr4 == 13)
+  ctr1 := 0
+  ctr2 := 0
+  ctr3 := 0
+  ctr4 := 0
+
+  subscript, variable continue test, begin
+    variable(i, j)
+    for (i, 1, 2) do (
+      ctr1 += 1
+      for (j, 1, 5) do (
+        ctr2 += 1
+        continue (j)
+        ctr3 += 1
+      )
+      ctr4 += 1
+    )
+  end
+  variable continue test
+  assert(ctr1 == 2)
+  assert(ctr2 == 4)
+  assert(ctr3 == 0)
+  assert(ctr4 == 0)
+  ctr1 := 0
+  ctr2 := 0
+  ctr3 := 0
+  ctr4 := 0
+
+  subscript, variable break test, begin
+    variable(i, j)
+    for (i, 1, 3) do (
+      ctr1 += 1
+      for (j, 1, 5) do (
+        ctr2 += 1
+        break (i)
+        ctr3 += 1
+      )
+      ctr4 += 1
+    )
+  end
+  variable break test
+  assert(ctr1 == 2)
+  assert(ctr2 == 2)
+  assert(ctr3 == 0)
+  assert(ctr4 == 1)
+  ctr1 := 0
+  ctr2 := 0
+  ctr3 := 0
+  ctr4 := 0
+
+  subscript, variable continue test 2, begin
+    variable(i, j, k, n)
+    n := -1
+    for (i, 1, 2) do (
+      for (j, 1, 2) do (
+        n += 1
+        # n==0: ctr1 += 2, ctr2 += 2, ctr3 += 1
+        # n==1: ctr1 += 2, ctr3 += 1
+        # after n==1: ctr4 += 1
+        # n==2, n==3: ctr1 += 1
+        for (k, 1, 2) do (
+          ctr1 += 1
+          if (n) then (continue (n))
+          ctr2 += 1
+        )
+        ctr3 += 1
+      )
+      ctr4 += 1
+    )
+  end
+  variable continue test 2
+  assert(ctr1 == 6)
+  assert(ctr2 == 2)
+  assert(ctr3 == 2)
+  assert(ctr4 == 1)
+  ctr1 := 0
+  ctr2 := 0
+  ctr3 := 0
+  ctr4 := 0
+end
+
+########################################################################
+
 script, flow tests, begin
   variable(var1)
   # for loop creates some state which can be corrupted
@@ -185,6 +587,7 @@ script, flow tests, begin
 
   elseif tests
   switch tests
+  continue break tests
   orphaned blocks
   exit tests
 end
