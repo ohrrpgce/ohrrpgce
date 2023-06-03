@@ -5,7 +5,7 @@
 MAILFROM=cron@rpg.hamsterrepublic.com
 MAILTO=cron@rpg.hamsterrepublic.com
 
-SMTP="smtps://sub5.mail.dreamhost.com:465"
+SMTP="smtps://smtp.dreamhost.com:465"
 USERNAME="cron@rpg.hamsterrepublic.com"
 PASSWD="***redacted***"
 
