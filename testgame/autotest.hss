@@ -986,6 +986,8 @@ script, do hero cater tests, who, begin
   wait for hero(who), w
   assert(hero y(who) == 9)
   assert(hero direction(who) == south)
+  assert(forward x(who) == 7)
+  assert(forward y(who) == 10)
   walk hero(who, south, -1) # negative distance means walk backwards
   wait for hero(who), w
   assert(hero y(who) == 8)
@@ -998,6 +1000,8 @@ script, do hero cater tests, who, begin
   wait for hero(who), w
   assert(hero x(who) == 5)
   assert(hero direction(who) == west)
+  assert(forward x(who) == 4)
+  assert(forward y(who) == 9)
   walk hero(who, north, 1)
   wait for hero(who), w
   assert(hero y(who) == 8)

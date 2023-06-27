@@ -1659,6 +1659,32 @@ resume player</example>
 			<shortname>hero pixel Y</shortname>
 			<description>Returns the hero&apos;s Y position on the map in pixels. To find the hero&apos;s position in tiles, use the <ref>heroy</ref> function instead.</description>
 		</command>
+		<command id="forwardx">
+			<canon>forward X (who)</canon>
+			<shortname>forward X</shortname>
+			<description>
+				Returns the X position of the tile immediately in front of the specified hero.
+				<p>who</p> is optional, defaulting to 0 (<ref>me</ref>), the leader.
+				<lb/>
+				Wraps over the edge of wrapping maps.
+			</description>
+		</command>
+		<command id="forwardy">
+			<canon>forward Y (who)</canon>
+			<shortname>forward Y</shortname>
+			<description>
+				Returns the Y position of the tile immediately in front of the specified hero.
+				<p>who</p> is optional, defaulting to 0 (<ref>me</ref>), the leader.
+				<lb/>
+				Wraps over the edge of wrapping maps.
+			</description>
+			<example># This will check if npc 1 is in front of the leading hero, and if so show a textbox,
+# as if you spoke to the npc. "use npc (1)" instead would actually activate it.
+if (npc X (1) == forward X &amp;&amp; npc Y (1) == forward Y) then(
+   show text box (2)
+)
+</example>
+		</command>
 		<command id="heroz">
 			<canon>hero Z (who)</canon>
 			<shortname>hero Z</shortname>

@@ -782,6 +782,8 @@ define function, begin
 750,suspendwalkabouts,0       # Suspend hero/NPC movement and logic
 751,resumewalkabouts,0        # Undo suspendwalkabouts
 752,walkaboutsaresuspended,0  # suspendwalkabouts called
+753,forwardx,1,0              # Tile X coord in front of hero (hero rank)
+754,forwardy,1,0              # Tile Y coord in front of hero (hero rank)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

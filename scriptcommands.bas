@@ -5188,6 +5188,20 @@ SUB script_commands(byval cmdid as integer)
   setbit gen(), genSuspendBits, suspendwalkabouts, 0
  CASE 752 '--walkabouts are suspended
   scriptret = readbit(gen(), genSuspendBits, suspendwalkabouts)
+ CASE 753 '--forward x
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
+   DIM fx as integer = herotx(retvals(0))
+   DIM fy as integer '= heroty(retvals(0))  'Not actually needed
+   wrapaheadxy fx, fy, herodir(retvals(0)), 1, 1
+   scriptret = fx
+  END IF
+ CASE 754 '--forward y
+  IF valid_hero_caterpillar_rank(retvals(0)) THEN
+   DIM fx as integer '= herotx(retvals(0))
+   DIM fy as Integer = heroty(retvals(0))
+   wrapaheadxy fx, fy, herodir(retvals(0)), 1, 1
+   scriptret = fy
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
