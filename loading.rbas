@@ -3216,6 +3216,9 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .change_defector = buf(350)
   .change_flipped = buf(351)
   .spawn_enemy = buf(352)
+  .extra(0) = buf(353)
+  .extra(1) = buf(354)
+  .extra(2) = buf(355)
   '----Chaining----
   loadattackchain .chain, buf(), 12, 13, 101, 102, 103, 104
   loadattackchain .elsechain, buf(), 105, 107, 106, 108, 109, 110

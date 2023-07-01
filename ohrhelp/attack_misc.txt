@@ -1,0 +1,1 @@
+Attack Extra Data is for you to store arbitrary data and can be read with the "get attack extra" script command. It has no other purpose.

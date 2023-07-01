@@ -4568,6 +4568,42 @@ end</example>
 		</section>		<!-- Out-of-battle Attacks-->
 
 	</section>
+	
+	<section title="Attack Data">
+
+		<command id="getattackname">
+			<alias>readattackname</alias>
+			<shortname>get attack name</shortname>
+		</command>
+		<command id="readattackname">
+			<canon>read attack name (ID, attack)</canon>
+			<shortname>read attack name</shortname>
+			<description>This command will take the name of <p>attack</p> and stick it in string #<p>ID</p>, overwriting its contents. Use the <p>atk:name</p> constants from your HSI file.
+			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
+			<note>This command replaces the old <p>get attack name</p> which required you to use <p>atk:name -- 2</p> or the attack id number <p>-- 1</p></note>
+			</description>
+		</command>
+		<command id="getattackcaption">
+			<canon>get attack caption (ID, attack)</canon>
+			<shortname>get attack caption</shortname>
+			<description>This command will take the caption of <p>attack</p> and stick it in string #<p>ID</p>, overwriting its contents. Use the <p>atk:name</p> constants from your HSI file.
+			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
+			</description>
+		</command>
+		<command id="getattackextra">
+			<canon>get attack extra (attack, extra num)</canon>
+			<shortname>get attack extra</shortname>
+			<description>
+				Returns the value in one of an attack's "extra data" fields, which you can set in the Misc submenu.
+				Use the <tt>atk:name</tt> constants from your HSI file as the <p>attack</p> ID.
+				<p>extra num</p> is an <ref>extradataindex</ref>.
+				<note>
+					If you want to use this command with attack ID numbers, you must add 1 to the ID displayed in the attack editor.
+				</note>
+			</description>
+		</command>
+
+	</section>   <!-- Attack Data -->
 
 	<section title="Enemy and Formation Functions">
 		<command id="getenemystat">
@@ -5840,25 +5876,6 @@ get hero name (1, find hero (leader))
 			<shortname>get map name</shortname>
 			<description>This command will take the name of map #<p>map</p> and stick it in string #<p>ID</p>, overwriting its contents.</description>
 		</command>
-		<command id="getattackname">
-			<alias>readattackname</alias>
-			<shortname>get attack name</shortname>
-		</command>
-		<command id="readattackname">
-			<canon>read attack name (ID, attack)</canon>
-			<shortname>read attack name</shortname>
-			<description>This command will take the name of <p>attack</p> and stick it in string #<p>ID</p>, overwriting its contents. Use the <p>atk:name</p> constants from your HSI file.
-			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
-			<note>This command replaces the old <p>get attack name</p> which required you to use <p>atk:name -- 2</p> or the attack id number <p>-- 1</p></note>
-			</description>
-		</command>
-		<command id="getattackcaption">
-			<canon>get attack caption (ID, attack)</canon>
-			<shortname>get attack caption</shortname>
-			<description>This command will take the caption of <p>attack</p> and stick it in string #<p>ID</p>, overwriting its contents. Use the <p>atk:name</p> constants from your HSI file.
-			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
-			</description>
-		</command>
 		<command id="getstatname">
 			<canon>get stat name (ID, stat)</canon>
 			<shortname>get stat name</shortname>
@@ -5870,6 +5887,9 @@ get hero name (1, find hero (leader))
 				Otherwise returns <tt>true</tt>.
 			</description>
 		</command>
+		<reference ref="getattackname" />
+		<reference ref="readattackname" />
+		<reference ref="getattackcaption" />
 		<command id="getsongname">
 			<canon>get song name (ID, song)</canon>
 			<shortname>get song name</shortname>

@@ -784,6 +784,7 @@ define function, begin
 752,walkaboutsaresuspended,0  # suspendwalkabouts called
 753,forwardx,1,0              # Tile X coord in front of hero (hero rank)
 754,forwardy,1,0              # Tile Y coord in front of hero (hero rank)
+755,getattackextra,2,0,0      # get attack extra data (attack id + 1, 0 - 2)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

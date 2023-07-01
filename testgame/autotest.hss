@@ -140,6 +140,7 @@ script, run tests 1, begin
   menu tests
   textbox tests
   script trigger tests
+  attack tests
   enemy tests
   battle tests
   timer tests
@@ -3583,6 +3584,33 @@ end
 
 ########################################################################
 
+script, attack tests, begin
+  $0="attack tests"
+
+  # Reading attack name
+  $1="SelfStab"
+  read attack name(2, atk:SelfStab)
+  assert(string compare(1,2))
+  $2=""
+  read attack name(2, 0 + 1)
+  assert(string compare(1,2))
+  $2=""
+  get attack name(2, 0 -- 1)
+  assert(string compare(1,2))
+  
+  # Reading attack caption
+  $1="Attack self"
+  get attack caption(2, 0 + 1)
+  assert(string compare(1,2))
+
+  assert(get attack extra(atk:SelfStab, 0) == 42)
+  assert(get attack extra(atk:SelfStab, 2) == 99)
+  assert(get attack extra(atk:ForceRun) == 0)
+  assert(get attack extra(10 + 1, 2) == 1)  # Currently the last attack
+end
+
+########################################################################
+
 script, enemy tests, begin
   $0="enemy tests"
 
@@ -6415,21 +6443,7 @@ end
 script, string load tests, begin
   $0="string load tests"
 
-  # Reading attack name
-  $1="SelfStab"
-  read attack name(2, atk:SelfStab)
-  assert(string compare(1,2))
-  $2=""
-  read attack name(2, 0 + 1)
-  assert(string compare(1,2))
-  $2=""
-  get attack name(2, 0 -- 1)
-  assert(string compare(1,2))
-  
-  # Reading attack caption
-  $1="Attack self"
-  get attack caption(2, 0 + 1)
-  assert(string compare(1,2))
+  # attack string tests in "attack tests"
 
   # Stat names
   assert(get stat name(1, stat:hp) == true)

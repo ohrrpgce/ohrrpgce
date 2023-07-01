@@ -795,6 +795,7 @@ Type AttackData
 	change_defector as integer
 	change_flipped as integer
 	spawn_enemy as integer
+	extra(2) as integer
 	'----Bitsets----
 	cure_instead_of_harm as bool
 	divide_spread_damage as bool

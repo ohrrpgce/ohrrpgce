@@ -160,6 +160,10 @@ CONST AtkChangeDefector = 161
 CONST AtkChangeFlipped = 162
 CONST AtkSpawnEnemy = 163
 CONST AtkChainOnFailOrMissBit = 164
+CONST AtkMiscAct = 165
+CONST AtkExtra0 = 166
+CONST AtkExtra1 = 167
+CONST AtkExtra2 = 168
 
 'Next menu item is 165 (remember to update MnuItems)
 
@@ -248,6 +252,9 @@ CONST AtkDatChangeTurncoat = 349
 CONST AtkDatChangeDefector = 350
 CONST AtkDatChangeFlipped = 351
 CONST AtkDatSpawnEnemy = 352
+CONST AtkDatExtra0 = 353
+CONST AtkDatExtra1 = 354
+CONST AtkDatExtra2 = 355
 
 'anything past this requires expanding the data
 
@@ -407,13 +414,12 @@ DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer '--stores the combined
 STATIC copy_recbuf(40 + curbinsize(binATTACK) \ 2 - 1) as integer
 STATIC have_copy as bool
 
-CONST MnuItems = 164
+CONST MnuItems = 168
 DIM menu(MnuItems) as string
 DIM menutype(MnuItems) as integer
 DIM menuoff(MnuItems) as integer
 DIM menulimits(MnuItems) as integer
 DIM menucapoff(MnuItems) as integer
-
 '----------------------------------------------------------
 
 DIM capindex as integer = 0
@@ -1162,6 +1168,9 @@ menulimits(AtkLearnSoundEffect) = AtkLimSFX
 menu(AtkTransmogAct) = "Transmogrification..."
 menutype(AtkTransmogAct) = 1
 
+menu(AtkMiscAct) = "Misc..."
+menutype(AtkMiscAct) = 1
+
 menu(AtkTransmogEnemy) = "Enemy target becomes:"
 menutype(AtkTransmogEnemy) = 9 'enemy name
 menuoff(AtkTransmogEnemy) = AtkDatTransmogEnemy
@@ -1273,6 +1282,20 @@ menutype(AtkSpawnEnemy) = 9 'enemy name
 menuoff(AtkSpawnEnemy) = AtkDatSpawnEnemy
 menulimits(AtkSpawnEnemy) = AtkLimSpawnEnemy
 
+menu(AtkExtra0) = "Extra Data 0:"
+menutype(AtkExtra0) = 0
+menuoff(AtkExtra0) = AtkDatExtra0
+menulimits(AtkExtra0) = AtkLimInt
+
+menu(AtkExtra1) = "Extra Data 1:"
+menutype(AtkExtra1) = 0
+menuoff(AtkExtra1) = AtkDatExtra1
+menulimits(AtkExtra1) = AtkLimInt
+
+menu(AtkExtra2) = "Extra Data 2:"
+menutype(AtkExtra2) = 0
+menuoff(AtkExtra2) = AtkDatExtra2
+menulimits(AtkExtra2) = AtkLimInt
 
 '----------------------------------------------------------
 '--menu structure
@@ -1284,7 +1307,7 @@ state.autosize_ignore_pixels = 16
 DIM menuopts as MenuOptions
 menuopts.fullscreen_scrollbar = YES
 
-DIM mainMenu(15) as integer
+DIM mainMenu(16) as integer
 mainMenu(0) = AtkBackAct
 mainMenu(1) = AtkChooseAct
 mainMenu(2) = AtkName
@@ -1301,6 +1324,7 @@ mainMenu(12) = AtkElemBitAct
 mainMenu(13) = AtkElementFailAct
 mainMenu(14) = AtkTagAct
 mainMenu(15) = AtkTransmogAct
+mainMenu(16) = AtkMiscAct
 
 DIM targMenu(5) as integer
 targMenu(0) = AtkBackAct
@@ -1380,6 +1404,12 @@ effectsMenu(2) = AtkChangeTurncoat
 effectsMenu(3) = AtkChangeDefector
 effectsMenu(4) = AtkChangeFlipped
 effectsMenu(5) = AtkSpawnEnemy
+
+DIM miscMenu(3) as integer
+miscMenu(0) = AtkBackAct
+miscMenu(1) = AtkExtra0
+miscMenu(2) = AtkExtra1
+miscMenu(3) = AtkExtra2
 
 '--Create the box that holds the preview
 DIM preview_box as Slice Ptr
@@ -1757,6 +1787,10 @@ DO
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), effectsMenu(), state
     helpkey = "attack_effects"
+   CASE AtkMiscAct
+    atk_edit_pushptr state, laststate, menudepth
+    setactivemenu workmenu(), miscMenu(), state
+    helpkey = "attack_misc"
   END SELECT
  END IF
 

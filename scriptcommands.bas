@@ -5202,6 +5202,12 @@ SUB script_commands(byval cmdid as integer)
    wrapaheadxy fx, fy, herodir(retvals(0)), 1, 1
    scriptret = fy
   END IF
+ CASE 755 '--get attack extra
+  IF valid_attack(retvals(0)) ANDALSO bound_arg(retvals(1), 0, 2, "extra number", , serrBadOp) THEN
+   DIM attack as AttackData
+   loadattackdata attack, retvals(0) - 1
+   scriptret = attack.extra(retvals(1))
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
