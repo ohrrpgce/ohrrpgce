@@ -4576,18 +4576,28 @@ end</example>
 			<shortname>get attack name</shortname>
 		</command>
 		<command id="readattackname">
-			<canon>read attack name (ID, attack)</canon>
+			<canon>read attack name (str ID, attack)</canon>
 			<shortname>read attack name</shortname>
-			<description>This command will take the name of <p>attack</p> and stick it in string #<p>ID</p>, overwriting its contents. Use the <p>atk:name</p> constants from your HSI file.
-			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
-			<note>This command replaces the old <p>get attack name</p> which required you to use <p>atk:name -- 2</p> or the attack id number <p>-- 1</p></note>
+			<description>
+				This command will take the name of <p>attack</p> and stick it in the <p>str ID</p> string, overwriting its contents.
+				Use the <p>atk:name</p> constants from your HSI file.
+				<note>
+				If you want to use this command with attack ID numbers, you must add 1 to the ID number.
+				</note>
+				<note>
+					This command replaces the old <p>get attack name</p> which required you to use <p>atk:name -- 2</p> or the attack id number <p>-- 1</p>
+				</note>
 			</description>
 		</command>
 		<command id="getattackcaption">
-			<canon>get attack caption (ID, attack)</canon>
+			<canon>get attack caption (str ID, attack)</canon>
 			<shortname>get attack caption</shortname>
-			<description>This command will take the caption of <p>attack</p> and stick it in string #<p>ID</p>, overwriting its contents. Use the <p>atk:name</p> constants from your HSI file.
-			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
+			<description>
+				This command will take the caption of <p>attack</p> and stick it in the <p>str ID</p> string, overwriting its contents.
+				Use the <p>atk:name</p> constants from your HSI file as the <p>attack</p>.
+				<note>
+					If you want to use this command with attack ID numbers, you must add 1 to the ID displayed in the attack editor.
+				</note>
 			</description>
 		</command>
 		<command id="getattackextra">
@@ -6027,15 +6037,15 @@ get hero name (1, find hero (leader))
 			<canon>set extra (handle, extra, value)</canon>
 			<shortname>set extra</shortname>
 			<description>
-				Sets one of the extra data variables on an object.
-				By default all new slices and zones start have a length 3 extra data array,
-				which has no builtin meaning, it is only for use by scripts.
+				Sets one of the extra data variables on an object,
+				which have no builtin meaning, they are only for use in your scripts.
+				By default all new slices, NPCs, etc. start with a length 3 extra data array.
 				<lb/>
 				<p>handle</p> is an <ref>objecthandle</ref>.
 				<p>extra</p> is an <ref>extradataindex</ref>, typically a value from 0 to 2.
 				Use <ref>resizeextra</ref> if you want more than 3 extra values.
 				<lb/>
-				This command is a generic alternative to <ref>setsliceextra</ref>, <ref>setzoneextra</ref>, <ref>setnpcextra</ref>.
+				This command is a generic alternative to <ref>setsliceextra</ref>, <ref>setzoneextra</ref>, <ref>setnpcextra</ref>, and <ref>setmenuitemextra</ref>.
 			</description>
 			<seealso>
 				<ref>getextra</ref>
@@ -6051,7 +6061,8 @@ get hero name (1, find hero (leader))
 				<p>handle</p> is an <ref>objecthandle</ref>.
 				<p>extra</p> is the <ref>extradataindex</ref> to read.
 				<lb/>
-				This command is a generic alternative to <ref>getsliceextra</ref>, <ref>getzoneextra</ref>, <ref>npcextra</ref>.
+				This command is a generic alternative to <ref>getsliceextra</ref>, <ref>getzoneextra</ref> (using <ref>getzone</ref> not a zone ID), <ref>npcextra</ref>, and <ref>getmenuitemextra</ref>.
+				But it can't be used to replace <ref>getattackextra</ref>.
 			</description>
 		</command>
 
@@ -6085,7 +6096,8 @@ set extra(handle, -1, value)   # Index -1 is the last element of the array</exam
 				Changes the length of an object's extra data array.
 				<p>handle</p> is the <ref>objecthandle</ref>.
 				The new <p>length</p> can be between 0 and 5,000,000.
-				For backwards compatibility it's 3 by default for all newly created slices and zones.
+				For backwards compatibility it's 3 by default for all newly created slices, zones,
+				NPCs and menu items.
 				Values will either be removed from the end of the array, or zeroes added to the
 				end to meet the new length.
 				The rest of the existing contents of the array will be preserved.
