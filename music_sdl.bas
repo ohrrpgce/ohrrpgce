@@ -656,7 +656,8 @@ sub sound_play(slot as integer, loopcount as integer, volume as single = 1.)
 			' Note that the i-th sfx slot is played on the i-th SDL_mixer channel,
 			' which is just a simplification.
 			if Mix_PlayChannel(slot, .buf, loopcount) = -1 then
-				showbug "sound_play: Mix_PlayChannel failed:" & *Mix_GetError()
+				'E.g. a corrupt .ogg
+				debug "sfx " & .effectID & " Mix_PlayChannel failed:" & *Mix_GetError()
 				exit sub
 			end if
 			.playing = YES
