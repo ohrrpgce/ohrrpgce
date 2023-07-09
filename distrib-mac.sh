@@ -99,7 +99,7 @@ rm -f buildinfo.ini
 ./OHRRPGCE-Game.app/Contents/MacOS/ohrrpgce-game -dump-embed buildinfo.ini
 
 echo "Create minimal player tarball"
-gnutar -zcf distrib/ohrrpgce-mac-minimal-$TODAY-$BRANCH$SUFFIX.tar.gz OHRRPGCE-Game.app buildinfo.ini README-player-only.txt LICENSE-binary.txt || exit 1
+gnutar -zcf distrib/ohrrpgce-player-mac-$TODAY-$BRANCH$SUFFIX.tar.gz OHRRPGCE-Game.app buildinfo.ini README-player-only.txt LICENSE-binary.txt || exit 1
 
 echo "Creating utilities archive"
 zip distrib/ohrrpgce-mac-util$SUFFIX.zip unlump relump hspeak plotscr.hsd scancode.hsi LICENSE-binary.txt || exit 1

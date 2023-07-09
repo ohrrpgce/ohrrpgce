@@ -12,11 +12,12 @@ fi
 mkdir ./check_nightly
 cd ./check_nightly
 
-for NAME in "ohrrpgce-player-win-sdl2-wip.zip" \
-            "ohrrpgce-player-linux-x86.zip" \
-            "ohrrpgce-player-linux-x86_64.zip" \
-            "ohrrpgce-mac-minimal-x86.tar.gz" \
-            "ohrrpgce-mac-minimal-x86_64.tar.gz" ; do
+for NAME in "ohrrpgce-player-win-wip-sdl2.zip" \
+            "ohrrpgce-player-win-wip-win95.zip" \
+            "ohrrpgce-player-linux-wip-x86.zip" \
+            "ohrrpgce-player-linux-wip-x86_64.zip" \
+            "ohrrpgce-player-mac-wip-x86.tar.gz" \
+            "ohrrpgce-player-mac-wip-x86_64.tar.gz" ; do
   EXT="${NAME#*.}"
   BASE="${NAME%%.*}"
   echo "[$NAME]"

@@ -14,4 +14,4 @@ TODAY=`date "+%Y-%m-%d"`
 CODE=`cat codename.txt | grep -v "^#" | head -1 | tr -d "\r"`
 BRANCH=`cat codename.txt | grep -v "^#" | head -2 | tail -1 | tr -d "\r"`
 scp -p distrib/OHRRPGCE-${TODAY}-${BRANCH}-*.dmg "${SCPDEST}"/archive/
-scp -p distrib/ohrrpgce-mac-minimal-${TODAY}-${BRANCH}-*.tar.gz "${SCPDEST}"/archive/
+scp -p distrib/ohrrpgce-player-mac-${TODAY}-${BRANCH}-*.tar.gz "${SCPDEST}"/archive/

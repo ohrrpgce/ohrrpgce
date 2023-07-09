@@ -48,16 +48,16 @@ $BUILD game custom buildname=sdl2 $SCONS_ARGS
 $BUILD hspeak unlump relump win95=1 sse2=0 $SCONS_ARGS
 
 echo ------------------------------------------
-echo Packaging game player ohrrpgce-player-win-sdl2-*.zip ...
-./ohrpackage.py win player distrib/ohrrpgce-player-win-sdl2-{TODAY}-{BRANCH}.zip
+echo Packaging game player ohrrpgce-player-win-*-sdl2.zip ...
+./ohrpackage.py win player distrib/ohrrpgce-player-win-{TODAY}-{BRANCH}-sdl2.zip
 
 echo ------------------------------------------
-echo Packaging minimal-but-complete ohrrpgce-minimal-*.zip ...
-./ohrpackage.py win minimal distrib/ohrrpgce-minimal-{TODAY}-{BRANCH}.zip
+echo Packaging minimal-but-complete ohrrpgce-win-*-minimal.zip ...
+./ohrpackage.py win minimal distrib/ohrrpgce-win-{TODAY}-{BRANCH}-minimal.zip
 
 echo ------------------------------------------
-echo Packaging ohrrpgce-*.zip ...
-./ohrpackage.py win full distrib/ohrrpgce-{TODAY}-{BRANCH}.zip
+echo Packaging full ohrrpgce-win-*.zip ...
+./ohrpackage.py win full distrib/ohrrpgce-win-{TODAY}-{BRANCH}.zip
 
 echo ------------------------------------------
 echo Packaging ohrrpgce-win-installer-*.exe ...
@@ -71,16 +71,16 @@ echo ==========================================
 echo Building win95 executables...
 
 rm -f game.exe custom.exe win32/game.pdb win32/custom.pdb
-# Equivalent to gfx=directx+sdl+fb music=sdl
-$BUILD game custom win95=1 sse2=0 buildname=music_sdl $SCONS_ARGS
+# win95=1 implies gfx=directx+sdl+fb music=sdl
+$BUILD game custom win95=1 sse2=0 buildname=win95 $SCONS_ARGS
 
 echo ------------------------------------------
-echo Packaging game player ohrrpgce-player-win-win95-*.zip ...
-./ohrpackage.py win player distrib/ohrrpgce-player-win-win95-{TODAY}-{BRANCH}.zip
+echo Packaging game player ohrrpgce-player-win-*-win95.zip ...
+./ohrpackage.py win player distrib/ohrrpgce-player-win-{TODAY}-{BRANCH}-win95.zip
 
 echo ------------------------------------------
-echo Packaging ohrrpgce-win95-*.zip ...
-./ohrpackage.py win full distrib/ohrrpgce-win95-{TODAY}-{BRANCH}.zip
+echo Packaging full ohrrpgce-win-*-win95.zip ...
+./ohrpackage.py win full distrib/ohrrpgce-win-{TODAY}-{BRANCH}-win95.zip
 
 echo ------------------------------------------
 echo Packaging win95 debug info archive

@@ -12,16 +12,16 @@ REM Would compile with lto=1 to reduce unlump/relump size, but that causes mingw
 CALL scons hspeak unlump relump win95=1 sse2=0 %SCONS_ARGS% || exit /b 1
 
 ECHO ------------------------------------------
-ECHO Packaging game player ohrrpgce-player-win-sdl2-*.zip ...
-python ohrpackage.py win player distrib\ohrrpgce-player-win-sdl2-{DATE}-{BRANCH}.zip || exit /b 1
+ECHO Packaging game player ohrrpgce-player-win-*-sdl2.zip ...
+python ohrpackage.py win player distrib\ohrrpgce-player-win-{DATE}-{BRANCH}-sdl2.zip || exit /b 1
 
 ECHO ------------------------------------------
-ECHO Packaging minimal-but-complete ohrrpgce-minimal-*.zip ...
-python ohrpackage.py win minimal distrib\ohrrpgce-minimal-{DATE}-{BRANCH}.zip || exit /b 1
+ECHO Packaging minimal-but-complete ohrrpgce-win-minimal-*.zip ...
+python ohrpackage.py win minimal distrib\ohrrpgce-win-{DATE}-{BRANCH}-minimal.zip || exit /b 1
 
 ECHO ------------------------------------------
-ECHO Packaging ohrrpgce-*.zip ...
-python ohrpackage.py win full distrib\ohrrpgce-{DATE}-{BRANCH}.zip || exit /b 1
+ECHO Packaging full ohrrpgce-win-*.zip ...
+python ohrpackage.py win full distrib\ohrrpgce-win-{DATE}-{BRANCH}.zip || exit /b 1
 
 ECHO ------------------------------------------
 ECHO Packaging ohrrpgce-win-installer-*.exe ...
@@ -35,16 +35,16 @@ ECHO ==========================================
 ECHO Building win95 executables...
 
 support\rm -f game.exe custom.exe win32\game.pdb win32\custom.pdb
-REM Equivalent to gfx=directx+sdl+fb music=sdl
-CALL scons game custom win95=1 sse2=0 buildname=music_sdl %SCONS_ARGS% || exit /b 1
+REM win95=1 implies gfx=directx+sdl+fb music=sdl
+CALL scons game custom win95=1 sse2=0 buildname=win95 %SCONS_ARGS% || exit /b 1
 
 ECHO ------------------------------------------
-ECHO Packaging game player ohrrpgce-player-win-win95-*.zip ...
-python ohrpackage.py win player distrib\ohrrpgce-player-win-win95-{DATE}-{BRANCH}.zip || exit /b 1
+ECHO Packaging game player ohrrpgce-player-win-*-win95.zip ...
+python ohrpackage.py win player distrib\ohrrpgce-player-win-{DATE}-{BRANCH}-win95.zip || exit /b 1
 
 ECHO ------------------------------------------
-ECHO Packaging ohrrpgce-win95-*.zip ...
-python ohrpackage.py win full distrib\ohrrpgce-win95-{DATE}-{BRANCH}.zip || exit /b 1
+ECHO Packaging full ohrrpgce-win-*-win95.zip ...
+python ohrpackage.py win full distrib\ohrrpgce-win-{DATE}-{BRANCH}-win95.zip || exit /b 1
 
 ECHO ------------------------------------------
 ECHO Packaging win95 debug info archive

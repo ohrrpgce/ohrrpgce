@@ -56,9 +56,9 @@ build_package() {
   scp -p distrib/OHRRPGCE-wip$SUFFIX.dmg $UPLOAD_DEST/ohrrpgce/nightly/
   rm distrib/OHRRPGCE-wip$SUFFIX.dmg
 
-  mv distrib/ohrrpgce-mac-minimal-*-wip$SUFFIX.tar.gz distrib/ohrrpgce-mac-minimal$SUFFIX.tar.gz &&
-  scp -p distrib/ohrrpgce-mac-minimal$SUFFIX.tar.gz $UPLOAD_DEST/ohrrpgce/nightly/
-  rm distrib/ohrrpgce-mac-minimal$SUFFIX.tar.gz
+  mv distrib/ohrrpgce-player-mac-*-wip$SUFFIX.tar.gz distrib/ohrrpgce-player-mac-wip$SUFFIX.tar.gz &&
+  scp -p distrib/ohrrpgce-player-mac-wip$SUFFIX.tar.gz $UPLOAD_DEST/ohrrpgce/nightly/
+  rm distrib/ohrrpgce-player-mac-wip$SUFFIX.tar.gz
 
   scp -p distrib/ohrrpgce-mac-util$SUFFIX.zip $UPLOAD_DEST/ohrrpgce/nightly/
   rm distrib/ohrrpgce-mac-util$SUFFIX.zip

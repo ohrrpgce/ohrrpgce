@@ -45,7 +45,7 @@ SVNREV=`svn info | grep "^Revision:" | cut -d " " -f 2`
 
 function zip_and_upload {
   BUILDNAME="${1}"
-  ZIPFILE="ohrrpgce-win-${BUILDNAME}-wip.zip"
+  ZIPFILE="ohrrpgce-win-wip-${BUILDNAME}.zip"
   SYMBFILE="ohrrpgce-symbols-win-${BUILDNAME}-r${SVNREV}-${OHRVERDATE}-wip.7z"
   echo "    Packaging $BUILDNAME nightly"
 
@@ -89,12 +89,12 @@ svn info > svninfo.txt
 $BUILD hspeak relump unlump win95=1 sse2=0 $SCONS_ARGS || exit 1
 
 # This is the build for obsolete Windows machines (symlinked as ohrrpgce-win-win95-wip.zip)
-$BUILD gfx=directx+sdl+fb music=sdl win95=1 sse2=0 buildname=music_sdl $SCONS_ARGS && {
-  zip_and_upload music_sdl
+$BUILD gfx=directx+sdl+fb music=sdl win95=1 sse2=0 buildname=win95 $SCONS_ARGS && {
+  zip_and_upload win95
 
   echo "    Packaging win95 game player ..."
-  ./ohrpackage.py win player distrib/ohrrpgce-player-win-win95-wip.zip &&
-    scp -p distrib/ohrrpgce-player-win-win95-wip.zip "${SCPHOST}":"${SCPDEST}"
+  ./ohrpackage.py win player distrib/ohrrpgce-player-win-wip-win95.zip &&
+    scp -p distrib/ohrrpgce-player-win-wip-win95.zip "${SCPHOST}":"${SCPDEST}"
 }
 
 # This is the default build (default download ohrrpgce-win-default.zip is symlinked to it on the server)
@@ -108,8 +108,8 @@ $BUILD gfx=sdl2+directx+fb music=sdl2 buildname=sdl2 $SCONS_ARGS && {
     scp -p distrib/ohrrpgce-win-installer-wip.exe "${SCPHOST}":"${SCPDEST}"
 
   echo "    Packaging sdl2 game player ..."
-  ./ohrpackage.py win player distrib/ohrrpgce-player-win-sdl2-wip.zip &&
-    scp -p distrib/ohrrpgce-player-win-sdl2-wip.zip "${SCPHOST}":"${SCPDEST}"
+  ./ohrpackage.py win player distrib/ohrrpgce-player-win-wip-sdl2.zip &&
+    scp -p distrib/ohrrpgce-player-win-wip-sdl2.zip "${SCPHOST}":"${SCPDEST}"
 
 }
 

@@ -827,8 +827,8 @@ FUNCTION add_windows_gameplayer(basename as string, destdir as string) as string
   '--If running a nightly wip, download the default build of the latest nightly wip
   '--(Before 2020-11-17 nightlies downloaded ohrrpgce-player-win-wip.zip instead,
   '--which was assumed to be gfx_directx+sdl[+fb], music_sdl)
-  '--(Used to be called ohrrpgce-player-win-wip-sdl2.zip which is now symlinked to the new name)
-  dlfile = "ohrrpgce-player-win-sdl2-wip.zip"
+  '--(Was for a while in 2022-23 called ohrrpgce-player-win-sdl2-wip.zip)
+  dlfile = "ohrrpgce-player-win-wip-sdl2.zip"
   url = "http://hamsterrepublic.com/ohrrpgce/nightly/" & dlfile
  ELSE
   '--Use this stable release
@@ -838,7 +838,7 @@ FUNCTION add_windows_gameplayer(basename as string, destdir as string) as string
   '-- hróðvitnir downloaded ohrrpgce-player-win-minimal-sdl2.zip
   '--see web/ohrstable.sh for info on server symlinks)
 
-  dlfile = "ohrrpgce-player-win-sdl2" & version_release_tag & ".zip"
+  dlfile = "ohrrpgce-player-win" & version_release_tag & "-sdl2.zip"
   url = "http://hamsterrepublic.com/ohrrpgce/archive/" & dlfile
  END IF
 
@@ -912,7 +912,7 @@ FUNCTION add_linux_gameplayer(which_arch as string, basename as string, destdir 
  DIM dlfile as string
  IF version_branch = "wip" THEN
   'If using any wip release, get the latest wip release
-  dlfile = "ohrrpgce-player-linux-" & which_arch & ".zip"
+  dlfile = "ohrrpgce-player-linux-wip-" & which_arch & ".zip"
   url = "http://hamsterrepublic.com/ohrrpgce/nightly/" & dlfile
  ELSE
   'Use this stable release
@@ -1719,13 +1719,15 @@ FUNCTION add_mac_gameplayer(which_arch as string, basename as string, destdir as
  DIM url as string
  DIM dlfile as string
 
+ 'Until ichorescent, used to download ohrrpgce-mac-minimal-$ARCH.tar.gz (nightlies)
+ 'or http://hamsterrepublic.com/dl/ohrrpgce-mac-minimal-$ARCH.tar.gz (stable)
  IF version_branch = "wip" THEN
   'If using any wip release, get the latest wip release
-  dlfile = "ohrrpgce-mac-minimal-" & which_arch & ".tar.gz"
+  dlfile = "ohrrpgce-player-mac-wip-" & which_arch & ".tar.gz"
   url = "http://hamsterrepublic.com/ohrrpgce/nightly/" & dlfile
  ELSE
   'Use this stable release
-  dlfile = "ohrrpgce-mac-minimal" & version_release_tag & "-" & which_arch & ".tar.gz"
+  dlfile = "ohrrpgce-player-mac" & version_release_tag & "-" & which_arch & ".tar.gz"
   url = "http://hamsterrepublic.com/ohrrpgce/archive/" & dlfile
  END IF
 

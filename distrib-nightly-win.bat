@@ -32,12 +32,12 @@ REM Would compile with lto=1 to reduce unlump/relump size, but that causes mingw
 CALL scons hspeak relump unlump win95=1 sse2=0 %SCONS_ARGS% || exit /b 1
 
 REM This is the build for obsolete Windows machines (symlinked as ohrrpgce-win-win95-wip.zip)
-call scons gfx=directx+sdl+fb music=sdl win95=1 sse2=0 buildname=music_sdl %SCONS_ARGS% && (
-  call distrib-nightly-win-packnupload music_sdl
+call scons gfx=directx+sdl+fb music=sdl win95=1 sse2=0 buildname=win95 %SCONS_ARGS% && (
+  call distrib-nightly-win-packnupload win95
 
   ECHO     Packaging win95 game player ...
-  python ohrpackage.py win player distrib\ohrrpgce-player-win-win95-wip.zip && (
-    pscp -q distrib\ohrrpgce-player-win-win95-wip.zip %SCPHOST%:%SCPDEST%
+  python ohrpackage.py win player distrib\ohrrpgce-player-win-wip-win95.zip && (
+    pscp -q distrib\ohrrpgce-player-win-wip-win95.zip %SCPHOST%:%SCPDEST%
   )
 )
 
@@ -53,8 +53,8 @@ call scons gfx=sdl2+directx+fb music=sdl2 buildname=sdl2 %SCONS_ARGS% && (
   )
 
   ECHO     Packaging sdl2 game player ...
-  python ohrpackage.py win player distrib\ohrrpgce-player-win-sdl2-wip.zip && (
-    pscp -q distrib\ohrrpgce-player-win-sdl2-wip.zip %SCPHOST%:%SCPDEST%
+  python ohrpackage.py win player distrib\ohrrpgce-player-win-wip-sdl2.zip && (
+    pscp -q distrib\ohrrpgce-player-win-wip-sdl2.zip %SCPHOST%:%SCPDEST%
   )
 )
 
