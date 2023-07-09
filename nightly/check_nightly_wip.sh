@@ -4,11 +4,11 @@ SCRIPT_DIR=$(dirname "$0")
 cd $SCRIPT_DIR
 
 if [ -d "./check_nightly" ] ; then
-  echo "Cleanup leftover check_nightly directory..."
+  #echo "Cleanup leftover check_nightly directory..."
   rm -Rf ./check_nightly
 fi
 
-echo "Create new check_nightly directory"
+#echo "Create new check_nightly directory"
 mkdir ./check_nightly
 cd ./check_nightly
 
@@ -19,7 +19,7 @@ for NAME in "ohrrpgce-player-win-sdl2-wip.zip" \
             "ohrrpgce-mac-minimal-x86_64.tar.gz" ; do
   EXT="${NAME#*.}"
   BASE="${NAME%%.*}"
-  echo "# $BASE ($EXT)"
+  echo "[$NAME]"
   mkdir ./tmp
   wget -q "https://hamsterrepublic.com/ohrrpgce/nightly/$NAME" -O "./tmp/$NAME"
   if [ "$EXT" = "zip" ] ; then

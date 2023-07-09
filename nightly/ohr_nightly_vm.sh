@@ -1,5 +1,9 @@
 #!/bin/sh
 
+UPLOAD_SERVER="james_paige@motherhamster.org"
+UPLOAD_FOLDER="HamsterRepublic.com/ohrrpgce/nightly/"
+UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
+
 for VMNAME in "Debian 32bit" "Debian 64bit" "Windows 7" "Mac OS X" "Debian for Android Builds" ; do
   echo "===Starting ${VMNAME}==="
   vboxmanage startvm "${VMNAME}" --type headless
@@ -21,16 +25,21 @@ for VMNAME in "Debian 32bit" "Debian 64bit" "Windows 7" "Mac OS X" "Debian for A
   done
 done
 
-# After the nightly build finishes, do some verification
+# After the nightly build finishes, generate nightly-check.ini listing the svn_rev
+# and build_date for the main builds, and upload and email it
+
+SCRIPT_DIR=$(dirname "$0")
+$SCRIPT_DIR/check_nightly_wip.sh 2>&1 | tee $SCRIPT_DIR/nightly-check.ini
+
 if [ -n "True" ] ; then
   echo "From: cron@rpg.hamsterrepublic.com"
   echo "To: cron@rpg.hamsterrepublic.com"
   echo "Subject: OHRRPGCE Nightly build check ($(uname -n))"
   echo ""
-  SCRIPT_DIR=$(dirname "$0")
-  $SCRIPT_DIR/check_nightly_wip.sh 2>&1
-fi | tee ~/wrap-nightly-check-output.txt
+  cat $SCRIPT_DIR/nightly-check.ini
+fi > ~/wrap-nightly-check-output.txt
 ~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-check-output.txt
+scp -p $SCRIPT_DIR/nightly-check.ini $UPLOAD_DEST
 
 # list the remote directory
-ssh james_paige@motherhamster.org ls -l HamsterRepublic.com/ohrrpgce/nightly/ | cut -d " " -f 5-
+ssh $UPLOAD_SERVER ls -l $UPLOAD_FOLDER | cut -d " " -f 5-
