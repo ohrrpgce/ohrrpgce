@@ -43,7 +43,7 @@ fi
 echo "Fetching OHRRPGCE stable release files"
 rm -Rf ./releases
 mkdir -p releases
-curl -L -s -o releases/ohrrpgce.zip https://hamsterrepublic.com/dl/ohrrpgce.zip
+curl -L -s -o releases/ohrrpgce-win.zip https://hamsterrepublic.com/dl/ohrrpgce-win.zip
 curl -L -s -o releases/OHRRPGCE-x86_64.dmg https://hamsterrepublic.com/dl/OHRRPGCE-x86_64.dmg
 curl -L -s -o releases/ohrrpgce-linux-x86_64.tar.bz2 https://hamsterrepublic.com/dl/ohrrpgce-linux-x86_64.tar.bz2
 # We don't upload the last one, it is just for buildinfo.ini
@@ -65,6 +65,6 @@ echo "Found version $( cat buildnumber.txt )"
 
 echo "Uploading release to bob-the-hamster.itch.io..."
 echo "The ohrrpgce game project should already exist..."
-./butler push releases/ohrrpgce.zip bob-the-hamster/ohrrpgce:windows-stable --userversion-file buildnumber.txt
+./butler push releases/ohrrpgce-win.zip bob-the-hamster/ohrrpgce:windows-stable --userversion-file buildnumber.txt
 ./butler push releases/OHRRPGCE-x86_64.dmg bob-the-hamster/ohrrpgce:mac-stable --userversion-file buildnumber.txt
 ./butler push releases/ohrrpgce-linux-x86_64.tar.bz2 bob-the-hamster/ohrrpgce:linux-stable --userversion-file buildnumber.txt
