@@ -1657,6 +1657,7 @@ Jun 15 2012 [Alectormancy]
       * Distribute as Zip file
       * Distribute as Windows installer
       * Distribute as Debian Linux package
+      * Distribute as Mac OSX app bundle
     * Script trigger log: press CTRL+F10 in-game to cause triggered
       scripts (not called from other scripts) to be logged to
       script_log.txt. It might help to restart/reload the game
