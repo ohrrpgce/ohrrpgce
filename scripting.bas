@@ -1556,11 +1556,20 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
  'err_suppress_lvl is always at least serrIgnore
  IF errorlevel <= err_suppress_lvl THEN EXIT SUB
 
- DIM as string call_chain
- IF insideinterpreter THEN call_chain = script_call_chain(NO)
- debug "Scripterr(" & errorlevel & "): " + call_chain + ": " + e
+ DIM display as bool = should_display_error_to_user(errorlevel)
 
- IF NOT should_display_error_to_user(errorlevel) THEN EXIT SUB
+ 'Logging is very slow, so we shouldn't if there are repeated errors (especially in release mode)
+ STATIC error_count as integer = 0
+ IF display = YES ORELSE error_count < 50 THEN
+  DIM as string call_chain
+  IF insideinterpreter THEN call_chain = script_call_chain(NO)
+  debug "Scripterr(" & errorlevel & "): " + call_chain + ": " + e
+ ELSEIF error_count = 50 THEN
+  debug "Ignoring further script errors"
+ END IF
+ error_count += 1
+
+ IF display = NO THEN EXIT SUB
 
  'Is the error ignored? Match errors in two different ways (throw location,
  'error message) to improve odds of the match working.

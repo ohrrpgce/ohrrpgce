@@ -223,6 +223,8 @@ WHAT IS NEW?
       Also it was ignored by "Don't display damage" or "No damage" attacks [Ralph]
     * Attacks set to "No damage" ignored the "Show attack name" bit [Ralph]
     * Corrupt .ogg files could show a BUG message instead of being ignored [Ralph]
+    * In release mode, spamming script errors could slow down the game even though
+      they were suppressed. Now at most 50 are logged to g_debug.txt [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license
