@@ -488,35 +488,6 @@ FUNCTION ceiling (byval n as integer) as integer
  RETURN INT(n * -1) * -1
 END FUNCTION
 
-FUNCTION bound (byval n as integer, byval lowest as integer, byval highest as integer) as integer
- bound = n
- IF n < lowest THEN bound = lowest
- IF n > highest THEN bound = highest
-END FUNCTION
-
-FUNCTION bound (byval n as longint, byval lowest as longint, byval highest as longint) as longint
- bound = n
- IF n < lowest THEN bound = lowest
- IF n > highest THEN bound = highest
-END FUNCTION
-
-FUNCTION bound (byval n as double, byval lowest as double, byval highest as double) as double
- bound = n
- IF n < lowest THEN bound = lowest
- IF n > highest THEN bound = highest
-END FUNCTION
-
-FUNCTION bound (point as XYPair, lefttop as XYPair, rightbottom as XYPair) as XYPair
- DIM ret as XYPair = any
- ret.x = IIF(point.x > rightbottom.x, rightbottom.x, IIF(point.x < lefttop.x, lefttop.x, point.x))
- ret.y = IIF(point.y > rightbottom.y, rightbottom.y, IIF(point.y < lefttop.y, lefttop.y, point.y))
- RETURN ret
-END FUNCTION
-
-FUNCTION in_bound (byval n as integer, byval lowest as integer, byval highest as integer) as integer
- RETURN (n >= lowest) AND (n <= highest)
-END FUNCTION
-
 'Clamp a value to within a range with warning
 SUB clamp_value (byref value as integer, byval min as integer, byval max as integer, argname as string)
  DIM oldval as integer = value
@@ -525,27 +496,6 @@ SUB clamp_value (byref value as integer, byval min as integer, byval max as inte
  IF value <> oldval THEN debug "Clamped invalid " + argname + " value " & oldval & " to " & value
 END SUB
 
-FUNCTION large (byval n1 as integer, byval n2 as integer) as integer
- large = n1
- IF n2 > n1 THEN large = n2
-END FUNCTION
-
-FUNCTION large (byval n1 as longint, byval n2 as longint) as longint
- large = n1
- IF n2 > n1 THEN large = n2
-END FUNCTION
-
-FUNCTION large (byval n1 as double, byval n2 as double) as double
- IF n2 > n1 THEN RETURN n2 ELSE RETURN n1
-END FUNCTION
-
-FUNCTION large (xy1 as XYPair, xy2 as XYPair) as XYPair
- DIM ret as XYPair = any
- ret.x = IIF(xy1.x < xy2.x, xy2.x, xy1.x)
- ret.y = IIF(xy1.y < xy2.y, xy2.y, xy1.y)
- RETURN ret
-END FUNCTION
-
 SUB loopvar (byref value as integer, min as integer, max as integer, inc as integer = 1)
  value = POSMOD((value + inc) - min, (max - min) + 1) + min
 END SUB
@@ -553,27 +503,6 @@ END SUB
 SUB loopvar (byref value as longint, min as longint, max as longint, inc as longint = 1)
  value = POSMOD((value + inc) - min, (max - min) + 1) + min
 END SUB
-
-FUNCTION small (byval n1 as integer, byval n2 as integer) as integer
- small = n1
- IF n2 < n1 THEN small = n2
-END FUNCTION
-
-FUNCTION small (byval n1 as longint, byval n2 as longint) as longint
- small = n1
- IF n2 < n1 THEN small = n2
-END FUNCTION
-
-FUNCTION small (byval n1 as double, byval n2 as double) as double
- IF n2 < n1 THEN RETURN n2 ELSE RETURN n1
-END FUNCTION
-
-FUNCTION small (xy1 as XYPair, xy2 as XYPair) as XYPair
- DIM ret as XYPair = any
- ret.x = IIF(xy1.x > xy2.x, xy2.x, xy1.x)
- ret.y = IIF(xy1.y > xy2.y, xy2.y, xy1.y)
- RETURN ret
-END FUNCTION
 
 ' Split a RelPos into offset, alignment, and anchor.
 SUB RelPos_decode(pos as RelPos, byref offset as integer, byref align as AlignType, byref anchor as AlignType, byref show as AlignType)

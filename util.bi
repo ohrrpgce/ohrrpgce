@@ -828,6 +828,78 @@ declare function simple_randint (byref prng_state as uinteger, byval upperbound 
 #DEFINE ROT(a,b) ((a shl b) or (a shr (32 - b)))
 
 
+PRIVATE FUNCTION small (byval n1 as integer, byval n2 as integer) as integer
+ small = n1
+ IF n2 < n1 THEN small = n2
+END FUNCTION
+
+PRIVATE FUNCTION small (byval n1 as longint, byval n2 as longint) as longint
+ small = n1
+ IF n2 < n1 THEN small = n2
+END FUNCTION
+
+PRIVATE FUNCTION small (byval n1 as double, byval n2 as double) as double
+ IF n2 < n1 THEN RETURN n2 ELSE RETURN n1
+END FUNCTION
+
+PRIVATE FUNCTION small (xy1 as XYPair, xy2 as XYPair) as XYPair
+ DIM ret as XYPair = any
+ ret.x = IIF(xy1.x > xy2.x, xy2.x, xy1.x)
+ ret.y = IIF(xy1.y > xy2.y, xy2.y, xy1.y)
+ RETURN ret
+END FUNCTION
+
+PRIVATE FUNCTION large (byval n1 as integer, byval n2 as integer) as integer
+ large = n1
+ IF n2 > n1 THEN large = n2
+END FUNCTION
+
+PRIVATE FUNCTION large (byval n1 as longint, byval n2 as longint) as longint
+ large = n1
+ IF n2 > n1 THEN large = n2
+END FUNCTION
+
+PRIVATE FUNCTION large (byval n1 as double, byval n2 as double) as double
+ IF n2 > n1 THEN RETURN n2 ELSE RETURN n1
+END FUNCTION
+
+PRIVATE FUNCTION large (xy1 as XYPair, xy2 as XYPair) as XYPair
+ DIM ret as XYPair = any
+ ret.x = IIF(xy1.x < xy2.x, xy2.x, xy1.x)
+ ret.y = IIF(xy1.y < xy2.y, xy2.y, xy1.y)
+ RETURN ret
+END FUNCTION
+
+PRIVATE FUNCTION in_bound (byval n as integer, byval lowest as integer, byval highest as integer) as integer
+ RETURN (n >= lowest) AND (n <= highest)
+END FUNCTION
+
+PRIVATE FUNCTION bound (byval n as integer, byval lowest as integer, byval highest as integer) as integer
+ bound = n
+ IF n < lowest THEN bound = lowest
+ IF n > highest THEN bound = highest
+END FUNCTION
+
+PRIVATE FUNCTION bound (byval n as longint, byval lowest as longint, byval highest as longint) as longint
+ bound = n
+ IF n < lowest THEN bound = lowest
+ IF n > highest THEN bound = highest
+END FUNCTION
+
+PRIVATE FUNCTION bound (byval n as double, byval lowest as double, byval highest as double) as double
+ bound = n
+ IF n < lowest THEN bound = lowest
+ IF n > highest THEN bound = highest
+END FUNCTION
+
+PRIVATE FUNCTION bound (point as XYPair, lefttop as XYPair, rightbottom as XYPair) as XYPair
+ DIM ret as XYPair = any
+ ret.x = IIF(point.x > rightbottom.x, rightbottom.x, IIF(point.x < lefttop.x, lefttop.x, point.x))
+ ret.y = IIF(point.y > rightbottom.y, rightbottom.y, IIF(point.y < lefttop.y, lefttop.y, point.y))
+ RETURN ret
+END FUNCTION
+
+
 '----------------------------------------------------------------------
 '                         String functions
 
