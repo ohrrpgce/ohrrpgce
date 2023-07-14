@@ -332,6 +332,7 @@ SUB gamestate_state_from_reload(byval node as Reload.NodePtr)
 
  READNODE node, default
   node."current_map".ignore
+  node."status_char".ignore  'Removed in rsav version 6
 
   READNODE node."caterpillar".warn as caterpillar
    WITHNODE caterpillar."hero" as n
