@@ -643,6 +643,107 @@ DECLARE OPERATOR - (lhs as XYPair) as XYPair
 DECLARE_VECTOR_OF_TYPE(XYPair, XYPair)
 
 
+' --------- Inline operators  ----------
+
+'These are the common XYPair (and some Float2) operators (put here so they
+'can be inlined); the remainder are in util.bas.
+'See the declarations above for the complete list.
+
+PRIVATE OPERATOR = (lhs as XYPair, rhs as XYPair) as bool
+  RETURN lhs.x = rhs.x ANDALSO lhs.y = rhs.y
+END OPERATOR
+
+PRIVATE OPERATOR = (lhs as XYPair, rhs as integer) as bool
+  RETURN lhs.x = rhs ANDALSO lhs.y = rhs
+END OPERATOR
+
+PRIVATE OPERATOR <> (lhs as XYPair, rhs as XYPair) as bool
+  RETURN lhs.x <> rhs.x ORELSE lhs.y <> rhs.y
+END OPERATOR
+
+PRIVATE OPERATOR <> (lhs as XYPair, rhs as integer) as bool
+  RETURN lhs.x <> rhs ORELSE lhs.y <> rhs
+END OPERATOR
+
+PRIVATE OPERATOR XYPair.CAST () as Float2
+  RETURN XYF(x, y)
+END OPERATOR
+
+PRIVATE OPERATOR XYPair.+= (rhs as XYPair)
+  x += rhs.x
+  y += rhs.y
+END OPERATOR
+
+PRIVATE OPERATOR XYPair.LET (rhs as Float2)
+  x = rhs.x
+  y = rhs.y
+END OPERATOR
+
+PRIVATE OPERATOR XYPair.LET (value as integer)
+  x = value
+  y = value
+END OPERATOR
+
+PRIVATE OPERATOR + (lhs as XYPair, rhs as XYPair) as XYPair
+  RETURN TYPE(lhs.x + rhs.x, lhs.y + rhs.y)
+END OPERATOR
+
+PRIVATE OPERATOR + (lhs as XYPair, rhs as integer) as XYPair
+  RETURN TYPE(lhs.x + rhs, lhs.y + rhs)
+END OPERATOR
+
+PRIVATE OPERATOR - (lhs as XYPair, rhs as XYPair) as XYPair
+  RETURN TYPE(lhs.x - rhs.x, lhs.y - rhs.y)
+END OPERATOR
+
+PRIVATE OPERATOR - (lhs as XYPair, rhs as integer) as XYPair
+  RETURN TYPE(lhs.x - rhs, lhs.y - rhs)
+END OPERATOR
+
+PRIVATE OPERATOR * (lhs as XYPair, rhs as XYPair) as XYPair
+  RETURN TYPE(lhs.x * rhs.x, lhs.y * rhs.y)
+END OPERATOR
+
+PRIVATE OPERATOR * (lhs as XYPair, rhs as integer) as XYPair
+  RETURN TYPE(lhs.x * rhs, lhs.y * rhs)
+END OPERATOR
+
+PRIVATE OPERATOR * (lhs as XYPair, rhs as double) as XYPair
+  RETURN TYPE(lhs.x * rhs, lhs.y * rhs)
+END OPERATOR
+
+PRIVATE OPERATOR \ (lhs as XYPair, rhs as XYPair) as XYPair
+  RETURN TYPE(lhs.x \ rhs.x, lhs.y \ rhs.y)
+END OPERATOR
+
+PRIVATE OPERATOR \ (lhs as XYPair, rhs as integer) as XYPair
+  RETURN TYPE(lhs.x \ rhs, lhs.y \ rhs)
+END OPERATOR
+
+PRIVATE OPERATOR / (lhs as XYPair, rhs as double) as XYPair
+  RETURN TYPE(lhs.x / rhs, lhs.y / rhs)
+END OPERATOR
+
+PRIVATE OPERATOR / (lhs as XYPair, rhs as XYPair) as XYPair
+  RETURN TYPE(lhs.x / rhs.x, lhs.y / rhs.y)
+END OPERATOR
+
+PRIVATE OPERATOR - (lhs as XYPair) as XYPair
+  RETURN TYPE(-lhs.x, -lhs.y)
+END OPERATOR
+
+
+PRIVATE OPERATOR + (lhs as Float2, rhs as Float2) as Float2
+  RETURN TYPE(lhs.x + rhs.x, lhs.y + rhs.y)
+END OPERATOR
+
+PRIVATE OPERATOR - (lhs as Float2, rhs as Float2) as Float2
+  RETURN TYPE(lhs.x - rhs.x, lhs.y - rhs.y)
+END OPERATOR
+
+'---------------------------------------
+
+
 DECLARE FUNCTION xypair_direction (v as XYPair, byval axis as integer, byval default as DirNum = dirNone) as DirNum
 DECLARE FUNCTION xypair_to_direction (v as XYPair) as DirNum
 DECLARE SUB xypair_move (v as XYPair, byval direction as integer, byval amount as integer = 1)

@@ -201,8 +201,11 @@ DEFINE_VECTOR_OF_TYPE(XYPair, XYPair)
   END OPERATOR
 #ENDMACRO
 
-XYPAIR_OPERATOR_AND_XY (=)
-XYPAIR_OPERATOR_AND_INT(=)
+'The commented out operator='s, and all the other missing ones, have been moved to util.bi
+'so they can be inlined by the compiler.
+
+'XYPAIR_OPERATOR_AND_XY (=)
+'XYPAIR_OPERATOR_AND_INT(=)
 XYPAIR_OPERATOR_AND_XY(<)
 XYPAIR_OPERATOR_AND_INT(<)
 XYPAIR_OPERATOR_AND_XY(<=)
@@ -212,83 +215,12 @@ XYPAIR_OPERATOR_AND_INT(>)
 XYPAIR_OPERATOR_AND_XY(>=)
 XYPAIR_OPERATOR_AND_INT(>=)
 
-OPERATOR <> (lhs as XYPair, rhs as XYPair) as bool
-  RETURN lhs.x <> rhs.x ORELSE lhs.y <> rhs.y
-END OPERATOR
-
-OPERATOR <> (lhs as XYPair, rhs as integer) as bool
-  RETURN lhs.x <> rhs ORELSE lhs.y <> rhs
-END OPERATOR
-
-OPERATOR XYPair.CAST () as Float2
-  RETURN XYF(x, y)
-END OPERATOR
-
 OPERATOR XYPair.CAST () as string
   RETURN x & "," & y
 END OPERATOR
 
 OPERATOR WHSimple.CAST () as string
   RETURN w & "*" & h
-END OPERATOR
-
-OPERATOR XYPair.+= (rhs as XYPair)
-  x += rhs.x
-  y += rhs.y
-END OPERATOR
-
-OPERATOR XYPair.LET (value as integer)
-  x = value
-  y = value
-END OPERATOR
-
-OPERATOR XYPair.LET (rhs as Float2)
-  x = rhs.x
-  y = rhs.y
-END OPERATOR
-
-OPERATOR + (lhs as XYPair, rhs as XYPair) as XYPair
-  RETURN TYPE(lhs.x + rhs.x, lhs.y + rhs.y)
-END OPERATOR
-
-OPERATOR + (lhs as XYPair, rhs as integer) as XYPair
-  RETURN TYPE(lhs.x + rhs, lhs.y + rhs)
-END OPERATOR
-
-OPERATOR - (lhs as XYPair, rhs as XYPair) as XYPair
-  RETURN TYPE(lhs.x - rhs.x, lhs.y - rhs.y)
-END OPERATOR
-
-OPERATOR - (lhs as XYPair, rhs as integer) as XYPair
-  RETURN TYPE(lhs.x - rhs, lhs.y - rhs)
-END OPERATOR
-
-OPERATOR * (lhs as XYPair, rhs as XYPair) as XYPair
-  RETURN TYPE(lhs.x * rhs.x, lhs.y * rhs.y)
-END OPERATOR
-
-OPERATOR * (lhs as XYPair, rhs as integer) as XYPair
-  RETURN TYPE(lhs.x * rhs, lhs.y * rhs)
-END OPERATOR
-
-OPERATOR * (lhs as XYPair, rhs as double) as XYPair
-  RETURN TYPE(lhs.x * rhs, lhs.y * rhs)
-END OPERATOR
-
-OPERATOR \ (lhs as XYPair, rhs as XYPair) as XYPair
-  RETURN TYPE(lhs.x \ rhs.x, lhs.y \ rhs.y)
-END OPERATOR
-
-OPERATOR \ (lhs as XYPair, rhs as integer) as XYPair
-  RETURN TYPE(lhs.x \ rhs, lhs.y \ rhs)
-END OPERATOR
-
-OPERATOR / (lhs as XYPair, rhs as XYPair) as XYPair
-  RETURN TYPE(lhs.x / rhs.x, lhs.y / rhs.y)
-END OPERATOR
-
-OPERATOR / (lhs as XYPair, rhs as double) as XYPair
-  RETURN TYPE(lhs.x / rhs, lhs.y / rhs)
 END OPERATOR
 
 OPERATOR ABS (lhs as XYPair) as XYPair
@@ -301,10 +233,6 @@ END OPERATOR
 
 OPERATOR MOD (lhs as XYPair, rhs as integer) as XYPair
   RETURN TYPE(lhs.x MOD rhs, lhs.y MOD rhs)
-END OPERATOR
-
-OPERATOR - (lhs as XYPair) as XYPair
-  RETURN TYPE(-lhs.x, -lhs.y)
 END OPERATOR
 
 
@@ -325,17 +253,18 @@ OPERATOR <> (lhs as Float2, rhs as Float2) as bool
   RETURN lhs.x <> rhs.x orelse lhs.y <> rhs.y
 END OPERATOR
 
-OPERATOR + (lhs as Float2, rhs as Float2) as Float2
-  RETURN TYPE(lhs.x + rhs.x, lhs.y + rhs.y)
-END OPERATOR
+'In util.bi
+' OPERATOR + (lhs as Float2, rhs as Float2) as Float2
+'   RETURN TYPE(lhs.x + rhs.x, lhs.y + rhs.y)
+' END OPERATOR
 
 OPERATOR + (lhs as Float2, rhs as double) as Float2
   RETURN TYPE(lhs.x + rhs, lhs.y + rhs)
 END OPERATOR
 
-OPERATOR - (lhs as Float2, rhs as Float2) as Float2
-  RETURN TYPE(lhs.x - rhs.x, lhs.y - rhs.y)
-END OPERATOR
+' OPERATOR - (lhs as Float2, rhs as Float2) as Float2
+'   RETURN TYPE(lhs.x - rhs.x, lhs.y - rhs.y)
+' END OPERATOR
 
 OPERATOR - (lhs as Float2, rhs as double) as Float2
   RETURN TYPE(lhs.x - rhs, lhs.y - rhs)
