@@ -251,6 +251,7 @@ DECLARE SUB slice_editor_common_function_keys (byref ses as SliceEditState, edsl
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
 DECLARE SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice ptr = 0, indent as integer = 0, icon_group_x as integer = 0)
 DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
+DECLARE SUB slice_editor_invalidate_ptrs (byref ses as SliceEditState)
 DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
@@ -375,7 +376,7 @@ END FUNCTION
 '==============================================================================
 
 
-TYPE SlicePickerMenu EXTENDS ModularMenu
+TYPE CollectionPickerMenu EXTENDS ModularMenu
  id as integer
  ret as integer
  draw_root as Slice ptr
@@ -385,7 +386,7 @@ TYPE SlicePickerMenu EXTENDS ModularMenu
  DECLARE SUB draw_underlays()
 END TYPE
 
-SUB SlicePickerMenu.update ()
+SUB CollectionPickerMenu.update ()
  DeleteSlice @collectionsl
  DIM name as string
  collectionsl = LoadSliceCollection(SL_COLLECT_USERDEFINED, id)
@@ -400,7 +401,7 @@ SUB SlicePickerMenu.update ()
  add_item 2, , " Name: " & name, NO  'Unselectable
 END SUB
 
-FUNCTION SlicePickerMenu.each_tick () as bool
+FUNCTION CollectionPickerMenu.each_tick () as bool
  tooltip = ""
  SELECT CASE itemtypes(state.pt)
   CASE 0
@@ -412,14 +413,14 @@ FUNCTION SlicePickerMenu.each_tick () as bool
  END SELECT
 END FUNCTION
 
-SUB SlicePickerMenu.draw_underlays()
+SUB CollectionPickerMenu.draw_underlays()
  draw_background vpages(vpage), bgChequer
  DrawSlice draw_root, vpage
 END SUB
 
 'Pick a USERDEFINED (normal) slice collection. Returns ID or -1 if cancelled
 FUNCTION slice_collection_picker(initial_id as integer = 0) as integer
- DIM menu as SlicePickerMenu
+ DIM menu as CollectionPickerMenu
  menu.id = initial_id
  menu.ret = -1
  menu.draw_root = create_draw_root(NO)  'solid=NO
@@ -744,7 +745,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     state.need_update = YES
    END IF
 
-   IF ses.tool = SliceTool.pick ANDALSO keyval(scAlt) = 0 ANDALSO keyval(scCtrl) = 0 ANDALSO keyval(scShift) = 0 THEN
+   IF ses.tool = SliceTool.pick ANDALSO keyval(scAlt) = 0 ANDALSO shiftctrl = 0 THEN
     'Left: hide even more of the tree
     IF keyval(ccLeft) > 1 THEN
      IF ses.curslice->EditorHideChildren ORELSE ses.curslice->NumChildren = 0 THEN
@@ -793,7 +794,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
 
   ' Tools, clicking and dragging slices
   IF state.need_update = NO THEN
-   'Button clicks which select slices. (Always in right-click, even when not Picking)
+   'Button clicks which select slices. (Always include right-click, even when not Picking)
    DIM select_buttons as MouseButton = mouseRight
    'Buttons for dragging to edit slices
    DIM drag_buttons as MouseButton = IIF(ses.mouse_focus = focusCollection, mouseLeft, mouseNone)
@@ -965,8 +966,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    ELSEIF sl <> NULL THEN
     IF yesno("Delete this " & SliceTypeName(sl) & " slice?", NO) THEN
      DeleteSlice @sl
-     'After deleting any slice an unlimited number of menu items have invalid ptrs, so delete the menu to be safe
-     ERASE ses.slicemenu
+     slice_editor_invalidate_ptrs ses
      state.need_update = YES
     END IF
    END IF
@@ -1158,19 +1158,25 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
      IF SlicePossiblyResizable(ses.curslice) = NO THEN toolbar &= "  Not resizable"
     END IF
     'toolbar &= "  f" & ses.mouse_focus & " h" & state.hover  & " u" & updated
-    IF ses.tool = SliceTool.pick then
-     toolbar &= !"\n`+` add slice. SHIFT" & CHR(27,28,29,26) & " to reorder"  'SHIFT arrows
+   END IF
+   toolbar = ticklite(toolbar)
+   wrapprintbg toolbar, 8, pBottom - 11, uilook(uiMenuItem), dpage, menuopts.drawbg, , , fontBuiltinEdged
+
+   DIM infobar as string
+   IF ses.curslice THEN
+    IF ses.tool = SliceTool.pick THEN
+     infobar &= "`+` add slice. SHIFT" & CHR(27,28,29,26) & " to reorder"  'SHIFT arrows
     ELSE
-     toolbar &= !"\n`+` add slice. SHIFT for speed. ALT" & CHR(28,29) & " select"  'ALT updown
+     infobar &= "`+` add slice. SHIFT for speed. ALT" & CHR(28,29) & " select"  'ALT updown
     END IF
    ELSE
-    toolbar &= !"\n`+` add slice"
+    infobar &= "`+` add slice"
    END IF
-   toolbar &= ". CTRL" & CHR(27,28,29,26) & " walk tree. CTRL-click select invisible"  'CTRL arrows
+   infobar &= ". CTRL" & CHR(27,28,29,26) & " walk tree. CTRL-click select invisible"  'CTRL arrows
 
-   toolbar = ticklite(toolbar)
+   infobar = ticklite(infobar)
    'The up/down arrows are probably not in the game font. And don't wrap.
-   wrapprintbg toolbar, 8, pBottom - 1, uilook(uiMenuItem), dpage, menuopts.drawbg, 9999, , fontBuiltinEdged
+   wrapprintbg infobar, 8, pBottom - 1, uilook(uiMenuItem), dpage, menuopts.drawbg, 9999, , fontBuiltinEdged
   END IF
 
   IF LEN(ses.tooltip) THEN
@@ -1256,7 +1262,7 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
  IF state.need_update = NO ANDALSO shiftctrl = 0 THEN  'need_update=NO ensures not a string field
   IF keyval(scF) > 1 THEN
    slice_editor_focus_on_slice ses, edslice
-   state.need_update = YES
+   'state.need_update = YES
   END IF
   IF keyval(scZ) > 1 ANDALSO ses.curslice THEN
    slice_editor_reset_slice ses, ses.curslice
@@ -1496,10 +1502,17 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
   remember_draw_root_pos = ses.draw_root->Pos
   DeleteSlice @ses.draw_root  'Deletes edslice too
  END IF
- ERASE ses.slicemenu  'All the .handle pointers are invalid
+ slice_editor_invalidate_ptrs ses
  edslice = newcollection
  ses.draw_root = create_draw_root(ses)
  SetSliceParent edslice, ses.draw_root
+END SUB
+
+'Call after deleting any slice (an unlimited number of menu items have invalid
+'ptrs), so have to refresh the main menu.
+SUB slice_editor_invalidate_ptrs (byref ses as SliceEditState)
+ ERASE ses.slicemenu
+ ses.slicemenust.need_update = YES
 END SUB
 
 ' Browse for a slice collection to import or edit.
