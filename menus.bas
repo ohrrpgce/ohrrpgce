@@ -462,6 +462,28 @@ FUNCTION usemenu (state as MenuState, selectable() as bool, byval deckey as KBSc
  END WITH
 END FUNCTION
 
+'Standard controls for using and exiting a menu.
+'Sets state.active = NO and returns either state.pt or escval to exit the menu
+FUNCTION default_menu_controls(state as MenuState, escval as integer = -1) as integer
+ IF keyval(ccCancel) > 1 THEN
+  state.active = NO
+  RETURN escval
+ END IF
+ IF readmouse.release AND (mouseLeft OR mouseRight) THEN
+  IF NOT rect_collide_point(state.rect, readmouse.pos) THEN
+   state.active = NO
+   RETURN escval
+  END IF
+ END IF
+
+ IF enter_space_click(state) THEN
+  state.active = NO
+  RETURN state.pt
+ END IF
+
+ usemenu state
+END FUNCTION
+
 'scrollmenu is like usemenu for menus where no menu item is selected:
 'you just want to scroll a menu up and down (modifies .top; .pt is ignored).
 'Returns true when view changed.
@@ -1617,6 +1639,7 @@ END SUB
 
 ' Calculate top-left corner of the text, placed in 'where'
 SUB position_menu_item (menu as MenuDef, cap as string, byval i as integer, byref where as XYPair)
+ 'Adding bord to menu.rect like this should equal state.rect. TODO: use state.rect instead?
  DIM bord as integer
  bord = 8 + menu.bordersize
  WITH menu.rect

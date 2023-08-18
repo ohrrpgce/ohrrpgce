@@ -3329,6 +3329,34 @@ SUB import_string_from_file(s as string)
  
 END SUB
 
+'Setup MenuDef and MenuState like multichoice(): centered by default, or at 'where', or 'at_top'.
+'at_top: align to top of the screen. Set menu.offset.y to any space needed for a title.
+'popup_style: make the menu look and behave like a popup menu
+SUB init_multichoice_menu(menu as MenuDef, state as MenuState, where as XYPair=XY(0,0), at_top as bool=NO, popup_style as bool=NO)
+ IF where <> 0 THEN
+  menu.anchorvert = alignTop
+  menu.alignvert = alignTop
+  menu.anchorhoriz = alignLeft
+  menu.alignhoriz = alignLeft
+  menu.offset = where
+  menu.clamp_to_screen = YES
+ ELSEIF at_top THEN
+  menu.anchorvert = alignTop
+  menu.alignvert = alignTop
+ END IF
+ menu.withtags = YES
+ menu.suppress_borders = YES
+ menu.itemspacing = 1
+ IF popup_style THEN
+  menu.bordersize = -6  'Total border (+8) is 2px
+  menu.textalign = alignLeft
+  state.drag_selecting = readmouse.buttons
+ END IF
+
+ state.active = YES
+ init_menu_state state, menu
+END SUB
+
 'Show a message box and a multichoice menu below it, return option number.
 'Preserves the contents of the screen.
 'extra_message: shown at the bottom of the screen.
@@ -3342,28 +3370,8 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
   append_menu_item menu, choices(i)
  NEXT
 
- IF where <> 0 THEN
-  menu.anchorvert = alignTop
-  menu.alignvert = alignTop
-  menu.anchorhoriz = alignLeft
-  menu.alignhoriz = alignLeft
-  menu.offset = where
-  menu.clamp_to_screen = YES
- ELSEIF LEN(*capt) THEN
-  menu.anchorvert = alignTop
-  menu.alignvert = alignTop
- END IF
- menu.withtags = YES
- menu.suppress_borders = YES
- menu.itemspacing = 1
- IF popup_style THEN
-  menu.bordersize = -6
-  menu.textalign = alignLeft
-  state.drag_selecting = readmouse.buttons
- END IF
+ init_multichoice_menu menu, state, where, LEN(*capt) <> 0, popup_style
 
- state.active = YES
- init_menu_state state, menu
  state.pt = defaultval
 
  'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
@@ -3378,32 +3386,14 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
   setwait 55
   setkeys
 
-  IF keyval(ccCancel) > 1 THEN
-   result = escval
-   state.active = NO
-  END IF
-  IF readmouse.release AND (mouseLeft OR mouseRight) THEN
-   IF NOT rect_collide_point(menu.rect, readmouse.pos) THEN
-    result = escval
-    state.active = NO
-   END IF
-  END IF
-
   IF keyval(scF1) > 1 ANDALSO LEN(*helpkey) > 0 THEN
    show_help helpkey
   END IF
 
-  IF enter_space_click(state) THEN
-   result = state.pt
-   state.active = NO
-  END IF
-
+  result = default_menu_controls(state, escval)
   IF state.active = NO THEN EXIT DO
 
-  usemenu state
-
   copypage holdscreen, vpage
-  DIM res as XYPair = get_resolution()
   IF LEN(*capt) THEN
    IF where <> 0 THEN
     'The caption is displayed at a separate location to the menu (leave some room for extra_message at bottom)
@@ -3414,8 +3404,7 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
     menu.offset.y = 2 + basic_textbox(capt, , vpage, pCentered - 10 - UBOUND(choices) * 5 + showTop)
    END IF
   END IF
-  menu.max_chars = res.w \ 8 - 2
-  init_menu_state state, menu  'Required after changing menu.maxrows
+  menu.max_chars = get_resolution().w \ 8 - 2
   draw_menu menu, state, vpage
   IF have_help_file THEN
    edgeprint "F1 Help", pRight, pBottom, uilook(uiMenuItem), vpage

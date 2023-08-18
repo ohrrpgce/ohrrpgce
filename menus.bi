@@ -30,6 +30,7 @@ DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, byval menudata as BasicMe
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, menu as MenuDef, byval deckey as KBScancode = ccUp, byval inckey as KBScancode = ccDown) as bool
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, selectable() as bool, byval deckey as KBScancode = ccUp, byval inckey as KBScancode = ccDown) as bool
 DECLARE SUB usemenu_mouse_only (state as MenuState)
+DECLARE FUNCTION default_menu_controls(state as MenuState, escval as integer = -1) as integer
 DECLARE FUNCTION scrollmenu (state as MenuState, byval deckey as KBScancode = ccUp, byval inckey as KBScancode = ccDown) as bool
 DECLARE SUB standard_to_basic_menu (menu() as string, byref state as MenuState, byref basicmenu as BasicMenuItem vector, byval shaded as bool ptr = NULL)
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, x as RelPos = pMenuX, y as RelPos = pMenuY, page as integer, menuopts as MenuOptions = MenuOptions())

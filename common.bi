@@ -270,6 +270,7 @@ DECLARE FUNCTION basic_textbox (msg as zstring ptr, col as integer = -1, page as
 DECLARE FUNCTION notification (msg as zstring ptr, shrink as bool = NO) as KBScancode
 DECLARE SUB pop_warning(msg as zstring ptr, byval autoquit as bool = NO)
 
+DECLARE SUB init_multichoice_menu(menu as MenuDef, state as MenuState, where as XYPair=XY(0,0), at_top as bool=NO, popup_style as bool=NO)
 DECLARE FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", extra_message as zstring ptr=@"", where as XYPair=XY(0,0), popup_style as bool=NO) as integer
 DECLARE FUNCTION twochoice(capt as zstring ptr, strA as zstring ptr=@"Yes", strB as zstring ptr=@"No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as zstring ptr=@"") as integer
 DECLARE FUNCTION yesno(capt as zstring ptr, byval defaultval as bool=YES, byval escval as bool=NO) as bool
