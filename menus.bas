@@ -2109,6 +2109,12 @@ SUB ModularMenu.run()
   IF each_tick() THEN EXIT DO
 
   IF keyval(ccCancel) > 1 ANDALSO try_exit() THEN EXIT DO
+  IF floating ANDALSO readmouse.release AND (mouseLeft OR mouseRight) THEN
+   IF NOT rect_collide_point(state.rect, readmouse.pos) THEN
+    IF try_exit() THEN EXIT DO
+   END IF
+  END IF
+
   IF LEN(helpkey) ANDALSO keyval(scF1) > 1 ANDALSO (keyval(scCtrl) OR keyval(scShift)) = 0 THEN
    show_help helpkey
   END IF
