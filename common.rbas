@@ -3460,13 +3460,22 @@ FUNCTION popup_choice(capt as string="", choices() as string, defaultval as inte
  RETURN multichoice(capt, choices(), defaultval, escval, helpkey, extra_message, where, popup_style)
 END FUNCTION
 
-'Figure out where to draw a tooltip when using the OS mouse cursor (so its size isn't obvious)
-FUNCTION pick_tooltip_pos() as XYPair
+'Figure out where to draw a tooltip when using the OS mouse cursor (so its size isn't obvious),
+'clamping to screen.
+'The size of the tooltip is optional. Pass the size to avoid the tooltip possibly covering the
+'mouse position due to clamping to the screen.
+FUNCTION pick_tooltip_pos(size as XYPair = XY(0,0)) as RelPosXY
  DIM ret as XYPair = readmouse.pos
  DIM winstate as WindowState ptr = gfx_getwindowstate()
  DIM zoom as integer = IIF(winstate, winstate->zoom, 2)
- ret.x += 16 \ zoom + showLeft  'Clamp to screen
- ret.y += 16 \ zoom + showTop
+ 'We assume the OS mouse cursor is about 12x12 unscaled pixels, with its top-left corner at the mouse position
+ DIM offset as integer = 12 \ zoom
+
+ DIM res as XYPair = get_resolution()
+ IF ret.x + size.w > res.w THEN ret.x -= size.w ELSE ret.x += offset
+ IF ret.y + size.h > res.h THEN ret.y -= size.h ELSE ret.y += offset
+ ret.x += showLeft  'Clamp to screen
+ ret.y += showTop
  RETURN ret
 END FUNCTION
 
