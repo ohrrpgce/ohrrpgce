@@ -84,6 +84,7 @@ WHAT IS NEW?
       + in the slice collection editor [Ralph]
     * Slice Editor tools to Pick, Move, Resize, Pan with the mouse or keyboard.
       Right-drag with the mouse to pan the collection around.
+      Clicking in Pick mode lets you pick from all slices at that point.
       And mouse support while repositioning/resizing the old way [Ralph]
     * Left/Right in the Slice Editor (in Pick mode) now collapse/expand part
       of the menu, press repeatedly to hide/show more. [Ralph]

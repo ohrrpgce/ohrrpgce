@@ -204,7 +204,7 @@ FUNCTION mouse_update_hover (state as MenuState) as bool
  END IF
 END FUNCTION
 
-' Updates state.pt. This should be called only after mouse_update_hover has
+' Updates state.pt for clicks/drags. This should be called only after mouse_update_hover has
 ' updated state.hover and returned YES, if state.hover is a selectable item.
 SUB mouse_update_selection (state as MenuState)
  DIM buttons as integer = (readmouse.buttons OR readmouse.release)
@@ -1565,6 +1565,13 @@ END SUB
 '                                    Drawing MenuDefs
 '==========================================================================================
 
+'Update the caption of each menu item
+'Needs to be called before calc_menu_rect
+SUB update_menu_captions (menu as MenuDef)
+ FOR i as integer = 0 TO menu.numitems - 1
+  menu.items[i]->text = get_menu_item_caption(*menu.items[i], menu)
+ NEXT
+END SUB
 
 SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  DIM i as integer
@@ -1573,11 +1580,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  
  menu.age += 1
 
- 'Update the caption of each menu item
- FOR i = 0 TO menu.numitems - 1
-  menu.items[i]->text = get_menu_item_caption(*menu.items[i], menu)
- NEXT
-
+ update_menu_captions menu
  calc_menu_rect state, menu, page
 
  DIM bord as integer = 8 + menu.bordersize

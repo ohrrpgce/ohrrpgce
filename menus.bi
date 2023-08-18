@@ -91,6 +91,7 @@ DECLARE SUB write_menu_item_int (mi as MenuDefItem, byval intoffset as integer, 
 
 '' Drawing MenuDefs
 DECLARE SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
+DECLARE SUB update_menu_captions (menu as MenuDef)
 DECLARE SUB position_menu_item (menu as MenuDef, cap as string, byval i as integer, byref where as XYPair)
 DECLARE FUNCTION anchor_point(byval anchor as AlignType, byval size as integer) as integer
 DECLARE FUNCTION count_visible_menu_items (menu as MenuDef) as integer

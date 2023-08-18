@@ -37,10 +37,12 @@ ENUM HideMode
  hideLAST = 3
 END ENUM
 
-'Like MapMouseAttention
-ENUM SliceEdMouseFocus
- focusMenu
- focusCollection
+'Used for ses.focus and ses.mouse_focus to tell what takes control
+'(Like MapMouseAttention.)
+ENUM SliceEditorFocus
+ focusMenu               'Normal
+ focusCollection         'mouse_focus only!
+ focusPicker             'PickerMenu
 END ENUM
 
 ENUM SliceMenuItemID
@@ -66,6 +68,23 @@ TYPE SpecialLookupCode
  code as integer
  caption as string
  kindlimit as integer
+END TYPE
+
+TYPE SliceEditStateFwd as SliceEditState
+
+' A popup menu that lets you pick from multiple slices under the mouse
+TYPE PickerMenu
+ menu as MenuDef
+ state as MenuState
+ point as XYPair         'Remembered mouse position, relative to edslice (so we can rerun update())
+ just_opened as bool     'Was opened this tick
+
+ DECLARE SUB open(byref ses as SliceEditStateFwd, edslice as Slice ptr, topmost as Slice ptr)
+ DECLARE SUB close(byref ses as SliceEditStateFwd)
+ DECLARE SUB update(byref ses as SliceEditStateFwd, edslice as Slice ptr, cursor_seek as Slice ptr = NULL)
+ DECLARE FUNCTION controls(byref ses as SliceEditStateFwd, edslice as Slice ptr) as Slice ptr
+ DECLARE SUB draw(page as integer)
+ DECLARE FUNCTION curslice() as Slice ptr
 END TYPE
 
 ' The slice editor has three different modes:
@@ -99,7 +118,9 @@ TYPE SliceEditState
  expand_meta as bool
 
  tool as SliceTool = SliceTool.pick
- mouse_focus as SliceEdMouseFocus  'What gets mouse input. Normally what it's over, except when dragging.
+ focus as SliceEditorFocus        'What gets keyboard input. focusMenu or focusPicker only.
+ mouse_focus as SliceEditorFocus  'What gets mouse input. Normally what it's over, except when dragging
+                                  'or a modal menu is displayed.
 
  want_show_tooltip as bool 'Whatever's under the mouse should set 'tooltip'
  tooltip as string
@@ -128,6 +149,8 @@ TYPE SliceEditState
 
  slicemenu(any) as SliceEditMenuItem 'The top-level menu (which lists all slices)
  slicemenust as MenuState            'State of slicemenu() menu
+
+ picker as PickerMenu
 
  DECLARE FUNCTION curslice() as Slice ptr
 END TYPE
@@ -255,7 +278,7 @@ DECLARE SUB slice_editor_invalidate_ptrs (byref ses as SliceEditState)
 DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
-DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
+DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
 DECLARE SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Slice ptr, rootsl as Slice ptr, byref show_ants as bool, ctrl_msg as string = "", helpkey as string = "sliceedit_xy")
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, importing as bool = NO)
@@ -706,7 +729,9 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   'ESC to exit mode or the menu
   'S/C-F4 enters the slice debugger, so exit by pressing again.
   IF keyval(ccCancel) > 1 ORELSE (shiftctrl > 0 ANDALSO keyval(scF4) > 1) THEN
-   IF ses.hide_mode <> hideNothing THEN
+   IF ses.focus = focusPicker THEN
+    'Handled by PickerMenu.controls() below
+   ELSEIF ses.hide_mode <> hideNothing THEN
     ses.hide_mode = hideNothing
    ELSEIF ses.tool <> SliceTool.pick THEN
     ses.tool = SliceTool.pick
@@ -715,7 +740,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    END IF
   END IF
 
-  IF state.need_update = NO ANDALSO ses.slicemenu(state.pt).id = mnidCollectionName THEN
+  IF state.need_update = NO ANDALSO ses.focus = focusMenu ANDALSO ses.slicemenu(state.pt).id = mnidCollectionName THEN
    VAR context = collection_context(edslice)
    IF context ANDALSO strgrabber(context->name) THEN state.need_update = YES
   END IF
@@ -734,7 +759,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    state.need_update = YES
   END IF
 
-  IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
+  'Keys to expand/collapse trees
+  IF state.need_update = NO ANDALSO ses.curslice <> NULL ANDALSO ses.focus = focusMenu THEN
    IF keyval(scH) > 1 ORELSE keyval(scMinus) > 1 THEN
     'Toggle editor visibility of children
     IF ses.curslice->NumChildren > 0 THEN
@@ -780,12 +806,16 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   mouse_update_hover state
   ' Update ses.mouse_focus, unless dragging
   IF readmouse.dragging = mouseNone THEN
-   IF state.hover = -1 THEN
+   IF ses.focus = focusPicker THEN
+    ses.mouse_focus = focusPicker  'Largely modal
+   ELSEIF state.hover = -1 THEN
     ses.mouse_focus = focusCollection
    ELSE
     ses.mouse_focus = focusMenu
    END IF
   END IF
+
+  DIM dragging_mouse as bool = readmouse.drag_dist >= 3
 
   ' Update menu item highlights for slices under the mouse and return the topmost.
   ' When ses.mouse_focus <> focusCollection, topmost is NULL.
@@ -794,8 +824,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
 
   ' Tools, clicking and dragging slices
   IF state.need_update = NO THEN
-   'Button clicks which select slices. (Always include right-click, even when not Picking)
-   DIM select_buttons as MouseButton = mouseRight
    'Buttons for dragging to edit slices
    DIM drag_buttons as MouseButton = IIF(ses.mouse_focus = focusCollection, mouseLeft, mouseNone)
    'Buttons for dragging to pan
@@ -805,8 +833,14 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    ' Tools
    SELECT CASE ses.tool
     CASE SliceTool.pick
-     select_buttons = mouseLeft OR mouseRight
-     'Implemented below
+     'Normal right-click selection implemented below
+
+     IF ses.mouse_focus = focusCollection ANDALSO readmouse.release AND mouseLeft ANDALSO dragging_mouse = NO THEN
+      ses.picker.open(ses, edslice, topmost)
+     END IF
+
+     'While the picker is open the main menu has no mouse focus, and the picker menu ignores right-drags too
+     IF ses.focus = focusPicker THEN drag_pan_buttons = mouseRight
 
     CASE SliceTool.move
      IF ses.curslice THEN
@@ -838,8 +872,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
 
    END SELECT
 
-   ' Click selection (but ignore drags)
-   IF topmost ANDALSO (readmouse.release AND select_buttons) ANDALSO readmouse.drag_dist < 3 THEN
+   ' Right-click topmost slice selection (but ignore drags), even when not in Pick mode.
+   IF topmost ANDALSO (readmouse.release AND mouseRight) ANDALSO dragging_mouse = NO THEN
     cursor_seek = topmost
     state.need_update = YES
    END IF
@@ -863,15 +897,18 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    IF keyval(scR) > 1 THEN newtool = SliceTool.resize
    IF keyval(scN) > 1 THEN newtool = SliceTool.pan
    IF keyval(scF6) > 1 THEN newtool = SliceTool.pan
-   ' Press any tool shortcut again to deselect: The Pick tool is essentially None.
-   IF newtool THEN ses.tool = IIF(ses.tool = newtool, SliceTool.pick, newtool)
+   IF newtool THEN
+    ses.picker.close(ses)
+    ' Press any tool shortcut again to deselect: The Pick tool is essentially None.
+    ses.tool = IIF(ses.tool = newtool, SliceTool.pick, newtool)
+   END IF
   END IF
 
   DIM menuitemid as integer = mnidInvalid
   IF state.pt <= UBOUND(ses.slicemenu) THEN menuitemid = ses.slicemenu(state.pt).id
 
   ' Activate menu item
-  IF state.need_update = NO ANDALSO enter_space_click(state) THEN
+  IF state.need_update = NO ANDALSO ses.focus = focusMenu ANDALSO enter_space_click(state) THEN
    IF menuitemid = mnidExitMenu THEN
     IF slice_editor_save_when_leaving(ses, edslice) THEN EXIT DO
    ELSEIF menuitemid = mnidSettingsMenu THEN
@@ -903,7 +940,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    END IF
   END IF
 
-  IF keyval(scF2) > 1 ANDALSO state.need_update = NO THEN
+  IF keyval(scF2) > 1 ANDALSO state.need_update = NO ANDALSO ses.focus = focusMenu THEN
    'Export or Re-export
    slice_editor_export_prompt ses, edslice, (shiftctrl > 0)
   END IF
@@ -916,7 +953,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    slice_editor_import_prompt ses, edslice
   END IF
 #ENDIF
-  IF state.need_update = NO AND (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
+  IF state.need_update = NO ANDALSO (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
+   ses.picker.close(ses)
    DIM slice_type as SliceTypes
    DIM newsl as Slice ptr
    IF slice_edit_detail_browse_slicetype(slice_type, editable_slice_types(), YES) THEN
@@ -941,6 +979,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    IF copy_keychord() THEN
     slice_editor_copy ses, ses.curslice, edslice
    ELSEIF paste_keychord() THEN
+    ses.picker.close(ses)
     slice_editor_paste ses, ses.curslice, edslice
     state.need_update = YES
    END IF
@@ -972,7 +1011,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    END IF
   END IF
 
-  IF state.need_update = NO ANDALSO ses.curslice <> NULL THEN
+  IF state.need_update = NO ANDALSO ses.focus = focusMenu ANDALSO ses.curslice <> NULL THEN
 
    IF keyval(scCtrl) > 0 ANDALSO keyval(scF) > 1 THEN
     'Edit this slice alone ("fullscreen")
@@ -1031,15 +1070,23 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   ' Window size change
   IF UpdateScreenSlice() THEN state.need_update = YES
 
-  ' Change menu selection
+  ' Menu and submenu cursor movement, scrolling
   IF state.need_update = NO THEN
-   'Don't check mouse_focus because it mustn't affect keyboard, and the menu is always on top anyway
-   IF keyval(scAlt) > 0 ORELSE ses.tool = SliceTool.pick THEN
-    'Arrow keys, clicking on menu items
-    usemenu state
+   IF ses.focus = focusPicker THEN
+    cursor_seek = ses.picker.controls(ses, edslice)
+    IF cursor_seek THEN state.need_update = YES
+    'If the mouse is over the main menu we can allow scrolling it although it doesn't have focus
+    IF ses.picker.state.hover = -1 THEN mouse_scroll_menu state
    ELSE
-    'Clicking on menu items. (Arrows are used by move & resize tools)
-    usemenu_mouse_only state
+
+    'Don't check mouse_focus because it mustn't affect keyboard, and the menu is always on top anyway
+    IF keyval(scAlt) > 0 ORELSE ses.tool = SliceTool.pick THEN
+     'Arrow keys, clicking on menu items, scrollwheel
+     usemenu state
+    ELSE
+     'Clicking on menu items, scrollwheel. (Arrows are used by move, resize & pan tools)
+     usemenu_mouse_only state
+    END IF
    END IF
   END IF
 
@@ -1047,6 +1094,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
 
   IF state.need_update THEN
    slice_editor_refresh(ses, edslice, cursor_seek)
+   ses.picker.update(ses, edslice)
    state.need_update = NO
    cursor_seek = NULL
    'Update
@@ -1063,14 +1111,18 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   END IF
   IF ses.show_ants THEN
    IF ses.curslice THEN
+    'Note that slice ants while using the picker are shown indirectly, by
+    'changing the selected item (ses.curslice) in ses.slicemenu()
     DrawSliceAnts ses.curslice, dpage
    END IF
    IF state.hover > -1 ANDALSO ses.slicemenu(state.hover).handle THEN
     DrawSliceAnts ses.slicemenu(state.hover).handle, dpage
    END IF
+
+   'Show ants for slice for the menu item under the mouse
    'Only draw ants for topmost when clicking would select it. Right-clicking always selects.
    '(topmost null if ses.mouse_focus <> focusCollection)
-   IF topmost ANDALSO (ses.tool = SliceTool.pick ORELSE (readmouse.buttons AND mouseRight)) THEN
+   IF topmost ANDALSO dragging_mouse = NO ANDALSO (ses.tool = SliceTool.pick ORELSE (readmouse.buttons AND mouseRight)) THEN
     DrawSliceAnts topmost, dpage
    END IF
   END IF
@@ -1163,23 +1215,27 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    wrapprintbg toolbar, 8, pBottom - 11, uilook(uiMenuItem), dpage, menuopts.drawbg, , , fontBuiltinEdged
 
    DIM infobar as string
-   IF ses.curslice THEN
-    IF ses.tool = SliceTool.pick THEN
-     infobar &= "`+` add slice. SHIFT" & CHR(27,28,29,26) & " to reorder"  'SHIFT arrows
+   IF ses.focus = focusMenu THEN
+    IF ses.curslice THEN
+     IF ses.tool = SliceTool.pick THEN
+      infobar &= "`+` add slice. SHIFT" & CHR(27,28,29,26) & " to reorder"  'SHIFT arrows
+     ELSE
+      infobar &= "`+` add slice. SHIFT for speed. ALT" & CHR(28,29) & " select"  'ALT updown
+     END IF
     ELSE
-     infobar &= "`+` add slice. SHIFT for speed. ALT" & CHR(28,29) & " select"  'ALT updown
+     infobar &= "`+` add slice"
     END IF
-   ELSE
-    infobar &= "`+` add slice"
+    infobar &= ". CTRL" & CHR(27,28,29,26) & " walk tree. R-click select"  'CTRL arrows
    END IF
-   infobar &= ". CTRL" & CHR(27,28,29,26) & " walk tree. CTRL-click select invisible"  'CTRL arrows
 
    infobar = ticklite(infobar)
    'The up/down arrows are probably not in the game font. And don't wrap.
    wrapprintbg infobar, 8, pBottom - 1, uilook(uiMenuItem), dpage, menuopts.drawbg, 9999, , fontBuiltinEdged
   END IF
 
-  IF LEN(ses.tooltip) THEN
+  IF ses.focus = focusPicker THEN
+   ses.picker.draw(dpage)
+  ELSEIF LEN(ses.tooltip) THEN
    DIM tippos as XYPair = pick_tooltip_pos()
    wrapprintbg ses.tooltip, tippos.x, tippos.y, uilook(uiText), dpage, , , , fontBuiltinEdged
   END IF
@@ -1255,6 +1311,7 @@ FUNCTION collection_context(edslice as Slice ptr) as SliceCollectionContext ptr
  RETURN NULL
 END FUNCTION
 
+'Keys that can be used both in the top-level menu (including modal menus like Picker) and slice detail menu
 'Note: a lot of this is duplicated, and the keys are documented, in SliceEditSettingsMenu
 SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
  DIM shiftctrl as KeyBits = keyval(scShift) OR keyval(scCtrl)
@@ -1509,9 +1566,10 @@ SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, f
 END SUB
 
 'Call after deleting any slice (an unlimited number of menu items have invalid
-'ptrs), so have to refresh the main menu.
+'ptrs), so have to refresh the main and popup picker menus.
 SUB slice_editor_invalidate_ptrs (byref ses as SliceEditState)
  ERASE ses.slicemenu
+ DeleteMenuItems ses.picker.menu
  ses.slicemenust.need_update = YES
 END SUB
 
@@ -1814,7 +1872,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
 
   usemenu_flag = usemenu(state)
   IF state.pt = 0 AND enter_space_click(state) THEN EXIT DO
-  slice_edit_detail_keys ses, state, sl, rules(), usemenu_flag
+  slice_edit_detail_keys ses, edslice, state, sl, rules(), usemenu_flag
 
   'This must be after slice_edit_detail_keys so that can handle text input
   slice_editor_common_function_keys ses, edslice, state, YES  'F, R, V, F4, F7, F8, F10, C/S+F3, C/S+F5
@@ -1939,7 +1997,7 @@ SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
  END WITH
 END SUB
 
-SUB slice_edit_detail_keys (byref ses as SliceEditState, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
+SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
  DIM rule as EditRule = rules(state.pt)
  DIM set_default as bool
  IF rule.default <> 0 ANDALSO (keyval(scDelete) OR keyval(scBackspace)) > 0 THEN
@@ -3446,6 +3504,114 @@ SUB extra_data_editor(byref extravec as integer vector)
   setvispage vpage
   dowait
  LOOP
+END SUB
+
+
+'==========================================================================================
+'                                   Popup slice picker
+'==========================================================================================
+
+'Rebuild the menu, if already open
+SUB PickerMenu.update(byref ses as SliceEditState, edslice as Slice ptr, cursor_seek as Slice ptr = NULL)
+ IF state.active = NO THEN EXIT SUB
+ IF cursor_seek = NULL THEN cursor_seek = curslice
+
+ DeleteMenuItems menu
+
+ 'Add all the slices at 'point' as menu items (starting from the bottommost)
+ DIM idx as integer = 0
+ DO
+  DIM temp as integer = idx  'modified byref
+  DIM sl as Slice ptr = FindSliceAtPoint(edslice, edslice->ScreenPos + point, temp, YES, , YES)  'allowspecial=YES
+  IF sl = NULL THEN EXIT DO
+
+  'Compute indentation: indent slices below their ancestors
+  DIM indent as integer = 0
+  FOR previdx as integer = idx - 1 TO 0 STEP -1
+   WITH *menu.items[previdx]
+    IF IsAncestor(sl, .dataptr) THEN
+     indent = .sub_t + 1  'Ancestor's indent + 1
+     EXIT FOR
+    END IF
+   END WITH
+  NEXT
+
+  append_menu_item menu, SPACE(indent) & slice_caption(ses, edslice, sl)
+  WITH *menu.items[idx]
+   .disabled = (sl->Visible = NO)
+   .disabled_col = uilook(uiSelectedDisabled)
+   .sub_t = indent
+   .dataptr = sl
+  END WITH
+
+  IF sl = cursor_seek THEN state.pt = idx
+
+  idx += 1
+ LOOP
+
+ IF menu.numitems = 0 THEN close ses
+END SUB
+
+SUB PickerMenu.open(byref ses as SliceEditState, edslice as Slice ptr, topmost as Slice ptr)
+ state.active = YES
+ state.pt = 999  'Select last (topmost) slice by default
+ point = readmouse.pos - edslice->ScreenPos
+
+ 'Prefer to highlight the slice (topmost) that right-clicking would select,
+ 'since we are already showing ants around it
+ update ses, edslice, topmost
+
+ 'Don't open if no slices here
+ IF menu.numitems = 0 THEN EXIT SUB
+
+ init_multichoice_menu menu, state, readmouse.pos, , YES  'popup_style=YES
+ menu.no_box = YES
+ 'By default the menu's at the mouse pointer and clamped to screen, move it so doesn't overlap the mouse
+ update_menu_captions menu
+ calc_menu_rect state, menu, vpage  'Get the menu size
+ menu.offset = pick_tooltip_pos(menu.rect.wh + 4)  'menu.rect includes the border, state.rect doesn't
+ calc_menu_rect state, menu, vpage  'Get the menu position
+
+ just_opened = YES  'Deaden controls for a tick to avoid immediate close
+ ses.focus = focusPicker
+END SUB
+
+SUB PickerMenu.close(byref ses as SliceEditState)
+ ClearMenuData menu
+ state.active = NO
+ state.hover = -1
+ IF ses.focus = focusPicker THEN ses.focus = focusMenu
+END SUB
+
+FUNCTION PickerMenu.curslice() as Slice ptr
+ IF state.active = NO THEN RETURN NULL
+ 'state.pt will be out of bounds if slice_editor_invalidate_ptrs was called
+ IF state.pt < menu.numitems THEN RETURN menu.items[state.pt]->dataptr
+END FUNCTION
+
+'Returns cursor_seek
+FUNCTION PickerMenu.controls(byref ses as SliceEditState, edslice as Slice ptr) as Slice ptr
+ IF just_opened THEN
+  'Ignore the mouse release on the tick that the menu is opened
+  just_opened = NO
+ ELSEIF readmouse.release ANDALSO readmouse.drag_dist >= 3 THEN
+  'Releasing a drag off-menu would close it. Ignore it, to allow panning by right-dragging
+ ELSE
+  DIM idx as integer = default_menu_controls(state)  'Sets state.active=NO to exit
+  IF state.active THEN
+   IF state.hover <> -1 ANDALSO readmouse.moved THEN state.pt = state.hover
+  ELSE
+   close(ses)
+  END IF
+ END IF
+ RETURN curslice()
+END FUNCTION
+
+SUB PickerMenu.draw(page as integer)
+ 'Draw a drop shadow
+ drawbox vpages(page), menu.rect.x + 2, menu.rect.y + 2, menu.rect.w, menu.rect.h, findrgb(0, 0, 0), 2
+ rectangle vpages(page), menu.rect, findrgb(50, 50, 70)
+ draw_menu menu, state, page
 END SUB
 
 

@@ -8,12 +8,15 @@ Child slices are grouped together with their parent, and they move as a group.
 
 While holding Ctrl you can press up and down to move to the previous and next siblings of a slice; and press left and right to select the parent and the first child.
 
+Right click to select the top-most visible slice. Hold CTRL to rightclick on invisible slices including containers, panels, etc.
+
+Even when Pick isn't the current tool, you can still select slices by Right-clicking, or with ALT+up/down, and also with Ctrl+arrow keys (see above).
 
 Tools:
 
-Pick (press P) is the default mode (pressing ESC goes back to Pick). Click on a slice to select it. Arrow keys change the selected slice in the list of slices.
+Pick (press P): the default mode (pressing ESC goes back to Pick). Up/down keys just change the selected slice in the list of slices.
 
-Even when Pick isn't the current tool, you can still select slices by Right-clicking, or with ALT+up/down, and also with CTRL+arrow keys (see above). Hold CTRL to click on invisible slices including containers, panels, etc.
+Click anywhere to get a popup menu listing all the slices at that point, including invisible ones. (You can also right-click to select the top-most slice as usual.) They are indented to show which slices are descendents of each other (rather than direct children like the main menu). Many keys such as V visibility, Delete, Copy/Paste, and right-drag-panning still work in this submenu.
 
 Move (press M): move a slice with arrow keys and mouse drags.
 
