@@ -1093,7 +1093,9 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
       col = sl->EditorColor
      END IF
      IF col > -1 THEN
-      plainmenu(i) = fgcol_text(plainmenu(i), col)
+      'Permanently change the foreground color, otherwise after a ${K-1} tag
+      '(eg. after '+[X]' for a collapse subtree) the hidden slice color wouldn't show
+      plainmenu(i) = "${KI" & col & "}" & plainmenu(i)
      END IF
     END IF
    NEXT i

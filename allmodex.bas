@@ -5407,6 +5407,8 @@ function next_text_markup(text as string, byref offset as integer, byref tagend 
 				ok = (intarg >= -1 andalso intarg <= ubound(fonts))
 			elseif action = "K" then  'Foreground colour
 				ok = (intarg <= 255)
+			elseif action = "KI" then  'Permanent foreground colour change
+				ok = (intarg >= 0 andalso intarg <= 255)
 			elseif action = "KB" then  'Background colour
 				ok = (intarg <= 255)
 			elseif action = "KP" then  'Font palette
@@ -5674,6 +5676,16 @@ local function layout_line_fragment(z as string, endchar as integer, byval state
 							UPDATE_STATE(outbuf, fgcolor, col)
 							APPEND_CMD0(outbuf, tcmdRepalette)
 							'No need to update localpal here by calling build_text_palette
+						elseif action = "KI" then
+							'Permanent foreground colour change
+							if intarg < 0 orelse intarg > 255 then
+								goto badtexttag
+							end if
+							'UPDATE_STATE(outbuf, localpal.col(1), intarg)
+							UPDATE_STATE(outbuf, fgcolor, intarg)
+							UPDATE_STATE(outbuf, initial_fgcolor, intarg)
+							APPEND_CMD0(outbuf, tcmdRepalette)
+							'No need to update localpal here by calling build_text_palette
 						elseif action = "KB" then
 							'Background colour
 							dim col as integer
@@ -5932,6 +5944,8 @@ end sub
 '-${F#}  changes to font # or return to initial font if # == -1
 '-${K#}  changes foreground/first colour, or return to initial colour if # == -1
 '        (Note that this does disable the foreground colour, unless the initial fg colour was -1!)
+'-${KI#} changes foreground colour and makes it the new initial colour
+'        (This is a kludge until we have a stack of active tags)
 '-${KB#} changes the background colour, and turns on not_transparent.
 '        Specify -1 to restore previous background colour and transparency
 '        FIXME: ${KB0} does NOT switch to transparency, but an initial bgcol of 0 IS transparent!
@@ -6331,6 +6345,7 @@ sub textcolor (fg as integer, bg as integer)
 end sub
 
 'Redundant to fgtag
+'Warning: returns to the initial colour, not the previous colour. Use ${KI#} to change the initial colour.
 function fgcol_text(text as string, colour as integer) as string
 	return "${K" & colour & "}" & text & "${K-1}"
 end function
