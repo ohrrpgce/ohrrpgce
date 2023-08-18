@@ -840,7 +840,6 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    ' Click selection (but ignore drags)
    IF topmost ANDALSO (readmouse.release AND select_buttons) ANDALSO readmouse.drag_dist < 3 THEN
     cursor_seek = topmost
-    expand_slice_ancestors topmost
     state.need_update = YES
    END IF
 
@@ -2824,6 +2823,8 @@ END FUNCTION
 SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
  'DIM timing as double = TIMER
  ERASE ses.slicemenu
+
+ IF cursor_seek THEN expand_slice_ancestors cursor_seek
 
  'Refresh positions of all slices
  RefreshSliceTreeScreenPos ses.draw_root
