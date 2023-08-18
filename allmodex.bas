@@ -6332,9 +6332,15 @@ end sub
 'behind the text.
 'TODO: this is a temporary solution, this ought to be handled by the standard
 'text drawing functions, and there ought to be a markup code to enable it.
+'Note that draw_menu duplicates this for MenuDef.drawbg menus.
 sub wrapprintbg (text as string, x as RelPos, y as RelPos, col as integer = -1, page as integer, drawbg as bool = YES, wrapx as RelPos = rWidth, withtags as bool = YES, fontnum as integer = fontEdged)
 	if drawbg then
-		trans_rectangle vpages(page), XYWH(x, y, textwidth(text), 10), master(uilook(uiBackground)), 0.55
+		dim rect as RectType
+		rect.topleft = XY(x, y)' - fonts(fontnum)->offset
+		rect.size = textsize(text, wrapx, fontnum, withtags, page)
+		rect.y -= fonts(fontnum)->offset.y
+		rect.h -= fonts(fontnum)->offset.y  'FIXME: why is textsize.h too large for edged font?
+		trans_rectangle vpages(page), rect, master(uilook(uiBackground)), 0.55
 	end if
 	wrapprint text, x, y, col, page, wrapx, withtags, fontnum
 end sub
