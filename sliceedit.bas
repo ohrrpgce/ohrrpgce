@@ -1341,7 +1341,7 @@ FUNCTION slice_editor_mouse_over (byref ses as SliceEditState, edslice as Slice 
   ' slice at this point (indexed by 'idx'))
   DIM temp as integer = idx  'modified byref
   DIM visible_only as bool = IIF(keyval(scCtrl), NO, YES)
-  DIM sl as Slice ptr = FindSliceAtPoint(parent, mouse.pos, temp, YES, visible_only)
+  DIM sl as Slice ptr = FindSliceAtPoint(parent, mouse.pos, temp, YES, visible_only, YES)  'allowspecial=YES
   IF sl = 0 THEN EXIT DO
 
   'Ignore various invisible types of slices. Don't ignore Scroll slices because they may have a scrollbar.
@@ -1360,7 +1360,7 @@ FUNCTION slice_editor_mouse_over (byref ses as SliceEditState, edslice as Slice 
     END IF
   END SELECT
 
-  'Hold Ctrl to select invisible slices too
+  'Hold Ctrl to select invisible slices (all slice types & slices not Visible) too
   IF visible_only = NO THEN topmost = sl
 
   sl->EditorColor = uilook(uiText)

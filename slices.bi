@@ -685,8 +685,8 @@ DECLARE Sub CenterSlice(sl as Slice ptr)
 DECLARE Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as bool
 DECLARE Function SliceCollidePoint(byval sl as Slice Ptr, byval point as XYPair) as bool
 DECLARE Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as bool
-DECLARE Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
-DECLARE Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
+DECLARE Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as integer, descend as bool, visibleonly as bool = NO, allowspecial as bool = NO) as Slice Ptr
+DECLARE Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as integer, descend as bool, visibleonly as bool = NO, allowspecial as bool = NO) as Slice Ptr
 
 DECLARE Function SliceIsInvisible(byval sl as Slice Ptr) as bool
 DECLARE Function SliceIsInvisibleOrClipped(byval sl as Slice Ptr) as bool

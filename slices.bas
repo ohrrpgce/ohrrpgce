@@ -4198,11 +4198,12 @@ Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as bool
  return NO
 end function
 
-Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
- 'Find a child or descendant of parent which is not Special and is not sl which overlaps with sl.
+Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as integer, descend as bool, visibleonly as bool = NO, allowspecial as bool = NO) as Slice Ptr
+ 'Find a child or descendant of parent which overlaps with sl (never returns sl itself).
  'descend:     Whether to recurse to decendents of parent.
  '             Note: except for clipping (and maybe invisible) slices, we always check all descendents!
  'visibleonly: Whether to restrict to visible slices (treats parent as visible).
+ 'allowspecial: Don't ignore Special slices
  'num:         0 to return bottommost matching slice, 1 for next, etc.
  '             Is decremented by the number of matching slices.
  'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that
@@ -4230,7 +4231,7 @@ Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as i
      dim recurse as bool = descend
 
      if SliceCollide(s, sl) then
-      if .SliceType <> slSpecial then
+      if .SliceType <> slSpecial orelse allowspecial then
        if num = 0 then return s
        num -= 1
       end if
@@ -4253,11 +4254,12 @@ Function FindSliceCollision(parent as Slice Ptr, sl as Slice Ptr, byref num as i
  return NULL
 end function
 
-Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as integer, descend as bool, visibleonly as bool = NO) as Slice Ptr
- 'Find a child or descendant of parent which is not Special that contains a certain screen position.
+Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as integer, descend as bool, visibleonly as bool = NO, allowspecial as bool = NO) as Slice Ptr
+ 'Find a child or descendant of parent which contains a certain screen position.
  'descend:     Whether to recurse.
  '             Note: except for clipping (and maybe invisible) slices, we always check all descendents!
  'visibleonly: Whether to restrict to visible slices (treats parent as visible).
+ 'allowspecial: Don't ignore Special slices
  'num:         0 for bottommost matching slice, 1 for next, etc. Is decremented by the number of matching slices.
  'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that,
  '(because DrawSliceRecurse doesn't call ChildRefresh or recurse on invisible slices)
@@ -4283,7 +4285,7 @@ Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as int
     dim recurse as bool = descend
 
     if SliceCollidePoint(s, point) then
-     if .SliceType <> slSpecial then
+     if .SliceType <> slSpecial orelse allowspecial then
       if num = 0 then return s
       num -= 1
      end if
