@@ -270,6 +270,7 @@ DECLARE FUNCTION find_special_lookup_code(specialcodes() as SpecialLookupCode, c
 DECLARE FUNCTION lookup_code_forbidden(specialcodes() as SpecialLookupCode, code as integer) as bool
 DECLARE FUNCTION slice_editor_forbidden_search(byval sl as Slice Ptr, specialcodes() as SpecialLookupCode, errorstr as string = "", clean as bool = NO, byref ret as integer = 0) as integer
 DECLARE FUNCTION slice_editor_mouse_over (byref ses as SliceEditState, edslice as Slice ptr) as Slice ptr
+DECLARE FUNCTION slices_at_point (root as Slice ptr, point as XYPair, visible_only as bool = NO) as Slice ptr vector
 DECLARE SUB slice_editor_common_function_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, in_detail_editor as bool)
 DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byref cursor_seek as Slice Ptr)
 DECLARE SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice ptr = 0, indent as integer = 0, icon_group_x as integer = 0)
@@ -1380,6 +1381,21 @@ SUB preview_SelectSlice_parents (byval sl as Slice ptr)
  LOOP
 END SUB
 
+'All slices at 'point' (from bottommost). Unlike FindSliceAtPoint, includes root (which is edslice)
+'TODO: there should be a more efficient version of this in slices.bas
+FUNCTION slices_at_point (root as Slice ptr, point as XYPair, visible_only as bool = NO) as Slice ptr vector
+ DIM ret as Slice ptr vector
+ v_new ret
+ IF SliceCollidePoint(root, point) THEN v_append ret, root
+
+ FOR idx as integer = 0 TO 999
+  DIM temp as integer = idx  'modified byref
+  DIM sl as Slice ptr = FindSliceAtPoint(root, point, temp, YES, visible_only, YES)  'allowspecial=YES
+  IF sl = 0 THEN RETURN ret
+  v_append ret, sl
+ NEXT
+END FUNCTION
+
 'Sets ->EditorColor for each slice in menu() to highlight the slices that the mouse is over.
 'Returns the topmost non-ignored slice that the mouse is over (if the collection has focus) or NULL if none.
 FUNCTION slice_editor_mouse_over (byref ses as SliceEditState, edslice as Slice ptr) as Slice ptr
@@ -1391,21 +1407,11 @@ FUNCTION slice_editor_mouse_over (byref ses as SliceEditState, edslice as Slice 
 
  IF ses.mouse_focus <> focusCollection THEN RETURN NULL
 
- DIM parent as Slice ptr = edslice
- 'We want to allow finding edslice too (FindSliceAtPoint will ignore parent), but this
- 'won't work when editing an existing slice tree.
- IF edslice->Parent THEN parent = edslice->Parent
- DIM byref mouse as MouseInfo = readmouse()
+ DIM visible_only as bool = IIF(keyval(scCtrl), NO, YES)
+ DIM slices as Slice ptr vector = slices_at_point(edslice, readmouse.pos, visible_only)
  DIM topmost as Slice ptr = NULL
- DIM idx as integer = 0
- DO
-  ' Search for visible slices
-  ' (FindSliceAtPoint returns slices starting from the bottommost. We loop through every
-  ' slice at this point (indexed by 'idx'))
-  DIM temp as integer = idx  'modified byref
-  DIM visible_only as bool = IIF(keyval(scCtrl), NO, YES)
-  DIM sl as Slice ptr = FindSliceAtPoint(parent, mouse.pos, temp, YES, visible_only, YES)  'allowspecial=YES
-  IF sl = 0 THEN EXIT DO
+ FOR idx as integer = 0 TO v_len(slices) - 1
+  DIM sl as Slice ptr = slices[idx]
 
   'Ignore various invisible types of slices. Don't ignore Scroll slices because they may have a scrollbar.
   'Ignore Map slices because transparent overhead layers makes it impossible to
@@ -1427,12 +1433,12 @@ FUNCTION slice_editor_mouse_over (byref ses as SliceEditState, edslice as Slice 
   IF visible_only = NO THEN topmost = sl
 
   sl->EditorColor = uilook(uiText)
-  idx += 1
- LOOP
+ NEXT
 
  IF topmost THEN
   topmost->EditorColor = uilook(uiDescription)
  END IF
+ v_free slices
  RETURN topmost
 END FUNCTION
 
@@ -3519,11 +3525,9 @@ SUB PickerMenu.update(byref ses as SliceEditState, edslice as Slice ptr, cursor_
  DeleteMenuItems menu
 
  'Add all the slices at 'point' as menu items (starting from the bottommost)
- DIM idx as integer = 0
- DO
-  DIM temp as integer = idx  'modified byref
-  DIM sl as Slice ptr = FindSliceAtPoint(edslice, edslice->ScreenPos + point, temp, YES, , YES)  'allowspecial=YES
-  IF sl = NULL THEN EXIT DO
+ DIM slices as Slice ptr vector = slices_at_point(edslice, edslice->ScreenPos + point)
+ FOR idx as integer = 0 TO v_len(slices) - 1
+  DIM sl as Slice ptr = slices[idx]
 
   'Compute indentation: indent slices below their ancestors
   DIM indent as integer = 0
@@ -3545,9 +3549,8 @@ SUB PickerMenu.update(byref ses as SliceEditState, edslice as Slice ptr, cursor_
   END WITH
 
   IF sl = cursor_seek THEN state.pt = idx
-
-  idx += 1
- LOOP
+ NEXT
+ v_free slices
 
  IF menu.numitems = 0 THEN close ses
 END SUB
