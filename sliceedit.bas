@@ -885,7 +885,8 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     'even if it's not drawn. The root gets deleted when leaving slice_editor, so
     'changes are temporary.
     DIM true_root as Slice ptr = FindRootSlice(edslice)
-    state.need_update OR= xy_grabber(true_root->Pos, speed * 4, drag_pan_buttons)
+    xy_grabber(true_root->Pos, speed * 4, drag_pan_buttons)
+    'topmost may now be inaccurate. It is recomputed later.
    END IF
 
   END IF
@@ -1090,6 +1091,9 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
     END IF
    END IF
   END IF
+
+  'Positions of invisible slices need to be updated
+  RefreshSliceTreeScreenPos ses.draw_root
 
   DIM updated as bool = state.need_update
 
@@ -1320,7 +1324,6 @@ SUB slice_editor_common_function_keys(byref ses as SliceEditState, edslice as Sl
  IF state.need_update = NO ANDALSO shiftctrl = 0 THEN  'need_update=NO ensures not a string field
   IF keyval(scF) > 1 THEN
    slice_editor_focus_on_slice ses, edslice
-   'state.need_update = YES
   END IF
   IF keyval(scZ) > 1 ANDALSO ses.curslice THEN
    slice_editor_reset_slice ses, ses.curslice
@@ -1869,9 +1872,6 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   IF ses.expand_meta AND benchmarking_draw_timer.smooth_updated THEN state.need_update = YES
 
   IF state.need_update THEN
-   'Invisible slices won't be updated by DrawSlice
-   RefreshSliceTreeScreenPos sl
-
    slice_edit_detail_refresh ses, state, menu(), menuopts, sl, rules()
    state.need_update = NO
   END IF
@@ -1892,12 +1892,15 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   END IF
 
   draw_background vpages(dpage), bgChequer
+
+  RefreshSliceScreenPos sl  'Invisible slices won't otherwise be updated by DrawSlice
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
   END If
   IF ses.show_ants THEN
    DrawSliceAnts sl, dpage
   END IF
+
   IF ses.hide_mode <> hideMenu THEN
    menuopts.drawbg = (ses.hide_mode <> hideMenuBG)
    standardmenu menu(), state, , , dpage, menuopts
@@ -2903,10 +2906,7 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
 
  IF cursor_seek THEN expand_slice_ancestors cursor_seek
 
- 'Refresh positions of all slices
- RefreshSliceTreeScreenPos ses.draw_root
-
- slice_editor_refresh_append ses, mnidExitMenu, "Exit Menu"
+ slice_editor_refresh_append ses, mnidExitMenu, IIF(ses.recursive, "Previous Editor", "Exit Editor")
 
  IF ses.use_index THEN
   DIM extra as string

@@ -4127,7 +4127,8 @@ Sub RefreshSliceScreenPos(slc as Slice ptr)
  attach->ChildRefresh(attach, slc, -1, NO)  'visibleonly=NO
 end sub
 
-'Refresh all descendents of slc (however templates may not be fully updated by their parents)
+'Refresh all descendents of slc, even if not visible
+'(however templates won't normally be positioned/resized by Layout/Panel/etc parents)
 Local Sub SliceRefreshRecurse(slc as Slice ptr)
  if slc->ChildrenRefresh then slc->ChildrenRefresh(slc)
 
