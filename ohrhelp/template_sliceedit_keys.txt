@@ -16,7 +16,8 @@ Tools:
 
 Pick (press P): the default mode (pressing ESC goes back to Pick). Up/down keys just change the selected slice in the list of slices.
 
-Click anywhere to get a popup menu listing all the slices at that point, including invisible ones. (You can also right-click to select the top-most slice as usual.) They are indented to show which slices are descendents of each other (rather than direct children like the main menu). Many keys such as V visibility, Delete, Copy/Paste, and right-drag-panning still work in this submenu.
+Click anywhere to get a popup menu listing all the slices at that point, including invisible ones. (You can also right-click to select the top-most slice as usual.) They are indented to show which slices are descendents of each other (rather than direct children like the main menu). The selected slice is drawn on top of the collection (if it's visible).
+Many keys such as V visibility, Delete, Copy/Paste, and right-drag-panning still work in this submenu.
 
 Move (press M): move a slice with arrow keys and mouse drags.
 

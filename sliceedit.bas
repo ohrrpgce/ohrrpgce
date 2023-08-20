@@ -1114,6 +1114,9 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
   END IF
+  IF ses.picker.curslice THEN
+   DrawSlice ses.picker.curslice, dpage
+  END IF
   IF ses.show_ants THEN
    IF ses.curslice THEN
     'Note that slice ants while using the picker are shown indirectly, by
