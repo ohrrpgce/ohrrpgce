@@ -8555,7 +8555,12 @@ sub GIFRecorder.stop()
 	if len(gifsicle) then
 		debuginfo "Compressing " & this.fname & " with gifsicle; size before = " & filelen(this.fname)
 		dim handle as ProcessHandle
-		handle = open_process(gifsicle, "-O2 " & escape_filename(this.fname) & " -o " & escape_filename(this.fname), NO, NO)
+		' Without --careful, Discord's broken gif "recompressor" (which actually increases file size and
+		' worsens quality; some other recompressors are similarly garbage) corrupts the gif if it was
+		' recorded at 24-bit depth.
+		' As a bonus, -O3 --careful is much faster than -O3 but better compression than -O2.
+		' (Also, consider --colors=256, which greatly reduces the size of gifs recorded at 24-bit)
+		handle = open_process(gifsicle, "--careful -O3 " & escape_filename(this.fname) & " -o " & escape_filename(this.fname), NO, NO)
 		if handle = 0 then
 			debug "open_process " & gifsicle & " failed"
 		else
