@@ -16,17 +16,26 @@ installfw () {
     return 1
   fi
   hdiutil attach "$DMG"
-  if [ ! -d "/Volumes/$VOLNAME"] ; then
+  if [ ! -d "/Volumes/$VOLNAME" ] ; then
     echo "Failed to mount $DMG to /Volumes/$VOLNAME"
     return 1
   fi
+  
   # I think the first location is the one we really use
-  for FWDIR in /Library/Frameworks ~/Library/Frameworks ; do
-    # Delete the old one with reckless abandon
-    rm -Rf "$FWDIR/$FWNAME"
-    # Copy in the new one
-    cp -pr "/Volumes/$VOLNAME/$FWNAME" "$FWDIR/"
-  done
+  local FWDIR=/Library/Frameworks
+  # Delete the old one with reckless abandon
+  sudo rm -Rf "$FWDIR/$FWNAME"
+  # Copy in the new one
+  sudo cp -pr "/Volumes/$VOLNAME/$FWNAME" "$FWDIR/"
+  
+  # Not sure if this second location gets used, but lets update it too
+  local FWDIR=~/Library/Frameworks
+  # Delete the old one with reckless abandon
+  rm -Rf "$FWDIR/$FWNAME"
+  # Copy in the new one
+  cp -pr "/Volumes/$VOLNAME/$FWNAME" "$FWDIR/"
+  
+  # Unmount the DMG
   hdiutil detach "/Volumes/$VOLNAME"
 }
 
