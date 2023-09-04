@@ -6599,6 +6599,14 @@ FUNCTION menu_click_outside(m as MenuDef) as bool
  RETURN NO
 END FUNCTION
 
+FUNCTION menu_click_outside_with_page(m as MenuDef, viewport_page as integer) as bool
+ DIM offset as XYPair = vpages(vpage)->size - vpages(viewport_page)->size
+ m.rect.topleft += offset
+ DIM result as bool = menu_click_outside(m)
+ m.rect.topleft -= offset
+ RETURN result
+END FUNCTION
+
 FUNCTION menu_right_click_close(m as MenuDef) as bool
  DIM use_mouse as bool = YES
 #IFDEF IS_GAME

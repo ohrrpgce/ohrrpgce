@@ -17,7 +17,7 @@ DECLARE SUB update_menu_editor_menu(byval record as integer, edmenu as MenuDef, 
 DECLARE SUB update_edited_menu(menudata as MenuDef)
 DECLARE SUB update_detail_menu(detail as MenuDef, menudata as MenuDef, mi as MenuDefItem)
 DECLARE SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuDef, byref record as integer, menu_set as MenuSet, viewport_page as integer)
-DECLARE SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as MenuDef, byval record as integer)
+DECLARE SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as MenuDef, byval record as integer, viewport_page as integer)
 DECLARE SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as MenuDef, mi as MenuDefItem)
 DECLARE SUB edit_menu_bits (menu as MenuDef)
 DECLARE SUB edit_menu_item_bits (mi as MenuDefItem)
@@ -76,9 +76,7 @@ DO
  
  IF state.active = NO THEN EXIT DO
  IF mstate.active = YES THEN
-  'Fix the top left corner of the menustate for the menu we are editing so it will match the preview's viewport
-  mstate.rect.topleft = (vpages(vpage)->size - vpages(viewport_page)->size) + menudata.rect.topleft + XY(8+menudata.bordersize,8+menudata.bordersize)
-  menu_editor_menu_keys mstate, dstate, menudata, record
+  menu_editor_menu_keys mstate, dstate, menudata, record, viewport_page
  ELSEIF dstate.active = YES THEN
   menu_editor_detail_keys dstate, mstate, detail, *menudata.items[mstate.pt]
  ELSE
@@ -216,11 +214,14 @@ SUB menu_editor_keys (state as MenuState, mstate as MenuState, menudata as MenuD
  END SELECT
 END SUB
 
-SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as MenuDef, byval record as integer)
+SUB menu_editor_menu_keys (mstate as MenuState, dstate as MenuState, menudata as MenuDef, byval record as integer, viewport_page as integer)
  DIM i as integer
  DIM elem as integer
 
- IF keyval(ccCancel) > 1 THEN
+ 'Fix the top left corner of the menustate for the menu we are editing so it will match the preview's viewport
+ mstate.rect.topleft = (vpages(vpage)->size - vpages(viewport_page)->size) + menudata.rect.topleft + XY(8+menudata.bordersize,8+menudata.bordersize)
+
+ IF keyval(ccCancel) > 1 ORELSE menu_click_outside_with_page(menudata, viewport_page) THEN
   mstate.active = NO
   menudata.edit_mode = NO
   mstate.need_update = YES
@@ -291,7 +292,7 @@ END SUB
 SUB menu_editor_detail_keys(dstate as MenuState, mstate as MenuState, detail as MenuDef, mi as MenuDefItem)
  DIM max as integer
 
- IF keyval(ccCancel) > 1 THEN
+ IF keyval(ccCancel) > 1 ORELSE menu_click_outside(detail) THEN
   dstate.active = NO
   mstate.active = YES
   EXIT SUB

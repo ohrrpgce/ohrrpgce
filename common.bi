@@ -315,6 +315,7 @@ DECLARE FUNCTION booleangrabber (byref thebool as boolean, byref state as MenuSt
 
 DECLARE FUNCTION menu_click (state as MenuState) as bool
 DECLARE FUNCTION menu_click_outside(m as MenuDef) as bool
+DECLARE FUNCTION menu_click_outside_with_page(m as MenuDef, viewport_page as integer) as bool
 DECLARE FUNCTION menu_right_click_close(m as MenuDef) as bool
 DECLARE FUNCTION click_dismiss () as bool
 DECLARE FUNCTION enter_click (state as MenuState) as bool
