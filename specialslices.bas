@@ -269,3 +269,37 @@ sub GraphSlice.mouse_over()
  showx = x(besti)
  showy = y(besti)
 end sub
+
+'==============================================================================
+'                                   MenuDefSlice
+'==============================================================================
+
+'This rather unambitious MenuDefSlice class simply draws a MenuDef with a
+'MenuState at the correct depth in a slice tree. It doesn't attempt to
+'handle proper slice positioning yet, but there is no special reason why it
+'could not in the future
+
+'Note that the calling code is responsible for managing the lifetime of the
+'MenuDef and MenuState objects. This class only attempts to hold rather unsafe
+'pointers to them *hamstershrug*
+
+constructor MenuDefSlice()
+ 'Pointers should start null
+ mdef = 0
+ st = 0
+end constructor
+
+sub MenuDefSlice.Initialize(sl as Slice ptr)
+ this.sl = sl
+end sub
+
+sub MenuDefSlice.Draw(sl as Slice ptr, page as integer)
+ if mdef = 0 orelse st = 0 then
+  'No MenuDef is currently assigned to this MenuDefSlice
+  exit sub
+ end if
+ 
+ 'If the mdef and sl pointed to instances that had already been freed, that would be bad, and this would crash
+ draw_menu *mdef, *st, page
+
+end sub

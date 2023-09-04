@@ -51,4 +51,17 @@ Type GraphSlice Extends ClassSlice
  Declare Sub draw_regular_ticks(axis as integer, labelsize as integer, page as integer)
 End Type
 
+Type MenuDefSlice Extends ClassSlice
+ sl as Slice ptr        'The Slice that owns this instance
+
+ mdef as MenuDef Ptr
+ st   as MenuState Ptr
+
+ Declare Constructor()
+
+ 'ClassSlice methods
+ Declare Virtual Sub Initialize(sl as Slice ptr)
+ Declare Virtual Sub Draw(sl as Slice ptr, page as integer)
+End Type
+
 #endif

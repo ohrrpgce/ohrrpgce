@@ -23,6 +23,7 @@
 #include "scriptcommands.bi"
 #include "menustuf.bi"
 #include "sliceedit.bi"
+#include "specialslices.bi"
 
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() as BattleSprite) as integer
@@ -119,6 +120,7 @@ DECLARE FUNCTION create_default_battle_caption_area () as Slice Ptr
 DECLARE FUNCTION create_default_player_turn_overlay_area () as Slice Ptr
 DECLARE FUNCTION create_default_targetting_overlay_area () as Slice Ptr
 DECLARE FUNCTION create_default_targ_hover_overlay_area () as Slice Ptr
+DECLARE FUNCTION create_default_battle_menu_area() as Slice Ptr
 DECLARE SUB update_battle_hero_or_enemy_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
 DECLARE SUB update_indicator_slice (sl as Slice Ptr, lookup_code as integer, active as bool, indicator_string as string="", sort_index as integer=0)
 DECLARE SUB update_battle_toggle_bounce (bat as BattleState, sl as Slice Ptr)
@@ -1137,11 +1139,7 @@ SUB battle_display_menus (byref bat as BattleState, bslot() as BattleSprite, st(
   '--Draw menus for a hero that is currently taking a turn
   IF bat.player_turn >= 0 THEN
 
-   WITH bslot(bat.player_turn)
-    .menust.active = (bat.menu_mode = batMENUHERO)
-    'Draw to vpage rather than page so as to never clip. The menu is always aligned to the screen center
-    draw_menu .batmenu, .menust, vpage
-   END WITH
+   'Note that the main battle menu is drawn with slices using MenuDefSlice it is not drawn here
    IF bat.menu_mode = batMENUSPELL THEN '--draw spell menu
     edgeboxstyle 5, 6, 310, 95, 0, page
     IF bat.sptr < 24 THEN
@@ -1680,6 +1678,29 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
   area = LookupSlice(SL_BATTLE_PLAYER_TURN_OVERLAY, ui_layer, , area)
  LOOP
 
+ '--Update the battle menu
+ area = LookupSlice(SL_BATTLE_MENU_AREA, ui_layer)
+ IF area = 0 THEN
+  warnings &= !"SL_BATTLE_MENU_AREA not found\n"
+ ELSE
+  DIM mdsl AS MenuDefSlice Ptr = cast(MenuDefSlice Ptr, area->ClassInst)
+  'Null out the menudef and menustate. They will only be set when the menu should be drawn
+  mdsl->mdef = 0
+  mdsl->st = 0
+  IF bat.vic.state = vicNONE THEN 'only display battle menu till you win
+   '--Draw menus for a hero that is currently taking a turn
+   IF bat.player_turn >= 0 THEN
+    WITH bslot(bat.player_turn)
+     'If we actually want to draw this menu, mark it active...
+     .menust.active = (bat.menu_mode = batMENUHERO)
+     '...and then assign pointers to its menudef and state to the MenuDefSlice
+     mdsl->mdef = @.batmenu
+     mdsl->st = @.menust
+    END WITH
+   END IF
+  END IF
+ END IF
+
  '--Update mouse hover when targetting areas
  area = LookupSlice(SL_BATTLE_TARG_HOVER_LAYER, ui_layer)
  IF area = 0 THEN
@@ -1705,7 +1726,7 @@ SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
   NEXT i
   area = LookupSlice(SL_BATTLE_TARGETTING_LAYER, ui_layer, , area)
  LOOP
- 
+
  '--Update UI layer visibility
  ui_layer->Visible = (bat.vic.state = vicNONE)
  
@@ -1959,11 +1980,22 @@ SUB create_default_battle_ui_layer(parent as Slice ptr)
  SetSliceParent area, layer
  area = create_default_player_turn_overlay_area()
  SetSliceParent area, layer
+ area = create_default_battle_menu_area()
+ SetSliceParent area, layer
  area = create_default_targ_hover_overlay_area()
  SetSliceParent area, layer
  area = create_default_targetting_overlay_area()
  SetSliceParent area, layer
 END SUB
+
+FUNCTION create_default_battle_menu_area() as Slice Ptr
+ 'This is the slice that makes the battle menu to be drawn in the correct order (after other ui, but before hover&targeting cursors)
+ DIM menu_sl_cl as MenuDefSlice ptr = NEW MenuDefSlice()
+ DIM menu_sl as Slice ptr
+ menu_sl = NewClassSlice(0, menu_sl_cl)
+ menu_sl->Lookup = SL_BATTLE_MENU_AREA
+ RETURN menu_sl
+END FUNCTION
 
 FUNCTION create_default_battle_ready_area() as Slice Ptr
  DIM area as Slice Ptr = NewSliceOfType(slGrid, , SL_BATTLE_HERO_INFO_AREA)
