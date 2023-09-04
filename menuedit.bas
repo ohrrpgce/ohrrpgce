@@ -76,6 +76,8 @@ DO
  
  IF state.active = NO THEN EXIT DO
  IF mstate.active = YES THEN
+  'Fix the top left corner of the menustate for the menu we are editing so it will match the preview's viewport
+  mstate.rect.topleft = (vpages(vpage)->size - vpages(viewport_page)->size) + menudata.rect.topleft + XY(8+menudata.bordersize,8+menudata.bordersize)
   menu_editor_menu_keys mstate, dstate, menudata, record
  ELSEIF dstate.active = YES THEN
   menu_editor_detail_keys dstate, mstate, detail, *menudata.items[mstate.pt]
