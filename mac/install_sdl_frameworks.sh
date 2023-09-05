@@ -42,7 +42,7 @@ installfw () {
 installfw "SDL_mixer-1.2.12.dmg" "SDL_mixer"  "SDL_mixer.framework"  "https://www.libsdl.org/projects/SDL_mixer/release"
 installfw "SDL2_mixer-2.6.3.dmg" "SDL2_mixer" "SDL2_mixer.framework" "https://www.libsdl.org/projects/SDL_mixer/release"
 installfw "SDL-1.2.15.dmg"       "SDL"        "SDL.framework"        "https://www.libsdl.org/release"
-installfw "SDL2-2.28.3.dmg"      "SDL2"       "SDL2.framework"       "https://www.libsdl.org/release"
+installfw "SDL2-2.26.4.dmg"      "SDL2"       "SDL2.framework"       "https://www.libsdl.org/release"
 
 echo ""
 echo "All done."
