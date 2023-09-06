@@ -7257,7 +7257,7 @@ END FUNCTION
 'The filename entered by the user is restricted to ASCII, meaning it doesn't have to
 'be encoded before being used, but the whole path return still needs to be run through
 'decode_filename() before being displayed.
-FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref directory as string, helpkey as zstring ptr, default as zstring ptr=@"", allow_overwrite as bool=YES) as string
+FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref directory as string, helpkey as zstring ptr, default as zstring ptr=@"", allow_overwrite as bool=YES, ask_overwrite as bool=YES) as string
  DIM filename as string = *default
  DIM tog as integer
  DIM foldermode as bool = NO
@@ -7295,7 +7295,9 @@ FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref director
       RETURN directory + SLASH + filename
      ELSE
       If allow_overwrite THEN
-       IF yesno("That already exists, overwrite?") THEN RETURN directory + SLASH + filename
+       IF ask_overwrite = NO ORELSE yesno("That already exists, overwrite?") THEN
+        RETURN directory + SLASH + filename
+       END IF
       ELSE
        notification filename & *ext & " already exists"
       END IF

@@ -340,7 +340,7 @@ DECLARE FUNCTION escape_nonprintable_ascii(s as string) as string
 DECLARE FUNCTION remove_nonprintable_ascii(s as string, replacement as string = "") as string
 DECLARE FUNCTION sanitize_script_identifier (ident as string, allow_whitespace as bool = YES) as string
 
-DECLARE FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref directory as string, helpkey as zstring ptr, default as zstring ptr=@"", allow_overwrite as bool=YES) as string
+DECLARE FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref directory as string, helpkey as zstring ptr, default as zstring ptr=@"", allow_overwrite as bool=YES, ask_overwrite as bool=YES) as string
 DECLARE FUNCTION prompt_for_string (byref retstring as string, caption as string, limit as integer = 40) as bool
 
 DECLARE SUB set_app_dir()

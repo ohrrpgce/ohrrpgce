@@ -88,25 +88,27 @@ TYPE PickerMenu
 END TYPE
 
 ' The slice editor has three different modes:
-' -editing a slice group in the .rpg. use_index = YES, collection_file = ""
+' -editing a slice group in the .rpg. use_index = YES, editing_existing = NO, collection_file = ""
 '  (Note: we don't necessarily want to let people define multiple collections for some collection
 '  types (groups), but for now we assume use_index = YES)
-' -editing an external slice (.collection_file). use_index = NO.
-' -editing an existing (already loaded, e.g. the in-game) slice tree. editing_existing = YES, use_index = NO,
-'  collection_file normally "", or is the filename the collection was loaded from
+' -editing an external .slice file. use_index = NO, editing_existing = NO, collection_file <> ""
+' -editing an existing slice tree (or a blank one). use_index = NO, editing_existing = YES,
+'  collection_file normally "", or is the filename the collection was loaded from or which we last saved to
 '  (but is not necessarily still equal to)
 TYPE SliceEditState
  collection_group_number as integer  'SL_COLLECT_* constant. Which special lookup codes are available, and part of filename if use_index = YES
  collection_number as integer  'Used only if use_index = YES
- collection_file as string     'Used only if use_index = NO: the file we are currently editing (will prompt to save when quitting)
+ collection_file as string     'Used only if use_index = NO: the file we are currently editing
+                               '(will prompt to save when quitting). Set by exporting if use_index=NO
  use_index as bool         'Whether is the indexed collection editor for slicetree_<group>_<number>.reld
-                           'lumps; if NO then we are editing either an external file (collection_file),
-                           'or some given slice tree (editing_existing) or both.
-                           'When true, the collections are always re-saved when quitting.
+                           'lumps; if NO then we are editing either an external file (collection_file <> ""),
+                           'or some given (possibly blank) slice tree (editing_existing = YES) or both.
+                           'When true, the collections are always automatically re-saved when quitting.
 
  editing_existing as bool  'True if editor was given an existing slice tree (edslice) to edit
  'The following is used only if editing_existing AND collection_file<>""
- existing_matches_file as bool 'Whether the slice tree that was passed in was equal to contents of collection_file.
+ matches_existing_file as bool 'Whether the slice tree that was passed in was equal to contents of collection_file.
+                               '(Set to YES when exporting)
 
  expand_dimensions as bool
  expand_visible as bool
@@ -285,7 +287,7 @@ DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
 DECLARE SUB slice_editor_load(byref ses as SliceEditState, byref edslice as Slice Ptr, filename as string, importing as bool = NO)
 DECLARE SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice Ptr, edit_separately as bool)
 DECLARE SUB slice_editor_import_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
-DECLARE SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr, reexport as bool = NO)
+DECLARE FUNCTION slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr) as bool
 DECLARE FUNCTION slice_editor_insert_import(byref ses as SliceEditState, edslice as Slice Ptr) as Slice ptr
 DECLARE FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as Slice Ptr) as bool
 DECLARE FUNCTION slice_lookup_code_caption(byval code as integer, slicelookup() as string) as string
@@ -603,14 +605,17 @@ LOCAL FUNCTION create_blank_collection(ses as SliceEditState) as Slice ptr
  RETURN newcollection
 END FUNCTION
 
-' Edit a group of slice collections - this is the overload used by the slice editor menus in Custom.
-' In this mode, the editor loads and saves collections to disk when you exit
+' Edit either a single .slice file (filename) or an indexed group of files (filename = "").
+' In this mode the editor automatically loads and saves collections when you exit or switch indexed collection.
+' Special case, filename = "<blank>" is like passing a nonexistent filename but doesn't save when quitting
+' unless you export.
 ' privileged: true if should be allowed to edit things that are hidden from users
 SUB slice_editor (group as integer = SL_COLLECT_USERDEFINED, filename as string = "", privileged as bool = NO)
  DIM ses as SliceEditState
  ses.collection_group_number = group
- ses.collection_file = filename
  ses.use_index = (filename = "")
+ ses.collection_file = IIF(filename = "<blank>", "", filename)
+ ses.matches_existing_file = YES
  ses.privileged = privileged
 
  init_slice_editor_for_collection_group(ses, ses.collection_group_number)
@@ -642,7 +647,7 @@ SUB slice_editor (byref edslice as Slice Ptr, byval group as integer = SL_COLLEC
  ses.privileged = privileged
 
  IF LEN(filename) THEN
-  ses.existing_matches_file = slice_collection_has_changed(edslice, filename) = NO
+  ses.matches_existing_file = slice_collection_has_changed(edslice, filename) = NO
  END IF
 
  DIM rootslice as Slice ptr
@@ -697,6 +702,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   .hit_test = @slicemenu_hit_tester
   .hit_test_data = @ses
  END WITH
+ calc_menustate_size state  'Get .size for the first tick
  DIM menuopts as MenuOptions
  WITH menuopts
   .edged = YES
@@ -943,8 +949,9 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   END IF
 
   IF keyval(scF2) > 1 ANDALSO state.need_update = NO ANDALSO ses.focus = focusMenu THEN
-   'Export or Re-export
-   slice_editor_export_prompt ses, edslice, (shiftctrl > 0)
+   'Export
+   slice_editor_export_prompt ses, edslice
+   state.need_update = YES  'Because ses.collection_file and .matches_existing_file changed can change
   END IF
 #IFDEF IS_CUSTOM
   '--Overwriting import can't be allowed when there are certain slices expected by the engine,
@@ -1018,7 +1025,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    IF keyval(scCtrl) > 0 ANDALSO keyval(scF) > 1 THEN
     'Edit this slice alone ("fullscreen")
     slice_editor_save_settings ses  'So will be loaded by recursive editor
-    slice_editor ses.curslice, ses.collection_group_number, ses.collection_file, YES
+    slice_editor ses.curslice, ses.collection_group_number, , YES
     slice_editor_load_settings ses
     state.need_update = YES
 
@@ -1601,6 +1608,9 @@ SUB slice_editor_import_file(byref ses as SliceEditState, byref edslice as Slice
    ses.collection_file = filename
    ses.use_index = NO
    ses.editing_existing = NO
+   ses.matches_existing_file = YES
+  ELSE
+   IF ses.use_index = NO ANDALSO ses.collection_file = "" THEN ses.collection_file = filename
   END IF
   slice_editor_load ses, edslice, filename, (edit_separately = NO)
   ses.slicemenust.need_update = YES
@@ -1639,31 +1649,33 @@ END FUNCTION
 SUB slice_editor_import_prompt(byref ses as SliceEditState, byref edslice as Slice ptr)
  IF ses.editing_existing THEN EXIT SUB  'Unsupported
  DIM choice as integer
- DIM choices(...) as string = {"Import, overwriting this collection", "Edit it separately"}
- choice = multichoice("Loading a .slice file. Do you want to import it over the existing collection?", choices(), IIF(ses.collection_group_number = SL_COLLECT_EDITOR, 1, 0))
+ IF ses.use_index THEN
+  DIM choices(...) as string = {"Import, overwriting this collection", "Edit it separately"}
+  choice = multichoice("Loading a .slice file. Do you want to import it over the existing collection?", choices(), IIF(ses.collection_group_number = SL_COLLECT_EDITOR, 1, 0))
+ END IF
  IF choice >= 0 THEN
   slice_editor_import_file ses, edslice, (choice = 1)
  END IF
 END SUB
 #ENDIF
 
-'Prompt user whether to export or reexport. Called when F2 is pressed.
-SUB slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr, reexport as bool = NO)
+'Prompt user to export collection. True if they didn't cancel.
+FUNCTION slice_editor_export_prompt(byref ses as SliceEditState, byref edslice as Slice ptr) as bool
  DIM filename as string
- IF reexport ANDALSO LEN(ses.collection_file) THEN
-  'Bit pointless, simply allows pressing Enter once instead of twice (confirm default filename, confirm overwrite)
-  IF yesno("Save, overwriting " & simplify_path_further(ses.collection_file) & "?", NO, NO) THEN
-   filename = ses.collection_file
-  END IF
- ELSE
-  'TODO: ses.collection_file isn't changed to the new filename, so reexporting unfortunately won't use it.
-  filename = inputfilename("Export slice collection", ".slice", trimfilename(ses.collection_file), "input_filename_export_slices", trimpath(trimextension(ses.collection_file)))
-  IF filename <> "" THEN filename &= ".slice"
+ filename = inputfilename("Export slice collection", ".slice", trimfilename(ses.collection_file), "input_filename_export_slices", trimpath(trimextension(ses.collection_file)), , NO)  'ask_overwrite=NO
+ IF filename = "" THEN RETURN NO
+ filename &= ".slice"
+ 'Skip asking to overwrite if re-saving
+ IF isfile(filename) ANDALSO filename <> ses.collection_file THEN
+  IF yesno("That already exists, overwrite?") = NO THEN RETURN NO
  END IF
- IF filename <> "" THEN
-  SliceSaveToFile edslice, filename
+ SliceSaveToFile edslice, filename
+ IF ses.use_index = NO THEN
+  ses.collection_file = filename
+  ses.matches_existing_file = YES
  END IF
-END SUB
+ RETURN YES
+END FUNCTION
 
 'Compare a slice tree to a file
 FUNCTION slice_collection_has_changed(sl as Slice ptr, filename as string) as bool
@@ -1741,23 +1753,33 @@ FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as 
    '--erase empty slice collections
    safekill filename
   END IF
- ELSEIF LEN(ses.collection_file) > 0 THEN
-  'If we're editing a menu's slice collection, which it had modified, we better not save its changes
-  '(Export instead if you want to save)
-  IF ses.editing_existing ANDALSO ses.existing_matches_file = NO THEN RETURN YES
+ ELSE
 
-  IF slice_collection_has_changed(edslice, filename) = NO THEN RETURN YES
+  IF LEN(ses.collection_file) > 0 THEN
+   'If we're editing a menu's slice collection, which it had modified, we better not save its changes
+   '(Export instead if you want to save)
+   IF ses.editing_existing ANDALSO ses.matches_existing_file = NO THEN RETURN YES
+
+   IF slice_collection_has_changed(edslice, filename) = NO THEN RETURN YES
+  ELSE
+   IF ses.editing_existing THEN RETURN YES
+  END IF
 
   IF edslice->NumChildren > 0 THEN
    'Prevent attempt to quit the program, stop and wait for response first
    DIM quitting as bool = getquitflag()
    setquitflag NO
    DIM dowhat as integer
-   dowhat = twochoice(!"Slice collection modified.\nSave before leaving, overwriting " & _
-                      simplify_path_further(filename) & "?", "Yes", "No", 0, -1)
+   DIM msg as string = !"Slice collection modified.\nSave before leaving" & IIF(LEN(filename), ", overwriting " & _
+                      simplify_path_further(filename), "")
+   dowhat = twochoice(msg & "?", "Yes", "No", 0, -1)
    IF dowhat = -1 AND quitting = NO THEN RETURN NO  'cancel
    IF dowhat = 0 THEN  'yes
-    SliceSaveToFile edslice, filename
+    IF LEN(filename) = 0 THEN
+     IF slice_editor_export_prompt(ses, edslice) = NO THEN RETURN NO
+    ELSE
+     SliceSaveToFile edslice, filename
+    END IF
    END IF
    IF quitting THEN setquitflag
   END IF
@@ -2270,8 +2292,10 @@ FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
  IF LEN(ses.collection_file) THEN
   ' An external file
   RETURN ses.collection_file
- ELSE
+ ELSEIF ses.use_index THEN
   RETURN workingdir & SLASH & "slicetree_" & ses.collection_group_number & "_" & ses.collection_number & ".reld"
+ ELSE
+  'Editing an existing or a "<blank>" slice tree. Return ""
  END IF
 END FUNCTION
 
@@ -2917,7 +2941,7 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
   slice_editor_refresh_append ses, mnidCollectionID, CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26) & extra
  ELSEIF LEN(ses.collection_file) THEN
   DIM msg as string = "Editing "
-  IF ses.editing_existing ANDALSO ses.existing_matches_file = NO THEN msg &= "instance of "
+  IF ses.editing_existing ANDALSO ses.matches_existing_file = NO THEN msg &= "instance of "
   msg &= simplify_path_further(ses.collection_file)
   slice_editor_refresh_append ses, mnidEditingFile, msg
  END IF
@@ -2946,7 +2970,7 @@ SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice Ptr, byr
   NEXT i
  END IF
 
- correct_menu_state ses.slicemenust
+ correct_menu_state ses.slicemenust  'Update .pt and .top
 
  'timing = TIMER - timing
  'debuginfo "refresh in " & cint(timing * 1e6) & "us, slices: " & UBOUND(ses.slicemenu) + 1
@@ -3655,9 +3679,6 @@ SUB SliceEditSettingsMenu.update()
  add_item 20, , "Edit lookup codes"
  IF in_detail_editor = NO THEN
   add_item 10, , "Export collection (F2)"
-  IF LEN(ses->collection_file) THEN
-   add_item 21, , "Re-export collection (Ctrl-F2)"
-  END IF
 #IFDEF IS_CUSTOM
   add_item 9, , "Import collection (F3)"
 #ENDIF
@@ -3668,7 +3689,7 @@ SUB SliceEditSettingsMenu.update()
  IF in_detail_editor = NO THEN
   add_item 7, , "Show positions: " & yesorno(ses->show_positions)
   add_item 8, , "Show sizes: " & yesorno(ses->show_sizes)
-  add_item 22, , "Always show type names: " & yesorno(ses->show_typenames)
+  add_item 21, , "Always show type names: " & yesorno(ses->show_typenames)
  END IF
  add_item 11, , safe_caption(hide_captions(), ses->hide_mode) & " (F4)"
  add_item 12, , "Show root slice: " & yesorno(ses->show_root) & " (F5)"
@@ -3720,8 +3741,6 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
 #ENDIF
   CASE 10  'Export
    IF activate THEN slice_editor_export_prompt *ses, edslice
-  CASE 21  'Re-export
-   IF activate THEN slice_editor_export_prompt *ses, edslice, YES
   CASE 11  'Hide menu/slices
    changed = intgrabber(ses->hide_mode, 0, hideLAST)
   CASE 12
@@ -3749,9 +3768,9 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
    changed = booleangrabber(template_slices_shown, state)
   CASE 20  'Edit lookup codes
    IF activate THEN edit_slice_lookup_codes *ses, , ses->slicelookup()
-  CASE 22
+  CASE 21
    changed = boolgrabber(ses->show_typenames, state)
-  'Next free: 23
+  'Next free: 22
  END SELECT
  state.need_update OR= changed
 END FUNCTION

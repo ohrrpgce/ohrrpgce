@@ -1390,7 +1390,7 @@ SUB secret_menu ()
   setkeys
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF enter_space_click(st) THEN
-   IF st.pt = 0 THEN slice_editor SL_COLLECT_EDITOR, get_data_dir() & SLASH "blank.slice", YES
+   IF st.pt = 0 THEN slice_editor SL_COLLECT_EDITOR, "<blank>", YES
    IF st.pt = 1 THEN reload_editor
    IF st.pt = 2 THEN editor_editor
    IF st.pt = 3 THEN condition_test_menu
