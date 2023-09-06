@@ -109,6 +109,7 @@ extern "C" {
 	unsigned int vfwrite(const void *restrict ptr, unsigned int size, unsigned int nmemb, VFile *file);
 	size_t vfseek(VFile *file, ssize_t offset, int whence);
 	size_t vftell(VFile *file);
+	size_t vflength(VFile *file);
 
 #ifdef __cplusplus
 }

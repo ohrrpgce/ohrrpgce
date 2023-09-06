@@ -222,6 +222,7 @@ declare function vfgetc(file as VFile ptr) as integer
 declare function vfwrite(byval ptr as const any ptr, byval size as uint32, byval nmemb as uint32, byval file as VFile ptr) as uint32
 declare function vfseek(byval file as VFile ptr, byval offset as ssize_t, byval whence as long) as size_t
 declare function vftell(byval file as VFile ptr) as size_t
+declare function vflength(byval file as VFile ptr) as size_t
 
 end extern
 

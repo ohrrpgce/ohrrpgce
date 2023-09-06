@@ -842,3 +842,13 @@ size_t vftell(VFile *file) {
 		return file->position;
 }
 
+size_t vflength(VFile *file) {
+	if (file->type == VFile::MEM)
+		return file->length;
+	size_t pos = vftell(file);
+	vfseek(file, 0, SEEK_END);
+	size_t len = vftell(file);
+	vfseek(file, pos, SEEK_SET);
+	return len;
+}
+

@@ -467,8 +467,10 @@ Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as 
 	vfread(strptr(magic), 1, 4, vf)
 
 	if magic <> "RELD" then
+		dim msg as string = "Couldn't load " & fil & ": Not a RELOAD file"
+		if vftell(vf) = 0 then msg &= " (zero length)"
 		vfclose(vf)
-		reporterr "Couldn't load " & fil & ": Not a RELOAD file", serrMajor
+		reporterr msg, serrMajor
 		return null
 	end if
 
