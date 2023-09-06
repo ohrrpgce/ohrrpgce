@@ -203,7 +203,7 @@ FUNCTION save_slot_used (byval slot as integer, prefix as string = "") as intege
 END FUNCTION
 
 FUNCTION count_used_save_slots() as integer
- 'Only counts regular prefixless save slots
+ 'Counts how many saves are visible to the player, ignoring hidden slots and quicksaves.
  DIM count as integer = new_count_used_save_slots()
  IF count > 0 THEN
   RETURN count
@@ -1413,7 +1413,9 @@ END FUNCTION
 FUNCTION new_count_used_save_slots() as integer
  DIM count as integer = 0
  
- FOR slot as integer = 0 TO maxSaveSlotCount
+ DIM slot_count as integer = gen(genSaveSlotCount)
+ IF slot_count = 0 THEN slot_count = 4
+ FOR slot as integer = 0 TO slot_count - 1
   IF new_save_slot_used(slot) THEN count += 1
  NEXT slot
  
