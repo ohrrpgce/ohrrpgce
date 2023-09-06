@@ -1,10 +1,10 @@
-Template slices are slices which are intended to be used as templates by cloning. For example for a slice menu you might create a template for the menu items, and create a clone of that for each menu item added to the menu. And you don't need to remove the template.
+Template slices are slices which are intended to be used as templates by cloning. For example for a slice-based menu you might create a menu item template (e.g. a Container with Text and Sprite children), and create a clone ("clone slice") of that for each menu item added to the menu. (Only the Container should be marked Template.) You don't need to remove the template, so can create more clones later.
 
-Template slices are hidden (even if they're set to Visible) and ignored for most all purposes, except in the slice editor, but you can toggle that on/off by pressing F10.
+Template slices are hidden (even if they're set to Visible) and ignored for most all purposes, except in the slice editor. Press F10 in the editor to toggle display on/off.
 
 As well as being hidden, templates:
 -are skipped when doing collision checking
--are skipped when positioning out slice children of Grid, Panel and Select slices. E.g. if the first child of a Grid slice is a template, the second child goes where the first normally would. (Even Select skips over them).
+-are skipped when positioning slice children of Grid, Panel, Layout and Select slices. E.g. if the first child of a Grid slice is a template, the second child goes where the first normally would. (Even Select skips over them).
 -have paused animations and movements (e.g. "move slice to")
 -are ignored by Scroll slices
 
