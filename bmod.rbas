@@ -59,7 +59,7 @@ DECLARE SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSpr
 DECLARE SUB player_attack_targetting_done(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_spawn_on_enemy_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
-DECLARE SUB battle_spawn_on_any_hit(atk as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB battle_spawn_on_first_hit(atk as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -782,7 +782,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
   bslot(targ).dissolve = 0
  END IF
  IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_enemy_hit targ, bat, bslot(), formdata
- battle_spawn_on_any_hit attack, bat, bslot(), formdata
+ battle_spawn_on_first_hit attack, bat, bslot(), formdata
  battle_counterattacks bat, h, targstat, targ, attack, bslot(), result
 
  IF bat.atk.has_consumed_costs = NO THEN
@@ -878,8 +878,9 @@ SUB battle_spawn_on_enemy_hit(byval targ as integer, byref bat as BattleState, b
  END WITH
 END SUB
 
-SUB battle_spawn_on_any_hit(atk as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+SUB battle_spawn_on_first_hit(atk as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  '--Finally check any see if the attack itself triggers any spawning
+ IF bat.atk.has_spawned THEN EXIT SUB 'Only spawn once per attack
  DIM slot as integer
  IF atk.spawn_enemy THEN
   slot = find_empty_enemy_slot(formdata)
@@ -888,6 +889,7 @@ SUB battle_spawn_on_any_hit(atk as AttackData, byref bat as BattleState, bslot()
    loadfoe slot, formdata, bat, bslot()
   END IF
  END IF
+ bat.atk.has_spawned = YES 'This gets reset to NO when the next attack is loaded
 END SUB
 
 SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
@@ -4243,6 +4245,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  DIM pdir as integer = 0
  
  bat.atk.has_consumed_costs = NO
+ bat.atk.has_spawned = NO
  IF is_enemy(bat.acting) THEN pdir = 1
  
  'CANNOT HIT INVISIBLE FOES

@@ -189,6 +189,7 @@ TYPE AttackState
  non_elemental as bool
  elemental(maxElements - 1) as bool
  has_consumed_costs as bool  'Prevents multi-hit attacks from consuming MP more than once
+ has_spawned as bool 'Prevents multi-hit or multi-target attacks that can spawn from spawning multiple times
 END TYPE
 
 'For TargettingState.mode
