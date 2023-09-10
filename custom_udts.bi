@@ -384,6 +384,7 @@ TYPE MapEditState
   label_all_npcs as bool     'Label all NPCs rather than just the one under cursor
   draw_npcs_overlaid as NPCDrawOverlaidEnum 'When to draw NPCs above overhead layers
   show_hero as bool          'Show player start location
+  prompt_when_moving_hero_origin_on_the_same_map as bool 'Normally it only prompts when moving hero origin to another map
 
   'Tool stuff
   tool as integer            'Tool ID (index in toolinfo), or -1 if none (meaning none available)

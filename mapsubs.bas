@@ -1049,7 +1049,7 @@ DO
  END IF
  IF keyval(scCtrl) > 0 ANDALSO keyval(scH) > 1 THEN
   'Ctrl+H for hero start position.
-  IF gen(genStartMap) = st.map.id ORELSE _
+  IF gen(genStartMap) = st.map.id ANDALSO st.prompt_when_moving_hero_origin_on_the_same_map = NO ORELSE _
      yesno("Move the hero start location to " & st.x & "," & st.y & " on map " & st.map.id & "?") THEN
    gen(genStartMap) = st.map.id
    gen(genStartX) = st.x
@@ -6891,6 +6891,7 @@ SUB MapSettingsMenu.update ()
  add_item 9 , , "Mouse pan speed: " & pan_mult_str
  add_item 10, , "Show layer shadows when skewing: " & yesorno(st->shadows_when_skewing)
  add_item 16, , "Show hero start location: " & yesorno(st->show_hero)
+ add_item 18, , "Prompt when moving hero origin on the same map " & yesorno(st->prompt_when_moving_hero_origin_on_the_same_map)
  add_item 11, , "Show grid (Ctrl-G): " & yesorno(st->show_grid)
  DIM tmp as string
  IF st->show_grid THEN
@@ -6956,6 +6957,8 @@ FUNCTION MapSettingsMenu.each_tick () as bool
    changed = boolgrabber(st->show_hero, state)
   CASE 17
    changed = boolgrabber(st->label_all_npcs, state)
+  CASE 18
+   changed = boolgrabber(st->prompt_when_moving_hero_origin_on_the_same_map, state)
 
  END SELECT
  state.need_update OR= changed
@@ -6987,6 +6990,7 @@ SUB mapedit_settings_menu (st as MapEditState)
  write_config "mapedit.mouse_pan_multiplier", FORMAT(st.mouse_pan_mult, "0.00")
  write_config "mapedit.shadows_when_skewing", yesorno(st.shadows_when_skewing)
  write_config "mapedit.show_hero", yesorno(st.show_hero)
+ write_config "mapedit.prompt_when_moving_hero_origin_on_the_same_map", yesorno(st.prompt_when_moving_hero_origin_on_the_same_map)
  write_config "mapedit.show_grid", yesorno(st.show_grid)
  write_config "mapedit.grid_color", IIF(st.grid_color, rgb_to_string(master(st.grid_color)), "0")
  'st.screen_outline is not saved
@@ -7010,6 +7014,7 @@ SUB mapedit_load_settings (st as MapEditState)
  st.mouse_pan_mult = bound(CDBL(read_config_str("mapedit.mouse_pan_multiplier", "1")), 0.1, 20.0)
  st.shadows_when_skewing = read_config_bool("mapedit.shadows_when_skewing", YES)
  st.show_hero = read_config_bool("mapedit.show_hero", YES)
+ st.prompt_when_moving_hero_origin_on_the_same_map = read_config_bool("mapedit.prompt_when_moving_hero_origin_on_the_same_map", NO)
  st.show_grid = read_config_bool("mapedit.show_grid", NO)
  st.grid_color = string_to_color(read_config_str("mapedit.grid_color", "rgb(0,190,190)"), 0)
  'st.screen_outline is not loaded
