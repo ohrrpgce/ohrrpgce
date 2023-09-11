@@ -230,6 +230,8 @@ WHAT IS NEW?
       they were suppressed. Now at most 50 are logged to g_debug.txt [Ralph]
     * If an enemy spawned into a previously occupied slot, it inherited the
       leftover ready-meter of the previous enemy. [James]
+    * Fixed bug that allowed you to target hidden enemies if your battles
+      are not configured to pause when targetting [James]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

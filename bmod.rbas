@@ -56,6 +56,7 @@ DECLARE SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite, st
 DECLARE SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB battle_display_menus (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, page as integer)
 DECLARE SUB battle_confirm_target(byref bat as BattleState, bslot() as BattleSprite)
+DECLARE SUB battle_leave_targetting_mode(bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB player_attack_targetting_done(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB battle_spawn_on_enemy_hit(byval targ as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -919,17 +920,24 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  ' FIXME: We shouldn't be checking costs here in all cases, eg an item-triggered
  ' attack that doesn't use costs (bug #1161, #1098)
  IF NOT atkallowed(bat.targ.atk, bat.player_turn, 0, 0, bslot(bat.player_turn)) THEN
-  bslot(bat.player_turn).attack = 0
-  bslot(bat.player_turn).consume_lmp = -1
-  bat.targ.mode = targNONE
-  clearkeys
+  battle_leave_targetting_mode bat, bslot()
   EXIT SUB
  END IF
 
+ 'We need to recalculate valid targs every tick in case we are in active mode
+ 'and do not pause when targetting
+ get_valid_targs bat.targ.mask(), bat.player_turn, bat.targ.atk, bslot(), bat
+
  'no valid targs available
  IF targetmaskcount(bat.targ.mask()) = 0 THEN
+  battle_leave_targetting_mode bat, bslot()
   EXIT SUB
  END IF
+
+ 'If the current target has become invalid, switch to the next valid one
+ WHILE bat.targ.mask(bat.targ.pointer) = NO
+  loopvar bat.targ.pointer, 0, 11
+ WEND
 
  'random target
  IF bat.targ.roulette THEN
@@ -1054,11 +1062,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  'cancel
  IF carray(ccCancel) > 1 THEN do_cancel = YES
  IF do_cancel THEN
-  menusound gen(genCancelSFX)
-  bslot(bat.player_turn).attack = 0
-  bslot(bat.player_turn).consume_lmp = -1
-  bat.targ.mode = targNONE
-  clearkeys
+  battle_leave_targetting_mode bat, bslot()
   EXIT SUB
  END IF
  
@@ -1070,6 +1074,14 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
   battle_confirm_target bat, bslot()
  END IF
  
+END SUB
+
+SUB battle_leave_targetting_mode(bat as BattleState, bslot() as BattleSprite)
+  menusound gen(genCancelSFX)
+  bslot(bat.player_turn).attack = 0
+  bslot(bat.player_turn).consume_lmp = -1
+  bat.targ.mode = targNONE
+  clearkeys
 END SUB
 
 'Called when the player confirms targets for an attack
