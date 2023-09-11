@@ -4794,6 +4794,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  IF dbg.def( , , IIF(Achievements.enable_debug, "Disable", "Enable") & " achievements debug logging") THEN Achievements.enable_debug XOR= true
  IF dbg.def( , , "Edit general preference bitsets") THEN edit_general_bitsets
  IF dbg.def( , , "Edit backcompat bitsets") THEN edit_backcompat_bitsets
+ IF dbg.def( , , "Edit battle system bitsets") THEN edit_battle_bitsets
  IF dbg.def( , , "Show/test battle formations here") THEN battle_formation_testing_menu NO
  IF dbg.def( , , "Show/test any battle formation") THEN battle_formation_testing_menu YES
  IF dbg.def( , , "Enable/disable random battles") THEN
