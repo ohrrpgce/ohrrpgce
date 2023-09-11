@@ -887,6 +887,7 @@ SUB battle_spawn_on_first_hit(atk as AttackData, byref bat as BattleState, bslot
   IF slot > -1 THEN
    formdata.slots(slot).id = atk.spawn_enemy - 1
    loadfoe slot, formdata, bat, bslot()
+   bat.most_recently_spawned_by_attack = 4 + slot
   END IF
  END IF
  bat.atk.has_spawned = YES 'This gets reset to NO when the next attack is loaded
@@ -906,7 +907,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
   IF bat.turn.mode = turnACTIVE THEN
    update_turn_delays_in_attack_queue bat.player_turn
   END IF
-  autotarget bat.player_turn, bslot(bat.player_turn).attack - 1, bslot()
+  autotarget bat.player_turn, bslot(bat.player_turn).attack - 1, bslot(), bat
   player_attack_targetting_done bat, bslot()
   EXIT SUB
  END IF
@@ -2455,7 +2456,7 @@ FUNCTION does_battle_menu_have_targets(byref bspr as BattleSprite, bslot() as Ba
     SELECT CASE .t
      CASE batmenu_ATTACK:
       DIM atk_id as integer = .sub_t
-      IF has_valid_targs(bspr.index, atk_id, bslot()) THEN
+      IF has_valid_targs(bspr.index, atk_id, bslot(), bat) THEN
        RETURN YES
       END IF
      CASE batmenu_SKIPTURN:
@@ -2844,6 +2845,7 @@ SUB reset_battle_state (byref bat as BattleState)
   .menu_mode = batMENUHERO
 
   .laststun = 0
+  .most_recently_spawned_by_attack = -1
 
  END WITH
  
@@ -3362,7 +3364,7 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
    IF .enemy.bequest_attack > 0 ANDALSO NOT already_bequested THEN
     'Trigger an on-death bequest attack, and defer dying until later.
     DIM beq_t(11) as integer
-    IF autotarget(deadguy, .enemy.bequest_attack - 1, bslot(), beq_t()) THEN
+    IF autotarget(deadguy, .enemy.bequest_attack - 1, bslot(), bat, beq_t()) THEN
      '--Bequest attack only happens if it has a valid target
      .bequesting = YES
      .self_bequesting = is_among_targets(deadguy, beq_t())
@@ -3514,7 +3516,7 @@ SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id a
   END IF
 
   'Note: if autotargetting fails the targetless attack gets queued anyway, wasting the hero's turn
-  autotarget attacker_id, atk, bslot()
+  autotarget attacker_id, atk, bslot(), bat
   bspr.consume_lmp = lmp_lev
 
   IF bat.turn.mode = turnACTIVE THEN
@@ -3644,7 +3646,7 @@ SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdata as For
  END IF
 
  'Note: if autotargetting fails the targetless attack gets queued anyway, wasting the enemy's turn
- autotarget bat.enemy_turn, atk, bslot()
+ autotarget bat.enemy_turn, atk, bslot(), bat
 
  IF bat.turn.mode = turnACTIVE THEN
   bslot(bat.enemy_turn).active_turn_num += 1
@@ -4838,7 +4840,7 @@ SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
  'load attack
  loadattackdata bat.targ.atk, bslot(bat.player_turn).attack - 1
 
- get_valid_targs bat.targ.mask(), bat.player_turn, bat.targ.atk, bslot()
+ get_valid_targs bat.targ.mask(), bat.player_turn, bat.targ.atk, bslot(), bat
  bat.targ.hit_dead = attack_can_hit_dead(bat.targ.atk, bslot(bat.player_turn).stored_targs_can_be_dead)
 
  '--attacks that can target all/all-including-dead should default to the first enemy
@@ -5158,7 +5160,7 @@ FUNCTION spawn_chained_attack(byref ch as AttackDataChain, instead_chain as bool
    'also retarget if the chained attack has target setting "random roulette"
    'also retarget if the chained attack's preferred target is explicitly set.
    'This queues the attack.
-   autotarget bat.acting, chained_attack, bslot(), , blocking, ch.dont_retarget
+   autotarget bat.acting, chained_attack, bslot(), bat, , blocking, ch.dont_retarget
    bat.atk.id = -1
   ELSEIF delayed_attack_id > 0 THEN
    'if the old target info is reused, and this is not an immediate chain, copy it to the queue right away
@@ -5451,7 +5453,7 @@ SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
         clear_attack_queue_slot i
        ELSE
         'debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has dead target, retargetting."
-        autotarget .attacker, .attack, bslot(), .t(), NO
+        autotarget .attacker, .attack, bslot(), bat, .t(), NO
        END IF
       END IF
      END IF
@@ -5637,7 +5639,7 @@ SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as Battl
       'debuginfo "queued " & readattackname(.attack) & " for " & bslot(.attacker).name & " - last targ died and should not retarget"
       clear_attack_queue_slot i
      ELSE
-      autotarget .attacker, .attack, bslot(), .t(), NO
+      autotarget .attacker, .attack, bslot(), bat, .t(), NO
      END IF
     END IF
    END IF
@@ -5699,7 +5701,7 @@ SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat
   FOR i as integer = 0 TO gen(genNumElements) - 1
    IF attack.elemental_damage(i) THEN
     IF bslot(who).elem_counter_attack(i) > 0 THEN
-     autotarget who, bslot(who).elem_counter_attack(i) - 1, bslot(), YES, blocking, ,YES
+     autotarget who, bslot(who).elem_counter_attack(i) - 1, bslot(), bat, YES, blocking, ,YES
      EXIT SUB '-- only one counterattack per trigger attack
     END IF
    END IF
@@ -5708,7 +5710,7 @@ SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat
  '--then non-elemental attack
  IF bat.atk.non_elemental THEN
   IF bslot(who).non_elem_counter_attack > 0 THEN
-   autotarget who, bslot(who).non_elem_counter_attack - 1, bslot(), YES, blocking, ,YES
+   autotarget who, bslot(who).non_elem_counter_attack - 1, bslot(), bat, YES, blocking, ,YES
    EXIT SUB '-- only one counterattack per trigger attack
   END IF
  END IF
@@ -5716,7 +5718,7 @@ SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat
  FOR i as integer = 0 TO 11
   IF h > 0 AND targstat = i THEN
    IF bslot(who).stat_counter_attack(i) > 0 THEN
-    autotarget who, bslot(who).stat_counter_attack(i) - 1, bslot(), YES, blocking, ,YES
+    autotarget who, bslot(who).stat_counter_attack(i) - 1, bslot(), bat, YES, blocking, ,YES
     EXIT SUB '-- only one counterattack per trigger attack
    END IF
   END IF

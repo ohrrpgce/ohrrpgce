@@ -454,7 +454,7 @@ addcaption caption(), capindex, "Oscillate"
 addcaption caption(), capindex, "Random"
 
 CONST AtkLimTargClass = 3
-max(AtkLimTargClass) = 16
+max(AtkLimTargClass) = 17
 menucapoff(AtkTargClass) = capindex
 addcaption caption(), capindex, "Foe (not dead)"
 addcaption caption(), capindex, "Ally (not dead)"
@@ -473,6 +473,7 @@ addcaption caption(), capindex, "Counter (last to hit attacker)"
 addcaption caption(), capindex, "All (including dead heroes)"
 addcaption caption(), capindex, "Dead Foe (dead heroes only)"
 addcaption caption(), capindex, "Foe (including dead heroes)"
+addcaption caption(), capindex, "Most recently spawned by attack"
 
 CONST AtkLimTargSetting = 4
 max(AtkLimTargSetting) = 4

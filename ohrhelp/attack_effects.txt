@@ -8,12 +8,24 @@ If a hero or enemy has defector status, that affects which side they are grouped
 
 Defector status also means that the enemy does not need to be killed for the battle to end.
 
-To make a hero behave like an enemy, set Control=auto, Turncoat=on, and Defector=on
+To make a hero behave like an enemy, set:
+ Control=acts automatically
+ Turncoat=attacks allies
+ Defector=changes sides
 
-To make an enemy behave like a hero, set Control=player, Turncoat=on, and Defector=on
+To make an enemy behave like a hero, set:
+ Control=Controlled by Player
+ Turncoat=attacks allies
+ Defector=changes sides
 
 [CONFUSION EXAMPLE]
 
-To make a target "Confused", set Control=auto, Turncoat=on, Defector=default
+To make a target "Confused", set:
+ Control=acts automatically
+ Turncoat=attacks allies
+ Defector=reset to default
 
-To end "Confused", set Control=default, Turncoat=default, Defector=default
+To end "Confused", set:
+ Control=reset to default
+ Turncoat=reset to default
+ Defector=reset to default

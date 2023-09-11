@@ -1234,15 +1234,15 @@ FUNCTION is_foe_of(target as integer, attacker as integer, bslot() as BattleSpri
  END IF
 END FUNCTION
 
-FUNCTION has_valid_targs(byval who as integer, byval atk_id as integer, bslot() as BattleSprite) as bool
+FUNCTION has_valid_targs(byval who as integer, byval atk_id as integer, bslot() as BattleSprite, bat as BattleState) as bool
  DIM attack as AttackData
  loadattackdata attack, atk_id
- RETURN has_valid_targs(who, attack, bslot())
+ RETURN has_valid_targs(who, attack, bslot(), bat)
 END FUNCTION
 
-FUNCTION has_valid_targs(byval who as integer, byref atk as AttackData, bslot() as BattleSprite) as bool
+FUNCTION has_valid_targs(byval who as integer, byref atk as AttackData, bslot() as BattleSprite, bat as BattleState) as bool
  DIM tmask(11) as bool ' Which targets are valid for the currently targetting attack
- get_valid_targs tmask(), who, atk, bslot()
+ get_valid_targs tmask(), who, atk, bslot(), bat
  FOR i as integer = 0 TO UBOUND(tmask)
   IF tmask(i) THEN RETURN YES
  NEXT i
@@ -1250,7 +1250,7 @@ FUNCTION has_valid_targs(byval who as integer, byref atk as AttackData, bslot() 
 END FUNCTION
 
 'who: attacker
-SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackData, bslot() as BattleSprite)
+SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackData, bslot() as BattleSprite, bat as BattleState)
  DIM i as integer
 
  FOR i = 0 TO 11
@@ -1372,6 +1372,13 @@ SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackDa
     IF bslot(i).vis ORELSE (is_hero(i) ANDALSO gam.hero(i).id >= 0) THEN tmask(i) = YES
    END IF
   NEXT i
+ 
+ CASE 17 'spawned by last attack
+  IF bat.most_recently_spawned_by_attack > -1 THEN
+   IF bslot(bat.most_recently_spawned_by_attack).vis THEN
+    tmask(bat.most_recently_spawned_by_attack) = YES
+   END IF
+  END IF
 
  'Consider updating chkOOBtarg when adding new target classes concerning dead allies...
  'but OOB nearly all are treated as 'All'.
@@ -1669,23 +1676,23 @@ FUNCTION attack_can_hit_dead(attack as AttackData, stored_targs_can_be_dead as b
  RETURN NO
 END FUNCTION
 
-FUNCTION autotarget (who as integer, atk_id as integer, bslot() as BattleSprite, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
+FUNCTION autotarget (who as integer, atk_id as integer, bslot() as BattleSprite, bat as BattleState, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
  DIM t(11) as integer
- RETURN autotarget(who, atk_id, bslot(), t(), queue, override_blocking, dont_retarget, is_counterattack)
+ RETURN autotarget(who, atk_id, bslot(), bat, t(), queue, override_blocking, dont_retarget, is_counterattack)
 END FUNCTION
 
-FUNCTION autotarget (who as integer, atk_id as integer, bslot() as BattleSprite, t() as integer, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
+FUNCTION autotarget (who as integer, atk_id as integer, bslot() as BattleSprite, bat as BattleState, t() as integer, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
  DIM attack as AttackData
  loadattackdata attack, atk_id
- RETURN autotarget(who, attack, bslot(), t(), queue, override_blocking, dont_retarget, is_counterattack)
+ RETURN autotarget(who, attack, bslot(), bat, t(), queue, override_blocking, dont_retarget, is_counterattack)
 END FUNCTION
 
-FUNCTION autotarget (who as integer, byref atk as AttackData, bslot() as BattleSprite, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
+FUNCTION autotarget (who as integer, byref atk as AttackData, bslot() as BattleSprite, bat as BattleState, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
  DIM t(11) as integer
- RETURN autotarget(who, atk, bslot(), t(), queue, override_blocking, dont_retarget, is_counterattack)
+ RETURN autotarget(who, atk, bslot(), bat, t(), queue, override_blocking, dont_retarget, is_counterattack)
 END FUNCTION
 
-FUNCTION autotarget (who as integer, byref atk as AttackData, bslot() as BattleSprite, t() as integer, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
+FUNCTION autotarget (who as integer, byref atk as AttackData, bslot() as BattleSprite, bat as BattleState, t() as integer, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
  '--Returns true if the targetting was successful, or false if it failed for some reason
  ' such as no valid targets being available.
 
@@ -1695,7 +1702,7 @@ FUNCTION autotarget (who as integer, byref atk as AttackData, bslot() as BattleS
 
  DIM tmask(11) as bool ' Which targets are valid for the currently targetting attack
 
- get_valid_targs tmask(), who, atk, bslot()
+ get_valid_targs tmask(), who, atk, bslot(), bat
 
  flusharray t(), 11, YES
 

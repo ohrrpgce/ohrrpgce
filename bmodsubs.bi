@@ -64,16 +64,16 @@ declare function visibleandalive (byval who as integer, bslot() as battlesprite)
 declare sub export_battle_hero_stats (bslot() as BattleSprite)
 declare sub import_battle_hero_stats (bslot() as BattleSprite)
 
-declare function has_valid_targs OVERLOAD (byval who as integer, byval atk_id as integer, bslot() as BattleSprite) as bool
-declare function has_valid_targs OVERLOAD (byval who as integer, byref atk as AttackData, bslot() as BattleSprite) as bool
+declare function has_valid_targs OVERLOAD (byval who as integer, byval atk_id as integer, bslot() as BattleSprite, bat as BattleState) as bool
+declare function has_valid_targs OVERLOAD (byval who as integer, byref atk as AttackData, bslot() as BattleSprite, bat as BattleState) as bool
 
-declare sub get_valid_targs (tmask() as integer, byval who as integer, byref atk as AttackData, bslot() as BattleSprite)
+declare sub get_valid_targs (tmask() as integer, byval who as integer, byref atk as AttackData, bslot() as BattleSprite, bat as BattleState)
 declare function attack_can_hit_dead OVERLOAD (atk_id as integer, stored_targs_can_be_dead as bool=NO) as bool
 declare function attack_can_hit_dead OVERLOAD (attack as AttackData, stored_targs_can_be_dead as bool=NO) as bool
-declare function autotarget OVERLOAD (who as integer, atk_id as integer, bslot() as BattleSprite, t() as integer, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
-declare function autotarget OVERLOAD (who as integer, byref atk as AttackData, bslot() as BattleSprite, t() as integer, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
-declare function autotarget OVERLOAD (who as integer, atk_id as integer, bslot() as BattleSprite, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
-declare function autotarget OVERLOAD (who as integer, byref atk as AttackData, bslot() as BattleSprite, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
+declare function autotarget OVERLOAD (who as integer, atk_id as integer, bslot() as BattleSprite, bat as BattleState, t() as integer, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
+declare function autotarget OVERLOAD (who as integer, byref atk as AttackData, bslot() as BattleSprite, bat as BattleState, t() as integer, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
+declare function autotarget OVERLOAD (who as integer, atk_id as integer, bslot() as BattleSprite, bat as BattleState, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
+declare function autotarget OVERLOAD (who as integer, byref atk as AttackData, bslot() as BattleSprite, bat as BattleState, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
 
 declare function find_preferred_target (tmask() as integer, byval who as integer, atk as AttackData, bslot() as BattleSprite) as integer
 

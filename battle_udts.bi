@@ -338,6 +338,7 @@ TYPE BattleState
  death_mode as DeathMode
  targ as TargettingState
  atk as AttackState
+ most_recently_spawned_by_attack as integer 'Populated by battle_spawn_on_first_hit
  listslot as integer   'currently active hero spell list slot
  sptr as integer       'menu cursor for hero spell list menu
  sptr_hover as integer 'menu cursor mouse hover for the spell list
