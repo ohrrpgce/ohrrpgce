@@ -217,8 +217,8 @@ SUB shop_add_new (shopst as ShopEditState)
           flusharray shopbuf()
           '--Create a new shop stuff record
           flusharray stufbuf()
-          'FIXME: load the name and price for first shop item
-          stufbuf(19) = -1  'Default in-stock to infinite (first item only!)
+          DIM stuftmp as ShopStuffState
+          shop_init_stf shopst.id, stuftmp, stufbuf()
         CASE 2 ' copy
           gen(genMaxShop) += 1
           loadrecord shopbuf(), game + ".sho", 20, shoptocopy
