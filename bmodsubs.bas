@@ -1778,13 +1778,13 @@ FUNCTION find_preferred_target(tmask() as bool, byval who as integer, atk as Att
  SELECT CASE atk.prefer_targ ' Preferred target type
 
  CASE 0 '--Default
-  IF is_hero(who) THEN
+  IF bslot(who).under_player_control THEN
    atk.prefer_targ = 1 ' heroes default to first target
    IF atk.targ_set = 3 THEN
     'unless the target setting is random roulette, in which case random
     atk.prefer_targ = 4
    END IF
-  ELSEIF is_enemy(who) THEN
+  ELSE
    atk.prefer_targ = 4 ' enemies default to a random target
   END IF
   found = find_preferred_target(tmask(), who, atk, bslot())
@@ -1793,9 +1793,11 @@ FUNCTION find_preferred_target(tmask() as bool, byval who as integer, atk as Att
 
  CASE 1 '--First
   'special handling for heroes using attacks that target all/all-including-dead
-  IF is_hero(who) AND (atk.targ_class = 3 OR atk.targ_class = 14) THEN
-   FOR i = 4 to 11
-    IF tmask(i) THEN RETURN i
+  IF bslot(who).under_player_control AND (atk.targ_class = 3 OR atk.targ_class = 14) THEN
+   FOR i = 0 to 11
+    IF is_foe_of(i, who, bslot()) THEN
+     IF tmask(i) THEN RETURN i
+    END IF
    NEXT i
   ELSE ' normal first-target handling
    FOR i = 0 to 11
