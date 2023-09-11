@@ -74,6 +74,8 @@ WHAT IS NEW?
       add a column for time each script spends on one command [Ralph]
     * Number of script strings increased from 100 to 256 (IDs 0-255)
     * Attacks can directly spawn an enemy (if there is room) [James]
+    * New attack starget class "Most recently spawned by attack" allows
+      attack chains to target newly spawned enemies [James]
     * "Battles display at 320x200" battle/backcompat bit (default on) which you
       can turn off to make battles run at a higher resolution. Everything
       including enemies, the backdrop, and all the battle UI and menus will
@@ -226,6 +228,8 @@ WHAT IS NEW?
     * Corrupt .ogg files could show a BUG message instead of being ignored [Ralph]
     * In release mode, spamming script errors could slow down the game even though
       they were suppressed. Now at most 50 are logged to g_debug.txt [Ralph]
+    * If an enemy spawned into a previously occupied slot, it inherited the
+      leftover ready-meter of the previous enemy. [James]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

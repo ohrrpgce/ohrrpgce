@@ -30,7 +30,7 @@ DECLARE FUNCTION battle_distance(byval who1 as integer, byval who2 as integer, b
 DECLARE SUB transfer_enemy_bits(byref bspr as BattleSprite)
 DECLARE SUB transfer_enemy_counterattacks (byref bspr as BattleSprite)
 DECLARE SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
-DECLARE SUB reset_enemy_state(byref bspr as BattleSprite, byref bat as BattleState)
+DECLARE SUB reset_enemy_state(byref bspr as BattleSprite, byref bat as BattleState, transmogging as bool=NO)
 DECLARE SUB change_foe_stat(bspr as BattleSprite, byval stat_num as integer, byval new_max as integer, byval stat_rule as TransmogStatsRule)
 
 DIM SHARED XY00 as XYpair
@@ -2054,7 +2054,7 @@ END SUB
 
 ' Called when loading or reloading (transmogrification) an enemy,
 ' sets up anything that should be reset when transmogrifying
-SUB reset_enemy_state(byref bspr as BattleSprite, byref bat as BattleState)
+SUB reset_enemy_state(byref bspr as BattleSprite, byref bat as BattleState, transmogging as bool=NO)
  WITH bspr
   .vis = YES
   .d = 0
@@ -2063,9 +2063,13 @@ SUB reset_enemy_state(byref bspr as BattleSprite, byref bat as BattleState)
   .fleeing = NO
   .bequesting = NO
   .self_bequesting = NO
-  .under_player_control = bspr.enemy.controlled_by_player
-  .turncoat_attacker = bspr.enemy.turncoat_attacker
-  .defector_target = bspr.enemy.defector_target
+  IF NOT transmogging THEN
+   .ready = NO
+   .ready_meter = YES
+   .under_player_control = bspr.enemy.controlled_by_player
+   .turncoat_attacker = bspr.enemy.turncoat_attacker
+   .defector_target = bspr.enemy.defector_target
+  END IF
   IF bat.debug_player_control THEN .under_player_control = YES
  END WITH
 END SUB
@@ -2109,7 +2113,7 @@ SUB changefoe(bat as BattleState, byval slot as integer, transmog as TransmogDat
   loadenemydata .enemy, formdata.slots(slot).id
 
   setup_non_volatile_enemy_state bspr
-  reset_enemy_state bspr, bat
+  reset_enemy_state bspr, bat, YES
 
   DIM old_w as integer = .w
   DIM old_h as integer = .h
