@@ -16,3 +16,6 @@ Spell List:
 Items Menu:
   Let the hero use items from the
   items menu.
+
+Skip Turn:
+  The hero will do nothing for one turn

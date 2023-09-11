@@ -4,7 +4,9 @@ Changing the target control can be used to put an enemy under player control.
 
 If a hero or enemy has turncoat status, that affects who they will be able to target with their attacks.
 
-If a hero or enemy has defector status, that affects which side they are grouped with for the purposes of other's attacks
+If a hero or enemy has defector status, that affects which side they are grouped with for the purposes of other's attacks.
+
+Defector status also means that the enemy does not need to be killed for the battle to end.
 
 To make a hero behave like an enemy, set Control=auto, Turncoat=on, and Defector=on
 

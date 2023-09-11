@@ -104,16 +104,17 @@ Attacker Animation: This controls how the attacker moves when doing the attack.
 
 * Jump - Causes the attacker to leap
   off the top of the screen. The
-  attacker  will remain invisible
-  until doing an attack with the
-  "Land" attacker animation. You can
-  use both "Jump" and "Land"  as part
+  attacker will have "hidden" status
+  until doing an attack with animation
+  such as "Land" or "Run In". You can
+  use both "Jump" and "Land" as part
   of a single chain of attacks.
 
 * Land - Causes the attacker to fall
   from the top of the screen and land
   on the target, then to return to
-  its starting point.
+  its starting point. This removes
+  hidden status from the attacker
 
 * Null - The attacker does not move
   at all.
@@ -130,6 +131,21 @@ Attacker Animation: This controls how the attacker moves when doing the attack.
   reappears in its starting point. If
   this attack is used by a hero, the
   hero's weapon will display.
+
+* Standing Strike - If used by a hero,
+  the hero will show its strike
+  animation without stepping forward.
+
+* Run and Hide - The attacker will run
+  away. This turns on "hidden" status
+  which can be reversed layer with an
+  attacker animation such as "Run In"
+  or "Land".
+
+* Run In - The attacker will run in
+  from the side of the screen. This
+  removes hidden status from the
+  attacker.
 
 Delay Ticks Before Attack: [Active-time battles only]
 Causes a delay before the attack is executed. During the delay, time passes and other combatants can act.
