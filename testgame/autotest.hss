@@ -4256,8 +4256,135 @@ script, pathfinding tests, begin
 
   # clean up
   stop checkpoint timer
+  show no value
+  
+  # Pathfinding to extra data
+  set hero position(me, 12, 6) # Hero pos doesn't matter, just moving the camera
+  variable(sl, result)
+  sl := create map overlay container
+  result := pathfind into extra as hero(sl, 13, 6, 14, 3)
+  assert(result==true)
+  visualize path from extra(sl)
+  assert(get extra(sl, 0) == 13)
+  assert(get extra(sl, 1) == 6)
+  assert(get extra(sl, extra length(sl)--2) == 14)
+  assert(get extra(sl, extra length(sl)--1) == 3)
+  assert(extra length(sl) == 5 * 2)
+  w
+  # With maxsearch, give up at a range of 2
+  result := pathfind into extra as hero(sl, 13, 6, 14, 3, 2)
+  assert(result==false)
+  visualize path from extra(sl)
+  assert(extra length(sl) == 2 * 2)
+  w
+  # To an unreachable spot
+  result := pathfind into extra as hero(sl, 13, 6, 19, 0)
+  assert(result==false)
+  visualize path from extra(sl)
+  w
+  # Ignore the first step
+  result := pathfind into extra as hero(sl, 13, 6, 14, 3, 0, false, true)
+  assert(result==true)
+  visualize path from extra(sl)
+  assert(get extra(sl, extra length(sl)--2) == 14)
+  assert(get extra(sl, extra length(sl)--1) == 3)
+  assert(extra length(sl) == 4 * 2)
+  w
+  # Append a second path to the first
+  result := pathfind into extra as hero(sl, 13, 6, 14, 3, 0, false, false)
+  assert(result==true)
+  result := pathfind into extra as hero(sl, 14, 3, 15, 2, 0, true, true)
+  assert(result==true)
+  visualize path from extra(sl)
+  assert(extra length(sl) == 7 * 2)
+  w
+  # Append a first path while preserving default 3 extra values
+  free slice(sl)
+  sl := create map overlay container
+  result := pathfind into extra as hero(sl, 13, 6, 14, 3, 0, true, false)
+  assert(extra length(sl) == 3 + 5*2)
+  assert(get extra(sl, 0) == 0)
+  assert(get extra(sl, 1) == 0)
+  assert(get extra(sl, 2) == 0)
+  assert(get extra(sl, 3) == 13)
+  assert(get extra(sl, 4) == 6)
+  visualize path from extra(sl, 3)
+  w
+  # Test NPC pathing (current NPC positions don't matter really)
+  n0 := create npc(0, 10, 6) # Cannot walk across grass
+  n1 := create npc(1, 10, 8) # Can walk across grass
+  # Across the grass
+  result := pathfind into extra as npc(sl, n1, 12, 5, 14, 3)
+  assert(result == true)
+  assert(extra length(sl) == 5 * 2)
+  assert(get extra(sl, 0) == 12)
+  assert(get extra(sl, 1) == 5)
+  assert(get extra(sl, 8) == 14)
+  assert(get extra(sl, 9) == 3)
+  visualize path from extra(sl)
+  w
+  # Around the grass
+  result := pathfind into extra as npc(sl, n0, 12, 5, 14, 3)
+  assert(result == true)
+  assert(extra length(sl) == 9 * 2)
+  assert(get extra(sl, 0) == 12)
+  assert(get extra(sl, 1) == 5)
+  assert(get extra(sl, extra length(sl)--2) == 14)
+  assert(get extra(sl, extra length(sl)--1) == 3)
+  visualize path from extra(sl)
+  w
+  # around the grass and the hero
+  set hero position(me, 11, 3)
+  result := pathfind into extra as npc(sl, n0, 12, 5, 14, 3)
+  assert(extra length(sl) == 11 * 2)
+  visualize path from extra(sl)
+  w
+  # Can't reach the middle of the grass
+  result := pathfind into extra as npc(sl, n0, 12, 5, 13, 4)
+  assert(result == false)
+  assert(extra length(sl) == 1 * 2)
+  visualize path from extra(sl)
+  w
+  # Zero-length path (start excluded)
+  result := pathfind into extra as npc(sl, n0, 12, 5, 13, 4, 0, false, true)
+  assert(result == false)
+  assert(extra length(sl) == 0 * 2)
+  visualize path from extra(sl)
+  w
+  # Append 3 waypoints (full circle)
+  pathfind into extra as npc(sl, n0, 12, 5, 14, 3, 0, false, true)
+  pathfind into extra as npc(sl, n0, 14, 3, 15, 7, 0, true, true)
+  pathfind into extra as npc(sl, n0, 15, 7, 12, 5, 0, true, true)
+  assert(extra length(sl) == 24 * 2)
+  visualize path from extra(sl)
+  w
+  # Cleanup
+  free slice(sl)
   
   teleport to map(oldmap, oldx, oldy)
+end
+
+script, create map overlay container, begin
+  variable(sl)
+  sl := create container(0, 0)
+  set parent(sl, lookup slice(sl:map overlay))
+  fill parent(sl, true)
+  exit(sl)
+end
+
+script, visualize path from extra, sl, offset=0, begin
+ free slice children(sl)
+ variable(i, x, y, box)
+ for(i, 0, ((extra length(sl) -- offset) / 2) -- 1) do(
+   x := get extra(sl, offset + i * 2)
+   y := get extra(sl, offset + i * 2 + 1)
+   box := create rect(18, 18)
+   set parent(box, sl)
+   set rect bgcol(box, 1)
+   set rect opacity(box, 25)
+   set slice x(box, x * 20 + 1)
+   set slice y(box, y * 20 + 1)
+ )
 end
 
 script, is at pos, ref, x, y, begin
