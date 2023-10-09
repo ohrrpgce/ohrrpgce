@@ -35,6 +35,9 @@ DECLARE FUNCTION allow_gmap_idx(gmap_idx as integer) as bool
 DECLARE FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2) as integer
 DECLARE SUB replace_sprite_plotslice(byval slice_argno as integer, byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2)
 DECLARE FUNCTION get_enemy_sprite_size(index as integer) as XYPair
+DECLARE FUNCTION bulk_append_extra(extravec_ptr as integer vector ptr, count_to_add as integer) as integer
+DECLARE FUNCTION bulk_append_or_replace(extravec_ptr as integer vector ptr, count_to_add as integer, append_extra as bool) as integer
+DECLARE FUNCTION copy_path_data_into_extra(extravec_ptr as integer vector ptr, byref pf as AStarPathfinder, destpos as XYPair, append_extra as bool) as bool
 
 ''''' Global variables
 
@@ -5210,44 +5213,26 @@ SUB script_commands(byval cmdid as integer)
   END IF
  CASE 756 '--pathfind into extra as npc
   extravec_ptr = get_arg_extravec(0)
-  DIM startpos as XYPair = XY(retvals(1), retvals(2))
-  DIM destpos as XYPair = XY(retvals(3), retvals(4))
-  DIM maxsearch as integer = retvals(5)
-  DIM npcref as NPCIndex = get_valid_npc(retvals(6), serrBadOp)
+  DIM npcref as NPCIndex = get_valid_npc(retvals(1), serrBadOp)
+  DIM startpos as XYPair = XY(retvals(2), retvals(3))
+  DIM destpos as XYPair = XY(retvals(4), retvals(5))
+  DIM maxsearch as integer = retvals(6)
+  DIM append_extra as bool = retvals(7) <> 0
   IF extravec_ptr <> NULL ANDALSO npcref >= 0 THEN
    DIM pf as AStarPathfinder = AStarPathfinder(startpos, destpos, maxsearch)
    pf.calculate(@npc(npcref), YES, , YES)
-   'Erase old extra
-   resize_extra *extravec_ptr, 0
-   'Resize extra to double the length of the path
-   resize_extra *extravec_ptr, v_len(pf.path) * 2
-   'Write the path into the extra data, Xs in the even indexes, Ys in the odd indexes
-   FOR i as integer = 0 to v_len(pf.path) - 1
-    (*extravec_ptr)[i*2]   = pf.path[i].x
-    (*extravec_ptr)[i*2+1] = pf.path[i].y
-   NEXT i
-   'Return true if the path reached the destination
-   IF pf.path[v_len(pf.path) - 1] = destpos THEN scriptret = 1
+   scriptret = IIF(copy_path_data_into_extra(extravec_ptr, pf, destpos, append_extra), 1, 0)
   END IF
  CASE 757 '--pathfind into extra as hero
   extravec_ptr = get_arg_extravec(0)
   DIM startpos as XYPair = XY(retvals(1), retvals(2))
   DIM destpos as XYPair = XY(retvals(3), retvals(4))
   DIM maxsearch as integer = retvals(5)
+  DIM append_extra as bool = retvals(6) <> 0
   IF extravec_ptr <> NULL THEN
    DIM pf as AStarPathfinder = AStarPathfinder(startpos, destpos, maxsearch)
    pf.calculate(NULL, NO, YES)
-   'Erase old extra
-   resize_extra *extravec_ptr, 0
-   'Resize extra to double the length of the path
-   resize_extra *extravec_ptr, v_len(pf.path) * 2
-   'Write the path into the extra data, Xs in the even indexes, Ys in the odd indexes
-   FOR i as integer = 0 to v_len(pf.path) - 1
-    (*extravec_ptr)[i*2]   = pf.path[i].x
-    (*extravec_ptr)[i*2+1] = pf.path[i].y
-   NEXT i
-   'Return true if the path reached the destination
-   IF pf.path[v_len(pf.path) - 1] = destpos THEN scriptret = 1
+   scriptret = IIF(copy_path_data_into_extra(extravec_ptr, pf, destpos, append_extra), 1, 0)
   END IF
 
  CASE ELSE
@@ -6117,4 +6102,56 @@ FUNCTION get_enemy_sprite_size(index as integer) as XYPair
  IF spr THEN size = spr->Size
  frame_unload @spr
  RETURN size
+END FUNCTION
+
+FUNCTION bulk_append_extra(extravec_ptr as integer vector ptr, count_to_add as integer) as integer
+ 'Returns the index of the first new extra element (or -1 if the allocation failed)
+ 'Q: Why does this function exist instead of using resize_extra directly?
+ 'A: This handles the default 3 elements for an uninitialized extra, as well as
+ '   showing a script-level error
+ DIM byref extravec as integer vector = *extravec_ptr
+ IF extravec = NULL THEN v_new extravec, 3
+ DIM old_length as integer = v_len(extravec)
+ DIM new_length as integer = old_length + count_to_add
+ IF new_length > maxExtraLength THEN
+  scripterr "Can't expand extra array from " & old_length & "->" & new_length & ", exceeds max length, " & maxExtraLength
+  RETURN -1
+ ELSE
+  resize_extra *extravec_ptr, new_length
+ END IF
+ RETURN old_length 'old length is the same as the index of the first new element
+END FUNCTION
+
+FUNCTION bulk_append_or_replace(extravec_ptr as integer vector ptr, count_to_add as integer, append_extra as bool) as integer
+ 'Either append or resize extra, and return the index of the first new element, or -1 on error
+ IF append_extra THEN
+  'Resize extra to append double the length of the path
+  RETURN bulk_append_extra(extravec_ptr, count_to_add)
+ ELSE
+  IF count_to_add > maxExtraLength THEN
+   scripterr "Can't resize extra to " & count_to_add & ", exceeds max length, " & maxExtraLength
+   RETURN -1
+  ELSE
+   'Erase old extra
+   resize_extra *extravec_ptr, 0
+   resize_extra *extravec_ptr, count_to_add
+  END IF
+ END IF
+ RETURN 0
+END FUNCTION
+
+FUNCTION copy_path_data_into_extra(extravec_ptr as integer vector ptr, byref pf as AStarPathfinder, destpos as XYPair, append_extra as bool) as bool
+ DIM start_index as integer = bulk_append_or_replace(extravec_ptr, v_len(pf.path) * 2, append_extra)
+ IF start_index = -1 THEN
+  scripterr "Extra data allocation failed, discarding the pathfinding data"
+ ELSE
+  'Write the path into the extra data, Xs in the even indexes, Ys in the odd indexes
+  FOR i as integer = 0 to v_len(pf.path) - 1
+   (*extravec_ptr)[start_index+i*2]   = pf.path[i].x
+   (*extravec_ptr)[start_index+i*2+1] = pf.path[i].y
+  NEXT i
+  'Return true if the path reached the destination
+  IF pf.path[v_len(pf.path) - 1] = destpos THEN RETURN YES
+ END IF
+ RETURN NO
 END FUNCTION
