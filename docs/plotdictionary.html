@@ -209,7 +209,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2023-05-17)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2023-10-09)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -384,6 +384,10 @@ function toggleContent(target) {
 		<ul></ul>
 </li>
 </ul>
+</li>
+		<li>
+<a href="#Attack%20Data">Attack Data</a><br>
+		<ul></ul>
 </li>
 		<li>
 <a href="#Enemy%20and%20Formation%20Functions">Enemy and Formation Functions</a><br>
@@ -847,6 +851,8 @@ function toggleContent(target) {
 		<a href="#about-formationslotenemy" class="ref">formation slot enemy (formation, slot)</a><br>
 		<a href="#about-formationslotx" class="ref">formation slot x (formation, slot)</a><br>
 		<a href="#about-formationsloty" class="ref">formation slot y (formation, slot)</a><br>
+		<a href="#about-forwardx" class="ref">forward X (who)</a><br>
+		<a href="#about-forwardy" class="ref">forward Y (who)</a><br>
 		<a href="#about-freeslice" class="ref">free slice (handle)</a><br>
 		<a href="#about-freeslicechildren" class="ref">free slice children (handle)</a><br>
 		<a href="#about-freesprite" class="ref">free sprite (handle)</a><br>
@@ -857,7 +863,8 @@ function toggleContent(target) {
 		<a href="#about-getactivebattlepauseonallmenus" class="ref">get active battle pause on all menus</a><br>
 		<a href="#about-getactivetimebattlemode" class="ref">get active time battle mode</a><br>
 		<a href="#about-getambientmusic" class="ref">get ambient music</a><br>
-		<a href="#about-getattackcaption" class="ref">get attack caption (ID, attack)</a><br>
+		<a href="#about-getattackcaption" class="ref">get attack caption (str ID, attack)</a><br>
+		<a href="#about-getattackextra" class="ref">get attack extra (attack, extra num)</a><br>
 		<a href="#about-readattackname" class="ref">get attack name</a><br>
 		<a href="#about-getbattlecountdown" class="ref">get battle countdown</a><br>
 		<a href="#about-getblendingenabled" class="ref">get blending enabled (handle)</a><br>
@@ -1223,6 +1230,8 @@ function toggleContent(target) {
 		<a href="#about-party" class="ref">party</a><br>
 		<a href="#about-partymoney" class="ref">party money</a><br>
 		<a href="#about-pathfindheroto" class="ref">pathfind hero to (who, x, y, stuck ticks)</a><br>
+		<a href="#about-pathfindintoextraashero" class="ref">pathfind into extra as hero (extra, start x, start y, dest x, dest y, maxdepth, append, skip first)</a><br>
+		<a href="#about-pathfindintoextraasnpc" class="ref">pathfind into extra as npc (extra, npc ref, start x, start y, dest x, dest y, maxdepth, append, skip first)</a><br>
 		<a href="#about-pathfindnpcto" class="ref">pathfind NPC to (who, x, y, stuck ticks)</a><br>
 		<a href="#about-pausesound" class="ref">pause sound (num)</a><br>
 		<a href="#about-paymoney" class="ref">pay money (amount)</a><br>
@@ -1250,7 +1259,7 @@ function toggleContent(target) {
 		<a href="#about-randomenemiesaresuspended" class="ref">random enemies are suspended</a><br>
 		<a href="#about-randomformation" class="ref">random formation (formation set)</a><br>
 		<a href="#about-rankincaterpillar" class="ref">rank in caterpillar (who)</a><br>
-		<a href="#about-readattackname" class="ref">read attack name (ID, attack)</a><br>
+		<a href="#about-readattackname" class="ref">read attack name (str ID, attack)</a><br>
 		<a href="#about-readcolor" class="ref">read color (index, element)</a><br>
 		<a href="#about-readenemydata" class="ref">read enemy data (enemyid, data)</a><br>
 		<a href="#about-readfoemap" class="ref">read foemap (x, y)</a><br>
@@ -2658,6 +2667,7 @@ end
   show textbox(17)
 end</pre>
 				<span class="param">levels</span> tells how many nested loops/blocks to break out of.
+				It must be at least 1.
 				Remember that other flow control blocks such as <span class="code">if/then/else</span> and <span class="code">case() do()</span> don't count, only those listed above.
 				<pre># Randomly pick one of the flowers on the map that hasn't bloomed yet and make it bloom
 plotscript, a flower blooms, begin
@@ -2696,7 +2706,9 @@ end</pre>
 				(or in an isolated <a href="#about-do" class="ref">do</a> block),
 				<span class="code">continue</span> skips the rest of the <span class="code">do</span> block and continues on to the next loop, if any.
 				That's equivalent to jumping to the bottom of the loop, so its effect is like enclosing
-				the rest of the loop in an <a href="#about-if" class="ref">if</a>.
+				the rest of the loop in an <a href="#about-if" class="ref">if</a>
+				(except for isolated <span class="code">do</span> blocks, in which case it jumps straight to the top
+				of the loop because there's no condition to check).
 				<br>
 				When used inside a <a href="#about-switch" class="ref">switch</a> statement, <span class="code">continue</span> causes a jump into
 				the next <a href="#about-case" class="ref">case</a>'s <span class="code">do()</span> block, even if the <span class="code">case</span> doesn't match,
@@ -2706,6 +2718,7 @@ end</pre>
 				<br>
 				<span class="param">levels</span> is optional (defaulting to 1), and is almost never used.
 				When inside several nested loops/blocks it tells which one to continue.
+				It must be at least 1.
 				For example if there are 3 nested <span class="code">for</span> loops, <span class="code">continue(3)</span> continues the outermost one,
 				in the process  breaking out of the inner two.
 				For example:
@@ -3781,6 +3794,8 @@ play song (get ambient music)</pre>
 		<a href="#about-heroy" class="ref">hero Y (who)</a><br>
 		<a href="#about-heropixelx" class="ref">hero pixel X (who)</a><br>
 		<a href="#about-heropixely" class="ref">hero pixel Y (who)</a><br>
+		<a href="#about-forwardx" class="ref">forward X (who)</a><br>
+		<a href="#about-forwardy" class="ref">forward Y (who)</a><br>
 		<a href="#about-heroz" class="ref">hero Z (who)</a><br>
 		<a href="#about-setheroz" class="ref">set hero z (who, z)</a><br>
 		<a href="#about-walkherotox" class="ref">walk hero to x (who,x)</a><br>
@@ -4010,6 +4025,41 @@ resume player</pre>
 			Returns the hero's Y position on the map in pixels. To find the hero's position in tiles, use the <a href="#about-heroy" class="ref">hero Y</a> function instead.
 			
 			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-forwardx"></a>
+				<h4>forward X (who)</h4>
+<p>
+			
+				Returns the X position of the tile immediately in front of the specified hero.
+				<span class="param">who</span> is optional, defaulting to 0 (<a href="#about-me" class="ref">me</a>), the leader.
+				<br>
+				Wraps over the edge of wrapping maps.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-forwardy"></a>
+				<h4>forward Y (who)</h4>
+<p>
+			
+				Returns the Y position of the tile immediately in front of the specified hero.
+				<span class="param">who</span> is optional, defaulting to 0 (<a href="#about-me" class="ref">me</a>), the leader.
+				<br>
+				Wraps over the edge of wrapping maps.
+			
+			
+			<pre># This will check if npc 1 is in front of the leading hero, and if so show a textbox,
+# as if you spoke to the npc. "use npc (1)" instead would actually activate it.
+if (npc X (1) == forward X &amp;&amp; npc Y (1) == forward Y) then(
+   show text box (2)
+)
+</pre>
 			
 		</p>
 </div>
@@ -8685,6 +8735,82 @@ end</pre>
 		<hr>
 		</div>
 		<div class="section">
+<a name="Attack%20Data"></a>
+		<h3>
+<span class="backlink"></span>Attack Data</h3>
+		<a href="#Categories" class="backlink">[Back to top-level index]</a><p></p>
+<div class="select-content-shown" id="Attack Data-index">
+<button onclick="toggleContent(this);"><span class="content-shown">Hide index</span><span class="content-hidden">Show index</span></button><ul><div class="content-shown">
+		<a href="#about-readattackname" class="ref">get attack name</a><br>
+		<a href="#about-readattackname" class="ref">read attack name (str ID, attack)</a><br>
+		<a href="#about-getattackcaption" class="ref">get attack caption (str ID, attack)</a><br>
+		<a href="#about-getattackextra" class="ref">get attack extra (attack, extra num)</a><br>
+</div></ul>
+</div>
+		<div class="command">
+			<a name="about-getattackname"></a>
+				<h4>get attack name</h4>
+				An alias for <a href="#about-readattackname">read attack name</a>.
+			</div>
+		<div class="command">
+			<a name="about-readattackname"></a>
+				<h4>read attack name (str ID, attack)</h4>
+<p>
+			
+				This command will take the name of <span class="param">attack</span> and stick it in the <span class="param">str ID</span> string, overwriting its contents.
+				Use the <span class="param">atk:name</span> constants from your HSI file.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+				If you want to use this command with attack ID numbers, you must add 1 to the ID number.
+				</div>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					This command replaces the old <span class="param">get attack name</span> which required you to use <span class="param">atk:name -- 2</span> or the attack id number <span class="param">-- 1</span>
+				</div>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getattackcaption"></a>
+				<h4>get attack caption (str ID, attack)</h4>
+<p>
+			
+				This command will take the caption of <span class="param">attack</span> and stick it in the <span class="param">str ID</span> string, overwriting its contents.
+				Use the <span class="param">atk:name</span> constants from your HSI file as the <span class="param">attack</span>.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					If you want to use this command with attack ID numbers, you must add 1 to the ID displayed in the attack editor.
+				</div>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getattackextra"></a>
+				<h4>get attack extra (attack, extra num)</h4>
+<p>
+			
+				Returns the value in one of an attack's "extra data" fields, which you can set in the Misc submenu.
+				Use the <span class="code">atk:name</span> constants from your HSI file as the <span class="param">attack</span> ID.
+				<span class="param">extra num</span> is an <a href="#about-extradataindex" class="ref">extra array index</a>.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					If you want to use this command with attack ID numbers, you must add 1 to the ID displayed in the attack editor.
+				</div>
+			
+			
+			
+			
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="section">
 <a name="Enemy%20and%20Formation%20Functions"></a>
 		<h3>
 <span class="backlink"></span>Enemy and Formation Functions</h3>
@@ -10172,9 +10298,6 @@ There is no limit on string length.<br>
 		<a href="#about-getheroname" class="ref">get hero name (ID, hero)</a><br>
 		<a href="#about-setheroname" class="ref">set hero name (ID, hero)</a><br>
 		<a href="#about-getmapname" class="ref">get map name (ID, map)</a><br>
-		<a href="#about-readattackname" class="ref">get attack name</a><br>
-		<a href="#about-readattackname" class="ref">read attack name (ID, attack)</a><br>
-		<a href="#about-getattackcaption" class="ref">get attack caption (ID, attack)</a><br>
 		<a href="#about-getstatname" class="ref">get stat name (ID, stat)</a><br>
 		<a href="#about-getsongname" class="ref">get song name (ID, song)</a><br>
 </ul>
@@ -10614,40 +10737,6 @@ get hero name (1, find hero (leader))
 		</p>
 </div>
 		<div class="command">
-			<a name="about-getattackname"></a>
-				<h4>get attack name</h4>
-				An alias for <a href="#about-readattackname">read attack name</a>.
-			</div>
-		<div class="command">
-			<a name="about-readattackname"></a>
-				<h4>read attack name (ID, attack)</h4>
-<p>
-			This command will take the name of <span class="param">attack</span> and stick it in string #<span class="param">ID</span>, overwriting its contents. Use the <span class="param">atk:name</span> constants from your HSI file.
-			<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.</div>
-			<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">This command replaces the old <span class="param">get attack name</span> which required you to use <span class="param">atk:name -- 2</span> or the attack id number <span class="param">-- 1</span>
-</div>
-			
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
-			<a name="about-getattackcaption"></a>
-				<h4>get attack caption (ID, attack)</h4>
-<p>
-			This command will take the caption of <span class="param">attack</span> and stick it in string #<span class="param">ID</span>, overwriting its contents. Use the <span class="param">atk:name</span> constants from your HSI file.
-			<div class="notice note">
-<img src="Plotnote.png" alt="[Notice]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.</div>
-			
-			
-			
-			
-		</p>
-</div>
-		<div class="command">
 			<a name="about-getstatname"></a>
 				<h4>get stat name (ID, stat)</h4>
 <p>
@@ -10663,6 +10752,18 @@ get hero name (1, find hero (leader))
 			
 		</p>
 </div>
+		<div class="command">
+		<h4></h4>
+		<p><a href="#about-getattackname">Documented in the Attack Data section.</a></p>
+		</div>
+		<div class="command">
+		<h4>read attack name (str ID, attack)</h4>
+		<p><a href="#about-readattackname">Documented in the Attack Data section.</a></p>
+		</div>
+		<div class="command">
+		<h4>get attack caption (str ID, attack)</h4>
+		<p><a href="#about-getattackcaption">Documented in the Attack Data section.</a></p>
+		</div>
 		<div class="command">
 			<a name="about-getsongname"></a>
 				<h4>get song name (ID, song)</h4>
@@ -10891,15 +10992,15 @@ get hero name (1, find hero (leader))
 				<h4>set extra (handle, extra, value)</h4>
 <p>
 			
-				Sets one of the extra data variables on an object.
-				By default all new slices and zones start have a length 3 extra data array,
-				which has no builtin meaning, it is only for use by scripts.
+				Sets one of the extra data variables on an object,
+				which have no builtin meaning, they are only for use in your scripts.
+				By default all new slices, NPCs, etc. start with a length 3 extra data array.
 				<br>
 				<span class="param">handle</span> is an <a href="#about-objecthandle" class="ref">object handle</a>.
 				<span class="param">extra</span> is an <a href="#about-extradataindex" class="ref">extra array index</a>, typically a value from 0 to 2.
 				Use <a href="#about-resizeextra" class="ref">resize extra</a> if you want more than 3 extra values.
 				<br>
-				This command is a generic alternative to <a href="#about-setsliceextra" class="ref">set slice extra</a>, <a href="#about-setzoneextra" class="ref">set zone extra</a>, <a href="#about-setnpcextra" class="ref">set NPC extra</a>.
+				This command is a generic alternative to <a href="#about-setsliceextra" class="ref">set slice extra</a>, <a href="#about-setzoneextra" class="ref">set zone extra</a>, <a href="#about-setnpcextra" class="ref">set NPC extra</a>, and <a href="#about-setmenuitemextra" class="ref">set menu item extra</a>.
 			
 			
 			
@@ -10921,7 +11022,8 @@ get hero name (1, find hero (leader))
 				<span class="param">handle</span> is an <a href="#about-objecthandle" class="ref">object handle</a>.
 				<span class="param">extra</span> is the <a href="#about-extradataindex" class="ref">extra array index</a> to read.
 				<br>
-				This command is a generic alternative to <a href="#about-getsliceextra" class="ref">get slice extra</a>, <a href="#about-getzoneextra" class="ref">get zone extra</a>, <a href="#about-npcextra" class="ref">NPC extra</a>.
+				This command is a generic alternative to <a href="#about-getsliceextra" class="ref">get slice extra</a>, <a href="#about-getzoneextra" class="ref">get zone extra</a> (using <a href="#about-getzone" class="ref">get zone</a> not a zone ID), <a href="#about-npcextra" class="ref">NPC extra</a>, and <a href="#about-getmenuitemextra" class="ref">get menu item extra</a>.
+				But it can't be used to replace <a href="#about-getattackextra" class="ref">get attack extra</a>.
 			
 			
 			
@@ -10969,7 +11071,8 @@ set extra(handle, -1, value)   # Index -1 is the last element of the array</pre>
 				Changes the length of an object's extra data array.
 				<span class="param">handle</span> is the <a href="#about-objecthandle" class="ref">object handle</a>.
 				The new <span class="param">length</span> can be between 0 and 5,000,000.
-				For backwards compatibility it's 3 by default for all newly created slices and zones.
+				For backwards compatibility it's 3 by default for all newly created slices, zones,
+				NPCs and menu items.
 				Values will either be removed from the end of the array, or zeroes added to the
 				end to meet the new length.
 				The rest of the existing contents of the array will be preserved.
@@ -17083,7 +17186,7 @@ set horiz align(sl, edge:right)
 				<span class="param">dissolve:sink into ground</span>,
 				<span class="param">dissolve:squash</span>,
 				<span class="param">dissolve:melt</span>,
-				<span class="param">dissolve:vapourise</span>,
+				<span class="param">dissolve:vaporize (or dissolve:vaporise)</span>,
 				<span class="param">dissolve:phase out</span>,
 				<span class="param">dissolve:squeeze</span>,
 				<span class="param">dissolve:shrink</span>,
@@ -21152,6 +21255,8 @@ end</pre>
 		<a href="#about-milliseconds" class="ref">milliseconds</a><br>
 		<a href="#about-microseconds" class="ref">microseconds</a><br>
 		<a href="#about-savescreenshot" class="ref">save screenshot</a><br>
+		<a href="#about-pathfindintoextraashero" class="ref">pathfind into extra as hero (extra, start x, start y, dest x, dest y, maxdepth, append, skip first)</a><br>
+		<a href="#about-pathfindintoextraasnpc" class="ref">pathfind into extra as npc (extra, npc ref, start x, start y, dest x, dest y, maxdepth, append, skip first)</a><br>
 </div>
 		<li>
 <a href="#Debugging">Debugging</a><br>
@@ -21292,6 +21397,47 @@ run game(0)</pre>
 			
 			
 			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-pathfindintoextraashero"></a>
+				<h4>pathfind into extra as hero (extra, start x, start y, dest x, dest y, maxdepth, append, skip first)</h4>
+<p>
+			
+				Perform pathfinding between 2 points, using the wall+obstruction rules for heroes. Store the results into extra data (for example, on a slice or an npc)
+				The x and y values of each step in the path will be put into the extra data with 2 values for each, X,Y,X,Y,X,Y to the end of the path. All values are in tile coordinates. If you need pixel coordinates, multiply by 20.
+				The function return value will be true of the destination was reachable, or false if the pathfinding had to give up before reaching the destination. (If it gave up, the extra data will still be filled with the path leading to the closest reachable tile)
+				The first argument <span class="param">extra</span> is the slice handle or npc reference to put the extra data into.
+				The next 4 arguments are the X,Y of the start position, and the X,Y of the destination. Current hero positions don't matter, but if you wanted to pathfind based on the leader hero's current positions, you could use <span class="code">hero x(me), hero y(me)</span> for the start x and y.
+				The <span class="param">maxdepth</span> argument is the maximum search depth in tiles to seach before giving up. The default value of 0 means no maximum (search the entire map)
+				The <span class="param">append</span> argument can be set to true if you want to append data to the existing extra data. The default value of false means that the existing extra data will be replaced.
+				The <span class="param">skip first</span> argument can be set to true if you want to exclude the start position from the path (this can be useful if you are appending multiple paths together, or in other situations where it may be convenient)
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-pathfindintoextraasnpc" class="ref">pathfind into extra as npc</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-pathfindintoextraasnpc"></a>
+				<h4>pathfind into extra as npc (extra, npc ref, start x, start y, dest x, dest y, maxdepth, append, skip first)</h4>
+<p>
+			
+				Perform pathfinding between 2 points, using the wall+obstruction rules for a specific NPC. Store the results into extra data (for example, on a slice or an npc)
+				The x and y values of each step in the path will be put into the extra data with 2 values for each, X,Y,X,Y,X,Y to the end of the path. All values are in tile coordinates. If you need pixel coordinates, multiply by 20.
+				The function return value will be true of the destination was reachable, or false if the pathfinding had to give up before reaching the destination. (If it gave up, the extra data will still be filled with the path leading to the closest reachable tile)
+				The first argument <span class="param">extra</span> is the slice handle or npc reference to put the extra data into.
+				The second argument <span class="param">npc ref</span> is the NPC reference of the NPC who will be used for pathfinding. You can also use an NPC ID, but this will use the first copy of that NPC on the map, which might matter for the pathfinding, because an NPC can path through itself, but cannot (by default) path through other copies of the same NPC ID.
+				The next 4 arguments are the X,Y of the start position, and the X,Y of the destination. Current NPC position does not matter, but if you wanted to pathfind based on the NPCs current position, you could use <span class="code">npc x(npc ref), npc y(npc ref)</span> for the start x and y.
+				The <span class="param">maxdepth</span> argument is the maximum search depth in tiles to seach before giving up. The default value of 0 means no maximum (search the entire map)
+				The <span class="param">append</span> argument can be set to true if you want to append data to the existing extra data. The default value of false means that the existing extra data will be replaced.
+				The <span class="param">skip first</span> argument can be set to true if you want to exclude the start position from the path (this can be useful if you are appending multiple paths together, or in other situations where it may be convenient)
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-pathfindintoextraashero" class="ref">pathfind into extra as hero</a></li></ul>
+</div>
 		</p>
 </div>
 		<hr>
@@ -22824,7 +22970,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 948 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 953 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

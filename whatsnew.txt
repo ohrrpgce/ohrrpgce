@@ -147,6 +147,7 @@ WHAT IS NEW?
     * "move slice to screen pos" "gently reparent", "gently realign slice" [James]
     * "lookup ancestor" [James]
     * "get stat name" [Ralph]
+    * "pathfind into extra as hero" and "pathfind into extra as npc" [James]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

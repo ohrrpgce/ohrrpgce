@@ -188,7 +188,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2023-05-17">
+<plotscript version="wip" datecode="2023-10-09">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -12659,6 +12659,42 @@ run game(0)</example>
 					it, put a <tt>wait(1)</tt> in between.
 				</warn>
 			</description>
+		</command>
+
+		<command id="pathfindintoextraashero">
+			<canon>pathfind into extra as hero (extra, start x, start y, dest x, dest y, maxdepth, append, skip first)</canon>
+			<shortname>pathfind into extra as hero</shortname>
+			<description>
+				Perform pathfinding between 2 points, using the wall+obstruction rules for heroes. Store the results into extra data (for example, on a slice or an npc)
+				The x and y values of each step in the path will be put into the extra data with 2 values for each, X,Y,X,Y,X,Y to the end of the path. All values are in tile coordinates. If you need pixel coordinates, multiply by 20.
+				The function return value will be true of the destination was reachable, or false if the pathfinding had to give up before reaching the destination. (If it gave up, the extra data will still be filled with the path leading to the closest reachable tile)
+				The first argument <p>extra</p> is the slice handle or npc reference to put the extra data into.
+				The next 4 arguments are the X,Y of the start position, and the X,Y of the destination. Current hero positions don't matter, but if you wanted to pathfind based on the leader hero's current positions, you could use <tt>hero x(me), hero y(me)</tt> for the start x and y.
+				The <p>maxdepth</p> argument is the maximum search depth in tiles to seach before giving up. The default value of 0 means no maximum (search the entire map)
+				The <p>append</p> argument can be set to true if you want to append data to the existing extra data. The default value of false means that the existing extra data will be replaced.
+				The <p>skip first</p> argument can be set to true if you want to exclude the start position from the path (this can be useful if you are appending multiple paths together, or in other situations where it may be convenient)
+			</description>
+			<seealso>
+				<ref>pathfindintoextraasnpc</ref>
+			</seealso>
+		</command>
+		<command id="pathfindintoextraasnpc">
+			<canon>pathfind into extra as npc (extra, npc ref, start x, start y, dest x, dest y, maxdepth, append, skip first)</canon>
+			<shortname>pathfind into extra as npc</shortname>
+			<description>
+				Perform pathfinding between 2 points, using the wall+obstruction rules for a specific NPC. Store the results into extra data (for example, on a slice or an npc)
+				The x and y values of each step in the path will be put into the extra data with 2 values for each, X,Y,X,Y,X,Y to the end of the path. All values are in tile coordinates. If you need pixel coordinates, multiply by 20.
+				The function return value will be true of the destination was reachable, or false if the pathfinding had to give up before reaching the destination. (If it gave up, the extra data will still be filled with the path leading to the closest reachable tile)
+				The first argument <p>extra</p> is the slice handle or npc reference to put the extra data into.
+				The second argument <p>npc ref</p> is the NPC reference of the NPC who will be used for pathfinding. You can also use an NPC ID, but this will use the first copy of that NPC on the map, which might matter for the pathfinding, because an NPC can path through itself, but cannot (by default) path through other copies of the same NPC ID.
+				The next 4 arguments are the X,Y of the start position, and the X,Y of the destination. Current NPC position does not matter, but if you wanted to pathfind based on the NPCs current position, you could use <tt>npc x(npc ref), npc y(npc ref)</tt> for the start x and y.
+				The <p>maxdepth</p> argument is the maximum search depth in tiles to seach before giving up. The default value of 0 means no maximum (search the entire map)
+				The <p>append</p> argument can be set to true if you want to append data to the existing extra data. The default value of false means that the existing extra data will be replaced.
+				The <p>skip first</p> argument can be set to true if you want to exclude the start position from the path (this can be useful if you are appending multiple paths together, or in other situations where it may be convenient)
+			</description>
+			<seealso>
+				<ref>pathfindintoextraashero</ref>
+			</seealso>
 		</command>
 
 		<section title="Debugging">
