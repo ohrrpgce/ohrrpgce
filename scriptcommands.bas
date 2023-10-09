@@ -5208,6 +5208,47 @@ SUB script_commands(byval cmdid as integer)
    loadattackdata attack, retvals(0) - 1
    scriptret = attack.extra(retvals(1))
   END IF
+ CASE 756 '--pathfind into extra as npc
+  extravec_ptr = get_arg_extravec(0)
+  DIM startpos as XYPair = XY(retvals(1), retvals(2))
+  DIM destpos as XYPair = XY(retvals(3), retvals(4))
+  DIM maxsearch as integer = retvals(5)
+  DIM npcref as NPCIndex = get_valid_npc(retvals(6), serrBadOp)
+  IF extravec_ptr <> NULL ANDALSO npcref >= 0 THEN
+   DIM pf as AStarPathfinder = AStarPathfinder(startpos, destpos, maxsearch)
+   pf.calculate(@npc(npcref), YES, , YES)
+   'Erase old extra
+   resize_extra *extravec_ptr, 0
+   'Resize extra to double the length of the path
+   resize_extra *extravec_ptr, v_len(pf.path) * 2
+   'Write the path into the extra data, Xs in the even indexes, Ys in the odd indexes
+   FOR i as integer = 0 to v_len(pf.path) - 1
+    (*extravec_ptr)[i*2]   = pf.path[i].x
+    (*extravec_ptr)[i*2+1] = pf.path[i].y
+   NEXT i
+   'Return true if the path reached the destination
+   IF pf.path[v_len(pf.path) - 1] = destpos THEN scriptret = 1
+  END IF
+ CASE 757 '--pathfind into extra as hero
+  extravec_ptr = get_arg_extravec(0)
+  DIM startpos as XYPair = XY(retvals(1), retvals(2))
+  DIM destpos as XYPair = XY(retvals(3), retvals(4))
+  DIM maxsearch as integer = retvals(5)
+  IF extravec_ptr <> NULL THEN
+   DIM pf as AStarPathfinder = AStarPathfinder(startpos, destpos, maxsearch)
+   pf.calculate(NULL, NO, YES)
+   'Erase old extra
+   resize_extra *extravec_ptr, 0
+   'Resize extra to double the length of the path
+   resize_extra *extravec_ptr, v_len(pf.path) * 2
+   'Write the path into the extra data, Xs in the even indexes, Ys in the odd indexes
+   FOR i as integer = 0 to v_len(pf.path) - 1
+    (*extravec_ptr)[i*2]   = pf.path[i].x
+    (*extravec_ptr)[i*2+1] = pf.path[i].y
+   NEXT i
+   'Return true if the path reached the destination
+   IF pf.path[v_len(pf.path) - 1] = destpos THEN scriptret = 1
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
