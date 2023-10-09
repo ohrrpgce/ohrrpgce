@@ -785,8 +785,8 @@ define function, begin
 753,forwardx,1,0              # Tile X coord in front of hero (hero rank)
 754,forwardy,1,0              # Tile Y coord in front of hero (hero rank)
 755,getattackextra,2,0,0      # get attack extra data (attack id + 1, 0 - 2)
-756,pathfindintoextraasnpc,8,0,0,0,0,0,0,0,0 # pathfind, then store the results in extra data (handle, npcref, startx, starty, destx, desty, maxsearch, append)
-757,pathfindintoextraashero,7,0,0,0,0,0,0,0  # pathfind, then store the results in extra data (handle, startx, starty, destx, desty, maxsearch, append)
+756,pathfindintoextraasnpc,9,0,0,0,0,0,0,0,0,0 # pathfind, then store the results in extra data (handle, npcref, startx, starty, destx, desty, maxsearch, append, skipstart)
+757,pathfindintoextraashero,8,0,0,0,0,0,0,0,0  # pathfind, then store the results in extra data (handle, startx, starty, destx, desty, maxsearch, append, skipstart)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

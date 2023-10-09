@@ -37,7 +37,7 @@ DECLARE SUB replace_sprite_plotslice(byval slice_argno as integer, byval spritet
 DECLARE FUNCTION get_enemy_sprite_size(index as integer) as XYPair
 DECLARE FUNCTION bulk_append_extra(extravec_ptr as integer vector ptr, count_to_add as integer) as integer
 DECLARE FUNCTION bulk_append_or_replace(extravec_ptr as integer vector ptr, count_to_add as integer, append_extra as bool) as integer
-DECLARE FUNCTION copy_path_data_into_extra(extravec_ptr as integer vector ptr, byref pf as AStarPathfinder, destpos as XYPair, append_extra as bool) as bool
+DECLARE FUNCTION copy_path_data_into_extra(extravec_ptr as integer vector ptr, byref pf as AStarPathfinder, destpos as XYPair, append_extra as bool, skip_start as bool) as bool
 
 ''''' Global variables
 
@@ -5218,10 +5218,11 @@ SUB script_commands(byval cmdid as integer)
   DIM destpos as XYPair = XY(retvals(4), retvals(5))
   DIM maxsearch as integer = retvals(6)
   DIM append_extra as bool = retvals(7) <> 0
+  DIM skip_start as bool = retvals(8) <> 0
   IF extravec_ptr <> NULL ANDALSO npcref >= 0 THEN
    DIM pf as AStarPathfinder = AStarPathfinder(startpos, destpos, maxsearch)
    pf.calculate(@npc(npcref), YES, , YES)
-   scriptret = IIF(copy_path_data_into_extra(extravec_ptr, pf, destpos, append_extra), 1, 0)
+   scriptret = IIF(copy_path_data_into_extra(extravec_ptr, pf, destpos, append_extra, skip_start), 1, 0)
   END IF
  CASE 757 '--pathfind into extra as hero
   extravec_ptr = get_arg_extravec(0)
@@ -5229,10 +5230,11 @@ SUB script_commands(byval cmdid as integer)
   DIM destpos as XYPair = XY(retvals(3), retvals(4))
   DIM maxsearch as integer = retvals(5)
   DIM append_extra as bool = retvals(6) <> 0
+  DIM skip_start as bool = retvals(7) <> 0
   IF extravec_ptr <> NULL THEN
    DIM pf as AStarPathfinder = AStarPathfinder(startpos, destpos, maxsearch)
    pf.calculate(NULL, NO, YES)
-   scriptret = IIF(copy_path_data_into_extra(extravec_ptr, pf, destpos, append_extra), 1, 0)
+   scriptret = IIF(copy_path_data_into_extra(extravec_ptr, pf, destpos, append_extra, skip_start), 1, 0)
   END IF
 
  CASE ELSE
@@ -6140,15 +6142,17 @@ FUNCTION bulk_append_or_replace(extravec_ptr as integer vector ptr, count_to_add
  RETURN 0
 END FUNCTION
 
-FUNCTION copy_path_data_into_extra(extravec_ptr as integer vector ptr, byref pf as AStarPathfinder, destpos as XYPair, append_extra as bool) as bool
- DIM start_index as integer = bulk_append_or_replace(extravec_ptr, v_len(pf.path) * 2, append_extra)
+FUNCTION copy_path_data_into_extra(extravec_ptr as integer vector ptr, byref pf as AStarPathfinder, destpos as XYPair, append_extra as bool, skip_start as bool) as bool
+ DIM new_length as integer = (v_len(pf.path) - IIF(skip_start, 1, 0) ) * 2
+ DIM start_index as integer = bulk_append_or_replace(extravec_ptr, new_length, append_extra)
  IF start_index = -1 THEN
   scripterr "Extra data allocation failed, discarding the pathfinding data"
  ELSE
   'Write the path into the extra data, Xs in the even indexes, Ys in the odd indexes
-  FOR i as integer = 0 to v_len(pf.path) - 1
-   (*extravec_ptr)[start_index+i*2]   = pf.path[i].x
-   (*extravec_ptr)[start_index+i*2+1] = pf.path[i].y
+  DIM write_offset as integer = start_index - IIF(skip_start, 1, 0) * 2
+  FOR i as integer = IIF(skip_start, 1, 0) to v_len(pf.path) - 1
+   (*extravec_ptr)[write_offset+i*2]   = pf.path[i].x
+   (*extravec_ptr)[write_offset+i*2+1] = pf.path[i].y
   NEXT i
   'Return true if the path reached the destination
   IF pf.path[v_len(pf.path) - 1] = destpos THEN RETURN YES
