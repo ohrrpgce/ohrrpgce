@@ -6089,7 +6089,6 @@ END SUB
 
 'Acess extra data vectors, while throwing script errors in the script interpreter or visible_debugs
 'outside it.
-'Currently for slice extra data only, more in future.
 
 SUB extra_index_error(index as integer, length as integer)
   reporterr "Out of range index " & index & " for length " & length & " 'extra' array", serrBadOp
@@ -6126,6 +6125,35 @@ SUB resize_extra(byref extra as integer vector, length as integer)
   ELSE
    v_new extra, length
   END IF
+ END IF
+END SUB
+
+SUB insert_extra(byref extra as integer vector, index as integer, value as integer)
+ IF extra = NULL THEN
+  v_new extra, 3
+ END IF
+ DIM length as integer = v_len(extra)
+ IF index < 0 THEN index += length
+ IF index < 0 ORELSE index > length - 1 THEN
+  extra_index_error index, length
+ ELSE
+  v_insert extra, index, value
+ END IF
+END SUB
+
+SUB delete_extra_range(byref extra as integer vector, first_index as integer, end_index as integer)
+ IF extra = NULL THEN
+  v_new extra, 3
+ END IF
+ DIM length as integer = v_len(extra)
+ IF first_index < 0 THEN first_index += length
+ IF end_index < 0 THEN end_index += length
+ IF first_index < 0 ORELSE first_index > length - 1 THEN
+  extra_index_error first_index, length
+ ELSEIF end_index < 0 ORELSE end_index > length THEN
+  extra_index_error end_index, length
+ ELSE
+  v_delete_slice extra, first_index, end_index
  END IF
 END SUB
 

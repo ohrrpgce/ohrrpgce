@@ -5236,6 +5236,17 @@ SUB script_commands(byval cmdid as integer)
    pf.calculate(NULL, NO, YES)
    scriptret = IIF(copy_path_data_into_extra(extravec_ptr, pf, destpos, append_extra, skip_start), 1, 0)
   END IF
+ CASE 758 '--insert extra
+  extravec_ptr = get_arg_extravec(0)
+  insert_extra *extravec_ptr, retvals(1), retvals(2)
+ CASE 759 '--delete extra
+  extravec_ptr = get_arg_extravec(0)
+  scriptret = get_extra(*extravec_ptr, retvals(1))
+  delete_extra_range *extravec_ptr, retvals(1), retvals(1)+1
+ CASE 760 '--delete extra range
+  extravec_ptr = get_arg_extravec(0)
+  delete_extra_range *extravec_ptr, retvals(1), retvals(2)
+ 
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

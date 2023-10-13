@@ -289,6 +289,8 @@ DECLARE FUNCTION bound_arg(n as integer, min as integer, max as integer, argname
 DECLARE FUNCTION get_extra(byref extra as integer vector, index as integer) as integer
 DECLARE SUB set_extra(byref extra as integer vector, index as integer, value as integer)
 DECLARE SUB resize_extra(byref extra as integer vector, length as integer)
+DECLARE SUB insert_extra(byref extra as integer vector, index as integer, value as integer)
+DECLARE SUB delete_extra_range(byref extra as integer vector, first_index as integer, last_index as integer)
 
 DECLARE FUNCTION load_tag_name (byval index as integer) as string
 DECLARE SUB save_tag_name (tagname as string, byval index as integer)
