@@ -125,6 +125,7 @@ WHAT IS NEW?
         last, etc. Works with all extra data commands.
       [Ralph]
     * "get attack extra" [Holly]
+    * "insert extra", "delete extra", "delete extra range" [James]
     * "lookup next slice", "next slice in tree" [Ralph]
     * "window is focused" [Ralph]
     * "show value" can now show multiple values. Added "show values" as an alias.

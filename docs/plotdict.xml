@@ -188,7 +188,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2023-10-09">
+<plotscript version="wip" datecode="2023-10-13">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -6080,6 +6080,24 @@ get hero name (1, find hero (leader))
 set extra(handle, -1, value)   # Index -1 is the last element of the array</example>
 			</description>
 		</command>
+		<command id="insertextra">
+			<canon>insert extra (handle, index, value)</canon>
+			<shortname>insert extra</shortname>
+			<description>
+				Insert a new value into an extra data array at a specific index, moving up the index of all the data after it, and increases the length of an object's extra data array by 1.
+				<p>handle</p> is the <ref>objecthandle</ref>.
+				<p>index</p> is where to put the new element. The first element is 0. You can also use negative indexes to count from the end of the array.
+				<p>value</p> is the new value to insert at the index
+				<example>
+# starting extra array 0,0,0
+insert extra(handle, 0, 111) # 111,0,0,0
+insert extra(handle, 2, 222) # 111,0,222,0,0
+				</example>
+				<note>
+					Inserting an element means all the elments after it have to be moved. If you are using an extra array as a stack, and are concerned about high performance, it is better to push to the end with <tt>append extra(handle, value)</tt> rather than insert at the beginning with <tt>insert extra(handle, 0, value)</tt>
+				</note>
+			</description>
+		</command>
 		<command id="extralength">
 			<canon>extra length (handle)</canon>
 			<shortname>extra length</shortname>
@@ -6101,6 +6119,49 @@ set extra(handle, -1, value)   # Index -1 is the last element of the array</exam
 				Values will either be removed from the end of the array, or zeroes added to the
 				end to meet the new length.
 				The rest of the existing contents of the array will be preserved.
+			</description>
+		</command>
+		<command id="deleteextra">
+			<canon>delete extra (handle, index)</canon>
+			<shortname>delete extra</shortname>
+			<description>
+				Delete an element from an extra data array at a specific index, moving down the index of all the data after it, and decreasing the length of an object's extra data array by 1.
+				<p>handle</p> is the <ref>objecthandle</ref>.
+				<p>index</p> is the element to delete and return. The first element is 0. You can also use negative indexes to count from the end of the array.
+				<lb/>
+				The return value is the value that was found at the index which was removed.
+				<example>
+# starting extra array 11,12,13
+delete extra(handle, 1) # returns 12, remaining extra data is 11,13
+delete extra(handle, -1) # returns 13, remaining extra data is 11
+				</example>
+				<note>
+					Deleting an element means all the elments after it have to be moved. If you are using an extra array as queue, and are concerned about high performance, it is better to pop from the end with <tt>delete extra(handle, -1)</tt> rather than popping from the beginning with <tt>delete extra(handle, 0)</tt>
+				</note>
+			</description>
+		</command>
+		<command id="deleteextrarange">
+			<canon>delete extra range(handle, index, to index)</canon>
+			<shortname>delete extra range</shortname>
+			<description>
+				Delete a range of elements from an extra data array starting a specific index and ending at a specific index. All the data after it will be moved down, and the length of an object's extra data array will be decreased.
+				<p>handle</p> is the <ref>objecthandle</ref>.
+				<p>index</p> is the starting element to delete and return. The first element is 0. You can also use negative indexes to count from the end of the array.
+				<p>to index</p> is the index of the first element after the deleted range.
+				<example>
+delete extra range(handle, 2, 2) # Will not delete anything because the indexes are the same
+delete extra range(handle, 2, 3) # Will delete just the element at index 2, same as delete extra(handle, 2)
+
+# starting extra array 50,51,52,53,54,55
+delete extra range(handle, 2, 5) # delete elements 2, 3, and 4
+# remaining extra array 50,51,55
+
+# delete from element 1 to the end of the extra array, leaving behind only element 0
+delete extra range(handle, 1, extra length(handle))
+				</example>
+				<note>
+					Deleting elements means all the elments after them have to be moved. Using <tt>delete extra range</tt> to delete a bunch of elements at once is more efficient than calling <ref>deleteextra</ref> many times in a row, because the elements after only need to be moved once.
+				</note>
 			</description>
 		</command>
 

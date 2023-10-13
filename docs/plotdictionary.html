@@ -209,7 +209,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2023-10-09)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2023-10-13)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -769,6 +769,8 @@ function toggleContent(target) {
 		<a href="#about-defineconstant" class="ref">define constant (number,name)</a><br>
 		<a href="#about-deletechar" class="ref">delete char (ID, position)</a><br>
 		<a href="#about-deleteenemyfromformation" class="ref">delete enemy from formation (formation, slot)</a><br>
+		<a href="#about-deleteextra" class="ref">delete extra (handle, index)</a><br>
+		<a href="#about-deleteextrarange" class="ref">delete extra range(handle, index, to index)</a><br>
 		<a href="#about-deletehero" class="ref">delete hero (who)</a><br>
 		<a href="#about-deleteherobyslot" class="ref">delete hero by slot (slot)</a><br>
 		<a href="#about-deleteitem" class="ref">delete item (item, number)</a><br>
@@ -1070,6 +1072,7 @@ function toggleContent(target) {
 		<a href="#about-inputstring" class="ref">input string (ID, maxlength, use current, center, position x, position y)</a><br>
 		<a href="#about-inputstringwithmousekeyboard" class="ref">input string with mouse keyboard (ID, maxlength)</a><br>
 		<a href="#about-inputstringwithvirtualkeyboard" class="ref">input string with virtual keyboard (ID, maxlength, onlyplayer)</a><br>
+		<a href="#about-insertextra" class="ref">insert extra (handle, index, value)</a><br>
 		<a href="#about-insidebattle" class="ref">inside battle</a><br>
 		<a href="#about-inventory" class="ref">inventory (item)</a><br>
 		<a href="#about-isfillingparent" class="ref">is filling parent (handle)</a><br>
@@ -10983,8 +10986,11 @@ get hero name (1, find hero (leader))
 		<a href="#about-setextra" class="ref">set extra (handle, extra, value)</a><br>
 		<a href="#about-getextra" class="ref">get extra (handle, extra)</a><br>
 		<a href="#about-appendextra" class="ref">append extra (handle, value)</a><br>
+		<a href="#about-insertextra" class="ref">insert extra (handle, index, value)</a><br>
 		<a href="#about-extralength" class="ref">extra length (handle)</a><br>
 		<a href="#about-resizeextra" class="ref">resize extra (handle, length)</a><br>
+		<a href="#about-deleteextra" class="ref">delete extra (handle, index)</a><br>
+		<a href="#about-deleteextrarange" class="ref">delete extra range(handle, index, to index)</a><br>
 </div></ul>
 </div>
 		<div class="command">
@@ -11050,6 +11056,30 @@ set extra(handle, -1, value)   # Index -1 is the last element of the array</pre>
 		</p>
 </div>
 		<div class="command">
+			<a name="about-insertextra"></a>
+				<h4>insert extra (handle, index, value)</h4>
+<p>
+			
+				Insert a new value into an extra data array at a specific index, moving up the index of all the data after it, and increases the length of an object's extra data array by 1.
+				<span class="param">handle</span> is the <a href="#about-objecthandle" class="ref">object handle</a>.
+				<span class="param">index</span> is where to put the new element. The first element is 0. You can also use negative indexes to count from the end of the array.
+				<span class="param">value</span> is the new value to insert at the index
+				<pre>
+# starting extra array 0,0,0
+insert extra(handle, 0, 111) # 111,0,0,0
+insert extra(handle, 2, 222) # 111,0,222,0,0
+				</pre>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Inserting an element means all the elments after it have to be moved. If you are using an extra array as a stack, and are concerned about high performance, it is better to push to the end with <span class="code">append extra(handle, value)</span> rather than insert at the beginning with <span class="code">insert extra(handle, 0, value)</span>
+				</div>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 			<a name="about-extralength"></a>
 				<h4>extra length (handle)</h4>
 <p>
@@ -11076,6 +11106,61 @@ set extra(handle, -1, value)   # Index -1 is the last element of the array</pre>
 				Values will either be removed from the end of the array, or zeroes added to the
 				end to meet the new length.
 				The rest of the existing contents of the array will be preserved.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-deleteextra"></a>
+				<h4>delete extra (handle, index)</h4>
+<p>
+			
+				Delete an element from an extra data array at a specific index, moving down the index of all the data after it, and decreasing the length of an object's extra data array by 1.
+				<span class="param">handle</span> is the <a href="#about-objecthandle" class="ref">object handle</a>.
+				<span class="param">index</span> is the element to delete and return. The first element is 0. You can also use negative indexes to count from the end of the array.
+				<br>
+				The return value is the value that was found at the index which was removed.
+				<pre>
+# starting extra array 11,12,13
+delete extra(handle, 1) # returns 12, remaining extra data is 11,13
+delete extra(handle, -1) # returns 13, remaining extra data is 11
+				</pre>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Deleting an element means all the elments after it have to be moved. If you are using an extra array as queue, and are concerned about high performance, it is better to pop from the end with <span class="code">delete extra(handle, -1)</span> rather than popping from the beginning with <span class="code">delete extra(handle, 0)</span>
+				</div>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-deleteextrarange"></a>
+				<h4>delete extra range(handle, index, to index)</h4>
+<p>
+			
+				Delete a range of elements from an extra data array starting a specific index and ending at a specific index. All the data after it will be moved down, and the length of an object's extra data array will be decreased.
+				<span class="param">handle</span> is the <a href="#about-objecthandle" class="ref">object handle</a>.
+				<span class="param">index</span> is the starting element to delete and return. The first element is 0. You can also use negative indexes to count from the end of the array.
+				<span class="param">to index</span> is the index of the first element after the deleted range.
+				<pre>
+delete extra range(handle, 2, 2) # Will not delete anything because the indexes are the same
+delete extra range(handle, 2, 3) # Will delete just the element at index 2, same as delete extra(handle, 2)
+
+# starting extra array 50,51,52,53,54,55
+delete extra range(handle, 2, 5) # delete elements 2, 3, and 4
+# remaining extra array 50,51,55
+
+# delete from element 1 to the end of the extra array, leaving behind only element 0
+delete extra range(handle, 1, extra length(handle))
+				</pre>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Deleting elements means all the elments after them have to be moved. Using <span class="code">delete extra range</span> to delete a bunch of elements at once is more efficient than calling <a href="#about-deleteextra" class="ref">delete extra</a> many times in a row, because the elements after only need to be moved once.
+				</div>
 			
 			
 			
@@ -22970,7 +23055,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 953 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 956 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
