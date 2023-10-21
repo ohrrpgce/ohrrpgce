@@ -140,6 +140,7 @@ script, run tests 1, begin
   npc tests
   menu tests
   textbox tests
+  shop tests
   script trigger tests
   attack tests
   enemy tests
@@ -3352,6 +3353,18 @@ script, textbox tests, begin
   advance textbox
 
   write general(178, oldval)
+end
+
+########################################################################
+
+script, shop tests, begin
+  # Ain't much here yet...
+  $0="shop tests"
+  assert(is shop buy menu empty(shop:Boring Shop) == false)
+  assert(is shop hire menu empty(shop:Boring Shop) == false)
+  assert(is shop buy menu empty(shop:Empty Shop) == true)
+  assert(is shop hire menu empty(shop:Empty Shop) == true)
+  w
 end
 
 ########################################################################

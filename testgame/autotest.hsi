@@ -86,6 +86,7 @@ define constant, begin
 4,item:SteelSho
 5,item:Bulky
 6,item:Whatsit
+7,item:Lump
 0,stat:HP
 1,stat:MP
 2,stat:Atk
@@ -141,6 +142,8 @@ define constant, begin
 9,atk:Suicide
 10,atk:Ice Attack
 11,atk:Self3End
+1,shop:Boring Shop
+2,shop:Empty Shop
 2,menu:Menu from menu
 3,menu:1st item unselectble
 4,menu:Nothing selectable
