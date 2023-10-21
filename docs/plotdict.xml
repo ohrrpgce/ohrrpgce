@@ -188,7 +188,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2023-10-13">
+<plotscript version="wip" datecode="2023-10-20">
 
 	<section title="Declarations">
 		<command id="plotscript">
@@ -6167,6 +6167,30 @@ delete extra range(handle, 1, extra length(handle))
 
 	</section>  <!-- Extra Data Array Functions -->
 
+	<section title="Shop Functions">
+		<reference ref="useshop" />
+		<command id="isshopbuymenuempty">
+			<canon>is shop buy menu empty (shop id)</canon>
+			<shortname>is shop buy menu empty</shortname>
+			<description>
+				Returns true if the shop specified by <p>shop id</p> has no available items. This could be because no items are defined, or they might all be out of stock or disabled by tags. You can use constants in the form of <tt>shop:Shop Name</tt>. 
+			</description>
+			<seealso>
+				<ref>isshophiremenuempty</ref>
+			</seealso>
+		</command>
+		<command id="isshophiremenuempty">
+			<canon>is shop hire menu empty (shop id)</canon>
+			<shortname>is shop hire menu empty</shortname>
+			<description>
+				Returns true if the shop specified by <p>shop id</p> has no available heroes for hire. This could be because no hireable heroes are defined, or they might all be out of stock or disabled by tags. You can use constants in the form of <tt>shop:Shop Name</tt>. 
+			</description>
+			<seealso>
+				<ref>isshopbuymenuempty</ref>
+			</seealso>
+		</command>
+		
+	</section>  <!-- Shop Functions -->
 
 	<section title="Menu Functions">
 		<command id="openmenu">

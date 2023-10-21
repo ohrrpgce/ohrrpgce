@@ -209,7 +209,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2023-10-13)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2023-10-20)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -443,6 +443,10 @@ function toggleContent(target) {
 </li>
 		<li>
 <a href="#Extra%20Data%20Array%20Functions">Extra Data Array Functions</a><br>
+		<ul></ul>
+</li>
+		<li>
+<a href="#Shop%20Functions">Shop Functions</a><br>
 		<ul></ul>
 </li>
 		<li>
@@ -1076,6 +1080,8 @@ function toggleContent(target) {
 		<a href="#about-insidebattle" class="ref">inside battle</a><br>
 		<a href="#about-inventory" class="ref">inventory (item)</a><br>
 		<a href="#about-isfillingparent" class="ref">is filling parent (handle)</a><br>
+		<a href="#about-isshopbuymenuempty" class="ref">is shop buy menu empty (shop id)</a><br>
+		<a href="#about-isshophiremenuempty" class="ref">is shop hire menu empty (shop id)</a><br>
 		<a href="#about-itemcountinslot" class="ref">item count in slot (slot)</a><br>
 		<a href="#about-iteminslot" class="ref">item in slot (slot)</a><br>
 		<a href="#about-itemsmenu" class="ref">items menu</a><br>
@@ -11165,6 +11171,49 @@ delete extra range(handle, 1, extra length(handle))
 			
 			
 			
+		</p>
+</div>
+		<hr>
+		</div>
+		<div class="section">
+<a name="Shop%20Functions"></a>
+		<h3>
+<span class="backlink"></span>Shop Functions</h3>
+		<a href="#Categories" class="backlink">[Back to top-level index]</a><p></p>
+<div class="select-content-shown" id="Shop Functions-index">
+<button onclick="toggleContent(this);"><span class="content-shown">Hide index</span><span class="content-hidden">Show index</span></button><ul><div class="content-shown">
+		<a href="#about-isshopbuymenuempty" class="ref">is shop buy menu empty (shop id)</a><br>
+		<a href="#about-isshophiremenuempty" class="ref">is shop hire menu empty (shop id)</a><br>
+</div></ul>
+</div>
+		<div class="command">
+		<h4>use shop (shop)</h4>
+		<p><a href="#about-useshop">Documented in the Triggering Stuff section.</a></p>
+		</div>
+		<div class="command">
+			<a name="about-isshopbuymenuempty"></a>
+				<h4>is shop buy menu empty (shop id)</h4>
+<p>
+			
+				Returns true if the shop specified by <span class="param">shop id</span> has no available items. This could be because no items are defined, or they might all be out of stock or disabled by tags. You can use constants in the form of <span class="code">shop:Shop Name</span>. 
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-isshophiremenuempty" class="ref">is shop hire menu empty</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-isshophiremenuempty"></a>
+				<h4>is shop hire menu empty (shop id)</h4>
+<p>
+			
+				Returns true if the shop specified by <span class="param">shop id</span> has no available heroes for hire. This could be because no hireable heroes are defined, or they might all be out of stock or disabled by tags. You can use constants in the form of <span class="code">shop:Shop Name</span>. 
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-isshopbuymenuempty" class="ref">is shop buy menu empty</a></li></ul>
+</div>
 		</p>
 </div>
 		<hr>
@@ -23055,7 +23104,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 956 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 958 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
