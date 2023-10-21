@@ -30,7 +30,7 @@ DECLARE SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as Nod
 DECLARE SUB buystuff_refresh_empty (buyst as ShopBuyState)
 DECLARE SUB buystuff_init_info_menu(buyst as ShopBuyState)
 DECLARE SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval thing_slot as integer)
-DECLARE FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState) as bool
+DECLARE FUNCTION buystuff_can_show(byval slot as NodePtr, byval shop_id as integer) as bool
 DECLARE FUNCTION buystuff_can_buy(byval thing as NodePtr, buyst as ShopBuyState, byval sound_and_alert as bool=NO) as bool
 DECLARE SUB buystuff_set_alert(buyst as ShopBuyState, alert as string, byval ticks as integer = 18)
 
@@ -554,7 +554,7 @@ FUNCTION initialize_stock(shop_id as integer, slot as NodePtr) as integer
  RETURN initialize_stock(shop_id, stockidx, thingtype, thingid, initial_stock)
 END FUNCTION
 
-FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState) as bool
+FUNCTION buystuff_can_show(byval slot as NodePtr, byval shop_id as integer) as bool
  'Return YES if this thing should appear in the menu
 
  DIM thing as NodePtr
@@ -571,7 +571,7 @@ FUNCTION buystuff_can_show(byval slot as NodePtr, buyst as ShopBuyState) as bool
  END IF
 
  'Initialise and retrieve gam.stock() value
- DIM stock as integer = initialize_stock(buyst.shop_id, slot)
+ DIM stock as integer = initialize_stock(shop_id, slot)
 
  IF stock = 1 THEN RETURN NO  'This item is out of stock
 
@@ -647,6 +647,35 @@ FUNCTION buystuff_can_buy(byval thing as NodePtr, buyst as ShopBuyState, byval s
  RETURN YES
 END FUNCTION
 
+FUNCTION is_shop_empty(byval shop_id as integer, byval shoptype as integer) as bool
+ 'Load the shop stuff state
+ DIM stuff_doc as DocPtr
+ stuff_doc = CreateDocument()
+ DIM stuff_list as NodePtr
+ stuff_list = CreateNode(stuff_doc, "stuff_list")
+ SetRootNode(stuff_doc, stuff_list)
+ load_shop_stuff shop_id, stuff_list
+
+ DIM available_stuff_count as integer = 0
+ READNODE stuff_list
+  WITHNODE stuff_list."stuff_slot" as stuff_slot
+   IF buystuff_can_show(stuff_slot, shop_id) THEN
+    IF shoptype = 0 THEN
+     IF stuff_slot."item".exists THEN
+      available_stuff_count += 1
+     END IF
+    ELSEIF shoptype = 1 THEN
+     IF stuff_slot."hero".exists THEN
+      available_stuff_count += 1
+     END IF
+    END IF
+   END IF
+  END WITHNODE
+ END READNODE
+
+ RETURN available_stuff_count = 0
+END FUNCTION
+
 SUB buystuff_refresh_menu (buyst as ShopBuyState, menu as MenuDef, st as MenuState)
  DIM thing as NodePtr
  DIM id as integer
@@ -666,7 +695,7 @@ SUB buystuff_refresh_menu (buyst as ShopBuyState, menu as MenuDef, st as MenuSta
  DIM stuff_list as NodePtr = buyst.stuff_list
  READNODE stuff_list
   WITHNODE stuff_list."stuff_slot" as stuff_slot
-   IF buystuff_can_show(stuff_slot, buyst) THEN
+   IF buystuff_can_show(stuff_slot, buyst.shop_id) THEN
     IF buyst.shoptype = 0 THEN
      IF stuff_slot."item".exists THEN
       thing = stuff_slot."item".ptr

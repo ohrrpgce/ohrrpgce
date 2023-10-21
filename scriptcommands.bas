@@ -5246,7 +5246,14 @@ SUB script_commands(byval cmdid as integer)
  CASE 760 '--delete extra range
   extravec_ptr = get_arg_extravec(0)
   delete_extra_range *extravec_ptr, retvals(1), retvals(2)
- 
+ CASE 761 '--is shop buy menu empty
+  IF bound_arg(retvals(0), 0, gen(genMaxShop), "Shop ID") THEN
+   scriptret = IIF(is_shop_empty(retvals(0), 0), 1, 0)
+  END IF
+ CASE 762 '--is shop hire menu empty
+  IF bound_arg(retvals(0), 0, gen(genMaxShop), "Shop ID") THEN
+   scriptret = IIF(is_shop_empty(retvals(0), 1), 1, 0)
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

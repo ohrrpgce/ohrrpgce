@@ -790,6 +790,8 @@ define function, begin
 758,insertextra,3,0,0,0       # insert a new extra value at a specific index (extra, index, value)
 759,deleteextra,2,0,0         # Delete an element from an extra array (extra, index) returns the deleted value
 760,deleteextrarange,3,0,0,0  # Delete several elements of a slice at once (extra, first index, last index)
+761,isshopbuymenuempty,1,0    # Is the "Buy" menu empty? (shop id)
+762,isshophiremenuempty,1,0   # Is the "Hire" menu empty? (shop id)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 
