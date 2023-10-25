@@ -105,6 +105,7 @@ WHAT IS NEW?
     * "dir X", "dir Y" [Ralph]
     * "forward X", "forward Y" [Holly]
     * "heal party" (acts like an inn) [Ralph]
+    * "inn screen" (shows an inn) [James]
     * "set hero auto battle", "get hero auto battle" [James]
     * "break" and "continue" take an argument for the number of loops to break
       out of, for 15 years already, but it wasn't documented [Ralph]
