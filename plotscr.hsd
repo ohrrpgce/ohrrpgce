@@ -792,6 +792,7 @@ define function, begin
 760,deleteextrarange,3,0,0,0  # Delete several elements of a slice at once (extra, first index, last index)
 761,isshopbuymenuempty,1,0    # Is the "Buy" menu empty? (shop id)
 762,isshophiremenuempty,1,0   # Is the "Hire" menu empty? (shop id)
+763,innscreen,2,0,0           # Open the Inn screen for a specific price (price, skip_fade)
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
 

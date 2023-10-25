@@ -5254,6 +5254,8 @@ SUB script_commands(byval cmdid as integer)
   IF bound_arg(retvals(0), 0, gen(genMaxShop), "Shop ID") THEN
    scriptret = IIF(is_shop_empty(retvals(0), 1), 1, 0)
   END IF
+ CASE 763 '--inn screen
+  scriptret = inn_screen(retvals(0), retvals(1) <> 0)
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

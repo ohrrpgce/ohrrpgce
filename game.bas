@@ -3702,13 +3702,7 @@ SUB advance_text_box ()
    shop txt.box.shop - 1
   ELSEIF txt.box.shop < 0 THEN
    '--Preserve background for display beneath the top-level shop menu
-   DIM holdscreen as integer = duplicatepage(vpage)
-   IF useinn(-txt.box.shop, holdscreen) THEN
-    innRestore
-    fadeout uilook(uiFadeoutInn)
-    queue_fade_in 1, YES
-   END IF
-   freepage holdscreen
+   inn_screen(-txt.box.shop)
   ELSEIF txt.box.shop = 0 THEN
    innRestore
   END IF

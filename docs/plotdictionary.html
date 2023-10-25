@@ -209,7 +209,7 @@ function toggleContent(target) {
 </head>
 <body>
 <h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2023-10-20)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2023-10-25)</h2>
 <p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 				In addition to reading this document, we also recommend you check out the
 				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1073,6 +1073,7 @@ function toggleContent(target) {
 		<a href="#about-include" class="ref">include, filename</a><br>
 		<a href="#about-increment" class="ref">increment (variable,amount)</a><br>
 		<a href="#about-initmouse" class="ref">init mouse</a><br>
+		<a href="#about-innscreen" class="ref">inn screen (price, skip fade)</a><br>
 		<a href="#about-inputstring" class="ref">input string (ID, maxlength, use current, center, position x, position y)</a><br>
 		<a href="#about-inputstringwithmousekeyboard" class="ref">input string with mouse keyboard (ID, maxlength)</a><br>
 		<a href="#about-inputstringwithvirtualkeyboard" class="ref">input string with virtual keyboard (ID, maxlength, onlyplayer)</a><br>
@@ -6183,6 +6184,7 @@ show value of(coins, hero X(me), hero Y(me))</pre>
 		<a href="#about-loadmenu" class="ref">load menu (reallyload, show new game)</a><br>
 		<a href="#about-ordermenu" class="ref">order menu</a><br>
 		<a href="#about-teammenu" class="ref">team menu</a><br>
+		<a href="#about-innscreen" class="ref">inn screen (price, skip fade)</a><br>
 </div></ul>
 </div>
 		<div class="command">
@@ -6353,6 +6355,17 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 			
 			
 			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-innscreen"></a>
+				<h4>inn screen (price, skip fade)</h4>
+<p>
+			Opens an Inn screen with a specific <span class="param">price</span>. The optional <span class="param">skip fade</span> argument defaults to false. If you set it to true, no fade effect will happen when sleeping at the inn. This command returns true if the player slept in the inn, and false if they cancelled.
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-healparty" class="ref">heal party</a></li></ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -11216,6 +11229,10 @@ delete extra range(handle, 1, extra length(handle))
 </div>
 		</p>
 </div>
+		<div class="command">
+		<h4>inn screen (price, skip fade)</h4>
+		<p><a href="#about-innscreen">Documented in the Opening Built-in Menus section.</a></p>
+		</div>
 		<hr>
 		</div>
 		<div class="section">
@@ -23104,7 +23121,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 958 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 959 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

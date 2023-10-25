@@ -48,6 +48,8 @@ DECLARE SUB reset_map_state (map as MapModeState)
 
 DECLARE SUB shop (byval id as integer)
 DECLARE FUNCTION useinn (byval price as integer, byval holdscreen as integer) as bool
+DECLARE FUNCTION inn_screen (byval cost as integer, byval skip_fade as bool=NO) as bool
+
 DECLARE SUB tagdisplay (page as integer)
 
 DECLARE FUNCTION gamepadmap_from_reload(gamepad as NodePtr, byval use_dpad as bool=NO) as GamePadMap

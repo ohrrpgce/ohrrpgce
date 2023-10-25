@@ -1787,6 +1787,25 @@ party_change_updates
 
 END SUB
 
+FUNCTION inn_screen (byval cost as integer, byval skip_fade as bool=NO) as bool
+ 'This is a simple wrapper for a basic Inn that is not associated with a shop.
+ 'It is used for textbox Inns, and scripted inns, but not Shop Inns
+ '
+ 'Return value is YES if the player slept in the inn, or NO if they cancelled
+ DIM result as bool = NO
+ DIM holdscreen as integer = duplicatepage(vpage)
+ IF useinn(cost, holdscreen) THEN
+  innRestore
+  IF NOT skip_fade THEN
+   fadeout uilook(uiFadeoutInn)
+   queue_fade_in 1, YES
+  END IF
+  result = YES
+ END IF
+ freepage holdscreen
+ RETURN result
+END FUNCTION
+
 'Returns true if the player decided to sleep at the inn
 'holdscreen is a copy of vpage (not a compatpage)
 FUNCTION useinn (byval price as integer, byval holdscreen as integer) as bool
