@@ -652,34 +652,38 @@ if android:
     # and run it on older Android:
     #https://chromium.googlesource.com/chromium/src/+/32352ad08ee673a4d43e8593ce988b224f6482d3/tools/android/run_pie/run_pie.c
     CCLINKFLAGS += ["-pie"]
-elif mac:
-    # (This is old logic, probably it should be merged into the branch below,
-    # but I don't want to worry about breaking mac builds right now)
-    # -no_pie (no position-independent execution) fixes a warning
-    CCLINKFLAGS += ['-Wl,-no_pie']
-    NO_PIE = '-no_pie'
 elif not win32:
     # Recent versions of some linux distros, such as debian and arch, config
     # gcc to default to PIE on non-x86, but our linkgcc code isn't written
     # to support PIE, causing ld 'relocation' errors. Simplest solution is
     # to disable PIE.
     # (Assuming if FBCC is clang then CC is too)
-    if FBCC.is_gcc and FBCC.version < 500:
+    if mac:
+        # -no_pie (no position-independent execution) fixes a warning
+        # (Using -Wl supports very old gcc)
+        NO_PIE = '-Wl,-no_pie'
+    elif FBCC.is_gcc and FBCC.version < 500:
         # gcc 4.9 apparently doesn't have -nopie, so I assume it was added in 5.x
         NO_PIE = None
-    elif FBCC.is_clang or FBCC.version < 600:
+    elif FBCC.is_gcc and FBCC.version < 540:
         # -no-pie was added in gcc 6.
         # But on Ubuntu 16.04 -no-pie exists in gcc 5.4.
         # Some builds of gcc 5.x (but not stock gcc 5.4.0) support -nopie.
+        NO_PIE = '-nopie'
+    elif FBCC.is_clang and FBCC.version < 400:
+        NO_PIE = None
+    elif FBCC.is_clang and FBCC.version < 500:
         # -no-pie was added to clang in July 2017, which I think is clang 5.0
+        # while -nopie was added Oct 2016 (4.0).
         # Recent clang accepts both, recent gcc only accepts -no-pie
-        NO_PIE = None #'-nopie'
+        NO_PIE = '-nopie'
     if NO_PIE:
-        # -no-pie is a linker flag, I think the compiler flag is actually
-        # -fno-pie (or -fno-PIE?) but I assume the former implies the latter
-        CFLAGS += [NO_PIE]
-        GENGCC_CFLAGS += [NO_PIE]
-        # -no_pie is only needed when linking using gcc, not with linkgcc=0,
+        # -no-pie is a gcc/clang flag affecting linking. -fno-pie affects code
+        # generation, and it seems neither implies the other. -fno-pie has been
+        # around a long time (at least GCC 4.9, Clang 3.7).
+        CFLAGS += ['-fno-pie']
+        GENGCC_CFLAGS += ['-fno-pie']
+        # -no_pie is only needed when CXX does the linking, not with linkgcc=0,
         # since apparently it's gcc, not ld, which is defaulting to PIE
         CCLINKFLAGS += [NO_PIE]
 
@@ -786,6 +790,7 @@ if gengcc:
         GENGCC_CFLAGS.append ('-Wno-missing-braces')
     if FBCC.is_clang:
         # clang doesn't like fbc's declarations of standard functions
+        # (although FB 1.20 fixes most incompatible-library-redeclaration warnings)
         GENGCC_CFLAGS += ['-Wno-builtin-requires-header', '-Wno-incompatible-library-redeclaration']
     if len(GENGCC_CFLAGS):
         # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc <=1.06; the last -Wc overrides others!
