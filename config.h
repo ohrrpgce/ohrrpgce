@@ -140,10 +140,16 @@ extern "C" {
 */
 typedef int boolint;
 
-#ifdef _MSC_VER
- // TODO: bool is only available when compiling as C++, otherwise need typedef it...
-#else
-# include <stdbool.h>
+#ifndef __cplusplus
+  // When compiling C, MSVC only has _Bool and stdbool.h since VS 2015.
+  // (Visual C++ supports bool in C++ since VS 5.0 (1997))
+  #if !defined(_MSC_VER) || _MSC_VER >= 1800
+    #include <stdbool.h>
+  #elif defined(_MSC_VER)
+    typedef uint8_t bool;
+    #define false 0
+    #define true 1
+  #endif
 #endif
 
 #if defined(_WIN32) || defined(WIN32)
