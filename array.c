@@ -14,8 +14,9 @@
 
 typedef struct _array_header {
 	typetable *typetbl;
-	int len:31;
-	int temp:1;
+	// Unsigned bitfields, to avoid needing sign extension
+	unsigned len:31;
+	unsigned temp:1;
 	int allocated;  // Amount of memory allocated, in number of elements
 } array_header;
 
@@ -166,10 +167,10 @@ static inline void mem_free(array_t array) {
 // it's resized to check that everyone correctly handles this.
 #define FORCE_REALLOC 0
 
-static array_t mem_resize(array_t array, unsigned int len) warn_if_result_unused;
+static array_t mem_resize(array_t array, int len) warn_if_result_unused;
 
 // Lowest-level resize routine. Does not destruct/construct elements
-static array_t mem_resize(array_t array, unsigned int len) {
+static array_t mem_resize(array_t array, int len) {
 	void *mem = get_mem_ptr(array);
 	array_header *header = get_header(array);
 

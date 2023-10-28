@@ -152,28 +152,28 @@ type GfxBackendStuff
 end type
 
 #ifdef GFX_ALLEG_BACKEND
-dim shared as GfxBackendStuff alleg_stuff = ("alleg", "", "", @gfx_alleg_setprocptrs, YES)
+dim shared as GfxBackendStuff alleg_stuff = ("alleg", "", "", @gfx_alleg_setprocptrs, YES, NULL)
 #endif
 #ifdef GFX_DIRECTX_BACKEND
-dim shared as GfxBackendStuff directx_stuff = ("directx", "", "gfx_directx", NULL)  'work out wantpolling when loading
+dim shared as GfxBackendStuff directx_stuff = ("directx", "", "gfx_directx", NULL, NULL)  'work out wantpolling when loading
 #endif
 #ifdef GFX_DUMMY_BACKEND
-dim shared as GfxBackendStuff dummy_stuff = ("dummy", "", "", @gfx_dummy_setprocptrs, NO)
+dim shared as GfxBackendStuff dummy_stuff = ("dummy", "", "", @gfx_dummy_setprocptrs, NO, NULL)
 #endif
 #ifdef GFX_FB_BACKEND
-dim shared as GfxBackendStuff fb_stuff = ("fb", "", "", @gfx_fb_setprocptrs, YES)
+dim shared as GfxBackendStuff fb_stuff = ("fb", "", "", @gfx_fb_setprocptrs, YES, NULL)
 #endif
 #ifdef GFX_SDL_BACKEND
-dim shared as GfxBackendStuff sdl_stuff = ("sdl", "", "", @gfx_sdl_setprocptrs, NO)
+dim shared as GfxBackendStuff sdl_stuff = ("sdl", "", "", @gfx_sdl_setprocptrs, NO, NULL)
 #endif
 #ifdef GFX_SDL2_BACKEND
-dim shared as GfxBackendStuff sdl2_stuff = ("sdl2", "", "", @gfx_sdl2_setprocptrs, NO)
+dim shared as GfxBackendStuff sdl2_stuff = ("sdl2", "", "", @gfx_sdl2_setprocptrs, NO, NULL)
 #endif
 #ifdef GFX_CONSOLE_BACKEND
-dim shared as GfxBackendStuff console_stuff = ("console", "", "", @gfx_console_setprocptrs, NO)
+dim shared as GfxBackendStuff console_stuff = ("console", "", "", @gfx_console_setprocptrs, NO, NULL)
 #endif
 #ifdef GFX_SDLPP_BACKEND
-dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "sdlpp", "gfx_sdl", NULL, NO)
+dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "sdlpp", "gfx_sdl", NULL, NO, NULL)
 'dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "", @gfx_sdlpp_setprocptrs)
 #endif
 

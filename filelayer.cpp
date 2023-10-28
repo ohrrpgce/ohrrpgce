@@ -582,8 +582,9 @@ void close_lazy_files() {
 		}
 	}
 	openfiles_mutex.unlock();
-	if (num_lazy_files)
+	if (num_lazy_files) {
 		OPENDBG(" ...but num_lazy_files=%d!\n", num_lazy_files);
+	}
 }
 
 

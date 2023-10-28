@@ -10321,7 +10321,7 @@ sub frame_draw_transformed(src as Frame ptr, masterpal() as RGBcolor, pal as Pal
 
 	opts.color_key0 = trans  'Clobbers def_drawoptions.color_key0
 
-	if opts.with_blending andalso opts.argbModifier.col <> -1 andalso vertex_cols = NULL then
+	if opts.with_blending andalso opts.argbModifier.col <> &hffffffff andalso vertex_cols = NULL then
 		'gfx_renderQuadTexture doesn't support argbModifier
 		static white(3) as RGBcolor = {(-1), (-1), (-1), (-1)}
 		vertex_cols = @white(0)

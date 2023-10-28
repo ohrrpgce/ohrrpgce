@@ -185,7 +185,7 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 	// Split path and server
 	char *path, *server;
 	path = strchr(url_server, '/');  // Including any query string
-	int url_server_len = path ? path - url_server : strlen(url_server);
+	int url_server_len = path ? path - url_server : (int)strlen(url_server);
 	if (!path) path = "/";
 	server = alloca(url_server_len + 1);
 	memcpy(server, url_server, url_server_len);  // The port hasn't been split off yet

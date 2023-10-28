@@ -47,6 +47,7 @@ struct Color
 	Color& operator= (const Color& rhs) {dw = rhs.dw; return *this;}
 	operator uint32_t () const {return dw;}
 	Color() : dw(0) {}
+	Color(const Color &col) : dw(col.dw) {}
 	Color(uint32_t col) : dw(col) {}
 	Color(RGBcolor col) : dw(col.col) {}
 	Color(uint8_t B, uint8_t G, uint8_t R, uint8_t A) : dw(0) {a=A;r=R;g=G;b=B;}

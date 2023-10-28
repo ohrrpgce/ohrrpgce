@@ -285,7 +285,7 @@ void SHA1(
     int len)
 {
     SHA1_CTX ctx;
-    unsigned int ii;
+    int ii;
 
     SHA1Init(&ctx);
     for (ii=0; ii<len; ii+=1)

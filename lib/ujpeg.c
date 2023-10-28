@@ -413,7 +413,7 @@ static int ujGetVLC(ujContext *uj, ujVLCCode* vlc, unsigned char* code) {
     if (!bits) return 0;
     value = ujGetBits(uj, bits);
     if (value < (1 << (bits - 1)))
-        value += ((-1) << bits) + 1;
+        value += ((unsigned)(-1) << bits) + 1;
     return value;
 }
 
