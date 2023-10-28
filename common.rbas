@@ -1380,7 +1380,8 @@ SUB setbinsize (byval id as integer, byval size as integer)
   showerror "Failed to write binsize.bin(" & id & "), this will definitely cause data corruption!!"
   RETURN
  END IF
- PUT #fh, 1 + id * 2, CAST(short, size)
+ DIM dat as short = size
+ PUT #fh, 1 + id * 2, dat
  CLOSE #fh
  binsize_cache(id) = size
 END SUB

@@ -4040,18 +4040,21 @@ sub record_input_tick ()
 	if record.debug then debugstr = "L:" & (SEEK(record.file) - 1) & " T:" & record.tick & " ms:" & real_input.elapsed_ms & " ("
 
 	put #record.file,, record.tick
-	put #record.file,, cubyte(real_input.elapsed_ms)
+	dim byt as ubyte = cubyte(real_input.elapsed_ms)
+	put #record.file,, byt
 	put #record.file,, presses
 
 	for i as ubyte = 0 to scLAST
 		if real_input.kb.keys(i) <> record.last_kb.keys(i) then
-			PUT #record.file,, i
-			PUT #record.file,, cubyte(real_input.kb.keys(i))
+			put #record.file,, i
+			byt = real_input.kb.keys(i)
+			put #record.file,, byt
 			if record.debug then debugstr &= " " & scancodename(i, YES) & "=" & real_input.kb.keys(i)
 		end if
 	next i
 	'Currently inputtext is Latin-1, format will need changing in future
-	put #record.file,, cubyte(len(real_input.kb.inputtext))
+	byt = len(real_input.kb.inputtext)
+	put #record.file,, byt
 	put #record.file,, real_input.kb.inputtext
 	if record.debug then
 		debugstr &= " )"

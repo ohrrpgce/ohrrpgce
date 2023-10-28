@@ -3213,7 +3213,8 @@ end sub
 sub WriteShort(filename as string, byval p as integer, byval v as integer)
   dim fh as integer
   openfile(filename, FOR_BINARY, fh)
-  put #fh, p, cshort(v)
+  dim dat as short = v
+  put #fh, p, dat
   close #fh
 end sub
 
