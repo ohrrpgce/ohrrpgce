@@ -5295,6 +5295,10 @@ script, slice collection tests, begin
   assert(get slice extra(sl2, 1) == 20)
   assert(get slice extra(sl2, 2) == 30)
   free slice(sl)
+
+  # Loading a missing collection in range 0-32767 returns 0 without error
+  sl := load slice collection(32700)
+  assert(sl == 0)
 end
 
 ########################################################################

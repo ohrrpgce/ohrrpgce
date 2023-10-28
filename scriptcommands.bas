@@ -3069,13 +3069,13 @@ SUB script_commands(byval cmdid as integer)
    scriptret = IIF(sl->GridData->show, 1, 0)
   END IF
  CASE 461 '--load slice collection
-  sl = LoadSliceCollection(SL_COLLECT_USERDEFINED, retvals(0))
-  IF sl THEN
-   'If the collection was partially loaded, we showed an error but continue
-   SetSliceParent sl, SliceTable.scriptsprite
-   scriptret = create_plotslice_handle(sl)
-  ELSE
-   scripterr "load slice collection: invalid id " & retvals(0), serrBadOp
+  IF bound_arg(retvals(0), 0, 32767, "id") THEN
+   sl = LoadSliceCollection(SL_COLLECT_USERDEFINED, retvals(0))
+   IF sl THEN
+    'If the collection was partially loaded, we showed an error but continue
+    SetSliceParent sl, SliceTable.scriptsprite
+    scriptret = create_plotslice_handle(sl)
+   END IF
   END IF
  CASE 462 '--set slice edge x
   sl = get_arg_slice(0)
