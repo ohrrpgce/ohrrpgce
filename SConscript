@@ -1814,6 +1814,7 @@ Options:
                       for C++, and gcc for -gen gcc, and then try cc and c++ if
                       gcc isn't present.
                       Note that -exx is disabled if using clang for -gen gcc.
+  builddir=PATH       Directory to use for .o files and cache. Default: 'build'
   transpiledir=PATH   Don't build binaries, instead transpile all FB modules to
                       .c files, and copy all .c and .cpp files together with
                       needed headers to PATH (after deleting existing contents).
