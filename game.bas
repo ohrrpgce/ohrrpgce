@@ -553,7 +553,7 @@ ELSEIF NOT running_under_Custom THEN  'Won't unlump or upgrade if running under 
   debuginfo workingdir + " not writeable"
   forcerpgcopy = YES
  END IF
- #IFNDEF __FB_ANDROID__
+ #IF NOT (defined(__FB_ANDROID__) OR defined(__FB_JS__))
   'Copy the .rpgdir, because otherwise upgrade() would modify it, which is annoying
   '(In future we want to instead use copy-on-write, for both .rpgs and .rpgdirs)
   forcerpgcopy = YES
@@ -5095,8 +5095,8 @@ SUB cleanup_other_temp_files ()
     age = read_keepalive_as_days(keepalive_file)
     threshhold = 3
    END IF
-#IFDEF __FB_ANDROID__
-   '--Android only permits one running copy of a process, so it is always safe to clean up all tmpdirs
+#IFDEF MINIMAL_OS
+   '--Android/web only permits one running copy of a process, so it is always safe to clean up all tmpdirs
    threshhold = -1
 #ENDIF
    IF age > threshhold THEN

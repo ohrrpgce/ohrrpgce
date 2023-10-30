@@ -113,6 +113,7 @@ mac = False
 android = False
 web = False     # Emscripten (unix, minos)
 minos = False   # Platforms with a minimal OS and no desktop environment, such as web or game consoles.
+                # (#define MINIMAL_OS in FB/C/C)
                 # Expect that one of win32/unix/... is True telling which OS is most similar.
 
 android_source = False

@@ -69,6 +69,10 @@ filetype_names(fileTypeError)       = "unreadable"
 'Note also that this installs signal handlers, but some of those signal handlers
 'are overridden on Unix by setup_exception_handler()
 SUB setup_fb_error_handler()
+
+ 'Emscripten port doesn't seem to support GOTO label
+ #IFNDEF __FB_JS__
+
   'There seems to be a gengcc bug at play: passing the address of a label to a
   'function doesn't work (gcc docs say it's undefined behaviour) and the address
   'of this function gets passed instead. So we see this function reentering if
@@ -94,6 +98,7 @@ SUB setup_fb_error_handler()
   message = format_FB_error_message(err_num, err_line, mod_name, func_name)
   DIM interrupt_signal as bool = (err_num = fberrSIGINT) OR (err_num = fberrSIGQUIT) OR (err_num = fberrSIGTERM)
   fb_error_hook message, interrupt_signal
+ #ENDIF
 END SUB
 
 SUB remove_fb_error_handler()

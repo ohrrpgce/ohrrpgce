@@ -46,9 +46,9 @@
 #ELSE
  #DEFINE _GENSTR
 #ENDIF
-#IF     defined( __FB_ANDROID__)
+#IF     defined(__FB_ANDROID__)
  #DEFINE _PSTR " Android"
-#ELSEIF defined( __FB_LINUX__)
+#ELSEIF defined(__FB_LINUX__)
  #DEFINE _PSTR " Linux"
 #ELSEIF defined(__FB_FREEBSD__)
  #DEFINE _PSTR " FreeBSD"
@@ -60,6 +60,8 @@
  #DEFINE _PSTR " Mac OS X/Darwin"
 #ELSEIF defined(__FB_WIN32__)
  #DEFINE _PSTR " Win32"
+#ELSEIF defined(__FB_JS__)
+ #DEFINE _PSTR " Web"
 #ELSEIF defined(__FB_DOS__)
  #DEFINE _PSTR " DOS"
 #ELSE
@@ -117,7 +119,13 @@ CONST build_info as string = _GSTR _ESTR " FB_ERR=" STRINGIFY(__FB_ERR__) _GENST
 'Universal Windows Platform (Windows Store and XBox One)
 '#define UWP
 
-#if defined(__FB_UNIX__) and not (defined(__FB_DARWIN__) or defined(__FB_ANDROID__)) and not defined(NO_X11)
+#if defined(__FB_JS__)
+ 'Platforms such as web and game consoles without a normal OS. Make minimal
+ 'demands of the OS, don't try to use multiple processes, signals, TCP/IP stack, ...
+ #define MINIMAL_OS
+#endif
+
+#if defined(__FB_UNIX__) and not (defined(__FB_DARWIN__) or defined(__FB_ANDROID__) or defined(__FB_JS__)) and not defined(NO_X11)
  #define USE_X11
 #endif
 

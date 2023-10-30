@@ -275,6 +275,7 @@ def get_cc_info(CC):
     if not match or not match2:
         exit("Couldn't understand output of %s:\n%s\n%s\n" % (CC, stdout, stderr))
     ret.fullversion = match.group(1) + " " + match.group(2)
+    # Note that emcc -v prints `clang -v` too, which we pick up
     ret.name = match.group(1)
     ret.version = int(match.group(2).replace('.', '')) # Convert e.g. 4.9.2 to 492
     ret.target = match2.group(1)

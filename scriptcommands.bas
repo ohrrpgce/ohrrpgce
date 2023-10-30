@@ -3587,7 +3587,8 @@ SUB script_commands(byval cmdid as integer)
  CASE 552 '--resume doors
   setbit gen(), genSuspendBits, suspenddoors, 0
  CASE 553 '--running on desktop
-#IFDEF __FB_ANDROID__
+  'The web port could be run on a phone, so return false
+#IF defined(__FB_ANDROID__) OR defined(__FB_JS__)
  scriptret = 0
 #ELSE
  scriptret = 1

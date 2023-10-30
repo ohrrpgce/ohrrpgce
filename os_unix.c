@@ -40,6 +40,7 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <fnmatch.h>
+#include <fcntl.h>
 #include <pthread.h>
 
 #include "errorlog.h"
@@ -64,6 +65,9 @@ boolint is_windows_9x() {
 void external_log(const char *msg) {
 #ifdef __ANDROID__
 	__android_log_write(ANDROID_LOG_INFO, "OHRRPGCE", msg);
+#endif
+#ifdef __EMSCRIPTEN__
+	puts(msg);
 #endif
 }
 
@@ -886,6 +890,9 @@ bool file_ready_to_read(int fd) {
 
 // Interpret system() return value. Returns exit code or -1 on error.
 int checked_system(const char* cmdline) {
+#if defined(MINIMAL_OS)
+	return -1;
+#else
 	int waitstatus = system(cmdline);
 	int ret = -1;
 	if (waitstatus == -1)
@@ -901,6 +908,7 @@ int checked_system(const char* cmdline) {
 	else
 		debug(errError, "system(%.30s...): unknown return %d", cmdline, waitstatus);
 	return ret;
+#endif
 }
 
 //Partial implementation. The returned process handle can't be used for much
@@ -913,7 +921,7 @@ int checked_system(const char* cmdline) {
 //waitable is true if you want cleanup_process to wait for the command to finish (ignored on
 //           Windows: always waitable)
 ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable, boolint show_output) {
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(MINIMAL_OS)
 	// Early versions of the NDK don't have popen
 	return 0;
 #else
@@ -964,7 +972,7 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable,
 // to this version, which can't pipe multiple programs,
 // and there is no Windows implementation of this function.
 int run_process_and_get_output(FBSTRING *program, FBSTRING *args, FBSTRING *output) {
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(MINIMAL_OS)
 	// Early versions of the NDK don't have popen
 	return -1;
 #else
@@ -1050,7 +1058,7 @@ void kill_process (ProcessHandle process) {
 //Cleans up resources associated with a ProcessHandle
 void cleanup_process (ProcessHandle *processp) {
 	// Early versions of the NDK don't have popen
-#ifndef __ANDROID__
+#if !defined(__ANDROID__) && !defined(MINIMAL_OS)
 	if (processp && *processp) {
 		if ((*processp)->file)
 			pclose((*processp)->file); //FIXME: don't use popen/close, parent will freeze if the child does
@@ -1061,7 +1069,11 @@ void cleanup_process (ProcessHandle *processp) {
 }
 
 int get_process_id () {
+#if defined(MINIMAL_OS)
+	return 0;
+#else
 	return getpid();
+#endif
 }
 
 // A breakpoint
