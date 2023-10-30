@@ -18,7 +18,10 @@ extern "C" {
 #error FBCVERSION before 1.02 not supported.
 #endif
 
+// JS build doesn't use multithreading
+#if !defined HOST_JS
 #define ENABLE_MT
+#endif
 
 /* Must be included before any system headers due to certain #defines */
 #include "fb_config.h"
@@ -166,7 +169,7 @@ extern "C" {
 #endif
 
 
-#if !defined HOST_JS // JS build doesn't use multithreading
+#ifdef ENABLE_MT
 	FBCALL void fb_Lock(void);
 	FBCALL void fb_Unlock(void);
 	FBCALL void fb_StrLock(void);

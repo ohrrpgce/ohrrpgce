@@ -176,7 +176,7 @@ if not win32:
     unix = True
 
 target_prefix = ''  # prepended to gcc, etc.
-if target.count('-') >= 2:
+if target and target.count('-') >= 2:
     target_prefix = target + '-'
     if not arch:
         # Try to recognise it so we know whether we're target
@@ -840,22 +840,23 @@ if gengcc:
         # (although FB 1.20 fixes most incompatible-library-redeclaration warnings)
         GENGCC_CFLAGS += ['-Wno-builtin-requires-header', '-Wno-incompatible-library-redeclaration']
 
-    tmp = CFLAGS + GENGCC_CFLAGS
-    # Drop everything fbc passes automatically
-    #print("Dropping from CFLAGS, in FBC_CFLAGS:", set(tmp).intersection(FBC_CFLAGS))
-    #print("In FBC_CFLAGS, not in CFLAGS:", set(FBC_CFLAGS).difference(tmp))
-    tmp = [f for f in tmp if f not in FBC_CFLAGS]
-    # Drop all defines, because there are no #includes or #ifs in the generated code
-    tmp = [f for f in tmp if not f.startswith('-D')]
-    if len(tmp):
-        # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc <=1.06; the last -Wc overrides others!
-        # fbc <=1.07 has a limit of 127 characters for -Wc arguments (gh#298), so stop the build from breaking
-        # if we exceed the limit by removing final args, which are assumed to be least important.
-        if FBC.version < 1080:
-            while len(','.join(tmp)) > 127:
-                print("WARNING: due to bug in old fbc, dropping arg -Wc %s" % tmp[-1])
-                tmp.pop()
-        FBFLAGS += ["-Wc", ','.join(tmp)]
+    if not transpile_dir:  # Are we actually compiling?
+        tmp = CFLAGS + GENGCC_CFLAGS
+        # Drop everything fbc passes automatically
+        #print("Dropping from CFLAGS, in FBC_CFLAGS:", set(tmp).intersection(FBC_CFLAGS))
+        #print("In FBC_CFLAGS, not in CFLAGS:", set(FBC_CFLAGS).difference(tmp))
+        tmp = [f for f in tmp if f not in FBC_CFLAGS]
+        # Drop all defines, because there are no #includes or #ifs in the generated code
+        tmp = [f for f in tmp if not f.startswith('-D')]
+        if len(tmp):
+            # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc <=1.06; the last -Wc overrides others!
+            # fbc <=1.07 has a limit of 127 characters for -Wc arguments (gh#298), so stop the build from breaking
+            # if we exceed the limit by removing final args, which are assumed to be least important.
+            if FBC.version < 1080:
+                while len(','.join(tmp)) > 127:
+                    print("WARNING: due to bug in old fbc, dropping arg -Wc %s" % tmp[-1])
+                    tmp.pop()
+            FBFLAGS += ["-Wc", ','.join(tmp)]
 
 if mac:
     # Doesn't have --gc-sections. This is similar, but more aggressive than --gc-sections
@@ -878,14 +879,15 @@ if linkgcc:
     # Take the last line, in case -v is in FBFLAGS
     libpath = get_command_output(FBC.path, ["-print", "fblibdir"] + FBFLAGS).split('\n')[-1]
 
-    # Sanity check that FB supports this target/arch
-    # Some FB targets (win32) don't have PIC libs, android only has PIC libs
-    # (libfb is always built while libfbmt is optional)
-    checkfile = os.path.join (libpath, 'libfb.a')
-    checkfile2 = os.path.join (libpath, 'libfbpic.a')
-    if not os.path.isfile (checkfile) and not os.path.isfile (checkfile2):
-        print("Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + checkfile + " [or libfbpic.a] is missing.")
-        Exit(1)
+    if not transpile_dir:  # Are we actually compiling?
+        # Sanity check that FB supports this target/arch
+        # Some FB targets (win32) don't have PIC libs, android only has PIC libs
+        # (libfb is always built while libfbmt is optional)
+        checkfile = os.path.join (libpath, 'libfb.a')
+        checkfile2 = os.path.join (libpath, 'libfbpic.a')
+        if not os.path.isfile (checkfile) and not os.path.isfile (checkfile2):
+            print("Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + checkfile + " [or libfbpic.a] is missing.")
+            Exit(1)
 
     # This causes ld to recursively search the dependencies of linked dynamic libraries
     # for more dependencies (specifically SDL on X11, etc)
@@ -1208,14 +1210,15 @@ if win32:
         # advapi32 is needed by libfb[mt]
         # Strangely advapi32 and shell32 are automatically added by ld when using linkgcc=1 but not linkgcc=0
         base_libraries += ['winmm', 'ole32', 'gdi32', 'shell32', 'advapi32', 'wsock32' if win95 else 'ws2_32']
+        commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
+        # -s gui defines __FB_GUI__ which makes display_help_string use fbgfx
+        common_libraries += ['fbgfxmt']   # For display_help_string
     if win95:
         # Link to Winsock 2 instead of 1 to support stock Win95 (Use win95=0 and mingw-w64 (not mingw) to get support for IPv6)
         env['CFLAGS'] += ['-D', 'USE_WINSOCK1']
         # Temp workaround for bug #1241 when compiling with mingw-w64 6.0.0 (currently used for official builds) to support Win95-2k
         base_modules += ['lib/___mb_cur_max_func.c']
-    common_libraries += ['fbgfxmt', 'fbmt']   # For display_help_string
-    commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
-    commonenv['CCLINKFLAGS'] += ['-lgdi32', '-Wl,--subsystem,windows']
+    commonenv['CCLINKFLAGS'] += ['-Wl,--subsystem,windows']
     #env['CCLINKFLAGS'] += ['win32/CrashRpt1403.lib']  # If not linking the .dll w/ LoadLibrary
     env['CFLAGS'] += ['-I', 'win32/include']
     if 'sdl' in gfx or 'fb' in gfx:
@@ -1328,7 +1331,7 @@ for lib in common_libraries + base_libraries:
         # found (even if we add the framework path, because it's not called libSDL.dylib))
         commonenv['CCLINKFLAGS'] += ['-framework', lib]
         commonenv['FBLINKERFLAGS'] += ['-framework', lib]
-    else:  #elif not web:
+    else:
         commonenv['CCLINKFLAGS'] += ['-l' + lib]
         commonenv['FBLINKFLAGS'] += ['-l', lib]
 
@@ -1505,7 +1508,7 @@ allmodex_objects = common_objects[:]
 for item in shared_modules:
     allmodex_objects.extend (allmodexenv.VARIANT_BASO (item))
 
-if win32:
+if win32 and not transpile_dir:
     # The .rc file includes game.ico or custom.ico and is compiled to an .o file
     # (If linkgcc=0, could just pass the .rc to fbc)
     gamesrc += Depends(gameenv.RC('gicon.o', 'gicon.rc'), 'game.ico')
