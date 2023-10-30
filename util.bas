@@ -1813,6 +1813,21 @@ FUNCTION strhash(hstr as string) as unsigned integer
   RETURN stringhash(cptr(zstring ptr, strptr(hstr)), len(hstr))
 END FUNCTION
 
+#IFDEF __FB_MAIN__
+startTest(stringhash)
+  if strhash("") <> &h99829982 then fail
+  if strhash("a") <> &h21F521F4 then fail
+  if strhash("ab") <> &h0D150D14 then fail
+  if strhash("abc") <> &h79E579E5 then fail
+  if strhash("abcd") <> &hA860A85F then fail
+  if strhash("abcde") <> &hC158C158 then fail
+  if strhash("abcdef") <> &hA737A737 then fail
+  'Test misaligned strings
+  if stringhash(strptr("_abcdef") + 1, 6) <> &hA737A737 then fail
+  if stringhash(strptr("__abcdef") + 2, 6) <> &hA737A737 then fail
+  if stringhash(strptr("___abcdef") + 3, 6) <> &hA737A737 then fail
+endTest
+#ENDIF
 
 '---------- Path and File functions -----------
 

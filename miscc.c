@@ -223,9 +223,9 @@ void strip_carriage_returns(char *text) {
 
 #define ROT(a, b) ((a << b) | (a >> (32 - b)))
 
-// Quite fast hash, ported from fb2c++ (as strihash,
+// Very fast hash, ported from fb2c++ (as strihash,
 // original was case insensitive) which I wrote and tested myself.
-// Actually it turns out this can distribute nonideally for non-text,
+// Actually it turns out this can easily distribute poorly for non-text,
 // proving it really was a bad idea.
 // strp may be NULL iif length is 0
 uint32_t stringhash(const unsigned char *strp, int length) {
@@ -234,7 +234,10 @@ uint32_t stringhash(const unsigned char *strp, int length) {
 
 	length /= 4;
 	while (length) {
-		hash += *(uint32_t *)strp;
+		// This violates memory alignment on some architectures (we're only affected by asm.js currently)
+		//hash += *(uint32_t *)strp;
+		// TODO: this assumes little endian, so is inefficient on big endian
+		hash += strp[0] | strp[1] << 8 | strp[2] << 16 | strp[3] << 24;
 		strp += 4;
 		hash = (hash << 5) - hash;  // * 31
 		hash ^= ROT(hash, 19);
@@ -242,12 +245,14 @@ uint32_t stringhash(const unsigned char *strp, int length) {
 	}
 
 	if (extra_bytes) {
-		if (extra_bytes == 3)
-			hash += *(uint32_t *)strp & 0xffffff;
-		else if (extra_bytes == 2)
-			hash += *(uint32_t *)strp & 0xffff;
-		else if (extra_bytes == 1)
-			hash += *strp;
+		// Read last extra_bytes
+		uint32_t last = 0;
+		strp += extra_bytes;
+		while (extra_bytes--) {
+			last = (last << 8) | *--strp;
+		}
+
+		hash += last;
 		hash = (hash << 5) - hash;  // * 31
 		hash ^= ROT(hash, 19);
 	}
