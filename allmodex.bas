@@ -1177,12 +1177,22 @@ function try_check_fullscreen(byref fullscreen as bool) as bool
 	return NO
 end function
 
+'Whether this platform has separate windowed and fullscreen modes. False on consoles.
+function windowed_platform() as bool
+#ifdef __FB_ANDROID__
+	return NO
+#else
+	'Including web
+	return YES
+#endif
+end function
+
 function supports_fullscreen_well () as bool
 	'Return YES if we should show the fullscreen/windowed menu options
 	'and obey a game's fullscreen/windowed setting.
 	'Note: even if this returns false, you can still try to fullscreen using alt-tab
 	'or the --fullscreen arg and it might be supported.
-	if running_on_desktop() = NO then
+	if windowed_platform() = NO then
 		return NO
 	end if
 #IFDEF __GNU_LINUX__
@@ -11805,14 +11815,6 @@ sub remap_touchscreen_button (button_id as integer, ohr_scancode as integer)
 	'debuginfo "remap_android_gamepad " & button_id & " " & ohr_scancode
 	io_remap_touchscreen_button(button_id, ohr_scancode)
 end sub
-
-function running_on_desktop() as bool
-#IFDEF __FB_ANDROID__
-	return NO
-#ELSE
-	return YES
-#ENDIF
-end function
 
 function running_on_console() as bool
 	'Currently supports OUYA, GameStick, Fire-TV

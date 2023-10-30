@@ -127,6 +127,7 @@ DECLARE SUB get_screen_size (byref screenwidth as integer, byref screenheight as
 DECLARE SUB set_scale_factor (scale as integer, change_windowsize as bool = YES)
 DECLARE SUB toggle_fps_display ()
 
+DECLARE FUNCTION windowed_platform() as bool
 DECLARE FUNCTION supports_fullscreen_well () as bool
 DECLARE FUNCTION try_check_fullscreen(byref fullscreen as bool) as bool
 
@@ -793,7 +794,6 @@ declare sub hide_virtual_gamepad()
 declare sub remap_android_gamepad(player as integer, gp as GamePadMap)
 declare sub remap_touchscreen_button (button_id as integer, ohr_scancode as integer)
 
-declare function running_on_desktop() as bool
 declare function running_on_console() as bool
 declare function running_on_mobile() as bool
 declare function running_on_ouya() as bool 'Only use this for things that strictly require OUYA, like the OUYA store

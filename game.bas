@@ -3086,12 +3086,12 @@ FUNCTION activate_menu_item(mi as MenuDefItem, byval menuslot as integer) as boo
      CASE spPurchases
       purchases_menu()
      CASE spWindowed
-      IF running_on_desktop() THEN
+      IF windowed_platform() THEN
        gfx_setwindowed(YES)
        user_toggled_fullscreen = YES
       END IF
      CASE spFullscreen
-      IF running_on_desktop() THEN
+      IF windowed_platform() THEN
        gfx_setwindowed(NO)
        user_toggled_fullscreen = YES
       END IF
