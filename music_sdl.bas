@@ -168,14 +168,20 @@ function music_get_info() as string
 		ret += ", SDL " & ver->major & "." & ver->minor & "." & ver->patch
 	end if
 
-	ver = Mix_Linked_Version()
-	ret += ", SDL_Mixer " & ver->major & "." & ver->minor & "." & ver->patch
-	mixer_version = ver->major * 1000 + ver->minor * 100 + ver->patch
+	#if not (defined(__FB_JS__) and not defined(SDL_MIXER2))
+		'Emscripten's Mix_Linked_Version() just throws an exception
+		ver = Mix_Linked_Version()
+		ret += ", SDL_Mixer " & ver->major & "." & ver->minor & "." & ver->patch
+		mixer_version = ver->major * 1000 + ver->minor * 100 + ver->patch
+	#endif
 
 	if music_status = musicOn then
-		dim freq as int32, format as ushort, channels as int32
-		Mix_QuerySpec(@freq, @format, @channels)
-		ret += " (" & freq & "Hz"
+		#if not (defined(__FB_JS__) and not defined(SDL_MIXER2))
+			'Emscripten's Mix_QuerySpec() just throws an exception
+			dim freq as int32, format as ushort, channels as int32
+			Mix_QuerySpec(@freq, @format, @channels)
+			ret += " (" & freq & "Hz"
+		#endif
 
 		have_modplug = NO
 		if _Mix_GetNumMusicDecoders andalso _Mix_GetMusicDecoder then

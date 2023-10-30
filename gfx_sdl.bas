@@ -371,8 +371,10 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   'Also doesn't fix sdl -> fb -> sdl typically crashing on linux/X11/KDE (when starting up with sdl)
   memset(@keybdstate(0), 0, (UBOUND(keybdstate) + 1) * SIZEOF(keybdstate(0)))
 
+#IFNDEF __FB_JS__  'Emscripten doesn't have SDL_EventState
   ' Needed for X11 clipboard
   SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE)
+#ENDIF
 
   *info_buffer = *info_buffer & " (" & SDL_NumJoysticks() & " joysticks) Driver:"
   SDL_VideoDriverName(info_buffer + LEN(*info_buffer), info_buffer_size - LEN(*info_buffer))
@@ -1071,6 +1073,8 @@ SUB gfx_sdl_process_events()
       CASE SDL_MOUSEMOTION : warped_mouse = NO
 #ENDIF
 
+#IFNDEF __FB_JS__
+      'Doesn't exist under Emscripten, although SDL_ACTIVEEVENT is defined in SDL_compat.h
       CASE SDL_ACTIVEEVENT
         IF evnt.active.state AND SDL_APPINPUTFOCUS THEN
           IF debugging_io THEN
@@ -1095,6 +1099,8 @@ SUB gfx_sdl_process_events()
             END IF
           END IF
         END IF
+#ENDIF
+
       CASE SDL_VIDEORESIZE
         IF debugging_io THEN
           debuginfo "SDL_VIDEORESIZE: w=" & evnt.resize.w & " h=" & evnt.resize.h
