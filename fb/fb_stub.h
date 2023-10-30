@@ -133,6 +133,10 @@ extern "C" {
 		#define __inline__  __inline
 	#endif
 
+#elif defined HOST_FB_BLACKBOX
+
+	// Handled in fb_config.h
+
 #elif defined HOST_UNIX
 
 	// Copied from rtlib/unix/fb_unix.h

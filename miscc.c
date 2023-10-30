@@ -286,7 +286,11 @@ uint32_t stringhash(const unsigned char *strp, int length) {
 // Check for x86 or amd64, for Visual C++, GCC
 #if defined(_M_IX86) || defined(_M_AMD64) || defined(__i386__) || defined(__x86_64__)
 
-#if defined(_MSC_VER) || defined(_WIN32)
+#if defined(HOST_FB_BLACKBOX)
+
+void disable_extended_precision() {}
+
+#elif defined(_MSC_VER) || defined(_WIN32)
 // Windows, either Visual C++ or MinGW. Note, Windows defaults to double-precision,
 // but MinGW switches on extended precision
 
@@ -333,7 +337,6 @@ void disable_extended_precision() {}
 void disable_extended_precision() {}
 
 #endif
-
 
 ///////////////////////////////////////////////////////////////////////////////
 

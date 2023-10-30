@@ -4,12 +4,17 @@
 // Edited to comment out NO_OLDNAMES declarations and add _MSC_VER
 
 #if defined HOST_XBOX
+#elif defined HOST_FB_BLACKBOX
+	// Private.
+	#include "fb_blackbox_config.h"
 #elif defined __DJGPP__
 	#define HOST_DOS
 	#define HOST_DJGPP
 #elif defined _MSC_VER  /* MS Visual C++ */
 	#define HOST_WIN32
-	#define WIN32_LEAN_AND_MEAN
+	#ifndef WIN32_LEAN_AND_MEAN
+		#define WIN32_LEAN_AND_MEAN
+	#endif
 #elif defined __MINGW32__ /* MinGW, MinGW-w64, TDM-GCC */
 	#define HOST_MINGW
 	#define HOST_WIN32
@@ -17,11 +22,15 @@
 	//#define NO_OLDNAMES
 	//#define _NO_OLDNAMES
 	/* Tell windows.h to omit many headers we don't need */
-	#define WIN32_LEAN_AND_MEAN
+	#ifndef WIN32_LEAN_AND_MEAN
+		#define WIN32_LEAN_AND_MEAN
+	#endif
 #elif defined __CYGWIN__
 	#define HOST_CYGWIN
 	#define HOST_WIN32
-	#define WIN32_LEAN_AND_MEAN
+	#ifndef WIN32_LEAN_AND_MEAN
+		#define WIN32_LEAN_AND_MEAN
+	#endif
 #elif defined __linux__
 	#define HOST_LINUX
 	#define HOST_UNIX

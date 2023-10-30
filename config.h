@@ -31,7 +31,7 @@
 #endif
 */
 
-#if defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__) || defined(HOST_FB_BLACKBOX)
 # define MINIMAL_OS
 #endif
 

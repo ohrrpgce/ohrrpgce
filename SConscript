@@ -107,14 +107,15 @@ default_arch = FBC.default_arch
 host_win32 = sys.platform.startswith('win')
 
 # Target OS/platform (more than one can be True)
-win32 = False
-unix = False    # True on linux, mac, android, web
+win32 = False    # Windows (32 or 64 bit)
+unix = False     # True on linux, mac, android, web
 mac = False
 android = False
-web = False     # Emscripten (unix, minos)
-minos = False   # Platforms with a minimal OS and no desktop environment, such as web or game consoles.
-                # (#define MINIMAL_OS in FB/C/C)
-                # Expect that one of win32/unix/... is True telling which OS is most similar.
+web = False      # Emscripten (unix, minos)
+blackbox = False # Ratalaika Games' Blackbox emulation layer for Switch/PS/Xbox (win32, minos)
+minos = False    # Platforms with a minimal OS and no desktop environment, such as web or game consoles.
+                 # (#define MINIMAL_OS in FB/C/C)
+                 # Expect that one of win32/unix/... is True telling which OS is most similar.
 
 android_source = False
 win95 = int(ARGUMENTS.get ('win95', '0'))
@@ -163,6 +164,11 @@ elif 'js' in target:
     default_cc = 'emcc'  # Emscripten
     for_node = ('node' in target)
     target = 'js-asmjs'  # fbc accepts no synonyms. Actually wasm not asm.js by default.
+elif 'blackbox' in target:
+    blackbox = True
+    win32 = True
+    minos = True
+    target = 'win64'
 else:
     print("!! WARNING: target '%s' not recognised!" % target)
 
@@ -379,7 +385,7 @@ if 'gfx' in ARGUMENTS:
     gfx = ARGUMENTS['gfx']
 elif 'OHRGFX' in os.environ:
     gfx = os.environ['OHRGFX']
-elif mac or web:
+elif mac or web or blackbox:
     gfx = 'sdl2'
 elif android:
     gfx = 'sdl'
@@ -682,6 +688,10 @@ if not web:
 
 if target:
     FBFLAGS += ['-target', target]
+
+if blackbox:
+    FBFLAGS += ['-d', '__FB_BLACKBOX__']
+    NONFBC_CFLAGS += ['-DHOST_FB_BLACKBOX']
 
 NO_PIE = '-no-pie'
 if android:
@@ -1184,19 +1194,20 @@ if web:
     commonenv['FBLINKERFLAGS'] += emlinkflags
 
 if not minos:
-    # This module is OS-specific but shared by Windows (winsock) and Unix.
-    base_modules += ['os_sockets.c']
+    # os_sockets.c is OS-specific but shared by Windows (winsock) and Unix.
+    base_modules += ['os_sockets.c', 'networkutil.bas']
 
 if win32:
-    base_modules += ['os_windows.bas', 'os_windows2.c', 'lib/win98_compat.bas',
-                     'lib/msvcrt_compat.c', 'gfx_common/win_error.c']
-    # winmm needed for MIDI, used by music backends but also by miditest
-    # psapi.dll needed just for get_process_path() and memory_usage(). Not present on Win98 unfortunately,
-    # so now we dynamically link it.
-    # ole32.dll and shell32.dll needed just for open_document()
-    # advapi32 is needed by libfb[mt]
-    # Strangely advapi32 and shell32 are automatically added by ld when using linkgcc=1 but not linkgcc=0
-    base_libraries += ['winmm', 'ole32', 'gdi32', 'shell32', 'advapi32', 'wsock32' if win95 else 'ws2_32']
+    base_modules += ['os_windows.bas', 'os_windows2.c', 'gfx_common/win_error.c']
+    if not minos:
+        base_modules += ['lib/win98_compat.bas', 'lib/msvcrt_compat.c']
+        # winmm needed for MIDI, used by music backends but also by miditest
+        # psapi.dll needed just for get_process_path() and memory_usage(). Not present on Win98 unfortunately,
+        # so now we dynamically link it.
+        # ole32.dll and shell32.dll needed just for open_document()
+        # advapi32 is needed by libfb[mt]
+        # Strangely advapi32 and shell32 are automatically added by ld when using linkgcc=1 but not linkgcc=0
+        base_libraries += ['winmm', 'ole32', 'gdi32', 'shell32', 'advapi32', 'wsock32' if win95 else 'ws2_32']
     if win95:
         # Link to Winsock 2 instead of 1 to support stock Win95 (Use win95=0 and mingw-w64 (not mingw) to get support for IPv6)
         env['CFLAGS'] += ['-D', 'USE_WINSOCK1']
@@ -1345,7 +1356,6 @@ base_modules +=   ['util.bas',
                    'filelayer.cpp',
                    'globals.bas',
                    'lumpfile.bas',
-                   'networkutil.bas',
                    'vector.bas']
 
 # Modules shared by the reload utilities, additional to base_modules

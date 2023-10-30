@@ -15,6 +15,9 @@
 
 '#define RELOAD_NOPRIVATEHEAP
 
+#ifdef MINIMAL_OS
+#define RELOAD_NOPRIVATEHEAP
+#endif
 
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 #if defined(RELOADINTERNAL) or __FB_DEBUG__

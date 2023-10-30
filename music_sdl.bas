@@ -309,7 +309,12 @@ sub music_init()
 			audio_buffers = 1024 '1536
 		#else
 			' SDL_mixer 2: the above problem doesn't apply
-			audio_rate = 44100
+			' TODO: make configurable
+			#ifdef __FB_BLACKBOX__
+				audio_rate = 48000
+			#else
+				audio_rate = 44100
+			#endif
 			audio_buffers = 2048 'Might as well increase to match (effect not investigated)
 
 			'SDL_SetHint("SDL_MIXER_DEBUG_MUSIC_INTERFACES", "1")
