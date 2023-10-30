@@ -172,7 +172,7 @@ IF default = "" THEN
 END IF
 default = simplify_path(absolute_path(default))
 IF isdir(default) AND justextension(default) <> "rpgdir" THEN
- br.nowdir = default & SLASH
+ br.nowdir = add_trailing_slash(default)
  startfile = ""
 ELSE
  br.nowdir = trimfilename(default) & SLASH
