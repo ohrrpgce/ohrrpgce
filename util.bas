@@ -2207,6 +2207,9 @@ FUNCTION simplify_path_further(pathname as string, fromwhere as string = "") as 
       'Need a slash following the part matching source, so we don't match foo and foo.rpgdir
       'Strip the slash.
       RETURN MID(path, matchlen + 2)
+    ELSEIF ispathsep(path[matchlen - 1]) THEN
+      'Special case: if the last character of source is / or \ that means it's the root dir
+      RETURN MID(path, matchlen + 1)
     END IF
   END IF
   RETURN path
@@ -2224,15 +2227,17 @@ startTest(simplify_path_further)
   testsimplify2("/foo/bar/",    "foo/",      "/foo/bar")
   testsimplify2("/foo/bar",     "/foo",      "bar")
   testsimplify2("/foo/bar/",    "/foo/",     "bar")
+  testsimplify2("/foo",         "/",         "foo")
+  testsimplify2("/foo/",        "/",         "foo")
   testsimplify2("../bar",       "..",        "bar")
   testsimplify2(".././../foo/", "",          "../../foo")
   testsimplify2(".././../foo/", "..",        "../foo")
   testsimplify2(".././../foo/", "..",        "../foo")
   testsimplify2(".././a/../../foo/", "",     "../../foo")
-  testsimplify2("/..",           "",         "/")
+  testsimplify2("/..",           "/foo",     "/")
+  testsimplify2("/../.",         "/foo",     "/")
   testsimplify2("",              "",         ".")
   testsimplify2(".",             ".",        ".")
-  testsimplify2("/../.",         "",         "/")
   testsimplify2("//.//../a/../c/b/../d",  "/c",  "d")
   testsimplify2(CURDIR & SLASH & "bar",   "",    "bar")
 endTest
