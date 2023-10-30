@@ -15,24 +15,33 @@ from ohrbuild import get_command_output
 from misc import linux_portability_check
 import ohrbuild
 
+# Flags passed to fbc both when compiling and linking
+# (Whenever something is added to this you should also add to FBC_CFLAGS if appropriate.)
 FBFLAGS = ['-mt'] #, '-showincludes']
-# Flags used when compiling C and C++ modules, but NOT -gen gcc or euc generated
-# C sources (except on Android...). Not used for linking.
+
+### Compile flags (not used for linking)
+# For all C and C++ code (including -gen gcc generated and compiled) except for euc generated
 CFLAGS = ['-Wall', '-Wno-deprecated-declarations']  # Complaints about mallinfo()
-# Flags given to fbc to pass on to FBCC (C compiler) used when compiling -gen gcc generated C sources.
-# Not for euc, and not used on Android (because of inflexible build system).
+CFLAGS += ['-fwrapv', '-frounding-math']  # FB may change the rounding mode
+# Flags for FBCC (C compiler for -gen gcc generated C), whether passed through fbc or when FBCC
+# is invoked directly.
 GENGCC_CFLAGS = []
-# In addition to GENGCC_CFLAGS, flags for -gen gcc C sources when we compile them
-# manually using FBCC (eg if FBCC is clang), instead of fbc. Such as ones fbc would normally pass automatically.
-FBCC_CFLAGS = []
-# TRUE_CFLAGS apply only to normal .c sources, NOT to C++ or those generated via gengcc=1 or euc.
+# In addition to GENGCC_CFLAGS, flags for -gen gcc C sources only when we compile them
+# manually using FBCC, rather than via fbc. Namely, ones fbc would normally pass automatically.
+# To reduce commandlines these are subtracted from CFLAGS before being passed through fbc -Wc.
+FBC_CFLAGS = ['-fwrapv', '-frounding-math', '-fno-strict-aliasing']
+FBC_CFLAGS += ('-Wno-unused-label -Wno-unused-but-set-variable '
+               '-Wno-unused-variable -Wno-unused-function'.split())
+# For C we compile by directly invoking FBCC/CC, rather than via "fbc -gen gcc".
 # Use gnu99 dialect instead of c99. c99 causes GCC to define __STRICT_ANSI__
 # which causes types like off_t and off64_t to be renamed to _off_t and _off64_t
 # under MinGW. (See bug 951)
-TRUE_CFLAGS = ['--std=gnu11']
-# Flags used only for C++ (in addition to CFLAGS). Not used for linking.
+NONFBC_CFLAGS = ['--std=gnu11']
+# For C++ (in addition to CFLAGS).
 # Can add -fno-exceptions, but only removes ~2KB
 CXXFLAGS = '--std=c++0x -Wno-non-virtual-dtor'.split()
+
+### Link flags
 # CCLINKFLAGS are passed to $CC when linking with gcc/clang (linkgcc=1, which is the default)
 CCLINKFLAGS = []
 # FBLINKFLAGS are passed to fbc when linking with fbc (linkgcc=0)
@@ -259,8 +268,8 @@ FB_exx = (debug in (2,3))     # compile with -exx?
 if debug >= 1 or pdb:
     # If debug=0 and pdb, then the debug info gets stripped later
     FBFLAGS.append ('-g')
+    FBC_CFLAGS.append ('-g')
     CFLAGS.append ('-g')
-    FBCC_CFLAGS.append ('-g')
     CCLINKFLAGS.append ('-g')
 
 # Note: fbc includes symbols (but not debug info) in .o files even without -g,
@@ -270,11 +279,9 @@ linkgcc_strip = (debug == 0 and pdb == 0)  # (linkgcc only) strip debug info and
 lto = int(ARGUMENTS.get('lto', tiny != 0))  # lto=1 by default in tiny builds, but lto=0 overrides
 if lto:
     CFLAGS.append('-flto')
-    GENGCC_CFLAGS.append('-flto')
     # GCC throws many warnings about structs that harmlessly differ between C/FB (only in name?), and warns
     # to use -fno-strict-aliasing. That might actually be needed despite the declarations being equivalent.
-    CFLAGS.append('-fno-strict-aliasing')
-    GENGCC_CFLAGS.append('-fno-strict-aliasing')
+    CFLAGS.append('-fno-strict-aliasing')   # Already in FBC_CFLAGS, fbc always passes it.
     CCLINKFLAGS += ['-fno-strict-aliasing', '-Wno-lto-type-mismatch']
     #CCLINKFLAGS.append('-flto')  # Shouldn't actually be needed?
     if 'x86' in arch:
@@ -285,7 +292,6 @@ if not tiny and not lto:
     # Make sure we can print stack traces
     # Also -O2 plus profiling crashes for me due to mandatory frame pointers being omitted.
     CFLAGS.append('-fno-omit-frame-pointer')
-    GENGCC_CFLAGS.append('-fno-omit-frame-pointer')
 
 # glibc=0|1 overrides automatic detection
 glibc = int(ARGUMENTS.get ('glibc', glibc))
@@ -308,8 +314,8 @@ portable = int (ARGUMENTS.get ('portable', portable))
 profile = int (ARGUMENTS.get ('profile', 0))
 if profile:
     FBFLAGS.append ('-profile')
+    FBC_CFLAGS.append ('-pg')
     CFLAGS.append ('-pg')
-    FBCC_CFLAGS.append ('-pg')
     CCLINKFLAGS.append ('-pg')
 if int (ARGUMENTS.get ('valgrind', 0)):
     #-exx under valgrind is nearly redundant, and really slow
@@ -333,26 +339,28 @@ if tiny:
     CFLAGS.append('-Os')
     CXXFLAGS.append('-fno-exceptions')  # Just a few bytes
     CCLINKFLAGS.append('-Os')  # For LTO
-    GENGCC_CFLAGS.append('-Os')
-    FBFLAGS += ["-O", "2"]  # Currently no effect
 elif optimisations:
-    CFLAGS.append ('-O3')
+    NONFBC_CFLAGS.append ('-O3')
+    CXXFLAGS.append ('-O3')
     CCLINKFLAGS.append ('-O2')  # For LTO
+    FB_O = '0'
     if optimisations > 1:
         # Also optimise FB code. Only use -O2 instead of -O3 because -O3 produces about 10% larger
         # binaries (before and after compression) but most of the performance critical stuff is in
-        # .c files anyway; even the improvement in HS benchmarks is only about 3%.
-        GENGCC_CFLAGS.append('-O2')
+        # (non-generated) .c/.cpp files anyway; even the improvement in HS benchmarks is only about 3%.
+        FB_O = '2'
+        if android:
+            # For Android all C is compiled with same flags (including FBC_CFLAGS) so we want to use -O3
+            FB_O = '3'
         # FB optimisation flag currently does pretty much nothing except passed on to -gen gcc.
-        # And we override that with GENGCC_CFLAGS anyway.
-        FBFLAGS += ["-O", "2"]
+        FBFLAGS += ['-O', FB_O]
+        FBC_CFLAGS.append ('-O' + FB_O)
 else:
     CFLAGS.append ('-O0')
-    FBCC_CFLAGS.append ('-O0')
 
 # Help dead code stripping. (This helps a lot even in LTO builds!)
 CFLAGS += ['-ffunction-sections', '-fdata-sections']
-GENGCC_CFLAGS += ['-ffunction-sections', '-fdata-sections']
+
 
 # Backend selection.
 if 'gfx' in ARGUMENTS:
@@ -489,6 +497,7 @@ else:
 
 
 def bas_build_action(moreflags = ''):
+    "Actions to compile .bas to .o/.obj or to .c"
     if transpile_dir:
         return ['$FBC $FBFLAGS -r $SOURCE -o $TARGET ' + moreflags]
 
@@ -496,10 +505,11 @@ def bas_build_action(moreflags = ''):
         # fbc asks FBCC to produce assembly and then runs that through as,
         # but clang produces some directives that as doesn't like.
         # So we do the .c -> asm step ourselves.
+        # NOTE: $CFLAGS in the env = CFLAGS + NONFBC_CFLAGS in Python.
         return ['$FBC $FBFLAGS -r $SOURCE -o ${TARGET}.c ' + moreflags,
-                '$FBCC $GENGCC_CFLAGS $FBCC_CFLAGS -c ${TARGET}.c -o $TARGET']
+                '$FBCC $CFLAGS $FBC_CFLAGS $GENGCC_CFLAGS -c ${TARGET}.c -o $TARGET']
     else:
-        # Note in this case FBCC_CFLAGS does not apply (contains flags fbc passes automatically to FBCC),
+        # In this case FBC_CFLAGS isn't needed (fbc passes them automatically),
         # and GENGCC_CFLAGS has already been added into FBFLAGS with -Wc.
         return '$FBC $FBFLAGS -c $SOURCE -o $TARGET ' + moreflags
 
@@ -627,8 +637,8 @@ if mac:
             raise Exception('Mac SDK ' + macsdk + ' not installed: ' + macSDKpath + ' is missing')
         macosx_version_min = macsdk
         CCLINKFLAGS += ["-isysroot", macSDKpath]  # "-static-libgcc", '-weak-lSystem']
-    FBLINKERFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
     CFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
+    FBLINKERFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
     CCLINKFLAGS += ['-mmacosx-version-min=' + macosx_version_min]
     if macosx_version_min != '10.4':
         # SDL 1.2.15+ (and SDL_mixer) uses @rpath in its load path, so the executable now needs
@@ -682,7 +692,6 @@ elif not win32:
         # generation, and it seems neither implies the other. -fno-pie has been
         # around a long time (at least GCC 4.9, Clang 3.7).
         CFLAGS += ['-fno-pie']
-        GENGCC_CFLAGS += ['-fno-pie']
         # -no_pie is only needed when CXX does the linking, not with linkgcc=0,
         # since apparently it's gcc, not ld, which is defaulting to PIE
         CCLINKFLAGS += [NO_PIE]
@@ -696,8 +705,8 @@ elif arch == 'aarch64':
     FBFLAGS += ["-arch", arch]
 elif arch == 'x86':
     FBFLAGS += ["-arch", "686"]  # "x86" alias not recognised by FB yet
+    FBC_CFLAGS.append ('-m32')
     CFLAGS.append ('-m32')
-    FBCC_CFLAGS.append ('-m32')
     CCLINKFLAGS.append ('-m32')
     if (FBC.version < 1060 or (win32 and sse2)) and CC.is_gcc and gengcc == False:
         # Linux x86 (see GCC bug 40838) and Mac OSX ABIs require the stack be kept 16-byte
@@ -725,8 +734,8 @@ elif arch == 'x86':
 
 elif arch == 'x86_64':
     FBFLAGS += ["-arch", arch]
+    FBC_CFLAGS.append ('-m64')
     CFLAGS.append ('-m64')
-    FBCC_CFLAGS.append ('-m64')
     CCLINKFLAGS.append ('-m64')
     # This also causes older FB to default to -gen gcc, as -gen gas not supported
     # (but FB 1.08 added -gen gas64)
@@ -761,13 +770,11 @@ if 'x86' in arch and gengcc:
         # Currently needed on x86 only: fbc outputs some asm which clang doesn't like (-masm=intel doesn't help)
         FBFLAGS += ['-asm', 'att']
     else:
-        FBCC_CFLAGS += ['-masm=intel']
+        FBC_CFLAGS += ['-masm=intel']
 
+# Add FBFLAGS for -gen gcc builds, including flags passed to C compiler
 if gengcc:
     FBFLAGS += ["-gen", "gcc"]
-    if asan:
-        # Use AddressSanitizer in C files produced by fbc
-        GENGCC_CFLAGS.append ('-fsanitize=address')
     if FBCC.is_clang:
         # -exx (in fact -e) causes fbc to use computed gotos which clang can't compile
         # due to https://bugs.llvm.org/show_bug.cgi?id=18658
@@ -792,20 +799,23 @@ if gengcc:
         # clang doesn't like fbc's declarations of standard functions
         # (although FB 1.20 fixes most incompatible-library-redeclaration warnings)
         GENGCC_CFLAGS += ['-Wno-builtin-requires-header', '-Wno-incompatible-library-redeclaration']
-    if len(GENGCC_CFLAGS):
+
+    tmp = CFLAGS + GENGCC_CFLAGS
+    # Drop everything fbc passes automatically
+    #print("Dropping from CFLAGS, in FBC_CFLAGS:", set(tmp).intersection(FBC_CFLAGS))
+    #print("In FBC_CFLAGS, not in CFLAGS:", set(FBC_CFLAGS).difference(tmp))
+    tmp = [f for f in tmp if f not in FBC_CFLAGS]
+    # Drop all defines, because there are no #includes or #ifs in the generated code
+    tmp = [f for f in tmp if not f.startswith('-D')]
+    if len(tmp):
         # NOTE: You can only pass -Wc (which passes flags on to gcc) once to fbc <=1.06; the last -Wc overrides others!
-        # NOTE: GENGCC_CFLAGS isn't used on android
         # fbc <=1.07 has a limit of 127 characters for -Wc arguments (gh#298), so stop the build from breaking
         # if we exceed the limit by removing final args, which are assumed to be least important.
-        tmp = GENGCC_CFLAGS
         if FBC.version < 1080:
             while len(','.join(tmp)) > 127:
-                print("WARNING: due to fbc bug, dropping arg -Wc %s" % tmp[-1])
+                print("WARNING: due to bug in old fbc, dropping arg -Wc %s" % tmp[-1])
                 tmp.pop()
         FBFLAGS += ["-Wc", ','.join(tmp)]
-        # Used when FBCC.is_clang only
-        env['GENGCC_CFLAGS'] = GENGCC_CFLAGS
-    env['FBCC_CFLAGS'] = FBCC_CFLAGS
 
 if mac:
     # Doesn't have --gc-sections. This is similar, but more aggressive than --gc-sections
@@ -972,12 +982,7 @@ if android_source:
         # Unfortunately the commandergenius port only has a single CFLAGS,
         # which gets used for handwritten C, generated-from-FB C, and C++.
         # It would be better to change that.
-        NDK_CFLAGS = CFLAGS[:]
-        NDK_CFLAGS.append('--std=c99')  # Needed for compiling array.c, blit.c
-        NDK_CFLAGS += ('-Wno-unused-label -Wno-unused-but-set-variable -Wno-maybe-uninitialized '
-                       '-Wno-unused-variable -Wno-unused-function -Wno-missing-braces'.split())
-        if arch in ('x86', 'x86_64'):
-            NDK_CFLAGS.append("-masm=intel")  # for fbc's generated inline assembly
+        NDK_CFLAGS = CFLAGS + NONFBC_CFLAGS + FBC_CFLAGS + GENGCC_CFLAGS
         fil.write('AppCflags="%s"\n' % ' '.join(NDK_CFLAGS))
         fil.write('AppCppflags="%s"\n' % ' '.join(CXXFLAGS))
         if arch == 'armv5te':
@@ -1003,14 +1008,16 @@ if android_source:
 # the specific Environments.
 
 env['FBFLAGS'] = FBFLAGS
-env['CFLAGS'] += CFLAGS + TRUE_CFLAGS
+env['CFLAGS'] += CFLAGS + NONFBC_CFLAGS
 env['CXXFLAGS'] += CFLAGS + CXXFLAGS
+env['GENGCC_CFLAGS'] = GENGCC_CFLAGS
+env['FBC_CFLAGS'] = FBC_CFLAGS
 env['CCLINKFLAGS'] = CCLINKFLAGS
 env['FBLINKFLAGS'] = FBLINKFLAGS
 env['FBLINKERFLAGS'] = FBLINKERFLAGS
 
 # These no longer have any effect.
-del FBFLAGS, TRUE_CFLAGS, GENGCC_CFLAGS, CFLAGS, CXXFLAGS
+del FBFLAGS, CFLAGS, FBC_CFLAGS, NONFBC_CFLAGS, GENGCC_CFLAGS, CXXFLAGS
 del CCLINKFLAGS, FBLINKFLAGS, FBLINKERFLAGS
 
 ################ Program-specific stuff starts here
