@@ -182,7 +182,7 @@ SUB lowlevel_init()
 
   exename = trimextension(trimpath(COMMAND(0)))
 
-  'Requires exename
+  'Requires exename on Windows.
   setup_exception_handler
 
   disable_extended_precision
@@ -3021,7 +3021,7 @@ FUNCTION makedir (directory as string) as integer
     debug "Could not mkdir(" & directory & "): " & err_string
     RETURN 1
   END IF
-#ifdef __FB_UNIX__  ' I don't know on which OSes this is necessary
+#if defined(__FB_UNIX__) and not defined(MINIMAL_OS) ' I don't know on which OSes this is necessary
   ' work around broken file permissions in dirs created by linux version
   ' MKDIR creates with mode 644, should create with mode 755
   safe_shell "chmod +x " + escape_filename(directory), , NO

@@ -18,6 +18,9 @@ extern "C"
 ' Returns "" if invalid or don't have permission.
 ' (Should return "<unknown>" if the pid exists but we can't get the path)
 function get_process_name (pid as integer) as string
+#if defined(MINIMAL_OS)
+	return ""
+#else
 	dim cmdname as string
 #if defined(__GNU_LINUX__)
 	' With GNU ps, "-o command" and "-o cmd" return the name and arguments it was called with,
@@ -45,6 +48,7 @@ function get_process_name (pid as integer) as string
 	run_and_get_output("ps -p " & pid & " -o command=", cmdname)
 #endif
 	return rtrim(cmdname, !"\n")
+#endif
 end function
 
 end extern

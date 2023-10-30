@@ -168,6 +168,9 @@ void fatal_signal_handler(int signum, siginfo_t *si, void *ucontext) {
 // that so that we can tell whether to report a fatal bug or just a fatal error
 // (if using hook_fb_End() we don't know what the error number is)
 boolint setup_exception_handler() {
+#ifdef MINIMAL_OS
+	return NO;
+#else
 	early_debuginfo("setup_exception_handler");
 	struct sigaction sa;
 	sa.sa_sigaction = fatal_signal_handler;
@@ -182,6 +185,7 @@ boolint setup_exception_handler() {
 	sigaction(SIGINT, &sa, NULL);   // C-c on terminal
 	sigaction(SIGQUIT, &sa, NULL);  // C-\ on terminal
 	return YES;
+#endif
 }
 
 void os_open_logfile(const char *path) {
@@ -900,6 +904,7 @@ bool file_ready_to_read(int fd) {
 // Interpret system() return value. Returns exit code or -1 on error.
 int checked_system(const char* cmdline) {
 #if defined(MINIMAL_OS)
+	debug(errError, "Ignoring system(): %s", cmdline);
 	return -1;
 #else
 	int waitstatus = system(cmdline);

@@ -61,7 +61,11 @@ void _throw_error(enum ErrorLevel errorlevel, const char *srcfile, int linenum, 
 	*/
 }
 
-#ifdef _MSC_VER  // Microsoft C++
+#ifdef __EMSCRIPTEN__
+	// Emscripten provides __builtin_return_address() (but only when compiled with -s USE_OFFSET_CONVERTER,
+	// which can't be used with -s WASM=0), but it's slow, it generates a stack trace and then parses it.
+	#define return_address() 0
+#elif defined(_MSC_VER)  // Microsoft C++
 	#define return_address() _ReturnAddress()
 #else  // GCC or Clang
 	#define return_address() __builtin_return_address(0)
