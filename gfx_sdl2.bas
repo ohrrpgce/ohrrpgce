@@ -365,10 +365,15 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
 
   DIM video_already_init as bool = (SDL_WasInit(SDL_INIT_VIDEO) <> 0)
 
-  IF SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_JOYSTICK OR SDL_INIT_GAMECONTROLLER) THEN
+  IF SDL_Init(SDL_INIT_VIDEO) THEN
     ret = "Can't start SDL (gfx_sdl2): " & *SDL_GetError() & !"\n" & ret
     *info_buffer = LEFT(ret, info_buffer_size)
     RETURN 0
+  END IF
+
+  'Initialising joystick fails, for example, in Firefox when accessed over unsecured HTTP
+  IF SDL_Init(SDL_INIT_JOYSTICK OR SDL_INIT_GAMECONTROLLER) THEN
+    debug "SDL_Init JOY/GAMEPAD failed: " & *SDL_GetError()
   END IF
 
   'Clear keyboard state because if we re-initialise the backend (switch backend)
