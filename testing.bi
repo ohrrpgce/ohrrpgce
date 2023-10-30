@@ -43,13 +43,7 @@ sub doTest(t as string, byval theTest as testPtr)
 	finish = timer - pauseTime
 	
 	diff = finish - start
-	
-	do while diff < 0
-		diff += 86400
-	loop
-	
-	'diff *= 1000000
-	
+
 	if ret > 0 then
 		print "FAIL (on line " & errorpos & " in " & errorfile & ")"
 		close_lazy_files  'Avoid "double close" messages
@@ -59,10 +53,10 @@ sub doTest(t as string, byval theTest as testPtr)
 	else
 		print "SKIP"
 	end if
-	
-	if(diff < 1) then
+
+	if diff < 1 then
 		diff *= 1000
-		if(diff < 10) then
+		if diff < 10 then
 			diff *= 1000
 			print "Took " & int(diff) & !" \u03BCs "
 		elseif diff < 100 then

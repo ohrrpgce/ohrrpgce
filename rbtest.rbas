@@ -576,3 +576,5 @@ startTest(cleanup)
 	doc2 = 0
 	passed
 endTest
+
+print "All passed."

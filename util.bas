@@ -4783,3 +4783,9 @@ FUNCTION readkey () as string
     IF w <> "" THEN RETURN w
   LOOP
 END FUNCTION
+
+'----------------------------------------------------------------------
+
+#IFDEF __FB_MAIN__
+ print "All passed."
+#ENDIF

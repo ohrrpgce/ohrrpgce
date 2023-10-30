@@ -899,3 +899,6 @@ startTest(testHeapUpDown)
 	if sum <> 0 then fail
 	v_free heap
 endTest
+
+
+print "All passed."

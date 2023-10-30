@@ -9010,3 +9010,9 @@ SUB init_text_box_slices(byref txtsl as Slice ptr, box as TextBox, parent as Sli
   choice_sl(1)->Lookup = SL_TEXTBOX_CHOICE1
  END IF
 END SUB
+
+'----------------------------------------------------------------------
+
+#IFDEF __FB_MAIN__
+ print "All passed."
+#ENDIF
