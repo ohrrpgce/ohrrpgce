@@ -7,7 +7,6 @@ cf. SConstruct, ohrbuild.py
 from __future__ import print_function
 import sys
 import os
-import shutil
 import shlex
 import itertools
 import re
@@ -62,7 +61,7 @@ if 'FBFLAGS' in os.environ:
     FBFLAGS += shlex.split (os.environ['FBFLAGS'])
 gengcc = int (ARGUMENTS.get ('gengcc', True if release else False))
 linkgcc = int (ARGUMENTS.get ('linkgcc', True))   # Link using gcc instead of fbc?
-envextra = {}
+
 destdir = ARGUMENTS.get ('destdir', '')
 prefix =  ARGUMENTS.get ('prefix', '/usr')
 dry_run = int(ARGUMENTS.get ('dry_run', '0'))  # Only used by uninstall
@@ -107,13 +106,16 @@ default_arch = FBC.default_arch
 
 host_win32 = sys.platform.startswith('win')
 
+# Target OS/platform (more than one can be True)
 win32 = False
-unix = False  # True on mac and android
+unix = False    # True on linux, mac, android
 mac = False
 android = False
+
 android_source = False
 win95 = int(ARGUMENTS.get ('win95', '0'))
 glibc = False  # Computed below; can also be overridden by glibc=1 cmdline argument
+default_cc = 'gcc'  # Set by compiler= arg
 target = ARGUMENTS.get ('target', None)
 cross_compiling = (target is not None)  # Possibly inaccurate, avoid!
 arch = ARGUMENTS.get ('arch', None)  # default decided below
@@ -144,19 +146,15 @@ elif 'win32' in target or 'windows' in target or 'mingw' in target:
     win32 = True
 elif 'darwin' in target or 'mac' in target:
     mac = True
-elif 'linux' in target or 'bsd' in target or 'unix' in target:
+elif 'linux' in target:
     unix = True
-    if 'linux' in target:
-        glibc = True
+    glibc = True
+elif 'bsd' in target or 'unix' in target:
+    unix = True
 else:
     print("!! WARNING: target '%s' not recognised!" % target)
 
-exe_suffix = ''
-if win32:
-    exe_suffix = '.exe'
-    # Force use of gcc instead of MSVC++, which we don't support (e.g. different compiler flags)
-    envextra = {'tools': ['mingw']}
-else:
+if not win32:
     unix = True
 
 target_prefix = ''  # prepended to gcc, etc.
@@ -399,6 +397,10 @@ if win95 and 'sdl2' in music+gfx:
 
 ################ Create base environment
 
+envextra = {}
+if win32:
+    # Force use of gcc instead of MSVC++, which we don't support (e.g. different compiler flags)
+    envextra = {'tools': ['mingw']}
 env = Environment (CFLAGS = [],
                    CXXFLAGS = [],
                    VAR_PREFIX = '',
@@ -422,22 +424,23 @@ for var in 'AS', 'CC', 'CXX':
 
 # If you want to use a different C/C++ compiler do "CC=... CXX=... scons ...".
 # If CC is clang, you may want to set FBCC too.
-compiler_arg = ARGUMENTS.get('compiler', 'gcc')
+default_cc = ARGUMENTS.get('compiler', default_cc)
 mod = globals()
-CC = ohrbuild.findtool(mod, 'CC', compiler_arg)
+CC = ohrbuild.findtool(mod, 'CC', default_cc)
 if not CC:
     CC = ohrbuild.findtool(mod, (), 'cc')
     if not CC:
-        exit("Missing a C compiler! (Couldn't find " + compiler_arg + " nor cc in PATH, nor is CC set. Can also try compiler=clang.)")
+        exit("Missing a C compiler! (Couldn't find " + default_cc + " nor cc in PATH, nor is CC set. Can also try compiler=clang.)")
 # FBCC is the compiler used for fbc-generated C code (gengcc=1).
-FBCC = ohrbuild.findtool(mod, ('FBCC', 'GCC'), compiler_arg)
+FBCC = ohrbuild.findtool(mod, ('FBCC', 'GCC'), default_cc)
 if not FBCC: FBCC = CC
-_cxx = {'gcc':'g++', 'clang':'clang++'}.get(compiler_arg, 'g++')
-CXX = ohrbuild.findtool(mod, 'CXX', _cxx)
+# emc++ exists but we don't need to use it
+default_cxx = {'gcc':'g++', 'clang':'clang++', 'emcc':'emcc'}.get(default_cc, 'g++')
+CXX = ohrbuild.findtool(mod, 'CXX', default_cxx)
 if not CXX:
     CXX = ohrbuild.findtool(mod, (), 'c++')
     if not CXX:
-        exit("Missing a C++ compiler! (Couldn't find " + _cxx + " nor c++ in PATH, nor is CXX set.)")
+        exit("Missing a C++ compiler! (Couldn't find " + default_cxx + " nor c++ in PATH, nor is CXX set.)")
 
 EUC = ohrbuild.findtool(mod, 'EUC', "euc")  # Euphoria to C compiler (None if not found)
 EUBIND = ohrbuild.findtool(mod, 'EUBIND', "eubind")  # Euphoria binder (None if not found)
@@ -483,7 +486,7 @@ def translate_rb(source):
     return File(source)
 
 
-if portable and unix and not mac:
+if portable and unix and glibc:
     # Only implemented on GNU
     def check_lib_reqs(source, target, env):
         for targ in target:
@@ -529,6 +532,11 @@ if transpile_dir:
     out_suffix = '.c'
 else:
     out_suffix = '.o'
+
+if win32:
+    exe_suffix = '.exe'
+else:
+    exe_suffix = ''
 
 #variant_baso creates Nodes/object files with filename prefixed with VAR_PREFIX environment variable
 variant_baso = Builder (action = bas_build_action(),
@@ -834,11 +842,14 @@ if linkgcc:
     # Find the directory where the FB libraries are kept.
     # Take the last line, in case -v is in FBFLAGS
     libpath = get_command_output(FBC.path, ["-print", "fblibdir"] + FBFLAGS).split('\n')[-1]
+
+    # Sanity check that FB supports this target/arch
     # Some FB targets (win32) don't have PIC libs, android only has PIC libs
-    checkfile = os.path.join(libpath, 'fbrt0.o')
-    checkfile2 = os.path.join(libpath, 'fbrt0pic.o')
-    if not os.path.isfile(checkfile) and not os.path.isfile(checkfile2):
-        print("Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + checkfile + " [or fbrt0pic.o] are missing.")
+    # (libfb is always built while libfbmt is optional)
+    checkfile = os.path.join (libpath, 'libfb.a')
+    checkfile2 = os.path.join (libpath, 'libfbpic.a')
+    if not os.path.isfile (checkfile) and not os.path.isfile (checkfile2):
+        print("Error: This installation of FreeBASIC doesn't support this target-arch combination;\n" + checkfile + " [or libfbpic.a] is missing.")
         Exit(1)
 
     # This causes ld to recursively search the dependencies of linked dynamic libraries
@@ -1021,14 +1032,14 @@ del CCLINKFLAGS, FBLINKFLAGS, FBLINKERFLAGS
 
 ################ Program-specific stuff starts here
 
-# We have five environments:
-# env             : Used for utilities
-# +-> commonenv   : Not used directly, but common configuration shared by gameenv and editenv
+# We have six environments:
+# env             : Used for most utilities
+# +-> commonenv   : Common configuration for anything using allmodex. Not used directly, but later cloned to create:
 #     +-> gameenv : For Game
 #     +-> editenv : For Custom
+#     +-> allmodexenv : For other utilities that need allmodex (for graphics)
 # w32_env         : For gfx_directx (completely separate; uses Visual C++)
 
-# Make a base environment for Game and Custom (other utilities use env)
 commonenv = env.Clone ()
 
 # Added to env and commonenv
@@ -1226,6 +1237,14 @@ for lib in common_libraries + base_libraries:
         commonenv['FBLINKFLAGS'] += ['-l', lib]
 
 
+################ Environment Variants
+
+gameenv = commonenv.Clone(VAR_PREFIX = 'game-')
+editenv = commonenv.Clone(VAR_PREFIX = 'edit-')
+allmodexenv = commonenv.Clone(VAR_PREFIX = 'util-')
+gameenv['FBFLAGS'] += ['-d','IS_GAME',   '-m','game']
+editenv['FBFLAGS'] += ['-d','IS_CUSTOM', '-m','custom']
+
 ################ Modules
 
 # The following are linked into all executables, except miditest.
@@ -1365,12 +1384,6 @@ base_objects = Flatten([SrcFile(env, a) for a in base_modules])  # concatenate N
 common_objects = base_objects + Flatten([SrcFile(commonenv, a) for a in common_modules])
 # Modules included by utilities but not Game or Custom
 base_objects += [SrcFile(env, 'common_base.bas'), SrcFile(env, UTIL_DATAFILES_C)]
-
-gameenv = commonenv.Clone (VAR_PREFIX = 'game-', FBFLAGS = commonenv['FBFLAGS'] + \
-                      ['-d','IS_GAME', '-m','game'])
-editenv = commonenv.Clone (VAR_PREFIX = 'edit-', FBFLAGS = commonenv['FBFLAGS'] + \
-                      ['-d','IS_CUSTOM', '-m','custom'])
-allmodexenv = commonenv.Clone (VAR_PREFIX = 'util-', FBFLAGS = commonenv['FBFLAGS'])
 
 #now... GAME and CUSTOM
 
@@ -1820,12 +1833,14 @@ Options:
                       armeabi ABI, which is becoming obsolete, c.f. 'arch='.
   glibc=0|1           Override automatic detection of GNU libc (detection just
                       checks for Linux).
-  target=...          Set cross-compiling target. Passed through to fbc. Either
-                      a toolchain prefix triplet such as arm-linux-androideabi
-                      (will be prefixed to names of tools like gcc/as/ld/, e.g.
-                      arm-linux-androideabi-gcc) or a target name supported by
-                      fbc (e.g. darwin, android) or a platform-cpu pair (e.g.
-                      linux-arm). Current (default) value: """ + target + """
+  target=...          Set cross-compiling target. Passed through to fbc. Either:
+                      -a toolchain prefix triplet e.g. arm-linux-androideabi
+                       (will be prefixed to names of tools like gcc/as/ld/, e.g.
+                       arm-linux-androideabi-gcc)
+                      -any target name supported by fbc, e.g.
+                       win32, linux, darwin, freebsd, android
+                       or a platform-cpu pair, e.g. linux-arm
+                      Current (default) value: """ + target + """
   arch=ARCH           Specify target CPU type. Overrides 'target'. Options
                       include:
                        x86, x86_64        x86 Desktop PCs, Android devices.
