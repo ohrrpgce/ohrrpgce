@@ -20,6 +20,13 @@
 #include <android/log.h>
 #endif
 
+#ifdef __EMSCRIPTEN__
+// Emscripten 2.x
+#include <emscripten/html5.h>
+// Emscripten 3.x
+//#include <emscripten/console.h>
+#endif
+
 #ifdef HAVE_GLIBC
 #include <malloc.h>
 #include <execinfo.h>
@@ -62,12 +69,14 @@ boolint is_windows_9x() {
 	return false;
 }
 
+
+// msg is newline-terminated
 void external_log(const char *msg) {
 #ifdef __ANDROID__
 	__android_log_write(ANDROID_LOG_INFO, "OHRRPGCE", msg);
 #endif
 #ifdef __EMSCRIPTEN__
-	puts(msg);
+	emscripten_console_log(msg);
 #endif
 }
 
