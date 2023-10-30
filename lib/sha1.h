@@ -18,7 +18,7 @@ typedef struct
 
 void SHA1Transform(
     uint32_t state[5],
-    const unsigned char buffer[64]
+    const unsigned char *buffer   // Silence GCC 12 false warning
     );
 
 void SHA1Init(
