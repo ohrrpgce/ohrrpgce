@@ -117,25 +117,22 @@ glibc = False  # Computed below; can also be overridden by glibc=1 cmdline argum
 target = ARGUMENTS.get ('target', None)
 cross_compiling = (target is not None)  # Possibly inaccurate, avoid!
 arch = ARGUMENTS.get ('arch', None)  # default decided below
+transpile_dir = None
 
-transpile_dir = ARGUMENTS.get('transpiledir', None)
+android_source = int(ARGUMENTS.get('android-source', '0'))
+if android_source:
+    # Transpile to android/tmp
+    if not target:  # Does passing target= actually work properly?
+        target = 'android'
+    android = True
+    default_arch = 'arm'
+    transpile_dir = 'android/tmp'
+
+transpile_dir = ARGUMENTS.get('transpiledir', transpile_dir)
 if transpile_dir:
     transpile_dir = os.path.join(rootdir, transpile_dir)  # Ensure an absolute path
     gengcc = True
     linkgcc = True  # To get CCLINKFLAGS
-
-if 'android-source' in ARGUMENTS:
-    # Produce .c files, and also an executable, which is an unwanted side product
-    # (We could do with build targets for compiling to .asm/.c but not assembling+linking)
-    FBFLAGS += ["-r"]
-    if target:
-        print("Don't use 'target' and 'android-source' together. Use only 'target' for real cross-compiling.")
-        print("You can use arch=arm|arm64|x86|x86_64|etc however.")
-        Exit(1)
-    target = 'android'
-    default_arch = 'arm'
-    android_source = True
-    linkgcc = False
 
 if not target:
     target = FBC.default_target
@@ -1000,6 +997,8 @@ if android_source:
         fil.write('MultiABI="%s"\n' % abi)
         if 'custom' in COMMAND_LINE_TARGETS:
             fil.write('. project/jni/application/src/EditorSettings.cfg')
+    # Cause sdl-android's build.sh to re-generate Settings.mk, since extraconfig.cfg may have changed
+    Execute(['touch %s/android/AndroidAppSettings.cfg' % rootdir])
 
 ####################
 
@@ -1432,26 +1431,14 @@ else:
     gamename = 'ohrrpgce-game'
     editname = 'ohrrpgce-custom'
 
-if android_source:
-    # android_source is a hack:
-    # Don't produce any .o files, just produce and copy .c/.cpp files to a directory for sdl-android's build system
-    srcs, actions = ohrbuild.android_source_actions (gameenv, gamesrc, rootdir, rootdir + 'android/tmp')
-    Alias('game', source = srcs, action = actions)
-    srcs, actions = ohrbuild.android_source_actions (editenv, editsrc, rootdir, rootdir + 'android/tmp')
-    Alias('custom', source = srcs, action = actions)
-    if 'game' not in COMMAND_LINE_TARGETS and 'custom' not in COMMAND_LINE_TARGETS:
-        raise Exception("Specify either 'game' or 'custom' as a target with android-source=1")
-    GAME = File(gamename)   # These shouldn't be used, only to allow rest of file to parse
-    CUSTOM = File(editname)
-else:
-    GAME = env_exe(gamename, env = gameenv, source = gamesrc)
-    CUSTOM = env_exe(editname, env = editenv, source = editsrc)
-    Alias('game', GAME)
-    Alias('custom', CUSTOM)
-    # if libdir:
-    #     libs = Glob(libdir + '/*')
-    #     Depends(GAME, libs)
-    #     Depends(CUSTOM, libs)
+GAME   = env_exe(gamename, env = gameenv, source = gamesrc)
+CUSTOM = env_exe(editname, env = editenv, source = editsrc)
+Alias('game', GAME)
+Alias('custom', CUSTOM)
+# if libdir:
+#     libs = Glob(libdir + '/*')
+#     Depends(GAME, libs)
+#     Depends(CUSTOM, libs)
 
 env_exe ('bam2mid', source = ['bam2mid.bas'] + base_objects)
 env_exe ('miditest')
@@ -1788,7 +1775,8 @@ Options:
                       disables -exx and uses C backend.
   profile=1           Profiling build using gprof (executables) or MicroProfiler
                       (gfx_directx.dll/gfx_directx_test1.exe).
-  asm=1               Produce .asm or .c files in build/ while compiling.
+  asm=1               Keep temporary .asm or .c files in build/ after compiling.
+                      (If you want to compile to .c, use transpiledir= instead.)
   fbc=PATH            Use a particular FreeBASIC compiler (defaults to fbc).
                       Alternatively set the FBC envvar.
   python=PATH         Use a particular Python interpreter (defaults to python3).
@@ -1826,7 +1814,8 @@ Options:
                       .c files, and copy all .c and .cpp files together with
                       needed headers to PATH (after deleting existing contents).
                       Also outputs .txt files with compile/link flags.
-  android-source=1    Used as part of the Android build process for Game/Custom.
+  android-source=1    Transpile to android/tmp and write android/extraconfig.cfg,
+                      part of the Android build process.
                       (See wiki for explanation.) Note: defaults to the original
                       armeabi ABI, which is becoming obsolete, c.f. 'arch='.
   glibc=0|1           Override automatic detection of GNU libc (detection just

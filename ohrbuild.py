@@ -614,59 +614,6 @@ def copy_source_actions(source, target, env, for_signature):
     return actions
 
 
-def android_source_actions (env, sourcelist, rootdir, destdir):
-    """Returns a pair (source_nodes, actions) for android-source=1 builds.
-    The actions symlink & copy a set of C and C++ files to destdir (which is android/tmp/),
-    including all C/C++ sources and C-translations of .bas files.
-    """
-    source_files = []
-    source_nodes = []
-    for node in sourcelist:
-        assert len(node.sources) == 1
-        # If it ends with .bas then we can't use the name of the source file,
-        # since it doesn't have the game- or edit- prefix if any;
-        # use the name of the resulting target instead, which is an .o
-        if node.sources[0].name.endswith('.bas'):
-            source_files.append (node.abspath[:-2] + '.c')
-            # 'node' is for an .o file, but actually we pass -r to fbc, so it
-            # produces a .c instead of an .o output. SCons doesn't care that no .o is generated.
-            source_nodes += [node]
-        else:
-            # For any .c file that lives in rootdir, node.sources[0] is a path in build/
-            # (to a nonexistent file), and I have no idea why, while .srcnode() is the
-            # actual source file path
-            if os.path.isfile(node.sources[0].abspath):
-                print(node.sources[0].abspath)
-                source_files.append (node.sources[0].abspath)
-            else:
-                source_files.append (node.sources[0].srcnode().abspath)
-            source_nodes += node.sources
-
-    # hacky. Copy the right source files to a temp directory because the Android.mk used
-    # by the SDL port selects too much.
-    # The more correct way to do this would be to use VariantDir to get scons
-    # to automatically copy all sources to destdir, but that requires teaching it
-    # that -gen gcc generates .c files. (Actually, I think it knows that now)
-    actions = ['rm -fr %s/*' % destdir]
-    # This actually creates the symlinks before the C/C++ files are generated, but that's OK
-    processed_dirs = set()
-    for src in source_files:
-        relsrc = src.replace(rootdir, '').replace('build' + os.path.sep, '')
-        srcdir, _ = os.path.split(relsrc)
-        newdir = os.path.join(destdir, srcdir)
-        if srcdir not in processed_dirs:
-            # Create directory and copy all headers in it
-            processed_dirs.add(srcdir)
-            actions += ['mkdir -p ' + newdir]
-            # Glob doesn't support {,} syntax
-            # I couldn't figure out how to use SourceFileScanner to find headers
-            for header in env.Glob(pathjoin(srcdir, '*.h')) + env.Glob(pathjoin(srcdir + '*.hpp')):
-                actions += ['ln -s %s %s/' % (header, newdir)]
-        actions += ['ln -s %s %s' % (src, newdir)]
-    # Cause build.sh to re-generate Settings.mk, since extraconfig.cfg may have changed
-    actions += ['touch %s/android/AndroidAppSettings.cfg' % rootdir]
-    return source_nodes, actions
-
 ########################################################################
 # Manipulating binaries
 
