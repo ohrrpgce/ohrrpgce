@@ -29,7 +29,9 @@ typedef struct _array_header {
 
 #ifndef VALGRIND_ARRAYS
 
-#define ARRAY_OVERHEAD sizeof(array_header)
+#define ARRAY_ALIGNMENT 8
+// Amount of memory to allocate before the header. Round up to multiple of ARRAY_ALIGNMENT
+#define ARRAY_OVERHEAD ((sizeof(array_header) + ARRAY_ALIGNMENT - 1) & ~(ARRAY_ALIGNMENT - 1))
 
 static inline array_header *get_header(array_t array) {
 	if (!array)
@@ -210,7 +212,7 @@ static array_t mem_resize(array_t array, int len) {
 	if (!newmem)
 		debug(errFatalError, "out of memory");
 #ifndef VALGRIND_ARRAYS
-	header = newmem;
+	header = get_header(get_array_ptr(newmem));
 #endif
 	header->len = len;
 	header->allocated = alloclen;
