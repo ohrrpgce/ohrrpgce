@@ -686,24 +686,25 @@ startTest(nodeAppendingSpeedTest1)
 	dim root as NodePtr = DocumentRoot(doc)
 	dim hub as NodePtr = AppendChildNode(root, "bigtree")
 	dim nod as NodePtr
-	for i as integer = 0 to 10000
+	for i as integer = 0 to 9999
 		AppendChildNode(hub, "null")
 		AppendChildNode(hub, "int", 42)
 		if i mod 1000 = 0 then
 			nod = AppendChildNode(hub, "marker" & i)
 		end if
 	next
-	passed
+	if NumChildren(hub) <> 20010 then fail
 endTest
 
 startTest(nodeFindingSpeedTest1)
 	dim root as NodePtr = DocumentRoot(doc)
 	dim hub as NodePtr = GetChildByName(root, "bigtree")
+	if hub = null then fail
 	dim nod as NodePtr
-	for i as integer = 0 to 10000 step 1000
+	for i as integer = 0 to 9999 step 1000
 		nod = GetChildByName(hub, "marker" & i)
+		if nod = null then fail
 	next
-	passed
 endTest
 
 startTest(setKeyValueSpeedTest1)
@@ -765,7 +766,7 @@ endTest
 startTest(writeFile)
 	SerializeBin("unittest.rld", doc)
 	
-	if dir("unittest.rld") = "" then fail
+	if not isfile("unittest.rld") then fail
 endTest
 
 startTest(loadDocumentNoDelay)

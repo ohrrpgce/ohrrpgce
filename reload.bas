@@ -117,7 +117,7 @@ Function HashZString(byval st as zstring ptr) as uinteger
 	dim as uinteger ret = 0, i = 0
 	
 	do while st[i]
-		ret += (ret shl 15) + *cast(short ptr, @st[i])
+		ret += (ret shl 15) + st[i] + (st[i + 1] shl 8)
 		if st[i + 1] = 0 then return ret
 		i += 2
 	loop
