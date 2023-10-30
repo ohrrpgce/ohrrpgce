@@ -179,7 +179,7 @@ extern DrawOptions def_drawoptions;
 	extern int (*gfx_surfaceFillAlpha)( RGBcolor fillColor, double alpha, SurfaceRect* pRect, Surface* pSurfaceIn );
 	extern int (*gfx_surfaceStretch)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBPalette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 	extern Surface* (*gfx_surfaceShrink)( Surface *surf, int destWidth, int destHeight );
-	extern void (*gfx_surfaceCopy)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
+	extern int (*gfx_surfaceCopy)( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* pPalette, Palette16* pPal8, SurfaceRect* pRectDest, Surface* pSurfaceDest, DrawOptions* opts );
 
 	extern int (*gfx_paletteFromRGB)( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut );
 	extern int (*gfx_paletteDestroy)( RGBPalette** ppPaletteIn );
