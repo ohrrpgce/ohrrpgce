@@ -13,18 +13,22 @@
 #include "util.bi"
 #include "lib/lodepng_gzip.bi"
 
+#ifdef __FB_UNIX__
+	'FB's "crt/unistd.bi" header is missing chmod
+	extern "C"
+	declare function chmod (path as const zstring ptr, mode as long) as long
+	end extern
+#endif
+
 dim shared fh as integer
 dim shared num_errors as integer = 0
 
 #define DBG(x)
 '#define DBG(x) ?x
 
-#if defined(__FB_FREEBSD__) or defined(__FB_OPENBSD__) or defined(__FB_NETBSD__)
-        ' Only tested on FreeBSD
-        #define UNREADABLE_FILE "/etc/master.passwd"
-#elseif defined(__FB_UNIX__)
+#if defined(__FB_UNIX__)
 	' Mac, Linux
-        #define UNREADABLE_FILE "/etc/sudoers"
+        #define UNREADABLE_FILE "_testunreadable.tmp"
 #elseif defined(__FB_WIN32__)
 	' Don't have an easy example of an unreadable file
 #endif
@@ -70,27 +74,43 @@ startTest(writeToFile)
 	' in a writable file handle.
 	if openfile("_testfile.tmp", for_binary, fh) then fail
 	print #fh, "hello"
+	print #fh, "bye"
+	if close(fh) then fail
+	'Some data for gzip to chew on
+	if openfile("_testgz.tmp", for_binary, fh) then fail
+	put #fh, , string(100000, "l")
+	for i as integer = 1 to 1000
+		put #fh, 1 + i * 10, "hello" & i
+	next
 	if close(fh) then fail
 endTest
 
 startTest(readFile)
 	if openfile("_testfile.tmp", for_binary + access_read, fh) then fail
 
-	dim line_in as string
-	input #fh, line_in
+	dim as string line1, line2
+	input #fh, line1
+	input #fh, line2
 	close fh
-	'? "reading back: " & line_in
-	if line_in <> "hello" then fail
+	if line1 <> "hello" then fail
+	if line2 <> "bye" then fail
+
+	if openfile("_testgz.tmp", for_binary + access_read, fh) then fail
+	if lof(fh) <> 100000 then fail
+	dim as string buffer = space(10)
+	get #fh, 87, buffer
+	if buffer <> "llllhello9" then fail
+	close fh
 endTest
 
 startTest(openForReadWriteOk)
 	if openfile("_testfile.tmp", for_binary + access_read_write, fh) then fail
-	' The length is 6 on unix and 7 on windows
-	if lof(fh) <> 6 andalso lof(fh) <> 7 then fail
+	' The length is 10 on unix and 12 on windows
+	if lof(fh) <> 10 andalso lof(fh) <> 12 then fail
 	close fh
 	' Should be the same, default is access_read_write
 	if openfile("_testfile.tmp", for_binary, fh) then fail
-	if lof(fh) <> 6 andalso lof(fh) <> 7 then fail
+	if lof(fh) <> 10 andalso lof(fh) <> 12 then fail
 	close fh
 endTest
 
@@ -113,8 +133,21 @@ startTest(makeReadOnly)
 		if openfile("_testreadonly.tmp", for_binary, fh) then fail
 		if close(fh) then fail
 		if setwriteable("_testreadonly.tmp", NO) = NO then fail
+	#else
+		skip_test
 	#endif
-	passed
+endTest
+
+startTest(makeUnreadable)
+	#ifdef __FB_UNIX__
+		if real_isfile("_testunreadable.tmp") then
+			safekill("_testunreadable.tmp")
+		end if
+		touchfile "_testunreadable.tmp"
+		if chmod("_testunreadable.tmp", &o000) then fail
+	#else
+		skip_test
+	#endif
 endTest
 
 startTest(get_file_type)
@@ -136,7 +169,7 @@ startTest(get_file_type)
 	#ifdef UNREADABLE_FILE
 		if get_file_type(UNREADABLE_FILE) <> fileTypeFile then fail
 	#endif
-	#ifdef __FB_UNIX__
+	#if defined(__FB_UNIX__) and not defined(MINIMAL_OS)
 		if get_file_type("/bin/sh") <> fileTypeFile then fail
 		if get_file_type("/bin/") <> fileTypeDirectory then fail
 		if get_file_type("/dev/tty") <> fileTypeOther then fail
@@ -156,7 +189,7 @@ startTest(fileisreadable)
 	if fileisreadable(CURDIR) then fail   ' OPENing a directory works on Linux
 	if fileisreadable("_nonexistent_dir.tmp" & SLASH) then fail
 	' Read-only and unreadable files
-	#ifdef __FB_UNIX__
+	#if defined(__FB_UNIX__) and not defined(MINIMAL_OS)
 		if fileisreadable("/bin/sh") = NO then fail
 	#elseif defined(__FB_WIN32__)
 		if fileisreadable("_testreadonly.tmp") = NO then fail
@@ -165,7 +198,7 @@ startTest(fileisreadable)
 	' isfile is just an alias for fileisreadable, so should behave the same
 	#ifdef UNREADABLE_FILE
                 'FIXME: Prints "Error 2" (file not found) on BSD and Linux
-		if isfile(UNREADABLE_FILE) then fail
+		if fileisreadable(UNREADABLE_FILE) then fail
 	#endif
 endTest
 
@@ -177,14 +210,14 @@ startTest(real_isfile)
 	if real_isfile(CURDIR) then fail   ' OPENing a directory works on Linux
 	if real_isfile("_nonexistent_dir.tmp" & SLASH) then fail
 	' Read-only and unreadable files
-	#ifdef __FB_UNIX__
-		if fileisreadable("/bin/sh") = NO then fail
+	#if defined(__FB_UNIX__) and not defined(MINIMAL_OS)
+		if real_isfile("/bin/sh") = NO then fail
 	#elseif defined(__FB_WIN32__)
-		if fileisreadable("_testreadonly.tmp") = NO then fail
+		if real_isfile("_testreadonly.tmp") = NO then fail
 	#endif
 	#ifdef UNREADABLE_FILE
                 'FIXME: Prints "Error 2" (file not found) on BSD and Linux
-		if fileisreadable(UNREADABLE_FILE) then fail
+		if real_isfile(UNREADABLE_FILE) = NO then fail
 	#endif
 endTest
 
@@ -196,7 +229,7 @@ startTest(fileiswriteable)
 	if isfile("_nonexistent_file.tmp") then fail   ' Should not have created it
 	if fileiswriteable(CURDIR) then fail
 	' A read-only file
-	#ifdef __FB_UNIX__
+	#if defined(__FB_UNIX__) and not defined(MINIMAL_OS)
 		if fileiswriteable("/bin/sh") then fail
 	#elseif defined(__FB_WIN32__)
 		if fileiswriteable("_testreadonly.tmp") then fail
@@ -217,7 +250,7 @@ startTest(diriswriteable)
 	if diriswriteable("_nonexistent_file.tmp" SLASH) then fail
 	if get_file_type("_nonexistent_file.tmp") <> fileTypeNonexistent then fail  ' Shouldn't have created
 	' A read-only directory
-	#ifdef __FB_UNIX__
+	#if defined(__FB_UNIX__) and not defined(MINIMAL_OS)
 		if diriswriteable("/bin/") then fail
 	#elseif defined(__FB_WIN32__)
 		' On NTFS under Windows, the readonly attribute on a folder does nothing, have to use ACLs
@@ -236,7 +269,7 @@ startTest(isdir)
 	if isdir("_nonexistent_file.tmp" SLASH) then fail
 	if get_file_type("_nonexistent_file.tmp") <> fileTypeNonexistent then fail  ' Shouldn't have created
 	' Read-only directories
-	#ifdef __FB_UNIX__
+	#if defined(__FB_UNIX__) and not defined(MINIMAL_OS)
 		if isdir("/bin/") = NO then fail
 		if isdir("/") = NO then fail
 	#elseif defined(__FB_WIN32__)
@@ -252,8 +285,18 @@ startTest(makeWritable)
 		if setwriteable("_testreadonly.tmp", YES) = NO then fail
 		if fileisreadable("_testreadonly.tmp") = NO then fail
 		if safekill("_testreadonly.tmp") = NO then fail
+	#else
+		skip_test
 	#endif
-	passed
+endTest
+
+startTest(unreadableCleanup)
+	#ifndef __FB_WIN32__
+		if safekill("_testunreadable.tmp") = NO then fail
+		if real_isfile("_testunreadable.tmp") then fail
+	#else
+		skip_test
+	#endif
 endTest
 
 sub error_counter cdecl (byval errorlevel as ErrorLevelEnum, byval msg as zstring ptr)
@@ -366,32 +409,10 @@ startTest(lazyclose)
 endTest
 
 dim shared as string gz_infile, gz_outfile, gz_outfile2
-gz_infile = trimextension(command(0)) & DOTEXE
+'gz_infile = trimextension(command(0)) & DOTEXE
+gz_infile = "_testgz.tmp"
 gz_outfile = "_testfile.tmp.gz"
 gz_outfile2 = "_testfile.tmp"
-
-startTest(gzipRead)
-	'Compress
-	dim starttime as double = timer
-	if safe_shell("gzip -9 -c " & gz_infile & " > " & gz_outfile) then fail
-	? "  gzip compressed in " & cint((timer - starttime) * 1e3) & " ms"
-	'Read
-	dim gzipdata as string = read_file(gz_outfile)
-	? "  gzip compressed size = " & len(gzipdata)
-	'Decompress
-	dim outdata as byte ptr
-	dim outdatasize as size_t
-	starttime = timer
-	if decompress_gzip(strptr(gzipdata), len(gzipdata), @outdata, @outdatasize) then fail
-	? "  lodepng decompressed in " & cint((timer - starttime) * 1e3) & " ms"
-	? "  original size = " & outdatasize
-	'Read original and result and check
-	dim indata as string = read_file(gz_infile)
-	if outdatasize <> len(indata) then fail
-	if memcmp(strptr(indata), outdata, outdatasize) then fail
-	deallocate outdata
-	if safekill(gz_outfile) = NO then fail
-endTest
 
 startTest(gzipWrite)
 	'Read
@@ -410,6 +431,9 @@ startTest(gzipWrite)
 	if fwrite(outdata, 1, outdatasize, fil) <> outdatasize then fail
 	fclose(fil)
 	deallocate outdata
+	#ifdef MINIMAL_OS
+	'Don't test decompression with gzip
+	#else
 	'Decompress
 	starttime = timer
 	if safe_shell("gzip -d " & gz_outfile) then fail
@@ -418,6 +442,36 @@ startTest(gzipWrite)
 	dim indata2 as string = read_file(gz_outfile2)
 	if indata <> indata2 then fail
 	safekill(gz_outfile2)
+	#endif
+endTest
+
+startTest(gzipRead)
+	dim starttime as double
+	#ifdef MINIMAL_OS
+	'Reuse gz_outfile created by gzipWrite instead of file created by gzip
+	#else
+	'Compress
+	starttime = timer
+	if safe_shell("gzip -9 -c " & gz_infile & " > " & gz_outfile) then fail
+	? "  gzip compressed in " & cint((timer - starttime) * 1e3) & " ms"
+	#endif
+	'Read
+	dim gzipdata as string = read_file(gz_outfile)
+	? "  gzip compressed size = " & len(gzipdata)
+	'Decompress
+	dim outdata as byte ptr
+	dim outdatasize as size_t
+	starttime = timer
+	if decompress_gzip(strptr(gzipdata), len(gzipdata), @outdata, @outdatasize) then fail
+	? "  lodepng decompressed in " & cint((timer - starttime) * 1e3) & " ms"
+	? "  original size = " & outdatasize
+	'Read original and result and check
+	dim indata as string = read_file(gz_infile)
+	if outdatasize <> len(indata) then fail
+	if memcmp(strptr(indata), outdata, outdatasize) then fail
+	deallocate outdata
+	if safekill(gz_infile) = NO then fail
+	if safekill(gz_outfile) = NO then fail
 endTest
 
 startTest(rename)
@@ -430,6 +484,9 @@ startTest(rename)
         if real_isfile("_testfile2.tmp") = NO then fail
         if filelen("_testfile2.tmp") <> 6 then fail
 endTest
+
+' Can't use filetest_helper under Emscripten
+#ifndef MINIMAL_OS
 
 sub before_spawn()
         safekill "_syncfile.tmp"
@@ -533,5 +590,6 @@ startTest(renameLockedFile)
 endTest
 #endif
 
+#endif  ' ifndef MINIMAL_OS
 
 ? "All tests passed."
