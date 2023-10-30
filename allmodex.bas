@@ -190,7 +190,9 @@ DEFINE_VECTOR_OF_TYPE_COMMON(Frame ptr, Frame_ptr, @_frame_copyctor, @frame_unlo
 '(Not fully implemented, as it seems it would only benefit textbox_appearance_editor)
 'dim shared fixedsize_vpages() as bool
 
-dim shared tlsKeyClipRect as TLSKey
+#ifndef NO_TLS
+	dim shared tlsKeyClipRect as TLSKey
+#endif
 
 'The current internal size of the window (takes effect at next setvispage).
 'Should only be modified via set_resolution and unlock_resolution
@@ -489,7 +491,9 @@ dim shared global_sfx_volume as single = 1.
 
 ' Initialise anything in this module that's independent from the gfx backend
 local sub modex_init()
-	tlsKeyClipRect = tls_alloc_key()
+	#ifndef NO_TLS
+		tlsKeyClipRect = tls_alloc_key()
+	#endif
 	gfxmutex = mutexcreate
 
 	'Just to ensure nearcolor_kdtree isn't NULL. curmasterpal() is probably empty
@@ -614,7 +618,9 @@ local sub modex_quit()
 	safekill macrofile
 
 	mutexdestroy gfxmutex
-	tls_free_key(tlsKeyClipRect)  'Leaking the ClipState, don't care
+	#ifndef NO_TLS
+		tls_free_key(tlsKeyClipRect)  'Leaking the ClipState, don't care
+	#endif
 end sub
 
 ' Cleans up everything that ought to be done before calling gfx_close()
@@ -8892,25 +8898,27 @@ end sub
 'Guaranteed to always return the same result on the same thread.
 'Also ensures that the cliprect is for the given Frame, if given.
 function get_cliprect(fr as Frame ptr = NULL) byref as ClipState
-	'Without TLS:
-	' static cliprect as ClipState
-	' if fr then setclip , , , , fr
-	' return cliprect
+	#ifdef NO_TLS
+		static cliprect as ClipState
+		if fr then setclip , , , , fr
+		return cliprect
+	#else
 
-	dim cliprectp as ClipState ptr = cast(ClipState ptr, tls_get(tlsKeyClipRect))
-	if cliprectp = NULL then
-		cliprectp = new ClipState
-		tls_set(tlsKeyClipRect, cliprectp)
-	end if
+		dim cliprectp as ClipState ptr = cast(ClipState ptr, tls_get(tlsKeyClipRect))
+		if cliprectp = NULL then
+			cliprectp = new ClipState
+			tls_set(tlsKeyClipRect, cliprectp)
+		end if
 
-	if fr andalso cliprectp->frame <> fr then
-		cliprectp->frame = fr
-		cliprectp->l = 0
-		cliprectp->t = 0
-		cliprectp->r = fr->w - 1
-		cliprectp->b = fr->h - 1
-	end if
-	return *cliprectp
+		if fr andalso cliprectp->frame <> fr then
+			cliprectp->frame = fr
+			cliprectp->l = 0
+			cliprectp->t = 0
+			cliprectp->r = fr->w - 1
+			cliprectp->b = fr->h - 1
+		end if
+		return *cliprectp
+	#endif
 end function
 
 'Set the bounds used by most Frame drawing functions.

@@ -125,6 +125,10 @@ CONST build_info as string = _GSTR _ESTR " FB_ERR=" STRINGIFY(__FB_ERR__) _GENST
  #define MINIMAL_OS
 #endif
 
+#if defined(MINIMAL_OS)
+ #define NO_TLS
+#endif
+
 #if defined(__FB_UNIX__) and not (defined(__FB_DARWIN__) or defined(__FB_ANDROID__) or defined(__FB_JS__)) and not defined(NO_X11)
  #define USE_X11
 #endif

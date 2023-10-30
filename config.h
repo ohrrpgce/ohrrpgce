@@ -35,6 +35,10 @@
 # define MINIMAL_OS
 #endif
 
+#if defined(MINIMAL_OS)
+# define NO_TLS
+#endif
+
 #if (defined(unix) || defined(__unix__)) && !defined(__APPLE__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(NO_X11)
 # define USE_X11
 #endif
