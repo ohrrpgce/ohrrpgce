@@ -110,7 +110,7 @@ static inline int map_rgb_to_masterpal(RGBcolor src, struct RGBerrors *rgberr, i
 		if (b > 255) b = 255;
 		else if (b < 0) b = 0;
 
-		RGBcolor searchcol = {.b = (unsigned char)b, .g = (unsigned char)g, .r = (unsigned char)r, .a = 0};
+		RGBcolor searchcol = {{(unsigned char)b, (unsigned char)g, (unsigned char)r, 0}};
 		res = nearcolor_faster(searchcol);
 
 		// blendAlgoDither is a chequered dither where we wipe the
