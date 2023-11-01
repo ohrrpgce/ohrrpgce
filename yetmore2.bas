@@ -1325,7 +1325,9 @@ SUB apply_game_window_settings (reloading as bool = NO)
    notification "This game requires use of the gfx_sdl/gfx_sdl2/fb backend; other graphics backends do not support customisable resolution. Continuing anyway, but the game will probably be unplayable!"
   ELSE
    'Changes video page size, but not window size immediately
+   gfx_recenter_window_hint()
    set_resolution(gen(genResolutionX), gen(genResolutionY))
+
    IF SliceTable.Root THEN  'This SUB gets called before SetupGameSlices
     'When resolution changes, change Slice Root too
     SliceTable.Root->width = gen(genResolutionX)
