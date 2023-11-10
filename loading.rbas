@@ -3416,7 +3416,7 @@ END SUB
 SUB Palette16_save(pal as Palette16 ptr, pal_num as integer)
  Palette16_save_to_PAL pal, game & ".pal", pal_num
  Palette16_update_cache pal_num
- #IFDEF IS_CUSTOM
+ #IF DEFINED(IS_CUSTOM) AND NOT DEFINED(NO_TEST_GAME)
   IF channel_to_Game THEN
    channel_write_line channel_to_Game, "PAL " & pal_num
   END IF

@@ -74,7 +74,9 @@ DECLARE SUB draw_viewport_page(srcpage as integer, destpage as integer, byval wh
 DECLARE SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as string, excludewords as string = "")
 DECLARE FUNCTION experience_chart (byval expcurve as double=0.2) as double
 DECLARE SUB stat_growth_chart ()
+#ifndef NO_TEST_GAME
 DECLARE SUB spawn_game_menu(gdb as bool = NO, valgrind as bool = NO)
+#endif
 
 DECLARE FUNCTION write_rpg_or_rpgdir (lumpsdir as string, filetolump as string) as bool
 DECLARE SUB move_unwriteable_rpg (filetolump as string)

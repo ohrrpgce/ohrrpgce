@@ -8555,7 +8555,7 @@ sub GIFRecorder.stop()
 	if not this.active then exit sub
 
 	if len(this.secondscreen) then
-		#ifdef IS_CUSTOM
+		#if defined(IS_CUSTOM) and not defined(NO_TEST_GAME)
 			debug "Asking Game to stop writing to " & this.secondscreen
 			channel_write_line(channel_to_Game, "SCREEN STOP")
 		#endif

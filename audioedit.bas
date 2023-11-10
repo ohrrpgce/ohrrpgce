@@ -605,6 +605,7 @@ END SUB
 
 SUB delete_song (byval songnum as integer, songfile as string, bamfile as string)
  IF LEN(songfile) = 0 THEN EXIT SUB
+#IFNDEF NO_TEST_GAME
  #IFDEF __FB_WIN32__
   'Only needed on windows, and not currently implemented on unix anyway
   IF channel_to_Game THEN
@@ -615,6 +616,7 @@ SUB delete_song (byval songnum as integer, songfile as string, bamfile as string
    END IF
   END IF
  #ENDIF
+#ENDIF
  safekill songfile
  IF LEN(bamfile) THEN safekill bamfile
  'FIXME: handle deleting from rpgdirs (bug 247)... and the same for soundeffects

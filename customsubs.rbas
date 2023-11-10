@@ -2129,6 +2129,8 @@ SUB stat_growth_chart ()
  LOOP 
 END SUB
 
+#ifndef NO_TEST_GAME
+
 FUNCTION pick_channel_name() as string
  #ifdef __FB_WIN32__
   #ifdef UWP
@@ -2352,6 +2354,8 @@ SUB spawn_game_menu(gdb as bool = NO, valgrind as bool = NO)
  END IF
  IF scancode = scF1 THEN show_help "test_game"
 END SUB
+
+#endif
 
 'Update and save edit_time and last_saved for the game
 SUB save_edit_time ()

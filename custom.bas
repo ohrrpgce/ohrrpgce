@@ -90,7 +90,9 @@ DIM editing_a_game as bool
 DIM last_active_seconds as double
 
 DIM channel_to_Game as IPCChannel = NULL
+#IFNDEF NO_TEST_GAME
 DIM Game_process as ProcessHandle = 0
+#ENDIF
 
 'Should we delete workingdir when quitting normally?
 'False if relumping workingdir failed.
@@ -377,7 +379,7 @@ SUB main_editor_menu()
  menu(16) = "Edit General Game Settings"
  menu(17) = "Script Management"
  menu(18) = "Distribute Game"
- #IFDEF __FB_ANDROID__
+ #IFDEF NO_TEST_GAME
   menu(19) = "Quit or Save"
   REDIM PRESERVE menu(19)
  #ELSE
@@ -437,7 +439,7 @@ SUB main_editor_menu()
    IF state.pt = 16 THEN general_data_editor
    IF state.pt = 17 THEN script_management
    IF state.pt = 18 THEN distribute_game_menu
-   #IFDEF __FB_ANDROID__
+   #IFDEF NO_TEST_GAME
     IF state.pt = 19 THEN prompt_for_save_and_quit
    #ELSE
     IF state.pt = 19 THEN spawn_game_menu(keyval(scShift) > 0, keyval(scCtrl) > 0)
@@ -635,6 +637,7 @@ SUB prompt_for_save_and_quit()
   EXIT SUB
  END IF
 
+#IFNDEF NO_TEST_GAME
  IF (quitnow = 2 OR quitnow = 3) ANDALSO channel_to_Game THEN
   'Prod the channel to see whether it's still up (send ping)
   channel_write_line(channel_to_Game, "P ")
@@ -643,6 +646,8 @@ SUB prompt_for_save_and_quit()
    IF yesno("You are still running a copy of this game. Quitting will force " & GAMEEXE & " to quit as well. Really quit?") = NO THEN quitnow = 0
   END IF
  END IF
+#ENDIF
+
  IF quitnow = 1 OR quitnow = 2 THEN
   save_current_game
  END IF
@@ -718,6 +723,7 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
 
  save_window_state_to_config
 
+#IFNDEF NO_TEST_GAME
  IF channel_to_Game THEN
   channel_write_line(channel_to_Game, "Q ")
   #IFDEF __FB_WIN32__
@@ -738,6 +744,8 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
   'Under GNU/Linux this calls pclose which will block until Game has quit.
   cleanup_process @Game_process
  END IF
+#ENDIF
+
  closemusic
  cleanup_global_reload_doc
  clear_binsize_cache
@@ -794,11 +802,13 @@ END SUB
 
 'Record a combined editor+player gif
 SUB start_recording_combined_gif()
+#IFNDEF NO_TEST_GAME
  IF channel_to_Game = NULL THEN EXIT SUB
  DIM screenfile as string = tmpdir & "screenshare" & randint(100000) & ".bmp"
  channel_write_line(channel_to_Game, "SCREEN " & screenfile)
  start_recording_gif screenfile
  debuginfo "...recording with secondscreen " & screenfile
+#ENDIF
 END SUB
 
 TYPE CustomGlobalMenu
@@ -823,7 +833,7 @@ SUB Custom_global_menu
    'TODO: maybe this should also be disallowed from inside scriptbrowse, etc?
    menu.append 0, "Reimport scripts"
   END IF
-  #IFNDEF __FB_ANDROID__
+  #IFNDEF NO_TEST_GAME
    menu.append 1, "Test Game"
   #ENDIF
   'menu.append 10, "Save Game"
@@ -864,8 +874,10 @@ SUB Custom_global_menu
 
  IF choice = 0 THEN
   reimport_previous_scripts
+#IFNDEF NO_TEST_GAME
  ELSEIF choice = 1 THEN
   spawn_game_menu(keyval(scShift) > 0, keyval(scCtrl) > 0)
+#ENDIF
  ELSEIF choice = 2 THEN
   Custom_volume_menu
  ELSEIF choice = 3 THEN
@@ -1381,7 +1393,7 @@ SUB secret_menu ()
  DIM st as MenuState
  st.autosize = YES
  st.last = UBOUND(menu)
- #IFDEF __FB_ANDROID__
+ #IFDEF NO_TEST_GAME
   st.last -= 2  'Remove the "Test Game" options
  #ENDIF
 
@@ -1417,8 +1429,10 @@ SUB secret_menu ()
    IF st.pt = 23 THEN translations_menu
    IF st.pt = 24 THEN rotozoom_tests
    IF st.pt = 25 THEN mouse_tests
-   IF st.pt = 26 THEN spawn_game_menu NO, YES 'With valgrind
-   IF st.pt = 27 THEN spawn_game_menu YES     'With gdb
+   #IFNDEF NO_TEST_GAME
+    IF st.pt = 26 THEN spawn_game_menu NO, YES 'With valgrind
+    IF st.pt = 27 THEN spawn_game_menu YES     'With gdb
+   #ENDIF
   END IF
   usemenu st
   clearpage vpage
