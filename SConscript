@@ -853,6 +853,8 @@ if gengcc:
             # fbc <=1.07 has a limit of 127 characters for -Wc arguments (gh#298), so stop the build from breaking
             # if we exceed the limit by removing final args, which are assumed to be least important.
             if FBC.version < 1080:
+                # Sort no-warning args to the end.
+                tmp.sort(key = lambda arg: '-Wno' in arg)
                 while len(','.join(tmp)) > 127:
                     print("WARNING: due to bug in old fbc, dropping arg -Wc %s" % tmp[-1])
                     tmp.pop()
