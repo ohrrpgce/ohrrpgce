@@ -728,10 +728,13 @@ elif not win32:
         # Recent clang accepts both, recent gcc only accepts -no-pie
         NO_PIE = '-nopie'
     if NO_PIE:
-        # -no-pie is a gcc/clang flag affecting linking. -fno-pie affects code
-        # generation, and it seems neither implies the other. -fno-pie has been
-        # around a long time (at least GCC 4.9, Clang 3.7).
-        CFLAGS += ['-fno-pie']
+        if not mac:
+            # -fno-pie causes "illegal text-relocation to '___stack_chk_guard' in /usr/lib/libpthread.dylib"
+            # error on i386 Mac.
+            # -no-pie is a gcc/clang flag affecting linking. -fno-pie affects code
+            # generation, and it seems neither implies the other. -fno-pie has been
+            # around a long time (at least GCC 4.9, Clang 3.7).
+            CFLAGS += ['-fno-pie']
         # -no_pie is only needed when CXX does the linking, not with linkgcc=0,
         # since apparently it's gcc, not ld, which is defaulting to PIE
         CCLINKFLAGS += [NO_PIE]
