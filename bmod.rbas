@@ -187,7 +187,9 @@ FUNCTION battle (byval form as integer) as bool
  setkeys
  DO
   setwait 55  'Adjusting framerate in-battle is not implemented
-  IF running_under_Custom THEN try_to_reload_files_inbattle
+  #IFNDEF NO_TEST_GAME
+   IF running_under_Custom THEN try_to_reload_files_inbattle
+  #ENDIF
 
   main_timer.substart TimerIDs.IOBackend
   setkeys

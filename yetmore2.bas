@@ -37,8 +37,10 @@ DECLARE SUB drawants_for_tile(tile as XYPair, byval direction as DirNum)
 ' It should be fine to call any allmodex function in here, but beware we might
 ' not have loaded a game yet!
 SUB global_setkeys_hook
- ' Process messages from Custom
- IF gam.ingame ANDALSO running_under_Custom THEN try_reload_lumps_anywhere
+ #IFNDEF NO_TEST_GAME
+  ' Process messages from Custom
+  IF gam.ingame ANDALSO running_under_Custom THEN try_reload_lumps_anywhere
+ #ENDIF
 END SUB
 
 SUB initgamedefaults
@@ -1245,6 +1247,7 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
    debug "WARNING: autosnap argument was ignored because it should be followed by an integer"
    RETURN 1
   END IF
+#IFNDEF NO_TEST_GAME
  ELSEIF opt = "from_Custom" THEN
   IF arg = "" THEN
    debug "-from_Custom option ignored because channel not specified"
@@ -1261,6 +1264,7 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
    terminate_program 10
    RETURN 1
   END IF
+#ENDIF
  ELSEIF opt = "reset_platform_achievements" THEN
   debug "Enqueuing platform achievement reset"
   Achievements.definitions_reset
@@ -1401,6 +1405,13 @@ SUB set_speedcontrol (byval millisec_per_frame as integer)
   END IF
  END IF
 END SUB
+
+
+'==============================================================================
+'                             Live-preview reloading
+'==============================================================================
+
+#IFNDEF NO_TEST_GAME
 
 SUB wrong_spawned_version_fatal_error
  fatalerror !"This version of Game differs from the version of Custom which spawned it and cannot be used for the ""Test Game"" option. Download and place matching versions in the same directory before trying again.\n" _
@@ -2259,3 +2270,5 @@ SUB live_preview_menu ()
  pop_gfxio_state
  freepage holdscreen
 END SUB
+
+#ENDIF  'NO_TEST_GAME

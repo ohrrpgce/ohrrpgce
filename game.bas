@@ -359,7 +359,9 @@ IF running_under_Custom THEN
 
  'Check for version compatibility, and get told sourcerpg & workingdir
  'NOTE: normally sourcedir == workingdir if running a preunlumped game, but not in this case!
- handshake_with_Custom
+ #IFNDEF NO_TEST_GAME
+  handshake_with_Custom
+ #ENDIF
  gam.autorungame = YES
  usepreunlump = YES
 
@@ -581,8 +583,10 @@ DIM wintitle as string = getdisplayname(trimpath(sourcerpg))
 IF running_under_Custom THEN wintitle = "Testing " + wintitle
 setwindowtitle wintitle
 
-'Show a warning if the versions aren't identical
-IF running_under_Custom THEN check_Game_Custom_versions_match
+#IFNDEF NO_TEST_GAME
+ 'Show a warning if the versions aren't identical
+ IF running_under_Custom THEN check_Game_Custom_versions_match
+#ENDIF
 
 'Perform additional checks for future rpg files or corruption
 'FIXME: if a problem was detected, we don't force copy of an .rpgdir
@@ -773,7 +777,9 @@ DO
  setwait speedcontrol
  'Subsequent main_timer method calls will be ignored if .begin_timestep() wasn't called
 
- IF running_under_Custom THEN try_to_reload_lumps_onmap
+ #IFNDEF NO_TEST_GAME
+  IF running_under_Custom THEN try_to_reload_lumps_onmap
+ #ENDIF
 
  'DEBUG debug "increment play timers"
  IF gam.paused = NO THEN playtimer
@@ -4616,7 +4622,9 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
   slice_editor SliceTable.Root
  END IF
 
- IF dbg.def(      , scF5, "Data reload menu (F5)") THEN live_preview_menu
+ #IFNDEF NO_TEST_GAME
+  IF dbg.def(      , scF5, "Data reload menu (F5)") THEN live_preview_menu
+ #ENDIF
 
  IF dbg.def(      , scF6, "NPC info overlay (F6)") THEN loopvar gam.debug_npc_info, 0, 2
 
