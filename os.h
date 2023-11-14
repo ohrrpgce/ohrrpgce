@@ -111,6 +111,7 @@ const char *blackbox_get_environment(const char *key);
 void blackbox_request_account_picker();
 void blackbox_start_story();
 void blackbox_end_story();
+void blackbox_set_rich_presence(const char *token_id, const char *substitution);
 #endif
 
 

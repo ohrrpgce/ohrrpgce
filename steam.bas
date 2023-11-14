@@ -51,6 +51,8 @@ dim shared SteamAPI_ISteamUserStats_IndicateAchievementProgress as function(byva
 
 dim shared steam_user_stats as ISteamUserStats ptr
 
+dim shared SteamAPI_ISteamFriends_SetRichPresence as function(byval pchKey as const zstring ptr, byval pchValue as const zstring ptr) as boolean
+
 #macro MUSTLOAD(hfile, procedure)
   procedure = dylibsymbol(hfile, #procedure)
   if procedure = NULL then
@@ -103,7 +105,8 @@ function initialize() as boolean
   MUSTLOAD(steamworks_handle, SteamAPI_ISteamUserStats_ClearAchievement)
   MUSTLOAD(steamworks_handle, SteamAPI_ISteamUserStats_StoreStats)
   MUSTLOAD(steamworks_handle, SteamAPI_ISteamUserStats_IndicateAchievementProgress)
-  
+  MUSTLOAD(steamworks_handle, SteamAPI_ISteamFriends_SetRichPresence)
+
   if SteamAPI_Init() = false then
     steam_error("Unable to initialize Steamworks, Steam not running or missing steam_appid.txt?")
     uninitialize()
@@ -172,6 +175,24 @@ sub notify_achievement_progress(id as const string, progress as integer, max_pro
     steam_error("Unable to indicate achievement progress: " & id)
   end if
 end sub
+
+#ifndef __FB_BLACKBOX__
+'Blackbox has its own version of this
+
+'Set the current status string shown by a user in the friends list.
+'The first value is actually the name of a rich presence localization token. A list of these
+'strings must be uploaded to Steamworks (for at least English). They can contain '%subvalue%'
+'which is substituted with *substitution.
+'Blackbox works the same, with extern lists of token values, except '%s' is substituted.
+sub set_rich_presence(token_id as const zstring ptr, substitution as const zstring ptr)
+  if available() = false then return
+
+  dim tokenname as string = "#" & *token_id
+  SteamAPI_ISteamFriends_SetRichPresence("steam_display", tokenname)
+  SteamAPI_ISteamFriends_SetRichPresence("subvalue", substitution)
+end sub
+
+#endif
 
 #macro CALLBACK_HANDLER(typ, handler)
   case typ.k_iCallback

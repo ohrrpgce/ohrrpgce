@@ -14,6 +14,7 @@ declare sub run_frame()
 declare sub reward_achievement(id as const string)
 declare sub clear_achievement(id as string)
 declare sub notify_achievement_progress(id as const string, progress as integer, max_progress as integer)
+declare sub set_rich_presence(token_id as const zstring ptr, substitution as const zstring ptr)
 
 end namespace
 

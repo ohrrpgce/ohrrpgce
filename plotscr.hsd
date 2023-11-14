@@ -797,6 +797,7 @@ define function, begin
 765,xboxrequestaccountpicker,0# (Console only)
 766,ps5startstory,0           # (Console only)
 767,ps5endstory,0             # (Console only)
+768,setrichpresence,2,0,-1    # (Console/Steam) Set the Friends list status (token_name strid, substitution strid)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

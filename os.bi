@@ -184,6 +184,7 @@ declare function blackbox_get_environment(key as const zstring ptr) as const zst
 declare sub blackbox_request_account_picker()
 declare sub blackbox_start_story()
 declare sub blackbox_end_story()
+declare sub blackbox_set_rich_presence(token_id as const zstring ptr, substitution as const zstring ptr)
 #endif
 
 end extern

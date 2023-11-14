@@ -25,6 +25,7 @@
 #include "bmod.bi"
 #include "bmodsubs.bi"
 #include "bcommon.bi"
+#include "steam.bi"
 
 ''''' Local functions
 DECLARE SUB run_game ()
@@ -5284,6 +5285,20 @@ SUB script_commands(byval cmdid as integer)
   #IFDEF __FB_BLACKBOX__
    blackbox_end_story()
   #ENDIF
+ CASE 768 '--set rich presence(token name, substitution = -1)
+  'Steam or Blackbox
+  DIM as zstring ptr token_id, substitution
+  IF retvals(1) > -1 ANDALSO valid_plotstr(retvals(1)) THEN
+   substitution = strptr(plotstr(retvals(1)).s)
+  END IF
+  IF valid_plotstr(retvals(0)) THEN
+   token_id = strptr(plotstr(retvals(0)).s)
+   #IFDEF __FB_BLACKBOX__
+    blackbox_set_rich_presence(token_id, substitution)
+   #ELSE
+    Steam.set_rich_presence(token_id, substitution)
+   #ENDIF
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
