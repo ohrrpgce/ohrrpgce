@@ -3588,7 +3588,7 @@ SUB script_commands(byval cmdid as integer)
   setbit gen(), genSuspendBits, suspenddoors, 0
  CASE 553 '--running on desktop
   'The web port could be run on a phone, so return false
-#IF defined(__FB_ANDROID__) OR defined(__FB_JS__)
+#IF defined(__FB_ANDROID__) OR defined(__FB_JS__) OR defined(__FB_BLACKBOX__)
  scriptret = 0
 #ELSE
  scriptret = 1
@@ -5257,6 +5257,33 @@ SUB script_commands(byval cmdid as integer)
   END IF
  CASE 763 '--inn screen
   scriptret = inn_screen(retvals(0), retvals(1) <> 0)
+
+ CASE 764 '--read environment(dest_strid, key_strid)
+  'Get data from Blackbox, overridable with a config key for testing.
+  IF valid_plotstr(retvals(0)) ANDALSO valid_plotstr(retvals(1)) THEN
+   DIM byref dest as string = plotstr(retvals(0)).s
+   DIM byref key as string = plotstr(retvals(1)).s
+   #IFDEF __FB_BLACKBOX__
+    dest = *blackbox_get_environment(key)
+   #ELSE
+    dest = ""
+   #ENDIF
+   dest = read_config_str("env." & key, dest)
+   'For convenience
+   scriptret = str2int(dest, 0)
+  END IF
+ CASE 765 '--xbox request account picker
+  #IFDEF __FB_BLACKBOX__
+   blackbox_request_account_picker()
+  #ENDIF
+ CASE 766 '--ps5 start story
+  #IFDEF __FB_BLACKBOX__
+   blackbox_start_story()
+  #ENDIF
+ CASE 767 '--ps5 end story
+  #IFDEF __FB_BLACKBOX__
+   blackbox_end_story()
+  #ENDIF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

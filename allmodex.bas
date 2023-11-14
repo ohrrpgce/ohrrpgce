@@ -11834,6 +11834,8 @@ function running_on_console() as bool
 		cached = YES
 	end if
 	return cached_result
+#ELSEIF DEFINED(__FB_BLACKBOX__)
+	return YES
 #ELSE
 	return NO
 #ENDIF
@@ -11855,6 +11857,7 @@ function running_on_ouya() as bool
 end function
 
 function running_on_mobile() as bool
+	'TODO: what if running web port on a phone?
 #IFDEF __FB_ANDROID__
 	'--return true for all Android except OUYA
 	static cached as bool = NO

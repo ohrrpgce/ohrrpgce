@@ -125,6 +125,7 @@ script, run tests 1, begin
   scheduling tests
   plotstr tests
   string load tests
+  platform tests
   save slot tests
   slice tests
   master palette tests
@@ -6490,6 +6491,22 @@ script, wallchecking tests, begin
   tracevalue(microseconds--tt)
   show no value
   free slice(hitbox)
+end
+
+########################################################################
+
+script, platform tests, begin
+  $0="platform tests"
+
+  assert(read environment(1, $2="nonexistent") == 0)
+  assert(string equal(1, $3=""))
+  assert(read environment(1, $2="has_value_42") == 42)
+  assert(string equal(1, $3="42"))
+
+  # These don't do or return anything.
+  assert(xbox request account picker == 0)
+  assert(ps5 start story == 0)
+  assert(ps5 end story == 0)
 end
 
 ########################################################################

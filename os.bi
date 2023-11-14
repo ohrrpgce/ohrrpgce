@@ -177,6 +177,15 @@ declare sub set_X11_error_handlers()
 
 declare function dylib_noload(libname as const zstring ptr) as any ptr
 
+'Console/platform-specific functions
+
+#ifdef __FB_BLACKBOX__
+declare function blackbox_get_environment(key as const zstring ptr) as const zstring ptr
+declare sub blackbox_request_account_picker()
+declare sub blackbox_start_story()
+declare sub blackbox_end_story()
+#endif
+
 end extern
 
 #endif

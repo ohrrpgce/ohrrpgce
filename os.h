@@ -104,6 +104,16 @@ int get_process_id();
 
 void os_get_screen_size(int *wide, int *high);
 
+//Console/platform-specific functions
+
+#ifdef HOST_FB_BLACKBOX
+const char *blackbox_get_environment(const char *key);
+void blackbox_request_account_picker();
+void blackbox_start_story();
+void blackbox_end_story();
+#endif
+
+
 #ifdef __cplusplus
 }
 #endif
