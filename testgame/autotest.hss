@@ -6498,15 +6498,22 @@ end
 script, platform tests, begin
   $0="platform tests"
 
+  # Blackbox, but we test reading from autotest_config.ini
   assert(read environment(1, $2="nonexistent") == 0)
   assert(string equal(1, $3=""))
   assert(read environment(1, $2="has_value_42") == 42)
   assert(string equal(1, $3="42"))
 
-  # These don't do or return anything.
+  # Blackbox only. These don't do or return anything.
   assert(xbox request account picker == 0)
   assert(ps5 start story == 0)
   assert(ps5 end story == 0)
+
+  # Steam or blackbox.
+  # achievements.rpgdir can be used to test this actually works, here we just
+  # test it throws no error.
+  set rich presence($1="status")
+  set rich presence($1="status", $2="substitution")
 end
 
 ########################################################################

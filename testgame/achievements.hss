@@ -1,5 +1,16 @@
 global variable (1, slime count)
 
+plotscript, newgame, begin
+    # To see the current rich presence status, go to
+    # https://steamcommunity.com/dev/testrichpresence
+    # but beware there's a long lag before it updates.
+    # To actually use this command in a game you need to create
+    # a rich presence localization file with a list of the available
+    # strings and upload it to Steamworks, see
+    # https://partner.steamgames.com/doc/api/ISteamFriends#richpresencelocalization
+    set rich presence($1="Exploring")
+end
+
 plotscript, deal with slimes, begin
     if (check tag(5)) then, begin
         set tag(5, off)
@@ -13,9 +24,12 @@ plotscript, deal with slimes, begin
 end
 
 plotscript, star, ignored, npc, begin
+    set rich presence($1="Collecting", $2="a star")
     show text box(8)
     settag(6, on)
     wait(1)
     settag(6, off)
     destroy npc(npc)
+    wait for textbox
+    set rich presence($1="Exploring")
 end

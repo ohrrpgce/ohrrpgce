@@ -12,6 +12,7 @@
 #endif
 
 type ISteamUserStats as any
+type ISteamFriends as any
 type HSteamPipe as integer
 type HSteamUser as integer
 type SteamAPICall_t as uint64

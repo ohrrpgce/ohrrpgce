@@ -24,6 +24,8 @@ declare sub OnUserStatsReceived(msg as UserStatsReceived_t ptr)
 ' static variables
 
 dim shared steamworks_handle as any ptr = null
+dim shared steam_user_stats as ISteamUserStats ptr
+dim shared steam_friends as ISteamFriends ptr
 
 ' reminder: these are all function pointers, not function declarations
 ' basic init/deinit
@@ -49,9 +51,10 @@ dim shared SteamAPI_ISteamUserStats_ClearAchievement as function(byval self as I
 dim shared SteamAPI_ISteamUserStats_StoreStats as function(byval self as ISteamUserStats ptr) as boolean
 dim shared SteamAPI_ISteamUserStats_IndicateAchievementProgress as function(byval self as ISteamUserStats ptr, byval name as const zstring ptr, progress as uinteger, max_progress as uinteger) as boolean
 
-dim shared steam_user_stats as ISteamUserStats ptr
+' friends
+dim shared SteamAPI_SteamFriends_v017 as function() as ISteamFriends ptr
+dim shared SteamAPI_ISteamFriends_SetRichPresence as function(byval self as ISteamFriends ptr, byval pchKey as const zstring ptr, byval pchValue as const zstring ptr) as boolean
 
-dim shared SteamAPI_ISteamFriends_SetRichPresence as function(byval pchKey as const zstring ptr, byval pchValue as const zstring ptr) as boolean
 
 #macro MUSTLOAD(hfile, procedure)
   procedure = dylibsymbol(hfile, #procedure)
@@ -105,6 +108,7 @@ function initialize() as boolean
   MUSTLOAD(steamworks_handle, SteamAPI_ISteamUserStats_ClearAchievement)
   MUSTLOAD(steamworks_handle, SteamAPI_ISteamUserStats_StoreStats)
   MUSTLOAD(steamworks_handle, SteamAPI_ISteamUserStats_IndicateAchievementProgress)
+  MUSTLOAD(steamworks_handle, SteamAPI_SteamFriends_v017)
   MUSTLOAD(steamworks_handle, SteamAPI_ISteamFriends_SetRichPresence)
 
   if SteamAPI_Init() = false then
@@ -126,11 +130,21 @@ function initialize() as boolean
 
   if steam_user_stats = null then
     steam_error("Unable to obtain user stats object")
+    uninitialize()
+    return false
   else
     ' we need to instruct steam to fetch the user stats, so we can reward achievements later
     if SteamAPI_ISteamUserStats_RequestCurrentStats(steam_user_stats) = false then
       steam_error("Unable to request current stats")
     end if
+  end if
+
+  steam_friends = SteamAPI_SteamFriends_v017()
+
+  if steam_friends = null then
+    steam_error("Unable to obtain friends object")
+    uninitialize()
+    return false
   end if
 
   debuginfo "Steam initialized"
@@ -188,8 +202,12 @@ sub set_rich_presence(token_id as const zstring ptr, substitution as const zstri
   if available() = false then return
 
   dim tokenname as string = "#" & *token_id
-  SteamAPI_ISteamFriends_SetRichPresence("steam_display", tokenname)
-  SteamAPI_ISteamFriends_SetRichPresence("subvalue", substitution)
+  if SteamAPI_ISteamFriends_SetRichPresence(steam_friends, "steam_display", tokenname) = false then
+    steam_error("Unabled to set steam_display rich presence")
+  end if
+  if SteamAPI_ISteamFriends_SetRichPresence(steam_friends, "subvalue", substitution) = false then
+    steam_error("Unabled to set subvalue rich presence")
+  end if
 end sub
 
 #endif
