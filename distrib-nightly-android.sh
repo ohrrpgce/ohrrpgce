@@ -4,6 +4,7 @@
 
 FORCE=false
 UPLOAD=true
+UPDATE=true
 
 CHROMEBOOK=
 # NOTE: "both" means compile two apks, one 32 bit and one 64 bit
@@ -18,6 +19,10 @@ do
   case $key in
     -force|--force)
     FORCE=true
+    shift # past argument
+    ;;
+    -noupdate|--noupdate)
+    UPDATE=false
     shift # past argument
     ;;
     -noupload|--noupload)
@@ -77,13 +82,15 @@ SCRIPTDIR="$(realpath $SCRIPTDIR)"
 cd "${SCRIPTDIR}"
 
 # Check if a new nightly build is actually needed. Only if there are new changes
-svn cleanup
-svn update --trust-server-cert --non-interactive | tee nightly-temp.txt || exit 1
-UPDATE=`grep "Updated to revision" nightly-temp.txt`
-rm nightly-temp.txt
-if [ "$FORCE" = "true" ] ; then
-  echo "Forcing a build, even if nothing has changed..."
-  UPDATE="forced"
+if [ "$UPDATE" = "true"] ; then
+  svn cleanup
+  svn update --trust-server-cert --non-interactive | tee nightly-temp.txt || exit 1
+  UPDATE=`grep "Updated to revision" nightly-temp.txt`
+  rm nightly-temp.txt
+  if [ "$FORCE" = "true" ] ; then
+    echo "Forcing a build, even if nothing has changed..."
+    UPDATE="forced"
+  fi
 fi
 
 if [ -z "$UPDATE" ] ; then
