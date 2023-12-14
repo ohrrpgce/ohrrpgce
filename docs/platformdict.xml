@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="htmlplot.xsl"?>
+
+<!DOCTYPE plotscript [
+	<!ELEMENT plotscript (title,introduction?,section+)>
+	<!ATTLIST plotscript version CDATA "wip" datecode CDATA "???">
+	<!ATTLIST plotscript show-alias CDATA "yes">
+	<!ELEMENT title         (#PCDATA)>
+	<!ELEMENT introduction  ANY>
+	<!ELEMENT section (description?,(command|reference|gloss|section)+)>
+	<!ATTLIST section title CDATA #REQUIRED constants (yes|no) #IMPLIED topics (yes|no) #IMPLIED>
+	<!ELEMENT reference EMPTY>
+	<!ATTLIST reference ref IDREF #REQUIRED>
+	<!ELEMENT command ((canon+,shortname,altcommand*,added?,deprecated?,description,altcommand*,example*,seealso?) |
+					   (alias,shortname,added?,deprecated?))>
+	<!ATTLIST command id ID #REQUIRED>
+	<!ELEMENT gloss ((canon,shortname?,description) |
+					   (alias,shortname))>
+	<!ATTLIST gloss id ID #REQUIRED>
+	<!ELEMENT altcommand (canon*,shortname)>
+	<!ATTLIST altcommand id ID #IMPLIED show-alias CDATA "yes"  alias (show|hide) "show">
+	<!ELEMENT canon      (#PCDATA)>
+	<!ELEMENT shortname   (#PCDATA)>
+	<!ELEMENT added     (#PCDATA)>
+	<!ELEMENT deprecated     (#PCDATA)>
+	<!ELEMENT description ANY>
+	<!ELEMENT example     (#PCDATA)>
+	<!ATTLIST example c IDREF #IMPLIED>
+	<!ELEMENT alias       (#PCDATA)>
+	<!ELEMENT seealso (ref+)>
+
+	<!ELEMENT note         ANY>
+	<!ELEMENT warn         ANY>
+	<!ELEMENT danger       ANY>
+	<!ELEMENT ref          (#PCDATA)>
+	<!ELEMENT secref       (#PCDATA)>
+	<!ELEMENT ul           (li*)>
+	<!ELEMENT li           ANY>
+	<!ELEMENT a            ANY>
+	<!ATTLIST a            href CDATA #IMPLIED>
+	<!ELEMENT lb           (#PCDATA)>
+	<!ELEMENT p            (#PCDATA)>
+	<!ELEMENT tt           ANY>
+	<!ELEMENT b            (#PCDATA)>
+]>
+
+<plotscript version="wip" datecode="2023-12-08">
+	<title>
+		Additional Platform Script Commands
+	</title>
+	<introduction>
+		These commands are of no use except in the Steam and Console ports of the OHRRPGCE
+		so are documented separately.
+	</introduction>
+
+	<section title="Shared">
+		<command id="setrichpresence">
+			<canon>set rich presence (token name)</canon>
+			<canon>set rich presence (token name, substitution)</canon>
+			<shortname>set rich presence</shortname>
+			<description>
+				Set the text shown below a user in the friends list,
+				on Steam or Blackbox.
+				You can't actually set the text directly,
+				instead a list of strings needs to be provided externally,
+				each of which has a token name like "Battling" and a list
+				of localizations (probably just English).
+				<lb/>
+				<p>token name</p> is the ID of a string.
+				<lb/>
+				<p>substitution</p> is optional, the ID of a string to substitute into the
+				token text, such as the name of the current map.
+				On Blackbox, <tt>%s</tt> will be substituted.
+				On Steam, <tt>%subvalue%</tt> will be substituted.
+
+				<note>
+					On Steam:
+					Don't include '#' in the token name, it's prepended automatically.
+					<lb/>
+					To see the current rich presence status, go to
+					<a href="https://steamcommunity.com/dev/testrichpresence" />
+					but beware there's a long lag before it updates.
+					You can test in this way without providing a rich presence localization
+					file needed to actually use this command in a game.
+					See
+					<a href="https://partner.steamgames.com/doc/api/ISteamFriends#richpresencelocalization" />.
+				</note>
+
+			</description>
+		</command>
+
+		<command id="readenvironment">
+			<canon>read environment (dest, key)</canon>
+			<shortname>read environment</shortname>
+			<description>
+				Get a platform info string.
+				Currently only Blackbox has any.
+				<lb/>
+				<p>dest</p> is the ID of the string in which to put the result.
+				<lb/>
+				<p>key</p> is the ID of a string containing a key such as "SYS" or "ASIABUTTONS".
+				<lb/>
+				If the value can be converted to an integer (like "1") then it is also converted and returned for convenience.
+				Otherwise the return value is 0.
+				<lb/>
+				For testing, key-value pairs can be placed in
+				<tt><b>gamename</b>_config.ini</tt> next to the .rpg, or in ohrrpgce_config.ini,
+				in the form <tt>env.<b>key</b>=<b>value</b></tt>,
+				e.g. <tt>env.SYS=PS4</tt>.
+				Available keys include:
+				<ul>
+					<li>
+						SYS - one of: XBOXONE, PS4, PSVITA, WINDOWS, SWITCH, PS5, SERIESX
+					</li>
+					<li>
+						ASIABUTTONS - one of "0" or "1".
+						If "1", confirm is circle and cancel is cross (Nintendo or by user preference on PS).
+					</li>
+					<li>
+						REGION - may be empty, or may be NA, EU, JP, depending on the game.
+					</li>
+					<li>
+						GAMERTAG - the currently logged in profile's name (Xbox One). 
+					</li>
+				</ul>
+			</description>
+			<example>read environment(1, $2="SYS")
+if (string equal(1, $2="PS4")) then (
+	...
+)</example>
+		</command>
+	</section>
+
+	<section title="Blackbox">
+		<description>
+			These commands are only useful in Ratalaika's OHRRPGCE port to consoles (aka Blackbox).
+			But they exist and can be called in any OHRRPGCE port, doing nothing.
+		</description>
+
+		<command id="ps5startstory">
+			<canon>ps5 start story</canon>
+			<shortname>ps5 start story</shortname>
+			<description>
+				Call at the actual beginning of a New Game, not a title screen.
+			</description>
+		</command>
+		<command id="ps5endstory">
+			<canon>ps5 end story</canon>
+			<shortname>ps5 end story</shortname>
+			<description>
+				Call at some point at the end of the game (game over, completion, or other return to title).
+				(Probably should be called automatically whenever returning to title,
+				so should only call this if the game ends on a screen without
+				a return to title.)
+			</description>
+		</command>
+		<command id="xboxrequestaccountpicker">
+			<canon>xbox request account picker</canon>
+			<shortname>xbox request account picker</shortname>
+			<description>
+				XBox One: Request to open the account picker UI.
+				<lb/>
+				The player's gametag should be displayed on the titlescreen together with an icon
+				showing to press a certain button to change account.
+				Pressing it should call this command.
+			</description>
+		</command>
+	</section>
+</plotscript>

@@ -1,7 +1,9 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Dictionary of Plotscripting Commands</title>
+<title>
+		Dictionary of Plotscripting Commands
+	</title>
 <style type="text/css">
 
 					body,p,h1,h2,h3,h4,h5,h6 {
@@ -208,22 +210,23 @@ function toggleContent(target) {
 				</script>
 </head>
 <body>
-<h1>Plotscripting Dictionary</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2023-10-25)</h2>
-<p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
-				In addition to reading this document, we also recommend you check out the
-				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
-				and the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">Plotscripting</a>
-				article on the wiki.</p>
-<p>
-				If you're reading this on the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/">OHRRPGCE website</a>
-				then make sure you're looking at the page for the latest stable release
-				(<a href="http://hamsterrepublic.com/ohrrpgce/docs/plotdictionary.html">here</a>)
-				or latest nightly version
-				(<a href="http://hamsterrepublic.com/ohrrpgce/nightly/docs/plotdictionary.html">here</a>).
-				This documentation is also included as an HTML file with downloads of the engine.
-				</p>
-<hr>
+<h1>
+		Dictionary of Plotscripting Commands
+	</h1>
+<h2>For the next WIP OHRRPGCE version (nightly build 2023-12-08)</h2>
+		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
+		In addition to reading this document, we also recommend you check out the
+		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
+		and the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">Plotscripting</a>
+		article on the wiki.
+		<br>
+		If you're reading this on the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/">OHRRPGCE website</a>
+		then make sure you're looking at the page for the latest stable release
+		(<a href="http://hamsterrepublic.com/ohrrpgce/docs/plotdictionary.html">here</a>)
+		or latest nightly version
+		(<a href="http://hamsterrepublic.com/ohrrpgce/nightly/docs/plotdictionary.html">here</a>).
+		This documentation is also included as an HTML file with downloads of the engine.
+	<hr>
 <a name="Categories"></a><h2>Commands by Category</h2>
 <p><div class="sectionlist">
 		<li>
@@ -13453,7 +13456,15 @@ end
 			<a name="about-loadslicecollection"></a>
 				<h4>load slice collection (id)</h4>
 <p>
-			Loads a collection of slices that you have defined in the slice collection editor. The argument is the <span class="param">id</span> number of the collection. The return value is a handle to the container that holds the loaded collection.
+			
+				Loads a collection of slices that you have defined in the slice collection editor.
+				<br>
+				The argument is the <span class="param">id</span> number of the collection.
+				<br>
+				The return value is a handle to the container that holds the loaded collection.
+				If the collection doesn't exist (it's marked as BLANK in the editor), then
+				the return value is false (0).
+			
 			
 			
 			

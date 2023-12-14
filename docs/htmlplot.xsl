@@ -12,7 +12,7 @@
 	<xsl:template match="plotscript">
 		<html>
 			<head>
-				<title>Dictionary of Plotscripting Commands</title>
+				<title><xsl:value-of select="title" /></title>
 				<style type="text/css">
 <![CDATA[
 					body,p,h1,h2,h3,h4,h5,h6 {
@@ -219,7 +219,7 @@ function toggleContent(target) {
 				</script>
 			</head>
 			<body>
-				<h1>Plotscripting Dictionary</h1>
+				<h1><xsl:value-of select="title" /></h1>
 				<xsl:if test="@version = 'wip'">
 					<h2>For the next WIP OHRRPGCE version (nightly build <xsl:value-of select="@datecode" />)</h2>
 				</xsl:if>
@@ -228,19 +228,7 @@ function toggleContent(target) {
 					(Generated on <xsl:value-of select="@datecode" />)
 				</xsl:if>
 
-				<p>This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
-				In addition to reading this document, we also recommend you check out the
-				<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
-				and the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">Plotscripting</a>
-				article on the wiki.</p>
-				<p>
-				If you're reading this on the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/">OHRRPGCE website</a>
-				then make sure you're looking at the page for the latest stable release
-				(<a href="http://hamsterrepublic.com/ohrrpgce/docs/plotdictionary.html">here</a>)
-				or latest nightly version
-				(<a href="http://hamsterrepublic.com/ohrrpgce/nightly/docs/plotdictionary.html">here</a>).
-				This documentation is also included as an HTML file with downloads of the engine.
-				</p>
+				<xsl:apply-templates select="introduction" />
 				<hr/>
 				<a name="Categories"></a>
 				<h2>Commands by Category</h2>

@@ -2,9 +2,11 @@
 <?xml-stylesheet type="text/xsl" href="htmlplot.xsl"?>
 
 <!DOCTYPE plotscript [
-	<!ELEMENT plotscript (section+)>
+	<!ELEMENT plotscript (title,introduction?,section+)>
 	<!ATTLIST plotscript version CDATA "wip" datecode CDATA "???">
 	<!ATTLIST plotscript show-alias CDATA "yes">
+	<!ELEMENT title         (#PCDATA)>
+	<!ELEMENT introduction  ANY>
 	<!ELEMENT section (description?,(command|reference|gloss|section)+)>
 	<!ATTLIST section title CDATA #REQUIRED constants (yes|no) #IMPLIED topics (yes|no) #IMPLIED>
 	<!ELEMENT reference EMPTY>
@@ -49,8 +51,9 @@ This markup (hereby refered to as PDL (Plotscript Dictionary Language)) is
 designed to reduce the time spent maintaining the Plotscripting Dictionary, and
 to enable easier porting to other formats.
 
-The root element is the <plotscript> element. It has a 'version' attribute,
-the engine version it applies to. Update this when releasing.
+The root element is the <plotscript> element. It has 'version' and 'datecode'
+attributes telling the engine version it applies to. These are set automatically
+by docs/update-html.sh (which is called by release/release-docs.sh).
 
 In <plotscript>, there is a series of <section> elements, each with a title
 attribute. These are to group the plotscripting commands into logical groups,
@@ -188,7 +191,24 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2023-10-25">
+<plotscript version="wip" datecode="2023-12-08">
+	<title>
+		Dictionary of Plotscripting Commands
+	</title>
+	<introduction>
+		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
+		In addition to reading this document, we also recommend you check out the
+		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
+		and the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">Plotscripting</a>
+		article on the wiki.
+		<lb/>
+		If you're reading this on the <a href="https://rpg.hamsterrepublic.com/ohrrpgce/">OHRRPGCE website</a>
+		then make sure you're looking at the page for the latest stable release
+		(<a href="http://hamsterrepublic.com/ohrrpgce/docs/plotdictionary.html">here</a>)
+		or latest nightly version
+		(<a href="http://hamsterrepublic.com/ohrrpgce/nightly/docs/plotdictionary.html">here</a>).
+		This documentation is also included as an HTML file with downloads of the engine.
+	</introduction>
 
 	<section title="Declarations">
 		<command id="plotscript">
