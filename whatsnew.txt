@@ -151,6 +151,8 @@ WHAT IS NEW?
     * "get stat name" [Ralph]
     * "pathfind into extra as hero" and "pathfind into extra as npc" [James]
     * "is shop buy menu empty" and "is shop hire menu empty" [James]
+    * "suspend walkabouts", "resume walkabouts" and "walkabouts are suspended"
+      [Ralph]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.
