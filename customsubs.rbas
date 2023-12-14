@@ -968,7 +968,7 @@ END SUB
 
 'Whether thinggrabber will enter an editor.
 FUNCTION enter_or_add_new(state as MenuState) as bool
- RETURN enter_space_click(state) OR keyval(scPlus) > 1 OR keyval(scInsert) > 1
+ RETURN enter_space_click(state) OR keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 OR keyval(scInsert) > 1
 END FUNCTION
 
 'Returns true if the calling menu needs to refresh.
@@ -984,7 +984,7 @@ END FUNCTION
 'add_new_if_none: pass YES only if Enter/Space/Click already was diverted to ThingBrowser.
 LOCAL FUNCTION thinggrabber (byref datum as integer, state as MenuState, offset as integer, min as integer, max_record as integer, intgrab as bool = YES, editor_func as FnEditor, add_new_if_none as bool = NO) as bool
  DIM editor_arg as integer  'What to pass to editor_func.
- IF keyval(scPlus) > 1 OR keyval(scInsert) > 1 THEN
+ IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 OR keyval(scInsert) > 1 THEN
   editor_arg = max_record + 1
  ELSEIF enter_space_click(state) THEN
   ' (Note: this case generally isn't reached, it's handled in attackgrabber, etc,

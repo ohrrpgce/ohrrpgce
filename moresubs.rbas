@@ -1043,11 +1043,11 @@ FUNCTION teleporttool () as bool
 
 
   'Cap to a maximum zoom because createminimap draws the whole map and is really slow
-  IF keyval(scMinus) > 1 THEN
+  IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
    zoom = large(1, zoom - 1)
    state.need_update = YES
   END IF
-  IF keyval(scPlus) > 1 THEN
+  IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
    zoom = small(maxzoom, zoom + 1)
    state.need_update = YES
   END IF

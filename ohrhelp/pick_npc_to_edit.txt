@@ -8,6 +8,6 @@ Press CTRL+C to copy an NPC definition, and CTRL+V to paste it, overwriting the 
 
 Press DELETE to delete all the copies of an NPC that are on the map, and/or the NPC definition itself.
 
-Press + to quickly add a new NPC.
+Press INSERT or + to quickly add a new NPC.
 
 Press ESC to go back to the previous menu.

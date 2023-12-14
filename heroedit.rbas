@@ -919,13 +919,13 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
    st.need_update = YES
   END IF
 
-  IF keyval(scPlus) > 1  ORELSE keyval(scNumPadPlus) > 1 ORELSE keyval(scInsert) > 1 THEN
+  IF keyval(scPlus) > 1  ORELSE keyval(scNumpadPlus) > 1 ORELSE keyval(scInsert) > 1 THEN
    DIM ins_node as NodePtr
    ins_node = AppendChildNode(hero_node."battle_menus".ptr, "menu")
    DIM other_node as NodePtr
    other_node = menu.items[st.pt]->dataptr
    IF other_node = 0 THEN other_node = FirstChild(hero_node."battle_menus".ptr)
-   IF other_node THEN AddSiblingAfter(other_node, ins_node)
+   IF other_node THEN AddSiblingBefore(other_node, ins_node)
    DIM k as NodePtr
    k = SetChildNode(ins_node, "kind")
    SetChildNode(k, "attack", 0)

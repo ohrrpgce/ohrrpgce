@@ -2,9 +2,9 @@ This menu allows you to customize the battle menu for a hero.
 
 A preview of the battle menu is shown in the top right corner of the screen.
 
-Use the up and down arrow keys to select the battle menu item you want to customize, and press ENTER or SPACE
+Use the up and down arrow keys to select the battle menu item you want to customize, and press ENTER or SPACE or CLICK.
 
-You can add new battle menu items with INSERT and you can remove battle menu items with DELETE
+You can add new battle menu items with INSERT or + and you can remove battle menu items with DELETE.
 
 Hold SHIFT and press the up and down arrow keys to re-order the menu items.
 

@@ -2,7 +2,9 @@ This screen lets you choose a default tileset, and lets you customize each map l
 
 Press left and right to change values, or you can type in tileset numbers. Press ENTER to enable or disable a layer (layer 0 can not be disabled).
 
-Each map can have up to 16 layers, numbered 0 to 15 in the order in which they are drawn. So layer 0 appears underneath everything else. Select a layer and press + to insert a new layer after it - beware, this will therefore renumber all the layers after it (naming layers is recommended)! Without a layer selected, pressing + appends a new layer.
+Each map can have up to 16 layers, numbered 0 to 15 in the order in which they are drawn. So layer 0 appears underneath everything else. Select a layer and press INSERT or + to insert a new layer after it - beware, this will therefore renumber all the layers after it (naming layers is recommended)! Without a layer selected, pressing INSERT/+ appends a new layer.
+
+Press DELETE or - to delete the selected map layer. You can't delete the last remaining layer.
 
 Layers 1 and above are transparent - the parts of each tile which are color 0, and also tile 0, are not drawn.
 

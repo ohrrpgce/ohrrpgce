@@ -5113,7 +5113,7 @@ SUB SpriteSetBrowser.run()
     END IF
 
     '+: Add new frame or frame group
-    IF keyval(scPlus) > 1 ORELSE keyval(scInsert) > 1 THEN
+    IF keyval(scPlus) > 1 ORELSE keyval(scNumpadPlus) > 1 ORELSE keyval(scInsert) > 1 THEN
       IF cur_framenum = -1 THEN  'Whole spriteset
         add_frame(cur_setnum, YES)  'New group
       ELSE

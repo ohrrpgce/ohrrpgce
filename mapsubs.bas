@@ -1508,7 +1508,7 @@ DO
    IF st.tool = draw_tool ANDALSO tool_newkeypress THEN 'pick value intelligently
     st.tool_value = CheckZoneAtTile(st.map.zmap, st.cur_zone, st.x, st.y) XOR YES
    END IF
-   IF st.tool <> draw_tool ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
+   IF st.tool <> draw_tool ANDALSO (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 OR keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1) THEN
     st.tool_value XOR= YES
    END IF
    IF st.zonesubmode = zone_edit_mode THEN
@@ -3644,7 +3644,7 @@ SUB mapedit_layers (st as MapEditState)
 
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_layers"
-  IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND UBOUND(map.tiles) < maplayerMax THEN
+  IF (keyval(scInsert) > 1 OR keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND UBOUND(map.tiles) < maplayerMax THEN
    DIM layer_to_copy as integer
    layer_to_copy = mapedit_pick_layer(st, "Copy an existing layer?", "No; new blank layer")
    IF layer_to_copy >= -1 THEN
@@ -3741,10 +3741,6 @@ SUB mapedit_layers (st as MapEditState)
      END IF
      write_map_layer_name(map.gmap(), layerno, tempname)
     CASE ltLayerTileset
-     clearkey(scPlus)
-     clearkey(scNumpadPlus)
-     clearkey(scMinus)
-     clearkey(scNumpadMinus)
      IF zintgrabber(map.gmap(menu[state.pt].gmapindex), -1, gen(genMaxTile)) THEN
       tileset = map.gmap(menu[state.pt].gmapindex) - 1
       IF tileset = -1 THEN tileset = map.gmap(0)
@@ -6756,7 +6752,7 @@ DO
   END IF
   need_update_selected = YES
  END IF
- IF keyval(scPlus) > 1 THEN
+ IF keyval(scInsert) > 1 OR keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
   '--Fast add button (for people who really want ID 134 for a task)
   state.pt = UBOUND(npc_def) + 1
   REDIM PRESERVE npc_def(state.pt)
