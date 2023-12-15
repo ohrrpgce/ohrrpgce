@@ -654,19 +654,22 @@ sub restoremode()
 	debuginfo "...done"
 end sub
 
-' Switch to a different gfx backend
-sub switch_gfx(backendname as string)
+' Switch to a different gfx backend. Returns true if successfully switched
+function switch_gfx(backendname as string) as bool
 	debuginfo "switch_gfx " & backendname
+	dim ret as bool
 
 	before_gfx_backend_quit()
 	'This will call before_gfx_backend_init()
-	switch_gfx_backend(backendname)
+	ret = switch_gfx_backend(backendname)
 	after_gfx_backend_init()
+	if not ret then return NO
 
 	' Re-apply settings (this is very incomplete)
 	setwindowtitle remember_title
 	io_setmousevisibility(cursorvisibility)
-end sub
+	return ret
+end function
 
 'Force config settings to be reloaded, since they may be game- or backend-specific
 sub flush_gfx_config_settings()

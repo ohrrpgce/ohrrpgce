@@ -98,7 +98,7 @@ End Type
 
 DECLARE SUB setmodex ()
 DECLARE SUB restoremode ()
-DECLARE SUB switch_gfx (backendname as string)
+DECLARE FUNCTION switch_gfx (backendname as string) as bool
 DECLARE SUB before_gfx_backend_init ()
 DECLARE FUNCTION allmodex_setoption(opt as string, arg as string) as integer
 DECLARE SUB flush_gfx_config_settings ()

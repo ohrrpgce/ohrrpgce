@@ -766,13 +766,16 @@ sub gfx_backend_menu ()
 
 	dim choice as integer
 	choice = multichoice(!"Switch to which graphics backend?\n" _
-			     !"Experimental!\n" _
+			     !"(Switching may cause problems)\n" _
 			     "Your selection will be remembered for " & exename & DOTEXE, menu())
 	if choice > -1 then
 		' Due to a FB fixed-len string bug, passing this fixstr directly corrupts it
 		dim backendname as string = gfx_choices(choice)->name
-		switch_gfx backendname
-		write_config exe_prefix & "gfx.backend", backendname
+		if switch_gfx(backendname) then
+			write_config exe_prefix & "gfx.backend", backendname
+		else
+			notification "Switching failed; the debug log (Shift-F8 to open) might tell why."
+		end if
 	end if
 end sub
 
