@@ -3428,11 +3428,14 @@ sub EngineSettingsMenu.update()
 
 	add_item -1, , "Exit menu"
 
-	header "Music Backend: music_" & musicbackend
-	'add_item 0, , musicbackendinfo, NO, , YES
+	header " Music Backend: music_" & musicbackend
+	add_wrapped_items 0, , musicbackendinfo, NO, , YES
 
-	header "Graphics Backend: gfx_" & gfxbackend
-	'add_item 0, , gfxbackendinfo, NO, , YES
+	header " Graphics Backend: gfx_" & gfxbackend
+	' gfx_sdl2's info string has a long list of available drivers, hide it.
+	dim gfxinfo as string = split_chunk(gfxbackendinfo, 0, " // ")
+	add_wrapped_items 0, , gfxinfo, NO, , YES
+
 	add_item 10, , "Switch backend..."
 
 	'Initialise to invalid values. gfx_get_settings then overwrites the settings it supports

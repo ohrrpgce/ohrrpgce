@@ -1972,6 +1972,17 @@ SUB ModularMenu.add_item(itemtype as integer = 0, id as integer = -1, text as st
  a_append shaded(), disabled
 END SUB
 
+' This is a kludge: need to add support for multiline items to standardmenu.
+SUB ModularMenu.add_wrapped_items(itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO, disabled as bool = NO)
+ DIM screenwidth as integer = (vpages(vpage)->w - 16) \ 8
+
+ DIM lines() as string
+ split(wordwrap(text, screenwidth), lines())
+ FOR idx as integer = 0 TO UBOUND(lines)
+  add_item itemtype, id, lines(idx), canselect, heading, disabled
+ NEXT
+END SUB
+
 SUB ModularMenu.add_spacer()
  add_item , , , NO, YES, NO
 END SUB

@@ -391,11 +391,7 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   'Enable controller events, so don't have to call SDL_GameControllerUpdate
   SDL_GameControllerEventState(SDL_ENABLE)
 
-  ret &= " (" & SDL_NumJoysticks() & " joysticks) Driver: " & *SDL_GetCurrentVideoDriver() & " (Drivers:"
-  FOR i as integer = 0 TO SDL_GetNumVideoDrivers() - 1
-    ret &= " " & *SDL_GetVideoDriver(i)
-  NEXT
-  ret &= ") Render driver: "
+  ret &= " (" & SDL_NumJoysticks() & " joysticks) Driver: " & *SDL_GetCurrentVideoDriver()
 
   remember_window_size = 0
 
@@ -414,19 +410,29 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
   DIM retcode as integer
   retcode = recreate_window()
 
+  ret &= " Render driver: "
   DIM rendererinfo as SDL_RendererInfo
   IF SDL_GetRendererInfo(mainrenderer, @rendererinfo) = 0 THEN
     ret &= *rendererinfo.name
   END IF
-  ret &= " (Drivers:"
+
+  DIM moreinfo as string
+  moreinfo = "gfx_sdl2 Drivers:"
+  FOR i as integer = 0 TO SDL_GetNumVideoDrivers() - 1
+    moreinfo &= " " & *SDL_GetVideoDriver(i)
+  NEXT
+  moreinfo &= "  Render Drivers:"
   FOR idx as integer = 0 TO 9
     IF SDL_GetRenderDriverInfo(idx, @rendererinfo) THEN EXIT FOR
-    ret &= strprintf(" %s (%s%s%s)", rendererinfo.name, _
+    moreinfo &= strprintf(" %s (%s%s%s)", rendererinfo.name, _
                      IIF(rendererinfo.flags AND SDL_RENDERER_ACCELERATED, @"hwaccel,", @""), _
                      IIF(rendererinfo.flags AND SDL_RENDERER_PRESENTVSYNC, @"vsync,", @""), _
                      IIF(rendererinfo.flags AND SDL_RENDERER_TARGETTEXTURE, @"textarget", @""))
   NEXT
-  ret &= ")"
+  ' engine_settings_menu hides the part after " // " (because it's too verbose), while the whole line beginning
+  ' with "gfx_sdl2" it's still picked by
+  ' by misc/process_crashreports.py will pull
+  ret &= " // " & moreinfo
 
   *info_buffer = LEFT(ret, info_buffer_size)
   RETURN retcode

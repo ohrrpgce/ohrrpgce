@@ -137,6 +137,9 @@ TYPE ModularMenu EXTENDS Object
  ' Virtual because you might want to set more per-item data
  DECLARE VIRTUAL SUB add_item (itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO, disabled as bool = NO)
 
+ ' Wrap and split 'text' into multiple items
+ DECLARE SUB add_wrapped_items(itemtype as integer = 0, id as integer = -1, text as string = "", canselect as bool = YES, heading as bool = NO, disabled as bool = NO)
+
  ' Add a blank line
  DECLARE SUB add_spacer()
 

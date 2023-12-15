@@ -628,7 +628,7 @@ local function load_backend(which as GFxBackendStuff ptr) as bool
 	'FIXME: in the Android port, gfxbackend takes the value "sd"!!
 
 	currentgfxbackend = which
-	gfxbackendinfo = "gfx_" + which->name
+	gfxbackendinfo = ""
 	gfxbackend = which->name
 	wantpollingthread = which->wantpolling
 	return YES
@@ -684,7 +684,7 @@ sub init_preferred_gfx_backend()
 	for i as integer = 0 to ubound(gfx_choices)
 		with *gfx_choices(i)
 			if load_backend(gfx_choices(i)) then
-				'gfxbackendinfo/etc have now been set; we should either
+				'currentgfxbackend/etc have now been set; we should either
 				'successfully initialize or call unload_backend.
 
 				before_gfx_backend_init
@@ -707,8 +707,8 @@ sub init_preferred_gfx_backend()
 						debug queue_error
 					else
 						if len(info_buffer) then
-							gfxbackendinfo += " """ + info_buffer + """"
-							debuginfo gfxbackendinfo
+							gfxbackendinfo = info_buffer
+							debuginfo "gfx_" & gfxbackend & " " & gfxbackendinfo
 						end if
 						exit sub
 					end if
@@ -722,7 +722,7 @@ sub init_preferred_gfx_backend()
 	terminate_program
 end sub
 
-' Load gfxbackendinfo, musicbackendinfo, systeminfo
+' Load musicbackendinfo, systeminfo
 sub read_backend_info()
 	'gfx backend not selected yet.
 

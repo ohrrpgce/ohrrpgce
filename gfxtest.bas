@@ -27,7 +27,7 @@ debuginfo "orig_dir: " & orig_dir
 debuginfo "curdir: " & CURDIR
 ' Load these three strings with info collectable before backend initialisation
 read_backend_info()
-debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
+debuginfo "Runtime info: gfx_" & gfxbackend & ": " & gfxbackendinfo & "  music_" & musicbackend & ": " & musicbackendinfo & "  " & systeminfo
 
 settings_dir = get_settings_dir()
 'documents_dir = get_documents_dir()  'may depend on app_dir
@@ -60,7 +60,11 @@ END IF
 SUB draw_gfx(it as integer)
 	clearpage vpage
 
-	wrapprint long_version & build_info & !"\n" & gfxbackendinfo & !"\n" & musicbackendinfo & !"\n" & systeminfo, 0, 20, , vpage
+	wrapprint long_version & build_info & !"\n" & _
+		  "gfx_" & gfxbackend & ": " & gfxbackendinfo & !"\n" & _
+		  "music_" & musicbackend & ": " & musicbackendinfo & !"\n" & _
+		  systeminfo, _
+		  0, 20, , vpage
 
 	FOR radius as integer = 16 TO 80 STEP 8
 		DIM as double semimajor = 0.3333 * radius

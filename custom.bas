@@ -141,7 +141,8 @@ debuginfo "orig_dir: " & orig_dir
 debuginfo "curdir: " & CURDIR
 ' Load these three strings with info collectable before backend initialisation
 read_backend_info()
-debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
+debuginfo "Runtime info: gfx_" & gfxbackend & ": " & gfxbackendinfo & "  music_" & musicbackend & ": " & musicbackendinfo & "  " & systeminfo
+
 
 settings_dir = get_settings_dir()
 documents_dir = get_documents_dir()  'may depend on app_dir
