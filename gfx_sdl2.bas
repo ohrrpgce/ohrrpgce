@@ -1044,6 +1044,26 @@ SUB gfx_sdl2_set_window_size (byval newframesize as XYPair = XY(-1,-1), newzoom 
   END IF
 END SUB
 
+SUB gfx_sdl2_get_settings(byref settings as GfxSettings)
+  settings.resizable_window = resizable_window
+  settings.resizable_resolution = resizable_resolution
+  settings.upscaler = smooth   '0/1
+  settings.upscaler_zoom = upscaler_zoom
+  settings.bilinear = bilinear
+END SUB
+
+SUB gfx_sdl2_set_settings(settings as GfxSettings)
+  smooth = settings.upscaler
+  IF settings.upscaler_zoom > 0 THEN upscaler_zoom = settings.upscaler_zoom
+  bilinear = settings.bilinear
+  recreate_screen_texture
+
+  IF settings.resizable_resolution <> resizable_resolution ORELSE settings.resizable_window <> resizable_window THEN
+    resizable_window = settings.resizable_window
+    gfx_sdl2_set_resizable(settings.resizable_resolution, settings.min_resolution.w, settings.min_resolution.h)
+  END IF
+END SUB
+
 FUNCTION gfx_sdl2_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
   DIM ret as integer = 0
   DIM value as integer = str2int(*arg, -1)
@@ -1788,6 +1808,8 @@ FUNCTION gfx_sdl2_setprocptrs() as integer
   gfx_get_resize = @gfx_sdl2_get_resize
   gfx_set_resizable = @gfx_sdl2_set_resizable
   gfx_recenter_window_hint = @gfx_sdl2_recenter_window_hint
+  gfx_get_settings = @gfx_sdl2_get_settings
+  gfx_set_settings = @gfx_sdl2_set_settings
   gfx_setoption = @gfx_sdl2_setoption
   gfx_describe_options = @gfx_sdl2_describe_options
   gfx_get_safe_zone_margin = @gfx_sdl2_get_safe_zone_margin

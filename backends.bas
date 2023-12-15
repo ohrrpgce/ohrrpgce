@@ -62,6 +62,8 @@ dim gfx_set_resizable as function (enable as bool, min_width as integer, min_hei
 dim gfx_recenter_window_hint as sub ()
 dim gfx_vsync_supported as function () as bool
 
+dim gfx_get_settings as sub (byref settings as GfxSettings)
+dim gfx_set_settings as sub (settings as GfxSettings)
 dim gfx_setoption as function (byval opt as zstring ptr, byval arg as zstring ptr) as integer
 dim gfx_describe_options as function () as zstring ptr
 dim gfx_printchar as sub (byval ch as integer, byval x as integer, byval y as integer, byval col as integer)
@@ -232,6 +234,8 @@ function gfx_dummy_vsync_supported_true() as bool : return YES : end function
 function gfx_dummy_get_safe_zone_margin() as single : return 0.0 : end function
 sub gfx_dummy_set_safe_zone_margin(byval margin as single) : end sub
 function gfx_dummy_supports_safe_zone_margin() as bool : return NO : end function
+sub gfx_dummy_get_settings (byref settings as GfxSettings) : end sub
+sub gfx_dummy_set_settings (settings as GfxSettings) : end sub
 sub gfx_dummy_ouya_purchase_request(dev_id as string, identifier as string, key_der as string) : end sub
 function gfx_dummy_ouya_purchase_is_ready() as bool : return YES : end function 'returns YES because we don't want to wait for the timeout
 function gfx_dummy_ouya_purchase_succeeded() as bool : return NO : end function
@@ -275,6 +279,8 @@ local sub set_default_gfx_function_ptrs
 	gfx_set_resizable = @gfx_dummy_set_resizable
 	gfx_recenter_window_hint = @gfx_dummy_recenter_window_hint
 	gfx_vsync_supported = @gfx_dummy_vsync_supported_false
+	gfx_get_settings = @gfx_dummy_get_settings
+	gfx_set_settings = @gfx_dummy_set_settings
 	gfx_printchar = NULL
 	gfx_set_safe_zone_margin = @gfx_dummy_set_safe_zone_margin
 	gfx_get_safe_zone_margin = @gfx_dummy_get_safe_zone_margin
@@ -371,6 +377,8 @@ local function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filena
 	TRYLOAD (gfx_get_resize)
 	TRYLOAD (gfx_set_resizable)
 	TRYLOAD (gfx_recenter_window_hint)
+	TRYLOAD (gfx_get_settings)
+	TRYLOAD (gfx_set_settings)
 	MUSTLOAD(gfx_setoption)
 	MUSTLOAD(gfx_describe_options)
 	TRYLOAD (gfx_printchar)

@@ -3395,9 +3395,23 @@ end sub
 
 
 '==========================================================================================
-'                              Special overlays and controls
+'                                Backend wrapper functions
 '==========================================================================================
 
+'gfx_set_settings wrapper returning true if *all* attempted changes to settings succeeded.
+'As usual, must be used after initialising the GfxSettings with gfx_get_settings.
+function gfx_try_set_settings(settings as GfxSettings) as bool
+	gfx_set_settings(settings)
+	dim newsettings as GfxSettings
+	gfx_get_settings(newsettings)
+	'Relying on FB initialising any padding.
+	return memcmp(@settings, @newsettings, sizeof(GfxSettings)) = 0
+end function
+
+
+'==========================================================================================
+'                              Special overlays and controls
+'==========================================================================================
 
 'Called from setkeys. This handles keypresses which are global throughout the engine.
 '(Note that backends also have some hooks, especially gfx_sdl.bas for OSX-specific stuff)

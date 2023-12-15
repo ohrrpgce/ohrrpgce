@@ -284,6 +284,14 @@ function gfx_fb_supports_variable_resolution() as bool
 	return YES
 end function
 
+sub gfx_fb_get_settings(byref settings as GfxSettings)
+	settings.upscaler = smooth   '0/1
+end sub
+
+sub gfx_fb_set_settings(settings as GfxSettings)
+	smooth = settings.upscaler
+end sub
+
 function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
 'handle command-line options in a generic way, so that they
 'can be ignored or supported as the library permits.
@@ -794,6 +802,8 @@ function gfx_fb_setprocptrs() as integer
 	gfx_get_screen_size = @gfx_fb_get_screen_size
 	gfx_supports_variable_resolution = @gfx_fb_supports_variable_resolution
 	gfx_get_resize = @gfx_fb_get_resize
+	gfx_get_settings = @gfx_fb_get_settings
+	gfx_set_settings = @gfx_fb_set_settings
 	gfx_setoption = @gfx_fb_setoption
 	gfx_describe_options = @gfx_fb_describe_options
 	io_init = @io_fb_init

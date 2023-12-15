@@ -52,6 +52,30 @@ type WindowState
 end type
 #define WINDOWSTATE_SZ 9
 
+' Extra backend settings can go in here, to simplify adding getters/setters for new settings.
+' In some cases these can also be queried or changed using other API functions.
+' Each backend understands only a subset of these, leaving the rest uninitialised/unsupported, which can
+' be used to test whether they are supported. ('Supported' means it supports querying and changing that
+' setting using gfx_get/set_settings, not that it supports that feature.)
+#define GFXSETTINGS_SZ 11
+type GfxSettings
+	structsize as integer = GFXSETTINGS_SZ  'Number of members, always >= 11. Set by engine, read by backend.
+
+	resizable_window as boolint 'User can change zoom or resolution by resizing window. gfx_sdl2 only
+	resizable_resolution as boolint 'User can change resolution by resizing. gfx_sdl2 only
+	preserve_ratio as boolint   'Keep aspect ratio constant. gfx_directx only
+	min_resolution as XYPair    'If resizable_resolution. gfx_sdl2 only
+	max_resolution as XYPair    'If resizable_resolution.
+
+	upscaler as integer         '0 is nearest-neighbour, >0 is an upscaling filter such Scale2x/Scale3x. gfx_sdl/sdl2 only
+	upscaler_zoom as integer    'The amount of upscaling before stretching to the client area. gfx_sdl2 only
+	bilinear as boolint         'After upscaling, stretch to client area (window) using bilinear interpolation.
+                                    'gfx_directx/sdl2 only
+
+	vsync as boolint            'gfx_directx only
+end type
+
+
 type JoystickInfo
 	'All of this data is optional.
 	structsize as integer    'Number of members in the struct, set to JOYSTICKINFO_SZ by backend. Always at least 9
@@ -195,6 +219,15 @@ extern Gfx_set_resizable as function (enable as bool, min_width as integer, min_
 extern Gfx_recenter_window_hint as sub ()
 '(optional) Whether vsync is supported
 extern Gfx_vsync_supported as function () as bool
+
+'(optional) Fill in any supported extra settings info, rest left are left uninitialised
+'(which allows testing whether the backend supports that setting with gfx_get/set_settings)
+extern gfx_get_settings as sub (byref settings as GfxSettings)
+'(optional) Change extra settings, if supported.
+'Always call gfx_get_settings first before making changes and calling gfx_set_settings.
+'Calling gfx_set_settings(gfx_get_settings()) should cause no changes.
+'See also gfx_try_set_settings wrapper function (in allmodex.bas).
+extern gfx_set_settings as sub (settings as GfxSettings)
 
 'gfx_setoption recieves an option name and the following option which may or may not be a related argument
 'returns 0 if unrecognised, 1 if recognised but arg is ignored, 2 if arg is gobbled

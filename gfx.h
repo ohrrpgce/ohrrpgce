@@ -33,6 +33,29 @@ struct WindowState
 };
 #define WINDOWSTATE_SZ 9
 
+// Extra backend settings can go in here, to simplify adding getters/setters for new settings.
+// In some cases these can also be queried or changed using other API functions.
+// Each backend understands only a subset of these, leaving the rest uninitialised/unsupported, which can
+// be used to test whether they are supported. ('Supported' means it supports querying and changing that
+// setting using gfx_get/set_settings, not that it supports that feature.)
+#define GFXSETTINGS_SZ 11
+struct GfxSettings
+{
+	int structsize;           // Number of members (= GFXSETTINGS_SZ), always >= 11. Set by engine, read by backend.
+
+	boolint resizable_window; // User can change zoom or resolution by resizing window.
+	boolint resizable_resolution; // User can change resolution by resizing.
+	boolint preserve_ratio;   // Keep aspect ratio constant.
+	XYPair min_resolution;    // If resizable_resolution.
+	XYPair max_resolution;    // If resizable_resolution.
+
+	int upscaler;             // 0 is nearest-neighbour, >0 is an upscaling filter such Scale2x/Scale3x.
+	int upscaler_zoom;        // The amount of upscaling before stretching to the client area.
+	boolint bilinear;         // After upscaling, stretch to client area (window) using bilinear interpolation.
+
+	boolint vsync;
+};
+
 typedef void (__cdecl *FnDebug)(enum ErrorLevel errlvl, const char* message);
 
 enum EventEnum {
@@ -82,6 +105,9 @@ DFI_DECLARE_CDECL( void, gfx_windowtitle, const char* title );
 DFI_DECLARE_CDECL( struct WindowState*, gfx_getwindowstate );
 DFI_DECLARE_CDECL( void, gfx_set_window_size, XYPair newsize, int newzoom );
 
+
+DFI_DECLARE_CDECL( void, gfx_get_settings, GfxSettings* settings );
+DFI_DECLARE_CDECL( void, gfx_set_settings, GfxSettings* settings );
 //gfx_setoption recieves an option name and the following option which may or may not be a related argument
 //returns 0 if unrecognised, 1 if recognised but arg is ignored, 2 if arg is gobbled
 DFI_DECLARE_CDECL( int, gfx_setoption, const char* opt, const char* arg );

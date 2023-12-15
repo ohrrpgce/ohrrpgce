@@ -843,6 +843,14 @@ SUB gfx_sdl_set_window_size (byval newframesize as XYPair = XY(-1,-1), newzoom a
   END IF
 END SUB
 
+SUB gfx_sdl_get_settings(byref settings as GfxSettings)
+  settings.upscaler = smooth   '0/1
+END SUB
+
+SUB gfx_sdl_set_settings(settings as GfxSettings)
+  smooth = settings.upscaler
+END SUB
+
 FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
   'debuginfo "gfx_sdl_setoption " & *opt & " " & *arg
   DIM ret as integer = 0
@@ -1615,6 +1623,8 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_get_resize = @gfx_sdl_get_resize
   gfx_set_resizable = @gfx_sdl_set_resizable
   gfx_recenter_window_hint = @gfx_sdl_recenter_window_hint
+  gfx_get_settings = @gfx_sdl_get_settings
+  gfx_set_settings = @gfx_sdl_set_settings
   gfx_setoption = @gfx_sdl_setoption
   gfx_describe_options = @gfx_sdl_describe_options
   gfx_get_safe_zone_margin = @gfx_sdl_get_safe_zone_margin
