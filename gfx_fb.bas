@@ -206,7 +206,9 @@ function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as RGBPalette 
 	if nogfx then return 0
 
 	dim newdepth as integer = iif(surfaceIn->format = .SF_32bit, 32, 8)
-	if newdepth <> depth orelse surfaceIn->size <> framesize then
+	'Once in 32-bit depth, don't go back to 8-bit, because recreating the window on a switch
+	'(e.g. entering map editor) is nasty.
+	if newdepth > depth orelse surfaceIn->size <> framesize then
 		depth = newdepth
 		framesize = surfaceIn->size
 		update_screen_mode_no_lock
