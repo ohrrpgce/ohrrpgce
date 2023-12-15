@@ -114,8 +114,7 @@ DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as KBScancode, byval default_sdl_s
 DECLARE SUB log_error(failed_call as zstring ptr, funcname as zstring ptr)
 #define CheckOK(condition, otherwise...)  IF condition THEN log_error(#condition, __FUNCTION__) : otherwise
 
-DIM SHARED zoom as integer = 2               'Size of a pixel, rounded to nearest
-DIM SHARED frac_zoom as double = 2.0         'Actual (average) size of a pixel, not rounded
+DIM SHARED zoom as double = 2                '(Average) size of a pixel
 DIM SHARED smooth as integer = 0             'Upscaler to use: 0 (nearest-neighbour) or 1 (smooth)
 DIM SHARED upscaler_zoom as integer = 2      'Amount of upscaler zoom, before stretching result to the window
 DIM SHARED bilinear as bool = NO             'Use bilinear smoothing to stretch to window
@@ -553,7 +552,7 @@ LOCAL FUNCTION screen_buffer_zoom() as integer
   'When bilinear smoothing, scaling up to zoom+1 continues to increase sharpness without issues, while going further
   'introduces the shimmering artifacts seen without bilinear filtering.
   'When using an upscaler, going above CEIL(frac_zoom) makes no sense either.
-  z = small(z, CEIL(frac_zoom))
+  z = small(z, CEIL(zoom))
   'smooth upscaler only supports 2x, 3x, 4x, 6x, 8x, 9x, 12x, 16x, with >3x implemented
   'by running repeatedly. Which is very slow and results aren't worth it, so don't go higher than x6.
   IF smooth ANDALSO (z = 5 ORELSE z >= 7) THEN z = 3
@@ -614,7 +613,7 @@ END SUB
 'actually_resize can (and should) be false if the window was resized by the WM;
 'don't changing the size while the user is doing the same, as that causes some
 'window resize events to get lost on KDE (bug #1190)
-LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer, actually_resize as bool)
+LOCAL SUB set_window_size(newframesize as XYPair, newzoom as double, actually_resize as bool)
   framesize = newframesize
   zoom = newzoom
 
@@ -633,7 +632,6 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer, actually_r
       'If we're fullscreened, takes effect when unfullscreening (unless resizable_window,
       'in which case we restore previous size)
       SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
-      frac_zoom = zoom
     END IF
     'Still should update the viewport if actually_resize = NO, because the window size
     'may have been changed externally (without this, the window becomes quite wobbly)
@@ -920,7 +918,8 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
       resize_requested = (resize_request <> framesize)
     END IF
     SDL_SetWindowSize mainwindow, remember_window_size.w, remember_window_size.h
-    frac_zoom = remember_window_size.w / framesize.w
+    'A SDL_WINDOWEVENT_RESIZED will be generated, which handles updating framesize and zoom
+    '(maybe indirectly via resize_request)
   END IF
 
   'Mouse region needs recomputing after either scale/zoom or window size change
@@ -944,7 +943,7 @@ FUNCTION gfx_sdl2_getwindowstate() as WindowState ptr
   state.fullscreen = (flags AND (SDL_WINDOW_FULLSCREEN OR SDL_WINDOW_FULLSCREEN_DESKTOP)) <> 0
   state.mouse_over = (flags AND SDL_WINDOW_MOUSE_FOCUS) <> 0
   SDL_GetWindowSize(mainwindow, @state.windowsize.w, @state.windowsize.h)
-  state.zoom = zoom
+  state.zoom = CINT(zoom)
   state.maximised = (flags AND SDL_WINDOW_MAXIMIZED) <> 0
   RETURN @state
 END FUNCTION
@@ -1024,6 +1023,7 @@ END SUB
 SUB gfx_sdl2_set_window_size (byval newframesize as XYPair = XY(-1,-1), newzoom as integer = -1)
   IF newframesize.w <= 0 THEN newframesize = framesize
   IF newzoom < 1 ORELSE newzoom > 16 THEN newzoom = zoom
+  DIM zoomchanged as bool = ABS(zoom - newzoom) > 0.001
 
   IF newframesize <> framesize ANDALSO mainwindow THEN
     resize_request = newframesize
@@ -1031,16 +1031,16 @@ SUB gfx_sdl2_set_window_size (byval newframesize as XYPair = XY(-1,-1), newzoom 
     'debuginfo " (resize_requested)"
   END IF
 
-  IF newzoom <> zoom THEN
+  IF zoomchanged THEN
     gfx_sdl2_recenter_window_hint()  'Recenter because it's pretty ugly to go from centered to uncentered
   END IF
 
-  IF newzoom <> zoom ORELSE newframesize <> framesize THEN
+  IF zoomchanged ORELSE newframesize <> framesize THEN
     debuginfo "gfx_sdl2_set_window_size " & newframesize & ", zoom=" & newzoom
     '(We don't actually need to call set_window_size here and could instead mark
     'that gfx_present should call it if the zoom changed. But that's more code
     'and seems to behave identically)
-    set_window_size(newframesize, newzoom, newzoom <> zoom)
+    set_window_size(newframesize, newzoom, zoomchanged)
   END IF
 END SUB
 
@@ -1048,7 +1048,7 @@ FUNCTION gfx_sdl2_setoption(byval opt as zstring ptr, byval arg as zstring ptr) 
   DIM ret as integer = 0
   DIM value as integer = str2int(*arg, -1)
   IF *opt = "zoom" or *opt = "z" THEN
-    gfx_sdl2_set_window_size( , value)
+    gfx_sdl2_set_window_size( , bound(VAL(*arg), 0.1, 16))
     ret = 1
   ELSEIF *opt = "smooth" OR *opt = "s" THEN
     IF value = 1 OR value = -1 THEN  'arg optional (-1)
@@ -1355,8 +1355,7 @@ SUB gfx_sdl2_process_events()
             'some delayed SDL_SetVideoMode calls.
 
           ELSEIF resizable_resolution = NO ANDALSO resizable_window THEN
-            frac_zoom = windowsize_to_ratio(windowsize)
-            DIM newzoom as integer = large(1, INT(frac_zoom))  'Round to nearest
+            DIM newzoom as double = windowsize_to_ratio(windowsize)
             set_window_size framesize, newzoom, NO  'Update zoom only
 
           ELSE  ' resizable_window = NO
