@@ -68,6 +68,9 @@ EXTERN "C"
 #endif
 #undef SDL_GameControllerTypeForIndex
 dim shared SDL_GameControllerTypeForIndex as function(byval joystick_index as long) as SDL_GameControllerType
+'SDL 2.0.12+
+'#undef SDL_SetTextureScaleMode
+'dim shared SDL_SetTextureScaleMode as function(byval texture as SDL_Texture ptr, byval scaleMode as SDL_ScaleMode) as long
 
 
 #IFDEF __FB_ANDROID__
@@ -94,8 +97,9 @@ declare function SDL_ANDROID_OUYAReceiptsResult () as zstring ptr
 
 DECLARE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
 DECLARE FUNCTION recreate_screen_texture() as bool
-DECLARE FUNCTION get_buffersize() as XYPair
+DECLARE FUNCTION screen_buffer_size() as XYPair
 DECLARE SUB set_viewport(for_windowed as bool)
+DECLARE FUNCTION windowsize_to_ratio(byval windowsz as XYPair) as double
 DECLARE FUNCTION gfx_sdl2_set_resizable(enable as bool, min_width as integer, min_height as integer) as bool
 DECLARE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, imagesz as XYPair, pitch as integer, bitdepth as integer) as bool
 DECLARE SUB update_state()
@@ -109,12 +113,15 @@ DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as KBScancode, byval default_sdl_s
 DECLARE SUB log_error(failed_call as zstring ptr, funcname as zstring ptr)
 #define CheckOK(condition, otherwise...)  IF condition THEN log_error(#condition, __FUNCTION__) : otherwise
 
-DIM SHARED zoom as integer = 2  'Size of a pixel
-DIM SHARED smooth_zoom as integer = 2  'Amount to zoom before applying smoothing
-DIM SHARED smooth as integer = 0  'Smoothing mode (0 or 1)
+DIM SHARED zoom as integer = 2               'Size of a pixel, rounded to nearest
+DIM SHARED frac_zoom as double = 2.0         'Actual (average) size of a pixel, not rounded
+DIM SHARED smooth as integer = 0             'Upscaler to use: 0 (nearest-neighbour) or 1 (smooth)
+DIM SHARED upscaler_zoom as integer = 2      'Amount of upscaler zoom, before stretching result to the window
+DIM SHARED bilinear as bool = NO             'Use bilinear smoothing to stretch to window
+
 DIM SHARED mainwindow as SDL_Window ptr = NULL
 DIM SHARED mainrenderer as SDL_Renderer ptr = NULL
-DIM SHARED maintexture as SDL_Texture ptr = NULL
+DIM SHARED maintexture as SDL_Texture ptr = NULL  'Aka the screen buffer
 
 DIM SHARED screenbuffer as SDL_Surface ptr = NULL
 DIM SHARED last_bitdepth as integer   'Bitdepth of the last gfx_present call
@@ -520,11 +527,15 @@ LOCAL FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
   RETURN 1
 END FUNCTION
 
+'The screen texture (aka screen buffer) needs recreating when its size changes
 LOCAL FUNCTION recreate_screen_texture() as bool
   IF mainrenderer = NULL THEN RETURN NO  'Called before backend init
 
+  'In SDL 2.0.12+ we can call SDL_SetTextureScaleMode instead of setting this hint (which affects SDL_CreateTexture only)
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, IIF(bilinear, @"linear", @"nearest"))
+
   IF maintexture THEN SDL_DestroyTexture(maintexture)
-  DIM buffersize as XYPair = get_buffersize
+  DIM buffersize as XYPair = screen_buffer_size
   maintexture = SDL_CreateTexture(mainrenderer, _
                                SDL_PIXELFORMAT_ARGB8888, _
                                SDL_TEXTUREACCESS_STREAMING, _
@@ -533,9 +544,24 @@ LOCAL FUNCTION recreate_screen_texture() as bool
   RETURN YES
 END FUNCTION
 
-LOCAL FUNCTION get_buffersize() as XYPair
-  DIM buffer_zoom as integer = IIF(smooth, smooth_zoom, 1)
-  RETURN framesize * buffer_zoom
+'The amount of zooming to do in software (using upscaler) before stretching to the window.
+LOCAL FUNCTION screen_buffer_zoom() as integer
+  DIM z as integer = 1
+  'When using bilinear scaling, nearest-neighbour upscaling isn't a noop.
+  IF smooth OR bilinear THEN z = upscaler_zoom
+  'When bilinear smoothing, scaling up to zoom+1 continues to increase sharpness without issues, while going further
+  'introduces the shimmering artifacts seen without bilinear filtering.
+  'When using an upscaler, going above CEIL(frac_zoom) makes no sense either.
+  z = small(z, CEIL(frac_zoom))
+  'smooth upscaler only supports 2x, 3x, 4x, 6x, 8x, 9x, 12x, 16x, with >3x implemented
+  'by running repeatedly. Which is very slow and results aren't worth it, so don't go higher than x6.
+  IF smooth ANDALSO (z = 5 ORELSE z >= 7) THEN z = 3
+  RETURN z
+END FUNCTION
+
+'The required size of maintexture
+LOCAL FUNCTION screen_buffer_size() as XYPair
+  RETURN framesize * screen_buffer_zoom()
 END FUNCTION
 
 'Set/update the part of the window/screen on which to draw the frame, including scaling and letterboxing.
@@ -546,7 +572,7 @@ LOCAL SUB set_viewport(for_windowed as bool)
     'Ask SDL to scale, center and letterbox automatically.
     '(Aspect ratio is always preserved. SDL_RenderSetIntegerScale is optional)
     'But this will lead to ugly wobbling while resizing a window.
-    DIM buffersize as XYPair = get_buffersize
+    DIM buffersize as XYPair = screen_buffer_size
     SDL_RenderSetLogicalSize(mainrenderer, buffersize.w, buffersize.h)
   ELSE
     'No centering while windowed, fixed scale amount.
@@ -568,7 +594,6 @@ END SUB
 LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer, actually_resize as bool)
   framesize = newframesize
   zoom = newzoom
-  smooth_zoom = IIF(newzoom > 4, 3, newzoom)
 
   IF debugging_io THEN
     debuginfo "set_window_size " & newframesize & " x" & newzoom
@@ -588,6 +613,7 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer, actually_r
       'If we're fullscreened, takes effect when unfullscreening (unless resizable_window,
       'in which case we restore previous size)
       SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
+      frac_zoom = zoom
     END IF
     'Still should update the viewport if actually_resize = NO, because the window size
     'may have been changed externally (without this, the window becomes quite wobbly)
@@ -638,7 +664,6 @@ LOCAL FUNCTION present_internal(raw as any ptr, imagesz as XYPair, bitdepth as i
   last_bitdepth = bitdepth
 
   'variable resolution handling
-  '(Should we check whether imagesz matches the actual window size? E.g. if a resize_request got lost)
   IF framesize <> imagesz THEN
     'debuginfo "gfx_sdl2_present_internal: framesize changing from " & framesize & " to " & imagesz
     'Don't actually resize the window if the WM/user is (maybe still) resizing it
@@ -648,11 +673,12 @@ LOCAL FUNCTION present_internal(raw as any ptr, imagesz as XYPair, bitdepth as i
 
   DIM pitch as integer = imagesz.w * IIF(bitdepth = 32, 4, 1)
 
-  'This is zoom ratio from raw to screenbuffer. Unrelated to window zoom.
-  DIM buffer_zoom as integer = IIF(smooth, smooth_zoom, 1)
-  DIM buffersize as XYPair = get_buffersize
+  'This is zoom ratio from raw to screenbuffer. Usually less than window zoom.
+  DIM bufferzoom as integer = screen_buffer_zoom()
 
-  IF smooth ORELSE bitdepth = 8 THEN
+  DIM buffersize as XYPair = screen_buffer_size()
+
+  IF bufferzoom > 1 ORELSE bitdepth = 8 THEN
     ' We need screenbuffer. So check it exists and is the right size
 
     IF screenbuffer THEN
@@ -679,15 +705,15 @@ LOCAL FUNCTION present_internal(raw as any ptr, imagesz as XYPair, bitdepth as i
     END IF
   END IF
 
-  IF smooth THEN
+  IF bufferzoom > 1 THEN
     ' Intermediate step: do an enlarged blit to a surface and then do smoothing
 
     IF bitdepth = 8 THEN
-      smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, imagesz, screenbuffer->pitch, buffer_zoom, smooth)
+      smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, imagesz, screenbuffer->pitch, bufferzoom, smooth)
     ELSE
       '32 bit surface
       'smoothzoomblit takes the pitch in pixels, not bytes!
-      smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screenbuffer->pixels), imagesz, screenbuffer->pitch \ 4, buffer_zoom, smooth)
+      smoothzoomblit_32_to_32bit(cast(RGBcolor ptr, raw), cast(uint32 ptr, screenbuffer->pixels), imagesz, screenbuffer->pitch \ 4, bufferzoom, smooth)
     END IF
 
     raw = screenbuffer->pixels
@@ -872,6 +898,7 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
     'If the remembered size isn't different, nothing to do
     resize_requested = (resize_request <> framesize)
     SDL_SetWindowSize mainwindow, resize_request.w * zoom, resize_request.h * zoom
+    frac_zoom = zoom
   END IF
 
   'Mouse region needs recomputing after either scale/zoom or window size change
@@ -1313,7 +1340,13 @@ SUB gfx_sdl2_process_events()
             'resizing (it isn't reported); usually they do hold it down until after they've
             'finished moving their mouse.  One possibility would be to hook into X11, or to do
             'some delayed SDL_SetVideoMode calls.
-          ELSE
+          ELSEIF resizable_resolution = NO ANDALSO resizable_window THEN
+            DIM windowsize as XYPair = XY(evnt.window.data1, evnt.window.data2)
+            frac_zoom = windowsize_to_ratio(windowsize)
+            DIM newzoom as integer = large(1, INT(frac_zoom))  'Round to nearest
+            set_window_size framesize, newzoom, NO  'Update zoom only
+
+          ELSE  ' resizable_window = NO
             'If a resize happens that we don't want, override it.
             'If we don't think the window is resizable, maybe we just disabled it and
             'the event was generated right before. Or maybe we switched in/out of fullscreen,
@@ -1322,8 +1355,8 @@ SUB gfx_sdl2_process_events()
             'window was erroneously set to resizable (because it's not possible
             'to change resizability while fullscreened) need to be overridden.
             IF windowedmode THEN
-              IF debugging_io THEN debuginfo "set_window_size in response to SDL_WINDOWEVENT_RESIZED"
               IF resizable_window = NO THEN
+                IF debugging_io THEN debuginfo "set_window_size in response to SDL_WINDOWEVENT_RESIZED"
                 set_window_size framesize, zoom, YES
               END IF
             END IF
@@ -1547,16 +1580,19 @@ SUB io_sdl2_setmousevisibility(visibility as CursorVisibility)
   update_mouse_visibility()
 END SUB
 
+'Used only if resizable_resolution false.
+FUNCTION windowsize_to_ratio(byval windowsz as XYPair) as double
+  RETURN small(windowsz.w / framesize.w, windowsz.h / framesize.h)
+END FUNCTION
+
 'Get the origin of the displayed image, in unscaled window coordinates,
 'and the actual zoom ratio in use (may differ from 'zoom', e.g. when full-screened)
 SUB get_image_origin_and_ratio(byref origin as XYPair, byref ratio as double)
   DIM windowsz as XYPair
   SDL_GetWindowSize(mainwindow, @windowsz.w, @windowsz.h)
+  ratio = windowsize_to_ratio(windowsz)
   ' Subtract for the origin position since when the window is fullscreened and
   ' not resizable window the image will be centred on the screen.
-  DIM xratio as double = windowsz.w / framesize.w
-  DIM yratio as double = windowsz.h / framesize.h
-  ratio = small(xratio, yratio)
   origin = (windowsz - framesize * ratio) / 2
 END SUB
 
