@@ -99,6 +99,7 @@ DECLARE FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
 DECLARE FUNCTION recreate_screen_texture() as bool
 DECLARE FUNCTION screen_buffer_size() as XYPair
 DECLARE SUB set_viewport(for_windowed as bool)
+DECLARE FUNCTION windowsize_to_resolution(byval wsize as XYPair) as XYPair
 DECLARE FUNCTION windowsize_to_ratio(byval windowsz as XYPair) as double
 DECLARE FUNCTION gfx_sdl2_set_resizable(enable as bool, min_width as integer, min_height as integer) as bool
 DECLARE FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, imagesz as XYPair, pitch as integer, bitdepth as integer) as bool
@@ -1321,6 +1322,7 @@ SUB gfx_sdl2_process_events()
         IF evnt.window.event = SDL_WINDOWEVENT_RESIZED THEN
           'This event is delivered when the window size is changed by the user/WM
           'rather than because we changed it (unlike SDL_WINDOWEVENT_SIZE_CHANGED)
+          DIM windowsize as XYPair = XY(evnt.window.data1, evnt.window.data2)
 
           'The viewport is automatically updated when window is resized. In fullscreen
           '(SDL_RenderSetLogicalSize in use) that's good, but when windowed, the viewport
@@ -1328,12 +1330,10 @@ SUB gfx_sdl2_process_events()
           IF windowedmode THEN set_viewport windowedmode
 
           IF resizable_resolution ANDALSO resizable_window THEN
-            'Round upwards. TODO: This results in cut-off pixels around the screen edge,
-            'and ideally we would resize the window to a multiple of the resolution.
-            resize_request.w = (evnt.window.data1 + zoom - 1) \ zoom
-            resize_request.h = (evnt.window.data2 + zoom - 1) \ zoom
+            resize_request = windowsize_to_resolution(windowsize)
 
             IF framesize <> resize_request THEN
+              '(This is from gfx_sdl, possibly obsolete)
               'On Windows (XP), changing the window size causes an SDL_VIDEORESIZE event
               'to be sent with the size you just set... this would produce annoying overlay
               'messages in screen_size_update() if we don't filter them out.
@@ -1351,8 +1351,8 @@ SUB gfx_sdl2_process_events()
             'resizing (it isn't reported); usually they do hold it down until after they've
             'finished moving their mouse.  One possibility would be to hook into X11, or to do
             'some delayed SDL_SetVideoMode calls.
+
           ELSEIF resizable_resolution = NO ANDALSO resizable_window THEN
-            DIM windowsize as XYPair = XY(evnt.window.data1, evnt.window.data2)
             frac_zoom = windowsize_to_ratio(windowsize)
             DIM newzoom as integer = large(1, INT(frac_zoom))  'Round to nearest
             set_window_size framesize, newzoom, NO  'Update zoom only
@@ -1590,6 +1590,13 @@ SUB io_sdl2_setmousevisibility(visibility as CursorVisibility)
   mouse_visibility = visibility
   update_mouse_visibility()
 END SUB
+
+'Used only if resizable_resolution true.
+FUNCTION windowsize_to_resolution(byval windowsz as XYPair) as XYPair
+  'Round upwards. TODO: This results in cut-off pixels around the screen edge,
+  'and ideally we would resize the window to a multiple of the resolution.
+  RETURN large(min_window_resolution, XY(windowsz.w + zoom - 1, windowsz.h + zoom - 1) \ zoom)
+END FUNCTION
 
 'Used only if resizable_resolution false.
 FUNCTION windowsize_to_ratio(byval windowsz as XYPair) as double
