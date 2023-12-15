@@ -469,19 +469,16 @@ DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam
 	case OM_GFX_SETSSFORMAT:
 		switch(dwParam)
 		{
-		case 0:
-			g_DirectX.setImageFileFormat(D3DXIFF_FORCE_DWORD);
-			break;
-		case 1:
+		case imJPEG:
 			g_DirectX.setImageFileFormat(D3DXIFF_JPG);
 			break;
-		case 2:
+		case imBMP:
 			g_DirectX.setImageFileFormat(D3DXIFF_BMP);
 			break;
-		case 3:
+		case imPNG:
 			g_DirectX.setImageFileFormat(D3DXIFF_PNG);
 			break;
-		case 4:
+		case imDDS:
 			g_DirectX.setImageFileFormat(D3DXIFF_DDS);
 			break;
 		default:
@@ -514,15 +511,15 @@ DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam
 		switch(g_DirectX.getImageFileFormat())
 		{
 		case D3DXIFF_JPG:
-			return 1;
+			return imJPEG;
 		case D3DXIFF_BMP:
-			return 2;
+			return imBMP;
 		case D3DXIFF_PNG:
-			return 3;
+			return imPNG;
 		case D3DXIFF_DDS:
-			return 4;
+			return imDDS;
 		default:
-			return 0;
+			return imUnknown;
 		}
 	default:
 		return FALSE;

@@ -33,6 +33,16 @@ struct WindowState
 };
 #define WINDOWSTATE_SZ 9
 
+enum ImageFileTypes
+{
+	imUnknown,         // File extension not recognised
+	imBMP,
+	imGIF,
+	imPNG,
+	imJPEG,
+	imDDS,             // gfx_directx screenshots only
+};
+
 // Extra backend settings can go in here, to simplify adding getters/setters for new settings.
 // In some cases these can also be queried or changed using other API functions.
 // Each backend understands only a subset of these, leaving the rest uninitialised/unsupported, which can
@@ -54,6 +64,8 @@ struct GfxSettings
 	boolint bilinear;         // After upscaling, stretch to client area (window) using bilinear interpolation.
 
 	boolint vsync;
+
+	enum ImageFileTypes screenshot_format;  // gfx_directx only
 };
 
 typedef void (__cdecl *FnDebug)(enum ErrorLevel errlvl, const char* message);

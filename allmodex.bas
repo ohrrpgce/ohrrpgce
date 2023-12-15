@@ -7984,7 +7984,7 @@ end function
 
 
 'Indexed by ImageFileTypes
-dim shared image_type_strings(...) as zstring ptr = {@"Invalid", @"BMP", @"GIF", @"PNG", @"JPEG"}
+dim shared image_type_strings(...) as zstring ptr = {@"Invalid", @"BMP", @"GIF", @"PNG", @"JPEG", @"DDS"}
 
 function image_file_type (filename as string) as ImageFileTypes
 	select case lcase(justextension(filename))
@@ -8007,7 +8007,7 @@ function image_read_info (filename as string) as ImageFileInfo
 	elseif ret.imagetype = imJPEG then
 		jpeginfo filename, ret
 	else
-		ret.error = "File extension not recognised"   'Shouldn't happen
+		ret.error = "Unsupported file extension"   'Includes .dds
 	end if
 
 	ret.imagetype_name = *image_type_strings(ret.imagetype)

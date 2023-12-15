@@ -52,6 +52,17 @@ type WindowState
 end type
 #define WINDOWSTATE_SZ 9
 
+enum 'ImageFileTypes
+	imUnknown   'File extension not recognised
+	imBMP
+	imGIF
+	imPNG
+	imJPEG
+	imDDS       'gfx_directx screenshots only
+	'Update image_type_strings when changing this
+end enum
+type ImageFileTypes as integer
+
 ' Extra backend settings can go in here, to simplify adding getters/setters for new settings.
 ' In some cases these can also be queried or changed using other API functions.
 ' Each backend understands only a subset of these, leaving the rest uninitialised/unsupported, which can
@@ -59,7 +70,7 @@ end type
 ' setting using gfx_get/set_settings, not that it supports that feature.)
 #define GFXSETTINGS_SZ 11
 type GfxSettings
-	structsize as integer = GFXSETTINGS_SZ  'Number of members, always >= 11. Set by engine, read by backend.
+	structsize as integer = GFXSETTINGS_SZ  'Number of members, always >= 11. Set by engine, read by dll backends
 
 	resizable_window as boolint 'User can change zoom or resolution by resizing window. gfx_sdl2 only
 	resizable_resolution as boolint 'User can change resolution by resizing. gfx_sdl2 only
@@ -73,6 +84,8 @@ type GfxSettings
                                     'gfx_directx/sdl2 only
 
 	vsync as boolint            'gfx_directx only
+
+	screenshot_format as ImageFileTypes 'gfx_directx only
 end type
 
 

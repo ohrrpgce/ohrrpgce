@@ -374,15 +374,6 @@ TYPE QuantizeOptions
 	                         'firstindex will be ignored! Always taken as 1.
 END TYPE
 
-ENUM ImageFileTypes
-	imUnknown   'File extension not recognised
-	imBMP
-	imGIF
-	imPNG
-	imJPEG
-	'Update image_type_strings when changing this
-END ENUM
-
 TYPE ImageFileInfo
 	imagetype as ImageFileTypes
 	imagetype_name as string
