@@ -102,6 +102,8 @@ WHAT IS NEW?
     * Attack extra data, for scripts [Holly]
     * You can drag the borders of a game's window to resize it (gfx_sdl2 only).
       Doesn't restrict to integer ratios. [Ralph]
+    * An Engine Settings menu (currently just graphics settings). Ctrl/Shift-F7
+      to open anywhere (that key previously switched gfx backend) [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

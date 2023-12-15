@@ -856,8 +856,7 @@ SUB Custom_global_menu
   #ENDIF
  NEXT
 
- menu.append 8, "Switch graphics backend (Shft/Ctrl-F7)"
- 'menu.append 9, "Music backend settings"
+ menu.append 8, "Engine Settings menu (Shft/Ctrl-F7)"
 
  menu.append 15, "View/edit ohrrpgce_config.ini"
  IF LEN(sourcerpg) THEN
@@ -891,9 +890,7 @@ SUB Custom_global_menu
  ELSEIF choice = 7 THEN
   set_scale_factor 4, NO
  ELSEIF choice = 8 THEN
-  gfx_backend_menu
- ELSEIF choice = 9 THEN
-  music_backend_menu
+  engine_settings_menu
  ELSEIF choice = 10 THEN
   'Warning: data in the current menu may not be saved! So figured it better to avoid this.
   save_current_game

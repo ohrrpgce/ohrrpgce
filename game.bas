@@ -4646,7 +4646,7 @@ SUB debug_menu_functions(dbg as DebugMenuDef)
  END IF
 
  'Shift/Ctrl+F7 handled in allmodex
- IF dbg.def(      ,     , "Switch graphics backend (S/C-F7)") THEN gfx_backend_menu
+ IF dbg.def(      ,     , "Engine Settings menu (S/C-F7)") THEN engine_settings_menu
 
  IF dbg.def(      , scF8) THEN debug_menu
  dbg.def(      ,     , "Debug menu (F8)")  'Does nothing, but document F8.

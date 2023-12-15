@@ -3413,7 +3413,120 @@ end function
 
 
 '==========================================================================================
-'                              Special overlays and controls
+'                                  Engine Settings menu
+'==========================================================================================
+
+type EngineSettingsMenu extends ModularMenu
+	gfx_settings as GfxSettings
+	got_gfx_settings as bool     'gfx_settings have been initialised (by the current backend)
+	declare sub update()
+	declare function each_tick() as bool
+end type
+
+sub EngineSettingsMenu.update()
+	clear_menu
+
+	add_item -1, , "Exit menu"
+
+	header "Music Backend: music_" & musicbackend
+	'add_item 0, , musicbackendinfo, NO, , YES
+
+	header "Graphics Backend: gfx_" & gfxbackend
+	'add_item 0, , gfxbackendinfo, NO, , YES
+	add_item 10, , "Switch backend..."
+
+	'Initialise to invalid values. gfx_get_settings then overwrites the settings it supports
+	with gfx_settings
+		.constructor()  'Zero everything
+		.resizable_window = -2     'Not user editable
+		.resizable_resolution = -2 'ditto
+		.preserve_ratio = -2
+		'.min/max_resolution = 0 already; not user editable
+		.upscaler = -1
+		'.upscaler_zoom = 0 already
+		.bilinear = -2
+		.vsync = -2
+
+		gfx_get_settings(gfx_settings)
+		got_gfx_settings = YES
+
+		if .upscaler <> -1 then
+			add_item 11, , "Upscaler:         " & iif(.upscaler, "smooth", "nearest-neighbour")
+		end if
+
+		if .upscaler_zoom <> 0 then
+			dim caption as string
+			dim disabled as bool = NO
+			if .bilinear <> NO orelse .upscaler > 0 then
+				caption = .upscaler_zoom & "x"
+				if .upscaler_zoom = 1 then caption &= " (disabled)"
+			else
+				caption = "N/A"
+				disabled = YES
+			end if
+			add_item 12, , "Upscaler zoom:    " & caption, , , disabled
+		end if
+
+		if .bilinear <> -2 then
+			add_item 13, , "Bilinear scaling: " & yesorno(.bilinear)
+		end if
+
+		if .vsync <> -2 then
+			add_item 14, , "V-sync:           " & yesorno(.vsync)
+		end if
+
+		if .preserve_ratio <> -2 then
+			add_item 15, , "Aspect ratio:     " & iif(.preserve_ratio, "preserve", "changeable")
+		end if
+
+	end with
+end sub
+
+function EngineSettingsMenu.each_tick() as bool
+	dim activate as bool = enter_space_click(state)
+
+	select case itemtypes(state.pt)
+		case -1
+			if activate then return YES
+		case 10
+			if activate then
+				copypage holdscreen, vpage  'Hide this menu
+				gfx_backend_menu
+				got_gfx_settings = NO
+				state.need_update = YES
+			end if
+		case 11
+			state.need_update or= intgrabber(gfx_settings.upscaler, 0, 1)
+		case 12
+			state.need_update or= intgrabber(gfx_settings.upscaler_zoom, 1, 4)
+		case 13
+			state.need_update or= boolgrabber(gfx_settings.bilinear, state)
+		case 14
+			state.need_update or= boolgrabber(gfx_settings.vsync, state)
+		case 15
+			state.need_update or= boolgrabber(gfx_settings.preserve_ratio, state)
+	end select
+
+	if state.need_update andalso got_gfx_settings then
+		gfx_set_settings(gfx_settings)
+	end if
+end function
+
+sub engine_settings_menu()
+	push_and_reset_gfxio_state
+	dim menu as EngineSettingsMenu
+	menu.title = "Engine Settings"
+	menu.helpkey = "shared_engine_settings"
+	menu.floating = YES
+	menu.use_selectable = YES
+	menu.menuopts.edged = YES
+	menu.run()
+	pop_gfxio_state
+end sub
+
+
+'==========================================================================================
+'                        Low-level overlays, control keys and menus
 '==========================================================================================
 
 'Called from setkeys. This handles keypresses which are global throughout the engine.
@@ -3468,7 +3581,8 @@ local sub allmodex_controls()
 	end if
 
 	if ctrlshift > 0 andalso (real_keyval(scF7) and 4) then
-		gfx_backend_menu
+		'gfx_backend_menu
+		engine_settings_menu
 	end if
 
 	'Ctrl-Shift-I: toggle IO debug

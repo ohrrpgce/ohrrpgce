@@ -142,8 +142,12 @@ DECLARE FUNCTION masterpal_has_changed(pal() as RGBcolor) as bool
 DECLARE SUB fadetocolor (col as RGBcolor, fadems as integer = 500)
 DECLARE SUB fadetopal (pal() as RGBcolor, fadems as integer = 500)
 
+'==========================================================================================
+
 DECLARE SUB show_overlay_message(msg as string, seconds as double = 3.)
 DECLARE FUNCTION overlay_message_visible () as bool
+
+DECLARE SUB engine_settings_menu ()
 
 '==========================================================================================
 '                                        Maps

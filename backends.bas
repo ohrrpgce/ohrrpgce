@@ -747,6 +747,8 @@ sub read_backend_info()
 	#endif
 end sub
 
+'==============================================================================
+
 sub gfx_backend_menu ()
 	dim default_backend as string = read_config_str("gfx.backend")
 	redim menu() as string
@@ -778,6 +780,8 @@ sub gfx_backend_menu ()
 		end if
 	end if
 end sub
+
+'==============================================================================
 
 ' Eventually this will let you switch music backends, not just delegate to music_settings_menu
 sub music_backend_menu ()
