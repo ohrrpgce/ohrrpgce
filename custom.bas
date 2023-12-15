@@ -64,7 +64,7 @@ DECLARE SUB new_graphics_tests ()
 DECLARE SUB plankmenu_cursor_move_tests
 DECLARE SUB HTTP_demo()
 DECLARE SUB CreateProcess_tests()
-DECLARE SUB mouse_tests()
+DECLARE SUB mouse_and_window_tests()
 
 DECLARE SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
 DECLARE SUB import_scripts_and_terminate (scriptfile as string)
@@ -1386,7 +1386,7 @@ SUB secret_menu ()
      "CreateProcess tests (Windows only)", _
      "Edit Translations", _
      "Rotozoom tests/benchmarks", _
-     "Mouse tests", _
+     "Mouse and Window tests", _
      "Test Game under Valgrind", _
      "Test Game under GDB" _
  }
@@ -1428,7 +1428,7 @@ SUB secret_menu ()
    IF st.pt = 22 THEN CreateProcess_tests
    IF st.pt = 23 THEN translations_menu
    IF st.pt = 24 THEN rotozoom_tests
-   IF st.pt = 25 THEN mouse_tests
+   IF st.pt = 25 THEN mouse_and_window_tests
    #IFNDEF NO_TEST_GAME
     IF st.pt = 26 THEN spawn_game_menu NO, YES 'With valgrind
     IF st.pt = 27 THEN spawn_game_menu YES     'With gdb
@@ -2175,7 +2175,12 @@ SUB CreateProcess_tests()
 #ENDIF
 END SUB
 
-SUB mouse_tests()
+FUNCTION yn(x as bool) as string
+ RETURN IIF(x, "Y", "N")
+END FUNCTION
+
+SUB mouse_and_window_tests()
+ 'showmousecursor
  DO
   setwait 55
   setkeys
@@ -2186,12 +2191,23 @@ SUB mouse_tests()
    IF .dragging THEN drawline .x, .y, .clickstart.x, .clickstart.y, findrgb(255,255,0), vpage
    draw_basic_mouse_cursor vpage
 
-   wrapprint "over window:" & IIF(gfx_getwindowstate()->mouse_over, "Y", "N") & " active:" & IIF(.active, "Y", "N") _
+   DIM infostr as string
+   infostr = !"Shift-1-R to toggle resolution resizability\n\n"
+
+   WITH *gfx_getwindowstate()
+    'resolution_unlocked() reports whether asked backend for a resizable window, not actual state
+    infostr &= "WINDOW: mouse-over:" & yn(.mouse_over) & " focused:" & yn(.focused) & !"\n" _
+             & "zoom:" & .zoom & " windowsize:" & .windowsize.wh & " wantresizable:" & yn(resolution_unlocked) & !"\n" _
+             & "maximised:" & yn(.maximised) & !"\n\n"
+   END WITH
+
+   infostr  &= "MOUSE: active:" & yn(.active) _
              & " dragging:" & .dragging & !"\n" _
              & "pos:" & .pos & " clickstart:" & .clickstart & !"\n" _
              & "clicks:" & .clicks & " buttons:" & .buttons & " release:" & .release & !"\n" _
-             & "wheel_clicks:" & .wheel_clicks & " wheel_delta:" & .wheel_delta, _
-             pLeft, pBottom, uilook(uiText), vpage
+             & "wheel_clicks:" & .wheel_clicks & " wheel_delta:" & .wheel_delta
+
+   wrapprint infostr, pInfoX, pInfoY, uilook(uiText), vpage
   END WITH
   setvispage vpage
   dowait
