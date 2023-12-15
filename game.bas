@@ -222,13 +222,10 @@ external_log "starting debug log..."
 start_new_debug "Starting OHRRPGCE Game"
 debuginfo DATE & " " & TIME
 debuginfo long_version & build_info
+debuginfo "sysinfo: " & get_system_info()
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
 debuginfo "orig_dir: " & orig_dir
 debuginfo "curdir: " & CURDIR
-' Load these three strings with info collectable before backend initialisation
-read_backend_info()
-debuginfo "Runtime info: gfx_" & gfxbackend & ": " & gfxbackendinfo & "  music_" & musicbackend & ": " & musicbackendinfo & "  " & systeminfo
-
 
 settings_dir = get_settings_dir()
 documents_dir = get_documents_dir()  'may depend on app_dir
@@ -272,7 +269,6 @@ IF running_under_Custom THEN debuginfo "Spawned from Custom"
 
 Steam.Initialize()
 
-'DEBUG debug "set mode-X"
 set_resolution read_config_int("gfx.resolution_w", 320), read_config_int("gfx.resolution_h", 200)
 IF overrode_default_zoom = NO THEN
  set_scale_factor read_config_int("gfx.zoom", 2), YES
@@ -280,7 +276,6 @@ END IF
 setmodex
 unlock_resolution 320, 200   'Minimum window size
 
-'DEBUG debug "init sound"
 setupmusic
 
 

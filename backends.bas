@@ -197,9 +197,10 @@ dim shared queue_error as string  'queue up errors until it's possible to actual
 dim wantpollingthread as bool
 dim as string gfxbackend, musicbackend
 dim as string gfxbackendinfo, musicbackendinfo
-dim as string systeminfo
 
 dim allegro_initialised as bool = NO
+
+musicbackend = MUSIC_BACKEND
 
 extern "C"
 
@@ -722,16 +723,10 @@ sub init_preferred_gfx_backend()
 	terminate_program
 end sub
 
-' Load musicbackendinfo, systeminfo
-sub read_backend_info()
-	'gfx backend not selected yet.
-
-	'Initialise the music backend name because it's static, yet music_init won't have been called yet
-	musicbackend = MUSIC_BACKEND
-	'musicbackendinfo = "music_" + MUSIC_BACKEND
-	musicbackendinfo = music_get_info()
-
+' Return a description of the OS
+function get_system_info() as string
 	#ifdef __FB_DARWIN__
+		dim systeminfo as string
 		dim as integer response
 		'Note that we have to give the OSTypes backwards because we're little-endian
 		Gestalt(*cast(integer ptr, @"1sys"), @response)  'gestaltSystemVersionMajor
@@ -740,12 +735,15 @@ sub read_backend_info()
 		systeminfo &= response & "."
 		Gestalt(*cast(integer ptr, @"3sys"), @response)  'gestaltSystemVersionBugFix
 		systeminfo &= response
+		return systeminfo
 	#endif
 
 	#ifdef __FB_WIN32__
-		systeminfo = get_windows_runtime_info()
+		return get_windows_runtime_info()
 	#endif
-end sub
+
+	return ""
+end function
 
 '==============================================================================
 

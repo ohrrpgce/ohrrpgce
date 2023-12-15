@@ -1732,6 +1732,7 @@ end function
 
 
 sub setupmusic
+	debuginfo "Initialising music_" + musicbackend + "..."
 	music_init
 	sound_init
 	musicbackendinfo = music_get_info

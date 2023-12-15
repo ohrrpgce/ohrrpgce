@@ -25,9 +25,6 @@ debuginfo long_version & build_info
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
 debuginfo "orig_dir: " & orig_dir
 debuginfo "curdir: " & CURDIR
-' Load these three strings with info collectable before backend initialisation
-read_backend_info()
-debuginfo "Runtime info: gfx_" & gfxbackend & ": " & gfxbackendinfo & "  music_" & musicbackend & ": " & musicbackendinfo & "  " & systeminfo
 
 settings_dir = get_settings_dir()
 'documents_dir = get_documents_dir()  'may depend on app_dir
@@ -41,14 +38,12 @@ IF NOT isdir(tmpdir) THEN fatalerror "Unable to create temp directory " & tmpdir
 
 '======================= Initialise backends/graphics =========================
 
-
 load_gfx_defaults  'Loads master(), uilook(), boxlook(), current_font()
 
 set_resolution 320, 200
 setmodex
 
 IF music_file <> "" THEN
-	debuginfo musicbackendinfo  'Preliminary info before initialising backend
 	setupmusic
 
 	loadsong music_file
@@ -62,8 +57,7 @@ SUB draw_gfx(it as integer)
 
 	wrapprint long_version & build_info & !"\n" & _
 		  "gfx_" & gfxbackend & ": " & gfxbackendinfo & !"\n" & _
-		  "music_" & musicbackend & ": " & musicbackendinfo & !"\n" & _
-		  systeminfo, _
+		  "music_" & musicbackend & ": " & musicbackendinfo & _
 		  0, 20, , vpage
 
 	FOR radius as integer = 16 TO 80 STEP 8

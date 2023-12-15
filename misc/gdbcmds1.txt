@@ -10,8 +10,6 @@ define dumpstate
 	p GFXBACKENDINFO
 	echo MUSICBACKENDINFO:
 	p MUSICBACKENDINFO
-	echo SYSTEMINFO:
-	p SYSTEMINFO
 	echo Threads and backtrace:\n
 	info threads
 	bt

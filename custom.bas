@@ -136,13 +136,10 @@ END IF
 start_new_debug "Starting OHRRPGCE Custom"
 debuginfo DATE & " " & TIME
 debuginfo long_version & build_info
+debuginfo "sysinfo: " & get_system_info()
 debuginfo "exepath: " & EXEPATH & ", exe: " & COMMAND(0)
 debuginfo "orig_dir: " & orig_dir
 debuginfo "curdir: " & CURDIR
-' Load these three strings with info collectable before backend initialisation
-read_backend_info()
-debuginfo "Runtime info: gfx_" & gfxbackend & ": " & gfxbackendinfo & "  music_" & musicbackend & ": " & musicbackendinfo & "  " & systeminfo
-
 
 settings_dir = get_settings_dir()
 documents_dir = get_documents_dir()  'may depend on app_dir
@@ -184,7 +181,6 @@ unlock_resolution 320, 200   'Minimum window size
 setwindowtitle "O.H.R.RPG.C.E"
 showmousecursor
 
-debuginfo musicbackendinfo  'Preliminary info before initialising backend
 setupmusic
 
 'Cleanups/recovers any working.tmp for any crashed copies of Custom; requires graphics up and running
