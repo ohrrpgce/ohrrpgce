@@ -866,7 +866,7 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
   entering_fullscreen = (towindowed = NO ANDALSO windowedmode = YES)
   leaving_fullscreen = (towindowed = YES ANDALSO windowedmode = NO)
   IF entering_fullscreen THEN
-    remember_window_size = framesize * zoom
+    SDL_GetWindowSize(mainwindow, @remember_window_size.w, @remember_window_size.h)
     IF debugging_io THEN debuginfo "remembering window size " & remember_window_size
   END IF
 
@@ -914,11 +914,13 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
     'Likewise, on Windows if you change the zoom while fullscreened the window doesn't
     'restore its position when unfullscreening, though it does otherwise, and on xfce4.
     IF debugging_io THEN debuginfo "Restoring window size to " & remember_window_size
-    resize_request = large(min_window_resolution, remember_window_size \ zoom)
-    'If the remembered size isn't different, nothing to do
-    resize_requested = (resize_request <> framesize)
-    SDL_SetWindowSize mainwindow, resize_request.w * zoom, resize_request.h * zoom
-    frac_zoom = zoom
+    IF resizable_resolution THEN
+      resize_request = windowsize_to_resolution(remember_window_size)
+      'If the remembered size isn't different, nothing to do
+      resize_requested = (resize_request <> framesize)
+    END IF
+    SDL_SetWindowSize mainwindow, remember_window_size.w, remember_window_size.h
+    frac_zoom = remember_window_size.w / framesize.w
   END IF
 
   'Mouse region needs recomputing after either scale/zoom or window size change
