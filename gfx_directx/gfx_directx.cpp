@@ -173,6 +173,34 @@ DFI_IMPLEMENT_CDECL(WindowState*, gfx_getwindowstate)
 	return &winstate;
 }
 
+DFI_IMPLEMENT_CDECL(void, gfx_get_settings, GfxSettings &settings)
+{
+	settings.preserve_ratio = g_DirectX.isAspectRatioPreserved();
+	settings.bilinear = g_DirectX.isSmooth();
+	switch(g_DirectX.getImageFileFormat())
+	{
+	case D3DXIFF_JPG:  settings.screenshot_format = imJPEG; break;
+	case D3DXIFF_BMP:  settings.screenshot_format = imBMP;  break;
+	case D3DXIFF_PNG:  settings.screenshot_format = imPNG;  break;
+	case D3DXIFF_DDS:  settings.screenshot_format = imDDS;  break;
+	}
+	settings.vsync = g_DirectX.isVsyncEnabled();
+}
+
+DFI_IMPLEMENT_CDECL(void, gfx_set_settings, GfxSettings &settings)
+{
+	g_DirectX.setAspectRatioPreservation(!!settings.preserve_ratio);
+	g_DirectX.setSmooth(!!settings.bilinear);
+	switch(settings.screenshot_format)
+	{
+	case imJPEG: g_DirectX.setImageFileFormat(D3DXIFF_JPG); break;
+	case imBMP:  g_DirectX.setImageFileFormat(D3DXIFF_BMP); break;
+	case imPNG:  g_DirectX.setImageFileFormat(D3DXIFF_PNG); break;
+	case imDDS:  g_DirectX.setImageFileFormat(D3DXIFF_DDS); break;
+	}
+	g_DirectX.setVsyncEnabled(!!settings.vsync);
+}
+
 DFI_IMPLEMENT_CDECL(int, gfx_setoption, const char* opt, const char* arg)
 {
 	if(!opt || !arg)
