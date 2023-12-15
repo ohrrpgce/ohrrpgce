@@ -587,6 +587,28 @@ LOCAL SUB set_viewport(for_windowed as bool)
   END IF
 END SUB
 
+'Set the minimum resolution (when resizable_resolution) and the minimum window
+'size (which might be necessary before calling SDL_SetWindowSize).
+LOCAL SUB set_window_min_resolution(minres as XYPair = XY(0,0))
+  DIM minsize as XYPair
+  IF resizable_window = NO THEN
+    'The min window size may (depending on OS?) still be enforced (even on
+    'SDL_SetWindowSize) even if we disable resizing, so have to change it so setting a
+    'small zoom or frame size works. But passing zero width/height to
+    'SDL_SetWindowMinimumSize is invalid, so set to something tiny.
+    minsize = XY(MinResolutionX, MinResolutionY)
+  ELSEIF resizable_resolution THEN
+    'User resizes don't change the zoom
+    min_window_resolution = large(XY(MinResolutionX, MinResolutionY), minres)
+    minsize = min_window_resolution * zoom
+  ELSE
+    'Zoom can be changed to less than 1x, so just set an arbitrary lower limit
+    minsize = XY(MinResolutionX, MinResolutionY)
+  END IF
+  'debuginfo "SDL_SetWindowMinimumSize " & minsize
+  SDL_SetWindowMinimumSize(mainwindow, minsize.w, minsize.h)
+END SUB
+
 'Note that gfx_sdl2_set_window_size wraps this.
 'actually_resize can (and should) be false if the window was resized by the WM;
 'don't changing the size while the user is doing the same, as that causes some
@@ -603,11 +625,8 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer, actually_r
     'Note the windows's display is whichever one its center is on, which might change when it resizes
     DIM displayindex as integer = large(0, SDL_GetWindowDisplayIndex(mainwindow))
 
-    IF resizable_window THEN
-      DIM minsize as XYPair = min_window_resolution
-      IF resizable_resolution = YES THEN minsize *= zoom  'User resizes don't change the zoom
-      SDL_SetWindowMinimumSize(mainwindow, minsize.w, minsize.h)
-    END IF
+    'May be necessary even if the window isn't resizable
+    set_window_min_resolution min_window_resolution
 
     IF actually_resize THEN
       'If we're fullscreened, takes effect when unfullscreening (unless resizable_window,
@@ -962,25 +981,14 @@ FUNCTION gfx_sdl2_vsync_supported() as bool
   #ENDIF
 END FUNCTION
 
-FUNCTION gfx_sdl2_set_resizable(enable as bool, min_width as integer, min_height as integer) as bool
+'Set whether the *resolution* is user-resizable, and the min resolution. The window is always resizable.
+FUNCTION gfx_sdl2_set_resizable(enable as bool, min_width as integer = 0, min_height as integer = 0) as bool
   IF debugging_io THEN debuginfo "set_resizable " & enable
   resizable_resolution = enable
-  IF enable THEN resizable_window = enable
+  IF enable THEN resizable_window = YES
   IF mainwindow = NULL THEN RETURN resizable_resolution
 
-  'The min window size may (depending on OS?) still be enforced (even on
-  'SDL_SetWindowSize) even if we disable resizing, so have to change it so setting a
-  'small zoom or frame size works. But passing zero width/height to
-  'SDL_SetWindowMinimumSize is invalid, so set to something tiny.
-  DIM minsize as XYPair
-  IF enable THEN
-    min_window_resolution = large(XY(5, 5), XY(min_width, min_height))
-    minsize = min_window_resolution * zoom
-  ELSE
-    minsize = XY(10, 10)
-  END IF
-  'debuginfo "SDL_SetWindowMinimumSize " & minsize
-  SDL_SetWindowMinimumSize(mainwindow, minsize.w, minsize.h)
+  set_window_min_resolution XY(min_width, min_height)
 
   'Note: Can't change resizability of a fullscreen window; SDL just ignores the call.
   'We'll try again in gfx_sdl2_setwindowed
@@ -1253,7 +1261,10 @@ SUB gfx_sdl2_process_events()
         'if the window isn't focused, it does report mouse wheel button events
         '(other buttons focus the window).
 
-        SDL_CaptureMouse(YES)  'So that dragging off the window reports positions outside the window
+        'So that dragging off the window reports positions outside the window.
+        'Since SDL 2.0.22, the mouse is automatically captured (input is grabbed) when dragging off the window anyway.
+        SDL_CaptureMouse(YES)
+
         WITH evnt.button
           mouseclicks OR= SDL_BUTTON(.button)
           IF debugging_io THEN

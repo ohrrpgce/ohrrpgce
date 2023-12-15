@@ -185,8 +185,8 @@ extern Gfx_set_window_size as sub (byval newframesize as XYPair = XY(-1,-1), new
 extern Gfx_supports_variable_resolution as function () as bool
 '(optional) If a window resize was requested, returns true and sets ret. Otherwise must not modify ret.
 extern Gfx_get_resize as function (byref ret as XYPair) as bool
-'(optional) Enable or disable window resizing by the user, and optionally specify minimum window width/height
-'(not including the zoom factor), but width/height may not be supported!
+'(optional) Set whether the user can change the resolution by resizing the window, and optionally
+'(backend may not support it!) specify minimum resolution width/height (excluding the zoom factor).
 'If enable=NO then min_width/height are ignored. Also ignored if equal to 0.
 'Returns new resizability state: false if the backend doesn't support it.
 extern Gfx_set_resizable as function (enable as bool, min_width as integer, min_height as integer) as bool
