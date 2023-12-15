@@ -100,6 +100,8 @@ WHAT IS NEW?
       (dithered) and flicker less [Ralph]
     * Slice Editor Metadata section shows Screen X/Y and Draw timings [Ralph]
     * Attack extra data, for scripts [Holly]
+    * You can drag the borders of a game's window to resize it (gfx_sdl2 only).
+      Doesn't restrict to integer ratios. [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

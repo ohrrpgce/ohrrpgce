@@ -120,11 +120,12 @@ DIM SHARED screenbuffer as SDL_Surface ptr = NULL
 DIM SHARED last_bitdepth as integer   'Bitdepth of the last gfx_present call
 
 DIM SHARED windowedmode as bool = YES  'Windowed rather than fullscreen? (Should we trust this, or call SDL_GetWindowFlags?)
-DIM SHARED resizable as bool = NO
-DIM SHARED resize_requested as bool = NO    'gfx_get_resize called but gfx_present hasn't been called yet
-DIM SHARED resize_pending as bool = NO
+DIM SHARED resizable_window as bool = YES    '(Always true!) Allow user to change the window size, changing either the resolution or the scaling.
+DIM SHARED resizable_resolution as bool = NO 'Adjust resolution when the window size changes, rather than the scaling
+DIM SHARED resize_requested as bool = NO     'The window size has changed (usually by WM or gfx_set_window_size) but gfx_get_resize hasn't been called yet
+DIM SHARED resize_pending as bool = NO       'gfx_get_resize called after a resize, but gfx_present hasn't been called yet
 DIM SHARED resize_request as XYPair
-DIM SHARED min_window_resolution as XYPair = XY(10, 10)  'Used only if 'resizable' true. Excludes zoom factor.
+DIM SHARED min_window_resolution as XYPair = XY(10, 10)  'Used only if 'resizable_resolution' true. Excludes zoom factor.
 DIM SHARED remember_window_size as XYPair   'Remembered size before fullscreening
 DIM SHARED recenter_window_hint as bool = NO
 DIM SHARED remember_windowtitle as string
@@ -432,7 +433,7 @@ LOCAL FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
   mainwindow = NULL
 
   DIM flags as Uint32 = 0
-  IF resizable THEN flags = flags OR SDL_WINDOW_RESIZABLE
+  IF resizable_window THEN flags = flags OR SDL_WINDOW_RESIZABLE
   IF windowedmode = NO THEN
     'TODO: when "true fullscreen" is used and you quit from fullscreen using alt-F4, on linux/KDE at least,
     'the screen doesn't restore to its original resolution. So need to return to windowed mode when
@@ -499,6 +500,7 @@ LOCAL FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
   END IF
 
   'Whether to stick to integer scaling amounts when using SDL_RenderSetLogicalSize. SDL 2.0.5+
+  '(Turning this on just adds black bars around every edge when the window is a non-integer zooms, quite ugly.
   'SDL_RenderSetIntegerScale(mainrenderer, NO)
 
   set_viewport windowedmode
@@ -539,8 +541,9 @@ END FUNCTION
 'Set/update the part of the window/screen on which to draw the frame, including scaling and letterboxing.
 'for_windowed: true to set it for windowed mode, false for fullscreen
 LOCAL SUB set_viewport(for_windowed as bool)
-  IF for_windowed = NO THEN
-    'Fullscreen: Ask SDL to scale, center and letterbox automatically.
+  IF for_windowed = NO ORELSE resizable_resolution = NO THEN
+    'Fullscreen or stretchable window:
+    'Ask SDL to scale, center and letterbox automatically.
     '(Aspect ratio is always preserved. SDL_RenderSetIntegerScale is optional)
     'But this will lead to ugly wobbling while resizing a window.
     DIM buffersize as XYPair = get_buffersize
@@ -575,13 +578,14 @@ LOCAL SUB set_window_size(newframesize as XYPair, newzoom as integer, actually_r
     'Note the windows's display is whichever one its center is on, which might change when it resizes
     DIM displayindex as integer = large(0, SDL_GetWindowDisplayIndex(mainwindow))
 
-    IF resizable THEN
-      DIM minsize as XYPair = min_window_resolution * zoom
+    IF resizable_window THEN
+      DIM minsize as XYPair = min_window_resolution
+      IF resizable_resolution = YES THEN minsize *= zoom  'User resizes don't change the zoom
       SDL_SetWindowMinimumSize(mainwindow, minsize.w, minsize.h)
     END IF
 
     IF actually_resize THEN
-      'If we're fullscreened, takes effect when unfullscreening (unless resizable,
+      'If we're fullscreened, takes effect when unfullscreening (unless resizable_window,
       'in which case we restore previous size)
       SDL_SetWindowSize(mainwindow, zoom * framesize.w, zoom * framesize.h)
     END IF
@@ -854,17 +858,16 @@ SUB gfx_sdl2_setwindowed(byval towindowed as bool)
 
   IF leaving_fullscreen THEN
     'Changing resizability while fullscreened doesn't work, so do it now
-    SDL_SetWindowResizable(mainwindow, resizable)
+    SDL_SetWindowResizable(mainwindow, resizable_window)
     'gfx_sdl2_set_resizable resizable, min_window_resolution.w, min_window_resolution.h
   END IF
 
-  IF leaving_fullscreen ANDALSO resizable ANDALSO remember_window_size <> 0 THEN
+  IF leaving_fullscreen ANDALSO resizable_window ANDALSO remember_window_size <> 0 THEN
     'When you fulscreen while resizable the window size is maximised. While it automatically
     'unmaximises under X11/xfce4 (at least), this doesn't happen on WinXP or Win10, so do it manually.
     'Likewise, on Windows if you change the zoom while fullscreened the window doesn't
     'restore its position when unfullscreening, though it does otherwise, and on xfce4.
     IF debugging_io THEN debuginfo "Restoring window size to " & remember_window_size
-    DIM minsize as XYPair = min_window_resolution * zoom
     resize_request = large(min_window_resolution, remember_window_size \ zoom)
     'If the remembered size isn't different, nothing to do
     resize_requested = (resize_request <> framesize)
@@ -934,8 +937,9 @@ END FUNCTION
 
 FUNCTION gfx_sdl2_set_resizable(enable as bool, min_width as integer, min_height as integer) as bool
   IF debugging_io THEN debuginfo "set_resizable " & enable
-  resizable = enable
-  IF mainwindow = NULL THEN RETURN resizable
+  resizable_resolution = enable
+  IF enable THEN resizable_window = enable
+  IF mainwindow = NULL THEN RETURN resizable_resolution
 
   'The min window size may (depending on OS?) still be enforced (even on
   'SDL_SetWindowSize) even if we disable resizing, so have to change it so setting a
@@ -953,8 +957,8 @@ FUNCTION gfx_sdl2_set_resizable(enable as bool, min_width as integer, min_height
 
   'Note: Can't change resizability of a fullscreen window; SDL just ignores the call.
   'We'll try again in gfx_sdl2_setwindowed
-  SDL_SetWindowResizable(mainwindow, resizable)
-  RETURN resizable
+  SDL_SetWindowResizable(mainwindow, resizable_window)
+  RETURN resizable_resolution
 END FUNCTION
 
 FUNCTION gfx_sdl2_get_resize(byref ret as XYPair) as bool
@@ -1285,7 +1289,7 @@ SUB gfx_sdl2_process_events()
           'resets to cover the window, causing the image to momentarily stretch. Undo that
           IF windowedmode THEN set_viewport windowedmode
 
-          IF resizable THEN
+          IF resizable_resolution ANDALSO resizable_window THEN
             'Round upwards. TODO: This results in cut-off pixels around the screen edge,
             'and ideally we would resize the window to a multiple of the resolution.
             resize_request.w = (evnt.window.data1 + zoom - 1) \ zoom
@@ -1319,7 +1323,9 @@ SUB gfx_sdl2_process_events()
             'to change resizability while fullscreened) need to be overridden.
             IF windowedmode THEN
               IF debugging_io THEN debuginfo "set_window_size in response to SDL_WINDOWEVENT_RESIZED"
-              set_window_size framesize, zoom, YES
+              IF resizable_window = NO THEN
+                set_window_size framesize, zoom, YES
+              END IF
             END IF
           END IF
         END IF
