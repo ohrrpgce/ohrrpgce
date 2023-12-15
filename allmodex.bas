@@ -3522,17 +3522,70 @@ local sub allmodex_controls()
 		resume_recording_input
 	end if
 
-	'Some debug keys for working on resolution independence
+	'gfx backend/window settings
 	if keyval(scShift) > 0 and keyval(sc1) > 0 then
+		'Old testing keys
+		/'
 		if keyval(scRightBrace) > 1 then
 			set_resolution windowsize.w + 10, windowsize.h + 10
 		end if
 		if keyval(scLeftBrace) > 1 then
 			set_resolution windowsize.w - 10, windowsize.h - 10
 		end if
+		'/
+
+		'Change scaling settings
+		dim changed_scaling as bool
+		dim settings as GfxSettings
+		gfx_get_settings(settings)
+		if keyval(scU) > 1 then
+			settings.upscaler xor= 1
+			changed_scaling = YES
+		end if
+		if keyval(scB) > 1 then
+			settings.bilinear = iif(settings.bilinear, NO, YES)
+			changed_scaling = YES
+		end if
+		if keyval(scZ) > 1 then
+			loopvar settings.upscaler_zoom, 1, 4
+			changed_scaling = YES
+		end if
+		if changed_scaling then
+			gfx_set_settings(settings)
+			settings = GfxSettings()    'Zero out
+			gfx_get_settings(settings)  'Confirm what settings the backend actually supports
+			dim tempmsg as string
+			if settings.bilinear = NO then
+				tempmsg = "Nearest-neighbour "
+			elseif settings.upscaler = 0 andalso settings.upscaler_zoom >= 1 then
+				tempmsg = "1/" & settings.upscaler_zoom & " bilinear "
+			else
+				tempmsg = "Bilinear "
+			end if
+			if settings.upscaler > 0 then
+				tempmsg &= "+ " & settings.upscaler_zoom & "x upscaler "
+			end if
+			show_overlay_message tempmsg + "scaling"
+		end if
+
+		'Toggle window resizability independently of resolution resizability
+		/'
+		if keyval(scW) > 1 then
+			settings.resizable_window = iif(settings.resizable_window, NO, YES)
+			if gfx_try_set_settings(settings) then
+				show_overlay_message "Resizable window: " & yesorno(settings.resizable_window)
+			end if
+		end if
+		'/
+		'Toggle resolution resizability
 		if keyval(scR) > 1 then
 			'Note: there's also an option in the F8 menu in-game.
-			resizing_enabled = gfx_set_resizable(resizing_enabled xor YES, minwinsize.w, minwinsize.h)
+			if resizing_enabled then
+				lock_resolution
+			else
+				unlock_resolution 0, 0  'Loses the min window size setting
+			end if
+			show_overlay_message "Resizable resolution: " & yesorno(resizing_enabled)
 		end if
 	end if
 
