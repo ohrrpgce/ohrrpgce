@@ -3727,7 +3727,6 @@ local sub replay_menu ()
 	dim menu(...) as string = {"Resume Replay", "End Replay"}
 	dim choice as integer
 	pause_replaying_input
-	ensure_normal_palette
 	dim previous_speed as double = base_fps_multiplier
 	base_fps_multiplier = 1.
 	choice = multichoice("Stop replaying recorded input?", menu(), 0, 0)
@@ -3737,7 +3736,6 @@ local sub replay_menu ()
 	elseif choice = 1 then
 		stop_replaying_input "Playback cancelled."
 	end if
-	restore_previous_palette
 end sub
 
 'Controls available while replaying input.

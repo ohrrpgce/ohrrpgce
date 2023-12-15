@@ -235,6 +235,7 @@ DIM SHARED reported_a_bug as bool
 
 TYPE SavedGfxIOState
  prev_mouse_vis as CursorVisibility
+ vpages_were_32bit as bool
  resolution_was_unlocked as bool
  use_speed_control as bool
  vpage as integer
@@ -293,6 +294,10 @@ END SUB
 'the palette has been modified (e.g. for a scripted screen fade)
 'Call restore_previous_palette() before resuming (mandatory)
 'The ensure-restore calls can be nested.
+'
+'Use push_and_reset_gfxio_state() instead when you need to reset more than just the palette.
+'Use load_default_master_palette when being certain the user can read the screen is more important
+'than respecting customisations (ie. in showerror).
 SUB ensure_normal_palette ()
 #IFDEF IS_GAME
  'IF faded_in = NO THEN setpal master()  'Simpler solution
@@ -303,9 +308,12 @@ SUB ensure_normal_palette ()
  IF gam.ingame THEN
   DIM mpal(255) as RGBcolor
   loadpalette mpal(), gam.current_master_palette
+  'UI colors aren't editable with scripts, so don't care that we overwrite them.
+  LoadUIColors uilook(), boxlook(), gam.current_master_palette, mpal()
   setpal mpal()
  ELSE  'Haven't loaded a game yet
   setpal master()
+  'Already have default ui cols
  END IF
 #ENDIF
 END SUB
@@ -319,16 +327,21 @@ SUB restore_previous_palette ()
  ELSE
   setpal_to_color remember_faded_to_color
  END IF
+ 'Assume uilook(), boxlook() haven't changed and don't need reloading
 #ENDIF
 END SUB
 
 'Call this when opening an editor, menu, error message, etc, which should be shown
-'with working mouse, normal master palette, and resizable window.
+'with working mouse, unmodified (normal) master palette, and resizable window.
 'Mostly used in-game, but also useful in Custom since some menus hide the mouse cursor.
 'Note: this doesn't stop or pause replaying or recording an .ohrkeys file.
 SUB push_and_reset_gfxio_state ()
  REDIM PRESERVE gfxio_state_stack(-1 TO UBOUND(gfxio_state_stack) + 1)
  WITH gfxio_state_stack(UBOUND(gfxio_state_stack))
+  'Switch to 32-bit color so that changing the master palette doesn't distort colours
+  'of previous screen contents (holdscreen)
+  .vpages_were_32bit = vpages_are_32bit()
+  switch_to_32bit_vpages
   ensure_normal_palette
   .prev_mouse_vis = getcursorvisibility()
   showmousecursor
@@ -354,6 +367,11 @@ END SUB
 SUB pop_gfxio_state ()
  BUG_IF(UBOUND(gfxio_state_stack) < 0, "Unmatched call!")
  WITH gfxio_state_stack(UBOUND(gfxio_state_stack))
+  IF .vpages_were_32bit THEN
+   switch_to_32bit_vpages
+  ELSE
+   switch_to_8bit_vpages
+  END IF
   restore_previous_palette
   setcursorvisibility(.prev_mouse_vis)
   resume_mouserect
@@ -3376,14 +3394,14 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
 
  state.pt = defaultval
 
+ push_and_reset_gfxio_state  'Change to 32-bit, before copying vpage
+
  'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
  DIM holdscreen as integer
  holdscreen = allocatepage
  copypage vpage, holdscreen
 
  DIM have_help_file as bool = (LEN(*helpkey) > 0 ANDALSO isfile(*helpkey))
-
- push_and_reset_gfxio_state
  DO
   setwait 55
   setkeys
