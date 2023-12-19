@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2023-12-08">
+<plotscript version="wip" datecode="2023-12-19">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -3615,15 +3615,27 @@ gain hero stat(who, stat:mp, 0)</example>
 			<shortname>play song</shortname>
 			<description>Plays the specified song. Use the constants defined in your HSI file. They appear in the form of song:name</description>
 		</command>
+		<command id="playmusic">
+			<alias>playsong</alias>
+			<shortname>play music</shortname>
+		</command>
 		<command id="currentsong">
 			<canon>current song</canon>
 			<shortname>current song</shortname>
 			<description>Returns the number of the currently playing song, or -1 if none.</description>
 		</command>
+		<command id="currentmusic">
+			<alias>currentsong</alias>
+			<shortname>current music</shortname>
+		</command>
 		<command id="stopsong">
 			<canon>stop song</canon>
 			<shortname>stop song</shortname>
 			<description>Stops whatever music is currently playing.</description>
+		</command>
+		<command id="stopmusic">
+			<alias>stopsong</alias>
+			<shortname>stop music</shortname>
 		</command>
 		<command id="setvictorymusic">
 			<canon>set victory music (song)</canon>

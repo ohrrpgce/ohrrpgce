@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2023-12-08)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2023-12-19)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -764,6 +764,7 @@ function toggleContent(target) {
 		<a href="#about-crop" class="ref">crop</a><br>
 		<a href="#about-currentdisplaytile" class="ref">current display tile (tile number, layer)</a><br>
 		<a href="#about-currentmap" class="ref">current map</a><br>
+		<a href="#about-currentsong" class="ref">current music</a><br>
 		<a href="#about-currentsong" class="ref">current song</a><br>
 		<a href="#about-currentstat" class="ref">current stat</a><br>
 		<a href="#about-currenttextbox" class="ref">current text box</a><br>
@@ -1253,6 +1254,7 @@ function toggleContent(target) {
 		<a href="#about-putsprite" class="ref">place sprite</a><br>
 		<a href="#about-playerissuspended" class="ref">player is suspended</a><br>
 		<a href="#about-playernumber" class="ref">Player number</a><br>
+		<a href="#about-playsong" class="ref">play music</a><br>
 		<a href="#about-playsong" class="ref">play song (song)</a><br>
 		<a href="#about-playsound" class="ref">play sound (num, loop, preempt)</a><br>
 		<a href="#about-plotscript" class="ref">plotscript, name, argumentnames (statements)</a><br>
@@ -1600,6 +1602,7 @@ function toggleContent(target) {
 		<a href="#about-spritelayer" class="ref">sprite layer</a><br>
 		<a href="#about-sqrt" class="ref">sqrt (number)</a><br>
 		<a href="#about-statusscreen" class="ref">status screen (who)</a><br>
+		<a href="#about-stopsong" class="ref">stop music</a><br>
 		<a href="#about-stopslice" class="ref">stop slice (handle)</a><br>
 		<a href="#about-stopsong" class="ref">stop song</a><br>
 		<a href="#about-stopsound" class="ref">stop sound (num)</a><br>
@@ -7096,8 +7099,11 @@ gain hero stat(who, stat:mp, 0)</pre>
 <a href="#Music">Music</a><br>
 		<ul class="content-shown">
 		<a href="#about-playsong" class="ref">play song (song)</a><br>
+		<a href="#about-playsong" class="ref">play music</a><br>
 		<a href="#about-currentsong" class="ref">current song</a><br>
+		<a href="#about-currentsong" class="ref">current music</a><br>
 		<a href="#about-stopsong" class="ref">stop song</a><br>
+		<a href="#about-stopsong" class="ref">stop music</a><br>
 		<a href="#about-setvictorymusic" class="ref">set victory music (song)</a><br>
 		<a href="#about-getvictorymusic" class="ref">get victory music</a><br>
 		<a href="#about-setambientmusic" class="ref">set ambient music (song)</a><br>
@@ -7162,6 +7168,11 @@ gain hero stat(who, stat:mp, 0)</pre>
 		</p>
 </div>
 		<div class="command">
+			<a name="about-playmusic"></a>
+				<h4>play music</h4>
+				An alias for <a href="#about-playsong">play song</a>.
+			</div>
+		<div class="command">
 			<a name="about-currentsong"></a>
 				<h4>current song</h4>
 <p>
@@ -7172,6 +7183,11 @@ gain hero stat(who, stat:mp, 0)</pre>
 		</p>
 </div>
 		<div class="command">
+			<a name="about-currentmusic"></a>
+				<h4>current music</h4>
+				An alias for <a href="#about-currentsong">current song</a>.
+			</div>
+		<div class="command">
 			<a name="about-stopsong"></a>
 				<h4>stop song</h4>
 <p>
@@ -7181,6 +7197,11 @@ gain hero stat(who, stat:mp, 0)</pre>
 			
 		</p>
 </div>
+		<div class="command">
+			<a name="about-stopmusic"></a>
+				<h4>stop music</h4>
+				An alias for <a href="#about-stopsong">stop song</a>.
+			</div>
 		<div class="command">
 			<a name="about-setvictorymusic"></a>
 				<h4>set victory music (song)</h4>
@@ -23132,7 +23153,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 959 commands (of which 11 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 962 commands (of which 14 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

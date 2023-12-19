@@ -157,6 +157,8 @@ WHAT IS NEW?
     * "is shop buy menu empty" and "is shop hire menu empty" [James]
     * "suspend walkabouts", "resume walkabouts" and "walkabouts are suspended"
       [Ralph]
+    * "play music", "stop music", "current music" aliases to "play song",
+      "stop song", "current song"
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.
