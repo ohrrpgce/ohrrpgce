@@ -62,6 +62,7 @@ const char *trimpath(const char *filename) {
 }
 
 void send_lump_modified_msg(const char *filename) {
+#ifndef MINIMAL_OS
 	if (lump_updates_channel == NULL || *lump_updates_channel == NULL_CHANNEL)
 		return;
 	string buf = string("M ") + trimpath(filename) + "\n";
@@ -69,6 +70,7 @@ void send_lump_modified_msg(const char *filename) {
 	if (*lump_updates_channel == NULL_CHANNEL)
 		//Automatically shut down the show
 		clear_OPEN_hook();
+#endif
 }
 
 // This is now pointless

@@ -152,7 +152,12 @@ SUB DistribMenu.toplevel_menu()
 
  IF defitem_act("Export README text file") THEN export_readme_text_file
 
- #IFNDEF MINIMAL_OS
+ #IFDEF MINIMAL_OS
+
+  defunselectable "Packaging is unsupported on this platform"
+  defunselectable "Download a desktop copy of the OHRRPGCE."
+
+ #ELSE
 
  IF defitem_act("Export Windows .zip") THEN presave : distribute_game_as_windows_zip
 

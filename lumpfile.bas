@@ -1465,6 +1465,8 @@ function hook_all_files(filename as string, writable as boolint, writes_allowed 
 	return FilterActionEnum.hook
 end function
 
+#ifndef MINIMAL_OS
+
 'A crude synchronisation measure. Waits until receiving a message with the given prefix,
 'placing it in line_in, discarding everything else. Returns true on success
 function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as string, line_in as string = "", byval timeout_ms as integer = 500) as integer
@@ -1489,6 +1491,8 @@ function channel_wait_for_msg(byref channel as IPCChannel, wait_for_prefix as st
 		debug "warning: channel_wait_for_msg discarding message: " & line_in
 	loop
 end function
+
+#endif
 
 extern "C"
 

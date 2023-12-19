@@ -3556,6 +3556,12 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
 
  debuginfo "spawn_and_wait " + app + " " + args
 
+#IFDEF MINIMAL_OS
+
+ RETURN "Can't run programs on this platform"
+
+#ELSE
+
  DIM appname as string = trimpath(app)
 
  IF gfxbackend = "console" THEN
@@ -3735,6 +3741,8 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
 
 #ENDIF
 
+#ENDIF  'MINIMAL_OS
+
 END FUNCTION
 
 FUNCTION get_support_dir (create_dir as bool = YES) as string
@@ -3792,6 +3800,12 @@ FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, downlo
  'try_install currently only works on Windows, and not for all possible apps
  'download_url: only used if try_install is true, to override the default
 
+#IFDEF MINIMAL_OS
+
+ RETURN ""
+
+#ELSE
+
  DIM temp as string
 
  'Look in the installation directory... I think this is only to find hspeak on Windows and Unix.
@@ -3819,6 +3833,7 @@ FUNCTION find_helper_app (appname as zstring ptr, try_install as bool=NO, downlo
   try_app_path("/usr/share/games/ohrrpgce/" & *appname)
   try_app_path("/usr/share/ohrrpgce/" & *appname)
  #ENDIF
+#ENDIF
 END FUNCTION
 
 FUNCTION find_windows_helper_app (appname as string, try_install as bool=NO, download_url as string="") as string
@@ -4016,6 +4031,9 @@ END FUNCTION
 
 'Display message about missing utility
 FUNCTION missing_helper_message (appname as string) as string
+#IFDEF MINIMAL_OS
+ RETURN "Can't run programs on this platform"
+#ELSE
  DIM ret as string
  DIM mult as integer = INSTR(appname, " and ")
 
@@ -4041,6 +4059,7 @@ FUNCTION missing_helper_message (appname as string) as string
   END IF
  #ENDIF
  RETURN ret
+#ENDIF
 END FUNCTION
 
 SUB upgrade_message (s as string)

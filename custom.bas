@@ -2101,7 +2101,7 @@ EXTERN "C"
 END EXTERN
 
 SUB CreateProcess_tests()
-#IFDEF __FB_WIN32__
+#IF DEFINED(__FB_WIN32__) AND NOT DEFINED(MINIMAL_OS)
  DIM menu(3) as string
  menu(0) = "Get HSpeak version (run_and_get_output)"
  menu(1) = "Run madplay and get output (run_and_get_output)"

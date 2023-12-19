@@ -2572,8 +2572,11 @@ END FUNCTION
 'Returns the exit code, or -1 if it couldn't be run, or -2 if it timed out
 'NOTE: use instead run_and_get_output and check stderr if you want better ability to catch errors
 FUNCTION safe_shell (cmd as string, timeout as double = 5., log_it as bool = YES) as integer
+#IFDEF MINIMAL_OS
+  debuginfo "shell unsupported: " & cmd
+  RETURN -1
+#ELSEIF DEFINED(__FB_WIN32__)
   IF log_it THEN debuginfo cmd
-#IFDEF __FB_WIN32__
   'SHELL wraps system() which calls cmd.exe (or command.com on non-NT Windows)
   DIM handle as ProcessHandle
   IF is_windows_9x() THEN
@@ -2584,7 +2587,8 @@ FUNCTION safe_shell (cmd as string, timeout as double = 5., log_it as bool = YES
    handle = open_process("cmd.exe", "/C """ & cmd & """", YES, NO)
   END IF
   RETURN wait_for_process(@handle, timeout * 1000)
-#ELSE
+#ELSE  'Unix
+  IF log_it THEN debuginfo cmd
   ' Replacement for SHELL which checks the return code in more detail
   ' Doesn't timeout. Only implemented on Unix.
   RETURN checked_system(STRPTR(cmd))

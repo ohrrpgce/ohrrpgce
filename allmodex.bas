@@ -8755,6 +8755,8 @@ sub GIFRecorder.stop()
 	end if
 	dim msg as string = "Recorded " & trimpath(this.fname)
 
+#ifndef MINIMAL_OS
+
 	' Compress it using gifsicle, if available
 	dim gifsicle as string = find_helper_app("gifsicle")
 	if len(gifsicle) then
@@ -8773,6 +8775,8 @@ sub GIFRecorder.stop()
 		end if
 		cleanup_process(@handle)
 	end if
+
+#endif
 
 	show_overlay_message msg, 1.2
 end sub

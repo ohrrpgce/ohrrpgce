@@ -240,7 +240,12 @@ FUNCTION pick_ogg_quality(byref quality as integer, byref filter_high_freq as bo
  RETURN YES
 END FUNCTION
 
+'Convert an MP3 to an OGG.
+'Sets 'mp3' and 'oggtemp' to the path to the new file (indicating oggtemp is a temp file to be deleted)
 SUB import_convert_mp3(byref mp3 as string, byref oggtemp as string)
+#IFDEF MINIMAL_OS
+ notification !"Warning:\n" "Can't convert .mp3 files to .ogg on this platform, so the file will just be imported as an .mp3. It might not play in all builds of the OHRRPGCE, such as web ports."
+#ELSE
  DIM ogg_quality as integer
  DIM filter_high_freq as bool
  IF pick_ogg_quality(ogg_quality, filter_high_freq) = NO THEN mp3 = "" : EXIT SUB
@@ -261,9 +266,17 @@ SUB import_convert_mp3(byref mp3 as string, byref oggtemp as string)
   EXIT SUB
  END IF
  mp3 = oggtemp
+#ENDIF
 END SUB
 
+'Convert a WAV to an OGG.
+'Sets 'wav' and 'oggtemp' to the path to the new file (indicating oggtemp is a temp file to be deleted)
 SUB import_convert_wav(byref wav as string, byref oggtemp as string)
+#IFDEF MINIMAL_OS
+ notification "Can't encode .wav files to .ogg on this platform. Please encode it manually."
+ wav = ""
+#ELSE
+
  DIM ogg_quality as integer
  DIM filter_high_freq as bool
  IF pick_ogg_quality(ogg_quality, filter_high_freq) = NO THEN wav = "" : EXIT SUB
@@ -286,6 +299,7 @@ SUB import_convert_wav(byref wav as string, byref oggtemp as string)
   EXIT SUB
  END IF
  wav = oggtemp
+#ENDIF
 END SUB
 
 
