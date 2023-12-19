@@ -113,9 +113,12 @@ mac = False
 android = False
 web = False      # Emscripten (unix, minos)
 blackbox = False # Ratalaika Games' Blackbox emulation layer for Switch/PS/Xbox (win32, minos)
-minos = False    # Platforms with a minimal OS and no desktop environment, such as web or game consoles.
+minos = int(ARGUMENTS.get('minos', '0'))
+                 # Platforms with a minimal OS and no desktop environment, such as web or game consoles,
+                 # or we want to simulate such an OS.
                  # (#define MINIMAL_OS in FB/C/C)
                  # Expect that one of win32/unix/... is True telling which OS is most similar.
+                 # Link to os_minimal.bas plus also os_unix/windows/blackbox.
 
 android_source = False
 win95 = int(ARGUMENTS.get ('win95', '0'))
@@ -691,7 +694,11 @@ if target:
 
 if blackbox:
     FBFLAGS += ['-d', '__FB_BLACKBOX__']
-    NONFBC_CFLAGS += ['-DHOST_FB_BLACKBOX']
+    CFLAGS += ['-DHOST_FB_BLACKBOX']
+
+if minos:
+    FBFLAGS += ['-d', 'MINIMAL_OS']
+    CFLAGS += ['-DMINIMAL_OS']
 
 NO_PIE = '-no-pie'
 if android:
@@ -1200,13 +1207,21 @@ if web:
     commonenv['CCLINKFLAGS'] += emlinkflags
     commonenv['FBLINKERFLAGS'] += emlinkflags
 
-if not minos:
+if minos:
+    base_modules += ['os_minimal.bas']
+else:
     # os_sockets.c is OS-specific but shared by Windows (winsock) and Unix.
     base_modules += ['os_sockets.c', 'networkutil.bas']
 
 if win32:
-    base_modules += ['os_windows.bas', 'os_windows2.c', 'gfx_common/win_error.c']
-    if not minos:
+    if minos:
+        if not blackbox:
+            # Blackbox has a private os_blackbox.cpp. Otherwise, we use just a few functions from os_windows.bas
+            base_modules += ['os_windows.bas', 'gfx_common/win_error.c']
+        if 'fb' in gfx:
+            base_libraries += ['gdi32', 'winmm']
+    else:
+        base_modules += ['os_windows.bas', 'os_windows2.c', 'gfx_common/win_error.c']
         base_modules += ['lib/win98_compat.bas', 'lib/msvcrt_compat.c']
         # winmm needed for MIDI, used by music backends but also by miditest
         # psapi.dll needed just for get_process_path() and memory_usage(). Not present on Win98 unfortunately,
@@ -1262,11 +1277,14 @@ elif android:
     base_modules += ['os_unix.c', 'os_unix2.bas']
     common_modules += ['os_unix_wm.c', 'android/sdlmain.c']
 elif unix:  # Unix+X11 systems: Linux & BSD
-    if not minos:
+    if minos:
+        # Only a small number of functions in os_unix.c are used, most are defined in os_minimal.bas
+        base_modules += ['os_unix.c']
+    else:
         base_libraries += ['dl']
-    base_modules += ['os_unix.c', 'os_unix2.bas']
-    # os_unix_wm.c is mostly stubs if not USE_X11 and not mac
-    common_modules += ['os_unix_wm.c']
+        base_modules += ['os_unix.c', 'os_unix2.bas']
+        # os_unix_wm.c is mostly stubs if not USE_X11 and not mac
+        common_modules += ['os_unix_wm.c']
     if portable:
         # To support old libstdc++.so versions
         base_modules += ['lib/stdc++compat.cpp']
@@ -1277,13 +1295,16 @@ elif unix:  # Unix+X11 systems: Linux & BSD
     if not minos and ('sdl' in gfx or 'fb' in gfx):
         # These files are taken from SDL2, so gfx_sdl2 doesn't need them
         common_modules += ['lib/SDL/SDL_x11clipboard.c', 'lib/SDL/SDL_x11events.c']
+    X11 = True
     if gfx == ['console'] or minos:
+        X11 = False
         commonenv['FBFLAGS'] += ['-d', 'NO_X11']
         commonenv['CFLAGS'] += ['-DNO_X11']
     else:
+        common_modules += ['lib/x11_printerror.c']
+    if X11 or 'fb' in gfx:
         # All graphical gfx backends need the X11 libs
         common_libraries += 'X11 Xext Xpm Xrandr Xrender Xinerama'.split (' ')
-        common_modules += ['lib/x11_printerror.c']
     if 'console' in gfx and portable:
         print("gfx=console is not compatible with portable=1, which doesn't link to ncurses.")
         Exit(1)
@@ -1975,6 +1996,8 @@ Options:
                       library compiled for the target platform.
   portable=1          (For Linux and BSD) Try to build portable binaries, and
                       check library dependencies.
+  minos=1             Simulate a web or console OS by linking to os_minimal.bas
+                      and disabling 'desktop' features like spawning programs.
   win95=1             (For Windows) Support old Windows versions. (By default
                       stock Win95 isn't supported.) Changes default backends.
 

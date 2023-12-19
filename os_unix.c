@@ -65,10 +65,6 @@ void os_init() {
 	main_thread_handle = pthread_self();
 }
 
-boolint is_windows_9x() {
-	return false;
-}
-
 
 // msg is newline-terminated
 void external_log(const char *msg) {
@@ -80,10 +76,33 @@ void external_log(const char *msg) {
 #endif
 }
 
+void os_open_logfile(const char *path) {
+	os_close_logfile();
+	logfile_fd = open(path, O_WRONLY | O_APPEND);
+	if (logfile_fd < 0)
+		debug(errError, "os_open_logfile %s: %s", path, strerror(errno));
+}
+
+void os_close_logfile() {
+	if (logfile_fd >= 0)
+		close(logfile_fd);
+	logfile_fd = -1;
+}
+
+// Not used on Unix.
+//void error_message_box(const char *msg) {
+//}
+
+#ifndef MINIMAL_OS
+
 static long long milliseconds() {
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	return (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
+
+boolint is_windows_9x() {
+	return false;
 }
 
 int memory_usage() {
@@ -158,6 +177,8 @@ void fatal_signal_handler(int signum, siginfo_t *si, void *ucontext) {
 	fb_error_hook(buf, siginfo->interrupt_signal);
 }
 
+#endif  // not MINIMAL_OS
+
 // This overrides the signal handler installed by FB runtime for most of these.
 // There are some small benefits to using our own handler:
 // -we can print the signal code (meaning varies by signal) and faulting address
@@ -186,19 +207,6 @@ boolint setup_exception_handler() {
 	sigaction(SIGQUIT, &sa, NULL);  // C-\ on terminal
 	return YES;
 #endif
-}
-
-void os_open_logfile(const char *path) {
-	os_close_logfile();
-	logfile_fd = open(path, O_WRONLY | O_APPEND);
-	if (logfile_fd < 0)
-		debug(errError, "os_open_logfile %s: %s", path, strerror(errno));
-}
-
-void os_close_logfile() {
-	if (logfile_fd >= 0)
-		close(logfile_fd);
-	logfile_fd = -1;
 }
 
 #define BT_BUF_SIZE 64
@@ -239,10 +247,12 @@ boolint save_backtrace(boolint show_message) {
 }
 
 // Returns true if it was possible to try to send a report (even if the user cancelled)
-boolint send_bug_report (const char *msg) {
+boolint send_bug_report(const char *msg) {
 	// Unimplemented
 	return NO;
 }
+
+#ifndef MINIMAL_OS
 
 // Like FB's dylibload except it doesn't load the library if it isn't already, and
 // requires the full filename for a dynamic library ("libfoo.so", not "foo").  But the
@@ -262,6 +272,8 @@ void *dylib_noload(const char *libname) {
 	//	debug(errInfo, "dlopen(%s) fail: %s", libname, dlerror());
 	return ret;
 }
+
+#endif  // not MINIMAL_OS
 
 
 //==========================================================================================
@@ -371,6 +383,8 @@ array_t list_subdirs (FBSTRING *searchdir, FBSTRING *nmask, int showhidden) {
 	return list_files_or_subdirs(searchdir, nmask, showhidden, 1);
 }
 
+#ifndef MINIMAL_OS
+
 int drivelist (void *drives_array) {
 	// on Unix there is only one drive, the root /
 	return 0;
@@ -387,6 +401,8 @@ int isremovable (FBSTRING *drive) {
 int hasmedia (FBSTRING *drive) {
 	return 0;
 }
+
+#endif  // not MINIMAL_OS
 
 /*
 boolint setwriteable (FBSTRING *fname) {
@@ -470,6 +486,7 @@ boolint os_rename(const char *source, const char *destination) {
 //                                    Advisory locking
 //==========================================================================================
 
+#ifndef MINIMAL_OS
 
 static int lock_file_base(FILE *fh, int timeout_ms, int flag, const char *funcname, const char *filename) {
 	int fd = fileno(fh);
@@ -522,11 +539,14 @@ void unlock_file(FILE *fh) {
 	flock(fileno(fh), LOCK_UN);
 }
 
+#endif  // not MINIMAL_OS
+
 
 //==========================================================================================
 //                               Inter-process communication
 //==========================================================================================
 
+#ifndef MINIMAL_OS
 
 //FBSTRING *channel_pick_name(const char *id, const char *tempdir, const char *rpg) {
 //	  FBSTRING *ret;
@@ -895,18 +915,16 @@ bool file_ready_to_read(int fd) {
 	return false;
 }
 
+#endif  // not MINIMAL_OS
 
 //==========================================================================================
 //                                       Processes
 //==========================================================================================
 
+#ifndef MINIMAL_OS
 
 // Interpret system() return value. Returns exit code or -1 on error.
 int checked_system(const char* cmdline) {
-#if defined(MINIMAL_OS)
-	debug(errError, "Ignoring system(): %s", cmdline);
-	return -1;
-#else
 	int waitstatus = system(cmdline);
 	int ret = -1;
 	if (waitstatus == -1)
@@ -922,7 +940,6 @@ int checked_system(const char* cmdline) {
 	else
 		debug(errError, "system(%.30s...): unknown return %d", cmdline, waitstatus);
 	return ret;
-#endif
 }
 
 //Partial implementation. The returned process handle can't be used for much
@@ -935,7 +952,7 @@ int checked_system(const char* cmdline) {
 //waitable is true if you want cleanup_process to wait for the command to finish (ignored on
 //           Windows: always waitable)
 ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable, boolint show_output) {
-#if defined(__ANDROID__) || defined(MINIMAL_OS)
+#if defined(__ANDROID__)
 	// Early versions of the NDK don't have popen
 	return 0;
 #else
@@ -986,7 +1003,7 @@ ProcessHandle open_process (FBSTRING *program, FBSTRING *args, boolint waitable,
 // to this version, which can't pipe multiple programs,
 // and there is no Windows implementation of this function.
 int run_process_and_get_output(FBSTRING *program, FBSTRING *args, FBSTRING *output) {
-#if defined(__ANDROID__) || defined(MINIMAL_OS)
+#if defined(__ANDROID__)
 	// Early versions of the NDK don't have popen
 	return -1;
 #else
@@ -1072,7 +1089,7 @@ void kill_process (ProcessHandle process) {
 //Cleans up resources associated with a ProcessHandle
 void cleanup_process (ProcessHandle *processp) {
 	// Early versions of the NDK don't have popen
-#if !defined(__ANDROID__) && !defined(MINIMAL_OS)
+#if !defined(__ANDROID__)
 	if (processp && *processp) {
 		if ((*processp)->file)
 			pclose((*processp)->file); //FIXME: don't use popen/close, parent will freeze if the child does
@@ -1083,11 +1100,7 @@ void cleanup_process (ProcessHandle *processp) {
 }
 
 int get_process_id () {
-#if defined(MINIMAL_OS)
-	return 0;
-#else
 	return getpid();
-#endif
 }
 
 // A breakpoint
@@ -1095,10 +1108,14 @@ void interrupt_self () {
 	raise(SIGINT);
 }
 
+#endif   // not MINIMAL_OS
+
 
 //==========================================================================================
 //                                       Threading
 //==========================================================================================
+
+#ifndef NO_TLS
 
 // pthread_key_t can be anything.
 // On Linux and Windows, the TLS key is actually only 4 bytes, but we make TLSKey
@@ -1110,13 +1127,6 @@ _Static_assert(sizeof(pthread_key_t) <= sizeof(void*), "Hacky pthread_key_t assu
 boolint on_main_thread() {
 	return pthread_equal(pthread_self(), main_thread_handle) ? YES : NO;
 }
-
-
-#ifdef NO_TLS
-
-// Thread local storage functions aren't called
-
-#else
 
 TLSKey tls_alloc_key() {
 	pthread_key_t key;
@@ -1139,4 +1149,4 @@ void tls_set(TLSKey key, void *value) {
 	pthread_setspecific((pthread_key_t)key, value);
 }
 
-#endif
+#endif  // not NO_TLS

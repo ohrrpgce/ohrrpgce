@@ -81,6 +81,8 @@ bool file_ready_to_read(int fileno);
 
 //Threads
 
+#ifndef NO_TLS
+
 boolint on_main_thread();
 
 typedef intptr_t TLSKey;
@@ -89,6 +91,8 @@ TLSKey tls_alloc_key();
 void tls_free_key(TLSKey key);
 void *tls_get(TLSKey key);
 void tls_set(TLSKey key, void *value);
+
+#endif
 
 //Processes
 

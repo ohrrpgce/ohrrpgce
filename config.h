@@ -32,7 +32,10 @@
 */
 
 #if defined(__EMSCRIPTEN__) || defined(HOST_FB_BLACKBOX)
-# define MINIMAL_OS
+// Can also be defined by compiler arg, in "scons minos=1" builds
+# ifndef MINIMAL_OS
+#  define MINIMAL_OS
+# endif
 #endif
 
 #if defined(MINIMAL_OS)

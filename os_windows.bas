@@ -24,6 +24,8 @@ include_windows_bi()
 #include "util.bi"
 #include "const.bi"
 
+#ifndef MINIMAL_OS
+
 'Try to load CrashRpt*.dll on startup.
 'You should build with pdb=1, and keep the generated .pdb files.
 'The scons debug=... setting doesn't matter; debug=0 to strip all symbols is fine,
@@ -42,6 +44,8 @@ include_windows_bi()
 'Only has an effect if WITH_DRMINGW defined: Try to load exchndl.dll at startup,
 'instead of being statically linked.
 #define DYNAMIC_DRMINGW
+
+#endif
 
 #if defined(WITH_DRMINGW)
 	#if defined(DYNAMIC_DRMINGW)
@@ -122,6 +126,8 @@ end function
 
 extern "C"
 
+#ifndef MINIMAL_OS
+
 'Returns true only on Windows 95, 98 and ME
 function is_windows_9x () as bool
 	static cached as integer = -2   'I did not bother to test whether a cache is needed
@@ -185,6 +191,8 @@ function is_console_program () as boolint
 end function
 '/
 
+#endif  ' not MINIMAL_OS
+
 sub os_init ()
 	main_thread_id = GetCurrentThreadId()
 
@@ -204,7 +212,6 @@ sub os_init ()
 	end if
 end sub
 
-'Currently Android only
 sub external_log (msg as const zstring ptr)
 end sub
 
@@ -214,6 +221,12 @@ end sub
 
 sub os_close_logfile ()
 	update_crash_report_file NULL
+end sub
+
+#ifndef MINIMAL_OS
+
+sub error_message_box(msg as const zstring ptr)
+	MessageBoxA(NULL, msg, "OHRRPGCE Error", MB_OK or MB_ICONERROR)
 end sub
 
 #macro GET_MEMORY_INFO(memctrs, on_error)
@@ -244,10 +257,6 @@ function memory_usage_string() as string
 	       & " nonpaged=" & memctrs.QuotaNonPagedPoolUsage
 end function
 
-sub error_message_box(msg as zstring ptr)
-	MessageBoxA(NULL, msg, "OHRRPGCE Error", MB_OK or MB_ICONERROR)
-end sub
-
 ' Like FB's dylibload except it doesn't load the library if it isn't already.
 ' The ".dll" suffix on the name is optional and it can include a path.
 ' Use with FB's dylibsymbol and dylibfree.
@@ -265,6 +274,8 @@ function dylib_noload(libname as const zstring ptr) as any ptr
 	end if
 	return handle
 end function
+
+#endif  ' not MINIMAL_OS
 
 '==========================================================================================
 '                                   Exception Handling
@@ -380,6 +391,7 @@ end function
 'Installs one or two of three different possible handlers for unhandled exceptions.
 'Returns true if we installed an exception handler
 function setup_exception_handler() as boolint
+#ifndef MINIMAL_OS
 	'Install a default exception handler to show a useful message on a crash.
 	'If we're using crashrpt:
 	'CrashRpt will handle the crash - if we successfully found and loaded it -
@@ -388,6 +400,7 @@ function setup_exception_handler() as boolint
 	'exchndl will call any preexisting exception handler after its own runs.
 	'(Note: this won't work if libexchndl.a is statically linked)
         SetUnhandledExceptionFilter(@exceptFilterMessageBox)
+#endif
 
 #if defined(WITH_CRASHRPT)
 	'Load CrashRpt, which connects to CrashSender.exe, an out-of-process exception
@@ -429,6 +442,7 @@ function setup_exception_handler() as boolint
 	update_crash_report_file NULL
 	return YES
 #endif
+	return NO
 end function
 
 local sub update_crash_report_file(path as const zstring ptr)
@@ -472,11 +486,14 @@ function send_bug_report (msg as const zstring ptr) as boolint
 	return NO
 end function
 
+#ifndef MINIMAL_OS
+
 ' A breakpoint
 sub interrupt_self ()
 	DebugBreak
 end sub
 
+#endif
 
 '==========================================================================================
 '                                       Filesystem
@@ -574,6 +591,8 @@ function os_get_documents_dir() as string
 	return "C:\"
 end function
 
+#ifndef MINIMAL_OS
+
 function drivelist (drives() as string) as integer
 	dim drivebuf as zstring * 1000
 	dim drivebptr as zstring ptr
@@ -630,6 +649,8 @@ function setwriteable (fname as string, towhat as bool) as bool
 	return YES
 end function
 
+#endif  ' not MINIMAL_OS
+
 'A file copy function which deals safely with the case where the file is open already (why do we need that?)
 'Returns true on success.
 function copy_file_replacing(byval source as zstring ptr, byval destination as zstring ptr) as boolint
@@ -685,6 +706,8 @@ end function
 '==========================================================================================
 ' (Actually mandatory on Windows)
 
+#ifndef MINIMAL_OS
+
 'filename is only for debugging
 local function lock_file_base (fh as CFILE_ptr, timeout_ms as integer, flag as integer, funcname as zstring ptr, filename as zstring ptr) as integer
 	dim fhandle as HANDLE = get_file_handle(fh)
@@ -724,11 +747,14 @@ function test_locked (filename as string, byval writable as integer) as integer
 	return 0
 end function
 
+#endif  ' not MINIMAL_OS
+
 
 '==========================================================================================
 '                               Inter-process communication
 '==========================================================================================
 
+#ifndef MINIMAL_OS
 
 type NamedPipeInfo
   fh as HANDLE         'Write end of the pipe. Used for writing
@@ -940,9 +966,13 @@ function file_ready_to_read(fileno as integer) as boolean
 	return false  'Not implemented
 end function
 
+#endif  ' not MINIMAL_OS
+
 '==========================================================================================
 '                                       Processes
 '==========================================================================================
+
+#ifndef MINIMAL_OS
 
 extern CreateProc_opts as integer
 dim CreateProc_opts as integer
@@ -1272,10 +1302,14 @@ function os_open_document (filename as string) as string
 	return ""
 end function
 
+#endif  ' not MINIMAL_OS
+
 
 '==========================================================================================
 '                                       Threading
 '==========================================================================================
+
+#ifndef NO_TLS
 
 function on_main_thread () as bool
 	return GetCurrentThreadId() = main_thread_id
@@ -1302,5 +1336,6 @@ sub tls_set(key as TLSKey, value as any ptr)
 	TlsSetValue(cast(DWORD, key), value)
 end sub
 
+#endif
 
 end extern

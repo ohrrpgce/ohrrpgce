@@ -19,7 +19,7 @@ declare function get_wine_version () as zstring ptr
 declare function get_windows_version () as string
 declare function get_windows_runtime_info () as string
 declare function win_error_str(errcode as integer = -1) as zstring ptr
-declare sub error_message_box(msg as zstring ptr)
+declare sub error_message_box(msg as const zstring ptr)
 #endif
 
 declare sub os_init ()
@@ -167,7 +167,7 @@ declare function get_process_name (pid as integer) as string
 
 'WM and screen
 
-'Only implemented for X11 and Windows, sets to 0 otherwise or on error
+'Only implemented for X11, OSX and Windows, sets to 0 otherwise or on error
 'NOTE: call get_screen_size instead of this.
 declare sub os_get_screen_size(wide as integer ptr, high as integer ptr)
 
