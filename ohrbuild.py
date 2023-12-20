@@ -579,8 +579,8 @@ def copy_source_actions(source, target, env, for_signature):
     for node in source:
         # Get all headers included (directly or indirectly)
         headers = node.get_implicit_deps(env, None, lambda scanner: (node.srcnode().get_dir(),) )
-        #def scstr(x): return ",".join(str(y) for y in x)
-        #print("node", str(node), "sources", scstr(node.sources), "headers", scstr(headers))
+        def scstr(x): return ",".join(str(y) for y in x)
+        print("node", str(node), "sources", scstr(node.sources), "headers", scstr(headers))
         all_files.update([node] + headers)
 
     processed_dirs = set()
