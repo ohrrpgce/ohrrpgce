@@ -5,8 +5,8 @@
 #include "config.bi"
 
 #ifdef __FB_WIN32__
-	'In FB >= 1.04 SDL.bi includes windows.bi; we have to include it first to do the necessary conflict prevention
-	include_windows_bi()
+  'In FB >= 1.04 SDL.bi includes windows.bi; we have to include it first to do the necessary conflict prevention
+  include_windows_bi()
 #endif
 
 #include "crt.bi"
@@ -20,11 +20,16 @@
 '#define NEED_SDL_GETENV
 
 #ifdef __FB_UNIX__
-	'In FB >= 1.04 SDL.bi includes Xlib.bi; fix a conflict
-	#undef font
+  'In FB >= 1.04 SDL.bi includes Xlib.bi; fix a conflict
+  #undef font
 #endif
 
 #include "SDL2\SDL.bi"
+
+#ifdef __FB_BLACKBOX__
+  'Always run at 1x zoom, ignoring all resize requests (Blackbox handles the scaling)
+  #define NO_ZOOM
+#endif
 
 EXTERN "C"
 
@@ -114,7 +119,11 @@ DECLARE FUNCTION scOHR2SDL(byval ohr_scancode as KBScancode, byval default_sdl_s
 DECLARE SUB log_error(failed_call as zstring ptr, funcname as zstring ptr)
 #define CheckOK(condition, otherwise...)  IF condition THEN log_error(#condition, __FUNCTION__) : otherwise
 
+#ifdef NO_ZOOM
+CONST zoom = 1
+#else
 DIM SHARED zoom as double = 2                '(Average) size of a pixel
+#endif
 DIM SHARED smooth as integer = 0             'Upscaler to use: 0 (nearest-neighbour) or 1 (smooth)
 DIM SHARED upscaler_zoom as integer = 2      'Amount of upscaler zoom, before stretching result to the window
 DIM SHARED bilinear as bool = NO             'Use bilinear smoothing to stretch to window
@@ -472,12 +481,14 @@ LOCAL FUNCTION recreate_window(byval bitdepth as integer = 0) as bool
     mainwindow = SDL_CreateWindow(remember_windowtitle, windowpos, windowpos, _
                                   windowsize.w, windowsize.h, flags)
     IF mainwindow = NULL THEN
+#ifndef NO_ZOOM
       'This crude hack won't work for everyone if the SDL error messages are internationalised...
       IF zoom > 1 ANDALSO strstr(SDL_GetError(), "No video mode large enough") THEN
         debug "Failed to open display (windowed = " & windowedmode & ") (retrying with smaller zoom): " & *SDL_GetError
         zoom -= 1
         CONTINUE DO
       END IF
+#endif
       debug "Failed to open display (windowed = " & windowedmode & "): " & *SDL_GetError
       RETURN 0
     END IF
@@ -621,7 +632,9 @@ END SUB
 'window resize events to get lost on KDE (bug #1190)
 LOCAL SUB set_window_size(newframesize as XYPair, newzoom as double, actually_resize as bool)
   framesize = newframesize
-  zoom = newzoom
+  #ifndef NO_ZOOM
+    zoom = newzoom
+  #endif
 
   IF debugging_io THEN
     debuginfo "set_window_size " & newframesize & " x" & newzoom

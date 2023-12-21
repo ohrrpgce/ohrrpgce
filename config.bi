@@ -125,7 +125,9 @@ CONST build_info as string = _GSTR _ESTR " FB_ERR=" STRINGIFY(__FB_ERR__) _GENST
  'Platforms such as web and game consoles without a normal OS. Make minimal
  'demands of the OS, don't try to use multiple processes, signals, TCP/IP stack, ...
  'Can also be defined by compiler arg, in "scons minos=1" builds
- #define MINIMAL_OS
+ #ifndef MINIMAL_OS
+  #define MINIMAL_OS
+ #endif
 #endif
 
 #if defined(MINIMAL_OS)
