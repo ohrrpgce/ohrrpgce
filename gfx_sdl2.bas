@@ -823,7 +823,10 @@ LOCAL FUNCTION present_internal2(srcsurf as SDL_Surface ptr, raw as any ptr, ima
 
   'Clearing the screen first is necessary in fullscreen, when the window size may not match the maintexture size
   '(this clears the black bars)
-  SDL_RenderClear(mainrenderer)
+  '(This has a cost. Could probably be skipped on some other targets too?)
+  #ifndef __FB_BLACKBOX__
+    SDL_RenderClear(mainrenderer)
+  #endif
   'DIM dstrect as SDL_Rect = (0, 0, framesize.w * zoom, framesize.h * zoom) 'imagew, imageh
   CheckOK(SDL_RenderCopy(mainrenderer, maintexture, NULL, NULL /'@dstrect'/), ret = NO)
   SDL_RenderPresent(mainrenderer)
