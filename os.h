@@ -116,6 +116,8 @@ void blackbox_request_account_picker();
 void blackbox_start_story();
 void blackbox_end_story();
 void blackbox_set_rich_presence(const char *token_id, const char *substitution);
+double blackbox_native_framerate();
+void blackbox_wait_one_frame();
 #endif
 
 

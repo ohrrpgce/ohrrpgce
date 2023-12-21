@@ -219,6 +219,33 @@ type SkippedFrame
 	declare sub show()
 end type
 
+#ifdef __FB_BLACKBOX__
+	#define BACKEND_GOVERNED_FRAMERATE
+#endif
+
+#ifdef BACKEND_GOVERNED_FRAMERATE
+	#define frame_timer frame_pseudo_timer
+
+	#ifdef __FB_BLACKBOX__
+		#define gfx_native_framerate blackbox_native_framerate
+		#define gfx_wait_one_frame blackbox_wait_one_frame
+	#else
+		'TODO: add gfx function pointers
+		extern "C"
+		declare function gfx_sdl2_native_framerate() as double
+		declare sub gfx_sdl2_wait_one_frame()
+		end extern
+		#define gfx_native_framerate gfx_sdl2_native_framerate
+		#define gfx_wait_one_frame gfx_sdl2_wait_one_frame
+	#endif
+
+#else
+	#define frame_timer timer
+#endif
+
+#ifdef BACKEND_GOVERNED_FRAMERATE
+dim shared frame_pseudo_timer as double
+#endif
 dim shared waittime as double
 dim shared flagtime as double = 0.0
 dim shared setwait_called as bool
@@ -1245,7 +1272,7 @@ end sub
 function should_skip_frame() as bool
 	static lastframe as double
 	'Make sure we still draw under --runfast
-	if timer > lastframe + 1. / max_display_fps then
+	if frame_timer > lastframe + 1. / max_display_fps then
 		lastframe = timer
 		return NO
 	end if
@@ -1259,7 +1286,7 @@ function should_skip_frame() as bool
 	if fmod(frame_index, frames_per_gfx_present) > 1 then
 		return YES
 	end if
-	lastframe = timer
+	lastframe = frame_timer
 
 	'Maybe we should have an option to also skip frames if we're running at
 	'100% cpu, although that will only save a little time because we still
@@ -1352,6 +1379,10 @@ sub setvispage (page as integer, skippable as bool = YES)
 	end if
 
 	GFX_EXIT
+
+	#ifdef BACKEND_GOVERNED_FRAMERATE
+		frame_pseudo_timer += 1 / gfx_native_framerate()
+	#endif
 
 	#ifdef SIMULATE_BLOCKING_VSYNC
 		'For testing: simulate gfx_present blocking until vsync.
@@ -1660,7 +1691,7 @@ sub setwait (ms as double, flagms as double = 0)
 	ms /= fps_multiplier
 	'flagms /= fps_multiplier
 	requested_framerate = 1000. / ms
-	dim thetime as double = timer
+	dim thetime as double = frame_timer
 	dim target as double
 	'This clamping also is needed on the first tick to initialize waittime
 	target = bound(waittime + ms / 1000, thetime + 0.5 * ms / 1000, thetime + 1.5 * ms / 1000)
@@ -1683,7 +1714,7 @@ end sub
 'Returns seconds left until the deadline set by the last setwait. Will
 'be negative if it's already been missed.
 function setwait_time_remaining() as double
-	return waittime - timer
+	return waittime - frame_timer
 end function
 
 ' Returns number of dowait calls
@@ -1698,13 +1729,18 @@ function dowait () as bool
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
 	tickcount += 1
 	global_tog XOR= 1
-	dim starttime as double = timer
-	do while timer <= waittime - 0.0005
+	dim starttime as double = frame_timer
+	do while frame_timer <= waittime - 0.0005
 		var prev_subtimer = main_timer.switch(TimerIDs.IOBackend)
 		io_waitprocessing()
 		Steam.run_frame  'FIXME: what if we're overtime?
 		main_timer.switch(TimerIDs.Pause)
-		sleep bound((waittime - timer) * 1000, 1, 5)
+		#ifdef BACKEND_GOVERNED_FRAMERATE
+			gfx_wait_one_frame()
+			frame_pseudo_timer += 1 / gfx_native_framerate()
+		#else
+			sleep bound((waittime - frame_timer) * 1000, 1, 5)
+		#endif
 		main_timer.switch(prev_subtimer)  'resume
 	loop
 	' dowait might be called after waittime has already passed, ignore that
@@ -1716,15 +1752,25 @@ function dowait () as bool
 	' difference due to the avoid while loop. See
 	' https://randomascii.wordpress.com/2013/04/02/sleep-variation-investigated/
 	' If there's a long delay here it's because the system is busy; not interesting.
-	if log_slow then debug_if_slow(large(starttime, waittime), 0.1, "")
+	#ifndef BACKEND_GOVERNED_FRAMERATE
+		if log_slow then debug_if_slow(large(starttime, waittime), 0.1, "")
+	#endif
+
+	'This could probably be done always, but don't want to risk that change right now.
+	#ifdef BACKEND_GOVERNED_FRAMERATE
+		'Round off so we don't randomly jump frames
+		if abs(frame_timer - waittime) < 0.0005 then
+			frame_timer = waittime
+		end if
+	#endif
+
 	if setwait_called then
 		setwait_called = NO
 	else
 		'debuginfo "dowait called without setwait"
 	end if
-	return timer >= flagtime
+	return frame_timer >= flagtime
 end function
-
 
 '==========================================================================================
 '                                           Music

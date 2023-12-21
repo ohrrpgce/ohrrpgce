@@ -1,5 +1,5 @@
-'OHRRPGCE - SDL 2 graphics bakend
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'OHRRPGCE - SDL 2 graphics backend
+'(C) Copyright 1997-2023 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #include "config.bi"
@@ -869,6 +869,18 @@ FUNCTION gfx_sdl2_present(byval surfaceIn as Surface ptr, byval pal as RGBPalett
     RETURN ret
   END WITH
 END FUNCTION
+
+'Only used when testing BACKEND_GOVERNED_FRAMERATE
+FUNCTION gfx_sdl2_native_framerate() as double
+  RETURN 60
+END FUNCTION
+
+'Only used when testing BACKEND_GOVERNED_FRAMERATE
+SUB gfx_sdl2_wait_one_frame()
+  'CheckOK(SDL_RenderCopy(mainrenderer, maintexture, NULL, NULL /'@dstrect'/))
+  SDL_RenderPresent(mainrenderer)
+  update_state()
+END SUB
 
 FUNCTION gfx_sdl2_screenshot(byval fname as zstring ptr) as integer
   gfx_sdl2_screenshot = 0

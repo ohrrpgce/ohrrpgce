@@ -185,6 +185,8 @@ declare sub blackbox_request_account_picker()
 declare sub blackbox_start_story()
 declare sub blackbox_end_story()
 declare sub blackbox_set_rich_presence(token_id as const zstring ptr, substitution as const zstring ptr)
+declare function blackbox_native_framerate() as double
+declare sub blackbox_wait_one_frame()
 #endif
 
 end extern
