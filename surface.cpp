@@ -577,7 +577,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 		}
 
 	} else if (pSurfaceSrc->format == SF_8bit && pSurfaceDest->format == SF_8bit) {
-		// alpha/opacity ignored, not supported. Handled by blitohr in blit.c
+		// alpha/opacity ignored, not supported. Handled by blitohr in blit.cpp
 		// so this path is not typically used
 		if (pOpts->color_key0) {
 			for (int itY = 0; itY < itY_max; itY++) {

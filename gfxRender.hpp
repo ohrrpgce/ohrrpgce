@@ -3,6 +3,7 @@
  * Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
  *
  * This is the public complement to rasterizer.hpp.
+ * See surface.h and allmodex.h for the rest of the C/C++ rendering API.
  */
 
 #ifndef GFXRENDER_H

@@ -13,11 +13,6 @@
 extern "C" {
 #endif
 
-typedef struct {
-	int w;
-	int h;
-} XYPair;
-
 typedef struct Palette16 {
 	int numcolors;
 	int refcount;            //Always >= 1 (palcache counts as a reference). Can not be NOREFC.

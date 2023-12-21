@@ -1125,7 +1125,7 @@ end sub
 'If change_windowsize = YES, this changes the window size and keeps the same resolution,
 'otherwise it changes the resolution and keeps the same window size
 sub set_scale_factor (scale as integer, change_windowsize as bool = YES)
-	'gfx_sdl and gfx_fb, which use blit.c scaling, are limited to 1x-16x
+	'gfx_sdl and gfx_fb, which use blit.cpp scaling, are limited to 1x-16x
 	scale = bound(scale, 1, 16)
 	debuginfo "Setting graphics scaling to x" & scale & " change_windowsize=" & change_windowsize
 

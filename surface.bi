@@ -137,9 +137,17 @@ End Type
 
 extern "C"
 
-'In blit.c
+'In blit.cpp
 extern blend_algo as BlendAlgo
 extern nearcolor_cache(65535) as ubyte
+
+declare sub blitohr(byval spr as FrameFwd ptr, byval destspr as FrameFwd ptr, byval pal as Palette16Fwd ptr, byval startoffset as int32, byval startx as int32, byval starty as int32, byval endx as int32, byval endy as int32, byval trans as boolint, byref opts as DrawOptions)
+declare sub blitohrscaled(byval spr as FrameFwd ptr, byval destspr as FrameFwd ptr, byval pal as Palette16Fwd ptr, byval x as int32, byval y as int32, byval startx as int32, byval starty as int32, byval endx as int32, byval endy as int32, byval trans as boolint, byref opts as DrawOptions)
+
+declare sub smoothzoomblit_8_to_8bit(byval srcbuffer as ubyte ptr, byval destbuffer as ubyte ptr, byval size as XYPair, byval pitch as int32, byval zoom as int32, byval smooth as int32, byval dummypal as RGBcolor ptr = 0)
+declare sub smoothzoomblit_8_to_32bit(byval srcbuffer as ubyte ptr, byval destbuffer as uint32 ptr, byval size as XYPair, byval pitch as int32, byval zoom as int32, byval smooth as int32, byval pal as RGBcolor ptr)
+declare sub smoothzoomblit_32_to_32bit(byval srcbuffer as RGBcolor ptr, byval destbuffer as uint32 ptr, byval size as XYPair, byval pitch as int32, byval zoom as int32, byval smooth as int32, byval dummypal as RGBcolor ptr = 0)
+
 
 'In allmodex.bas
 extern def_drawoptions as DrawOptions

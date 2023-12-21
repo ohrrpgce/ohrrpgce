@@ -8,6 +8,11 @@
 
 #include "config.h"
 
+typedef struct {
+	int w;
+	int h;
+} XYPair;
+
 typedef union {
 	struct {
 		// Opaque is a=255. Not pre-multiplied. However, only the rasterizer
@@ -139,7 +144,7 @@ typedef struct
 extern "C" {
 #endif
 
-// In blit.c
+// In blit.cpp
 extern enum BlendAlgo blend_algo;
 extern uint8_t nearcolor_cache[65536];
 
@@ -203,8 +208,14 @@ extern DrawOptions def_drawoptions;
 	// In blend.h
 	//RGBcolor alpha_blend( RGBcolor src, RGBcolor dest, int alpha, enum BlendMode mode, bool channel_alpha = false );
 
-	// In blit.c
+	// In blit.cpp
 	int nearcolor_faster(RGBcolor searchcol);
+	void blitohr(Frame *spr, Frame *destspr, Palette16 *pal, int startoffset, int startx, int starty, int endx, int endy, boolint trans, DrawOptions *opts);
+	void blitohrscaled(Frame *spr, Frame *destspr, Palette16 *pal, int x, int y, int startx, int starty, int endx, int endy, boolint trans, DrawOptions *opts);
+	bool multismoothblit(int srcbitdepth, int destbitdepth, void *srcbuffer, void *destbuffer, XYPair size, int pitch, int zoom, int *smooth, RGBcolor pal[]);
+	void smoothzoomblit_8_to_8bit(uint8_t *srcbuffer, uint8_t *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor dummypal[]);
+	void smoothzoomblit_8_to_32bit(uint8_t *srcbuffer, RGBcolor *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor pal[]);
+	void smoothzoomblit_32_to_32bit(RGBcolor *srcbuffer, RGBcolor *destbuffer, XYPair size, int pitch, int zoom, int smooth, RGBcolor dummypal[]);
 
 	// Roto-zooming functions (implemented in rotozoom.c)
 	Surface *rotozoomSurface(Surface * src, double angle, double zoomx, double zoomy, int smooth);

@@ -1393,7 +1393,7 @@ reload_modules =  ['reload.bas',
 
 # The following are built only once and linked into Game, Custom and other
 # utilities using allmodex (commontest, gfxtest, etc).
-common_modules += ['blit.c',
+common_modules += ['blit.cpp',
                    'matrixMath.cpp',
                    'rasterizer.cpp',
                    'rotozoom.c',
