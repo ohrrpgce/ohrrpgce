@@ -77,7 +77,7 @@ int channel_write(IPCChannel *channel, const char *buf, int buflen);
 int channel_write_string(IPCChannel *channel, FBSTRING *input);
 int channel_input_line(IPCChannel *channel, FBSTRING *output);
 
-bool file_ready_to_read(int fileno);
+boolint file_ready_to_read(int fileno);
 
 //Threads
 

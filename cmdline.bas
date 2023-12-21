@@ -115,7 +115,7 @@ function global_setoption(opt as string, arg as string) as integer
 		'This special commandline arg is processed early, in get_app
 		return 2
 	elseif opt = "dump-embed" then
-		dim success as bool = dump_embedded_file(arg, trimpath(arg))
+		dim success as boolean = dump_embedded_file(arg, trimpath(arg))
 		terminate_program iif(success, 0, 1)
 		return 2
 	elseif opt = "list-embeds" then

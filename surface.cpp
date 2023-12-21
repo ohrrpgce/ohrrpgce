@@ -664,7 +664,7 @@ int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, RGBcolor* p
 int gfx_paletteFromRGB_SW( RGBcolor* pColorsIn, RGBPalette** ppPaletteOut )
 {
 	RGBPalette *ret = new RGBPalette;
-	ret->from_backend = true;
+	ret->from_backend = YES;
 	memcpy(ret->col, pColorsIn, 256 * 4);
 	for(int i = 0; i < 256; i++)
 		ret->col[i].a = 255;   // Set to opaque, though it should be anyway
@@ -681,7 +681,7 @@ RGBPalette* unrollPalette16(Palette16* pPal8, RGBcolor* pPalette) {
 		for (int idx = 0; idx < pPal8->numcolors; idx++) {
 			temppal.col[idx] = pPalette[pPal8->col[idx]];
 		}
-		temppal.from_backend = false;
+		temppal.from_backend = NO;
 		return &temppal;
 	} else {
 		return (RGBPalette*)pPalette;

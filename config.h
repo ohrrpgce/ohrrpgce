@@ -20,9 +20,6 @@
 #include <stdint.h>
 #include <stdlib.h>  // For __MINGW64_VERSION_MAJOR
 
-#define YES -1
-#define NO  0
-
 // For Windows (changes declarations in windows.h from ANSI to UTF16)
 /*
 #define UNICODE 1
@@ -148,6 +145,7 @@ extern "C" {
 /* I will use boolint in declarations of C/C++ functions where we would like to use
    bool (C/C++) or boolean (FB), but shouldn't, to support FB pre-1.04. So instead,
    use boolint on both sides, to show intention but prevent accidental C/C++ bool usage.
+   TODO: Obsolete justification. Replace with fb_bool and fb_boolean.
 */
 typedef int boolint;
 
@@ -162,6 +160,20 @@ typedef int boolint;
     #define true 1
   #endif
 #endif
+
+/* bool type in FB code. Use constants YES and NO. */
+typedef boolint fb_bool;
+
+#define YES -1
+#define NO  0
+
+/* boolean type in FB code. This is equivalent to bool in modern C/C++ compilers (int8 containing 0/1,
+   even though reading the value in FB produces 0/-1 since it's interpreted as a signed 1-bit value),
+   however FB produces a signed char in generated C code rather than bool, which may lead to compiler
+   warnings. Add explicit (bool) casts to force value to 0/1 when writing if needed. */
+//typedef bool fb_boolean;
+typedef signed char fb_boolean;
+
 
 #if defined(_WIN32) || defined(WIN32)
 # define SLASH '\\'

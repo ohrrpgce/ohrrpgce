@@ -602,7 +602,7 @@ boolint copyfile(FBSTRING *source, FBSTRING *destination) {
 		return NO;
 	}
 	close_lazy_files();  // Probably not necessary
-	int ret = copy_file_replacing(source->data, destination->data);
+	boolint ret = copy_file_replacing(source->data, destination->data);
 	if (ret && action == HOOK)
 		send_lump_modified_msg(destination->data);
 	return ret;
@@ -734,7 +734,7 @@ EmbeddedFileInfo *find_embedded_file(const char *path) {
 }
 
 // Write an embedded file out to dump_path. Returns true on success.
-bool dump_embedded_file(const char *embedded_path, const char *dump_path) {
+fb_boolean dump_embedded_file(const char *embedded_path, const char *dump_path) {
 	EmbeddedFileInfo *embedded = find_embedded_file(embedded_path);
 	if (!embedded) {
 		// This function is called from the -dump-embed commandline arg,

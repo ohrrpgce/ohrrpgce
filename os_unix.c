@@ -424,7 +424,7 @@ char copybuf[COPYBUF_SIZE];
 //It's not necessary for this to exist rather than just call remove and fb_FileCopy,
 //but the benefit is fine-grained error reporting.
 //Originally I was going to do file locking, but that's unneeded on Unix.
-int copy_file_replacing(const char *source, const char *destination) {
+boolint copy_file_replacing(const char *source, const char *destination) {
 	FILE *src = NULL, *dst = NULL;
 	long len;
 	size_t bytes_to_copy;
@@ -464,11 +464,11 @@ int copy_file_replacing(const char *source, const char *destination) {
 	}	
 	fclose(src);
 	fclose(dst);
-	return -1;
+	return YES;
  err:
 	if (src) fclose(src);
 	if (dst) fclose(dst);
-	return 0;
+	return NO;
 }
 
 // Wrapper around rename() which attempts to emulate Unix semantics on Windows
@@ -901,18 +901,18 @@ int channel_input_line(PipeState **channelp, FBSTRING *output) {
 //fb_hStrCopy(output->data + outlen, buf, 512);
 
 // Returns true if a file descriptor (presumably a stream) either has data to read, or has been closed
-bool file_ready_to_read(int fd) {
+boolint file_ready_to_read(int fd) {
 	struct timeval tv = {0, 0};
 	fd_set read_fds;
 	FD_ZERO(&read_fds);
 	FD_SET(fd, &read_fds);
 	int ret = select(fd + 1, &read_fds, NULL, NULL, &tv);
 	if (ret > 0) {
-		return true;
+		return YES;
 	} else if (ret < 0) {
 		perror("file_ready_to_read");
 	}
-	return false;
+	return NO;
 }
 
 #endif  // not MINIMAL_OS

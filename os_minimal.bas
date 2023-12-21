@@ -184,8 +184,8 @@ function channel_input_line (byref channel as NamedPipeInfo ptr, line_in as stri
 	return NO
 end function
 
-function file_ready_to_read(fileno as integer) as boolean
-	return false
+function file_ready_to_read(fileno as integer) as boolint
+	return NO
 end function
 
 '/

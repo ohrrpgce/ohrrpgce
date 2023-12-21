@@ -79,7 +79,7 @@ End Type
 
 Type RGBPalette
 	col(255) as RGBcolor
-	from_backend as boolean 'True if allocated from gfx_palette* API, false from masterpal_to_gfxpal
+	from_backend as boolint 'True if allocated from gfx_palette* API, false from masterpal_to_gfxpal
 	'handle as any ptr      'Not used yet
 End Type
 

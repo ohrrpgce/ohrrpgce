@@ -82,7 +82,7 @@ typedef struct
 typedef struct
 {
 	RGBcolor col[256];
-	bool from_backend;  // True if allocated from gfx_palette* API, false from masterpal_to_gfxpal
+	boolint from_backend;  // True if allocated from gfx_palette* API, false from masterpal_to_gfxpal
 	//void* handle;     // Not used yet
 } RGBPalette;
 
@@ -112,19 +112,19 @@ typedef struct
 	// gfx_render* and gfx_surfaceCopy API ONLY, all other functions take
 	// separate 'trans' arguments Whether colour 0 (or mask 0, in Surfaces
 	// with masks) of 8-bit source textures is transparent.
-	bool color_key0;
+	fb_boolean color_key0;
 
 	// If the destination has a mask, sets the mask for the destination rectangle
 	// equal to the mask (or color-key) for the source rectangle. Does not OR them.
 	// (TODO: not implemented for 32-bit draws (gfx_surfaceCopy))
-	bool write_mask;
+	fb_boolean write_mask;
 
 	// If false, all blending/modulation options are ignored. Used as an early-out
-	bool with_blending;
+	fb_boolean with_blending;
 
 	// gfx_render* API only (TODO: implement for gfx_surfaceCopy): whether to use
 	// the alpha channel of 32-bit source textures
-	bool alpha_channel;
+	fb_boolean alpha_channel;
 
 	enum BlendMode blend_mode;
 
