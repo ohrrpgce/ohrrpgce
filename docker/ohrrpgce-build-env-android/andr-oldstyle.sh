@@ -19,7 +19,7 @@ export OLDNDKVOL=${OLDNDKVOL:-~/misc/android-ndk-r12b} # /opt/android-ndk
 export DOTANDROIDVOL=${DOTANDROIDVOL:-~/misc/docker-dot-android.old}
 
 # This should be a checked out copy of the ohrrpgce source
-export OHRDIR=${OHRDIR:-~/src/ohrrpgce-clean} # /src/ohr
+export OHRDIR=${OHRDIR:-~/src/ohrrpgce} # /src/ohr
 
 # This should be a checked out copy of
 # https://github.com/bob-the-hamster/commandergenius
@@ -32,7 +32,7 @@ export ANDRIMG=bobthehamster/ohrrpgce-build-env-android-oldstyle
 # Command line arguments
 
 export RUNCMD=""
-export JUST_SHELL="N"
+export REBUILD_IMAGE="Y"
 
 POSITIONAL_ARGS=()
 
@@ -91,6 +91,13 @@ fi
 if [ -s "$RUNCMD" ] ; then
   export HASCMD="-c"
 fi
+
+# Stop if any volumes are missing
+if [ ! -e "${OLDSDKVOL}" ] ; then echo "Can't mount volume because it does not exist ${OLDSDKVOL}" ; exit 1 ; fi
+if [ ! -e "${OLDNDKVOL}" ] ; then echo "Can't mount volume because it does not exist ${OLDNDKVOL}" ; exit 1 ; fi
+if [ ! -e "${DOTANDROIDVOL}" ] ; then echo "Can't mount volume because it does not exist ${DOTANDROIDVOL}" ; exit 1 ; fi
+if [ ! -e "${OHRDIR}" ] ; then echo "Can't mount volume because it does not exist ${OHRDIR}" ; exit 1 ; fi
+if [ ! -e "${SDLA}" ] ; then echo "Can't mount volume because it does not exist ${SDLA}" ; exit 1 ; fi
 
 echo "Now run a docker shell into the android-sdk container with OHRRPGCE source mounted"
 echo "Running as user $(whoami) UID:GID=$(id -u):$(id -g) which will be \"I have no name!\" inside the container,"
