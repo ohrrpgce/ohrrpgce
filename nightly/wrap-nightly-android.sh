@@ -28,8 +28,3 @@ if [ -n "True" ] ; then
 
 fi | tee ~/wrap-nightly-android-output.txt
 ~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-android-output.txt
-
-echo "------------------"
-echo "WILL SHUT DOWN NOW"
-sleep 5
-/sbin/poweroff
