@@ -9,15 +9,23 @@ if [ -n "True" ] ; then
   echo "To: cron@rpg.hamsterrepublic.com"
   echo "Subject: OHRRPGCE Android nightly build ($(uname -n))"
   echo ""
+
   svn cleanup
-  svn update distrib-nightly-android.sh nightly
-  pwd
-  if ./distrib-nightly-android.sh 2>&1; then
-    # distrib-nightly-android.sh returns success if there were svn changes and
-    # the build succeeded.  In that case have to force the second invocation
-    # because we already updated svn.
-    ./distrib-nightly-android.sh --force --chromebook 2>&1
+  svn update --trust-server-cert --non-interactive | tee nightly-temp.txt || exit 1
+  UPDATE=`grep "Updated to revision" nightly-temp.txt`
+  rm nightly-temp.txt
+  if [ -z "$UPDATE" ] ; then
+    echo No changes, no need to update nightly.
+    exit 2
   fi
+
+  pwd
+  echo "remove old android nightlies..."
+  rm -f distrib/ohrrpgce-game-android*-debug*.apk
+  docker/ohrrpgce-build-env-android/andr-oldstyle.sh -c '/src/ohr/distrib-nightly-android.sh' || exit 1
+  docker/ohrrpgce-build-env-android/andr-oldstyle.sh -c '/src/ohr/distrib-nightly-android.sh --chromebook' || exit 1
+  scp -pr distrib/ohrrpgce-game-android*-debug*.apk james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+
 fi | tee ~/wrap-nightly-android-output.txt
 ~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-android-output.txt
 

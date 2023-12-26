@@ -1,10 +1,7 @@
 #!/bin/bash
 
-# This script returns 0 on a successful build, 1 on error, 2 if there were no svn changes to build
-
-FORCE=false
-UPLOAD=true
-UPDATE=true
+# This script returns 0 on a successful build, 1 on error.
+# Output is written into the distrib folder.
 
 CHROMEBOOK=
 # NOTE: "both" means compile two apks, one 32 bit and one 64 bit
@@ -17,18 +14,6 @@ do
   key="$1"
   
   case $key in
-    -force|--force)
-    FORCE=true
-    shift # past argument
-    ;;
-    -noupdate|--noupdate)
-    UPDATE=false
-    shift # past argument
-    ;;
-    -noupload|--noupload)
-    UPLOAD=false
-    shift # past argument
-    ;;
     -arch|--arch)
     ARCH="$2"
     shift # past argument
@@ -81,23 +66,6 @@ SCRIPTDIR="$(realpath $SCRIPTDIR)"
 
 cd "${SCRIPTDIR}"
 
-# Check if a new nightly build is actually needed. Only if there are new changes
-if [ "$UPDATE" = "true" ] ; then
-  svn cleanup
-  svn update --trust-server-cert --non-interactive | tee nightly-temp.txt || exit 1
-  UPDATE=`grep "Updated to revision" nightly-temp.txt`
-  rm nightly-temp.txt
-  if [ "$FORCE" = "true" ] ; then
-    echo "Forcing a build, even if nothing has changed..."
-    UPDATE="forced"
-  fi
-fi
-
-if [ -z "$UPDATE" ] ; then
-  echo No changes, no need to update nightly.
-  exit 2
-fi
-
 # Loop through the architectures we want to build
 for CUR_ARCH in ${ARCHLIST[@]} ; do
 
@@ -142,11 +110,7 @@ if [ ! -f project/bin/MainActivity-debug.apk ] ; then
   exit 1
 fi
 
-if [ "$UPLOAD" = "false" ] ; then
-  echo "skipping upload."
-  continue
-fi
-scp -pr project/bin/MainActivity-debug.apk james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-game-android"${CHROMEBOOK}"-debug"${ARCHSUFFIX}".apk
+cp -pr project/bin/MainActivity-debug.apk "${SCRIPTDIR}"/distrib/ohrrpgce-game-android"${CHROMEBOOK}"-debug"${ARCHSUFFIX}".apk
 
 done
 echo "Finished building arch $ARCH $CHROMEBOOK"

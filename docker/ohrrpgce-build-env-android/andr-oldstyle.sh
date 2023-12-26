@@ -31,7 +31,8 @@ export ANDRIMG=bobthehamster/ohrrpgce-build-env-android-oldstyle
 #-----------------------------------------------------------------------
 # Command line arguments
 
-export REBUILD_IMAGE="Y"
+export RUNCMD=""
+export JUST_SHELL="N"
 
 POSITIONAL_ARGS=()
 
@@ -41,9 +42,17 @@ while [[ $# -gt 0 ]]; do
       cat <<EOF
 Build and run an OHRRPGCE Android build environment in a docker image.
 
-  -sb --skip-build-image     Don't try to rebuild the docker image
+  -c  --run-command 'command arg arg'  Run this quoted command in the
+                                       image, instead of an interactive prompt
+  
+  -sb --skip-build-image       Don't try to rebuild the docker image
 EOF
       exit 0
+      ;;
+    -c|--run-cmd)
+      export RUNCMD="$2"
+      shift
+      shift
       ;;
     -sb|--skip-build-image)
       export REBUILD_IMAGE="N"
@@ -79,6 +88,10 @@ if [ -z "$(docker images -q ${ANDRIMG})" -o "$REBUILD_IMAGE" = "Y" ] ; then
   fi
 fi
 
+if [ -s "$RUNCMD" ] ; then
+  export HASCMD="-c"
+fi
+
 echo "Now run a docker shell into the android-sdk container with OHRRPGCE source mounted"
 echo "Running as user $(whoami) UID:GID=$(id -u):$(id -g) which will be \"I have no name!\" inside the container,"
 echo "but don't worry, it will still be correct for volume mounts."
@@ -89,4 +102,4 @@ docker run -it \
   -v "${OHRDIR}":/src/ohr \
   -v "${SDLA}":/src/sdl-android \
   -u $(id -u):$(id -g) \
-  "${ANDRIMG}" /bin/bash
+  "${ANDRIMG}" /bin/bash $HASCMD $RUNCMD
