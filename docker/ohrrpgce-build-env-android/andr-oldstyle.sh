@@ -3,7 +3,9 @@
 # Run this script as your regular user. The same user who has access to the ohrrpgce source dir
 # Don't use root.
 
-export SCRIPT_DIR=$(dirname "$0")
+SCRIPT_DIR="${0%/*}"
+SCRIPT_DIR="$(realpath $SCRIPT_DIR)"
+cd "${SCRIPT_DIR}"
 
 #-----------------------------------------------------------------------
 # Config
