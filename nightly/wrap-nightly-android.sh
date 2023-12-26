@@ -16,7 +16,7 @@ if [ -n "True" ] ; then
   rm nightly-temp.txt
   if [ -z "$UPDATE" ] ; then
     echo No changes, no need to update nightly.
-    #exit 2
+    exit 2
   fi
 
   pwd
