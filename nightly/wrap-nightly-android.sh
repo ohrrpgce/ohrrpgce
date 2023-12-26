@@ -16,12 +16,13 @@ if [ -n "True" ] ; then
   rm nightly-temp.txt
   if [ -z "$UPDATE" ] ; then
     echo No changes, no need to update nightly.
-    exit 2
+    #exit 2
   fi
 
   pwd
   echo "remove old android nightlies..."
   rm -f distrib/ohrrpgce-game-android*-debug*.apk
+  docker/ohrrpgce-build-env-android/andr-oldstyle.sh -c '/src/fix_symlinks.sh' || exit 1
   docker/ohrrpgce-build-env-android/andr-oldstyle.sh -c '/src/ohr/distrib-nightly-android.sh' || exit 1
   docker/ohrrpgce-build-env-android/andr-oldstyle.sh -c '/src/ohr/distrib-nightly-android.sh --chromebook' || exit 1
   scp -pr distrib/ohrrpgce-game-android*-debug*.apk james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
