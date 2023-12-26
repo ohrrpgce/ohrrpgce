@@ -4,7 +4,7 @@ UPLOAD_SERVER="james_paige@motherhamster.org"
 UPLOAD_FOLDER="HamsterRepublic.com/ohrrpgce/nightly/"
 UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
 
-for VMNAME in "Debian 32bit" "Debian 64bit" "Windows 7" "Mac OS X" "Debian for Android Builds" ; do
+for VMNAME in "Debian 32bit" "Debian 64bit" "Windows 7" "Mac OS X" ; do
   echo "===Starting ${VMNAME}==="
   vboxmanage startvm "${VMNAME}" --type headless
   RUNNING="True"
@@ -24,6 +24,9 @@ for VMNAME in "Debian 32bit" "Debian 64bit" "Windows 7" "Mac OS X" "Debian for A
     fi
   done
 done
+
+# Also run Android nightly build in docker
+~/src/ohr/wip/nightly/wrap-nightly-android.sh
 
 # After the nightly build finishes, generate nightly-check.ini listing the svn_rev
 # and build_date for the main builds, and upload and email it
