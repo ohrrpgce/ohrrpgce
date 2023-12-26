@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# WARNING: this doesn't work yet. You can compile an apk with no errors, but it doesn't actually run
-# when installed on an Android device yet
-
 # Run this script as your regular user. The same user who has access to the ohrrpgce source dir
 # Don't use root.
 
@@ -12,12 +9,23 @@ export SCRIPT_DIR=$(dirname "$0")
 # Config
 
 # Paths on the host that will be mounted as volumes inside the docker container
+
+# These are from 2012, and I don't even know how to check the exact versions
+# They only exist on James's computer (We will keep trying to switch to newer ones)
 export OLDSDKVOL=${OLDSDKVOL:-~/misc/android-sdk-linux_x86.old} # /opt/android-sdk
 export OLDNDKVOL=${OLDNDKVOL:-~/misc/android-ndk-r12b} # /opt/android-ndk
+
+# This is where the debug signing key will be stored
 export DOTANDROIDVOL=${DOTANDROIDVOL:-~/misc/docker-dot-android.old}
+
+# This should be a checked out copy of the ohrrpgce source
 export OHRDIR=${OHRDIR:-~/src/ohrrpgce-clean} # /src/ohr
+
+# This should be a checked out copy of
+# https://github.com/bob-the-hamster/commandergenius
 export SDLA=${SDLA:-~/src/sdl-android} # /src/sdl-android
 
+# The docker image name. This will be built locally, we won't pull it
 export ANDRIMG=bobthehamster/ohrrpgce-build-env-android-oldstyle
 
 #-----------------------------------------------------------------------
