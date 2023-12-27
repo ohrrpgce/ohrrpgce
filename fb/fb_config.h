@@ -1,7 +1,7 @@
 #ifndef __FB_CONFIG_H__
 #define __FB_CONFIG_H__
 
-// Edited to comment out NO_OLDNAMES declarations and add _MSC_VER
+// Edited to comment out NO_OLDNAMES declarations and add _MSC_VER and HOST_FB_BLACKBOX
 
 #if defined HOST_XBOX
 #elif defined HOST_FB_BLACKBOX

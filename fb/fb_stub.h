@@ -18,14 +18,14 @@ extern "C" {
 #error FBCVERSION before 1.02 not supported.
 #endif
 
+/* Must be included before any system headers due to certain #defines */
+#include "fb_config.h"
+#include "../config.h"
+
 // JS build doesn't use multithreading
 #if !defined HOST_JS
 #define ENABLE_MT
 #endif
-
-/* Must be included before any system headers due to certain #defines */
-#include "fb_config.h"
-#include "../config.h"
 
 #include <stdarg.h>
 #include <stdio.h>

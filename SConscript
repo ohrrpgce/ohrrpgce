@@ -1078,7 +1078,7 @@ if web:
         # Check for bad pointer access including null pointers and alignment faults
         EMFLAGS += ['SAFE_HEAP=1']
 
-    emlinkflags = Flatten(['-s',flag] for flag in EMFLAGS)
+    emlinkflags = Flatten([['-s',flag] for flag in EMFLAGS])
     CCLINKFLAGS += emlinkflags
     FBLINKERFLAGS += emlinkflags
 
@@ -1208,12 +1208,12 @@ if web:
     EMFLAGS = []
     #EMFLAGS += ['USE_SDL_IMAGE=0', 'USE_SDL_TTF=0', 'USE_SDL_NET=0']
     if 'sdl' in gfx:
-        emsdlflags += ['USE_SDL=1', 'USE_SDL_MIXER=1']
+        EMFLAGS += ['USE_SDL=1', 'USE_SDL_MIXER=1']
     elif 'sdl2' in gfx:
-        emsdlflags += ['USE_SDL=2', 'USE_SDL_MIXER=2', 'SDL2_MIXER_FORMATS=["ogg", "mod", "mid"]']
-        #emsdlflags += ['-s', 'USE_MODPLUG', '-s', 'USE_MPG123']
+        EMFLAGS += ['USE_SDL=2', 'USE_SDL_MIXER=2', 'SDL2_MIXER_FORMATS=["ogg", "mod", "mid"]']
+        #EMFLAGS += ['-s', 'USE_MODPLUG', '-s', 'USE_MPG123']
 
-    emlinkflags = Flatten(['-s',flag] for flag in EMFLAGS)
+    emlinkflags = Flatten([['-s',flag] for flag in EMFLAGS])
     commonenv['CCLINKFLAGS'] += emlinkflags
     commonenv['FBLINKERFLAGS'] += emlinkflags
 
@@ -1507,10 +1507,10 @@ common_modules.append(DATAFILES_C)
 
 if web:
     # <TARGET>.data is created containing contents of ./data, mounted as /data in the file system
-    customenv['CCLINKFLAGS'] += ['--preload-file', 'data']
+    editenv['CCLINKFLAGS'] += ['--preload-file', 'data']
     # This is for testing convenience only
     gameenv['CCLINKFLAGS'] += ['--preload-file', 'games']
-    customenv['CCLINKFLAGS'] += ['--preload-file', 'games']
+    editenv['CCLINKFLAGS'] += ['--preload-file', 'games']
 
 ################ Generate object file Nodes
 
