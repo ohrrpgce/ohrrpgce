@@ -3501,7 +3501,7 @@ sub EngineSettingsMenu.update()
 		got_gfx_settings = YES
 
 		if .upscaler <> -1 then
-			add_item 11, , "Upscaler:         " & iif(.upscaler, "smooth", "nearest-neighbour")
+			add_item 11, , "Upscaler:           " & iif(.upscaler, "smooth", "nearest-neighbour")
 		end if
 
 		if .upscaler_zoom <> 0 then
@@ -3514,19 +3514,19 @@ sub EngineSettingsMenu.update()
 				caption = "N/A"
 				disabled = YES
 			end if
-			add_item 12, , "Upscaler zoom:    " & caption, , , disabled
+			add_item 12, , "Upscaler zoom:      " & caption, , , disabled
 		end if
 
 		if .bilinear <> -2 then
-			add_item 13, , "Bilinear scaling: " & yesorno(.bilinear)
+			add_item 13, , "Bilinear filtering: " & yesorno(.bilinear)
 		end if
 
 		if .vsync <> -2 then
-			add_item 14, , "V-sync:           " & yesorno(.vsync)
+			add_item 14, , "V-sync:             " & yesorno(.vsync)
 		end if
 
 		if .preserve_ratio <> -2 then
-			add_item 15, , "Aspect ratio:     " & iif(.preserve_ratio, "preserve", "changeable")
+			add_item 15, , "Aspect ratio:       " & iif(.preserve_ratio, "preserve", "changeable")
 		end if
 
 	end with
