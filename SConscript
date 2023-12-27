@@ -21,16 +21,14 @@ FBFLAGS = [] #, '-showincludes']
 ### Compile flags (not used for linking)
 # For all C and C++ code (including -gen gcc generated and compiled) except for euc generated
 CFLAGS = ['-Wall', '-Wno-deprecated-declarations']  # Complaints about mallinfo()
-CFLAGS += ['-fwrapv', '-frounding-math']  # FB may change the rounding mode
+CFLAGS += ['-Wno-unused-but-set-variable']
 # Flags for FBCC (C compiler for -gen gcc generated C), whether passed through fbc or when FBCC
 # is invoked directly.
 GENGCC_CFLAGS = []
 # In addition to GENGCC_CFLAGS, flags for -gen gcc C sources only when we compile them
 # manually using FBCC, rather than via fbc. Namely, ones fbc would normally pass automatically.
 # To reduce commandlines these are subtracted from CFLAGS before being passed through fbc -Wc.
-FBC_CFLAGS = ['-fwrapv', '-frounding-math', '-fno-strict-aliasing']
-FBC_CFLAGS += ('-Wno-unused-label -Wno-unused-but-set-variable '
-               '-Wno-unused-variable -Wno-unused-function'.split())
+FBC_CFLAGS = ('-Wall -Wno-unused-label -Wno-unused-variable -Wno-unused-function'.split())
 # For C we compile by directly invoking FBCC/CC, rather than via "fbc -gen gcc".
 # Use gnu99 dialect instead of c99. c99 causes GCC to define __STRICT_ANSI__
 # which causes types like off_t and off64_t to be renamed to _off_t and _off64_t
@@ -301,7 +299,8 @@ if lto:
     CFLAGS.append('-flto')
     # GCC throws many warnings about structs that harmlessly differ between C/FB (only in name?), and warns
     # to use -fno-strict-aliasing. That might actually be needed despite the declarations being equivalent.
-    CFLAGS.append('-fno-strict-aliasing')   # Already in FBC_CFLAGS, fbc always passes it.
+    CFLAGS.append('-fno-strict-aliasing')
+    FBC_CFLAGS.append('-fno-strict-aliasing')   # fbc always passes this; we usually don't
     CCLINKFLAGS += ['-fno-strict-aliasing', '-Wno-lto-type-mismatch']
     #CCLINKFLAGS.append('-flto')  # Shouldn't actually be needed?
     if 'x86' in arch:
@@ -532,8 +531,10 @@ def bas_build_action(moreflags = ''):
         # but clang produces some directives that as doesn't like.
         # So we do the .c -> asm step ourselves.
         # NOTE: $CFLAGS in the env = CFLAGS + NONFBC_CFLAGS in Python.
+        # CFLAGS contains -Wall which overrides any -Wno-* args in FBC_CFLAGS,
+        # so don't pass -Wall again.
         return ['$FBC $FBFLAGS -r $SOURCE -o ${TARGET}.c ' + moreflags,
-                '$FBCC $CFLAGS $FBC_CFLAGS $GENGCC_CFLAGS -c ${TARGET}.c -o $TARGET']
+                '$FBCC $FBC_CFLAGS ${list(set(CFLAGS).difference(FBC_CFLAGS))} $GENGCC_CFLAGS -c ${TARGET}.c -o $TARGET']
     else:
         # In this case FBC_CFLAGS isn't needed (fbc passes them automatically),
         # and GENGCC_CFLAGS has already been added into FBFLAGS with -Wc.
@@ -822,6 +823,15 @@ if 'x86' in arch and gengcc:
     else:
         FBC_CFLAGS += ['-masm=intel']
 
+# Signed integers may overflow, wrapping around
+CFLAGS += ['-fwrapv']
+FBC_CFLAGS += ['-fwrapv']
+
+if not web:
+    # FB may change the rounding mode
+    CFLAGS += ['-frounding-math']
+    FBC_CFLAGS += ['-frounding-math']
+
 # Add FBFLAGS for -gen gcc builds, including flags passed to C compiler
 if gengcc:
     FBFLAGS += ["-gen", "gcc"]
@@ -843,8 +853,8 @@ if gengcc:
             # (The following is not in gcc 4.2)
             # Ignore warnings due to using an array lbound > 0
             GENGCC_CFLAGS.append ('-Wno-array-bounds')
-        # Ignore annoying warning https://sourceforge.net/p/fbc/bugs/936/
-        GENGCC_CFLAGS.append ('-Wno-missing-braces')
+    # Ignore annoying warning https://sourceforge.net/p/fbc/bugs/936/
+    GENGCC_CFLAGS.append ('-Wno-missing-braces')
     if FBCC.is_clang:
         # clang doesn't like fbc's declarations of standard functions
         # (although FB 1.20 fixes most incompatible-library-redeclaration warnings)
