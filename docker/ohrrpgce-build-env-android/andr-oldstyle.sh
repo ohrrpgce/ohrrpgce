@@ -35,6 +35,7 @@ export ANDRIMG=bobthehamster/ohrrpgce-build-env-android-oldstyle
 
 export RUNCMD=""
 export REBUILD_IMAGE="Y"
+export INTERACTIVE_TERMINAL="-it"
 
 POSITIONAL_ARGS=()
 
@@ -53,6 +54,7 @@ EOF
       ;;
     -c|--run-cmd)
       export RUNCMD="$2"
+      export INTERACTIVE_TERMINAL=""
       shift
       shift
       ;;
@@ -104,7 +106,7 @@ if [ ! -e "${SDLA}" ] ; then echo "Can't mount volume because it does not exist 
 echo "Now run a docker shell into the android-sdk container with OHRRPGCE source mounted"
 echo "Running as user $(whoami) UID:GID=$(id -u):$(id -g) which will be \"I have no name!\" inside the container,"
 echo "but don't worry, it will still be correct for volume mounts."
-docker run -it \
+docker run ${INTERACTIVE_TERMINAL} \
   -v "${OLDSDKVOL}":/opt/android-sdk:ro \
   -v "${OLDNDKVOL}":/opt/android-ndk-r12b:ro \
   -v "${DOTANDROIDVOL}":/.android \
