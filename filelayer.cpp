@@ -65,7 +65,7 @@ void send_lump_modified_msg(const char *filename) {
 #ifndef MINIMAL_OS
 	if (lump_updates_channel == NULL || *lump_updates_channel == NULL_CHANNEL)
 		return;
-	string buf = string("M ") + trimpath(filename) + "\n";
+	std::string buf = std::string("M ") + trimpath(filename) + "\n";
 	channel_write(lump_updates_channel, buf.c_str(), buf.size());
 	if (*lump_updates_channel == NULL_CHANNEL)
 		//Automatically shut down the show
@@ -833,7 +833,7 @@ size_t vfseek(VFile *file, ssize_t offset, int whence) {
 			file->position += offset;
 		else if (whence == SEEK_END)
 			file->position = file->length + offset;
-		file->position = min(max(file->position, 0), file->length);
+		file->position = std::min(std::max(file->position, 0), file->length);
 		return file->position;
 	}
 }

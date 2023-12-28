@@ -10,7 +10,6 @@
 #include "fb/fb_stub.h"
 #ifdef __cplusplus
 	#include <string>
-	using namespace std;
 #endif
 #include "os.h"
 
@@ -55,7 +54,7 @@ enum FilterActionEnum {
 
 #ifdef __cplusplus
 struct FileInfo {
-	string name;
+	std::string name;
 	bool hooked;          // Send lump modified messages if dirty, and is locked, if locking enabled.
 	bool dirty;           // File has been written to
 	bool reported_error;  // Don't show more than one error
