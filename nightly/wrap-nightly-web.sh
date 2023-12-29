@@ -2,7 +2,10 @@
 echo "ABOUT TO DO A NIGHTLY WIP BUILD"
 echo "-------------------------------"
 sleep 10
-cd ~/src/ohr/wip
+
+SCRIPTDIR="${0%/*}"
+SCRIPTDIR="$(realpath $SCRIPTDIR)"
+cd "${SCRIPTDIR}"/..
 
 if [ -n "True" ] ; then
   echo "From: cron@rpg.hamsterrepublic.com"
@@ -23,7 +26,9 @@ if [ -n "True" ] ; then
   echo "remove old emscripten web nightlies..."
   rm -f distrib/ohrrpgce-player-web-wip.zip
   docker/ohrrpgce-build-env-emscripten/emscr.sh -c '/src/ohr/distrib-nightly-web.sh' || exit 1
+  echo "Now to upload ohrrpgce-player-web-wip.zip ..."
+  cd "${SCRIPTDIR}"/..
   scp -pr distrib/ohrrpgce-player-web-wip.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 
-fi | tee ~/wrap-nightly-android-output.txt
-~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-android-output.txt
+fi | tee ~/wrap-nightly-emscripten-output.txt
+~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-emscripten-output.txt
