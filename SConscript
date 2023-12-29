@@ -1873,6 +1873,11 @@ Phony ('uninstall', source = [], action = packager, message = "Uninstalling..." 
 Default (GAME)
 Default (CUSTOM)
 
+if transpile_dir and len(BUILD_TARGETS) != 1:
+    # This is very imperfect because it doesn't expand an Alias to multiple targets
+    exit("Error: transpiledir= can be used with a single target only")
+
+
 #print [str(a) for a in FindSourceFiles(GAME)]
 
 Help ("""

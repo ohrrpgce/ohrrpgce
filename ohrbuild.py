@@ -9,6 +9,7 @@ from __future__ import print_function
 import os
 import sys
 from os.path import join as pathjoin
+from collections import defaultdict
 import subprocess
 import platform
 import math
@@ -17,6 +18,7 @@ import re
 import time
 import datetime
 import glob
+import shutil
 try:
     from SCons.Util import WhereIs
 except ImportError:
@@ -562,43 +564,55 @@ def generate_datafiles_c(source, target, env):
 # Transpiling
 
 def copy_source_actions(source, target, env, for_signature):
-    """Returns a list of Actions for transpile=1 builds.
-    The actions copy (or symlink) a set of C and C++ files to env['TRANSPILE_DIR']
-    including all C/C++ sources and C-translations of .bas files and used headers,
+    """Returns a list of Actions for transpiledir=... builds.
+    The actions copy all the needed sources to env['TRANSPILE_DIR']
+    including all C/C++ sources and C translations of .bas files and C/C++ headers,
     and output flags to .txt files.
-    All C/C++ files go in the same directory, while paths to headers are preserved.
     """
+    # Note this function is called repeatedly including before anything is compiled.
+
     # This import likely will only work when run from SConscript
     from SCons.Script import Mkdir, Copy, Delete, Action   #These create Action nodes
+    from SCons.Action import ActionFactory
+
+    def copy_func(dest, src) -> int:
+        """Based on Scons.Defaults.copy_func (the implementation of the Copy action function).
+        Copies list of *src* nodes to *dest* directory.
+        """
+        # this fails only if dest exists and is not a dir
+        os.makedirs(str(dest), exist_ok=True)
+        for node in src:
+            shutil.copy2(str(node), dest)
+        return 0  # Success
+    def copy_strfunc(dest, src) -> str:
+        """strfunction for the Copy action function."""
+        return f'Copying sources to {dest}'
+
+    # Starting in SCons 4.5.0, we can use Copy instead of Copier since it calls os.makedirs.
+    Copier = ActionFactory(copy_func, copy_strfunc)
 
     transpile_dir = env['TRANSPILE_DIR']
     actions = [Delete(transpile_dir),
                Mkdir(transpile_dir)]
-    # This actually creates the symlinks before the C/C++ files are generated, but that's OK
+
     all_files = set()
     for node in source:
         # Get all headers included (directly or indirectly)
         headers = node.get_implicit_deps(env, None, lambda scanner: (node.srcnode().get_dir(),) )
-        def scstr(x): return ",".join(str(y) for y in x)
-        print("node", str(node), "sources", scstr(node.sources), "headers", scstr(headers))
+        #def scstr(x): return ",".join(str(y) for y in x)
+        #print("node", str(node), "sources", scstr(node.sources), "headers", scstr(headers))
         all_files.update([node] + headers)
 
-    processed_dirs = set()
+    # Sort the files by destination directory
+    files_by_dir = defaultdict(list)
     for node in all_files:
         src = str(node)
         relsrc = src.replace('build' + os.path.sep, '')  #.replace(rootdir, '')
         srcdir, fname = os.path.split(relsrc)
-        if srcdir not in processed_dirs:
-            # Create dest subdirectory
-            processed_dirs.add(srcdir)
-            newdir = os.path.join(transpile_dir, srcdir)
-            actions += [Mkdir(newdir)]
+        files_by_dir[srcdir].append(src)
 
-        # if fname.endswith('.c') or fname.endswith('.cpp'):
-        #     # Put all source files in same directory for convenience
-        #     relsrc = fname
-        #actions += ['ln -s %s %s' % (src, os.path.join(transpile_dir, relsrc))]
-        actions += [Copy(os.path.join(transpile_dir, relsrc), src)]
+    for destdir in files_by_dir:
+        actions += [Copier(os.path.join(transpile_dir, destdir), files_by_dir[destdir])]
 
     def write_flags(source, target, env):
         def write_file(fname, flags):
