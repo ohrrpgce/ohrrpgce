@@ -13,8 +13,8 @@ fi
 
 echo Erasing old distribution files
 mkdir -p distrib
-rm -f distrib/$FULLNAME-*.tar.bz2
-rm -f distrib/$PLAYERNAME-*.zip
+rm -f distrib/$FULLNAME-*.tar.bz2  #this won't work
+rm -f distrib/$PLAYERNAME-*.zip    #this won't work
 rm -f distrib/*.deb
 
 package_for_arch() {

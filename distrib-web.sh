@@ -10,12 +10,6 @@ SCRIPTDIR="${0%/*}"
 SCRIPTDIR="$(realpath $SCRIPTDIR)"
 cd "${SCRIPTDIR}"
 
-echo Erasing old distribution files
-mkdir -p distrib
-rm -f distrib/$FULLNAME-*
-rm -f distrib/$PLAYERNAME-*
-
-echo
 echo "Building OHRRPGCE web binaries with emscripten"
 scons $SCONS_ARGS target=js game custom || return 1
 
