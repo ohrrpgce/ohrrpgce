@@ -10,6 +10,11 @@ SCRIPTDIR="${0%/*}"
 SCRIPTDIR="$(realpath $SCRIPTDIR)"
 cd "${SCRIPTDIR}"
 
+mkdir ./games
+cp -p testgame/inputtest.rpg ./games
+cp -p testgame/collider.rpg ./games
+cp -p testgame/turntest.rpg ./games
+
 echo "Building OHRRPGCE web binaries with emscripten"
 scons $SCONS_ARGS target=js game custom || return 1
 
