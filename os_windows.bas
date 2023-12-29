@@ -99,16 +99,20 @@ dim shared SHGetSpecialFolderPathA as function (byval hwnd as HWND, byval pszPat
 end extern
 
 
+extern "C"
+
 '==========================================================================================
 '                                Utility/general functions
 '==========================================================================================
+
+#ifndef MINIMAL_OS
 
 local function get_file_handle (byval fh as CFILE_ptr) as HANDLE
 	return cast(HANDLE, _get_osfhandle(_fileno(fh)))
 end function
 
 local function file_handle_to_readable_FILE (byval fhandle as HANDLE, funcname as string) as FILE ptr
-	dim fd as integer = _open_osfhandle(cast(integer, fhandle), 0)
+	dim fd as integer = _open_osfhandle(cast(size_t, fhandle), 0)
 	if fd = -1 then
 		debug funcname + ": _open_osfhandle failed"
 		CloseHandle(fhandle)
@@ -123,10 +127,6 @@ local function file_handle_to_readable_FILE (byval fhandle as HANDLE, funcname a
 	end if
 	return fh
 end function
-
-extern "C"
-
-#ifndef MINIMAL_OS
 
 'Returns true only on Windows 95, 98 and ME
 function is_windows_9x () as bool
@@ -776,7 +776,7 @@ function channel_open_server (byref channel as NamedPipeInfo ptr, chan_name as s
 	'asynchronous named pipe with 4096 byte read & write buffers
 	pipeh = CreateNamedPipe(strptr(chan_name), PIPE_ACCESS_DUPLEX OR FILE_FLAG_OVERLAPPED, _
 	                        PIPE_TYPE_BYTE OR PIPE_READMODE_BYTE, 1, 4096, 4096, 0, NULL)
-	if pipeh = -1 then
+	if pipeh = cast(HANDLE, -1) then
 		dim errstr as string = *win_error_str()
 		debug "Could not open IPC channel: " + errstr
 		return NO
@@ -846,7 +846,7 @@ function channel_open_client (byref channel as NamedPipeInfo ptr, chan_name as s
 	dim pipeh as HANDLE
 	pipeh = CreateFile(strptr(chan_name), GENERIC_READ OR GENERIC_WRITE, 0, NULL, _
 	                   OPEN_EXISTING, 0, NULL)
-	if pipeh = -1 then
+	if pipeh = cast(HANDLE, -1) then
 		dim errstr as string = *win_error_str()
 		debug "channel_open_client: could not open: " + errstr
 		return NO
