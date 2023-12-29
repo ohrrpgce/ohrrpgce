@@ -62,6 +62,15 @@ bam2mid
 miditest
 slice2bas
 imageconv
+# web build executables
+ohrrpgce-game.html
+ohrrpgce-game.js
+ohrrpgce-game.wasm
+ohrrpgce-game.data
+ohrrpgce-custom.html
+ohrrpgce-custom.js
+ohrrpgce-custom.wasm
+ohrrpgce-custom.data
 
 # Created by reloadtest
 unittest.rld
