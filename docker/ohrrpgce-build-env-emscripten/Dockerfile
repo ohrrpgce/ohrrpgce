@@ -32,23 +32,6 @@ RUN apt-get update \
       nano \
     && rm -rf /var/lib/apt/lists/*
 
-#      libx11-dev \
-#      libxpm-dev \
-#      libxrandr-dev \
-#      libxrender-dev \
-#      libsdl2-dev \
-#      libsdl2-mixer-dev \
-#      libsdl1.2-dev \
-#      libsdl-mixer1.2-dev \
-##      libncurses5-dev \
-##      scons \
-#      g++ \
-#      g++-multilib \
-##      make \
-#      fakeroot \
-##      libtinfo5 \
-
-
 #
 # Freebasic
 #
