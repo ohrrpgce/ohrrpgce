@@ -25,8 +25,11 @@ for VMNAME in "Debian 32bit" "Debian 64bit" "Windows 7" "Mac OS X" ; do
   done
 done
 
-# Also run Android nightly build in docker
-~/src/ohr/wip/nightly/wrap-nightly-android.sh
+# Run Android nightly build in docker
+~/src/ohr/wip/nightly/wrap-nightly-android.sh > /dev/null 2>&1
+
+# Run Web nightly build in docker
+~/src/ohr/wip/nightly/wrap-nightly-web.sh > /dev/null 2>&1
 
 # After the nightly build finishes, generate nightly-check.ini listing the svn_rev
 # and build_date for the main builds, and upload and email it
