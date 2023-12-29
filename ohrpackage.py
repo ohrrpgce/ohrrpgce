@@ -260,6 +260,8 @@ def player_only_files(target, srcdir = ''):
         files.executables = [files.setdest("ohrrpgce-game", "linux/" + arch + "/"),
                              "game.sh",
                             ] + files.glob("linux/" + arch + "/*.so.*")
+    elif target == "web":
+        files.executables = ["ohrrpgce-game.html", "ohrrpgce-game.js", "ohrrpgce-game.wasm", "ohrrpgce-game.data"]
     else:  # target == "unix"
         files.executables = ["ohrrpgce-game"]
 
@@ -557,8 +559,9 @@ def gather_files(files, target):
 
 def prepare_player(files, target):
     "Produces a player-only archive from files that were copied to the 'ohrrpgce' directory"
-    # game.exe already fully stripped if scons pdb=1 used, and in fact strip likely will fail
-    if target != "win":
+    # Windows game.exe already fully stripped if scons pdb=1 used, and in fact strip likely will fail
+    # Web binaries aren't strippable
+    if target not in ("win","web"):
         with temp_chdir("ohrrpgce"):
             game = files.getdest(files.game_exe())
             check_call("strip", game)
@@ -575,6 +578,10 @@ def format_output_filename(template, buildinfo, srcdir = '.'):
         ARCH = buildinfo['arch'], REV = buildinfo['svn_rev'])
 
 def package(target, config, outfile = None, extrafiles = [], iscc = "iscc"):
+    if target == "web" and config not in ["player"]:
+        print("Web target doesn't support '%s' yet" % (config))
+        return
+
     if config == "player":
         files = player_only_files(target)
     elif config == "symbols":
@@ -634,7 +641,7 @@ If outfile is omitted, files are instead placed in a directory named 'ohrrpgce'.
     argv = sys.argv[1 : dashdash]
     extrafiles = sys.argv[dashdash + 1 :]
 
-    parser.add_argument("target", choices = ("linux", "unix", "win", "mac"), help =
+    parser.add_argument("target", choices = ("linux", "unix", "win", "mac", "web"), help =
 """OS to package for (win from Unix requires wine; other cross-packaging unsupported)
 linux includes precompiled libraries and game.sh/edit.sh wrappers, unix doesn't.""")
     parser.add_argument("config", metavar = "config", choices = ("full", "full+vikings", "nightly", "minimal", "player", "symbols", "source", "crashrpt"), help =
