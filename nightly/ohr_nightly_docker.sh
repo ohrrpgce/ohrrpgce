@@ -4,26 +4,11 @@ UPLOAD_SERVER="james_paige@motherhamster.org"
 UPLOAD_FOLDER="HamsterRepublic.com/ohrrpgce/nightly/"
 UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
 
-for VMNAME in "Debian 32bit" "Debian 64bit" "Windows 7" "Mac OS X" ; do
-  echo "===Starting ${VMNAME}==="
-  vboxmanage startvm "${VMNAME}" --type headless
-  RUNNING="True"
-  COUNT=1
-  while [ -n "${RUNNING}" ] ; do
-    sleep 5
-    COUNT=$(expr "${COUNT}" + 5)
-    RUNNING=$(vboxmanage showvminfo "${VMNAME}" \
-      | grep "^State:" \
-      | grep "running (since"\
-    )
-    if [ "${COUNT}" -gt 7200 ] ; then
-      echo "ERROR: ${VMNAME} has run for more than 2 hours, killing it!"
-      killall "VBoxHeadless"
-      sleep 5
-      continue
-    fi
-  done
-done
+# Run Android nightly build in docker
+~/src/ohr/wip/nightly/wrap-nightly-android.sh > /dev/null 2>&1
+
+# Run Web nightly build in docker
+~/src/ohr/wip/nightly/wrap-nightly-web.sh > /dev/null 2>&1
 
 # After the nightly build finishes, generate nightly-check.ini listing the svn_rev
 # and build_date for the main builds, and upload and email it
