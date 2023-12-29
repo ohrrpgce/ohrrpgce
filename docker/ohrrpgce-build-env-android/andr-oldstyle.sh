@@ -106,7 +106,7 @@ if [ ! -e "${SDLA}" ] ; then echo "Can't mount volume because it does not exist 
 echo "Now run a docker shell into the android-sdk container with OHRRPGCE source mounted"
 echo "Running as user $(whoami) UID:GID=$(id -u):$(id -g) which will be \"I have no name!\" inside the container,"
 echo "but don't worry, it will still be correct for volume mounts."
-docker run ${INTERACTIVE_TERMINAL} \
+docker run --rm ${INTERACTIVE_TERMINAL} \
   -v "${OLDSDKVOL}":/opt/android-sdk:ro \
   -v "${OLDNDKVOL}":/opt/android-ndk-r12b:ro \
   -v "${DOTANDROIDVOL}":/.android \

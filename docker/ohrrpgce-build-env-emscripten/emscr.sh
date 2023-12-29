@@ -94,7 +94,7 @@ if [ ! -e "${OHRDIR}" ] ; then echo "Can't mount volume because it does not exis
 echo "Now run a docker shell into the emscripten container with OHRRPGCE source mounted"
 echo "Running as user $(whoami) UID:GID=$(id -u):$(id -g) which will be \"I have no name!\" inside the container,"
 echo "but don't worry, it will still be correct for volume mounts."
-docker run ${INTERACTIVE_TERMINAL} \
+docker run --rm ${INTERACTIVE_TERMINAL} \
   -v "${OHRDIR}":/src/ohr \
   -u $(id -u):$(id -g) \
   "${ANDRIMG}" /bin/bash $HASCMD $RUNCMD
