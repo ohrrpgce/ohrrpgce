@@ -3,6 +3,10 @@
 # Run this script as your regular user. The same user who has access to the ohrrpgce source dir
 # Don't use root.
 
+# Note: to test emscripten web builds in your browser, you can't use file:// urls
+# instead run: python3 -m http.server
+# inside the ohrrpgce source dir, and then browse to http://localhost:8000/
+
 SCRIPT_DIR="${0%/*}"
 SCRIPT_DIR="$(realpath $SCRIPT_DIR)"
 cd "${SCRIPT_DIR}"

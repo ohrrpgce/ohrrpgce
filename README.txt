@@ -41,6 +41,14 @@ ANDROID:
   Requires a fork of FreeBASIC 1.06+
   Requires sdl-android (ohrrpgce fork)
   See http://rpg.hamsterrepublic.com/ohrrpgce/Compiling_for_Android for info
+  or try ./docker/ohrrpgce-build-env-android/andr-oldstyle.sh
+-----------------------------------------------------------------------------
+WEB:
+  Compiling requires  Scons, Emscripten, and a fork of FreeBasic with
+  emscripten support.
+  Try ./docker/ohrrpgce-build-env-emscripten/emscr.sh
+  Testing web builds doesn't work on file:// urls, use a local webserver.
+  `python3 -m http.server` in the source dir, http://localhost:8000/
 -----------------------------------------------------------------------------
 INSTRUCTIONS
   Unpack the source code to a new folder
