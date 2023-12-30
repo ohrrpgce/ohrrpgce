@@ -20,7 +20,7 @@ FBFLAGS = [] #, '-showincludes']
 
 ### Compile flags (not used for linking)
 # For all C and C++ code (including -gen gcc generated and compiled) except for euc generated
-CFLAGS = ['-Wall', '-Wno-deprecated-declarations']  # Complaints about mallinfo()
+CFLAGS = ['-I.', '-Wall', '-Wno-deprecated-declarations']  # Complaints about mallinfo()
 CFLAGS += ['-Wno-unused-but-set-variable']
 # Flags for FBCC (C compiler for -gen gcc generated C), whether passed through fbc or when FBCC
 # is invoked directly.

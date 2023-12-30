@@ -537,7 +537,7 @@ def generate_datafiles_c(source, target, env):
         return '_data_' + os.path.basename(path).replace('.', '_').replace(' ', '_')
 
     #ret = 'struct EmbeddedFileInfo {const char *path; const char *data; int length;};\n\n'
-    ret = '#include "../filelayer.hpp"\n\n'
+    ret = '#include "filelayer.hpp"\n\n'
 
     # ld can directly turn files into .o modules, but it's not much trouble to do it ourselves
     for path in source:
