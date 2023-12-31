@@ -8701,6 +8701,7 @@ FUNCTION read_config_str (key as zstring ptr, default as zstring ptr=@"") as str
   DIM ret as string = read_ini_prefixed_str(game_config_file, key, @CHR(1))
   IF ret <> CHR(1) THEN RETURN ret
  END IF
+ IF global_config_file = "" THEN RETURN *default  'Too early in startup?
  RETURN read_ini_prefixed_str(global_config_file, key, default)
 END FUNCTION
 
@@ -8708,6 +8709,7 @@ END FUNCTION
 'Optionally returns the line number (0-indexed) on which the match was found in linenum, or else -1.
 FUNCTION read_ini_prefixed_str (filename as string, key as zstring ptr, default as zstring ptr=@"", byref linenum as integer=0) as string
  REDIM ini(-1 TO -1) as string
+ linenum = -1
  IF real_isfile(filename) = NO THEN RETURN *default
  lines_from_file ini(), filename
  RETURN read_ini_prefixed_str(ini(), key, default, linenum)
