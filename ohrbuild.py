@@ -575,7 +575,7 @@ def copy_source_actions(source, target, env, for_signature):
     from SCons.Script import Mkdir, Copy, Delete, Action   #These create Action nodes
     from SCons.Action import ActionFactory
 
-    def copy_func(dest, src) -> int:
+    def copy_func(dest, src):
         """Based on Scons.Defaults.copy_func (the implementation of the Copy action function).
         Copies list of *src* nodes to *dest* directory.
         """
@@ -584,9 +584,9 @@ def copy_source_actions(source, target, env, for_signature):
         for node in src:
             shutil.copy2(str(node), dest)
         return 0  # Success
-    def copy_strfunc(dest, src) -> str:
+    def copy_strfunc(dest, src):
         """strfunction for the Copy action function."""
-        return f'Copying sources to {dest}'
+        return 'Copying sources to %s' % dest
 
     # Starting in SCons 4.5.0, we can use Copy instead of Copier since it calls os.makedirs.
     Copier = ActionFactory(copy_func, copy_strfunc)
