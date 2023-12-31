@@ -5264,12 +5264,7 @@ SUB script_commands(byval cmdid as integer)
   IF valid_plotstr(retvals(0)) ANDALSO valid_plotstr(retvals(1)) THEN
    DIM byref dest as string = plotstr(retvals(0)).s
    DIM byref key as string = plotstr(retvals(1)).s
-   #IFDEF __FB_BLACKBOX__
-    dest = *blackbox_get_environment(key)
-   #ELSE
-    dest = ""
-   #ENDIF
-   dest = read_config_str("env." & key, dest)
+   dest = read_environment_key(key)
    'For convenience
    scriptret = str2int(dest, 0)
   END IF

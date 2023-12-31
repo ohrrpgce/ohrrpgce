@@ -2615,16 +2615,26 @@ sub KeyboardState.init_controls()
 end sub
 
 sub JoystickState.init_controls()
+	dim as JoyButton usebut, menubut
+	'This is a Blackbox setting, "0" or "1", true on Nintendo and player-configurable on PS
+	if str2int(read_environment_key("asiabuttons"), 0) = 0 then
+		usebut = joyA   'Cross
+		menubut = joyB  'Circle
+	else
+		usebut = joyB
+		menubut = joyA
+	end if
+
 	redim controls(8)
 	controls(0) = TYPE(joyUp,       ccUp)
 	controls(1) = TYPE(joyDown,     ccDown)
 	controls(2) = TYPE(joyLeft,     ccLeft)
 	controls(3) = TYPE(joyRight,    ccRight)
-	controls(4) = TYPE(joyA,        ccUse)
-	controls(5) = TYPE(joyB,        ccCancel)
-	controls(6) = TYPE(joyB,        ccMenu)
+	controls(4) = TYPE(usebut,      ccUse)
+	controls(5) = TYPE(menubut,     ccCancel)
+	controls(6) = TYPE(menubut,     ccMenu)
 	controls(7) = TYPE(joyStart,    ccMenu)
-	controls(8) = TYPE(joyB,        ccRun)
+	controls(8) = TYPE(menubut,     ccRun)
 
 	'Typically the first four buttons will be A/B/X/Y buttons, but not always in that order.
 	'So previously we used to map buttons 3 and 4 to use/cancel, but that's a nuiscance for scripted controls.
@@ -12059,6 +12069,21 @@ sub remap_touchscreen_button (button_id as integer, ohr_scancode as integer)
 	'debuginfo "remap_android_gamepad " & button_id & " " & ohr_scancode
 	io_remap_touchscreen_button(button_id, ohr_scancode)
 end sub
+
+'Get data from platform (currently just Blackbox) environment, overridable with a config key for testing.
+'Does NOT read environmental variables, use FB's environ() for that.
+function read_environment_key(key as string) as string
+	dim ret as string
+	ret = read_config_str("env." & key, @CHR(1))
+	if ret = CHR(1) then
+		#ifdef __FB_BLACKBOX__
+			ret = *blackbox_get_environment(key)
+		#else
+			ret = ""
+		#endif
+	end if
+	return ret
+end function
 
 function running_on_console() as bool
 	'Currently supports OUYA, GameStick, Fire-TV

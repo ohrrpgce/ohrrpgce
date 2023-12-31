@@ -789,6 +789,7 @@ declare sub hide_virtual_gamepad()
 declare sub remap_android_gamepad(player as integer, gp as GamePadMap)
 declare sub remap_touchscreen_button (button_id as integer, ohr_scancode as integer)
 
+declare function read_environment_key(key as string) as string
 declare function running_on_console() as bool
 declare function running_on_mobile() as bool
 declare function running_on_ouya() as bool 'Only use this for things that strictly require OUYA, like the OUYA store
