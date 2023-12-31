@@ -510,10 +510,13 @@ setvispage vpage, NO
 
 '==================================== Unlump ==================================
 
-' If coming from the browser, this is drawn on top of the file path at the top.
-rectangle 0, 0, rWidth, 17, uilook(uiBackground), vpage
-'edgeboxstyle pCentered, 3, rWidth - 8, 14, 0, vpage  'Rectangle behind "Loading"
-edgeprint "Loading...", pCentered, 6, uilook(uiText), vpage
+' Don't show "Loading..." (nor upgrade messages) on consoles, to give more control to the game
+IF running_on_console = NO THEN
+ ' If coming from the browser, this is drawn on top of the file path at the top.
+ rectangle 0, 0, rWidth, 17, uilook(uiBackground), vpage
+ 'edgeboxstyle pCentered, 3, rWidth - 8, 14, 0, vpage  'Rectangle behind "Loading"
+ edgeprint "Loading...", pCentered, 6, uilook(uiText), vpage
+END IF
 setvispage vpage, NO
 
 DIM archinym as string
@@ -595,7 +598,10 @@ rpg_sanity_checks
 xbload game + ".fnt", current_font(), "font missing from " + sourcerpg
 
 '--upgrade obsolete RPG files (if possible)
-IF NOT running_under_Custom THEN upgrade gam.started_by_run_game = NO
+IF NOT running_under_Custom THEN
+ DIM show_upgrade_messages as bool = (gam.started_by_run_game = NO) AND (running_on_console = NO)
+ upgrade show_upgrade_messages
+END IF
 
 
 '======================== Stuff initialised once per .RPG =====================
