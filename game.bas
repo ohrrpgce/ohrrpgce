@@ -552,9 +552,10 @@ ELSEIF NOT running_under_Custom THEN  'Won't unlump or upgrade if running under 
   debuginfo workingdir + " not writeable"
   forcerpgcopy = YES
  END IF
- #IF NOT (defined(__FB_ANDROID__) OR defined(__FB_JS__))
+ #IF NOT (defined(MINIMAL_OS) OR defined(__FB_ANDROID__))
   'Copy the .rpgdir, because otherwise upgrade() would modify it, which is annoying
   '(In future we want to instead use copy-on-write, for both .rpgs and .rpgdirs)
+  'Don't want to waste disk space on Android.
   forcerpgcopy = YES
  #ENDIF
  IF forcerpgcopy THEN
@@ -564,6 +565,8 @@ ELSEIF NOT running_under_Custom THEN  'Won't unlump or upgrade if running under 
   usepreunlump = NO
  END IF
 END IF
+
+debuginfo "workingdir: " & workingdir
 
 '--set game
 game = workingdir + SLASH + archinym
