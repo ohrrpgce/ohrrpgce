@@ -151,6 +151,7 @@ IF NOT isdir(tmpdir) THEN fatalerror "Unable to create temp directory " & tmpdir
 
 set_global_config_file
 debuginfo "config: " & global_config_file
+flush_gfx_config_settings
 
 
 '========================== Process commandline flags =========================

@@ -236,6 +236,7 @@ refresh_keepalive_file
 
 set_global_config_file
 debuginfo "config: " & global_config_file
+flush_gfx_config_settings
 
 
 '========================== Process commandline flags =========================
@@ -1073,7 +1074,9 @@ SUB reset_game_final_cleanup()
  game = ""
  sourcerpg = ""
  game_config_file = ""
+ 'Also calls reset_control_mappings
  flush_gfx_config_settings
+ 'reset_control_mappings
  'checks for leaks and deallocates them
  sprite_empty_cache
  palette16_reload_cache   'Read default palettes (now that game="")

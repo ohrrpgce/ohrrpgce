@@ -348,7 +348,7 @@ SUB push_and_reset_gfxio_state ()
   pause_mouserect
   force_use_mouse += 1
   get_key_mappings .key_mappings()
-  set_basic_key_mappings  'Ensures Ctrl is not mapped to Use
+  reset_to_basic_key_mappings  'Ensures Ctrl is not mapped to Use
   setkeys
   #IFDEF IS_GAME
    .resolution_was_unlocked = resolution_unlocked()

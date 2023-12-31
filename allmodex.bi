@@ -471,7 +471,8 @@ end type
 DECLARE SUB delete_key_mappings(key as integer, joynum as integer = -2)
 DECLARE SUB get_key_mappings(controls() as ControlKey)
 DECLARE SUB set_key_mappings(controls() as ControlKey)
-DECLARE SUB set_basic_key_mappings()
+DECLARE SUB reset_control_mappings()
+DECLARE SUB reset_to_basic_key_mappings()
 
 DECLARE SUB setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
 

@@ -320,6 +320,7 @@ dim shared disable_native_text_input as bool = NO
 'True if disable_native_text_input set by a commandline or config option
 dim shared overrode_native_text_input as bool = NO
 
+dim shared swap_joystick_use_cancel as optbool = NONBOOL  'NONBOOL if not computed yet
 dim shared joysticks_globally_disabled as bool = NO
 
 type JoystickState extends KeyArray
@@ -348,6 +349,7 @@ type InputState
 	joys(3) as JoystickState
 
 	declare function controlkey(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
+	declare sub reset_controls()
 end type
 
 dim shared real_input as InputState         'Always contains real state even if replaying
@@ -701,6 +703,10 @@ end function
 'Force config settings to be reloaded, since they may be game- or backend-specific
 sub flush_gfx_config_settings()
 	loaded_screenshot_settings = NO
+
+	'Control mappings can depend on config
+	swap_joystick_use_cancel = NONBOOL
+	reset_control_mappings
 end sub
 
 sub settemporarywindowtitle (title as string)
@@ -2600,13 +2606,13 @@ sub KeyboardState.init_controls()
 	controls(2)  = TYPE(scLeft,   ccLeft)
 	controls(3)  = TYPE(scRight,  ccRight)
 	#ifdef IS_GAME
-	controls(4)  = TYPE(scCtrl,   ccUse)  'Wiped by set_basic_key_mappings
+	controls(4)  = TYPE(scCtrl,   ccUse)  'Wiped by reset_to_basic_key_mappings
 	#endif
 	controls(5)  = TYPE(scSpace,  ccUse)
 	controls(6)  = TYPE(scEnter,  ccUse)
 	#ifdef IS_GAME
-	controls(7)  = TYPE(scAlt,    ccMenu)  'Wiped by set_basic_key_mappings
-	controls(8)  = TYPE(scAlt,    ccCancel)  'Wiped by set_basic_key_mappings
+	controls(7)  = TYPE(scAlt,    ccMenu)  'Wiped by reset_to_basic_key_mappings
+	controls(8)  = TYPE(scAlt,    ccCancel)  'Wiped by reset_to_basic_key_mappings
 	#endif
 	controls(9)  = TYPE(scEsc,    ccMenu)
 	controls(10) = TYPE(scEsc,    ccCancel)
@@ -2614,15 +2620,24 @@ sub KeyboardState.init_controls()
 	controls(12) = TYPE(scTab,    ccFlee)  'Who knew?
 end sub
 
+'FIXME: this is called before main() to initialise the real_input/replay_input globals, but depends on
+'global_config_file, which won't be properly initialised. So flush_gfx_config_settings calls again
+'(via reset_control_mappings), however that will throw away custom keymappings when switching gfx backend.
 sub JoystickState.init_controls()
 	dim as JoyButton usebut, menubut
-	'This is a Blackbox setting, "0" or "1", true on Nintendo and player-configurable on PS
-	if str2int(read_environment_key("asiabuttons"), 0) = 0 then
-		usebut = joyA   'Cross
-		menubut = joyB  'Circle
-	else
+
+	if swap_joystick_use_cancel = NONBOOL then
+		'Cache setting
+		'This is a Blackbox setting, "0" or "1", true on Nintendo and player-configurable on PS
+		swap_joystick_use_cancel = (str2int(read_environment_key("asiabuttons"), 0) <> 0)
+	end if
+
+	if swap_joystick_use_cancel then
 		usebut = joyB
 		menubut = joyA
+	else
+		usebut = joyA   'Cross
+		menubut = joyB  'Circle
 	end if
 
 	redim controls(8)
@@ -2692,9 +2707,21 @@ sub set_key_mappings(controls() as ControlKey)
 	next
 end sub
 
+sub InputState.reset_controls()
+	kb.init_controls()
+	for joynum as integer = 0 to ubound(joys)
+		joys(joynum).init_controls()
+	next
+end sub
+
+sub reset_control_mappings()
+	real_input.reset_controls
+	replay_input.reset_controls
+end sub
+
 'Sets up the keyboard key mappings the way Custom does (unlike Game, which allows Ctrl for Use
 'and Alt for Cancel)
-sub set_basic_key_mappings()
+sub reset_to_basic_key_mappings()
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
 
 	inputst->kb.init_controls()
