@@ -185,6 +185,8 @@ type USTRING as STRING
 'That may or may not cause problems.)
 CONST YES = -1
 CONST NO = 0
+'For optbool, meaning "unspecified/neither"
+CONST NONBOOL = -2
 
 #IFNDEF NULL
 #DEFINE NULL 0
@@ -209,13 +211,16 @@ CONST NO = 0
 ' around them by moving more stuff into this namespace.
 NAMESPACE OHR
 
-' TODO: FB 1.04+ has a boolean type, which we ignore for now
-' (it's 1 bit in size and compatible with C/C++ bool)
+' TODO: FB 1.04+ has a boolean type, which it would be nice to switch over to
+' (it's 1 bit stored as a byte and compatible with C/C++ bool)
 #IFDEF __FB_64BIT__
   TYPE bool as long  '32 bit
+  'optbool is for an integer which can contain values YES, NO, NONBOOL and possibly others
+  TYPE optbool as long
 #ELSE
   'Tip: Change this to 'long' to cause warnings for inconsistent usage of bool vs integer
   TYPE bool as integer
+  TYPE optbool as integer
 #ENDIF
 
 ' I will use boolint in declarations of C/C++ functions where we would like to use

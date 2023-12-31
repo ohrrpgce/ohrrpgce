@@ -772,8 +772,8 @@ DECLARE Sub UpdateTextSlice(byval sl as slice ptr)
 DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
                       s as string=CHR(1) & CHR(255),_
                       byval col as integer=colInvalid,_
-                      byval outline as integer=-2,_
-                      byval wrap as integer=-2,_
+                      byval outline as optbool=NONBOOL,_
+                      byval wrap as optbool=NONBOOL,_
                       byval bgcol as integer=colInvalid)
 DECLARE Function TextSliceCharPos(sl as Slice ptr, charnum as integer) as XYPair
 
@@ -805,14 +805,14 @@ DECLARE Sub ChangeMapSliceTileset (byval sl as slice ptr, byval tileset as Tiles
 DECLARE Sub ChangeMapSlice (byval sl as slice ptr,_
                    byval tiles as TileMap ptr=cast(TileMap ptr, 1),_
                    byval pass as TileMap ptr=cast(TileMap ptr, 1),_
-                   byval transparent as integer=-2,_
+                   byval transparent as optbool=NONBOOL,_
                    byval overlay as integer=-1) ' All arguments default to no change (explaining weird tiles default)
 
 DECLARE Function NewGridSlice(byval parent as Slice ptr, byref dat as GridSliceData) as slice ptr
 DECLARE Sub ChangeGridSlice(byval sl as slice ptr,_
                       byval rows as integer=0,_
                       byval cols as integer=0,_
-                      byval show as integer=-2)
+                      byval show as optbool=NONBOOL)
 
 DECLARE Function NewLayoutSlice(byval parent as Slice ptr, byref dat as LayoutSliceData) as slice ptr
 
@@ -836,7 +836,7 @@ DECLARE Sub SelectSliceNext(byval sl as Slice ptr, byval can_loop as bool=YES)
 
 DECLARE Function NewPanelSlice(byval parent as Slice ptr, byref dat as PanelSliceData) as slice ptr
 DECLARE Sub ChangePanelSlice(byval sl as slice ptr,_
-                      byval vertical as integer=-2,_ 'vertical is actually bool, use -2 to signal no change
+                      byval vertical as optbool=NONBOOL,_
                       byval primary as integer=-1,_
                       byval pixels as integer=-1,_
                       byval percent as double=-1.0,_

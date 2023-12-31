@@ -148,8 +148,8 @@ private sub update_mouse_visibility
 end sub
 
 'Recreate the window if needed, while possibly switching to/from fullscreen
-local sub update_screen_mode_no_lock(to_fullscreen as bool = -2)
-	if to_fullscreen = -2 then to_fullscreen = window_state.fullscreen
+local sub update_screen_mode_no_lock(to_fullscreen as optbool = NONBOOL)
+	if to_fullscreen = NONBOOL then to_fullscreen = window_state.fullscreen
 	calculate_and_set_screen_res to_fullscreen
 	windowtitle remember_windowtitle
 	'Palette must be re-set
@@ -247,7 +247,7 @@ function gfx_fb_screenshot(byval fname as zstring ptr) as integer
 end function
 
 sub gfx_fb_setwindowed(byval iswindow as integer)
-	dim wantfullscreen as bool = iif(iswindow, NO, YES) 'only 1 "true" value
+	dim wantfullscreen as bool = iif(iswindow, NO, YES)
 	if window_state.fullscreen = wantfullscreen then exit sub
 
 	if debugging_io then debuginfo "setwindowed fullscreen=" & wantfullscreen

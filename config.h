@@ -163,9 +163,12 @@ typedef int boolint;
 
 /* bool type in FB code. Use constants YES and NO. */
 typedef boolint fb_bool;
+/* optbool type in FB code. Use constants YES, NO, NONBOOL, and possibly other integer values. */
+typedef int optbool;
 
 #define YES -1
 #define NO  0
+#define NONBOOL -2
 
 /* boolean type in FB code. This is equivalent to bool in modern C/C++ compilers (int8 containing 0/1,
    even though reading the value in FB produces 0/-1 since it's interpreted as a signed 1-bit value),

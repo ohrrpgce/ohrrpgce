@@ -1936,8 +1936,8 @@ end function
 Sub ChangeTextSlice(byval sl as Slice ptr,_
                       s as string=CHR(1) & CHR(255),_
                       byval col as integer=colInvalid,_
-                      byval outline as integer=-2,_
-                      byval wrap as integer=-2,_
+                      byval outline as optbool=NONBOOL,_
+                      byval wrap as optbool=NONBOOL,_
                       byval bgcol as integer=colInvalid)
  if sl = 0 then debug "ChangeTextSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slText)
@@ -1951,10 +1951,10 @@ Sub ChangeTextSlice(byval sl as Slice ptr,_
   if bgcol <> colInvalid then
    .bgcol = bgcol
   end if
-  if outline > -2 then
+  if outline <> NONBOOL then
    .outline = outline <> 0
   end if
-  if wrap > -2 then
+  if wrap <> NONBOOL then
    .wrap = wrap <> 0
   end if
  end with
@@ -2393,9 +2393,9 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
                       byval record as integer=-1,_
                       byval pal as integer = -2,_
                       byval frame as integer = -1,_
-                      byval fliph as integer = -2,_
-                      byval flipv as integer = -2,_
-                      byval trans as integer = -2)
+                      byval fliph as optbool = NONBOOL,_
+                      byval flipv as optbool = NONBOOL,_
+                      byval trans as optbool = NONBOOL)
  if sl = 0 then debug "ChangeSpriteSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slSprite)
  with *sl->SpriteData
@@ -2417,9 +2417,9 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
    end if
   end if
   if frame >= 0 then .frame = frame
-  if fliph > -2 then .flipHoriz = (fliph <> 0)
-  if flipv > -2 then .flipVert = (flipv <> 0)
-  if trans > -2 then .trans = (trans <> 0)
+  if fliph <> NONBOOL then .flipHoriz = (fliph <> 0)
+  if flipv <> NONBOOL then .flipVert = (flipv <> 0)
+  if trans <> NONBOOL then .trans = (trans <> 0)
   if .loaded = NO then
    unload_sprite_and_pal .img
    SpriteSliceUpdate sl
@@ -2607,7 +2607,7 @@ end sub
 Sub ChangeMapSlice(byval sl as Slice ptr,_
                    byval tiles as TileMap ptr = cast(TileMap ptr, 1),_
                    byval pass as TileMap ptr = cast(TileMap ptr, 1),_
-                   byval transparent as integer=-2,_
+                   byval transparent as optbool=NONBOOL,_
                    byval overlay as integer=-1)
  if sl = 0 then debug "ChangeMapSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slMap)
@@ -2625,8 +2625,8 @@ Sub ChangeMapSlice(byval sl as Slice ptr,_
    '--passmap. If this slice doesn't draw overhead tiles, can set this to NULL
    .pass = pass
   end if
-  if transparent >= -1 then
-   .transparent = (transparent <> 0) 'boolean
+  if transparent <> NONBOOL then
+   .transparent = (transparent <> 0)
   end if
   if overlay >= 0 and overlay <= 2 then
    '--used for backcompat with overhead tiles on layer 0
@@ -2800,7 +2800,7 @@ End Function
 Sub ChangeGridSlice(byval sl as Slice ptr,_
                       byval rows as integer=0,_
                       byval cols as integer=0,_
-                      byval show as integer=-2)
+                      byval show as optbool=NONBOOL)
  if sl = 0 then debug "ChangeGridSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slGrid)
  dim dat as GridSliceData Ptr = sl->SliceData
@@ -2810,8 +2810,8 @@ Sub ChangeGridSlice(byval sl as Slice ptr,_
  if cols > 0 then
   dat->cols = cols
  end if
- if show > -2 then
-  dat->show = show
+ if show <> NONBOOL then
+  dat->show = (show <> 0)
  end if
 end sub
 
@@ -3691,7 +3691,7 @@ end function
 
 'All arguments default to no-change
 Sub ChangePanelSlice(byval sl as Slice ptr,_
-                      byval vertical as integer=-2,_ 'verical is actually bool, use -2 to signal no change
+                      byval vertical as optbool=NONBOOL,_
                       byval primary as integer=-1,_
                       byval pixels as integer=-1,_
                       byval percent as double=-1.0,_
@@ -3699,7 +3699,7 @@ Sub ChangePanelSlice(byval sl as Slice ptr,_
  if sl = 0 then debug "ChangePanelSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slPanel)
  with *sl->PanelData
-  if vertical <> -2 then
+  if vertical <> NONBOOL then
    .vertical = vertical <> 0
   end if
   if primary >= 0 then
