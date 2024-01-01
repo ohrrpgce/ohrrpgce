@@ -5,10 +5,10 @@ UPLOAD_FOLDER="HamsterRepublic.com/ohrrpgce/nightly/"
 UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
 
 # Run Android nightly build in docker
-~/src/ohr/wip/nightly/wrap-nightly-android.sh > /dev/null 2>&1
+~/src/nightly/ohr-android/nightly/wrap-nightly-android.sh > /dev/null 2>&1
 
 # Run Web nightly build in docker
-~/src/ohr/wip/nightly/wrap-nightly-web.sh > /dev/null 2>&1
+~/src/nightly/ohr-web/nightly/wrap-nightly-web.sh > /dev/null 2>&1
 
 # After the nightly build finishes, generate nightly-check.ini listing the svn_rev
 # and build_date for the main builds, and upload and email it
