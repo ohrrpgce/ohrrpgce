@@ -2,7 +2,10 @@
 echo "ABOUT TO DO A NIGHTLY WIP BUILD"
 echo "-------------------------------"
 sleep 10
-cd ~/src/ohr/wip
+
+SCRIPTDIR="${0%/*}"
+SCRIPTDIR="$(realpath $SCRIPTDIR)"
+cd "${SCRIPTDIR}"/..
 
 if [ -n "True" ] ; then
   echo "From: cron@rpg.hamsterrepublic.com"
@@ -27,5 +30,5 @@ if [ -n "True" ] ; then
   docker/ohrrpgce-build-env-android/andr-oldstyle.sh -sb -c '/src/ohr/distrib-nightly-android.sh --chromebook' || exit 1
   scp -pr distrib/ohrrpgce-game-android*-debug*.apk james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 
-fi | tee ~/wrap-nightly-android-output.txt
-~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-android-output.txt
+fi | tee "${SCRIPTDIR}"/wrap-nightly-android-output.txt
+"${SCRIPTDIR}"/curl_smtp_wrapper.sh "${SCRIPTDIR}"/wrap-nightly-android-output.txt
