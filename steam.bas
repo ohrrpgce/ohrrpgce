@@ -8,6 +8,14 @@
 
 ' #define DEBUG_STEAM
 
+#ifndef __FB_BLACKBOX__
+  'We dynamically link to the steamworks library so that a single build can be used
+  'for both Steam and non-Steam games with the library being optional.
+  'You can comment this out to link to libsteam_api normally (after adding it and "-L ." to SConscript).
+  'Blackbox also emulates the Steam API for achievements, everything else is a stub.
+  #define RUNTIME_LINK
+#endif
+
 namespace Steam
 
 #define steam_error(msg)  debug "steam: " msg
@@ -23,51 +31,67 @@ declare sub OnUserStatsReceived(msg as UserStatsReceived_t ptr)
 
 ' static variables
 
-dim shared steamworks_handle as any ptr = null
 dim shared steam_user_stats as ISteamUserStats ptr
 dim shared steam_friends as ISteamFriends ptr
 
-' reminder: these are all function pointers, not function declarations
-' basic init/deinit
-dim shared SteamAPI_Init as function() As boolean
-dim shared SteamAPI_Shutdown as sub()
-dim shared SteamAPI_RestartAppIfNecessary as function( byval unOwnAppID as uinteger ) as boolean
+#ifdef RUNTIME_LINK
+  dim shared steamworks_handle as any ptr = null
 
-' callback infrastructure
-dim shared SteamAPI_GetHSteamPipe as function() as HSteamPipe
-dim shared SteamAPI_ManualDispatch_Init as sub()
-dim shared SteamAPI_ManualDispatch_RunFrame as sub( byval hSteamPipe as HSteamPipe )
-dim shared SteamAPI_ManualDispatch_GetNextCallback as function ( hSteamPipe as HSteamPipe, pCallbackMsg as CallbackMsg_t ptr) as boolean
-dim shared SteamAPI_ManualDispatch_FreeLastCallback as sub ( hSteamPipe as HSteamPipe)
-dim shared SteamAPI_ManualDispatch_GetAPICallResult as function ( hSteamPipe as HSteamPipe, hSteamAPICall as SteamAPICall_t, pCallback as any ptr, cubCallback as integer,  iCallbackExpected as integer, pbFailed as boolean ptr) as boolean
+  ' decl_sub/decl_function declare function pointers which are loaded by load_libsteam_api.
+  ' (args includes the arg list and the function return type too)
+  #define decl_sub(name, args)  dim shared name as sub args
+  #define decl_function(name, args)  dim shared name as function args
+#else
+  dim shared is_initialized as boolean = false
+
+  ' Normal declarations
+  #define decl_sub(name, args)  declare sub name args
+  #define decl_function(name, args)  declare function name args
+#endif
+
+extern "C"
+
+' basic init/deinit
+decl_function (SteamAPI_Init, () as boolean)
+decl_sub (SteamAPI_Shutdown, ())
+decl_function (SteamAPI_RestartAppIfNecessary, (byval unOwnAppID as uinteger) as boolean)
+
+' callback infrastructure, for run_frame
+decl_function (SteamAPI_GetHSteamPipe, () as HSteamPipe)
+decl_sub (SteamAPI_ManualDispatch_Init, ())
+decl_sub (SteamAPI_ManualDispatch_RunFrame, (byval hSteamPipe as HSteamPipe))
+decl_function (SteamAPI_ManualDispatch_GetNextCallback, (hSteamPipe as HSteamPipe, pCallbackMsg as CallbackMsg_t ptr) as boolean)
+decl_sub (SteamAPI_ManualDispatch_FreeLastCallback, (hSteamPipe as HSteamPipe))
+decl_function (SteamAPI_ManualDispatch_GetAPICallResult, (hSteamPipe as HSteamPipe, hSteamAPICall as SteamAPICall_t, pCallback as any ptr, cubCallback as integer,  iCallbackExpected as integer, pbFailed as boolean ptr) as boolean)
 
 ' achievements
-dim shared SteamAPI_SteamUserStats_v012 as function () as ISteamUserStats ptr
+decl_function (SteamAPI_SteamUserStats_v012, () as ISteamUserStats ptr)
 'Only in Steamworks SDK v1.53+, so won't use it to support older libs packaged with some OHR games
-'dim shared SteamAPI_SteamUserStats as function () as ISteamUserStats ptr
-dim shared SteamAPI_ISteamUserStats_RequestCurrentStats as function(byval self as ISteamUserStats ptr) as boolean
-dim shared SteamAPI_ISteamUserStats_SetAchievement as function(byval self as ISteamUserStats ptr, byval name as const zstring ptr) as boolean
-dim shared SteamAPI_ISteamUserStats_ClearAchievement as function(byval self as ISteamUserStats ptr, byval name as const zstring ptr) as boolean
-dim shared SteamAPI_ISteamUserStats_StoreStats as function(byval self as ISteamUserStats ptr) as boolean
-dim shared SteamAPI_ISteamUserStats_IndicateAchievementProgress as function(byval self as ISteamUserStats ptr, byval name as const zstring ptr, progress as uinteger, max_progress as uinteger) as boolean
+'decl_function (SteamAPI_SteamUserStats, () as ISteamUserStats ptr)
+decl_function (SteamAPI_ISteamUserStats_RequestCurrentStats, (byval self as ISteamUserStats ptr) as boolean)
+decl_function (SteamAPI_ISteamUserStats_SetAchievement, (byval self as ISteamUserStats ptr, byval name as const zstring ptr) as boolean)
+decl_function (SteamAPI_ISteamUserStats_ClearAchievement, (byval self as ISteamUserStats ptr, byval name as const zstring ptr) as boolean)
+decl_function (SteamAPI_ISteamUserStats_StoreStats, (byval self as ISteamUserStats ptr) as boolean)
+decl_function (SteamAPI_ISteamUserStats_IndicateAchievementProgress, (byval self as ISteamUserStats ptr, byval name as const zstring ptr, progress as uinteger, max_progress as uinteger) as boolean)
 
 ' friends
-dim shared SteamAPI_SteamFriends_v017 as function() as ISteamFriends ptr
-dim shared SteamAPI_ISteamFriends_SetRichPresence as function(byval self as ISteamFriends ptr, byval pchKey as const zstring ptr, byval pchValue as const zstring ptr) as boolean
+decl_function (SteamAPI_SteamFriends_v017, () as ISteamFriends ptr)
+decl_function (SteamAPI_ISteamFriends_SetRichPresence, (byval self as ISteamFriends ptr, byval pchKey as const zstring ptr, byval pchValue as const zstring ptr) as boolean)
 
+end extern
+
+#ifdef RUNTIME_LINK
 
 #macro MUSTLOAD(hfile, procedure)
   procedure = dylibsymbol(hfile, #procedure)
   if procedure = NULL then
     steam_error("Unable to find " & #procedure)
-    ' do this instead of uninitialize_steam(), since it assumes we succeeded in initializing
-    dylibfree(hFile)
-    hFile = null
-    return NO
+    return false
   end if
 #endmacro
 
-function initialize() as boolean
+'On failure returns false, and the caller needs to dylibfree(steamworks_handle)
+function load_libsteam_api() as boolean
 
   #ifdef __FB_WIN32__
     #ifdef __FB_64BIT__
@@ -111,6 +135,22 @@ function initialize() as boolean
   MUSTLOAD(steamworks_handle, SteamAPI_SteamFriends_v017)
   MUSTLOAD(steamworks_handle, SteamAPI_ISteamFriends_SetRichPresence)
 
+  return true
+end function
+
+#endif  ' #ifdef RUNTIME_LINK
+
+
+function initialize() as boolean
+  #ifdef RUNTIME_LINK
+    if load_libsteam_api() = false then
+      uninitialize()
+      return false
+    end if
+  #else
+    is_initialized = true
+  #endif
+
   if SteamAPI_Init() = false then
     steam_error("Unable to initialize Steamworks, Steam not running or missing steam_appid.txt?")
     uninitialize()
@@ -139,27 +179,38 @@ function initialize() as boolean
     end if
   end if
 
-  steam_friends = SteamAPI_SteamFriends_v017()
+  'Friends API is used only for rich presence, which blackbox provides separately
+  #ifndef __FB_BLACKBOX__
+    steam_friends = SteamAPI_SteamFriends_v017()
 
-  if steam_friends = null then
-    steam_error("Unable to obtain friends object")
-    uninitialize()
-    return false
-  end if
+    if steam_friends = null then
+      steam_error("Unable to obtain friends object")
+      uninitialize()
+      return false
+    end if
+  #endif
 
   debuginfo "Steam initialized"
   return true
 end function
 
 sub uninitialize()
-  if steamworks_handle <> null then
-    dylibfree(steamworks_handle)
-    steamworks_handle = null
-  end if
+  #ifdef RUNTIME_LINK
+    if steamworks_handle <> null then
+      dylibfree(steamworks_handle)
+      steamworks_handle = null
+    end if
+  #else
+    is_initialized = false
+  #endif
 end sub
 
 function available() as boolean
-  return steamworks_handle <> null
+  #ifdef RUNTIME_LINK
+    return steamworks_handle <> null
+  #else
+    return is_initialized
+  #endif
 end function
 
 sub reward_achievement(id as const string)
@@ -191,7 +242,7 @@ sub notify_achievement_progress(id as const string, progress as integer, max_pro
 end sub
 
 #ifndef __FB_BLACKBOX__
-'Blackbox has its own version of this
+'Blackbox has its own version of this (blackbox_set_rich_presence())
 
 'Set the current status string shown by a user in the friends list.
 'The first value is actually the name of a rich presence localization token. A list of these
@@ -227,6 +278,7 @@ end sub
 dim shared achieve_timer as integer = -1
 
 sub run_frame()
+#ifndef __FB_BLACKBOX__
   if available() = false then return
 
   ' steam_debug("run_steam_frame")
@@ -266,6 +318,7 @@ sub run_frame()
     end if
     SteamAPI_ManualDispatch_FreeLastCallback(hSteamPipe)
   wend
+#endif
 end sub
 
 private sub OnUserStatsReceived(msg as UserStatsReceived_t ptr)
