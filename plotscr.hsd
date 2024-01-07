@@ -790,9 +790,9 @@ define function, begin
 755,getattackextra,2,0,0      # get attack extra data (attack id + 1, 0 - 2)
 756,pathfindintoextraasnpc,9,0,0,0,0,0,0,0,0,0 # pathfind, then store the results in extra data (handle, npcref, startx, starty, destx, desty, maxsearch, append, skipstart)
 757,pathfindintoextraashero,8,0,0,0,0,0,0,0,0  # pathfind, then store the results in extra data (handle, startx, starty, destx, desty, maxsearch, append, skipstart)
-758,insertextra,3,0,0,0       # insert a new extra value at a specific index (extra, index, value)
-759,deleteextra,2,0,0         # Delete an element from an extra array (extra, index) returns the deleted value
-760,deleteextrarange,3,0,0,0  # Delete several elements of a slice at once (extra, first index, last index)
+758,insertextra,3,0,0,0       # insert a new extra value at a specific index (handle, index, value)
+759,deleteextra,2,0,0         # Delete an element from an extra array, returns the deleted value (handle, index)
+760,deleteextrarange,3,0,0,0  # Delete several elements of a slice at once (handle, first index, last index)
 761,isshopbuymenuempty,1,0    # Is the "Buy" menu empty? (shop id)
 762,isshophiremenuempty,1,0   # Is the "Hire" menu empty? (shop id)
 763,innscreen,2,0,0           # Open the Inn screen for a specific price (price, skip_fade)
@@ -801,6 +801,7 @@ define function, begin
 766,ps5startstory,0           # (Console only)
 767,ps5endstory,0             # (Console only)
 768,setrichpresence,2,0,-1    # (Console/Steam) Set the Friends list status (token_name strid, substitution strid)
+769,findextra,3,0,0,0         # Return index of a value in an extra array, or -1 (handle, value, startindex)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

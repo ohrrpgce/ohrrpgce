@@ -5142,6 +5142,20 @@ end
 
 ########################################################################
 
+# Example from plotdict
+script, remove extra, obj, value, begin
+  variable (idx)
+  while (true) do (
+    idx := find extra (obj, value)
+    if (idx == -1) then (exit)   # All deleted
+    delete extra (obj, idx)
+    # Normally we'd do "idx += 1" to look for the next occurrence of 'value'
+    # after idx, but because we deleted it we don't need to.
+  )
+end
+
+########################################################################
+
 # The following sets of testcases for slice & generic extra data commands
 # were accidentally duplicated. Most also get tested in many other places.
 
@@ -5242,6 +5256,19 @@ script, extra array tests, begin
  assert(get extra(xt,4)==200)
  append extra(xt,100)
 
+ show string($1="Test find extra")
+ assert(find extra(xt,1)==-1)
+ assert(find extra(xt,111)==2)
+ assert(find extra(xt,111,2)==2)
+ assert(find extra(xt,111,3)==-1)
+ assert(find extra(xt,100)==1)
+ assert(find extra(xt,100,2)==5)
+ assert(find extra(xt,100,-1)==5)
+ assert(find extra(xt,100,-4)==5)
+ assert(find extra(xt,100,-5)==1)
+ assert(find extra(xt,100,-40)==1)
+ assert(find extra(xt,100,99)==-1)
+
  show string($1="Test deletion")
  assert(delete extra(xt,3)==222)
  assert(delete extra(xt,1)==100)
@@ -5283,6 +5310,16 @@ script, extra array tests, begin
  assert(delete extra range(xt, 1, 2) == 666)
  assert(extra length(xt)==1)
  assert(get extra(xt,0)==99)
+
+ show string($1="Test remove extra")
+ append extra(xt, 100)
+ append extra(xt, 99)
+ remove extra(xt, 100)
+ assert(extra length(xt)==2)
+ assert(get extra(xt,0)==99)
+ assert(get extra(xt,1)==99)
+ remove extra(xt, 99)
+ assert(extra length(xt)==0)
 
  show no value
  free slice(xt)

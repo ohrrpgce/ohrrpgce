@@ -259,6 +259,8 @@ DIM SHARED binsize_cache_loaded as bool = NO
 REDIM SHARED fixbits_cache() as ubyte
 DIM SHARED fixbits_cache_loaded as bool = NO
 
+DIM SHARED dummy_000_extravec as integer vector
+
 '============================================================================='
 
 
@@ -6205,6 +6207,21 @@ FUNCTION delete_extra_range(byref extra as integer vector, first_index as intege
  END IF
 END FUNCTION
 
+FUNCTION find_extra(byref extra as integer vector, value as integer, startindex as integer = 0) as integer
+ IF extra = NULL THEN
+  IF dummy_000_extravec = NULL THEN v_new dummy_000_extravec, 3
+  extra = dummy_000_extravec
+ END IF
+ DIM length as integer = v_len(extra)
+ DIM index as integer = startindex
+ IF index < 0 THEN index += length
+ IF index < 0 THEN index = 0
+ WHILE index < length
+  IF extra[index] = value THEN RETURN index
+  index += 1
+ WEND
+ RETURN -1
+END FUNCTION
 
 Constructor HeroTagsCache()
  v_new this.checks

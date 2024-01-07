@@ -6138,6 +6138,36 @@ insert extra(handle, 2, 222) # 111,0,222,0,0
 				</note>
 			</description>
 		</command>
+		<command id="findextra">
+			<canon>find extra (handle, value, start index)</canon>
+			<shortname>find extra</shortname>
+			<description>
+				Search an object's extra data array for <p>value</p> and returns the index of the first item from the beginning
+				equal to value, or -1 if not found.
+				You could write a for loop instead but this command is much faster.
+				<lb/>
+				<p>handle</p> is the <ref>objecthandle</ref>.
+				<lb/>
+				<p>start index</p>, defaulting to 0, is an optional <ref>extradataindex</ref> where to start searching from;
+				the search looks from there until the end of the array.
+				(If it's beyond the end, the return value is always -1.)
+				Use this if there might be multiple copies of the value and you want to find them all:
+				set <p>start index</p> equal to the previous return value <tt>+ 1</tt>.
+				<example>
+# Deletes every occurrence of 'value' from an extra array.
+script, remove extra, obj, value, begin
+	variable (idx)
+	while (true) do (
+		idx := find extra (obj, value)
+		if (idx == -1) then (exit)   # All deleted
+		delete extra (obj, idx)
+		# Normally we'd do "idx += 1" to look for the next occurrence of 'value'
+		# after idx, but because we deleted it we don't need to.
+	)
+end</example>
+			</description>
+		</command>
+
 		<command id="extralength">
 			<canon>extra length (handle)</canon>
 			<shortname>extra length</shortname>

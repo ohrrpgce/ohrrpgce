@@ -59,7 +59,6 @@ DIM num_reusable_slice_table_slots as integer
 REDIM timers(numInitialTimers - 1) as PlotTimer
 
 
-
 '==========================================================================================
 '                                    Text embed codes
 '==========================================================================================
@@ -5303,6 +5302,13 @@ SUB script_commands(byval cmdid as integer)
    #ELSE
     Steam.set_rich_presence(token_id, substitution)
    #ENDIF
+  END IF
+
+ CASE 769 '--find extra (handle, value, startindex)
+  extravec_ptr = get_arg_extravec(0)
+  scriptret = -1
+  IF extravec_ptr THEN
+   scriptret = find_extra(*extravec_ptr, retvals(1), retvals(2))
   END IF
 
  CASE ELSE

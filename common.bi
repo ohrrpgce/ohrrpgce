@@ -292,6 +292,7 @@ DECLARE SUB set_extra(byref extra as integer vector, index as integer, value as 
 DECLARE SUB resize_extra(byref extra as integer vector, length as integer)
 DECLARE SUB insert_extra(byref extra as integer vector, index as integer, value as integer)
 DECLARE FUNCTION delete_extra_range(byref extra as integer vector, first_index as integer, last_index as integer) as integer
+DECLARE FUNCTION find_extra(byref extra as integer vector, value as integer, startindex as integer = 0) as integer
 
 DECLARE FUNCTION load_tag_name (byval index as integer) as string
 DECLARE SUB save_tag_name (tagname as string, byval index as integer)
