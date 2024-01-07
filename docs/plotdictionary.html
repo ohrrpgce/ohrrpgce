@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2023-12-19)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2024-01-07)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -778,7 +778,7 @@ function toggleContent(target) {
 		<a href="#about-deletechar" class="ref">delete char (ID, position)</a><br>
 		<a href="#about-deleteenemyfromformation" class="ref">delete enemy from formation (formation, slot)</a><br>
 		<a href="#about-deleteextra" class="ref">delete extra (handle, index)</a><br>
-		<a href="#about-deleteextrarange" class="ref">delete extra range(handle, index, to index)</a><br>
+		<a href="#about-deleteextrarange" class="ref">delete extra range (handle, from index, to index)</a><br>
 		<a href="#about-deletehero" class="ref">delete hero (who)</a><br>
 		<a href="#about-deleteherobyslot" class="ref">delete hero by slot (slot)</a><br>
 		<a href="#about-deleteitem" class="ref">delete item (item, number)</a><br>
@@ -834,6 +834,7 @@ function toggleContent(target) {
 		<a href="#about-findcollidingslice" class="ref">find colliding slice (parent, slice, number, check descendants, visible only)</a><br>
 		<a href="#about-findcolor" class="ref">find color (r, g, b, searchstart)</a><br>
 		<a href="#about-findenemyinformation" class="ref">find enemy in formation (formation, enemy id, copy number)</a><br>
+		<a href="#about-findextra" class="ref">find extra (handle, value, start index)</a><br>
 		<a href="#about-findhero" class="ref">find hero (who)</a><br>
 		<a href="#about-findmenuid" class="ref">find menu ID(menu ID)</a><br>
 		<a href="#about-findmenuitemcaption" class="ref">find menu item caption(menu handle, string ID, search after handle, visible only)</a><br>
@@ -11014,15 +11015,13 @@ get hero name (1, find hero (leader))
 <span class="backlink"></span>Extra Data Array Functions</h3>
 		<a href="#Categories" class="backlink">[Back to top-level index]</a><p>
 			Certain types of objects (slices, NPCs, zones, menu items) have "extra data",
-			which are data fields with no builtin meaning which you can use for whatever you want.
-			(Menu item extra data is passed as arguments to any script triggered by the item.)
-			For example you could write a script to randomly play a sound effects while inside a zone,
-			and store the sound effect number in the extra data.
+			which is an array of data fields with no builtin meaning which you can use for whatever you want.
+			(Menu item extra data is also passed as arguments to any script triggered by the item.)
+			For example you could write a script to randomly play ambient sound effects while inside a zone,
+			and store the sound effect numbers in the zone's extra data in the zone editor.
 			<br>
-			These functions act on any objects with a resizable "extra data" array, which is currently
-			slices, npcs and zones.
+			These functions can be used on any objects with a resizable "extra data" array.
 			(To operate on zones you need to use <a href="#about-getzone" class="ref">get zone</a> to get a zone handle.)
-			Menu items have a fixed number of extra data slots (three) and can't yet be used with these commands.
 		</p>
 <div class="select-content-shown" id="Extra Data Array Functions-index">
 <button onclick="toggleContent(this);"><span class="content-shown">Hide index</span><span class="content-hidden">Show index</span></button><ul><div class="content-shown">
@@ -11030,10 +11029,11 @@ get hero name (1, find hero (leader))
 		<a href="#about-getextra" class="ref">get extra (handle, extra)</a><br>
 		<a href="#about-appendextra" class="ref">append extra (handle, value)</a><br>
 		<a href="#about-insertextra" class="ref">insert extra (handle, index, value)</a><br>
+		<a href="#about-findextra" class="ref">find extra (handle, value, start index)</a><br>
 		<a href="#about-extralength" class="ref">extra length (handle)</a><br>
 		<a href="#about-resizeextra" class="ref">resize extra (handle, length)</a><br>
 		<a href="#about-deleteextra" class="ref">delete extra (handle, index)</a><br>
-		<a href="#about-deleteextrarange" class="ref">delete extra range(handle, index, to index)</a><br>
+		<a href="#about-deleteextrarange" class="ref">delete extra range (handle, from index, to index)</a><br>
 </div></ul>
 </div>
 		<div class="command">
@@ -11103,19 +11103,55 @@ set extra(handle, -1, value)   # Index -1 is the last element of the array</pre>
 				<h4>insert extra (handle, index, value)</h4>
 <p>
 			
-				Insert a new value into an extra data array at a specific index, moving up the index of all the data after it, and increases the length of an object's extra data array by 1.
+				Insert a new value into an extra data array at a specific index, moving up the index of all the data after it, and increasing the length by 1.
+				<br>
 				<span class="param">handle</span> is the <a href="#about-objecthandle" class="ref">object handle</a>.
-				<span class="param">index</span> is where to put the new element. The first element is 0. You can also use negative indexes to count from the end of the array.
-				<span class="param">value</span> is the new value to insert at the index
+				<br>
+				<span class="param">index</span> is an <a href="#about-extradataindex" class="ref">extra array index</a> where to put the new element. As usual negative indices count from the end.
+				<br>
+				<span class="param">value</span> is the new value to insert.
 				<pre>
 # starting extra array 0,0,0
 insert extra(handle, 0, 111) # 111,0,0,0
-insert extra(handle, 2, 222) # 111,0,222,0,0
-				</pre>
+insert extra(handle, 2, 222) # 111,0,222,0,0</pre>
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					Inserting an element means all the elments after it have to be moved. If you are using an extra array as a stack, and are concerned about high performance, it is better to push to the end with <span class="code">append extra(handle, value)</span> rather than insert at the beginning with <span class="code">insert extra(handle, 0, value)</span>
 				</div>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-findextra"></a>
+				<h4>find extra (handle, value, start index)</h4>
+<p>
+			
+				Search an object's extra data array for <span class="param">value</span> and returns the index of the first item from the beginning
+				equal to value, or -1 if not found.
+				You could write a for loop instead but this command is much faster.
+				<br>
+				<span class="param">handle</span> is the <a href="#about-objecthandle" class="ref">object handle</a>.
+				<br>
+				<span class="param">start index</span>, defaulting to 0, is an optional <a href="#about-extradataindex" class="ref">extra array index</a> where to start searching from;
+				the search looks from there until the end of the array.
+				(If it's beyond the end, the return value is always -1.)
+				Use this if there might be multiple copies of the value and you want to find them all:
+				set <span class="param">start index</span> equal to the previous return value <span class="code">+ 1</span>.
+				<pre>
+# Deletes every occurrence of 'value' from an extra array.
+script, remove extra, obj, value, begin
+	variable (idx)
+	while (true) do (
+		idx := find extra (obj, value)
+		if (idx == -1) then (exit)   # All deleted
+		delete extra (obj, idx)
+		# Normally we'd do "idx += 1" to look for the next occurrence of 'value'
+		# after idx, but because we deleted it we don't need to.
+	)
+end</pre>
 			
 			
 			
@@ -11161,15 +11197,21 @@ insert extra(handle, 2, 222) # 111,0,222,0,0
 <p>
 			
 				Delete an element from an extra data array at a specific index, moving down the index of all the data after it, and decreasing the length of an object's extra data array by 1.
+				<br>
 				<span class="param">handle</span> is the <a href="#about-objecthandle" class="ref">object handle</a>.
-				<span class="param">index</span> is the element to delete and return. The first element is 0. You can also use negative indexes to count from the end of the array.
+				<br>
+				<span class="param">index</span> is the <a href="#about-extradataindex" class="ref">extra array index</a> of the element to delete and return.
 				<br>
 				The return value is the value that was found at the index which was removed.
 				<pre>
 # starting extra array 11,12,13
 delete extra(handle, 1) # returns 12, remaining extra data is 11,13
-delete extra(handle, -1) # returns 13, remaining extra data is 11
-				</pre>
+delete extra(handle, -1) # returns 13, remaining extra data is 11</pre>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					If you want to delete by value rather than by index, use the <span class="code">remove extra</span>
+					script from the example to <a href="#about-findextra" class="ref">find extra</a>.
+				</div>
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					Deleting an element means all the elments after it have to be moved. If you are using an extra array as queue, and are concerned about high performance, it is better to pop from the end with <span class="code">delete extra(handle, -1)</span> rather than popping from the beginning with <span class="code">delete extra(handle, 0)</span>
@@ -11182,15 +11224,24 @@ delete extra(handle, -1) # returns 13, remaining extra data is 11
 </div>
 		<div class="command">
 			<a name="about-deleteextrarange"></a>
-				<h4>delete extra range(handle, index, to index)</h4>
+				<h4>delete extra range (handle, from index, to index)</h4>
 <p>
 			
-				Delete a range of elements from an extra data array starting a specific index and ending at a specific index. All the data after it will be moved down, and the length of an object's extra data array will be decreased.
+				Delete a range of elements from an extra data array starting from one index (inclusive) to another (exclusive).
+				All the data after it will be moved down, and the length of an object's extra data array will be decreased by the same amount,
+				which is <span class="code">to index -- from index</span> elements (after converting negative indices to positive).
+				<br>
 				<span class="param">handle</span> is the <a href="#about-objecthandle" class="ref">object handle</a>.
-				<span class="param">index</span> is the starting element to delete and return. The first element is 0. You can also use negative indexes to count from the end of the array.
-				<span class="param">to index</span> is the index of the first element after the deleted range.
+				<br>
+				<span class="param">from index</span> is the <a href="#about-extradataindex" class="ref">extra array index</a> of the starting element to delete. It's the one returned. You can use negative indices as usual.
+				<br>
+				<span class="param">to index</span> is the <a href="#about-extradataindex" class="ref">extra array index</a> of the first element <b>after</b> the deleted range: it is exclusive.
+				<br>
+				The return value is the item that was at <span class="param">from index</span>,
+				unless <span class="code">from index == to index</span> (an empty range) in which case nothing
+				happens and nothing is returned.
 				<pre>
-delete extra range(handle, 2, 2) # Will not delete anything because the indexes are the same
+delete extra range(handle, 2, 2) # Will not delete anything because the indices are the same
 delete extra range(handle, 2, 3) # Will delete just the element at index 2, same as delete extra(handle, 2)
 
 # starting extra array 50,51,52,53,54,55
@@ -11198,8 +11249,7 @@ delete extra range(handle, 2, 5) # delete elements 2, 3, and 4
 # remaining extra array 50,51,55
 
 # delete from element 1 to the end of the extra array, leaving behind only element 0
-delete extra range(handle, 1, extra length(handle))
-				</pre>
+delete extra range(handle, 1, extra length(handle))</pre>
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					Deleting elements means all the elments after them have to be moved. Using <span class="code">delete extra range</span> to delete a bunch of elements at once is more efficient than calling <a href="#about-deleteextra" class="ref">delete extra</a> many times in a row, because the elements after only need to be moved once.
@@ -22206,10 +22256,14 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				<h4>Object handles</h4>
 <p>
 			
-				An object handle is either a <a href="#about-slicehandle" class="ref">slice handle</a>, an <a href="#about-npcref" class="ref">NPC reference</a> (NOT an NPC ID!) or a zone handle (returned by <a href="#about-getzone" class="ref">get zone</a>; NOT a zone ID!).
-				Menu and menu item handles don't (yet) count either.
+				Object handles are handles to things that have extra data arrays,
+				they can be passed to <a href="#Extra%20Data%20Array%20Functions" class="ref">Extra Data Array Functions</a>.
+				An object handle is either a <a href="#about-slicehandle" class="ref">slice handle</a>, an <a href="#about-npcref" class="ref">NPC reference</a> (NOT an NPC ID!),
+				a zone handle (returned by <a href="#about-getzone" class="ref">get zone</a>; NOT a zone ID!),
+				or a <a href="#about-menuitemhandle" class="ref">menu item handle</a>.
+				Menu handles are distinct from all the others but don't (yet) count, because they
+				don't have extra data.
 				<a href="#about-false" class="ref">false</a> (zero) is never a valid object handle.
-				Object handles can be passed to <a href="#Extra%20Data%20Array%20Functions" class="ref">Extra Data Array Functions</a>.
 			
 			
 			
@@ -22272,7 +22326,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 				<h4>Extra data array index</h4>
 <p>
 			
-				An extra array index is a number telling which element of an NPC's, slice's or zone's extra data array to read/write.
+				An extra array index is a number telling which element of an NPC's, slice's, etc, extra data array to read/write.
 				(An "array" is a list of values.)
 				The first element of the array is index 0, the second is index 1, etc, up to <span class="code">extra length(handle) -- 1</span>.
 				<br>
@@ -23153,7 +23207,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 962 commands (of which 14 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 963 commands (of which 14 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2023-12-19">
+<plotscript version="wip" datecode="2024-01-07">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -6062,15 +6062,13 @@ get hero name (1, find hero (leader))
 	<section title="Extra Data Array Functions">
 		<description>
 			Certain types of objects (slices, NPCs, zones, menu items) have "extra data",
-			which are data fields with no builtin meaning which you can use for whatever you want.
-			(Menu item extra data is passed as arguments to any script triggered by the item.)
-			For example you could write a script to randomly play a sound effects while inside a zone,
-			and store the sound effect number in the extra data.
+			which is an array of data fields with no builtin meaning which you can use for whatever you want.
+			(Menu item extra data is also passed as arguments to any script triggered by the item.)
+			For example you could write a script to randomly play ambient sound effects while inside a zone,
+			and store the sound effect numbers in the zone's extra data in the zone editor.
 			<lb/>
-			These functions act on any objects with a resizable "extra data" array, which is currently
-			slices, npcs and zones.
+			These functions can be used on any objects with a resizable "extra data" array.
 			(To operate on zones you need to use <ref>getzone</ref> to get a zone handle.)
-			Menu items have a fixed number of extra data slots (three) and can't yet be used with these commands.
 		</description>
 
 		<command id="setextra">
@@ -6079,7 +6077,7 @@ get hero name (1, find hero (leader))
 			<description>
 				Sets one of the extra data variables on an object,
 				which have no builtin meaning, they are only for use in your scripts.
-				By default all new slices, NPCs, etc. start with a length 3 extra data array.
+				By default all new objects that support extra data start with a length 3 extra data array containing zeroes.
 				<lb/>
 				<p>handle</p> is an <ref>objecthandle</ref>.
 				<p>extra</p> is an <ref>extradataindex</ref>, typically a value from 0 to 2.
@@ -6096,7 +6094,7 @@ get hero name (1, find hero (leader))
 			<canon>get extra (handle, extra)</canon>
 			<shortname>get extra</shortname>
 			<description>
-				Retrieve an extra data value previously set on a <p>handle</p> with <ref>setextra</ref>.
+				Retrieve a value of an object's extra data array (e.g. one previously stored with <ref>setextra</ref>).
 				<lb/>
 				<p>handle</p> is an <ref>objecthandle</ref>.
 				<p>extra</p> is the <ref>extradataindex</ref> to read.
@@ -6124,15 +6122,17 @@ set extra(handle, -1, value)   # Index -1 is the last element of the array</exam
 			<canon>insert extra (handle, index, value)</canon>
 			<shortname>insert extra</shortname>
 			<description>
-				Insert a new value into an extra data array at a specific index, moving up the index of all the data after it, and increases the length of an object's extra data array by 1.
+				Insert a value into a new position anywhere in an extra data array, moving up the index of all the data after it, and increasing the length by 1.
+				<lb/>
 				<p>handle</p> is the <ref>objecthandle</ref>.
-				<p>index</p> is where to put the new element. The first element is 0. You can also use negative indexes to count from the end of the array.
-				<p>value</p> is the new value to insert at the index
+				<lb/>
+				<p>index</p> is an <ref>extradataindex</ref> where to put the new element. As usual negative indices count from the end.
+				<lb/>
+				<p>value</p> is the value to insert.
 				<example>
 # starting extra array 0,0,0
 insert extra(handle, 0, 111) # 111,0,0,0
-insert extra(handle, 2, 222) # 111,0,222,0,0
-				</example>
+insert extra(handle, 2, 222) # 111,0,222,0,0</example>
 				<note>
 					Inserting an element means all the elments after it have to be moved. If you are using an extra array as a stack, and are concerned about high performance, it is better to push to the end with <tt>append extra(handle, value)</tt> rather than insert at the beginning with <tt>insert extra(handle, 0, value)</tt>
 				</note>
@@ -6196,30 +6196,44 @@ end</example>
 			<shortname>delete extra</shortname>
 			<description>
 				Delete an element from an extra data array at a specific index, moving down the index of all the data after it, and decreasing the length of an object's extra data array by 1.
+				<lb/>
 				<p>handle</p> is the <ref>objecthandle</ref>.
-				<p>index</p> is the element to delete and return. The first element is 0. You can also use negative indexes to count from the end of the array.
+				<lb/>
+				<p>index</p> is the <ref>extradataindex</ref> of the element to delete and return.
 				<lb/>
 				The return value is the value that was found at the index which was removed.
 				<example>
 # starting extra array 11,12,13
 delete extra(handle, 1) # returns 12, remaining extra data is 11,13
-delete extra(handle, -1) # returns 13, remaining extra data is 11
-				</example>
+delete extra(handle, -1) # returns 13, remaining extra data is 11</example>
+				<note>
+					If you want to delete by value rather than by index, use the <tt>remove extra</tt>
+					script from the example to <ref>findextra</ref>.
+				</note>
 				<note>
 					Deleting an element means all the elments after it have to be moved. If you are using an extra array as queue, and are concerned about high performance, it is better to pop from the end with <tt>delete extra(handle, -1)</tt> rather than popping from the beginning with <tt>delete extra(handle, 0)</tt>
 				</note>
 			</description>
 		</command>
 		<command id="deleteextrarange">
-			<canon>delete extra range(handle, index, to index)</canon>
+			<canon>delete extra range (handle, from index, to index)</canon>
 			<shortname>delete extra range</shortname>
 			<description>
-				Delete a range of elements from an extra data array starting a specific index and ending at a specific index. All the data after it will be moved down, and the length of an object's extra data array will be decreased.
+				Delete a range of elements from an extra data array starting from one index (inclusive) to another (exclusive).
+				All the data after it will be moved down, and the length of an object's extra data array will be decreased by the same amount,
+				which is <tt>to index -- from index</tt> elements (after converting negative indices to positive).
+				<lb/>
 				<p>handle</p> is the <ref>objecthandle</ref>.
-				<p>index</p> is the starting element to delete and return. The first element is 0. You can also use negative indexes to count from the end of the array.
-				<p>to index</p> is the index of the first element after the deleted range.
+				<lb/>
+				<p>from index</p> is the <ref>extradataindex</ref> of the starting element to delete. It's the one returned. You can use negative indices as usual.
+				<lb/>
+				<p>to index</p> is the <ref>extradataindex</ref> of the first element <b>after</b> the deleted range: it is exclusive.
+				<lb/>
+				The return value is the item that was at <p>from index</p>,
+				unless <tt>from index == to index</tt> (an empty range) in which case nothing
+				happens and nothing is returned.
 				<example>
-delete extra range(handle, 2, 2) # Will not delete anything because the indexes are the same
+delete extra range(handle, 2, 2) # Will not delete anything because the indices are the same
 delete extra range(handle, 2, 3) # Will delete just the element at index 2, same as delete extra(handle, 2)
 
 # starting extra array 50,51,52,53,54,55
@@ -6227,8 +6241,7 @@ delete extra range(handle, 2, 5) # delete elements 2, 3, and 4
 # remaining extra array 50,51,55
 
 # delete from element 1 to the end of the extra array, leaving behind only element 0
-delete extra range(handle, 1, extra length(handle))
-				</example>
+delete extra range(handle, 1, extra length(handle))</example>
 				<note>
 					Deleting elements means all the elments after them have to be moved. Using <tt>delete extra range</tt> to delete a bunch of elements at once is more efficient than calling <ref>deleteextra</ref> many times in a row, because the elements after only need to be moved once.
 				</note>
@@ -13260,10 +13273,14 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<canon>Object handles</canon>
 			<shortname>object handle</shortname>
 			<description>
-				An object handle is either a <ref>slicehandle</ref>, an <ref>npcref</ref> (NOT an NPC ID!) or a zone handle (returned by <ref>getzone</ref>; NOT a zone ID!).
-				Menu and menu item handles don't (yet) count either.
+				Object handles are handles to things that have extra data arrays,
+				they can be passed to <secref>Extra Data Array Functions</secref>.
+				An object handle is either a <ref>slicehandle</ref>, an <ref>npcref</ref> (NOT an NPC ID!),
+				a zone handle (returned by <ref>getzone</ref>; NOT a zone ID!),
+				or a <ref>menuitemhandle</ref>.
+				Menu handles are distinct from all the others but don't (yet) count, because they
+				don't have extra data.
 				<ref>false</ref> (zero) is never a valid object handle.
-				Object handles can be passed to <secref>Extra Data Array Functions</secref>.
 			</description>
 		</command>
 
@@ -13311,7 +13328,7 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<canon>Extra data array index</canon>
 			<shortname>extra array index</shortname>
 			<description>
-				An extra array index is a number telling which element of an NPC's, slice's or zone's extra data array to read/write.
+				An extra array index is a number telling which element of an NPC's, slice's, etc, extra data array to read/write.
 				(An "array" is a list of values.)
 				The first element of the array is index 0, the second is index 1, etc, up to <tt>extra length(handle) -- 1</tt>.
 				<lb/>
