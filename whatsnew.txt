@@ -121,16 +121,16 @@ WHAT IS NEW?
       defaulting to length 3. Maximum length is 5,000,000.
       * The slice & zone editors allow resizing the extra data; the menu editor
         remains limited to 3 extra data.
-      * "resize extra", "extra length", "append extra", as well as "get extra"
-        and "set extra" alternatives to "get/set slice/zone/... extra". These can
-        be used with any NPC reference/slice/zone/menu item handle.
+      * "resize extra", "extra length", "append extra", "insert extra",
+        "delete extra", "delete extra range", as well as "get extra" and
+        "set extra" alternatives to "get/set slice/zone/... extra". These can be
+        used with any NPC reference/slice/zone/menu item handle. [Ralph, James]
       * "get zone" command returns a zone handle.
       * You can use Python-style negative indexing to read from the back of
         the extra array: "get extra(sl, -1)" is the last value, -2 is the second
         last, etc. Works with all extra data commands.
       [Ralph]
     * "get attack extra" [Holly]
-    * "insert extra", "delete extra", "delete extra range" [James]
     * "lookup next slice", "next slice in tree" [Ralph]
     * "window is focused" [Ralph]
     * "show value" can now show multiple values. Added "show values" as an alias.
