@@ -286,11 +286,12 @@ DECLARE SUB create_volume_menu(menu as MenuDef)
 
 DECLARE FUNCTION bound_arg(n as integer, min as integer, max as integer, argname as zstring ptr, context as zstring ptr = NULL, errlvl as scriptErrEnum = serrBound) as bool
 
+DECLARE SUB extra_index_error(index as integer, length as integer)
 DECLARE FUNCTION get_extra(byref extra as integer vector, index as integer) as integer
 DECLARE SUB set_extra(byref extra as integer vector, index as integer, value as integer)
 DECLARE SUB resize_extra(byref extra as integer vector, length as integer)
 DECLARE SUB insert_extra(byref extra as integer vector, index as integer, value as integer)
-DECLARE SUB delete_extra_range(byref extra as integer vector, first_index as integer, last_index as integer)
+DECLARE FUNCTION delete_extra_range(byref extra as integer vector, first_index as integer, last_index as integer) as integer
 
 DECLARE FUNCTION load_tag_name (byval index as integer) as string
 DECLARE SUB save_tag_name (tagname as string, byval index as integer)

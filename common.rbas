@@ -6180,21 +6180,30 @@ SUB insert_extra(byref extra as integer vector, index as integer, value as integ
  END IF
 END SUB
 
-SUB delete_extra_range(byref extra as integer vector, first_index as integer, end_index as integer)
+'Delete part of an extra vector.
+'If the range is valid and nonempty returns extra[first_index]. Returns 0 otherwise.
+FUNCTION delete_extra_range(byref extra as integer vector, first_index as integer, end_index as integer) as integer
  IF extra = NULL THEN
   v_new extra, 3
  END IF
  DIM length as integer = v_len(extra)
  IF first_index < 0 THEN first_index += length
  IF end_index < 0 THEN end_index += length
- IF first_index < 0 ORELSE first_index > length - 1 THEN
+ IF first_index = end_index THEN
+  'Allow empty range even if out of bounds. v_delete_slice requires 0 <= first <= end <= length
+  'but we throw an error if first = length unless the range is empty, otherwise deleting [length,length+1)
+  'would throw an error about end=length+1 instead of first=length
+ ELSEIF first_index < 0 ORELSE first_index > length - 1 THEN
   extra_index_error first_index, length
  ELSEIF end_index < 0 ORELSE end_index > length THEN
   extra_index_error end_index, length
+ ELSEIF first_index > end_index THEN
+  reporterr "Can't delete negative-sized range of array from " & first_index & " to " & end_index, serrBadOp
  ELSE
+  IF first_index < length THEN delete_extra_range = extra[first_index]
   v_delete_slice extra, first_index, end_index
  END IF
-END SUB
+END FUNCTION
 
 
 Constructor HeroTagsCache()

@@ -5240,14 +5240,24 @@ SUB script_commands(byval cmdid as integer)
   END IF
  CASE 758 '--insert extra
   extravec_ptr = get_arg_extravec(0)
-  insert_extra *extravec_ptr, retvals(1), retvals(2)
+  IF extravec_ptr THEN
+   insert_extra *extravec_ptr, retvals(1), retvals(2)
+  END IF
  CASE 759 '--delete extra
   extravec_ptr = get_arg_extravec(0)
-  scriptret = get_extra(*extravec_ptr, retvals(1))
-  delete_extra_range *extravec_ptr, retvals(1), retvals(1)+1
+  IF extravec_ptr THEN
+   DIM as integer index = retvals(1), inext = index + 1
+   IF index = -1 THEN
+    'Special case to avoid [-1, 0)
+    inext = IIF(*extravec_ptr, v_len(*extravec_ptr), 3)
+   END IF
+   scriptret = delete_extra_range(*extravec_ptr, index, inext)
+  END IF
  CASE 760 '--delete extra range
   extravec_ptr = get_arg_extravec(0)
-  delete_extra_range *extravec_ptr, retvals(1), retvals(2)
+  IF extravec_ptr THEN
+   scriptret = delete_extra_range(*extravec_ptr, retvals(1), retvals(2))
+  END IF
  CASE 761 '--is shop buy menu empty
   IF bound_arg(retvals(0), 0, gen(genMaxShop), "Shop ID") THEN
    scriptret = IIF(is_shop_empty(retvals(0), 0), 1, 0)
