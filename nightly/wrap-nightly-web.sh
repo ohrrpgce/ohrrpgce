@@ -30,5 +30,5 @@ if [ -n "True" ] ; then
   cd "${SCRIPTDIR}"/..
   scp -pr distrib/ohrrpgce-player-web-wip.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 
-fi | tee "${SCRIPTDIR}"/wrap-nightly-emscripten-output.txt
+fi 2>&1 | tee "${SCRIPTDIR}"/wrap-nightly-emscripten-output.txt
 "${SCRIPTDIR}"/curl_smtp_wrapper.sh "${SCRIPTDIR}"/wrap-nightly-emscripten-output.txt

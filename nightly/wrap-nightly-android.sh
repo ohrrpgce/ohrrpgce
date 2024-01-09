@@ -30,5 +30,5 @@ if [ -n "True" ] ; then
   docker/ohrrpgce-build-env-android/andr-oldstyle.sh -sb -c '/src/ohr/distrib-nightly-android.sh --chromebook' || exit 1
   scp -pr distrib/ohrrpgce-game-android*-debug*.apk james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 
-fi | tee "${SCRIPTDIR}"/wrap-nightly-android-output.txt
+fi 2>&1 | tee "${SCRIPTDIR}"/wrap-nightly-android-output.txt
 "${SCRIPTDIR}"/curl_smtp_wrapper.sh "${SCRIPTDIR}"/wrap-nightly-android-output.txt

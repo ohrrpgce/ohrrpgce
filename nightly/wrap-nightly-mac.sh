@@ -14,8 +14,8 @@ if [ -n "True" ] ; then
   svn cleanup
   svn update --trust-server-cert-failures=unknown-ca --non-interactive distrib-nightly-mac.sh nightly
   # This hard-codes some paths specific to James's setup
-  CC=clang GCC=/opt/local/bin/gcc-mp-4.7 EUDIR=~james/misc/euphoria/ ./distrib-nightly-mac.sh 2>&1
-fi | tee ~/wrap-nightly-mac-output.txt
+  CC=clang GCC=/opt/local/bin/gcc-mp-4.7 EUDIR=~james/misc/euphoria/ ./distrib-nightly-mac.sh
+fi 2>&1 | tee ~/wrap-nightly-mac-output.txt
 
 ~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-mac-output.txt
 

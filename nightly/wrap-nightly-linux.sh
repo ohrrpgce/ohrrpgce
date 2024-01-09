@@ -11,8 +11,8 @@ if [ -n "True" ] ; then
   echo ""
   svn cleanup
   svn update distrib-nightly-linux.sh nightly
-  ./distrib-nightly-linux.sh 2>&1
-fi | tee ~/wrap-nightly-linux-output.txt
+  ./distrib-nightly-linux.sh
+fi 2>&1 | tee ~/wrap-nightly-linux-output.txt
 ~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-linux-output.txt
 
 echo "------------------"
