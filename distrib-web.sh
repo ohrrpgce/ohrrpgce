@@ -10,6 +10,9 @@ SCRIPTDIR="${0%/*}"
 SCRIPTDIR="$(realpath $SCRIPTDIR)"
 cd "${SCRIPTDIR}"
 
+# Show current emscripten version
+/emsdk/upstream/emscripten/emcc --version | head -1
+
 mkdir ./games
 cp -p testgame/inputtest.rpg ./games
 cp -p testgame/collider.rpg ./games
