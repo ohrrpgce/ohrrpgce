@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2024-01-07)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2024-01-09)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -11043,7 +11043,7 @@ get hero name (1, find hero (leader))
 			
 				Sets one of the extra data variables on an object,
 				which have no builtin meaning, they are only for use in your scripts.
-				By default all new slices, NPCs, etc. start with a length 3 extra data array.
+				By default all new objects that support extra data start with a length 3 extra data array containing zeroes.
 				<br>
 				<span class="param">handle</span> is an <a href="#about-objecthandle" class="ref">object handle</a>.
 				<span class="param">extra</span> is an <a href="#about-extradataindex" class="ref">extra array index</a>, typically a value from 0 to 2.
@@ -11066,7 +11066,7 @@ get hero name (1, find hero (leader))
 				<h4>get extra (handle, extra)</h4>
 <p>
 			
-				Retrieve an extra data value previously set on a <span class="param">handle</span> with <a href="#about-setextra" class="ref">set extra</a>.
+				Retrieve a value of an object's extra data array (e.g. one previously stored with <a href="#about-setextra" class="ref">set extra</a>).
 				<br>
 				<span class="param">handle</span> is an <a href="#about-objecthandle" class="ref">object handle</a>.
 				<span class="param">extra</span> is the <a href="#about-extradataindex" class="ref">extra array index</a> to read.
@@ -11103,13 +11103,13 @@ set extra(handle, -1, value)   # Index -1 is the last element of the array</pre>
 				<h4>insert extra (handle, index, value)</h4>
 <p>
 			
-				Insert a new value into an extra data array at a specific index, moving up the index of all the data after it, and increasing the length by 1.
+				Insert a value into a new position anywhere in an extra data array, moving up the index of all the data after it, and increasing the length by 1.
 				<br>
 				<span class="param">handle</span> is the <a href="#about-objecthandle" class="ref">object handle</a>.
 				<br>
 				<span class="param">index</span> is an <a href="#about-extradataindex" class="ref">extra array index</a> where to put the new element. As usual negative indices count from the end.
 				<br>
-				<span class="param">value</span> is the new value to insert.
+				<span class="param">value</span> is the value to insert.
 				<pre>
 # starting extra array 0,0,0
 insert extra(handle, 0, 111) # 111,0,0,0
