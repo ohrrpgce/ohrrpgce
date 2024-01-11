@@ -244,6 +244,8 @@ WHAT IS NEW?
       leftover ready-meter of the previous enemy. [James]
     * Fixed bug that allowed you to target hidden enemies if your battles
       are not configured to pause when targetting [James]
+    * Script variable names ending with a : would cause an error when followed by
+      comma [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

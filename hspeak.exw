@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Vb 2024-01-11 Fix lexing of identifiers ending in : & | or -
 --3Va 2022-04-08 Add exit
 --3V  2022-04-07 Add showvalueof, and tracevalueof alias
 --3Ug 2021-12-12 Change license to Dual GPL+MIT (with consent of all contributors)
@@ -1731,8 +1732,9 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
         end if
         tokens=append(tokens,{"end",pos+i})
       elsif state=LEX_COMMA then
-        if last_state=LEX_COMMA or last_state=LEX_BEGIN or last_state=LEX_OPERATOR or last_state=LEX_OPERATOR2 then
-          --foo(, 1) or foo(1, , 2) or <op>,
+        --Check we didn't just finish an identifier, to allow using : (which is LEX_OPERATOR) on the end of an identifier.
+        if length(remem_ident)=0 and (last_state=LEX_COMMA or last_state=LEX_BEGIN or last_state=LEX_OPERATOR or last_state=LEX_OPERATOR2) then
+          --foo(, 1) or foo(1, , 2) or <op>, but not ),
           src_error(
             sprintf_utf("Found an extra comma which previous HSpeak versions ignored, but which might have a different meaning in the future. Remove it.",{}),
             pos+i)
