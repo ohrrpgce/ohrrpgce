@@ -5311,6 +5311,29 @@ SUB script_commands(byval cmdid as integer)
    scriptret = find_extra(*extravec_ptr, retvals(1), retvals(2))
   END IF
 
+  CASE 770 '--running on playstation
+   DIM sys as string = read_environment_key("sys")
+   scriptret = IIF(starts_with(sys, "PS"), 1, 0)
+  CASE 771 '--running on xbox
+   DIM sys as string = read_environment_key("sys")
+   scriptret = IIF(sys = "XBOXONE" ORELSE sys = "SERIESX", 1, 0)
+  CASE 772 '--running on nintendo
+   DIM sys as string = read_environment_key("sys")
+   scriptret = IIF(sys = "SWITCH", 1, 0)
+
+  CASE 773 '--playstation controller
+   'TODO
+   DIM sys as string = read_environment_key("sys")
+   scriptret = IIF(starts_with(sys, "PS"), 1, 0)
+  CASE 774 '--xbox controller
+   'TODO
+   DIM sys as string = read_environment_key("sys")
+   scriptret = IIF(sys = "XBOXONE" ORELSE sys = "SERIESX", 1, 0)
+  CASE 775 '--nintendo controller
+   'TODO
+   DIM sys as string = read_environment_key("sys")
+   scriptret = IIF(sys = "SWITCH", 1, 0)
+
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
   scripterr "Unsupported script command " & cmdid & " " & commandname(cmdid) & ". " _
