@@ -22,13 +22,18 @@ if [ -n "True" ] ; then
     exit 2
   fi
 
+  echo "Currently in dir:"
   pwd
   echo "remove old emscripten web nightlies..."
   rm -f distrib/ohrrpgce-player-web-wip.zip
   docker/ohrrpgce-build-env-emscripten/emscr.sh -c '/src/ohr/distrib-nightly-web.sh' || exit 1
+  echo "Currently in dir:"
+  pwd
   echo "Now to upload ohrrpgce-player-web-wip.zip ..."
   cd "${SCRIPTDIR}"/..
+  ls -l distrib
   scp -pr distrib/ohrrpgce-player-web-wip.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+  echo "Upload complete."
 
 fi 2>&1 | tee "${SCRIPTDIR}"/wrap-nightly-emscripten-output.txt
 "${SCRIPTDIR}"/curl_smtp_wrapper.sh "${SCRIPTDIR}"/wrap-nightly-emscripten-output.txt
