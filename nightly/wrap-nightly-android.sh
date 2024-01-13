@@ -28,7 +28,7 @@ if [ -n "True" ] ; then
   docker/ohrrpgce-build-env-android/andr-oldstyle.sh -c '/src/fix_symlinks.sh' || exit 1
   docker/ohrrpgce-build-env-android/andr-oldstyle.sh -sb -c '/src/ohr/distrib-nightly-android.sh' || exit 1
   docker/ohrrpgce-build-env-android/andr-oldstyle.sh -sb -c '/src/ohr/distrib-nightly-android.sh --chromebook' || exit 1
-  scp -pr distrib/ohrrpgce-game-android*-debug*.apk james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+  scp -i ~/.ssh/ohrrpgce_upload -pr distrib/ohrrpgce-game-android*-debug*.apk james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 
 fi 2>&1 | tee "${SCRIPTDIR}"/wrap-nightly-android-output.txt
 "${SCRIPTDIR}"/curl_smtp_wrapper.sh "${SCRIPTDIR}"/wrap-nightly-android-output.txt

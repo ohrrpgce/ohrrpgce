@@ -32,7 +32,7 @@ if [ -n "True" ] ; then
   echo "Now to upload ohrrpgce-player-web-wip.zip ..."
   cd "${SCRIPTDIR}"/..
   ls -l distrib
-  scp -pr distrib/ohrrpgce-player-web-wip.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+  scp -i ~/.ssh/ohrrpgce_upload -pr distrib/ohrrpgce-player-web-wip.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
   echo "Upload complete."
 
 fi 2>&1 | tee "${SCRIPTDIR}"/wrap-nightly-emscripten-output.txt
