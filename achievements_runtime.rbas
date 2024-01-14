@@ -128,20 +128,23 @@ namespace Achievements
 
     save_loaded = true
 
-    ' Update awarded status in Steam, in casewe previously couldn't (e.g. a new achievement that's
-    ' been added to a game, or not previously running under Steam)
-    if Steam.available then
-      for index as integer = 0 to ubound(achievement_progress)
-        if achievement_progress(index).rewarded then
-          with get_definition_by_index(index)
-            if .steam_id <> "" then
-              ach_debug("Steam: rewarding #" & .id & " '" & .name & "' Steam ID '" & .steam_id & "'")
-              Steam.reward_achievement .steam_id
-            end if
-          end with
-        end if
-      next
-    end if
+    #ifndef __FB_BLACKBOX__
+      ' Update awarded status in Steam, in case we previously couldn't (e.g. a new achievement that's
+      ' been added to a game, or not previously running under Steam).
+      ' However we mustn't resend achievements on Blackbox (unless they're actually regained, in a new game).
+      if Steam.available then
+        for index as integer = 0 to ubound(achievement_progress)
+          if achievement_progress(index).rewarded then
+            with get_definition_by_index(index)
+              if .steam_id <> "" then
+                ach_debug("Steam: rewarding #" & .id & " '" & .name & "' Steam ID '" & .steam_id & "'")
+                Steam.reward_achievement .steam_id
+              end if
+            end with
+          end if
+        next
+      end if
+    #endif
 
     ach_debug("done loading save game")
   end sub
