@@ -12099,12 +12099,13 @@ end sub
 
 'Get data from platform (currently just Blackbox) environment, overridable with a config key for testing.
 'Does NOT read environmental variables, use FB's environ() for that.
+'The key is case-insensitive.
 function read_environment_key(key as string) as string
 	dim ret as string
-	ret = read_config_str("env." & key, @CHR(1))
+	ret = read_config_str("env." & lcase(key), @CHR(1))
 	if ret = CHR(1) then
 		#ifdef __FB_BLACKBOX__
-			ret = *blackbox_get_environment(key)
+			ret = *blackbox_get_environment(ucase(key))
 		#else
 			ret = ""
 		#endif

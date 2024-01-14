@@ -6649,7 +6649,8 @@ script, platform tests, begin
   # Blackbox, but we test reading from autotest_config.ini
   assert(read environment(1, $2="nonexistent") == 0)
   assert(string equal(1, $3=""))
-  assert(read environment(1, $2="has_value_42") == 42)
+  # Test case insensitivity
+  assert(read environment(1, $2="Has_Value_42") == 42)
   assert(string equal(1, $3="42"))
 
   # Blackbox only. These don't do or return anything.

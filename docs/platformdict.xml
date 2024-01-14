@@ -98,33 +98,40 @@
 				<lb/>
 				<p>dest</p> is the ID of the string in which to put the result.
 				<lb/>
-				<p>key</p> is the ID of a string containing a key such as "SYS" or "ASIABUTTONS".
+				<p>key</p> is the ID of a string containing a key such as "sys" or "asiabuttons".
+				It's case-insensitive.
 				<lb/>
 				If the value can be converted to an integer (like "1") then it is also converted and returned for convenience.
 				Otherwise the return value is 0.
 				<lb/>
 				For testing, key-value pairs can be placed in
-				<tt><b>gamename</b>_config.ini</tt> next to the .rpg, or in ohrrpgce_config.ini,
+				<tt><b>gamename</b>_config.ini</tt> next to the .rpg, or in <tt>ohrrpgce_config.ini</tt>,
 				in the form <tt>env.<b>key</b>=<b>value</b></tt>,
-				e.g. <tt>env.SYS=PS4</tt>.
+				e.g. <tt>env.sys = PS4</tt>.
+				(In the .ini file the key should be in lowercase.)
+				You can open these files with the "View/edit gameconfig.ini", etc options in the F8 Debug Menu.
+				<lb/>
 				Available keys include:
 				<ul>
 					<li>
-						SYS - one of: XBOXONE, PS4, PSVITA, WINDOWS, SWITCH, PS5, SERIESX
+						"sys" - one of: XBOXONE, PS4, PSVITA, WINDOWS, SWITCH, PS5, SERIESX
 					</li>
 					<li>
-						ASIABUTTONS - one of "0" or "1".
-						If "1", confirm is circle and cancel is cross (Nintendo or by user preference on PS).
+						"asiabuttons" - one of "0" or "1".
+						If "1", confirm is B/Circle and cancel is A/Cross (Nintendo or by user preference on PS).
 					</li>
 					<li>
-						REGION - may be empty, or may be NA, EU, JP, depending on the game.
+						"region" - may be empty, or may be NA, EU, JP, depending on the game.
 					</li>
 					<li>
-						GAMERTAG - the currently logged in profile's name (Xbox One). 
+						"gamertag" - the currently logged in profile's name (on Xbox One).
+						The name may contain non-ASCII characters which can't be displayed
+						correctly, but that's OK.
 					</li>
 				</ul>
 			</description>
-			<example>read environment(1, $2="SYS")
+			<example>
+read environment(1, $2="sys")
 if (string equal(1, $2="PS4")) then (
 	...
 )</example>
