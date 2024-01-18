@@ -18,6 +18,7 @@ cd "${SCRIPT_DIR}"
 
 # This should be a checked out copy of the ohrrpgce source
 export OHRDIR=${OHRDIR:-~/src/ohrrpgce} # /src/ohr
+echo "OHRDIR=${OHRDIR}"
 
 # The docker image name. This will be built locally, we won't pull it
 export ANDRIMG=bobthehamster/ohrrpgce-build-env-emscripten
