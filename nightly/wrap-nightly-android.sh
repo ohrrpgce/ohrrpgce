@@ -25,6 +25,7 @@ if [ -n "True" ] ; then
   pwd
   echo "remove old android nightlies..."
   rm -f distrib/ohrrpgce-game-android*-debug*.apk
+  export OHRDIR="$(pwd)"
   docker/ohrrpgce-build-env-android/andr-oldstyle.sh -c '/src/fix_symlinks.sh' || exit 1
   docker/ohrrpgce-build-env-android/andr-oldstyle.sh -sb -c '/src/ohr/distrib-nightly-android.sh' || exit 1
   docker/ohrrpgce-build-env-android/andr-oldstyle.sh -sb -c '/src/ohr/distrib-nightly-android.sh --chromebook' || exit 1
