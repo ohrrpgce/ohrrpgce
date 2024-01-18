@@ -26,7 +26,7 @@ if [ -n "True" ] ; then
   pwd
   echo "remove old emscripten web nightlies..."
   rm -f distrib/ohrrpgce-player-web-wip.zip
-  docker/ohrrpgce-build-env-emscripten/emscr.sh -c '/src/ohr/distrib-nightly-web.sh' || exit 1
+  OHRDIR="$(pwd)" docker/ohrrpgce-build-env-emscripten/emscr.sh -c '/src/ohr/distrib-nightly-web.sh' || exit 1
   echo "Currently in dir:"
   pwd
   echo "Now to upload ohrrpgce-player-web-wip.zip ..."
