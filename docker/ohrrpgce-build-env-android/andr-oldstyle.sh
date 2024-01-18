@@ -96,6 +96,12 @@ if [ -s "$RUNCMD" ] ; then
   export HASCMD="-c"
 fi
 
+echo "OLDSDKVOL=${OLDSDKVOL}"
+echo "OLDNDKVOL=${OLDNDKVOL}"
+echo "DOTANDROIDVOL=${DOTANDROIDVOL}"
+echo "OHRDIR=${OHRDIR}"
+echo "SDLA=${SDLA}"
+
 # Stop if any volumes are missing
 if [ ! -e "${OLDSDKVOL}" ] ; then echo "Can't mount volume because it does not exist ${OLDSDKVOL}" ; exit 1 ; fi
 if [ ! -e "${OLDNDKVOL}" ] ; then echo "Can't mount volume because it does not exist ${OLDNDKVOL}" ; exit 1 ; fi
