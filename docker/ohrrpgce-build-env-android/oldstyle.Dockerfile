@@ -45,7 +45,9 @@ RUN apt-get update \
       file \
       gpg \
       imagemagick \
+      libsdl-image1.2-dev \
     && rm -rf /var/lib/apt/lists/*
+# Note that libsdl-image1.2-dev is only used for the sdl-android button image theme converter
 
 # Correto is Amazon's LTS distribution of OpenJDK 8.
 # This seems to be the easiest way to get openjdk8 on Debian 10+
