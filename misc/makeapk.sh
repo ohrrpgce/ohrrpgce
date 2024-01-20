@@ -69,8 +69,7 @@ if [ -z "${PROJECT}" ] ; then
     | rev \
     | cut -f 2 -d "/" \
     | rev \
-    | grep -v -e "sdl-1.3-test" -e "_template" \
-    | column
+    | grep -v -e "sdl-1.3-test" -e "_template"
   exit 1
 fi
 
