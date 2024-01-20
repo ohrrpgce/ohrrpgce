@@ -91,6 +91,9 @@ cd "${SCRIPTDIR}"
 # Cleanup old files
 rm -Rf "${SDLANDROID}"/project/obj/local/*
 
+# Work around an obscure scons error
+touch .sconsign.dblite
+
 # Compile the source
 scons fbc="${FBCARM}" release=1 android-source=1 "${ARCHARGS}" game || exit 1
 cd "${SDLANDROID}"/project/jni/application
