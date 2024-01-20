@@ -49,6 +49,12 @@ Build and run an OHRRPGCE Android build environment in a docker image.
                                        image, instead of an interactive prompt
   
   -sb --skip-build-image       Don't try to rebuild the docker image
+  
+  -gp --gameproject            The name of an ohrrpgce android game project
+                               which will be mounted as a volume and built.
+                               Note that the symlinks inside this directory
+                               will be updated to make sense for a dockerized
+                               build
 EOF
       exit 0
       ;;
@@ -60,6 +66,11 @@ EOF
       ;;
     -sb|--skip-build-image)
       export REBUILD_IMAGE="N"
+      shift
+      ;;
+    -gp|--gameproject)
+      export GAMEPROJ="$2"
+      shift
       shift
       ;;
     -*|--*)
@@ -74,6 +85,11 @@ EOF
 done
 
 set -- "${POSITIONAL_ARGS[@]}" # restore positional args
+
+if [ -n "${RUNCMD}" -a -n "${GAMEPROJ}" ] ; then
+  echo "The --run-command and --gameproject arguments cannot be used at the same time (-c -gp)"
+  exit 1
+fi
 
 echo "REBUILD_IMAGE=$REBUILD_IMAGE"
 
@@ -101,6 +117,7 @@ echo "OLDNDKVOL=${OLDNDKVOL}"
 echo "DOTANDROIDVOL=${DOTANDROIDVOL}"
 echo "OHRDIR=${OHRDIR}"
 echo "SDLA=${SDLA}"
+echo "GAMEPROJ=${GAMEPROJ}"
 
 # Stop if any volumes are missing
 if [ ! -e "${OLDSDKVOL}" ] ; then echo "Can't mount volume because it does not exist ${OLDSDKVOL}" ; exit 1 ; fi
@@ -108,6 +125,22 @@ if [ ! -e "${OLDNDKVOL}" ] ; then echo "Can't mount volume because it does not e
 if [ ! -e "${DOTANDROIDVOL}" ] ; then echo "Can't mount volume because it does not exist ${DOTANDROIDVOL}" ; exit 1 ; fi
 if [ ! -e "${OHRDIR}" ] ; then echo "Can't mount volume because it does not exist ${OHRDIR}" ; exit 1 ; fi
 if [ ! -e "${SDLA}" ] ; then echo "Can't mount volume because it does not exist ${SDLA}" ; exit 1 ; fi
+
+if [ -n "${GAMEPROJ}" ] ; then
+  if [ ! -e "${GAMEPROJ}" ] ; then echo "Can't mount game project volume because it does not exist ${OLDSDKVOL}" ; exit 1 ; fi
+  export GAMENAME=$(basename "${GAMEPROJ}")
+  export GAMEPROJ_MOUNT="-v ${GAMEPROJ}:/src/${GAMENAME}"
+  echo "Modifying the symlinks in ${GAMEPROJ} to work inside the docker container"
+  echo "You should expect those links to look broken outside the docker container"
+  rm -f "${GAMEPROJ}/AndroidAppSettings.cfg"
+  ln -s /src/ohr/android/AndroidAppSettings.cfg "${GAMEPROJ}/AndroidAppSettings.cfg"
+  rm -f "${GAMEPROJ}/extraconfig.cfg"
+  ln -s /src/ohr/android/extraconfig.cfg "${GAMEPROJ}/extraconfig.cfg"
+  rm -f "${GAMEPROJ}/tmp"
+  ln -s /src/ohr/android/tmp "${GAMEPROJ}/tmp"
+  rm -f "${SDLA}/project/jni/application/${GAMENAME}"
+  ln -s "/src/${GAMENAME}" "${SDLA}/project/jni/application/${GAMENAME}"
+fi
 
 echo "Now run a docker shell into the android-sdk container with OHRRPGCE source mounted"
 echo "Running as user $(whoami) UID:GID=$(id -u):$(id -g) which will be \"I have no name!\" inside the container,"
@@ -118,5 +151,6 @@ docker run --rm ${INTERACTIVE_TERMINAL} \
   -v "${DOTANDROIDVOL}":/.android \
   -v "${OHRDIR}":/src/ohr \
   -v "${SDLA}":/src/sdl-android \
+  ${GAMEPROJ_MOUNT} \
   -u $(id -u):$(id -g) \
   "${ANDRIMG}" /bin/bash $HASCMD $RUNCMD
