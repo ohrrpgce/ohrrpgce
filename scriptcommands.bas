@@ -356,7 +356,7 @@ END FUNCTION
 FUNCTION script_keyval (byval key as KBScancode, byval player as integer = 0, byref down_ms as integer = 0) as KeyBits
  'Wrapper around player_keyval for use by scripts: performs scancode mapping for back-compat
 
- IF bound_arg(key, scKEYVAL_FIRST, scKEYVAL_LAST, "scancode") = NO THEN RETURN 0
+ IF valid_key(key, serrWarn) = NO THEN RETURN 0
 
  DIM ret as KeyBits = player_keyval(key, player, down_ms)
 
@@ -1368,9 +1368,7 @@ SUB script_commands(byval cmdid as integer)
     END IF
    END IF
   END IF
-  IF scancode < scKEYVAL_FIRST ORELSE scancode > scKEYVAL_LAST THEN
-   scripterr "Unrecognised scancode " & scancode, serrBadOp
-  ELSE
+  IF valid_key(scancode) THEN
    script_start_waiting(scancode)
   END IF
  CASE 10'--walk hero
@@ -4835,7 +4833,7 @@ SUB script_commands(byval cmdid as integer)
   scriptret = decodetrigger(retvals(0), NO)  'showerr=NO
  CASE 692 '--get scancode name (string id, scancode, long name)
   'TODO: doesn't support joystick scancodes
-  IF valid_plotstr(retvals(0)) ANDALSO bound_arg(retvals(1), scKEYVAL_FIRST, scKEYVAL_LAST, "scancode") THEN
+  IF valid_plotstr(retvals(0)) ANDALSO valid_key(retvals(1)) THEN
    plotstr(retvals(0)).s = scancodename(retvals(1), retvals(2) <> 0)
   END IF
  CASE 693 '--get hero slice by slot
@@ -5936,6 +5934,7 @@ END FUNCTION
 '                        Other script command arg checking/decoding
 '==========================================================================================
 
+
 'This doesn't check how many players there are/how many joysticks are plugged in, because it's not an error
 'to poll a missing player/joystick
 FUNCTION valid_player_num(byval player as integer) as bool
@@ -6085,6 +6084,11 @@ FUNCTION valid_box_style(index as integer) as bool
  RETURN bound_arg(index, 0, uiBoxLast, "box style ID", , serrBadOp)
 END FUNCTION
 
+'A KBScancode (which is misnamed): a control key ("... key") or keyboard key ("key:...") or joystick button ("joy:...")
+'But does NOT allow scMouse* constants. Does allow some scancodes that aren't mapped to any keys, including 0.
+FUNCTION valid_key(byval key as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
+ RETURN bound_arg(key, scKEYVAL_FIRST, scKEYVAL_LAST, "scancode", , errlvl)
+END FUNCTION
 
 '==========================================================================================
 '                             Utility functions for default arguments 
@@ -6098,6 +6102,7 @@ FUNCTION get_optional_arg(byval retval_index as integer, byval default as intege
  END IF
  RETURN retvals(retval_index)
 END FUNCTION
+
 
 '==========================================================================================
 '                             Misc command implementations

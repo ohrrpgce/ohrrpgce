@@ -158,6 +158,7 @@ DECLARE FUNCTION valid_save_slot(slot as integer) as bool
 DECLARE FUNCTION valid_color(index as integer) as bool
 DECLARE FUNCTION valid_box_style(index as integer) as bool
 DECLARE FUNCTION valid_spriteset(spritetype as SpriteType, record as integer) as bool
+DECLARE FUNCTION valid_key(byval scancode as integer, byval errlvl as scriptErrEnum = serrBadOp) as bool
 
 DECLARE SUB greyscalepal
 DECLARE SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, byval first as integer = 0, byval last as integer = 255)
