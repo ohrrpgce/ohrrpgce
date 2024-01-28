@@ -279,20 +279,15 @@ type KeyArray extends Object
 	keys(any) as KeyBits                'State of each key
 	key_down_ms(any) as integer         'ms each key has been down
 	arrow_key_down_ms as integer        'Max ms that any arrow key has been down
-	controls(any) as ControlKey         'Mapping from scancodes to controls
-	                                    'The reason that controls() is in this UDT is so that we can
-	                                    'replay input which has controls set up differently.
 
 	' Redim the arrays. (Not a constructor, because that's a nuisance for globals)
 	declare sub init(maxkey as integer)
-	declare abstract sub init_controls()
 	declare abstract function is_arrow_key(key as integer) as bool
 	declare sub update_keydown_times(inputst as InputStateFwd)
 	'In following, key is a KBScancode or JoyButton depending on subclass
 	declare function key_repeating(key as integer, repeat_wait as integer, repeat_rate as integer, inputst as InputStateFwd) as KeyBits
 	declare abstract function keyval(key as integer, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd, byref down_ms as integer) as KeyBits
-	declare abstract function anykey(inputst as InputStateFwd, byref down_ms as integer) as KeyBits
-	declare function controlkey(key as KBScancode, inputst as InputStateFwd, repeat_wait as integer = 0, repeat_rate as integer = 0, byref down_ms as integer) as KeyBits
+	declare abstract function anykey(player as integer, inputst as InputStateFwd, byref down_ms as integer) as KeyBits
 	declare sub clearkeys()
 end type
 
@@ -301,13 +296,12 @@ type KeyboardState extends KeyArray
 	inputtext as string
 
 	declare constructor()
-	declare sub init_controls()
 	declare sub reset()
 	declare sub update_keybits()
 	declare function is_arrow_key(key as KBScancode) as bool
 	declare function numpad_alias_key(key as KBScancode) as KBScancode
 	declare function keyval(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd, byref down_ms as integer) as KeyBits
-	declare function anykey(inputst as InputStateFwd, byref down_ms as integer) as KeyBits
+	declare function anykey(player as integer, inputst as InputStateFwd, byref down_ms as integer) as KeyBits
 end type
 
 dim shared last_setkeys_time as double      'Used to compute real_input.elapsed_ms
@@ -330,11 +324,10 @@ type JoystickState extends KeyArray
 	axis_threshold as integer = AXIS_LIMIT / 2
 
 	declare constructor()
-	declare sub init_controls()
 	declare sub update_keybits(joynum as integer)
 	declare function is_arrow_key(key as JoyButton) as bool
 	declare function keyval(key as JoyButton, repeat_wait as integer = 0, repeat_rate as integer = 0, inputst as InputStateFwd, byref down_ms as integer) as KeyBits
-	declare function anykey(inputst as InputStateFwd, byref down_ms as integer) as KeyBits
+	declare function anykey(player as integer, inputst as InputStateFwd, byref down_ms as integer) as KeyBits
 end type
 
 ' Keyboard and joystick state which is separate for recording and replaying.
@@ -346,10 +339,12 @@ type InputState
 	repeat_rate as integer = 55         'repeat interval, in ms
 
 	kb as KeyboardState
-	joys(3) as JoystickState
+	'Player i has joystick i+1 so it must always be the case that ubound(joys) + 1 = ubound(keymaps)
+	joys(maxPlayers - 1) as JoystickState
+	keymaps(1 to maxPlayers) as PlayerKeymap 'Set of keybinds for each player.
 
-	declare function controlkey(key as KBScancode, repeat_wait as integer = 0, repeat_rate as integer = 0) as KeyBits
-	declare sub reset_controls()
+	declare function controlkey(player as integer, cc as ccCode, repeat_wait as integer = 0, repeat_rate as integer = 0, byref down_ms as integer, check_keyboard as bool = YES) as KeyBits
+	declare sub reset_keymaps()
 end type
 
 dim shared real_input as InputState         'Always contains real state even if replaying
@@ -704,9 +699,9 @@ end function
 sub flush_gfx_config_settings()
 	loaded_screenshot_settings = NO
 
-	'Control mappings can depend on config
+	'The default keymap depends on the env.asiabuttons config
 	swap_joystick_use_cancel = NONBOOL
-	reset_control_mappings
+	reset_keymaps
 end sub
 
 sub settemporarywindowtitle (title as string)
@@ -1938,10 +1933,11 @@ end function
 'Read keyboard/joystick input for either a single player or player 0 (default/all).
 'Reads replayed state, if any, unless real_keys = YES
 'key:    any scancode, including cc* constants and joystick buttons
-'player: 0 for any input device, 1 is first joystick + keyboard, 2-4 are other joysticks
+'player: 0 to maxPlayers. 0 for any input device. Player 1 has the keyboard, each has one
+'        joystick and possibly some mapped keyboard keys.
 'down_ms: set to max(down_ms, ms1, ms2, ...) where ms# are how long each of the keys/buttons
 '        mapped to 'key' have been depressed, in milliseconds.
-'check_keyboard: pass false to ignore keyboard input
+'check_keyboard: pass false to ignore keyboard input (this is used to map joy buttons to keys)
 '
 'except for possibly certain special keys (like capslock), each key reports 3 bits:
 '
@@ -1954,13 +1950,14 @@ end function
 'check "keyval(scLeftAlt) > 0 or keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
 function player_keyval(key as KBScancode, player as integer = 0, byref down_ms as integer = 0, repeat_wait as integer = 0, repeat_rate as integer = 0, check_keyboard as bool = YES, real_keys as bool = NO) as KeyBits
 	BUG_IF(player < 0, "Invalid player " & player, 0)
+	if player > maxPlayers then return 0  'Not an error
 	BUG_IF(key < scKEYVAL_FIRST orelse key > scKEYVAL_LAST, "bad scancode " & key, 0)
 
 	dim ret as KeyBits
 
 	if player = 0 then
 		'Merge all return values and find the max down_ms value
-		for player = 1 to num_joysticks()
+		for player = 1 to maxPlayers
 			ret or= player_keyval(key, player, down_ms, repeat_wait, repeat_rate, check_keyboard, real_keys)
 		next
 		return ret
@@ -1973,21 +1970,20 @@ function player_keyval(key as KBScancode, player as integer = 0, byref down_ms a
 		inputst = @real_input
 	end if
 
-	dim joynum as integer = player - 1
-	if joynum > ubound(inputst->joys) then return 0
-
 	if key < 0 then  'Control key
-		ret = inputst->joys(joynum).controlkey(key, *inputst, repeat_wait, repeat_rate, down_ms)
-		if player = 1 andalso check_keyboard then
-			'In future, ignore any keys mapped to other players?
-			ret or= inputst->kb.controlkey(key, *inputst, repeat_wait, repeat_rate, down_ms)
-		end if
+		'Compute it. The reason we do this on every keyval call rather than once in setkeys is so
+		'that you can change the keymap or clear keys and have an immediate effect: scripts especially
+		'want to do that.
+		ret = inputst->controlkey(player, key, repeat_wait, repeat_rate, down_ms, check_keyboard)
 	elseif key <= scLAST then  'Keyboard key
-		if player = 1 andalso check_keyboard then
+		'player > 1 can only see keys which are mapped to one of their controls
+		if check_keyboard andalso (player = 1 orelse inputst->keymaps(player).find(key) > -1) then
 			ret = inputst->kb.keyval(key, repeat_wait, repeat_rate, *inputst, down_ms)
 		end if
 	else  'Joystick button
 		dim button as integer = keybd_to_joy_scancode(key)  '0 if invalid
+		dim joynum as integer = player - 1
+		if joynum > ubound(inputst->joys) then return 0
 		ret = inputst->joys(joynum).keyval(button, repeat_wait, repeat_rate, *inputst, down_ms)
 	end if
 	return ret
@@ -2057,44 +2053,100 @@ local function KeyboardState.numpad_alias_key(key as KBScancode) as KBScancode
 	return 0
 end function
 
-function KeyboardState.anykey(inputst as InputState, byref down_ms as integer) as KeyBits
+function KeyboardState.anykey(player as integer, inputst as InputState, byref down_ms as integer) as KeyBits
 	dim ret as KeyBits
-	for key as KBScancode = 0 to scLAST
-		select case key
-			case scNumLock, scCapsLock, scScrollLock
-			case else
-				ret or= this.keyval(key, , , inputst, down_ms)
-		end select
-	next
+
+	if player < 1 orelse player > maxPlayers then return 0
+
+	if player = 1 then
+		'Player 1 can press any KB key that isn't bound to another player and isn't a weird Lock key
+
+		'Cache the list of keys bound to another player
+		dim bound_keys(scKEYVAL_LAST) as boolean
+		for otherplayer as integer = 2 to maxPlayers
+			with inputst.keymaps(otherplayer)
+				for idx as integer = 0 to ubound(.controls)
+					dim key as KBScancode = .controls(idx).scancode
+					BUG_IF(key < 0 orelse key > scKEYVAL_LAST, "Bad Keybind.scancode", 0)
+					bound_keys(key) = true
+				next
+			end with
+		next
+
+		for key as KBScancode = 0 to scLAST
+			select case key
+				case scNumLock, scCapsLock, scScrollLock
+				case else
+					if bound_keys(key) = false then
+						ret or= this.keyval(key, , , inputst, down_ms)
+					end if
+			end select
+		next
+	else
+		'Other players can only press their bound keys
+		with inputst.keymaps(player)
+			for idx as integer = 0 to ubound(.controls)
+				dim key as KBScancode = .controls(idx).scancode
+				if key <= scLAST then  'Not a joystick button
+					ret or= this.keyval(key, , , inputst, down_ms)
+				end if
+			next
+		end with
+	end if
 	return ret
 end function
 
 'This doesn't check all joystick buttons, only ones mapped in controls()
 'semi-intentionally, so you can ignore stuck keys or uncentered sticks.
-function JoystickState.anykey(inputst as InputState, byref down_ms as integer) as KeyBits
+function JoystickState.anykey(player as integer, inputst as InputState, byref down_ms as integer) as KeyBits
 	dim ret as KeyBits
-	for idx as integer = 0 to ubound(this.controls)
-		ret or= this.keyval(this.controls(idx).scancode, , , inputst, down_ms)
-	next
+	with inputst.keymaps(player)
+		for idx as integer = 0 to ubound(.controls)
+			dim button as JoyButton = .controls(idx).scancode - scJoyOFFSET
+			if button >= joyButton1 andalso button <= joyLAST then  'Check not a keyboard key
+				ret or= this.keyval(button, , , inputst, down_ms)
+			end if
+		next
+	end with
 	'for button as JoyButton = joyButton1 to joyLAST
 	'	ret or= this.keyval(button, repeat_wait, repeat_rate, inputst)
 	'next
 	return ret
 end function
 
-'Calculate value of a control key for one device, bitwise-ORing all keys mapped to it.
-'cc should be ccFIRST <= cc < 0
-function KeyArray.controlkey (cc as KBScancode, inputst as InputState, repeat_wait as integer = 0, repeat_rate as integer = 0, byref down_ms as integer) as KeyBits
-	if cc = ccAny then
-		'Note: repeat_wait and repeat_rate are ignored
-		return this.anykey(inputst, down_ms)
-	end if
+'Calculate value of a control key for one player, bitwise-ORing all keys mapped to it
+'player:  1 to 4.
+'cc:      ccFIRST <= cc < 0
+'check_keyboard: pass false to ignore keyboard input
+'down_ms: set to max down_ms of any key or initial value.
+function InputState.controlkey (player as integer, cc as ccCode, repeat_wait as integer = 0, repeat_rate as integer = 0, byref down_ms as integer, check_keyboard as bool = YES) as KeyBits
+	if player < 1 orelse player > maxPlayers then return 0
 
 	dim ret as KeyBits
-	for idx as integer = 0 to ubound(this.controls)
-		with this.controls(idx)
+
+	if cc = ccAny then
+		'Note: repeat_wait and repeat_rate are ignored
+		if check_keyboard then
+			ret = this.kb.anykey(player, this, down_ms)
+		end if
+
+		ret or= this.joys(player - 1).anykey(player, this, down_ms)
+		return ret
+	end if
+
+	for idx as integer = 0 to ubound(this.keymaps(player).controls)
+		with this.keymaps(player).controls(idx)
 			if cc = .ckey then
-				ret or= this.keyval(.scancode, repeat_wait, repeat_rate, inputst, down_ms)
+				'Shouldn't happen; if the Keybind is blank then .ckey=0
+				BUG_IF(.scancode <= 0 orelse .scancode > scJoyLAST, "Bad Keybind.scancode " & .scancode, 0)
+
+				if .scancode <= scLAST then  'Keyboard
+					if check_keyboard then
+						ret or= this.kb.keyval(.scancode, repeat_wait, repeat_rate, this, down_ms)
+					end if
+				else  'Joystick
+					ret or= this.joys(player - 1).keyval(.scancode - scJoyOFFSET, repeat_wait, repeat_rate, this, down_ms)
+				end if
 			end if
 		end with
 	next
@@ -2579,7 +2631,6 @@ end function
 sub KeyArray.init(maxkey as integer)
 	redim keys(maxkey)
 	redim key_down_ms(maxkey)
-	init_controls()
 end sub
 
 constructor KeyboardState()
@@ -2597,33 +2648,19 @@ constructor JoystickState()
 end constructor
 
 
-'================================== Key mappings ==========================================
+'======================================== Keymaps ========================================
 
-sub KeyboardState.init_controls()
-	redim controls(12)
-	controls(0)  = TYPE(scUp,     ccUp)
-	controls(1)  = TYPE(scDown,   ccDown)
-	controls(2)  = TYPE(scLeft,   ccLeft)
-	controls(3)  = TYPE(scRight,  ccRight)
-	#ifdef IS_GAME
-	controls(4)  = TYPE(scCtrl,   ccUse)  'Wiped by reset_to_basic_key_mappings
-	#endif
-	controls(5)  = TYPE(scSpace,  ccUse)
-	controls(6)  = TYPE(scEnter,  ccUse)
-	#ifdef IS_GAME
-	controls(7)  = TYPE(scAlt,    ccMenu)  'Wiped by reset_to_basic_key_mappings
-	controls(8)  = TYPE(scAlt,    ccCancel)  'Wiped by reset_to_basic_key_mappings
-	#endif
-	controls(9)  = TYPE(scEsc,    ccMenu)
-	controls(10) = TYPE(scEsc,    ccCancel)
-	controls(11) = TYPE(scEsc,    ccFlee)
-	controls(12) = TYPE(scTab,    ccFlee)  'Who knew?
-end sub
-
+'Setup default keyboard and gamepad keybinds
 'FIXME: this is called before main() to initialise the real_input/replay_input globals, but depends on
 'global_config_file, which won't be properly initialised. So flush_gfx_config_settings calls again
-'(via reset_control_mappings), however that will throw away custom keymappings when switching gfx backend.
-sub JoystickState.init_controls()
+'(via reset_keymaps), however that will throws away customisation when switching gfx backend.
+sub PlayerKeymap.reset (player as integer)
+	if player = 1 then
+		redim controls(21)
+	else
+		redim controls(8)
+	end if
+
 	dim as JoyButton usebut, menubut
 
 	if swap_joystick_use_cancel = NONBOOL then
@@ -2633,100 +2670,137 @@ sub JoystickState.init_controls()
 	end if
 
 	if swap_joystick_use_cancel then
-		usebut = joyB
-		menubut = joyA
+		usebut = scJoy(B)
+		menubut = scJoy(A)
 	else
-		usebut = joyA   'Cross
-		menubut = joyB  'Circle
+		usebut = scJoy(A)   'Cross
+		menubut = scJoy(B)  'Circle
 	end if
+	controls(0) = TYPE(scJoy(Up),    ccUp)
+	controls(1) = TYPE(scJoy(Down),  ccDown)
+	controls(2) = TYPE(scJoy(Left),  ccLeft)
+	controls(3) = TYPE(scJoy(Right), ccRight)
+	controls(4) = TYPE(usebut,       ccUse)
+	controls(5) = TYPE(menubut,      ccCancel)
+	controls(6) = TYPE(menubut,      ccMenu)
+	controls(7) = TYPE(scJoy(Start), ccMenu)
+	controls(8) = TYPE(menubut,      ccRun)
 
-	redim controls(8)
-	controls(0) = TYPE(joyUp,       ccUp)
-	controls(1) = TYPE(joyDown,     ccDown)
-	controls(2) = TYPE(joyLeft,     ccLeft)
-	controls(3) = TYPE(joyRight,    ccRight)
-	controls(4) = TYPE(usebut,      ccUse)
-	controls(5) = TYPE(menubut,     ccCancel)
-	controls(6) = TYPE(menubut,     ccMenu)
-	controls(7) = TYPE(joyStart,    ccMenu)
-	controls(8) = TYPE(menubut,     ccRun)
-
-	'Typically the first four buttons will be A/B/X/Y buttons, but not always in that order.
-	'So previously we used to map buttons 3 and 4 to use/cancel, but that's a nuiscance for scripted controls.
-	' controls(7) = TYPE(joyButton3,  ccUse)
-	' controls(8) = TYPE(joyButton4,  ccMenu)
-	' controls(9) = TYPE(joyButton4,  ccRun)
+	if player = 1 then
+		controls(9)  = TYPE(scUp,     ccUp)
+		controls(10)  = TYPE(scDown,   ccDown)
+		controls(11)  = TYPE(scLeft,   ccLeft)
+		controls(12)  = TYPE(scRight,  ccRight)
+		#ifdef IS_GAME
+			controls(13)  = TYPE(scCtrl,   ccUse)  'Wiped by reset_to_basic_keymap
+		#endif
+		controls(14)  = TYPE(scSpace,  ccUse)
+		controls(15)  = TYPE(scEnter,  ccUse)
+		#ifdef IS_GAME
+			controls(16)  = TYPE(scAlt,    ccMenu)  'Wiped by reset_to_basic_keymap
+			controls(17)  = TYPE(scAlt,    ccCancel)  'Wiped by reset_to_basic_keymap
+		#endif
+		controls(18)  = TYPE(scEsc,    ccMenu)
+		controls(19) = TYPE(scEsc,    ccCancel)
+		controls(20) = TYPE(scEsc,    ccFlee)
+		controls(21) = TYPE(scTab,    ccFlee)  'Who knew?
+	end if
 end sub
 
-'Remove all key mappings to or from a scancode/controlcode (cc* constant).
-'Reads replayed state, if any (real_keys = NO)
-'key:     either a cc* constant (all key mappings to that cc will be removed)
-'         or an ordinary KBScancode or JoyButton (any mapping from that key/button will be removed)
-'joynum:  -2 for keyboard, -1 for any joystick, 0-3 for single joystick (similar to player_keyval())
-sub delete_key_mappings(key as integer, joynum as integer = -2)
-	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
+sub InputState.reset_keymaps ()
+	for player as integer = 1 to ubound(this.keymaps)
+		this.keymaps(player).reset(player)
+	next
+end sub
 
-	'Maybe this device-specific stuff is overengineering, don't need it yet...
-	dim device as KeyArray ptr
-	if joynum = -2 then
-		device = @inputst->kb
-	elseif joynum = -1 then
-		for joynum = 0 to ubound(inputst->joys)
-			delete_key_mappings key, joynum
-		next
-		exit sub
-	else
-		if joynum < 0 orelse joynum > ubound(inputst->joys) then exit sub
-		device = @inputst->joys(joynum)
-	end if
+sub reset_keymaps ()
+	real_input.reset_keymaps
+	replay_input.reset_keymaps
+end sub
 
-	for i as integer = 0 to ubound(device->controls)
-		with device->controls(i)
-			if .ckey = key orelse .scancode = key then .ckey = 0
+'Sets up player 1's keymap the way Custom does (unlike Game, which allows Ctrl for Use
+'and Alt for Cancel)
+sub reset_to_basic_keymap ()
+	dim byref keymap as PlayerKeymap = get_keymap(1)
+	keymap.reset(1)
+	keymap.remove(scCtrl)
+	keymap.remove(scAlt)
+end sub
+
+'Returns first index in controls() that matches a ccCode and/or KBScancode, or -1 if not found.
+'Pass either a cc* constant, a sc* constant, or both cc* and sc* (in that order).
+function PlayerKeymap.find (cc_or_sc as KBScancode, sc as KBScancode = 0) as integer
+	for i as integer = 0 to ubound(this.controls)
+		with this.controls(i)
+			if sc = 0 then
+				if .ckey = cc_or_sc orelse .scancode = cc_or_sc then return i
+			else
+				if .ckey = cc_or_sc andalso .scancode = sc then return i
+			end if
 		end with
 	next
+	return -1
+end function
+
+'Bind a keyboard key or joystick button to a control.
+'If the exactly same keybind already exists, nothing is done.
+'controlc: which control to add a binding for.
+'scanc: a sc* or scJoy* constant, not a cc* constant.
+sub PlayerKeymap.add (controlc as ccCode, scanc as KBScancode)
+	if in_bound(controlc, ccFIRST, ccLAST) = NO then
+		debug strprintf("PlayerKeymap.add: invalid control=%d", controlc)
+		exit sub
+	elseif in_bound(scanc, 1, scJoyLAST) = NO then
+		'Not a KB or joy scancode
+		debug strprintf("PlayerKeymap.add: invalid key %d (for control=%d)", scanc, controlc)
+		exit sub
+	end if
+
+	'Only add if doesn't already exist
+	dim idx as integer = this.find(controlc, scanc)
+	if idx < 0 then
+		'Reuse any deleted slot
+		idx = this.find(0, 0)
+		if idx < 0 then
+			idx = ubound(this.controls) + 1
+			redim preserve this.controls(idx)
+		end if
+
+		with this.controls(idx)
+			.ckey = controlc
+			.scancode = scanc
+		end with
+	end if
 end sub
 
-'Return the current (keyboard) key bindings
-'TODO: only keyboard, not joystick mappings, as currently we have no use for that
-sub get_key_mappings(controls() as ControlKey)
+'Remove keybinds to or from a controlcode (cc* constant) or scancode (keyboard or joystick).
+'Call with either:
+'cc_or_sc is a cc* constant, sc omitted: all keybinds to that control will be removed
+'cc_or_sc is a sc* constant, sc omitted: all keybinds from that scancode will be removed
+'cc_or_sc is a cc* constant, sc is a sc* constant: any keybind from scancode to control will be removed
+sub PlayerKeymap.remove (cc_or_sc as KBScancode, sc as KBScancode = 0)
+	do
+		dim idx as integer = this.find(cc_or_sc, sc)
+		if idx < 0 then exit sub
+		with this.controls(idx)
+			.ckey = 0
+			.scancode = 0
+		end with
+	loop
+end sub
+
+'Return the keymap object (key bindings) for a player
+function get_keymap (player as integer = 1) byref as PlayerKeymap
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
-	redim controls(ubound(inputst->kb.controls))
-	for i as integer = 0 to ubound(controls)
-		controls(i) = inputst->kb.controls(i)
-	next
-end sub
+	BUG_IF(player < 1 orelse player > maxPlayers, "get_keymap bad player #" & player, inputst->keymaps(1))
+	return inputst->keymaps(player)
+end function
 
-'Overwrite the current (keyboard) key bindings
-'TODO: see above
-sub set_key_mappings(controls() as ControlKey)
+'Overwrite the current key bindings for a player. Probably only needed to save and restore, not for manipulation.
+sub set_keymap (player as integer = 1, byref keymap as PlayerKeymap)
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
-	redim inputst->kb.controls(ubound(controls))
-	for i as integer = 0 to ubound(controls)
-		inputst->kb.controls(i) = controls(i)
-	next
-end sub
-
-sub InputState.reset_controls()
-	kb.init_controls()
-	for joynum as integer = 0 to ubound(joys)
-		joys(joynum).init_controls()
-	next
-end sub
-
-sub reset_control_mappings()
-	real_input.reset_controls
-	replay_input.reset_controls
-end sub
-
-'Sets up the keyboard key mappings the way Custom does (unlike Game, which allows Ctrl for Use
-'and Alt for Cancel)
-sub reset_to_basic_key_mappings()
-	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
-
-	inputst->kb.init_controls()
-	delete_key_mappings scCtrl
-	delete_key_mappings scAlt
+	BUG_IF(player < 1 orelse player > maxPlayers, "set_keymap bad player #" & player)
+	inputst->keymaps(player) = keymap
 end sub
 
 
@@ -3359,7 +3433,7 @@ end sub
 '==========================================================================================
 
 'This is also, currently, the number of players
-'TODO: this always returns 4!
+'TODO: this always returns maxPlayers = 4!
 function num_joysticks () as integer
 	dim inputst as InputState ptr = iif(replay.active, @replay_input, @real_input)
 	return ubound(inputst->joys) + 1

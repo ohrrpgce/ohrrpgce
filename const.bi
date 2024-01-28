@@ -321,6 +321,7 @@ CONST sizeParty = 41 'The maximum size of the entire party (number of gam.hero()
 CONST sizeActiveParty = 4 'Maximum size of the active party (this is for CUSTOM, use active_party_slots() in GAME)
 CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count the zero)
 CONST maxTextboxLines = 8 'Maximum number of lines in a text box
+CONST maxPlayers = 4 'The number of players which can have separate controls/keymaps. Also limit on joysticks.
 CONST maplayerMax = 15 'The limit on the highest numbered map layer
 CONST mapTilesMax = 100000 'Maximum map size, in tiles (note also a limit of 32768 tiles wide or high)
 CONST maxMPLevel = 7   'Max level of FF1-style level-MP, 0-based (Note: the spell-list editor shows 1-based levels)

@@ -1083,9 +1083,9 @@ SUB reset_game_final_cleanup()
  game = ""
  sourcerpg = ""
  game_config_file = ""
- 'Also calls reset_control_mappings
+ 'Also calls reset_keymaps
  flush_gfx_config_settings
- 'reset_control_mappings
+ 'reset_keymaps
  'checks for leaks and deallocates them
  sprite_empty_cache
  palette16_reload_cache   'Read default palettes (now that game="")

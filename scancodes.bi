@@ -5,8 +5,10 @@
 #IFNDEF SCANCODES_BI
 #DEFINE SCANCODES_BI
 
-'KBScancode is misnamed, as it includes cc* control codes and scJoy* codes
+'KBScancode is misnamed, as it includes cc* control codes and scJoy* codes.
+'You can use the ccCode type specifically for a cc* code.
 TYPE KBScancode as integer
+TYPE ccCode as integer
 
 CONST scNone = 0  'All of allmodex treats this as a valid scancode, but it doesn't mean anything
 CONST scEsc = 01
@@ -185,7 +187,7 @@ CONST scJoyUp = 146
 CONST scJoyDown = 147
 'See JoyButton for other button meanings
 CONST scJoyButton32 = 159
-'Scancodes 159 to 163 were previously buttons, but no longer are. They should be reserved and ignored.
+'Scancodes 160 to 163 were previously buttons, but no longer are. They should be reserved and ignored.
 CONST scJoyLAST = 163
 
 'These are only returned by anykeypressed/waitforkey! You can't use them elsewhere!
@@ -197,7 +199,7 @@ CONST scMouseMiddle = 182
 'The following are only returned by waitforkey!
 CONST scResize = 200   'The window was resized
 
-'--- Control code scancodes
+'--- Control code scancodes (type: ccCode)
 
 CONST ccLAST = -1
 CONST ccAny = -1   'Any key
@@ -263,6 +265,9 @@ ENUM 'JoyButton
  joyLAST       = 36  'Corresponds to scJoyLAST
 END ENUM
 TYPE JoyButton as integer
+
+'Translate from joystick button name to joySc* scancode, e.g. scJoy(Down)
+#define scJoy(button) (scJoyOFFSET + joy##button)
 
 ENUM 'JoyAxis
  'As for JoyButton, the backend might not be able to map the axes like this.

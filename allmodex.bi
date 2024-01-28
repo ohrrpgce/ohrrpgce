@@ -460,21 +460,32 @@ DECLARE SUB frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBc
 '==========================================================================================
 '                                          Input
 
-'================ Key mappings =================
+'=================== Keymaps ====================
 
-'Mapping from a scancode to a cc* control code/action
-type ControlKey
-	scancode as integer                 'Either a KBScancode or JoyButton
-	ckey as KBScancode                  'A cc* virtual scancode. 0 if unused.
-end type
+' Mapping from a scancode to a cc* control code/action. Can be blank.
+Type Keybind
+	scancode as KBScancode          'Either a keyboard or joystick KBScancode. 0 if blank.
+	ckey as ccCode                  'A cc* virtual scancode. 0 if blank.
+End Type
 
-DECLARE SUB delete_key_mappings(key as integer, joynum as integer = -2)
-DECLARE SUB get_key_mappings(controls() as ControlKey)
-DECLARE SUB set_key_mappings(controls() as ControlKey)
-DECLARE SUB reset_control_mappings()
-DECLARE SUB reset_to_basic_key_mappings()
+' A set of keybinds (KB/Joy scancode to ccKey) for one player.
+' Can include blank Keybinds, which were removed and are ignored.
+' All joystick scancodes refer to that player's gamepad.
+Type PlayerKeymap
+	controls(any) as Keybind
 
-DECLARE SUB setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
+	declare sub reset (player as integer)
+	declare sub add (controlc as ccCode, scanc as KBScancode)
+	declare sub remove (cc_or_sc as KBScancode, sc as KBScancode = 0)
+	declare function find (cc_or_sc as KBScancode, sc as KBScancode = 0) as integer
+End Type
+
+declare function get_keymap (player as integer = 1) byref as PlayerKeymap
+declare sub set_keymap (player as integer = 1, byref keymap as PlayerKeymap)
+declare sub reset_keymaps ()
+declare sub reset_to_basic_keymap ()
+
+declare sub setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer = 55)
 
 '=========== Update or wait for keys ============
 

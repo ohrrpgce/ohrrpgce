@@ -240,7 +240,7 @@ TYPE SavedGfxIOState
  use_speed_control as bool
  vpage as integer
  dpage as integer
- key_mappings(any) as ControlKey
+ keymap as PlayerKeyMap
 END TYPE
 
 REDIM SHARED gfxio_state_stack(-1 TO -1) as SavedGfxIOState  '-1th element unused
@@ -349,8 +349,8 @@ SUB push_and_reset_gfxio_state ()
   showmousecursor
   pause_mouserect
   force_use_mouse += 1
-  get_key_mappings .key_mappings()
-  reset_to_basic_key_mappings  'Ensures Ctrl is not mapped to Use
+  .keymap = get_keymap(1)  'Makes a copy
+  reset_to_basic_keymap  'Ensures Ctrl is not mapped to Use
   setkeys
   #IFDEF IS_GAME
    .resolution_was_unlocked = resolution_unlocked()
@@ -378,7 +378,7 @@ SUB pop_gfxio_state ()
   setcursorvisibility(.prev_mouse_vis)
   resume_mouserect
   force_use_mouse -= 1
-  set_key_mappings .key_mappings()
+  set_keymap 1, .keymap
   setkeys
   #IFDEF IS_GAME
    IF .resolution_was_unlocked = NO THEN
