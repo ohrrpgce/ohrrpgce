@@ -802,9 +802,9 @@ define function, begin
 767,ps5endstory,0             # (Console only)
 768,setrichpresence,2,0,-1    # (Console/Steam) Set the Friends list status (token_name strid, substitution strid)
 769,findextra,3,0,0,0         # Return index of a value in an extra array, or -1 (handle, value, startindex)
-770,runningonplaystation,0    # (Console only) Any playstation platform
-771,runningonxbox,0           # (Console only) Any xbox platform
-772,runningonnintendo,0       # (Console only) Any nintendo platform
+#770 unused
+#771 unused
+#772 unused
 773,playstationcontroller,1,0 # The specified controller is a playstation-style one
 774,xboxcontroller,1,0        # The specified controller is an xbox-style one
 775,nintendocontroller,1,0    # The specified controller is a nintendo-style one
