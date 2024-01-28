@@ -466,6 +466,7 @@ DECLARE SUB frame_export_gif (fr as Frame Ptr, fname as string, maspal() as RGBc
 Type Keybind
 	scancode as KBScancode          'Either a keyboard or joystick KBScancode. 0 if blank.
 	ckey as ccCode                  'A cc* virtual scancode. 0 if blank.
+	suspended as bool               'Suspended keybinds don't cause keypresses
 End Type
 
 ' A set of keybinds (KB/Joy scancode to ccKey) for one player.
@@ -477,7 +478,9 @@ Type PlayerKeymap
 	declare sub reset (player as integer)
 	declare sub add (controlc as ccCode, scanc as KBScancode)
 	declare sub remove (cc_or_sc as KBScancode, sc as KBScancode = 0)
-	declare function find (cc_or_sc as KBScancode, sc as KBScancode = 0) as integer
+	declare sub suspend (cc_or_sc as KBScancode, sc as KBScancode = 0)
+	declare sub resume (cc_or_sc as KBScancode, sc as KBScancode = 0)
+	declare function find (cc_or_sc as KBScancode, sc as KBScancode = 0, count as integer = 0) as integer
 End Type
 
 declare function get_keymap (player as integer = 1) byref as PlayerKeymap

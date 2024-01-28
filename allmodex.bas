@@ -2053,6 +2053,7 @@ local function KeyboardState.numpad_alias_key(key as KBScancode) as KBScancode
 	return 0
 end function
 
+'Ignores suspended state of keybinds, as that would create too many weird edgecases.
 function KeyboardState.anykey(player as integer, inputst as InputState, byref down_ms as integer) as KeyBits
 	dim ret as KeyBits
 
@@ -2098,6 +2099,7 @@ end function
 
 'This doesn't check all joystick buttons, only ones mapped in controls()
 'semi-intentionally, so you can ignore stuck keys or uncentered sticks.
+'Ignores suspended state of keybinds, as that would create too many weird edgecases.
 function JoystickState.anykey(player as integer, inputst as InputState, byref down_ms as integer) as KeyBits
 	dim ret as KeyBits
 	with inputst.keymaps(player)
@@ -2114,7 +2116,7 @@ function JoystickState.anykey(player as integer, inputst as InputState, byref do
 	return ret
 end function
 
-'Calculate value of a control key for one player, bitwise-ORing all keys mapped to it
+'Calculate value of a control key for one player, bitwise-ORing all non-suspended (except anykey) keys mapped to it
 'player:  1 to 4.
 'cc:      ccFIRST <= cc < 0
 'check_keyboard: pass false to ignore keyboard input
@@ -2136,7 +2138,7 @@ function InputState.controlkey (player as integer, cc as ccCode, repeat_wait as 
 
 	for idx as integer = 0 to ubound(this.keymaps(player).controls)
 		with this.keymaps(player).controls(idx)
-			if cc = .ckey then
+			if cc = .ckey andalso .suspended = NO then
 				'Shouldn't happen; if the Keybind is blank then .ckey=0
 				BUG_IF(.scancode <= 0 orelse .scancode > scJoyLAST, "Bad Keybind.scancode " & .scancode, 0)
 
@@ -2727,18 +2729,30 @@ sub reset_to_basic_keymap ()
 	keymap.remove(scAlt)
 end sub
 
-'Returns first index in controls() that matches a ccCode and/or KBScancode, or -1 if not found.
-'Pass either a cc* constant, a sc* constant, or both cc* and sc* (in that order).
-function PlayerKeymap.find (cc_or_sc as KBScancode, sc as KBScancode = 0) as integer
+'Returns an index in controls() that matches a ccCode and/or KBScancode, or -1 if not found,
+'or if count = -1 then returns number of matches.
+'count tells which index to return if multiple match, counting from 0 for the first.
+'Pass either a cc* constant, a sc* constant, or both cc* and sc* (in that order). That is:
+'cc_or_sc is a cc* constant, sc omitted: matches all keybinds to that control
+'cc_or_sc is a sc* constant, sc omitted: matches all keybinds from that scancode
+'cc_or_sc is a cc* constant, sc is a sc* constant: matches all keybinds from that scancode to control
+function PlayerKeymap.find (cc_or_sc as KBScancode, sc as KBScancode = 0, count as integer = 0) as integer
 	for i as integer = 0 to ubound(this.controls)
 		with this.controls(i)
 			if sc = 0 then
-				if .ckey = cc_or_sc orelse .scancode = cc_or_sc then return i
+				if .ckey = cc_or_sc orelse .scancode = cc_or_sc then
+					if count = 0 then return i
+					count -= 1
+				end if
 			else
-				if .ckey = cc_or_sc andalso .scancode = sc then return i
+				if .ckey = cc_or_sc andalso .scancode = sc then
+					if count = 0 then return i
+					count -= 1
+				end if
 			end if
 		end with
 	next
+	if count < 0 then return -count - 1  'Number of matches
 	return -1
 end function
 
@@ -2773,11 +2787,7 @@ sub PlayerKeymap.add (controlc as ccCode, scanc as KBScancode)
 	end if
 end sub
 
-'Remove keybinds to or from a controlcode (cc* constant) or scancode (keyboard or joystick).
-'Call with either:
-'cc_or_sc is a cc* constant, sc omitted: all keybinds to that control will be removed
-'cc_or_sc is a sc* constant, sc omitted: all keybinds from that scancode will be removed
-'cc_or_sc is a cc* constant, sc is a sc* constant: any keybind from scancode to control will be removed
+'Delete (blank out) all matching keybinds; see PlayerKeymap.find() about matching.
 sub PlayerKeymap.remove (cc_or_sc as KBScancode, sc as KBScancode = 0)
 	do
 		dim idx as integer = this.find(cc_or_sc, sc)
@@ -2785,7 +2795,26 @@ sub PlayerKeymap.remove (cc_or_sc as KBScancode, sc as KBScancode = 0)
 		with this.controls(idx)
 			.ckey = 0
 			.scancode = 0
+			.suspended = NO
 		end with
+	loop
+end sub
+
+'Suspends all matching keybinds; see PlayerKeymap.find() about matching.
+sub PlayerKeymap.suspend (cc_or_sc as KBScancode, sc as KBScancode = 0)
+	do
+		dim idx as integer = this.find(cc_or_sc, sc)
+		if idx < 0 then exit sub
+		this.controls(idx).suspended = YES
+	loop
+end sub
+
+'Resumes all matching keybinds; see PlayerKeymap.find() about matching.
+sub PlayerKeymap.resume (cc_or_sc as KBScancode, sc as KBScancode = 0)
+	do
+		dim idx as integer = this.find(cc_or_sc, sc)
+		if idx < 0 then exit sub
+		this.controls(idx).suspended = NO
 	loop
 end sub
 
