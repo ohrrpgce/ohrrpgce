@@ -1048,11 +1048,14 @@ local sub screen_size_update ()
 	UpdateScreenSlice NO  'clear_changed_flag=NO
 end sub
 
-'Set the size of a video page and keep it from being resized as the window size changes.
+'Set the size of a video page and keep it from being resized as the window size changes,
+'and also stop it from changing bitdepth if switch_to_8/32bit_vpages is called (which
+'multichoice, etc do), which would otherwise delete the contents on a 32->8 change!
 'TODO: delete this after tileset_editor and import_export_tilesets stop using video pages 2 and 3
 sub lock_page_size(page as integer, w as integer, h as integer)
 	resizepage page, w, h
 	vpages(page)->noresize = 1
+	vpages(page)->fixeddepth = 1
 end sub
 
 'Revert a video page to following the size of the window
@@ -1060,6 +1063,7 @@ end sub
 sub unlock_page_size(page as integer)
 	resizepage page, windowsize.w, windowsize.h
 	vpages(page)->noresize = 0
+	vpages(page)->fixeddepth = 0
 end sub
 
 'Makes the window resizable, and sets a minimum size.
