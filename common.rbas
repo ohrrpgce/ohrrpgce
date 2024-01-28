@@ -341,7 +341,10 @@ SUB push_and_reset_gfxio_state ()
  REDIM PRESERVE gfxio_state_stack(-1 TO UBOUND(gfxio_state_stack) + 1)
  WITH gfxio_state_stack(UBOUND(gfxio_state_stack))
   'Switch to 32-bit color so that changing the master palette doesn't distort colours
-  'of previous screen contents (holdscreen)
+  'of previous screen contents (holdscreen). This converts vpages to 32-bit using
+  'the current master palette. Hacky, likely better to give each vpage its own palette.
+  '(Note that pages created with allocatepage change their bitdepth on
+  'switch_to_32bit_vpages, while those created with duplicatepage don't!)
   .vpages_were_32bit = vpages_are_32bit()
   switch_to_32bit_vpages
   ensure_normal_palette
@@ -3396,12 +3399,15 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
 
  state.pt = defaultval
 
- push_and_reset_gfxio_state  'Change to 32-bit, before copying vpage
+ 'Keep a copy of vpage at its original bitdepth, so we can restore it afterwards. We don't draw it
+ 'since if it's 8-bit it would be drawn with the wrong master palette.
+ DIM oldscreen as integer = duplicatepage(vpage)
 
- 'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
- DIM holdscreen as integer
- holdscreen = allocatepage
- copypage vpage, holdscreen
+ push_and_reset_gfxio_state  'Change to 32-bit and reset the master palette, before copying vpage
+
+ 'Use whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage)).
+ 'This copy has 32-bit depth.
+ DIM holdscreen as integer = duplicatepage(vpage)
 
  DIM have_help_file as bool = (LEN(*helpkey) > 0 ANDALSO isfile(*helpkey))
  DO
@@ -3436,7 +3442,8 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
   dowait
  LOOP
  pop_gfxio_state
- copypage holdscreen, vpage
+ copypage oldscreen, vpage
+ freepage oldscreen
  freepage holdscreen
 
  RETURN result
