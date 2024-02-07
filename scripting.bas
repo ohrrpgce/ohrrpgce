@@ -1596,7 +1596,7 @@ FUNCTION decode_srcpos(posdata as ScriptTokenPos, srcpos as uinteger, script_off
   lineend = INSTR(linestart, text, !"\n")
   ' charpos, string offsets, posdata.col/.linenum are all 1-based
   IF charpos <= lineend THEN
-   posdata.col = charpos - linestart
+   posdata.col = charpos - linestart + 1  '1-based
    posdata.linenum = lineno
    posdata.linetext = RTRIM(MID(text, linestart, lineend - linestart), !"\r")
    RETURN YES
