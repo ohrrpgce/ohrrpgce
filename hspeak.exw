@@ -388,8 +388,8 @@ constant SCRIPT_ID=10             --Script ID. Value not appended until all IDs 
 constant SCRIPT_TRIGGER_ID=11     --trigger ID. SCRIPT_TRIGGER_ID and later not appended until compile_a_script
 constant SCRIPT_NUM_NONLOCALS=12
 
-constant SCRIPT_AST=13
-constant SCRIPT_VARIABLES=14      --VarList of locals and nonlocals
+constant SCRIPT_VARIABLES=13      --VarList of locals and nonlocals
+constant SCRIPT_AST=14
 constant SCRIPT_BINARY=15
 constant _SCRIPT_MAX_LAST=15
 
@@ -602,7 +602,7 @@ end type
 
 --An element of all_scripts
 type Script(object script)
-  if sequence(script) and length(script)>=SCRIPT_NEST_DEPTH and length(script)<=SCRIPT_BINARY then
+  if sequence(script) and length(script)>=_SCRIPT_MIN_LAST and length(script)<=_SCRIPT_MAX_LAST then
     return true
   else
     return false
@@ -3139,7 +3139,7 @@ end procedure
 
 ---------------------------------------------------------------------------
 
---Look up the name of a script in all current scopes, returning all_scripts
+--Look up the name of a [sub]script in all current scopes, returning all_scripts
 --index if found, or 0 if not
 function lookup_scoped_script_name(string name)
   string s
@@ -3148,10 +3148,10 @@ function lookup_scoped_script_name(string name)
   idx=cur_script_num
   while true do
     if idx then
-      s=all_scripts[idx][SCRIPT_FULL_NAME]&"<-"&name     
+      s=all_scripts[idx][SCRIPT_FULL_NAME]&"<-"&name
     else
       s=name
-    end if   
+    end if
     at=find_in_column(s,all_scripts,SCRIPT_FULL_NAME)
     if at then
       return at
@@ -3415,10 +3415,12 @@ end function
 
 ---------------------------------------------------------------------------
 
---Returns new VarList of locals.
-function add_local_variable(VarList vars, Token var)
+procedure add_local_variable(Token var)
+  Script script
+  VarList vars
   integer id
-  sequence src_position
+  script=all_scripts[cur_script_num]
+  vars=script[SCRIPT_VARIABLES]
   --First check it's not already defined at global scope
   check_undefined_string(var,"local variable name")
   --Search for an existing local with the same name. Ignore non-locals, because they are shadowed
@@ -3437,16 +3439,16 @@ function add_local_variable(VarList vars, Token var)
     end if
   end for
   --Always add to scope of current script (frame == 0)
-  id=length(vars)-all_scripts[cur_script_num][SCRIPT_NUM_NONLOCALS]
+  id=length(vars)-script[SCRIPT_NUM_NONLOCALS]
   --Extend the Token into a VarToken, and prefix to the list, so that it takes
   --precedence over shadowed variables
-  return {var&{0,id}}&vars
-end function
+  all_scripts[cur_script_num][SCRIPT_VARIABLES]={var & {0,id}} & vars
+end procedure
 
 ---------------------------------------------------------------------------
 
 --Find the variable declarations in a script
-function gather_local_vars(VarList vars, TokenList data)
+procedure gather_local_vars(TokenList data)
   Token this
   integer ptr
   ptr=1
@@ -3469,7 +3471,7 @@ function gather_local_vars(VarList vars, TokenList data)
           if compare("end",this[CMD_TEXT])=0 then
             exit--break the while
           end if
-          vars=add_local_variable(vars,this)
+          add_local_variable(this)
         end while
       else
         src_error(sprintf_utf(COLYEL&"variable"&COLRED&" should be followed by "&COLYEL&"(name)"&COLRED,{}),this[CMD_POS])
@@ -3479,8 +3481,7 @@ function gather_local_vars(VarList vars, TokenList data)
       exit --break out of the while
     end if
   end while
-  return(vars)
-end function
+end procedure
 
 ---------------------------------------------------------------------------
 
@@ -4859,14 +4860,21 @@ procedure compile_a_script(integer script_idx)
   script&={
      trigger          --trigger type
     ,num_nonlocals
+    ,local_vars
   }
   all_scripts[script_idx]=script
+
+  --Get all locals (modifies all_scripts[cur_script_num])
   args=script[SCRIPT_ARG_TOKS] --The arguments are the first several local variables
   for i=1 to length(args) do
-    --Check for name conflicts
-    local_vars=add_local_variable(local_vars,args[i])
+    --Checks for name validity
+    add_local_variable(args[i])
   end for
-  local_vars=gather_local_vars(local_vars,script[SCRIPT_BODY_TOKS])
+  gather_local_vars(script[SCRIPT_BODY_TOKS])
+  --script[SCRIPT_VARIABLES] is now outdated
+  script=all_scripts[script_idx]
+  local_vars=script[SCRIPT_VARIABLES]
+
   if length(local_vars)-num_nonlocals > MAX_LOCALS then
     simple_error(
       sprintf_utf("Script "&COLYEL&"%s"&COLRED&" has %d arguments and variables but at most %d are supported",
@@ -4908,7 +4916,6 @@ procedure compile_a_script(integer script_idx)
 
   script&={
      script_tree
-    ,local_vars
     ,{}               --compiled data to go into the HSZ lumps
   }
   all_scripts[script_idx]=script
