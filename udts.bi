@@ -521,6 +521,16 @@ TYPE ScriptCommand
   args(0) as integer
 END TYPE
 
+'The position of a token in a script source file
+TYPE ScriptTokenPos
+  linenum as integer    'line number (1-based)
+  col as integer        'column number (1-based)
+  length as integer     'length of the token including internal whitespace
+  linetext as string    'the original line of text including this token
+  filename as string    '
+  isvirtual as integer  'true if this is a virtual position (the token was a dummy added by HSpeak)
+END TYPE
+
 TYPE TilemapInfo
   UNION
     TYPE

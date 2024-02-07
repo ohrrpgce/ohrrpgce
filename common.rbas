@@ -1089,9 +1089,13 @@ END SUB
 '------------------------------------------------------------------------------
 
 FUNCTION read32bitstring (stringptr as integer ptr) as string
+ IF stringptr[0] < 0 THEN
+  showerror "Corrupt data: read invalid 32b string with negative length"
+  RETURN ""
+ END IF
  DIM as string result = SPACE(stringptr[0])
  memcpy(STRPTR(result), @stringptr[1], stringptr[0])
- return result
+ RETURN result
 END FUNCTION
 
 FUNCTION readbadgenericname (byval index as integer, filename as string, byval recsize as integer, byval offset as integer, byval size as integer, byval skip as integer = 0, byval expect_exists as bool=YES) as string

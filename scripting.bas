@@ -1471,6 +1471,161 @@ END SUB
 
 
 '==========================================================================================
+'                                   Script debug info
+'==========================================================================================
+
+
+FUNCTION get_script_line_info(posdata as ScriptTokenPos, selectedscript as integer) as bool
+ DIM as uinteger srcpos, charpos
+
+ srcpos = script_current_srcpos(selectedscript)
+ debug "get_script_line_info: srcpos = " & srcpos
+ IF srcpos = 0 THEN RETURN NO
+
+ posdata.length = srcpos MOD (2 ^ 8)
+ charpos = srcpos SHR 9
+ posdata.isvirtual = (srcpos SHR 8) AND 1
+
+ 'IF isfile(tmpdir & "source.lumped") = NO THEN RETURN NO
+
+ '-- Read srcfiles.txt to find the file that this srcpos is in, and grab needed info
+
+ DIM as integer fh
+ fh = FREEFILE
+ IF OPEN(tmpdir & "srcfiles.txt" AS #fh) THEN RETURN NO
+
+ DIM as string lumpname, filename
+ DIM as integer flength, offset
+
+ offset = -1
+ flength = -1
+ WHILE NOT EOF(fh)
+  DIM as string in
+  DIM as integer at
+  INPUT #fh, in
+  at = INSTR(in, "=")
+  IF at THEN
+   DIM as string tag, value
+   tag = LCASE(MID(in, 1, at - 1))
+   value = MID(in, at + 1)
+   SELECT CASE tag
+    CASE "file"
+     '-- Starts a new file entry. But before moving onto it, see whether the previous entry was the target
+     IF charpos >= offset AND charpos <= offset + flength THEN EXIT WHILE
+     offset = -1
+     flength = -1
+     filename = value
+    CASE "lump"
+     lumpname = value
+    CASE "offset"
+     offset = str2int(value)
+    CASE "length"
+     flength = str2int(value)
+   END SELECT
+  END IF
+ WEND
+ CLOSE fh
+
+ IF charpos < offset OR charpos > offset + flength THEN RETURN NO
+ charpos -= offset
+
+ posdata.filename = trimpath(filename)
+
+ '-- Unlump that source file
+
+ IF isfile(tmpdir & lumpname) = 0 THEN
+  unlump tmpdir & "source.lumped", tmpdir
+  IF isfile(tmpdir & lumpname) = 0 THEN
+   debug "Couldn't unlump " & lumpname & " from source.lumped"
+   RETURN NO
+  END IF
+ END IF
+
+ '-- Now find the line of text (and line number) in the source
+
+ fh = FREEFILE
+ IF OPEN(tmpdir & lumpname FOR BINARY AS #fh) THEN RETURN NO
+
+ DIM as integer loadamount, chunksize, amountread
+ DIM as ubyte ptr bufr
+
+ posdata.linenum = 1
+ posdata.linetext = ""
+
+ bufr = ALLOCATE(4096)
+' loadamount = flength
+ WHILE NOT EOF(fh) 'loadamount > 0
+  chunksize = small(4096, loadamount)
+  'copy a chunk of file
+  fgetiob fh, , bufr, 4096, @chunksize
+  'loadamount -= chunksize
+  FOR i as integer = 0 TO chunksize - 1
+   amountread += 1
+   IF amountread = charpos THEN posdata.col = LEN(posdata.linetext) + 1  '1-based
+   IF bufr[i] = 10 THEN   'LF
+    IF amountread > charpos THEN EXIT WHILE
+    posdata.linenum += 1
+    posdata.linetext = ""
+   ELSE
+    posdata.linetext += CHR(bufr[i])
+   END IF
+  NEXT
+ WEND
+ DEALLOCATE(bufr)
+ CLOSE fh
+
+ RETURN YES
+END FUNCTION
+
+'Format the line and statement that a script is currently at,
+'or returns 0 if debugging information unavailable.
+'maxchars is the maximum number of characters to print, if it's a very long line.
+'Text flicker won't work in script debugger, so 'flicker' enables it
+FUNCTION highlighted_script_line(posdata as ScriptTokenPos, maxchars as integer, flicker as bool) as string
+ DIM start as integer
+ DIM highlightcol as integer
+ DIM texttmp as string
+ STATIC tog as integer
+ tog = tog XOR 1
+ IF flicker = NO THEN tog = 0
+
+ 'IF get_script_line_info(posdata, selectedscript) = 0 THEN debug "get script line failure!" : RETURN NO
+ WITH posdata
+  debug "posdata.linenum = " & posdata.linenum
+  debug "posdata.col = " & posdata.col
+'  debug "posdata.length = " & posdata.length
+'  debug "posdata.linetext = " & posdata.linetext
+'  debug "posdata.filename = " & posdata.filename
+ END WITH
+
+ highlightcol = IIF(posdata.isvirtual, uilook(uiSelectedDisabled + tog), uilook(uiSelectedItem + tog))
+
+ start = large(1, posdata.col - large(4, (maxchars - posdata.length) \ 2))
+
+debug "start = " & start & " mid = " & MID(posdata.linetext, start, 40)
+
+ texttmp = MID(posdata.linetext, start, maxchars)
+
+ ' Highlight the part of the line indicated by posdata
+ DIM relcol as integer = 1 + posdata.col - (start - 1)
+ DIM length  as integer = bound(posdata.length, 1, maxchars)
+ DIM token as string = MID(texttmp, relcol, length)
+ MID(texttmp, relcol, length) = fgtag(highlightcol, token)
+
+ IF start > 1 THEN MID(texttmp, 1, 3) = "..."  'This can't overlap with 'token'
+ IF LEN(texttmp) < LEN(posdata.linetext) - (start - 1) THEN texttmp &= "..."
+
+ DIM infostr as string
+' IF posdata.isvirtual THEN
+'  infostr = "In the line " & posdata.linenum & " of " & posdata.filename & ":"
+' ELSE
+  infostr = "On line " & posdata.linenum & " of " & posdata.filename & !":\n"
+' END IF
+ RETURN infostr + texttmp
+END FUNCTION
+
+
+'==========================================================================================
 '                                    Other Interfaces
 '==========================================================================================
 

@@ -54,6 +54,10 @@ DECLARE SUB reload_scripts (force_full_message as bool = YES)
 DECLARE SUB load_hsp ()
 
 DECLARE FUNCTION script_string_constant(scriptinsts_slot as integer, offset as integer) as string
+
+DECLARE FUNCTION get_script_line_info(posdata as ScriptTokenPos, selectedscript as integer) as bool
+DECLARE SUB print_script_line(posdata as ScriptTokenPos, y as integer, lines as integer, flicker as integer, page as integer)
+
 DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE FUNCTION current_command_name() as string
 DECLARE FUNCTION interpreter_context_name() as string
