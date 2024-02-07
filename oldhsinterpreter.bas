@@ -478,13 +478,14 @@ DO
    END WITH
    EXIT DO
   CASE stdone'---script terminates
-   '--if resuming a supended script, restore its state (normally stwait)
-   '--if returning a value to a calling script, set streturn
-   '--if no scripts left, break the loop
-   SELECT CASE functiondone
+   SELECT CASE functiondone()
+    'CASE 0
+     '--if returning a value to a calling script, .state is streturn
     CASE 1
+     '--if no scripts left, break the loop
      EXIT DO
     CASE 2
+     '--if resuming a supended script, restore its state (normally stwait)
      IF scrat(nowscript).state <> stwait THEN
 '      debug "WANTIMMEDIATE BUG"
 '      debug scriptname(scrat(nowscript + 1).id) & " terminated, setting wantimmediate on " & scriptname(scrat(nowscript).id)
@@ -1612,8 +1613,6 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
  DIM outstr as string
  DIM argnum as integer
 
- 'macro disabled for fb 0.15 compat
- 'copyobj(state, scrat(wasscript))
  memcpy(@(state),@(scrat(wasscript)),LEN(scrat(wasscript)))
  memcpy(@(scrinst),@(scriptinsts(wasscript)),LEN(scriptinsts(wasscript)))
  node.kind = curcmd->kind
@@ -1632,7 +1631,7 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
  IF state.state = stnext OR state.state = streturn OR state.state = stwait THEN
  'IF recurse <> 3 THEN  'huh?
 
-   IF state.state = stnext THEN 
+   IF state.state = stnext THEN
     'point stkpos before the first argument (they extend above the stack
     stkpos -= state.curargn
    END IF
@@ -1775,8 +1774,6 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
     IF wasscript = targetscript THEN outstr = ""
     IF wasscript < targetscript THEN IF recurse <> 2 THEN EXIT DO
     IF wasscript < 0 THEN EXIT DO
-    'macro disabled for fb 0.15 compat
-    'copyobj(state, scrat(wasscript))
     memcpy(@(state),@(scrat(wasscript)),LEN(scrat(wasscript)))
     memcpy(@(scrinst),@(scriptinsts(wasscript)),LEN(scriptinsts(wasscript)))
 

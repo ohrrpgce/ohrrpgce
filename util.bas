@@ -700,8 +700,8 @@ startTest(strprintf)
 endTest
 #ENDIF
 
-'FB will usually produce a NULL ptr when converting an empty string to a zstring ptr,
-'which is not acceptable in C
+'FB will convert an empty string which has never been explicitly set to "" to a
+'NULL zstring ptr, which is not acceptable to many C functions such as strcmp.
 FUNCTION cstring (s as string) as zstring ptr
  DIM ret as zstring ptr = strptr(s)
  IF ret = NULL THEN RETURN strptr("")

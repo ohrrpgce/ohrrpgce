@@ -989,7 +989,6 @@ END SUB
 'Re-unlump .hsp lump
 SUB load_hsp ()
  DIM header as HSHeader
- header.plotscr_version = ""  'Required, because of strcmp below
 
  IF isfile(game + ".hsp") THEN
   'TODO: should really delete all existing .hsz files, to catch missing scripts
@@ -999,7 +998,7 @@ SUB load_hsp ()
 
  debuginfo "plotscr.hsd version: " & header.plotscr_version
  IF LEN(header.plotscr_version) THEN
-  scripts_use_cc_scancodes = strcmp(STRPTR(header.plotscr_version), @"3U ") >= 0
+  scripts_use_cc_scancodes = strcmp(cstring(header.plotscr_version), @"3U ") >= 0
  ELSE
   scripts_use_cc_scancodes = NO
  END IF
@@ -1657,7 +1656,7 @@ END FUNCTION
 FUNCTION highlighted_script_line(posdata as ScriptTokenPos, maxchars as integer, flicker as bool) as string
  DIM start as integer
  DIM highlightcol as integer
- DIM texttmp as string
+ DIM linepiece as string
  STATIC tog as integer
  tog = tog XOR 1
  IF flicker = NO THEN tog = 0
@@ -1678,23 +1677,23 @@ FUNCTION highlighted_script_line(posdata as ScriptTokenPos, maxchars as integer,
  'debug "start = " & start & " mid = " & MID(posdata.linetext, start, 40)
 
  ' Trim the line so that it's not too long
- texttmp = MID(posdata.linetext, start, maxchars)
+ linepiece = MID(posdata.linetext, start, maxchars)
 
- ' Highlight the part of texttmp indicated by posdata
+ ' Highlight the part of linepiece indicated by posdata
  ' (Note: posdata.col and MID both count columns/characters starting at one.)
  DIM relcol as integer = posdata.col - (start - 1)
  DIM length  as integer = bound(posdata.length, 1, maxchars)
- DIM token as string = MID(texttmp, relcol, length)
- texttmp = MID(texttmp, 1, relcol - 1) & fgtag(highlightcol, token) & MID(texttmp, relcol + length)
-'MID(texttmp, relcol, length) = fgtag(highlightcol, token)
+ DIM token as string = MID(linepiece, relcol, length)
+ linepiece = MID(linepiece, 1, relcol - 1) & fgtag(highlightcol, token) & MID(linepiece, relcol + length)
+'MID(linepiece, relcol, length) = fgtag(highlightcol, token)
 
- IF start > 1 THEN MID(texttmp, 1, 3) = "..."  'This can't overlap with 'token'
- IF LEN(texttmp) < LEN(posdata.linetext) - (start - 1) THEN texttmp &= "..."
+ IF start > 1 THEN MID(linepiece, 1, 3) = "..."  'This can't overlap with 'token'
+ IF LEN(linepiece) < LEN(posdata.linetext) - (start - 1) THEN linepiece &= "..."
 
  DIM infostr as string
  infostr = IIF(posdata.isvirtual, "(Virtual)", "On") & " line " & posdata.linenum _
            & " of " & posdata.filename & !":\n"
- RETURN infostr & texttmp
+ RETURN infostr & linepiece
 END FUNCTION
 
 

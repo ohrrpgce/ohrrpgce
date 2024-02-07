@@ -1612,7 +1612,6 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
    quitmsg += !"(Error repeated)\n"
   END IF
   quitmsg += !"* Press ESC to hide occurrences of this error and continue.\n" _
-             !"* Press Alt-F4 to quit immediately.\n" _
               "* Press any other key to try to continue."
  END IF
 
