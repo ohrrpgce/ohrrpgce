@@ -231,13 +231,18 @@ constant LEX_HEXDIGIT=11  --a-fA-F
 constant LEX_OPERATOR2=12 --Only used in lexer_table_key2!!
 constant LEX_NEWLINE=13   --\n
 
-constant FILE_NAME=1
-constant FILE_TEXT=2
-constant FILE_LINE_EXTENTS=3
-constant POS_FILENAME=1
-constant POS_LINE=2
-constant POS_COLUMN=3
-constant POS_TEXT=4
+constant FILE_NAME=1          --With whatever path was needed to open it
+constant FILE_TEXT=2          --Entire contents of the file
+constant FILE_LINE_EXTENTS=3  --List of {start,end} pairs; inclusive indices, not including newlines
+constant FILE_OFFSET=4        --Used by srcpos's
+constant FILE_LUMP=5
+--POS_* index sequence returned by decode_srcpos
+constant POS_FILENAME=1  --FILE_NAME of the file
+constant POS_LINE=2      --1-based line number
+constant POS_COLUMN=3    --0-based column number
+constant POS_LENGTH=4    --token length in characters (might be 0)
+constant POS_LINETEXT=5  --The line containing the token
+constant POS_TOKTEXT=6   --The text of the token
 constant CMD_TEXT=1
 constant CMD_POS=2
 --For global_scope
@@ -266,7 +271,7 @@ constant FLAG_OBSOLETE=#01  --Has @obsolete attribute
 constant GLB_POS=3      --srcpos of globalvariable definition
 constant CONST_VALUE=1
 constant CONST_POS=2
-constant VAR_FRAME=3    --VarToken index, integer giving frame number of a variable (0 is current script, 1 is parent...)
+constant VAR_FRAME=3    --VarToken index, integer giving frame number of a variable (0 is current script, 1 is enclosing...)
 constant VAR_ID=4       --VarToken index, integer giving ID in frame
 constant REUSE_PARENT_AND_NAME=2
 
@@ -496,12 +501,26 @@ integer was_warnings      was_warnings=false
 ---------------------------------------------------------------------------
 --types--
 
---A position in the script source. An integer, encoding an index in file_list
---and a character number that file (where newlines are one character).
---See encode_srcpos and decode_srcpos
+--A position in the script source (where newlines are one character).
+--Encoded in 32-bit integer, where:
+--bits 0..7 : Length of the token in characters, including whitespace
+--            (aside from leading/trailing whitespace), capped to 254.
+--            (255 reserved for future use)
+--bit  8    : Virtual flag
+--bits 9..31: The (1-base) character number of the start of the token in the file
+--            plus the file's FILE_OFFSET
+--
+--The first file has FILE_OFFSET=1, to ensure srcpos 0 is never used.
+--Offset FILE_OFFSET+0 is reserved to refer to the file as a whole (unused);
+--FILE_OFFSET+i (i > 1) refers to that point.
+--Note that file offsets are after all newlines have been convert to Unix.
+--
+--See also encode_srcpos and decode_srcpos
 type srcpos(object pos)
   --need to allow 0 as a dummy value
   if atom(pos) and pos=floor(pos) and pos>=0 and pos<=max_srcpos then
+    --odd, 'or' and 'and' only seem to shortcut when used in if condition, not
+    --in a general expression
     return true
   else
     return false
@@ -1158,27 +1177,31 @@ end procedure
 
 ---------------------------------------------------------------------------
 
---returns {filenumber,file position} pair
+--returns {filenumber,file position} pair, later being 1-based character offset
 function decode_srcpos_file(srcpos pos)
   integer val
-  val=pos
+  integer len, offset
+  val=pos  --cast to int
 
   --0 is an invalid srcpos
   if val=0 then
     simple_error("compiler bug: can't decode uninitialised srcpos")
   end if
-  val-=1
+
+  integer point
+  point=floor(val/power(2,9))
 
   for i=1 to length(file_list) do
-    --an offset of 0 is reserved, but currently unused
-    if val=0 then
+    len=length(file_list[i][FILE_TEXT])
+    offset=file_list[i][FILE_OFFSET]
+    if point=offset then
+      --An offset of 0 in the file is reserved, but currently unused
       simple_error("compiler bug: 0 srcpos file offset")
     end if
-
-    if val<=length(file_list[i][FILE_TEXT]) then
-      return {i,val}
+    if point<=offset+len then
+      return {i,point-offset}
+      exit
     end if
-    val-=length(file_list[i][FILE_TEXT])+1
   end for
   simple_error(sprintf_utf("compiler bug: can't decode invalid srcpos %d",{pos}))
 end function
@@ -1200,44 +1223,97 @@ function srcpos_point(srcpos pos)
   return temp[2]
 end function
 
+-- ---------------------------------------------------------------------------
+
+-- function filenum_to_srcpos_offset(integer filenum)
+--   integer offset
+--   offset=0
+--   for i=1 to filenum-1 do
+--     offset+=length(file_list[i][FILE_TEXT])+1
+--   end for
+--   return offset
+-- end function
+
 ---------------------------------------------------------------------------
 
---Encode offset (1-based characters from start of file) in a file as a srcpos
-function encode_srcpos(integer filenum, integer offset)
-  srcpos pos
-  pos=1
-  for i=1 to filenum-1 do
-    pos+=length(file_list[i][FILE_TEXT])+1
-  end for
-  return pos+offset
+--Combine base/file offset (usually FILE_OFFSET), token offset (in
+--characters from start of file counting from 1) and token length into
+--a non-virtual a srcpos.  The redundancy between baseoffset and
+--offset is for clarity.
+function encode_srcpos(integer baseoffset, integer offset, integer len)
+  if len > 254 then
+    len = 254
+  end if
+  return (baseoffset+offset)*power(2,9)+len
 end function
 
 ---------------------------------------------------------------------------
 
---possibly slow: prehaps avoid heavy use
---returns {file name, line number, column number, line text}: index with POS_*
---column number returned is 0-based
+--This transforms a srcpos into one marked as virtual. Indicates a roughly relevant position, but
+--not something that actually occurs in the source. Use for inserted dummy code
+function virtual_pos(srcpos pos)
+  return(or_bits(pos,256))
+end function
+
+---------------------------------------------------------------------------
+
+--Return just the original text of a token.
+--Unlike decode_srcpos, this is quite fast
+function get_srcpos_text(srcpos pos)
+  integer point, tokenlen, filenum
+  sequence temp
+
+  temp=decode_srcpos_file(pos)
+  filenum=temp[1]
+  point=temp[2]
+  tokenlen=and_bits(pos,power(2,9)-1)
+  if tokenlen=0 then
+    return ""
+  else
+    return file_list[filenum][FILE_TEXT][point..point+tokenlen-1]
+  end if
+end function
+
+---------------------------------------------------------------------------
+
+--Probably slow: avoid heavy use.
+--Returns {file name, line number, column number, token length, line text, token text}: index with POS_*
+--Column number returned is 0-based
 function decode_srcpos(srcpos pos)
-  integer point, filenum
-  integer lineno
-  string filetext
+  integer point, tokenlen, filenum, columnnum
+  integer lineno, line_start, line_end
+  string filetext, linetext, tokentext
   sequence lines
   sequence temp
 
   temp=decode_srcpos_file(pos)
   filenum=temp[1]
   point=temp[2]
+  tokenlen=and_bits(pos,power(2,9)-1)
+
+  --Find the line it's on
   filetext=file_list[filenum][FILE_TEXT]
   lines=file_list[filenum][FILE_LINE_EXTENTS]
-
-  lineno=length(lines)
   for i=1 to length(lines) do
-    if point<=lines[i][PAIR_END] then
+    if point>=lines[i][PAIR_START] then
       lineno=i
+    else
       exit
     end if
   end for
-  return({file_list[filenum][FILE_NAME],lineno,point-lines[lineno][PAIR_START],filetext[lines[lineno][PAIR_START]..lines[lineno][PAIR_END]]})
+
+  line_start=lines[lineno][PAIR_START]
+  line_end=lines[lineno][PAIR_END]
+  linetext=filetext[line_start..line_end]
+  -- +1 for 1-based column indexing
+  columnnum=point-line_start+1
+  if tokenlen=0 then
+    tokentext=""
+  else
+    tokentext=linetext[columnnum..columnnum+tokenlen-1]
+  end if
+
+  return({file_list[filenum][FILE_NAME],lineno,columnnum,tokenlen,linetext,tokentext})
 end function
 
 ---------------------------------------------------------------------------
@@ -1245,24 +1321,27 @@ end function
 function form_error_text(string s, srcpos pos)
   string line
   sequence src_position
-  string column_display
+  string column_display, caret_display
   integer tab_compensate
   src_position=decode_srcpos(pos)
   --?pos
   --pretty_print(1,src_position,{2})
 
-  line=substring_replace(src_position[POS_TEXT],"\t","    ")
-  tab_compensate=3*count('\t',src_position[POS_TEXT][1..src_position[POS_COLUMN]])
-  column_display=repeat(' ',src_position[POS_COLUMN]+tab_compensate)
+  line=substring_replace(src_position[POS_LINETEXT],"\t","    ")
+  --Count number of tabs in the line before the token
+  --(Don't bother with tabs inside the token)
+  tab_compensate=3*count('\t',src_position[POS_LINETEXT][1..src_position[POS_COLUMN]])
+  caret_display=repeat('^',large(1,src_position[POS_LENGTH]))
+  column_display=repeat(' ',src_position[POS_COLUMN]-1+tab_compensate)
   error_file_print(sprintf_utf("<a href=\"%s#%d\">\n",{src_position[POS_FILENAME],src_position[POS_LINE]}))
   if length(current_script) then
     return(
       sprintf_utf(
          "in script "&COLYEL&"%s"&COLRED&" on line %d in "&COLPNK&"%s"&COLRED&"\n"
          &COLBWHI&"%s\n"
-         &"%s^\n"
+         &"%s%s\n"
          &COLRED&"%s\n"
-        ,{current_script,src_position[POS_LINE],src_position[POS_FILENAME],line,column_display,s}
+        ,{current_script,src_position[POS_LINE],src_position[POS_FILENAME],line,column_display,caret_display,s}
       )
     )
   else
@@ -1270,9 +1349,9 @@ function form_error_text(string s, srcpos pos)
       sprintf_utf(
          "in line %d of "&COLPNK&"%s"&COLRED&"\n"
          &COLBWHI&"%s\n"
-         &"%s^\n"
+         &"%s%s\n"
          &COLRED&"%s\n"
-        ,{src_position[POS_LINE],src_position[POS_FILENAME],line,column_display,s}
+        ,{src_position[POS_LINE],src_position[POS_FILENAME],line,column_display,caret_display,s}
       )
     )
   end if
@@ -1298,11 +1377,12 @@ end procedure
 
 ---------------------------------------------------------------------------
 
---Find newlines in a file (possibly mixed type), returns line extents
+--Find newlines in a file (possibly mixed type), returns line extents,
+-- {start of line, end of line} pairs, both inclusive, newlines excluded.
 function split_lines(string file_text)
   integer line_start=1
   integer last_13=-1
-  sequence line_extents = {}  -- {start of line, end of line} pairs, both inclusive
+  sequence line_extents = {}
   for i=1 to length(file_text) do
     if file_text[i]=13 then
       line_extents=append(line_extents, {line_start,i-1})
@@ -1330,6 +1410,14 @@ procedure load_source(string filename, string reading_how, srcpos pos)
   integer fh
   string file_text
   sequence line_extents  -- {start of line, end of line} pairs
+  integer offset  -- FILE_OFFSET value
+
+  -- First file starts at FILE_OFFSET=1, to ensure srcpos 0 is never used,
+  -- however also reserve one additional offset per file. Actual first offset is 2.
+  offset=1
+  if length(file_list) then
+    offset=file_list[$][FILE_OFFSET]+length(file_list[$][FILE_TEXT])+1
+  end if
 
   fh=open(filename,"r")
   if fh!=failure then
@@ -1345,8 +1433,9 @@ procedure load_source(string filename, string reading_how, srcpos pos)
 
     line_extents=split_lines(file_text)
     total_lines+=length(line_extents)
-    file_list=append(file_list,{filename,file_text,line_extents})
-    max_srcpos+=length(file_text)+1
+    file_list=append(file_list,{filename,file_text,line_extents,offset,""})
+    --Maximum valid srcpos points to length 1 virtual token at end of file.
+    max_srcpos=virtual_pos(encode_srcpos(offset,length(file_text),1))
   else
     if pos then
       src_error(sprintf_utf("file "&COLYEL&"%s"&COLRED&" not found\n",{filename}),pos)
@@ -1436,6 +1525,9 @@ procedure show_source_info()
   else
     simple_error("no data to compile\n")
   end if
+  if file_list[$][FILE_OFFSET]+length(file_list[$][FILE_TEXT])>power(2,23) then
+    simple_warn("You have over 8 MB of scripts! Unfortunately compile and in-game errors will report the wrong line numbers for some errors.")
+  end if
 end procedure
 
 ---------------------------------------------------------------------------
@@ -1447,8 +1539,10 @@ end procedure
 
 ---------------------------------------------------------------------------
 
---reads and processes the escape codes in a string and returns it enclosed in quote marks
-function lexer_read_string(string s, integer i, integer stop, srcpos pos)
+--Lex a string, processing the escape codes.
+--i is initial offset in 's' (probably whole file contents), and stop is last permissible offset to include.
+--Returns {closing_quote_offset,quoted_string} (i.e. enclosed in quote marks)
+function lexer_read_string(string s, integer i, integer stop, integer posoff)
   string string
   integer escaping
   integer at1, at2
@@ -1456,10 +1550,10 @@ function lexer_read_string(string s, integer i, integer stop, srcpos pos)
   string="\""
   while true do
     if i>stop then  --did not find a closing " so not a valid string
-      src_error("Expected \" at end of line to end string (multi-line strings are not supported)",pos+stop)
+      src_error("Expected \" at end of line to end string (multi-line strings are not supported)", encode_srcpos(posoff,i,1))
     end if
     if s[i]<256 and lexer_table[s[i]+1]=LEX_BINARY then
-      lexer_binary_error(pos+i)
+      lexer_binary_error(encode_srcpos(posoff,i,1))
     end if
     if escaping then
       if s[i]='"' or s[i]='\\' or s[i]='\'' then
@@ -1478,7 +1572,7 @@ function lexer_read_string(string s, integer i, integer stop, srcpos pos)
           at2=find(s[i+2],hex_chars)
         end if
         if at1=0 or at2=0 then
-          src_error("Expected two hexidecimal characters to follow \\x escape code",pos+i)
+          src_error("Expected two hexidecimal characters to follow \\x escape code",encode_srcpos(posoff,i-1,4))
         end if
         string&={16*hex_char_values[at1]+hex_char_values[at2]}
         i+=2
@@ -1505,15 +1599,17 @@ end function
 
 --Lex a signed or unsigned integer literal.
 --Returns {newi, text} with text is the string representation of an integer.
-function lexer_read_number(string s, integer i, integer stop, srcpos pos)
+function lexer_read_number(string s, integer i, integer stop, integer posoff)
   integer state
   atom val
   integer sign,base
   string text
-  integer starti
+  integer textstart
+  integer textend
   integer digits
 
-  starti=i
+  textstart=i
+  textend=i
   --Process negative prefix, because it isn't treated as a unary operator
   if s[i]='-' then
     text="-"
@@ -1554,24 +1650,26 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
       integer digit
       digit=s[i]-'0'
       if digit>=base then
-        src_error(sprintf_utf("Found digit "&COLYEL&"%s"&COLRED&" which is too big, while parsing a base-%d number",{s[i],base}),pos+i)
+        src_error(sprintf_utf("Found digit "&COLYEL&"%s"&COLRED&" which is too big, while parsing a base-%d number",{s[i],base}),encode_srcpos(posoff,i,1))
       end if
       text&=s[i]
+      textend=i
       val=val*base+digit
       digits+=1
     elsif base=16 and state=LEX_HEXDIGIT then  --a-fA-F
       text&=s[i]
+      textend=i
       val=val*16+(toLower(s[i])-'a'+10)
       digits+=1
     elsif state=LEX_SPACE then  --yes, allowed in numbers too
     elsif state=LEX_COMMA or state=LEX_BEGIN or state=LEX_END or state=LEX_OPERATOR or state=LEX_COMMENT or state=LEX_BINARY or state=LEX_NEWLINE then
       --backtrack one character
-      --known bug: if this looks like part of a separator (KEYWORD) but isn't, then have granted a free comma where probably should throw an error instead
+      --FIXME: bug: if this looks like part of a separator (KEYWORD) but isn't, then have granted a free comma where probably should throw an error instead
       i-=1
       exit
     else  --currently, state=LEX_CHAR or state=LEX_HEXDIGIT or state=LEX_WARN or state=LEX_STRING
       if s[i]='.' then
-        src_error("Floating point values are not yet implemented",pos+i)
+        src_error("Non-whole (decimal) numbers are not yet implemented", encode_srcpos(posoff,textstart,i-textstart+1))
       end if
       if equal(text,"-") then
         exit  --Jumps down to the 'if digits=0' error case
@@ -1579,7 +1677,7 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
       src_error(
         sprintf_utf("Found unexpected character "&COLYEL&"%s"&COLRED&" while reading a number, "&COLYEL&"%s"&COLRED&". Names such as variables can't start with a digit. Or maybe you forgot a comma or operator?"
                 ,{s[i],text})
-        ,pos+i
+        ,encode_srcpos(posoff,i,1)
       )
     end if
     i+=1
@@ -1587,9 +1685,9 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
   if digits=0 then
     --Encountered just '-' or '0x' or '-0x' (etc)
     if equal(text,"-") then
-      src_error(COLYEL&"-"&COLRED&" can only be used to take the negation of a number, not other values/expressions (sorry!). Write "&COLYEL&"-1 * ..."&COLRED&" instead. Write "&COLYEL&"x -- y"&COLRED&" for subtraction.",pos+starti)
+      src_error(COLYEL&"-"&COLRED&" can only be used to take the negation of a number, not other values/expressions (sorry!). Write "&COLYEL&"-1 * ..."&COLRED&" instead. Write "&COLYEL&"x -- y"&COLRED&" for subtraction.", encode_srcpos(posoff, textstart, 1))
     else
-      src_error(sprintf_utf(COLYEL&"%s"&COLRED&" looks like the start of a number, but there are no digits!",{s[starti..i-1]}),pos+starti)
+      src_error(sprintf_utf(COLYEL&"%s"&COLRED&" looks like the start of a number, but there are no digits!",{s[textstart..i-1]}), encode_srcpos(posoff, textstart, i-textstart+1))
     end if
   end if
   if base!=10 then
@@ -1601,17 +1699,18 @@ function lexer_read_number(string s, integer i, integer stop, srcpos pos)
     text=sprintf("%d",{sign*val})
   end if
   if not int32(sign*val) then
-    src_error(sprintf_utf(COLYEL&"%s"&COLRED&" is too big to be stored in a 32 bit signed integer. Integers must be between -2147483648 and 2147483647",{text}),pos+starti)
+    src_error(sprintf_utf(COLYEL&"%s"&COLRED&" is too big to be stored in a 32-bit signed integer. Numbers must be between -2147483648 and 2147483647",{text}),encode_srcpos(posoff,textstart,textend-textstart+1))
   end if
-  return({i,text})
+  return({textend,text})
 end function
 
 ---------------------------------------------------------------------------
 
 --Clean the rest of a line for seek_include after 'include' occurs
---s is the whole line, i is end of the 'include', pos is the srcpos at start of line
-function lexer_read_include_line(TokenList tokens, string s, integer i, integer stop, srcpos pos)
+--s is the whole line, i is end of the 'include', posoff is the file position at start of line
+function lexer_read_include_line(TokenList tokens, string s, integer i, integer stop, integer posoff)
   integer at
+  integer whitespace_len
   sequence temp
   string filename_string
 
@@ -1620,7 +1719,8 @@ function lexer_read_include_line(TokenList tokens, string s, integer i, integer 
   end if
 
   filename_string=""
-  i+=1
+  --Trim the 'include', comments, and whitespace,
+  i+=1  --Skip the comma or whatever character ended the 'include'
   s=s[i..stop]
   if length(s) then
     --Need to increment i while stripping
@@ -1628,27 +1728,35 @@ function lexer_read_include_line(TokenList tokens, string s, integer i, integer 
       s=s[2..length(s)]
       i+=1
     end while
+    whitespace_len=0
+    --Find len, the length of the original filename token
+    len=length(trim_whitespace(s))
+    --Optionally allow quotes around the filename.
     --A quote mark in the middle of a filename doesn't need any escaping
     if s[1]='"' then
-      temp=lexer_read_string(s,2,length(s),pos+i-1)
+      temp=lexer_read_string(s,2,length(s),posoff+i)
+      -- temp is {closing_quote_offset,quoted_string}
       s=s[temp[1]+1..$]
+      --s is now whatever is after the string
       i+=temp[1]  --1 past the closing "
       filename_string=temp[2]  --enclosed in quotes
+      whitespace_len=length(s)-temp[1]
     end if
+    --Trim whitespace ant comment after either the "filename" string or non-quoted filename,
+    --and check if there's anything else
     at=find('#',s)
     if at then
       s=s[1..at-1]
+      whitespace_len=at-1
     end if
-    --Trim either whitespace after "filename", or after non-quoted filename
     s=trim_whitespace(s)
     if length(filename_string) then
       if length(s) then
-        src_error("Garbage after the end of the filename in this "&COLYEL&"include"&COLRED&" statement", pos+i)
+        src_error("Found unexpected text after "&COLYEL&"include, \"filename\""&COLRED,encode_srcpos(posoff,i,whitespace_len))
       end if
-      s=filename_string
     end if
 
-    tokens=append(tokens,{s,pos+i-1})
+    tokens=append(tokens,{s,encode_srcpos(posoff,i,len)})
   end if
 
   if length(tokens)=1 then
@@ -1663,16 +1771,17 @@ end function
 
 ---------------------------------------------------------------------------
 
--- s is the text for the whole file, the interval i to stop is a single line,
--- and pos is the srcpos for the beginning of the file
-function lex_line(sequence s, integer i, integer stop, srcpos pos)
+-- s is usually the text for the whole file, the interval i..stop is a single line,
+-- and posoff is the srcpos offset for the beginning of the file
+function lex_line(sequence s, integer i, integer stop, integer posoff)
   integer state
   TokenList tokens
   string ident  --identifier text being built up
   sequence temp
   string masked
   integer found
-  integer textstart  --the column at which this identifier starts, otherwise 0
+  integer textstart  --the offset at which this identifier starts, otherwise 0
+  integer textend    --the offset at which the last non-whitespace character was read
   string remem_ident
   integer remem_textstart
   integer backtracked
@@ -1685,11 +1794,13 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
   textstart=0
   tokens={}
 
+  --pretty_print(stdout, {"lex_line posoff: ", posoff, "i:", i, "srcpos:", decode_srcpos(encode_srcpos(posoff,i,0))}, {2})
+
   while i<=stop do
     if s[i]<256 then
       state=lexer_table[s[i]+1]
     else
-      state=LEX_CHAR
+      state=LEX_CHAR  --other unicode
     end if
     --color_print("lexing i=%d %d=%s state %d ident=%s\n",{i,s[i],{s[i]},state,ident})
     if state=LEX_CHAR or state=LEX_HEXDIGIT then
@@ -1697,14 +1808,16 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
       if textstart=0 then
         textstart=i
       end if
+      textend=i
     elsif state=LEX_SPACE then
     elsif state=LEX_DIGIT then
       if length(ident) then
         ident=ident & s[i]
+        textend=i
       else
         --Start of a number not starting with - (those are parsed below)
-        temp=lexer_read_number(s,i,stop,pos)
-        tokens=append(tokens,{temp[2],pos+i})
+        temp=lexer_read_number(s,i,stop,posoff)  --{offset of end of number, number string}
+        tokens=append(tokens,{temp[2],encode_srcpos(posoff,i,temp[1]-i+1)})
         i=temp[1]
       end if
     elsif state=LEX_WARN then
@@ -1712,7 +1825,8 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
       if textstart=0 then
         textstart=i
       end if
-      src_error(sprintf_utf(COLYEL&"%s"&COLRED&" is reserved and not allowed in names (identifiers)!", {s[i]}), pos+i)
+      textend=i
+      src_error(sprintf_utf(COLYEL&"%s"&COLRED&" is reserved and not allowed in names (identifiers)!", {s[i]}), encode_srcpos(posoff,i,1))
     else
       --We've reached the end of a token... unless it's only the first character
       --of a two-character operator.
@@ -1720,18 +1834,18 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
       remem_textstart=textstart
       backtracked=false
       if length(ident) then
-        tokens=append(tokens,{ident,pos+textstart})
+        tokens=append(tokens,{ident,encode_srcpos(posoff,textstart,textend+1-textstart)})
       end if
       ident=""
       textstart=0
-      if state=LEX_BEGIN then
-        tokens=append(tokens,{"begin",pos+i})
-      elsif state=LEX_END then
+      if state=LEX_BEGIN then  --(
+        tokens=append(tokens,{"begin",encode_srcpos(posoff,i,1)})
+      elsif state=LEX_END then  --)
         if last_state=LEX_COMMA then
           --foo(1,). This probably doesn't particularly need to be disallowed
           --Could also check for <op>) but that will be caught later
         end if
-        tokens=append(tokens,{"end",pos+i})
+        tokens=append(tokens,{"end",encode_srcpos(posoff,i,1)})
       elsif state=LEX_COMMA then
         --Check we didn't just finish an identifier, to allow using : (which is LEX_OPERATOR) on the end of an identifier.
         if length(remem_ident)=0 and (last_state=LEX_COMMA or last_state=LEX_BEGIN or last_state=LEX_OPERATOR or last_state=LEX_OPERATOR2) then
@@ -1744,10 +1858,11 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
       elsif state=LEX_COMMENT then
         exit
       elsif state=LEX_STRING then
-        temp=lexer_read_string(s,i+1,stop,pos)
-        tokens=append(tokens,{temp[2],pos+i})
+        temp=lexer_read_string(s,i+1,stop,posoff)  --{final offset, string}
+        tokens=append(tokens,{temp[2],encode_srcpos(posoff,i,temp[1]-i+1)})
         i=temp[1]
       elsif state=LEX_OPERATOR then
+        --A character which the start of some auto-separating sequence such as +=.
         --Read the next non-space character. If it's LEX_OPERATOR2 we greedily
         --add it, otherwise we do nothing (we only support length 1 and 2
         --separators).  However, we might have have been too greedy (not a value
@@ -1756,7 +1871,7 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
         masked=s[i..i]
         integer lookahead_state
         --This while loop is in order to allow whitespace in the middle of separators.
-        while i<length(s) do
+        while i<stop do
           i+=1
           if s[i]<256 then
             lookahead_state=lexer_table_key2[s[i]+1]
@@ -1764,6 +1879,7 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
             lookahead_state=LEX_CHAR
           end if
           if lookahead_state=LEX_OPERATOR2 then
+            --Could be a second character. Stop
             masked&=s[i]
             exit
           elsif lookahead_state=LEX_CHAR then
@@ -1773,14 +1889,17 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
           end if
           --otherwise, it's a space character
         end while
-        --now i+1 is the start of another token, or > length(s)
+        --now i+1 is the start of another token, or is > stop
+        --Lookup for separators which are prefixes of masked
         found=false
         for j=1 to length(separator_list) do
           if match(separator_list[j],masked)=1 then
-            tokens=append(tokens,{separator_list[j],pos+textstart})
+            --very ugly
             if length(separator_list[j])=1 then
+              --Backtrack if necessary to first character in masked, otherwise remain at second
               i=textstart
             end if
+            tokens=append(tokens,{separator_list[j],encode_srcpos(posoff,textstart,i-textstart+1)})
             found=true
             exit
           end if
@@ -1799,16 +1918,16 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
             --'-' appears at the start of a token: this is only allowed to be a number.
             --We haven't appended anything to tokens that needs removing.
             ident=""
-            textstart=0
-            temp=lexer_read_number(s,i,stop,pos)
-            tokens=append(tokens,{temp[2],pos+i})
+            temp=lexer_read_number(s,i,stop,posoff)
+            tokens=append(tokens,{temp[2],encode_srcpos(posoff,i,i-textstart+1)})
             i=temp[1]
+            textstart=0
             state=LEX_DIGIT  --Sensible last_state to avoid 'extra comma' error
           else
             --a keyword character followed by garbage
             src_error(
               "Expected a two-character operator (like "&COLYEL&":="&COLRED&") but the second character (e.g. "&COLYEL&"="&COLRED&") is missing",
-              pos+i)
+              encode_srcpos(posoff,i,1))
           end if
         else
           textstart=0
@@ -1824,7 +1943,7 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
           end if
         end if
       elsif state=LEX_BINARY then
-        lexer_binary_error(pos+i)
+        lexer_binary_error(encode_srcpos(posoff,i,1))
       end if
       if backtracked=false then
         if equal(remem_ident,"include") then
@@ -1832,7 +1951,7 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
           if length(ident) then
             simple_error("compiler bug! [before lexer_read_include_line]\n")
           end if
-          return lexer_read_include_line(tokens,s,i,stop,pos)
+          return lexer_read_include_line(tokens,s,i,stop,posoff)
         end if
       end if
       --End of a complete token
@@ -1845,7 +1964,7 @@ function lex_line(sequence s, integer i, integer stop, srcpos pos)
   end while
   if length(ident) then
     --ought to check whether ident is 'include'...
-    tokens=append(tokens,{ident,pos+textstart})
+    tokens=append(tokens,{ident,encode_srcpos(posoff,textstart,textend+1-textstart)})
   end if
   return(tokens)
 end function
@@ -1859,12 +1978,13 @@ function translate_plotstrings(TokenList tokens)
   integer i
   Token string_func
   Token string_token
-  srcpos pos
+  srcpos pos,vpos
   state=0
   i=1
   while i<=length(tokens) do
     if compare(tokens[i][CMD_TEXT],"$")=0 then
       pos=tokens[i][CMD_POS]
+      vpos=virtual_pos(pos)
       if state=0 then
         state=1
         start_token=i
@@ -1877,8 +1997,8 @@ function translate_plotstrings(TokenList tokens)
     if state=2 then
       if tokens[i][CMD_TEXT][1]='"' then
         string_list=append(string_list,tokens[i][CMD_TEXT][2..$-1])
-        string_token={sprintf("@$string%d",{length(string_list)}),pos}
-        tokens=tokens[1..start_token-1]&{string_func,{"begin",pos}}&tokens[start_token+1..i-2]&{string_token,{"end",pos}}&tokens[i+1..$]
+        string_token={sprintf("@$string%d",{length(string_list)}),tokens[i][CMD_POS]}
+        tokens=tokens[1..start_token-1]&{string_func,{"begin",vpos}}&tokens[start_token+1..i-2]&{string_token,{"end",vpos}}&tokens[i+1..$]
         state=0  --may have multiple strings on one line
       else  --we saw a + (or illegal =) inside the string number expression
         state=1
@@ -1921,7 +2041,11 @@ function tree_original_text(Node tree)
 
   script_toks=all_scripts[cur_script_num][SCRIPT_BODY_TOKS]
 
-  --find leftmost and rightmost tokens making up the expression, not including brackets
+  --Find leftmost and rightmost tokens making up the expression, not including brackets
+  --(Do we care about virtual flags?)
+  --NOTE: we're making an assumption about srcpos encoding here, that
+  --if token A begins before token B, then srcpos A < srcpos B
+
   leftmost=tree[TREE_TRUNK][CMD_POS]
   subtree=tree
   while length(subtree[TREE_BRANCHES]) do
@@ -1947,6 +2071,9 @@ function tree_original_text(Node tree)
   --keep grabbing extra tokens until brackets are balanced
   --note: this will read 'foo(bar())' but will read 'foo()' as 'foo'
   depth=count("begin",column(tokens,CMD_TEXT))-count("end",column(tokens,CMD_TEXT))
+  if depth<0 then
+    src_error("Compiler bug: negative depth in tree_original_text",tokens[1][CMD_POS])
+  end if
   while depth do
     right_at+=1
     if equal(script_toks[right_at][CMD_TEXT],"begin") then
@@ -1959,9 +2086,13 @@ function tree_original_text(Node tree)
   --grab original text corresponding to this range of tokens
   filenum=srcpos_file_number(leftmost)
   left_point=srcpos_point(leftmost)
+
   --this +1 is safe, guaranteed to be followed by either another argument or "end"
   right_point=srcpos_point(script_toks[right_at+1][CMD_POS])
   text=file_list[filenum][FILE_TEXT][left_point..right_point-1]
+  --pretty_print(stdout, {"tree_original_text left/right_point:", left_point, right_point, "text:", text, decode_srcpos(leftmost)},{2})
+
+  --NOTE: should be able to make use of srcpos lengths instead. (Again, how to handle virtuals?)
 
   --clean up the grabbed text
   text=trim_whitespace(substitute(text,'\n',','))
@@ -1983,6 +2114,9 @@ function seek_include(TokenList tokens)
       ret=ret[2..$-1]
     end if
     return(ret)
+    -- --Alternatively use original text (escape sequences won't work)... so might be useful on Wdinwos
+    -- srcdata=decode_srcpos(s[at+1][CMD_POS])
+    -- return(srcdata[POS_LINETEXT][srcdata[POS_COLUMN]+1..srcdata[POS_COLUMN]+srcdata[POS_LENGTH]])
   end if
   return("")
 end function
@@ -1993,12 +2127,18 @@ procedure lex_file(integer file_num, sequence include_stack)
   TokenList broken
   string include_name
   sequence lines
-  srcpos pos
-  pos=encode_srcpos(file_num,0)
+  integer posoff
+  -- object temp
+  posoff=file_list[file_num][FILE_OFFSET]
 
   lines=file_list[file_num][FILE_LINE_EXTENTS]
   for i=1 to length(lines) do
-    broken=lex_line(file_list[file_num][FILE_TEXT],lines[i][PAIR_START],lines[i][PAIR_END],pos)
+    broken=lex_line(file_list[file_num][FILE_TEXT],lines[i][PAIR_START],lines[i][PAIR_END],posoff)
+
+    -- for j=1 to length(broken) do
+    --   temp = decode_srcpos(broken[j][CMD_POS])
+    --   pretty_print(stdout,{broken[j][CMD_TEXT], temp},{2})
+    -- end for
 
     include_name=seek_include(broken)
     if length(include_name) then
@@ -2656,7 +2796,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx, seq
     full_name=name[CMD_TEXT]
     nest_depth=0
   else
-    full_name=sprintf("%s<-%s",{parent_name,name[CMD_TEXT]})
+    full_name=sprintf_utf("%s<-%s",{parent_name,name[CMD_TEXT]})
     nest_depth=all_scripts[parent_idx][SCRIPT_NEST_DEPTH]+1
     if nest_depth>MAX_NEST_DEPTH then
       src_error(
@@ -3509,7 +3649,7 @@ function expand_macros(NodeList tree)
   Node string_node, assertstr_node
   sequence src_position
   sequence temp
-  srcpos pos
+  srcpos pos, vpos
   integer ptr
   ptr=1
   while ptr<=length(tree) do
@@ -3534,7 +3674,7 @@ function expand_macros(NodeList tree)
       for i=1 to length(tree[ptr][TREE_BRANCHES]) do
         new_string=tree_original_text(tree[ptr][TREE_BRANCHES][i])
         string_list=append(string_list,new_string)
-        string_node={ {sprintf("@$string%d",{length(string_list)}),pos}, {} }
+        string_node={ {sprintf("@$string%d",{length(string_list)}),virtual_pos(pos)}, {} }
         newargs&={string_node,tree[ptr][TREE_BRANCHES][i]}
       end for
       tree[ptr][TREE_BRANCHES]=newargs
@@ -3545,6 +3685,7 @@ function expand_macros(NodeList tree)
       -- and
       --assert(x == y)  -->  if(_asserteq(x, y, assert expression string, "condition")) then (assertfailure)
       pos=tree[ptr][TREE_TRUNK][CMD_POS]
+      vpos=virtual_pos(pos)
       src_position=decode_srcpos(pos)
       if length(tree[ptr][TREE_BRANCHES])!=1 then
         src_error(sprintf_utf(COLYEL&"assert"&COLRED&" statement takes exactly one argument: a condition. It has %d",{length(tree[ptr][TREE_BRANCHES])}),pos)
@@ -3552,11 +3693,11 @@ function expand_macros(NodeList tree)
 
       new_string=sprintf_utf("%s:%d: %s",{src_position[POS_FILENAME],src_position[POS_LINE],tree_original_text(tree[ptr][TREE_BRANCHES][1])})
       string_list=append(string_list,new_string)
-      string_node={ {sprintf("@$string%d",{length(string_list)}),pos}, {} }
+      string_node={ {sprintf("@$string%d",{length(string_list)}),vpos}, {} }
 
-      assertstr_node={ {enforce_constants("assertexpressionstring"),pos}, {} }
+      assertstr_node={ {enforce_constants("assertexpressionstring"),vpos}, {} }
 
-      newtree={{{"if",pos},{}}, {{"then",pos},{}}}
+      newtree={{{"if",vpos},{}}, {{"then",vpos},{}}}
 
       if equal(tree[ptr][TREE_BRANCHES][1][TREE_TRUNK][CMD_TEXT],"equal") then
         --Use _asserteq
@@ -3566,15 +3707,15 @@ function expand_macros(NodeList tree)
         x=temp[1]
         y=temp[2]
         --if(...)
-        newtree[1][TREE_BRANCHES]={{ {"_asserteq",pos}, {x,y,assertstr_node,string_node} }}
+        newtree[1][TREE_BRANCHES]={{ {"_asserteq",vpos}, {x,y,assertstr_node,string_node} }}
         --then(assertfailure)
-        newtree[2][TREE_BRANCHES]={{ {"assertfailure",pos}, {} }}
+        newtree[2][TREE_BRANCHES]={{ {"assertfailure",vpos}, {} }}
 
       else
         --if(not(condition))
-        newtree[1][TREE_BRANCHES]={{ {"not",pos}, {tree[ptr][TREE_BRANCHES][1]} }}
+        newtree[1][TREE_BRANCHES]={{ {"not",vpos}, {tree[ptr][TREE_BRANCHES][1]} }}
 
-        temp={{{"setstringfromtable",pos},{}}, {{"assertfailure",pos},{}}}
+        temp={{{"setstringfromtable",vpos},{}}, {{"assertfailure",vpos},{}}}
         temp[1][TREE_BRANCHES]={assertstr_node,string_node}  --stringnum, string
         --then(...)
         newtree[2][TREE_BRANCHES]=temp
@@ -3782,11 +3923,11 @@ function build_switch_node(NodeList tree, VarList vars, integer ptr)
     --Last case (possibly an else) is new-style syntax and wasn't followed by any statements,
     --so add the missing do. Don't need to do this, but I'd like to keep things tidy
     --(srcpos is of the last case)
-    args&={ {{"do",argpos},{}} }
+    args&={ {{"do",virtual_pos(argpos)},{}} }
   end if
   if have_else=false then
     --Insert a dummy do default block since else has been left out
-    args&={ {{"do",pos},{}} }
+    args&={ {{"do",virtual_pos(pos)},{}} }
   end if
 
   tree[ptr][TREE_BRANCHES]=args
@@ -3877,15 +4018,15 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
               else
                 --no else found, but thats okay.
                 --add dummy else
-                tree[ptr][TREE_BRANCHES]&={ {{"else",pos},{}} }
+                tree[ptr][TREE_BRANCHES]&={ {{"else",virtual_pos(pos)},{}} }
               end if
             else
               --add dummy else
-              tree[ptr][TREE_BRANCHES]&={ {{"else",pos},{}} }
+              tree[ptr][TREE_BRANCHES]&={ {{"else",virtual_pos(pos)},{}} }
             end if
           elsif equal("else",nextcmd) or equal("elseif",nextcmd) then
             --add dummy then before else
-            tree[ptr][TREE_BRANCHES]&={ {{"then",pos},{}} }
+            tree[ptr][TREE_BRANCHES]&={ {{"then",virtual_pos(pos)},{}} }
             tree=build_else_node(tree,ptr)
           else
             --found neither then nor else
@@ -3949,7 +4090,7 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
           src_error(sprintf_utf(COLYEL&"for"&COLRED&" statement has too many arguments (%d)",{length(args)}),args[5][TREE_TRUNK][CMD_POS])
         elsif length(args)=3 then
           --append default step value
-          args&={ {{"1",pos},{}} }
+          args&={ {{"1",virtual_pos(pos)},{}} }
         end if
         ctr=args[1][TREE_TRUNK]
         temp=what_kind_and_id(ctr,vars,false)
@@ -4013,7 +4154,7 @@ function normalize_flow_control(NodeList tree, VarList vars, string parent)
                       ),args[2][TREE_TRUNK][CMD_POS])
         elsif length(args)=0 then
           --append default value
-          tree[ptr][TREE_BRANCHES]={{{"1",pos},{}}}
+          tree[ptr][TREE_BRANCHES]={{{"1",virtual_pos(pos)},{}}}
         end if
 
       elsif compare("exitscript",s)=0 then
@@ -4191,13 +4332,13 @@ function fix_arguments(Node tree, integer kind, integer id, sequence list, VarLi
           if list[at][PAIR_NUM]=16 then
             --setvariable
             args=append(args,{
-               {"0",funcpos}
+               {"0",virtual_pos(funcpos)}
               ,{}
             })
           else
             --increment and decrement
             args=append(args,{
-               {"1",funcpos}
+               {"1",virtual_pos(funcpos)}
               ,{}
             })
           end if
@@ -4213,7 +4354,7 @@ function fix_arguments(Node tree, integer kind, integer id, sequence list, VarLi
           ),funcpos)
         end if
         args=append(args,{
-           {sprintf("%d",{list[at][FUNC_ARGS][i]}),funcpos}
+           {sprintf("%d",{list[at][FUNC_ARGS][i]}),virtual_pos(funcpos)}
           ,{}
         })
       end for
@@ -5024,7 +5165,7 @@ procedure check_script_declarations()
       scripts_found&={true}
     else
       if scripts_found[at]=true then
-        simple_error(sprintf("Compiler bug; two scripts named %s but this error not handled properly",{current_script}))
+        simple_error(sprintf_utf("Compiler bug; two scripts named %s but this error not handled properly",{current_script}))
       end if
       scripts_found[at]=true
       --The srcpos stored for this script will be from definescript. Repoint it at the actual script
@@ -5289,8 +5430,9 @@ procedure write_script_files(integer fh)
     names_used=append(names_used,fname)
     if suffix>0 then
       temp=without_extension(fname)  --you can't slice a function result directly! :(
-      fname=sprintf("%s~%d.%s",{temp[1..$-1],suffix,ext})
+      fname=sprintf_utf("%s~%d.%s",{temp[1..$-1],suffix,ext})
     end if
+    file_list[i][FILE_LUMP]=fname
     --color_print("writing %d %s\n",{i,fname})
     if write_lump(fh,fname,file_list[i][FILE_TEXT])=false then
       simple_error("unable to write a script source lump")
