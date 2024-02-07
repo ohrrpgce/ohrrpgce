@@ -1314,7 +1314,7 @@ function decode_srcpos(srcpos pos)
   if tokenlen=0 then
     tokentext=""
   else
-    tokentext=linetext[columnnum..columnnum+tokenlen-1]
+    tokentext=linetext[columnnum..min({length(linetext),columnnum+tokenlen-1})]
   end if
 
   return({file_list[filenum][FILE_NAME],lineno,columnnum,tokenlen,linetext,tokentext})
@@ -1323,20 +1323,34 @@ end function
 ---------------------------------------------------------------------------
 
 function form_error_text(string s, srcpos pos)
-  string line
+  integer poscol, poslen, posend
+  string posline, line_display
   sequence src_position
   string column_display, caret_display
-  integer tab_compensate
+  integer tab_compensate, token_tab_compensate
   src_position=decode_srcpos(pos)
   --?pos
   --pretty_print(1,src_position,{2})
 
-  line=substring_replace(src_position[POS_LINETEXT],"\t","    ")
-  --Count number of tabs in the line before the token
-  --(Don't bother with tabs inside the token)
-  tab_compensate=3*count('\t',src_position[POS_LINETEXT][1..src_position[POS_COLUMN]])
-  caret_display=repeat('^',large(1,src_position[POS_LENGTH]))
-  column_display=repeat(' ',src_position[POS_COLUMN]-1+tab_compensate)
+  posline=src_position[POS_LINETEXT]
+  poscol=src_position[POS_COLUMN]
+  poslen=src_position[POS_LENGTH]
+
+  --Expand tabs, because we don't know how the terminal displays then.
+  line_display=substring_replace(posline,"\t","    ")
+  posline&=" "  --Used to point to the newline at the end
+  posend=poscol+large(0,poslen-1)
+  if posend>length(posline) then  --One past the end of the actual line is allowed
+    simple_warn(sprintf_utf("Compiler bug: srcpos past end of line %d", {src_position[POS_LINE]}))
+    posend=length(posline)
+  end if
+  --Count number of tabs in the line before and in the token,
+  --so that we can determine their display length
+  tab_compensate=3*count('\t',posline[1..poscol-1])
+  token_tab_compensate=3*count('\t',posline[poscol..posend])
+  caret_display=repeat('^',large(1,poslen)+token_tab_compensate)
+  column_display=repeat(' ',poscol-1+tab_compensate)
+
   error_file_print(sprintf_utf("<a href=\"%s#%d\">\n",{src_position[POS_FILENAME],src_position[POS_LINE]}))
   if length(current_script) then
     return(
@@ -1345,7 +1359,7 @@ function form_error_text(string s, srcpos pos)
          &COLBWHI&"%s\n"
          &"%s%s\n"
          &COLRED&"%s\n"
-        ,{current_script,src_position[POS_LINE],src_position[POS_FILENAME],line,column_display,caret_display,s}
+        ,{current_script,src_position[POS_LINE],src_position[POS_FILENAME],line_display,column_display,caret_display,s}
       )
     )
   else
@@ -1355,7 +1369,7 @@ function form_error_text(string s, srcpos pos)
          &COLBWHI&"%s\n"
          &"%s%s\n"
          &COLRED&"%s\n"
-        ,{src_position[POS_LINE],src_position[POS_FILENAME],line,column_display,caret_display,s}
+        ,{src_position[POS_LINE],src_position[POS_FILENAME],line_display,column_display,caret_display,s}
       )
     )
   end if
