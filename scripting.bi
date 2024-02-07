@@ -58,10 +58,12 @@ DECLARE FUNCTION script_string_constant(scriptinsts_slot as integer, offset as i
 DECLARE FUNCTION get_script_var_name (n as integer, scrdat as ScriptData) as string
 DECLARE FUNCTION localvariablename (value as integer, scrdat as ScriptData) as string
 DECLARE FUNCTION scriptcmdname (kind as integer, id as integer, scrdat as ScriptData) as string
-DECLARE FUNCTION get_script_line_info(posdata as ScriptTokenPos, selectedscript as integer) as bool
-DECLARE SUB print_script_line(posdata as ScriptTokenPos, y as integer, lines as integer, flicker as integer, page as integer)
-
 DECLARE FUNCTION commandname (byval id as integer) as string
+
+DECLARE SUB read_srcfiles_txt ()
+DECLARE FUNCTION decode_srcpos(posdata as ScriptTokenPos, srcpos as uinteger, script_offset as integer = 0) as bool
+DECLARE FUNCTION get_script_line_info(posdata as ScriptTokenPos, selectedscript as integer) as bool
+DECLARE FUNCTION highlighted_script_line(posdata as ScriptTokenPos, maxchars as integer, flicker as bool) as string
 DECLARE FUNCTION current_command_name() as string
 DECLARE FUNCTION interpreter_context_name() as string
 DECLARE FUNCTION script_call_chain (trim_front as bool = YES, errorlevel as scriptErrEnum = 0) as string

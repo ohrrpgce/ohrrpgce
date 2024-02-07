@@ -761,10 +761,15 @@ LOCAL FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptDat
   END IF
   .hassrcpos = (bitsets AND 1) <> 0
 
-  'We ignore the variable names here; they are loaded if needed by get_script_var_name
+  'We ignore the variable names here; they are loaded if needed by script_lookup_local_name
   .varnamestable = 0
   IF skip >= 28 THEN
    GET #fh, 1+24, .varnamestable
+  END IF
+
+  .script_position = 0
+  IF skip >= 32 THEN
+   GET #fh, 1+28, .script_position
   END IF
 
   IF .strtable < 0 OR .strtablelen < 0 OR .strtable + .strtablelen > .size THEN
@@ -1007,10 +1012,17 @@ END SUB
 SUB reload_scripts (force_full_message as bool = YES)
  STATIC dont_show_again as bool = NO  'Don't pop up the full error message
 
+ ' Delete any previously unlumped source files
+ safekill tmpdir & "source.lumped"
+ FOR idx as integer = 0 TO UBOUND(srcfiles)
+  safekill tmpdir & srcfiles(idx).lumpname
+ NEXT
+
  DIM unfreeable as string, still_unfreeable as string
  DIM num_unfreeable as integer
 
  load_hsp
+ read_srcfiles_txt
 
  ' Iterate over the hashmap bucket chains
  FOR i as integer = 0 TO UBOUND(script)
@@ -1606,90 +1618,141 @@ FUNCTION scriptcmdname (kind as integer, id as integer, scrdat as ScriptData) as
  END SELECT
 END FUNCTION
 
-FUNCTION get_script_line_info(posdata as ScriptTokenPos, selectedscript as integer) as bool
- DIM as uinteger srcpos, charpos
-
- srcpos = script_current_srcpos(selectedscript)
- debug "get_script_line_info: srcpos = " & srcpos
- IF srcpos = 0 THEN RETURN NO
-
- posdata.length = srcpos MOD (2 ^ 8)
- charpos = srcpos SHR 9
- posdata.isvirtual = (srcpos SHR 8) AND 1
-
- 'IF isfile(tmpdir & "source.lumped") = NO THEN RETURN NO
-
- '-- Read srcfiles.txt to find the file that this srcpos is in, and grab needed info
+'Parse srcfiles.txt in the .hsp lump, which lists the script source files, and put the result in srcfiles().
+SUB read_srcfiles_txt()
+ ERASE srcfiles
 
  DIM as integer fh
- fh = FREEFILE
- IF OPEN(tmpdir & "srcfiles.txt" AS #fh) THEN RETURN NO
+ IF OPENFILE(tmpdir & "srcfiles.txt", for_binary + access_read, fh) THEN RETURN
 
- DIM as string lumpname, filename
- DIM as integer flength, offset
+ DIM current as ScriptSourceFile ptr = NULL
 
- offset = -1
- flength = -1
  WHILE NOT EOF(fh)
-  DIM as string in
+  DIM as string linein
   DIM as integer at
-  INPUT #fh, in
-  at = INSTR(in, "=")
+  INPUT #fh, linein
+  at = INSTR(linein, "=")
   IF at THEN
    DIM as string tag, value
-   tag = LCASE(MID(in, 1, at - 1))
-   value = MID(in, at + 1)
+   tag = LCASE(MID(linein, 1, at - 1))
+   value = MID(linein, at + 1)
+   IF current = NULL AND tag <> "file" THEN
+    debuginfo "unexpected line in srcfiles.txt: " & linein
+    CONTINUE WHILE
+   END IF
    SELECT CASE tag
     CASE "file"
-     '-- Starts a new file entry. But before moving onto it, see whether the previous entry was the target
-     IF charpos >= offset AND charpos <= offset + flength THEN EXIT WHILE
-     offset = -1
-     flength = -1
-     filename = value
+     REDIM PRESERVE srcfiles(UBOUND(srcfiles) + 1)
+     current = @srcfiles(UBOUND(srcfiles))
+     current->offset = -1
+     current->length = -1
+     current->filename = value
     CASE "lump"
-     lumpname = value
+     current->lumpname = value
     CASE "offset"
-     offset = str2int(value)
+     current->offset = str2int(value)
     CASE "length"
-     flength = str2int(value)
+     current->length = str2int(value)
    END SELECT
   END IF
  WEND
  CLOSE fh
+END SUB
 
- IF charpos < offset OR charpos > offset + flength THEN RETURN NO
- charpos -= offset
+' Decodes srcpos into posdata and returns true, or returns false on failure.
+' If the srcpos is from a script then it is relative rather than absolte and the script's offset needs to be given.
+FUNCTION decode_srcpos(posdata as ScriptTokenPos, srcpos as uinteger, script_offset as integer = 0) as bool
+ DIM charpos as uinteger
+ DIM lumpname as string
 
- posdata.filename = trimpath(filename)
+ IF srcpos = 0 THEN RETURN NO
 
- '-- Unlump that source file
+ IF isfile(tmpdir & "source.lumped") = NO THEN RETURN NO
 
- IF isfile(tmpdir & lumpname) = 0 THEN
+ ' Decode srcpos
+ posdata.length = srcpos MOD (1 SHL 8)
+ charpos = (srcpos SHR 9) + script_offset
+ posdata.isvirtual = ((srcpos SHR 8) AND 1) <> 0
+
+ 'debug "decode_srcpos: charpos " & charpos & " len " & posdata.length
+
+ ' Search srcfiles to find the file containing this charpos, and grab some info from it
+ IF UBOUND(srcfiles) < 0 THEN RETURN NO
+ DIM idx as integer
+ FOR idx = 0 TO UBOUND(srcfiles)
+  WITH srcfiles(idx)
+   '-- Starts a new file entry. But before moving onto it, see whether the previous entry was the target
+   IF charpos >= .offset AND charpos <= .offset + .length THEN
+    charpos -= .offset
+    lumpname = .lumpname
+    posdata.filename = trimpath(.filename)
+    EXIT FOR
+   END IF
+  END WITH
+ NEXT
+ IF idx > UBOUND(srcfiles) THEN
+  scripterr "Script debug info is invalid: srcpos " & srcpos & " not found", serrError
+  RETURN NO
+ END IF
+
+ ' charpos 0 is special, refers to whole file (but this isn't used anywhere yet)
+ IF charpos = 0 THEN
+  posdata.linetext = "[File " & posdata.filename & "]"
+  RETURN YES
+ END IF
+ ' Offsets in the file are 1-based
+ charpos -= 1
+ debug "decode_srcpos: offset in file is " & charpos
+
+ ' Unlump that source file if not already
+ IF isfile(tmpdir & lumpname) = NO THEN
   unlump tmpdir & "source.lumped", tmpdir
-  IF isfile(tmpdir & lumpname) = 0 THEN
-   debug "Couldn't unlump " & lumpname & " from source.lumped"
+  IF isfile(tmpdir & lumpname) = NO THEN
+   scripterr "Couldn't unlump " & lumpname & " from source.lumped", serrError
    RETURN NO
   END IF
  END IF
 
- '-- Now find the line of text (and line number) in the source
+ ' Now find the line of text (and line number) in the source
 
- fh = FREEFILE
- IF OPEN(tmpdir & lumpname FOR BINARY AS #fh) THEN RETURN NO
+ DIM lines() as string
+ IF lines_from_file(lines(), tmpdir & lumpname) =NO THEN
+  scripterr "Script source file " & lumpname & " couldn't be read", serrError
+ END IF
 
+ DIM as integer amountread
+ FOR lineno as integer = 0 TO UBOUND(lines)
+  ' Add 1 for the newline trimmed by lines_from_file
+  IF amountread + LEN(lines(lineno)) + 1 >= charpos THEN
+   posdata.col = charpos - amountread
+   posdata.linenum = lineno + 1  'Convert to 1-based line number
+   posdata.linetext = lines(lineno)
+   RETURN YES
+  END IF
+  amountread += LEN(lines(lineno)) + 1
+ NEXT
+
+ scripterr "Script debug info is invalid: offset " & charpos & " not found in " & posdata.filename, serrError
+ RETURN NO
+
+
+' DIM fh as integer
+' IF OPENFILE(tmpdir & lumpname, for_binary + access_read, fh) THEN RETURN NO
+
+
+
+/'
  DIM as integer loadamount, chunksize, amountread
  DIM as ubyte ptr bufr
 
  posdata.linenum = 1
  posdata.linetext = ""
 
- bufr = ALLOCATE(4096)
-' loadamount = flength
- WHILE NOT EOF(fh) 'loadamount > 0
-  chunksize = small(4096, loadamount)
+ bufr = allocate(8192)
+ WHILE NOT EOF(fh)
+  chunksize = small(8192, loadamount)
   'copy a chunk of file
-  fgetiob fh, , bufr, 4096, @chunksize
-  'loadamount -= chunksize
+  fgetiob fh, , bufr, 8192, @chunksize
   FOR i as integer = 0 TO chunksize - 1
    amountread += 1
    IF amountread = charpos THEN posdata.col = LEN(posdata.linetext) + 1  '1-based
@@ -1702,10 +1765,20 @@ FUNCTION get_script_line_info(posdata as ScriptTokenPos, selectedscript as integ
    END IF
   NEXT
  WEND
- DEALLOCATE(bufr)
+ deallocate(bufr)
  CLOSE fh
+'/
 
  RETURN YES
+END FUNCTION
+
+'Get information about position in the script source of the currently executing
+'command of a script on the script stack (eg nowscript)
+'Returns true on success (debug info is available)
+FUNCTION get_script_line_info(posdata as ScriptTokenPos, selectedscript as integer) as bool
+ DIM srcpos as uinteger
+ srcpos = script_current_srcpos(selectedscript)
+ RETURN decode_srcpos(posdata, srcpos, scrat(selectedscript).scr->script_position)
 END FUNCTION
 
 'Format the line and statement that a script is currently at,

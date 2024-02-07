@@ -63,6 +63,7 @@ EXTERN gold as integer
 
 'Script globals
 EXTERN script() as ScriptData Ptr
+EXTERN srcfiles() as ScriptSourceFile
 EXTERN global() as integer
 EXTERN heap() as integer
 EXTERN scrat() as OldScriptState

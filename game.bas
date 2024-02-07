@@ -175,6 +175,7 @@ DIM next_interpreter_check_time as double
 DIM interruption_grace_period as integer
 DIM scripts_use_cc_scancodes as bool
 REDIM global(maxScriptGlobals) as integer
+REDIM srcfiles() as ScriptSourceFile
 DIM mainFibreGroup as ScriptFibre ptr vector
 REDIM plotstr(maxScriptStrings) as Plotstring
 DIM insideinterpreter as bool
@@ -623,6 +624,7 @@ load_global_npcs
 'Setup script interpreter
 load_script_triggers_and_names  'Also called in upgrade() unless running_under_Custom
 load_hsp
+read_srcfiles_txt
 'Might be changed by --errlvl commandline option
 'Default to showing all errors. genErrorLevel is no longer used (but might be again in future)
 IF err_suppress_lvl = 0 THEN err_suppress_lvl = serrIgnore

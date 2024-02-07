@@ -424,6 +424,8 @@ TYPE ScriptData
   strtable as integer   'pointer to string table (offset from .ptr in int32's)
   strtablelen as integer 'length of the string table, in int32's
   hassrcpos as bool     'whether srcpos available for non-leaf nodes
+  script_position as integer 'Position of the start of the script source code.
+                             'srcpos positions are relative to this.
   varnamestable as integer 'local var name table (offset from .ptr in int32's)
   nestdepth as integer  'Number of scripts/subscripts this is nested in, 0 for scripts
   parent as integer     'ID of parent script or 0 if not a subscript
@@ -453,6 +455,13 @@ TYPE ScriptData
   next as ScriptData ptr 'next in linked list, for hashtable
   backptr as ScriptData ptr ptr 'pointer to pointer pointing to this, in script(), or a .next pointer
                         'not your usual double linked list, because head of list is a script() element
+END TYPE
+
+TYPE ScriptSourceFile
+ offset as integer    'Offset used for this file in srcpos's
+ length as integer    'Length in bytes, -1 if not specified
+ filename as string   'Original filename
+ lumpname as string   'Name of the lump in source.lumped
 END TYPE
 
 'Used by the old interpreter
