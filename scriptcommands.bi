@@ -45,7 +45,7 @@ end enum
 'Returns the payload as a signed value -&h04000000 to &h03FFFFFF
 #define get_handle_signed_payload(handle) ((CAST(integer, handle) SHL HANDLE_TYPE_BITS) SHR HANDLE_TYPE_BITS)
 
-'Slice handles point to a slot of plotslices() and have a counter that's incremented every time
+'Slice handles point to a slot of plotslices() and have an 8bit counter that's incremented every time
 'the slot is reused, so that stale slice handles can be detected with high confidence.
 'Slot 0 is never used.
 'Note that slice handles loaded from old .rsav files count from 1, which is equivalent
@@ -53,7 +53,7 @@ end enum
 'plotslices() rather than checking the type mask.
 #define SLICE_HANDLE_CTR_SHIFT  21
 #define SLICE_HANDLE_CTR_MASK   &h1FE00000  '255 shl CTR_SHIFT. Includes lower 2 bits of HANDLE_TYPE_MASK!
-#define SLICE_HANDLE_SLOT_MASK  &h001FFFFF  '(1 shr CTR_SHIFT) - 1. Max 2.1 million slice handles
+#define SLICE_HANDLE_SLOT_MASK  &h001FFFFF  '(1 shl CTR_SHIFT) - 1. Max 2.1 million slice handles
 
 'An element of plotslices()
 TYPE SliceHandleSlot
@@ -124,6 +124,7 @@ DECLARE FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fi
 DECLARE FUNCTION create_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE FUNCTION find_plotslice_handle(byval sl as Slice Ptr) as integer
 DECLARE SUB restore_saved_plotslice_handle(byval sl as Slice Ptr, handle as integer)
+DECLARE FUNCTION slice_handle_is_freed(handle as integer) as bool
 
 DECLARE FUNCTION find_menu_id (byval id as integer) as integer
 DECLARE FUNCTION find_menu_handle (byval handle as integer) as integer

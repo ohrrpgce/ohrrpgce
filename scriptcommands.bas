@@ -5447,7 +5447,12 @@ FUNCTION describe_handle(handle as integer, succinct as bool = NO) as string
  DIM info as string
  SELECT CASE htype
   CASE HandleType.Error, HandleType.None
-   'Treat as not a handle
+   'Treat as not a handle, unless can identify as a free handle
+   IF get_handle_type(handle) >= HandleType.Slice THEN
+    IF slice_handle_is_freed(handle) THEN
+     info = IIF(succinct, "Freed sl ", "Freed slice ") & (handle AND SLICE_HANDLE_SLOT_MASK)
+    END IF
+   END IF
   CASE HandleType.Slice
    info = DescribeSlice(CAST(Slice ptr, obj), succinct)
   CASE HandleType.NPC
@@ -5596,6 +5601,22 @@ END FUNCTION
 '                                      Slice handles
 '==========================================================================================
 
+'Check whether a slice handle could be a previously valid, now freed one.
+FUNCTION slice_handle_is_freed(handle as integer) as bool
+ DIM slot as uinteger = handle AND SLICE_HANDLE_SLOT_MASK
+ 'Each slice handle is composed of a HandleType, counter, and slot. We check the HandleType and
+ 'slot number are valid (plotslices() is never shrunk) and:
+ '-the slot is occupied by a different slice (.handle doesn't match because the counter differs)
+ 'or
+ '-it's not currently occupied but was occupied in the past (so its .handle has been set to something
+ ' with correct )
+ 'We can mask off SLICE_HANDLE_CTR_MASK and check the rest matches to check the above.
+ IF slot > 0 ANDALSO slot <= UBOUND(plotslices) ANDALSO _
+    (plotslices(slot).handle <> handle ORELSE plotslices(slot).sl = NULL) ANDALSO _
+    (handle AND NOT SLICE_HANDLE_CTR_MASK) = (plotslices(slot).handle AND NOT SLICE_HANDLE_CTR_MASK) THEN
+  RETURN YES
+ END IF
+END FUNCTION
 
 'Return the Slice ptr for a slice handle, or throw an error
 'and return NULL if not valid
@@ -5605,10 +5626,8 @@ FUNCTION get_handle_slice(byval handle as integer, byval errlvl as scriptErrEnum
  DIM slot as uinteger = handle AND SLICE_HANDLE_SLOT_MASK
  IF slot > UBOUND(plotslices) ORELSE plotslices(slot).handle <> handle ORELSE plotslices(slot).sl = NULL THEN
   IF errlvl > serrIgnore THEN
-   IF slot > 0 ANDALSO slot <= UBOUND(plotslices) ANDALSO _
-      (handle AND NOT SLICE_HANDLE_CTR_MASK) = (plotslices(slot).handle AND NOT SLICE_HANDLE_CTR_MASK) THEN
+   IF slice_handle_is_freed(handle) THEN
     IF errlvl > serrWarn THEN
-     'The HandleType is correct so could have been a valid handle to a previously existing slice in this slot
      scripterr current_command_name() & ": the slice with handle " & handle & " has been deleted", errlvl
     END IF
    ELSE
