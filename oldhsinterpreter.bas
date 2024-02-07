@@ -16,6 +16,7 @@
 #include "allmodex.bi"
 #include "scriptcommands.bi"
 #include "scripting.bi"
+#include "sliceedit.bi"
 #include "game.bi"
 
 'local subs and functions
@@ -1128,6 +1129,22 @@ SUB describe_locals(locals_info() as string, selectedscript as integer, showhand
  IF LEN(curline) THEN a_append locals_info(), curline
 END SUB
 
+'Accessed with F7 in the script debugger
+SUB script_debugger_slices()
+ DIM slotstr as string
+ IF prompt_for_string(slotstr, "Slice number to show? Blank for none. (e.g. ""Cont 14"" is slice 14)", 9) THEN
+  DIM slot as integer = 0
+  DIM sl as Slice ptr
+  parse_int(slotstr, @slot)
+  IF slot > 0 ANDALSO slot <= UBOUND(plotslices) ANDALSO plotslices(slot).handle THEN
+   sl = plotslices(slot).sl
+  ELSEIF LEN(slotstr) THEN  'Not blank
+   notification "Invalid slice number"
+  END IF
+  slice_editor SliceTable.Root, , , , , sl
+ END IF
+END SUB
+
 'The following function is an atrocious mess. Don't worry too much; it'll be totally replaced.
 SUB scriptwatcher (byref mode as integer, byval drawloop as bool = NO)
 STATIC localsscroll as integer
@@ -1236,11 +1253,12 @@ END IF
 'Draw header at top of screen
 IF mode > 1 THEN
  rectangle 0, 0, rWidth, 18, barcol, page
- edgeprint "F1   F2     F3   F4      F5      F6     F7", 0, 0, shortcutcol, page
- DIM tabnames(...) as string = {"Help", "Source", "Vars", "Globals", "Strings", "Timers", "Stack"}
+ edgeprint "F1   F2     F3   F4      F5      F6     F7     F8", 0, 0, shortcutcol, page
+ DIM tabnames(...) as string = {"Help", "Source", "Vars", "Globals", "Strings", "Timers", "Slices", "Stack"}
+ DIM viewmodes(...) as integer = {-1, 0, 1, 2, 3, 4, -1, 5}
  DIM tabconcat as string
  FOR idx as integer = 0 TO UBOUND(tabnames)
-  IF idx - 1 = viewmode THEN
+  IF viewmodes(idx) = viewmode THEN
    tabconcat += fgtag(uilook(uiSelectedItem), tabnames(idx)) + " "
   ELSE
    tabconcat += tabnames(idx) + " "
@@ -1278,7 +1296,7 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 5) THEN
    ELSE
     msg &= !"Recompile your scripts without disabling debug info.\n"
    END IF
-   msg &= "Press F7 to see the old fall-back script position description instead."
+   msg &= "Press F8 to see the old fall-back script position description instead."
   END IF
  ELSEIF viewmode = 5 THEN  'Stack
   msg = scriptstate(selectedscript)
@@ -1550,8 +1568,14 @@ IF mode > 1 AND drawloop = NO THEN
  ELSEIF w = scF2 THEN
   viewmode = IIF(viewmode = 0, 5, 0)
   GOTO redraw
- ELSEIF w >= scF3 AND w <= scF7 THEN
-  viewmode = 1 + w - scF3   '1 to 5
+ ELSEIF w >= scF3 AND w <= scF6 THEN
+  viewmode = 1 + w - scF3   '1 to 4
+  GOTO redraw
+ ELSEIF w = scF7 THEN
+  script_debugger_slices
+  GOTO redraw
+ ELSEIF w = scF8 THEN
+  viewmode = 5
   GOTO redraw
  END IF
 
