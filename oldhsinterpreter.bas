@@ -27,6 +27,7 @@ DECLARE SUB substart (byref si as OldScriptState)
 DECLARE SUB subdoarg (byref si as OldScriptState)
 DECLARE SUB subreturn (byref si as OldScriptState)
 DECLARE SUB unwindtodo (byref si as OldScriptState, byval levels as integer)
+DECLARE FUNCTION command_parent_node(script_slot as integer) as integer
 DECLARE SUB readstackcommand (node as ScriptCommand, state as OldScriptState, byref stk as Stack, byref i as integer)
 DECLARE FUNCTION mathvariablename (value as integer, scr as ScriptData) as string
 DECLARE FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = -1) as string
@@ -894,7 +895,8 @@ SUB scriptmath
  END SELECT
 END SUB
 
-'returns the srcpos of the current command of the given script (in nowscript), or 0 if that debug info not available
+'Returns the srcpos of the current command of the given script (in nowscript), or 0 if that debug info not available.
+'The srcpos is relative to the script's .script_position.
 FUNCTION script_current_srcpos(selectedscript as integer) as uinteger
  'Write curcmd out in case nowscript == selectedscript
  WITH scriptinsts(nowscript)
@@ -907,17 +909,17 @@ FUNCTION script_current_srcpos(selectedscript as integer) as uinteger
   DIM curnode as ScriptCommand ptr
   curnode = cast(ScriptCommand ptr, .scrdata + .ptr)
 
-  debug "script_current_srcpos: hassrcpos = " & .scr->hassrcpos & "  kind/id = " & curnode->kind & "/" & curnode->value & " ptr = " & .ptr & " argc = " & curnode->argc
+  'debug "script_current_srcpos: hassrcpos = " & .scr->hassrcpos & "  kind/id = " & curnode->kind & _
+  '      "/" & curnode->value & " ptr = " & .ptr & " argc = " & curnode->argc
   IF .scr->hassrcpos THEN
-   WITH *curnode
-    IF .kind = tyflow OR .kind = tymath OR .kind = tyfunct OR .kind = tyscript THEN
-     'Isn't a leaf node
-     RETURN (@.args(0))[.argc]  'Follows arg list (can't index .args() directly)
-     'RETURN cast(int32 ptr, curnode)[3 + .argc]
-    ELSE
-     ''''''''''''''''''''''''''''''''''''''''''''''TODO!!!: fall back to parent command
-    END IF
-   END WITH
+   SELECT CASE curnode->kind
+    CASE tyflow, tymath, tyfunct, tyscript
+     'The srcpos is immediately after the arg list (can't index .args() directly)
+     RETURN (@curnode->args(0))[curnode->argc]
+    CASE ELSE  'tynumber
+     'Numbers don't have srcpos's. Return the srcpos of the parent node instead.
+     curnode = cast(ScriptCommand ptr, .scrdata + command_parent_node(selectedscript))
+   END SELECT
   END IF
  END WITH
  RETURN 0
@@ -1528,6 +1530,23 @@ SUB readstackcommand (node as ScriptCommand, state as OldScriptState, byref stk 
 '/
  i -= 2
 END SUB
+
+' Get the ScriptCommand .ptr for the parent node of the current node of a script.
+' Warning, this may not be robust. Only tested with integer nodes.
+FUNCTION command_parent_node(script_slot as integer) as integer
+ DIM stkpos as integer = 0
+ DIM state as OldScriptState
+ DIM node as ScriptCommand
+
+ state = scrat(script_slot)
+ IF state.state = stnext THEN
+  'point stkpos before the first argument (they extend above the stack)
+  stkpos -= state.curargn
+ END IF
+
+ readstackcommand node, state, scrst, stkpos
+ RETURN state.ptr
+END FUNCTION
 
 FUNCTION mathvariablename (value as integer, scrdat as ScriptData) as string
  'get a variable name from an variable id number passed to a math function or for
