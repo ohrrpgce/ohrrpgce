@@ -1098,6 +1098,35 @@ END FUNCTION
 LOCAL SUB comma_period_scroll(byref scroll as integer, limit as integer, displaylines as integer, displaycols as integer = 1)
 END SUB
 
+SUB describe_locals(locals_info() as string, selectedscript as integer, showhandles as bool, datacol as integer)
+ DIM displaywidth as integer = vpages(vpage)->w - 4
+ DIM curline as string
+ CONST tabwidth = 6
+ WITH scrat(selectedscript)
+  a_append locals_info(), "Return value=" & fgtag(datacol) & .ret
+  IF .scr->args THEN curline = "Args: "
+
+  FOR localno as integer = 0 TO .scr->vars - 1
+   VAR value = heap(.frames(0).heap + localno)
+   DIM temp as string
+   IF showhandles THEN
+    temp &= describe_handle(value, YES)
+   ELSE
+    temp &= value
+   END IF
+   temp = LEFT(localvariablename(localno, *.scr), 18) & "=" & fgtag(datacol, temp)
+   'Break lines; distinguish the arguments by adding a line break after the last one
+   IF LEN(curline) ANDALSO (localno = .scr->args ORELSE textwidth(curline & temp) > displaywidth) THEN
+    a_append locals_info(), curline 
+    curline = ""
+   END IF
+   curline &= temp
+   'Add spacing to the next multiple of tabwidth spaces, at least 1 space
+   curline &= SPACE(tabwidth - (textwidth(curline) MOD (8 * tabwidth)) \ 8)
+  NEXT
+ END WITH
+ IF LEN(curline) THEN a_append locals_info(), curline
+END SUB
 
 'The following function is an atrocious mess. Don't worry too much; it'll be totally replaced.
 SUB scriptwatcher (byref mode as integer, byval drawloop as bool = NO)
@@ -1126,9 +1155,11 @@ END IF
 
 DIM displaywidth as integer = vpages(vpage)->w \ 8  'In characters
 
-DIM datacol as integer = uilook(uiDescription)
+DIM datacol as integer = uilook(uiDescription) 'Values of variables (but not strings)
+DIM shortcutcol as integer = datacol           'Shortcut key
+DIM barcol as integer = findrgb(50, 50, 100)   'Lines across the screen
 
-DIM strbgcol as integer = findrgb(100, 0, 200)
+DIM strbgcol as integer = findrgb(0, 128, 0)
 FOR i as integer = 0 TO UBOUND(plotstr)
  ' Split each plotstring up onto multiple lines, each line is an element of stringlines
  DIM plots as string = plotstr(i).s
@@ -1178,8 +1209,11 @@ ELSE
  END IF
 END IF
 
-'Number of lines of text (9 pixels high) that can fit below the header at the top and the column header line
-DIM displaylines as integer = (vpages(page)->h - 4) \ 9 - 3
+'Height in px of the debugger's F1/F2/... menu bar
+CONST menubar_height = 20
+'Number of lines of text (9 pixels high) that can fit below the menubar and a
+'one-line header (not all headers are)
+DIM displaylines as integer = (vpages(page)->h - menubar_height - 12) \ 9
 
 'edgeprint callmode & " " & viewmode & " " & callspot, 140, 4, uilook(uiText), page
 
@@ -1201,7 +1235,8 @@ END IF
 
 'Draw header at top of screen
 IF mode > 1 THEN
- edgeprint "F1   F2     F3   F4      F5      F6     F7", 0, 0, uilook(uiDescription), page
+ rectangle 0, 0, rWidth, 18, barcol, page
+ edgeprint "F1   F2     F3   F4      F5      F6     F7", 0, 0, shortcutcol, page
  DIM tabnames(...) as string = {"Help", "Source", "Vars", "Globals", "Strings", "Timers", "Stack"}
  DIM tabconcat as string
  FOR idx as integer = 0 TO UBOUND(tabnames)
@@ -1212,12 +1247,14 @@ IF mode > 1 THEN
   END IF
  NEXT
  edgeprint tabconcat, 0, 9, uilook(uiText), page, YES
+ 'rectangle 0, 18, rWidth, 1, barcol, page
 END IF
 
 DIM ol as integer = pBottom  'Line output Y position
 
-CONST var_spacing = 150  'Pixels apart to print each column of variables
-CONST local_lines = 4   'Number of lines of local variables
+DIM var_spacing as integer = 160  'Pixels apart to print each column of variables
+IF vpages(vpage)->w > 380 THEN var_spacing = 190
+CONST local_lines = 5   'Number of lines of local variables
 'Number of columns of local or global variables
 DIM var_cols as integer = small(vpages(vpage)->w \ var_spacing, 6)
 
@@ -1248,9 +1285,10 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 5) THEN
   msg = text_left(msg, 1200)  'At most 1200 pixels wide (4 lines)
   'msg &= !"\nLast return value: " & scriptret
  END IF
- wrapprint msg, 0, pBottom, uilook(uiText), page 'uiDescription), page
+ wrapprint msg, 0, pBottom, uilook(uiText), page
 END IF
 
+DIM locals_info() as string
 DIM as integer scriptargs = 0, numlocals = 0
 IF selectedscript >= 0 THEN
  WITH *scrat(selectedscript).scr
@@ -1259,56 +1297,55 @@ IF selectedscript >= 0 THEN
  END WITH
 END IF
 
+DIM header as string
+
 IF mode > 1 AND viewmode = 1 AND selectedscript >= 0 THEN
- 'local (but not nonlocal) variables and return value. Show up to local_lines*var_cols variables at a time
+ 'Display local (but not nonlocal) variables and return value.
+ 
+ describe_locals locals_info(), selectedscript, YES, datacol
+
  WITH scrat(selectedscript)
-  IF numlocals = 0 THEN
-   edgeprint "Has no variables", 0, ol, uilook(uiText), page
-   ol -= 9
-  ELSE
-   DIM temp as string
-   FOR i as integer = local_lines - 1 TO 0 STEP -1
-    FOR j as integer = var_cols - 1 TO 0 STEP -1  'Reverse order so the var name is what gets overwritten
-     VAR localno = localsscroll + i * var_cols + j
-     IF localno < numlocals THEN
-      temp = LEFT(localvariablename(localno, *.scr), 18) & "=" & fgtag(datacol) & heap(.frames(0).heap + localno)
-      edgeprint temp, j * var_spacing, ol, uilook(uiText), page, YES
-     END IF
-    NEXT
-    ol -= 9
-   NEXT
-   'Header for the locals section
-   IF scriptargs = 999 THEN
-    edgeprint numlocals & " local variables and args: (+/- scroll)", 0, ol, uilook(uiText), page
-   ELSE
-    temp = scriptargs & " args, " & (numlocals - scriptargs) & " locals"
-    IF .scr->nonlocals > 0 THEN
-     temp += "; excluding " & .scr->nonlocals & " nonlocals:"
-    ELSEIF numlocals > var_cols * local_lines THEN
-     temp += ": (+/- scroll)"
-    END IF
-    edgeprint temp, 0, ol, uilook(uiText), page
+  'Return value, args and locals
+  FOR i as integer = local_lines - 1 TO 0 STEP -1
+   VAR idx = localsscroll + i
+   IF idx <= UBOUND(locals_info) THEN
+    edgeprint locals_info(idx), 0, ol, uilook(uiText), page, YES
    END IF
    ol -= 9
+  NEXT
+  ol = pBottom - local_lines * 9 - 1
+
+  'Header
+  IF numlocals = 0 THEN
+   header = "    Has no variables"
+  ELSE
+   'Header for the locals section
+   IF scriptargs = 999 THEN
+    header = "    " & numlocals & " Local variables and args: (+/- scroll)"
+   ELSE
+    header = "    " & scriptargs & " Args, " & (numlocals - scriptargs) & " Locals"
+    IF .scr->nonlocals > 0 THEN
+     header += "; excluding " & .scr->nonlocals & " nonlocals:"
+    ELSEIF numlocals > var_cols * local_lines THEN
+     header += ": (+/- scroll)"
+    END IF
+   END IF
   END IF
-  edgeprint "Return value = " & fgtag(datacol) & .ret, 0, ol, uilook(uiText), page, YES
-  ol -= 9
  END WITH
 END IF
 
 IF mode > 1 AND viewmode = 2 THEN
- 'display global variables
+ 'Display global variables
  FOR i as integer = displaylines - 1 TO 0 STEP -1
   FOR j as integer = var_cols - 1 TO 0 STEP -1   'reverse order so the var name is what gets overwritten
    DIM globalno as integer = globalsscroll + i * var_cols + j
    IF globalno > UBOUND(global) THEN CONTINUE FOR
-   DIM temp as string = globalno & "=" & fgtag(datacol) & global(globalno)
+   DIM temp as string = globalno & "=" & fgtag(datacol) & describe_handle(global(globalno), YES)
    edgeprint temp, j * var_spacing, ol, uilook(uiText), page, YES
   NEXT
   ol -= 9
  NEXT
- edgeprint "Global variables:  (+/- scroll)", 0, ol, uilook(uiText), page
- ol -= 9
+ header = "Global variables:  (+/- scroll)"
 END IF
 
 IF mode > 1 AND viewmode = 3 THEN
@@ -1319,8 +1356,7 @@ IF mode > 1 AND viewmode = 3 THEN
   edgeprint stringlines(idx), 0, ol, uilook(uiText), page, YES
   ol -= 9
  NEXT
- edgeprint "Plotstrings:  (+/- scroll)", 0, ol, uilook(uiText), page
- ol -= 9
+ header = "Plotstrings:  (+/- scroll)"
 END IF
 
 IF mode > 1 AND viewmode = 4 THEN
@@ -1354,8 +1390,12 @@ IF mode > 1 AND viewmode = 4 THEN
   edgeprint text, 0, ol, uilook(uiText), page
   ol -= 9
  NEXT
- edgeprint "Timers:  (+/- scroll)", 0, ol, uilook(uiText), page
- ol -= 9
+ header = "Timers:  (+/- scroll)"
+END IF
+
+IF LEN(header) THEN
+ rectangle 0, ol - 1, rWidth, 10, barcol, page
+ edgeprint header, 32, ol, uilook(uiText), page
 END IF
 
 IF mode > 1 AND (viewmode = 0 OR viewmode = 1 OR viewmode = 5) THEN
@@ -1363,10 +1403,10 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 1 OR viewmode = 5) THEN
 
  'Leave room for locals or source line or scriptstate
  ol = vpages(page)->h - (local_lines + 3) * 9 - 4
- 'Stop this far from the top of the screen
- CONST header_height = 28
+ 'Stop this far from the top of the screen (top header plus21 line for "Scripts:" header)
+ CONST stop_y = menubar_height + 20
 
- DIM script_rows as integer = (ol - header_height) \ 9
+ DIM script_rows as integer = (ol - stop_y) \ 9
 
  DIM as integer statex, commandx  'Where to print state and command
  IF viewmode = 5 THEN  'Stack
@@ -1378,6 +1418,7 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 1 OR viewmode = 5) THEN
   statex = 160
   commandx = 160
  END IF
+ 'rectangle 0, ol + 9, rWidth, 1, barcol, page
  ol -= 9
  
  IF mode = 1 THEN
@@ -1395,7 +1436,7 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 1 OR viewmode = 5) THEN
   DIM col as integer
   IF mode > 1 AND i = selectedscript THEN col = uilook(uiSelectedItem) ELSE col = uilook(uiText)
   edgeprint STR(i), 0, ol, col, page
-  edgeprint LEFT(scriptname(scrat(i).id), 16), 28, ol, col, page
+  edgeprint LEFT(scriptname(scrat(i).id), 16), 29, ol, col, page
   IF viewmode = 5 THEN
    edgeprint STR(scrat(i).depth), 160, ol, col, page
   END IF
@@ -1441,7 +1482,7 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 1 OR viewmode = 5) THEN
   edgeprint statemsg, statex, ol, col, page
 
   ol -= 9
-  IF ol < header_height THEN EXIT FOR
+  IF ol < stop_y THEN EXIT FOR
  NEXT i
  edgeprint "Scripts:  ([/] scroll)", 0, ol, uilook(uiText), page
 
@@ -1489,8 +1530,9 @@ IF mode > 1 AND drawloop = NO THEN
  ' VAR plus = (w = scPlus OR w = scNumpadPlus)
  ' IF plus OR minus THEN
  '  VAR neg = IIF(minus, -1, 1)
-  IF viewmode = 1 THEN update OR= plus_minus_scroll(localsscroll,  1, numlocals - 1,       local_lines,  var_cols)
-  IF viewmode = 2 THEN update OR= plus_minus_scroll(globalsscroll, 3, maxScriptGlobals,    displaylines, var_cols)
+  'IF viewmode = 1 THEN update OR= plus_minus_scroll(localsscroll,  1, numlocals - 1,       local_lines,  var_cols)
+  IF viewmode = 1 THEN update OR= plus_minus_scroll(localsscroll,  1, UBOUND(locals_info),   local_lines)
+  IF viewmode = 2 THEN update OR= plus_minus_scroll(globalsscroll, 3, maxScriptGlobals,    displaylines - 1, var_cols)
   IF viewmode = 3 THEN update OR= plus_minus_scroll(stringsscroll, 3, UBOUND(stringlines), displaylines)
   IF viewmode = 4 THEN update OR= plus_minus_scroll(timersscroll,  3, UBOUND(timers),      displaylines)
   IF update THEN GOTO redraw
