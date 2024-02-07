@@ -4,11 +4,16 @@
 ## Including just this is faster than all of plotscr.hsd
 include, hamsterspeak.hsd
 
+globalvariable(1,globalvar)
+defineconstant(1,constant)
+
 define function, begin
   1,noop4,4,0,0,0,0
   @obsolete, 2,obsoletecmd,0
   @obsolete(replacement,"Message"), 3,obsoletecmd2,0
   @obsolete(error), 4,removedcmd,0
+  5,globalvar,0          # ERROR
+  6,constant,0           # ERROR
   @obsolete(), 100,__obsolete,0      # OK
 end
 
@@ -16,9 +21,13 @@ script, div, a, b ()
 
 defineoperator(100, eqstr, stringcompare)
 defineoperator(100, div, div)
+defineoperator(100, oper, constant)  # ERROR
+defineoperator(100, oper, globalvar) # ERROR  (known failure)
+## Could only allow scripts and commands that take at least two args
+##defineoperator(100, oper, a script)               # OK
+##defineoperator(100, oper, a plotscript)           # ERROR
+##defineoperator(100, oper, noop)                   # ERROR
 
-globalvariable(1,globalvar)
-defineconstant(1,constant)
 
 ## Check for errors given extra commas, and for operators in illegal positions
 script, comma and operator tests, begin
@@ -248,9 +257,11 @@ script, namespace tests, arg, begin
   subscript, namespace tests, arg ()              # ERROR
   subscript, sub, (subscript, sub2 ())            # OK
   subscript, sub, (subscript, SUB ())             # ERROR
+  subscript, sub(), subscript, sub()              # ERROR
   subscript, sub, (subscript, namespace tests ()) # ERROR
-  subscript, sub, v (subscript, sub2, v ())       # OK
   subscript, sub, W (subscript, sub2, w ())       # OK
+  subscript, sub, W (), subscript, sub2, w ()     # OK
+  subscript, sub, W (subscript, sub2, w (), subscript, sub3, w ())  # OK
   v := subscript, sub ()                          # ERROR
   @obsolete("message") subscript, sub ()          # OK
   @obsolete, @obsolete(blarg), subscript, sub ()  # OK
@@ -260,7 +271,13 @@ script, namespace tests, arg, begin
   ## (Probably same thing with subscripts which are in scope.)
   subscript, div ()                               # ERROR (?)
   subscript, a script ()                          # ERROR (?) (known failure)
-  ## Operators
+  variable(sub), subscript, sub ()                # ERROR  (known failure)
+  subscript, sub (), variable(sub)                # ERROR  (known failure)
+  subscript, sub (), subscript, foo (subscript, sub ())  # ERROR (?)
+  subscript, foo (subscript, sub ()), subscript, sub ()  # ERROR (?) (known failure)
+  subscript, sub (), subscript, foo (variable (sub))     # ERROR (?) (known failure)
+  subscript, foo (variable (sub)), subscript, sub ()     # ERROR (?) (known failure)
+  ## Operators (builtin or from defineoperator above)
   subscript, add ()                               # ERROR
   subscript, sub, add ()                          # ERROR
   subscript, mod ()                               # ERROR
