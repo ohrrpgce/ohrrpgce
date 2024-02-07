@@ -38,7 +38,7 @@ def command_output_and_exitcode(cmd, args):
     if errtext:
         # HSpeak never writes anything to stderr
         print('%s\n%s\n%s\n%s' % ('-'*40, outtext, errtext, '-'*40))
-        raise Exception("Didn't expect HSpeak to write to stderr. This needs updating?")
+        raise Exception("Didn't expect HSpeak to write to stderr. Did it crash?")
     return outtext.strip(), proc.returncode
 
 def read_input_file(inputfile):

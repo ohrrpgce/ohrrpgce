@@ -519,7 +519,7 @@ integer was_warnings      was_warnings=false
 --See also encode_srcpos and decode_srcpos
 type srcpos(object pos)
   --need to allow 0 as a dummy value
-  if atom(pos) and pos=floor(pos) and pos>=0 and pos<=max_srcpos then
+  if atom(pos) and pos=floor(pos) and pos>=0 and (max_srcpos>0 and pos<=max_srcpos) then
     --odd, 'or' and 'and' only seem to shortcut when used in if condition, not
     --in a general expression
     return true
@@ -1439,6 +1439,9 @@ procedure load_source(string filename, string reading_how, srcpos pos)
     total_lines+=length(line_extents)
     file_list=append(file_list,{filename,file_text,line_extents,offset,""})
     --Maximum valid srcpos points to length 1 virtual token at end of file.
+    --max_srcpos is used to do srcpos type checking... so we need to disable that
+    --check before we can assign to it!
+    max_srcpos=0
     max_srcpos=virtual_pos(encode_srcpos(offset,length(file_text),1))
   else
     if pos then
@@ -1544,8 +1547,9 @@ end procedure
 ---------------------------------------------------------------------------
 
 --Lex a string, processing the escape codes.
---i is initial offset in 's' (probably whole file contents), and stop is last permissible offset to include.
---Returns {closing_quote_offset,quoted_string} (i.e. enclosed in quote marks)
+--s is the source text (typically whole file contents), i is the starting offset in s,
+--1 past the opening ", and stop is last permissible offset in s to include.
+--Returns {closing_quote_offset,quoted_string} (i.e. enclosed in quote marks, but with escape codes processed)
 function lexer_read_string(string s, integer i, integer stop, integer posoff)
   string string
   integer escaping
@@ -1717,6 +1721,8 @@ function lexer_read_include_line(TokenList tokens, string s, integer i, integer 
   integer whitespace_len
   sequence temp
   string filename_string
+  srcpos pos
+  integer isquoted
 
   if not equal(tokens[1][CMD_TEXT],"include") then
     src_error(COLYEL&"include"&COLRED&" must be the only statement on the line. Maybe you tried to use this reserved keyword illegally?",tokens[$][CMD_POS])
@@ -1733,34 +1739,44 @@ function lexer_read_include_line(TokenList tokens, string s, integer i, integer 
       i+=1
     end while
     whitespace_len=0
-    --Find len, the length of the original filename token
-    len=length(trim_whitespace(s))
     --Optionally allow quotes around the filename.
     --A quote mark in the middle of a filename doesn't need any escaping
-    if s[1]='"' then
-      temp=lexer_read_string(s,2,length(s),posoff+i)
+    isquoted=(s[1]='"')
+    if isquoted then
+      temp=lexer_read_string(s,2,length(s),posoff+i-1)
       -- temp is {closing_quote_offset,quoted_string}
+      pos=encode_srcpos(posoff,i,temp[1])
+
       s=s[temp[1]+1..$]
       --s is now whatever is after the string
       i+=temp[1]  --1 past the closing "
       filename_string=temp[2]  --enclosed in quotes
-      whitespace_len=length(s)-temp[1]
-    end if
-    --Trim whitespace ant comment after either the "filename" string or non-quoted filename,
-    --and check if there's anything else
-    at=find('#',s)
-    if at then
-      s=s[1..at-1]
-      whitespace_len=at-1
-    end if
-    s=trim_whitespace(s)
-    if length(filename_string) then
+      whitespace_len=length(s)
+
+      --Trim comment and whitespace to check for anything after the filename string
+      at=find('#',s)
+      if at then
+        s=s[1..at-1]
+        whitespace_len=at-1
+      end if
+      s=trim_whitespace(s)
       if length(s) then
         src_error("Found unexpected text after "&COLYEL&"include, \"filename\""&COLRED,encode_srcpos(posoff,i,whitespace_len))
       end if
+
+    else
+      --Trim comment and whitespace: for an unquoted filename this delimits the filename
+      at=find('#',s)
+      if at then
+        s=s[1..at-1]
+      end if
+      s=trim_whitespace(s)  --Trims only from the right because we already striped left
+
+      filename_string=s
+      pos=encode_srcpos(posoff,i,length(s))
     end if
 
-    tokens=append(tokens,{s,encode_srcpos(posoff,i,len)})
+    tokens=append(tokens,{filename_string,pos})
   end if
 
   if length(tokens)=1 then
@@ -1856,7 +1872,7 @@ function lex_line(sequence s, integer i, integer stop, integer posoff)
           --foo(, 1) or foo(1, , 2) or <op>, but not ),
           src_error(
             sprintf_utf("Found an extra comma which previous HSpeak versions ignored, but which might have a different meaning in the future. Remove it.",{}),
-            pos+i)
+            encode_srcpos(posoff,i,1))
         end if
       elsif state=LEX_NEWLINE then
       elsif state=LEX_COMMENT then
@@ -1942,7 +1958,7 @@ function lex_line(sequence s, integer i, integer stop, integer posoff)
             if s[i]!='$' then
               src_error(
                 "Found an extra comma which previous HSpeak versions ignored, but which might have a different meaning in the future. Remove it.",
-                pos+last_state_i)
+                encode_srcpos(posoff,last_state_i,1))
             end if
           end if
         end if
@@ -2112,6 +2128,9 @@ end function
 function seek_include(TokenList tokens)
   string ret
   if length(tokens) and equal(tokens[1][CMD_TEXT],"include") then
+    if length(tokens)=1 or length(tokens[2][CMD_TEXT])=0 then
+      src_error(COLYEL&"include"&COLRED&" is a keyword which should be followed on the same line by the filename to include",tokens[1][CMD_POS])
+    end if
     ret=tokens[2][CMD_TEXT]
     if ret[1]='"' then
       --trim quote marks
