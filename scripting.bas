@@ -1666,35 +1666,35 @@ FUNCTION highlighted_script_line(posdata as ScriptTokenPos, maxchars as integer,
  WITH posdata
   debug "posdata.linenum = " & posdata.linenum
   debug "posdata.col = " & posdata.col
-'  debug "posdata.length = " & posdata.length
-'  debug "posdata.linetext = " & posdata.linetext
-'  debug "posdata.filename = " & posdata.filename
+  debug "posdata.length = " & posdata.length
+  debug "posdata.linetext = " & posdata.linetext
+  debug "posdata.filename = " & posdata.filename
  END WITH
 
  highlightcol = IIF(posdata.isvirtual, uilook(uiSelectedDisabled + tog), uilook(uiSelectedItem + tog))
 
  start = large(1, posdata.col - large(4, (maxchars - posdata.length) \ 2))
 
-debug "start = " & start & " mid = " & MID(posdata.linetext, start, 40)
+ 'debug "start = " & start & " mid = " & MID(posdata.linetext, start, 40)
 
+ ' Trim the line so that it's not too long
  texttmp = MID(posdata.linetext, start, maxchars)
 
- ' Highlight the part of the line indicated by posdata
- DIM relcol as integer = 1 + posdata.col - (start - 1)
+ ' Highlight the part of texttmp indicated by posdata
+ ' (Note: posdata.col and MID both count columns/characters starting at one.)
+ DIM relcol as integer = posdata.col - (start - 1)
  DIM length  as integer = bound(posdata.length, 1, maxchars)
  DIM token as string = MID(texttmp, relcol, length)
- MID(texttmp, relcol, length) = fgtag(highlightcol, token)
+ texttmp = MID(texttmp, 1, relcol - 1) & fgtag(highlightcol, token) & MID(texttmp, relcol + length)
+'MID(texttmp, relcol, length) = fgtag(highlightcol, token)
 
  IF start > 1 THEN MID(texttmp, 1, 3) = "..."  'This can't overlap with 'token'
  IF LEN(texttmp) < LEN(posdata.linetext) - (start - 1) THEN texttmp &= "..."
 
  DIM infostr as string
-' IF posdata.isvirtual THEN
-'  infostr = "In the line " & posdata.linenum & " of " & posdata.filename & ":"
-' ELSE
-  infostr = "On line " & posdata.linenum & " of " & posdata.filename & !":\n"
-' END IF
- RETURN infostr + texttmp
+ infostr = IIF(posdata.isvirtual, "(Virtual)", "On") & " line " & posdata.linenum _
+           & " of " & posdata.filename & !":\n"
+ RETURN infostr & texttmp
 END FUNCTION
 
 
@@ -2116,8 +2116,8 @@ FUNCTION script_interrupt () as bool
 
  stop_fibre_timing
 
- msg = "A script may be stuck in an infinite loop. Press F1 for more help" + CHR(10) + CHR(10)
- msg &= "  Call chain (current script last):" + CHR(10) + script_call_chain()
+ msg = !"A script may be stuck in an infinite loop. Press F1 for more help\n\n" _
+       !"  Call chain (current script last):\n" + script_call_chain()
  debug "Script interrupted: " & script_call_chain(NO)
  split(wordwrap(msg, large(80, vpages(vpage)->w - 16) \ 8), errtext())
 
@@ -2184,7 +2184,7 @@ FUNCTION script_interrupt () as bool
 
   centerbox rCenter, 12, rWidth - 10, 15, 3, vpage
   textcolor uilook(uiText), 0
-  printstr "A script is stuck", rCenter - 17*4, 7, vpage
+  printstr "A script is stuck", pCentered, 7, vpage
 
   FOR i as integer = 0 TO UBOUND(errtext)
    printstr errtext(i), 8, 25 + 10 * i, vpage

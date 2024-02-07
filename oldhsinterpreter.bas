@@ -1171,7 +1171,7 @@ IF mode > 1 THEN
  DIM tabconcat as string
  FOR idx as integer = 0 TO UBOUND(tabnames)
   IF idx - 1 = viewmode THEN
-   tabconcat += hilite(tabnames(idx)) + " "
+   tabconcat += fgtag(uilook(uiSelectedItem), tabnames(idx)) + " "
   ELSE
    tabconcat += tabnames(idx) + " "
   END IF
@@ -1186,9 +1186,9 @@ IF mode > 1 AND viewmode = 0 THEN
   edgeprint "Script debugger: no scripts", 0, ol, uilook(uiDescription), page
  ELSE
   IF get_script_line_info(posdata, selectedscript) THEN
-   print_script_line posdata, ol - 36, 4, NO, page
+   wrapprint highlighted_script_line(posdata, 160, NO), 0, ol - 36, uilook(uiDescription), page
   ELSE
-   edgeprint "Script line number unknown.", 0, ol - 18, uilook(uiDescription), page
+   edgeprint "Script line number unknown.", 0, ol - 36, uilook(uiDescription), page
 
    DIM hs_header as HSHeader
    load_hsp_header tmpdir & "hs", hs_header
@@ -1200,8 +1200,8 @@ IF mode > 1 AND viewmode = 0 THEN
     edgeprint "Recompile your scripts without", 0, ol - 27, uilook(uiDescription), page
     edgeprint "disabling debug info.", 0, ol - 18, uilook(uiDescription), page
    END IF
-   edgeprint "Press F7 to see fall-back", 0, ol - 9, uilook(uiDescription), page
-   edgeprint "script position description.", 0, ol, uilook(uiDescription), page
+   edgeprint "Press F7 to see the old fall-back", 0, ol - 9, uilook(uiDescription), page
+   edgeprint "script position description instead.", 0, ol, uilook(uiDescription), page
   END IF
  END IF
 END IF
@@ -1442,7 +1442,12 @@ IF mode > 1 AND drawloop = NO THEN
   show_help("game_script_debugger")
   GOTO redraw
  ELSEIF w = scF2 THEN
-  viewmode = 0
+  IF viewmode = 0 THEN
+   'Old scriptstate() display (purposefully omitted from header)
+   viewmode = 5
+  ELSE
+   viewmode = 0
+  END IF
   GOTO redraw
  ELSEIF w = scF3 THEN
   viewmode = 1
@@ -1558,7 +1563,9 @@ FUNCTION mathvariablename (value as integer, scrdat as ScriptData) as string
  END IF
 END FUNCTION
 
-'Warning: a nightmare function approaches!
+'This function returns a string describing where in the script the script interpreter currently is.
+'It's a huge mess because it has to examine the interpreter stack, and the interpreter might
+'be in many different states (I think this is buggy in some of them)
 FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = -1) as string
  IF nowscript <= -1 THEN EXIT FUNCTION
 
