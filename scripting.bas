@@ -581,6 +581,7 @@ END FUNCTION
 LOCAL FUNCTION loadscript_open_script (n as integer, expect_exists as bool = YES) as integer
  DIM scriptfile as string = tmpdir & n & ".hsz"
  IF NOT isfile(scriptfile) THEN
+  'Format 0 scripts used a different extension
   scriptfile = tmpdir & n & ".hsx"
   IF NOT isfile(scriptfile) THEN
    '--because TMC once suggested that preunlumping the .hsp lump would be a good way to reduce (SoJ) loading time
@@ -653,7 +654,8 @@ LOCAL FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptDat
    RETURN NULL
   END IF
 
-  GET #fh, 1, shortvar
+  'Get the header size in bytes
+  GET #fh, 1+0, shortvar
   DIM skip as integer = shortvar
   .headerlen = skip
 
@@ -667,23 +669,30 @@ LOCAL FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptDat
   'fields may be added to the end of the header; if they are mandatory the version number
   'should be incremented.
 
-  GET #fh, 3, shortvar
+  GET #fh, 1+2, shortvar
   'some HSX files seem to have an illegal negative number of variables
   .vars = shortvar
   .vars = bound(.vars, 0, 256)
 
   IF skip >= 6 THEN
-   GET #fh, 5, shortvar
+   GET #fh, 1+4, shortvar
    .args = bound(shortvar, 0, .vars)
   ELSE
-   .args = 999
+   .args = 999  'Note: This is a marker value
   END IF
 
   IF skip >= 8 THEN
-   GET #fh, 7, shortvar
+   GET #fh, 1+6, shortvar
    .scrformat = shortvar
   ELSE
    .scrformat = 0
+  END IF
+  IF .scrformat < 0 OR (.scrformat = 0 AND skip > 8) THEN
+   'Disallow format 0 from having more recent features (it's a nuisance to support 16-bit
+   'words for everything).
+   scripterr "script " & id & " seems to be corrupt; invalid version " & .scrformat & " with header size " & skip, serrError
+   DELETE ret
+   RETURN NULL
   END IF
   IF .scrformat > CURRENT_HSZ_VERSION THEN
    scripterr "script " & id & " is in an unsupported format. Try using an up-to-date OHRRPGCE version.", serrError
@@ -693,24 +702,34 @@ LOCAL FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptDat
   DIM wordsize as integer
   IF .scrformat >= 1 THEN wordsize = 4 ELSE wordsize = 2
 
+  .size = (LOF(fh) - skip + (wordsize - 1)) \ wordsize
+
   IF skip >= 12 THEN
-   GET #fh, 9, .strtable
-   IF .strtable THEN .strtable = (.strtable - skip) \ wordsize
+   GET #fh, 1+8, .strtable
   ELSEIF skip = 10 THEN
-   GET #fh, 9, shortvar
-   IF shortvar THEN .strtable = (shortvar - skip) \ wordsize
+   GET #fh, 1+8, shortvar
+   .strtable = shortvar
   ELSE
    .strtable = 0
   END IF
+  IF .strtable THEN
+   IF (.strtable - skip) MOD 4 THEN
+    'Position must be a multiple of 4
+    scripterr "script " & id & " corrupt: unaligned string table", serrError
+    DELETE ret
+    RETURN NULL
+   END IF
+   .strtable = (.strtable - skip) \ 4
+  END IF
 
   IF skip >= 14 THEN
-   GET #fh, 13, shortvar
+   GET #fh, 1+12, shortvar
    .parent = shortvar
   ELSE
    .parent = 0
   END IF
   IF skip >= 16 THEN
-   GET #fh, 15, shortvar
+   GET #fh, 1+14, shortvar
    .nestdepth = shortvar
    IF .nestdepth > maxScriptNesting THEN
     scripterr "Corrupt or unsupported script data with nestdepth=" & .nestdepth & "; should be impossible", serrError
@@ -719,16 +738,43 @@ LOCAL FUNCTION loadscript_read_header(fh as integer, id as integer) as ScriptDat
    .nestdepth = 0
   END IF
   IF skip >= 18 THEN
-   GET #fh, 17, shortvar
+   GET #fh, 1+16, shortvar
    .nonlocals = shortvar
   ELSE
    .nonlocals = 0
   END IF
 
-  .size = (LOF(fh) - skip) \ wordsize
+  'String table length, which is always a multiple of 4 bytes
+  IF skip >= 22 THEN
+   GET #fh, 1+18, .strtablelen
+  ELSE
+   'By default, string table extends to end of lump
+   .strtablelen = 0
+   IF .strtable THEN .strtablelen = .size - .strtable
+  END IF
 
-  IF .strtable < 0 OR .strtable > .size THEN
-   scripterr "Script " & id & " corrupt; bad string table offset", serrError
+  DIM bitsets as ushort
+  IF skip >= 24 THEN
+   GET #fh, 1+22, bitsets
+  ELSE
+   bitsets = 0
+  END IF
+  .hassrcpos = (bitsets AND 1) <> 0
+
+  'We ignore the variable names here; they are loaded if needed by get_script_var_name
+  .varnamestable = 0
+  IF skip >= 28 THEN
+   GET #fh, 1+24, .varnamestable
+  END IF
+
+  IF .strtable < 0 OR .strtablelen < 0 OR .strtable + .strtablelen > .size THEN
+   scripterr "Script " & id & " corrupt; bad string table offset/size", serrError
+   DELETE ret
+   RETURN NULL
+  END IF
+
+  IF .varnamestable < 0 OR .varnamestable >= .size THEN
+   scripterr "Script " & id & " corrupt; bad variable-name table offset", serrError
    DELETE ret
    RETURN NULL
   END IF
@@ -1433,8 +1479,9 @@ END SUB
 FUNCTION script_string_constant(scriptinsts_slot as integer, offset as integer) as string
  WITH *scriptinsts(scriptinsts_slot).scr
   DIM stringp as integer ptr = .ptr + .strtable + offset
-  IF .strtable + offset >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
-   scripterr "script data corrupt: illegal string offset", serrError
+  'IF .strtable + offset >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
+  IF offset >= .strtablelen ORELSE offset + (stringp[0] + 3) \ 4 >= .strtablelen THEN
+   scripterr "script corrupt: illegal string offset", serrError
   ELSE
    RETURN read32bitstring(stringp)
   END IF

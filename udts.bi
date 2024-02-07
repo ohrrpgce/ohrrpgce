@@ -413,14 +413,18 @@ TYPE ScriptData
                         'The id number is negated if this is a stale unreloaded script and
                         'shouldn't be used for new scripts.
   hash as ulongint      'file_hash64 of the .hsx/.hsz file
-  ptr as integer ptr    'pointer to script commands
+  ptr as int32 ptr      'pointer to script data, including everything from lump except header:
+                        'commands, string table, and variable name table (later two optional)
   scrformat as integer  'hsz file format version number
   headerlen as integer  'header length in bytes
   size as integer       'size of script data, in 4 byte words (in-memory size, not on-disk size)
   vars as integer       'local variable (including arguments) count, not including nonlocals
   nonlocals as integer  'number of nonlocal variables (sum of locals in ancestor scripts)
   args as integer       'number of arguments
-  strtable as integer   'pointer to string table (offset from start of script data in 4 byte ints)
+  strtable as integer   'pointer to string table (offset from .ptr in int32's)
+  strtablelen as integer 'length of the string table, in int32's
+  hassrcpos as bool     'whether srcpos available for non-leaf nodes
+  varnamestable as integer 'local var name table (offset from .ptr in int32's)
   nestdepth as integer  'Number of scripts/subscripts this is nested in, 0 for scripts
   parent as integer     'ID of parent script or 0 if not a subscript
 
@@ -459,12 +463,12 @@ END TYPE
 'State of an executing script, used by the old interpreter
 TYPE OldScriptState
   scr as ScriptData ptr 'script in script() hashtable (duplicated from ScriptInst)
-  scrdata as integer ptr 'convenience pointer to .scr->ptr
+  scrdata as int32 ptr  'convenience pointer to .scr->ptr
   frames(maxScriptNesting) as OldScriptFrame   'frame(0) points to local variables, others to variables of ancestor scripts
   heapend as integer    'one-past-end of offsets on the heap used by this script (starts at frame(0).heap)
   stackbase as integer  'position where this script's stack data starts in scrst
   state as integer      'current interpreter statemachine state; negated if suspended by another fibre
-  ptr as integer        'the execution pointer (in int32's from the start of the script data)
+  ptr as integer        'the execution pointer (in int32's from the start of the script data), not same as ScriptData.ptr
   ret as integer        'the scripts current return value
   curargn as integer    'current arg for current statement
   depth as integer      'stack depth of current script
