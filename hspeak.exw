@@ -510,13 +510,12 @@ integer was_warnings      was_warnings=false
 --            (aside from leading/trailing whitespace), capped to 254.
 --            (255 reserved for future use)
 --bit  8    : Virtual flag
---bits 9..31: The (1-base) character number of the start of the token in the file
+--bits 9..31: The (1-based) character number of the start of the token in the file
 --            plus the file's FILE_OFFSET
 --
 --The first file has FILE_OFFSET=1, to ensure srcpos 0 is never used.
 --Offset FILE_OFFSET+0 is reserved to refer to the file as a whole (unused);
---FILE_OFFSET+i (i > 1) refers to that point.
---Note that file offsets are after all newlines have been convert to Unix.
+--FILE_OFFSET+1 is the start of the file.
 --
 --See also encode_srcpos and decode_srcpos
 type srcpos(object pos)
@@ -1425,8 +1424,11 @@ end procedure
 
 ---------------------------------------------------------------------------
 
---Find newlines in a file (possibly mixed type), returns line extents,
--- {start of line, end of line} pairs, both inclusive, newlines excluded.
+--Find newlines in a file (possibly mixed type), returns line extents
+--({start of line, end of line} pairs, both inclusive, newlines excluded)
+--and the file_text with Mac lineendings converted to Unix, because the engine's
+--decode_srcpos expects source.lumped contents don't use Mac lineendings.
+--Note also read_file() adds a newline at the end if none.
 function split_lines(string file_text)
   integer line_start=1
   integer last_13=-1
@@ -1436,6 +1438,9 @@ function split_lines(string file_text)
       line_extents=append(line_extents, {line_start,i-1})
       last_13=i
       line_start=i+1
+      if i+1<=length(file_text) and file_text[i+1]!=10 then -- A \r lineending
+        file_text[i]=10
+      end if
     elsif file_text[i]=10 then
       if last_13!=i-1 then  -- handle {13,10} "\r\n"
         line_extents=append(line_extents, {line_start,i-1})
@@ -1447,7 +1452,7 @@ function split_lines(string file_text)
   if line_start<=length(file_text) then
     line_extents=append(line_extents, {line_start,length(file_text)})
   end if
-  return line_extents
+  return {line_extents,file_text}
 end function
 
 ---------------------------------------------------------------------------
@@ -1471,15 +1476,16 @@ procedure load_source(string filename, string reading_how, srcpos pos)
   if fh!=failure then
     wrap_print("%s "&COLBWHI&"%s"&COLWHI&"\n",{reading_how,filename})
 
-    line_extents={}
-
     reenter_timing_zone("read_file")
     --Autodetect the encoding
     file_text=read_file(fh, TEXT_MODE, UTF)
     exit_timing_zone()
     close(fh)
 
-    line_extents=split_lines(file_text)
+    sequence temp=split_lines(file_text)
+    line_extents=temp[1]
+    file_text=temp[2]
+
     total_lines+=length(line_extents)
     file_list=append(file_list,{filename,file_text,line_extents,offset,""})
     --Maximum valid srcpos points to length 1 virtual token at end of file.

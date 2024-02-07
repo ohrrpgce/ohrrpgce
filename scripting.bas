@@ -1529,8 +1529,9 @@ SUB read_srcfiles_txt()
  CLOSE fh
 END SUB
 
-' Decodes srcpos into posdata and returns true, or returns false on failure.
-' If the srcpos is from a script then it is relative rather than absolte and the script's offset needs to be given.
+' Decodes srcpos into posdata including reading the source line; returns true on success.
+' Note, uses showerror rather than scripterr to avoid infinite loops.
+' If the srcpos is from a script then it is relative rather than absolute and the script's offset needs to be given.
 FUNCTION decode_srcpos(posdata as ScriptTokenPos, srcpos as uinteger, script_offset as integer = 0) as bool
  DIM charpos as uinteger
  DIM lumpname as string
@@ -1544,16 +1545,17 @@ FUNCTION decode_srcpos(posdata as ScriptTokenPos, srcpos as uinteger, script_off
  charpos = (srcpos SHR 9) + script_offset
  posdata.isvirtual = ((srcpos SHR 8) AND 1) <> 0
 
- 'debug "decode_srcpos: charpos " & charpos & " len " & posdata.length
+ 'debug "decode_srcpos: srcpos " & srcpos & " script_offset " & script_offset & " charpos " & charpos & " len " & posdata.length
 
  ' Search srcfiles to find the file containing this charpos, and grab some info from it
  IF UBOUND(srcfiles) < 0 THEN RETURN NO
  DIM idx as integer
  FOR idx = 0 TO UBOUND(srcfiles)
   WITH srcfiles(idx)
-   '-- Starts a new file entry. But before moving onto it, see whether the previous entry was the target
-   IF charpos >= .offset AND charpos <= .offset + .length THEN
+   'Note: .offset is a reserved value
+   IF charpos >= .offset ANDALSO charpos <= .offset + .length THEN
     charpos -= .offset
+    'debug "...in " & .lumpname & " which has offset " & .offset & " -> charpos = " & charpos
     lumpname = .lumpname
     posdata.filename = trimpath(.filename)
     EXIT FOR
@@ -1561,7 +1563,7 @@ FUNCTION decode_srcpos(posdata as ScriptTokenPos, srcpos as uinteger, script_off
   END WITH
  NEXT
  IF idx > UBOUND(srcfiles) THEN
-  scripterr "Script debug info is invalid: srcpos " & srcpos & " not found", serrError
+  showerror "Script debug info is invalid: srcpos " & srcpos & " not found"
   RETURN NO
  END IF
 
@@ -1570,76 +1572,41 @@ FUNCTION decode_srcpos(posdata as ScriptTokenPos, srcpos as uinteger, script_off
   posdata.linetext = "[File " & posdata.filename & "]"
   RETURN YES
  END IF
- ' Offsets in the file are 1-based
- charpos -= 1
- debug "decode_srcpos: offset in file is " & charpos
+ 'debug "decode_srcpos: offset in file is " & charpos
 
  ' Unlump that source file if not already
- IF isfile(tmpdir & lumpname) = NO THEN
+ DIM srcfile as string = tmpdir & lumpname
+ IF isfile(srcfile) = NO THEN
   unlump tmpdir & "source.lumped", tmpdir
-  IF isfile(tmpdir & lumpname) = NO THEN
-   scripterr "Couldn't unlump " & lumpname & " from source.lumped", serrError
-   RETURN NO
-  END IF
  END IF
 
- ' Now find the line of text (and line number) in the source
-
- DIM lines() as string
- IF lines_from_file(lines(), tmpdir & lumpname) =NO THEN
-  scripterr "Script source file " & lumpname & " couldn't be read", serrError
+ ' Read as binary to preserve newlines for exact file positions
+ DIM success as bool
+ DIM text as string = read_file(srcfile, , success)
+ IF success = NO THEN
+  showerror "Couldn't unlump " & lumpname & " from source.lumped"
+  RETURN NO
  END IF
 
- DIM as integer amountread
- FOR lineno as integer = 0 TO UBOUND(lines)
-  ' Add 1 for the newline trimmed by lines_from_file
-  IF amountread + LEN(lines(lineno)) + 1 >= charpos THEN
-   posdata.col = charpos - amountread
-   posdata.linenum = lineno + 1  'Convert to 1-based line number
-   posdata.linetext = lines(lineno)
+ ' Now find the line of text and line number in srcfile
+ ' HSpeak 3W+ ensures the line endings are either Unix or DOS, not Mac, and
+ ' that the last line ends in \n, so just look for \n.
+ DIM as integer lineno = 1, linestart = 1, lineend
+ DO
+  lineend = INSTR(linestart, text, !"\n")
+  ' charpos, string offsets, posdata.col/.linenum are all 1-based
+  IF charpos <= lineend THEN
+   posdata.col = charpos - linestart
+   posdata.linenum = lineno
+   posdata.linetext = RTRIM(MID(text, linestart, lineend - linestart), !"\r")
    RETURN YES
   END IF
-  amountread += LEN(lines(lineno)) + 1
- NEXT
+  linestart = lineend + 1
+  lineno += 1
+ LOOP WHILE lineend
 
- scripterr "Script debug info is invalid: offset " & charpos & " not found in " & posdata.filename, serrError
+ showerror "Script debug info is invalid: offset " & charpos & " not found in " & posdata.filename
  RETURN NO
-
-
-' DIM fh as integer
-' IF OPENFILE(tmpdir & lumpname, for_binary + access_read, fh) THEN RETURN NO
-
-
-
-/'
- DIM as integer loadamount, chunksize, amountread
- DIM as ubyte ptr bufr
-
- posdata.linenum = 1
- posdata.linetext = ""
-
- bufr = allocate(8192)
- WHILE NOT EOF(fh)
-  chunksize = small(8192, loadamount)
-  'copy a chunk of file
-  fgetiob fh, , bufr, 8192, @chunksize
-  FOR i as integer = 0 TO chunksize - 1
-   amountread += 1
-   IF amountread = charpos THEN posdata.col = LEN(posdata.linetext) + 1  '1-based
-   IF bufr[i] = 10 THEN   'LF
-    IF amountread > charpos THEN EXIT WHILE
-    posdata.linenum += 1
-    posdata.linetext = ""
-   ELSE
-    posdata.linetext += CHR(bufr[i])
-   END IF
-  NEXT
- WEND
- deallocate(bufr)
- CLOSE fh
-'/
-
- RETURN YES
 END FUNCTION
 
 'Get information about position in the script source of the currently executing

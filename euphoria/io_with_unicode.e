@@ -338,11 +338,11 @@ public function read_file(object file, integer as_text = BINARY_MODE, integer en
 		exit
 	end while
 		
-	fn = find(26, ret) -- Any Ctrl-Z found?
-	if fn then
-		-- Ok, so truncate the file data
-		ret = ret[1 .. fn - 1]
-	end if
+	-- fn = find(26, ret) -- Any Ctrl-Z found?
+	-- if fn then
+	-- 	-- Ok, so truncate the file data
+	-- 	ret = ret[1 .. fn - 1]
+	-- end if
 
 	-- Convert Windows endings
 	-- (commented out because this is quadratic time and doesn't handle Mac lineendings anyway;
