@@ -2107,9 +2107,36 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure check_undefined_string(Token s, string seeking)
-   check_for_reserved(s[CMD_TEXT],s[CMD_POS],seeking)
-   mustnt_be_a_number(s)
+--Check whether an identifier is unused and available. If cur_script_num is set, also
+--checks local variables in the current scope, but not nonlocal vars.
+procedure check_undefined_string(Token s, string expect)
+  sequence src_position
+
+  check_for_reserved(s[CMD_TEXT],s[CMD_POS],expect)
+  mustnt_be_a_number(s)
+
+  if cur_script_num!=0 then
+    --Search for a local with that name. Ignore non-locals because they are allowed to be shadowed.
+    VarList local_vars
+    --Might be in the middle of building this script and not have SCRIPT_VARIABLES yet
+    if length(all_scripts[cur_script_num]) >= SCRIPT_VARIABLES then
+      local_vars=all_scripts[cur_script_num][SCRIPT_VARIABLES]
+      for idx=1 to length(local_vars) do
+        if equal(local_vars[idx][CMD_TEXT],s[CMD_TEXT]) then
+          if local_vars[idx][VAR_FRAME]=0 then  --is local
+            src_position=decode_srcpos(local_vars[idx][CMD_POS])
+            src_error(
+              sprintf_utf(
+                COLYEL&"%s"&COLRED&" can't be used as a %s because it's already defined as a local variable/argument on line %d of "&COLPNK&"%s"&COLRED,
+                {s[CMD_TEXT],expect,src_position[POS_LINE],src_position[POS_FILENAME]}
+              )
+              ,s[CMD_POS]
+            )
+          end if
+        end if
+      end for
+    end if
+  end if
 end procedure
 
 ---------------------------------------------------------------------------
@@ -3423,21 +3450,6 @@ procedure add_local_variable(Token var)
   vars=script[SCRIPT_VARIABLES]
   --First check it's not already defined at global scope
   check_undefined_string(var,"local variable name")
-  --Search for an existing local with the same name. Ignore non-locals, because they are shadowed
-  for idx=1 to length(vars) do
-    if equal(vars[idx][CMD_TEXT],var[CMD_TEXT]) then
-      if vars[idx][VAR_FRAME]=0 then  --is local
-        src_position=decode_srcpos(vars[idx][CMD_POS])
-        src_error(
-          sprintf_utf(
-            "Local variable/argument "&COLYEL&"%s"&COLRED&" is already defined in line %d of "&COLPNK&"%s"&COLRED,
-            {var[CMD_TEXT],src_position[POS_LINE],src_position[POS_FILENAME]}
-          )
-          ,var[CMD_POS]
-        )
-      end if
-    end if
-  end for
   --Always add to scope of current script (frame == 0)
   id=length(vars)-script[SCRIPT_NUM_NONLOCALS]
   --Extend the Token into a VarToken, and prefix to the list, so that it takes
