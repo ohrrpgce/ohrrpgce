@@ -202,11 +202,11 @@ SUB start_script_trigger_log
  print #fh, "(...as above...) means that a script continues waiting multiple ticks for the same reason."
  print #fh,
  print #fh, " Symbols in front of script names:"
- print #fh, "+ -- A script was triggered (queued), possibly also started, possibly also finished" 
+ print #fh, "+ -- A script was triggered (queued), possibly also started, possibly also finished"
  print #fh, "! -- As above, but triggered as a side effect of something the script above it did,"
  print #fh, "     such as running ""close menu"", interrupting that script."
  print #fh, "     (Note: ! is used only if the command didn't cause an implicit 'wait')"
- print #fh, "* -- A queued script was started, possibly also finished" 
+ print #fh, "* -- A queued script was started, possibly also finished"
  print #fh, "- -- A previously started script finished"
  print #fh,
  CLOSE #fh
@@ -1709,7 +1709,10 @@ FUNCTION interpreter_context_name() as string
  RETURN ""
 END FUNCTION
 
-FUNCTION script_call_chain (byval trim_front as bool = YES) as string
+'Returns string describing call chain.
+'trim_front: if true, limit string length.
+'errorlevel: optional, relevant only to scripterr
+FUNCTION script_call_chain (trim_front as bool = YES, errorlevel as scriptErrEnum = 0) as string
  IF nowscript < 0 THEN
   RETURN "(No scripts running)"
  END IF
@@ -1720,7 +1723,12 @@ FUNCTION script_call_chain (byval trim_front as bool = YES) as string
   IF scrat(i).state < 0 THEN EXIT FOR 'suspended: not part of the call chain
   scriptlocation = scriptname(scriptinsts(i).id) + " -> " + scriptlocation
  NEXT
- IF trim_front AND LEN(scriptlocation) > 150 THEN scriptlocation = " ..." + RIGHT(scriptlocation, 150)
+
+ 'If a serious error occurred, the call chain is useless, and less screen space is available
+ DIM as integer cchainlimit
+ cchainlimit = IIF(errorlevel >= serrError, 50, 120)
+ IF trim_front AND LEN(scriptlocation) > cchainlimit THEN scriptlocation = " ..." + RIGHT(scriptlocation, cchainlimit - 4)
+
  RETURN scriptlocation
 END FUNCTION
 
@@ -1746,13 +1754,12 @@ END FUNCTION
 'NOTE: this function can get called with errors which aren't caused by scripts,
 'for example findhero() called from a textbox conditional.
 'context_slice is which slice to show in the slice editor
-SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, context_slice as Slice ptr = NULL)
+SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, context_slice as Slice ptr = NULL)
  'mechanism to handle scriptwatch throwing errors
  STATIC as integer recursivecall
 
  STATIC as integer ignorelist()
 
- DIM as string errtext()
  DIM as integer scriptcmdhash, errmsghash
 
  'err_suppress_lvl is always at least serrIgnore
@@ -1765,7 +1772,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
  IF display = YES ORELSE error_count < 50 THEN
   DIM as string call_chain
   IF insideinterpreter THEN call_chain = script_call_chain(NO)
-  debug "Scripterr(" & errorlevel & "): " + call_chain + ": " + e
+  debug "Scripterr(" & errorlevel & "): " + call_chain + ": " + errmsg
  ELSEIF error_count = 50 THEN
   debug "Ignoring further script errors"
  END IF
@@ -1779,7 +1786,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
   scriptcmdhash = scrat(nowscript).id * 100000 + scrat(nowscript).ptr
   IF a_find(ignorelist(), scriptcmdhash) <> -1 THEN EXIT SUB
  END IF
- errmsghash = strhash(e)
+ errmsghash = strhash(errmsg)
  IF a_find(ignorelist(), errmsghash) <> -1 THEN EXIT SUB
 
  ' OK, decided to show the error
@@ -1787,16 +1794,27 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
 
  recursivecall += 1
 
- IF errorlevel = serrError THEN e = "Script data may be corrupt or unsupported:" + CHR(10) + e
+ DIM errtext as string = errmsg
 
- e = e + CHR(10) + CHR(10) + "  Call chain (current script last):" + CHR(10) + script_call_chain()
- split(wordwrap(e, large(80, vpages(vpage)->w - 16) \ 8), errtext())
+ IF errorlevel = serrError THEN errtext = "Script data may be corrupt or unsupported:" + CHR(10) + errtext
+
+ errtext &= !"\n\n  Call chain (current script last):\n" & script_call_chain(YES, errorlevel)
+
+ IF nowscript >= 0 THEN
+  DIM as ScriptTokenPos posdata
+  IF get_script_line_info(posdata, nowscript) THEN
+   errtext &= !"\n" & fgtag(uilook(uiDescription)) & highlighted_script_line(posdata, 120, YES)
+  END IF
+ END IF
+
+' split(wordwrap(errmsg, large(80, vpages(vpage)->w - 16) \ 8), errtext())
 
  DIM state as MenuState
  state.pt = 0
  DIM menu as MenuDef
  menu.anchorvert = alignTop
- menu.offset.y = -100 + 38 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
+ menu.alignvert = alignTop
+ menu.offset.y = 38
  menu.bordersize = -4
 
  append_menu_item menu, "Ignore once", 0
@@ -1836,7 +1854,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
   setkeys
 
   IF keyval(ccCancel) > 1 THEN 'ignore
-   EXIT DO 
+   EXIT DO
   END IF
 
   IF keyval(scF1) > 1 THEN show_help("game_scripterr")
@@ -1891,10 +1909,7 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
    printstr header, pCentered, 7, vpage
   END IF
 
-  FOR i as integer = 0 TO UBOUND(errtext)
-   printstr errtext(i), 8, 25 + 10 * i, vpage
-  NEXT
-
+  wrapprint errtext, 8, 25, vpage, rWidth - 16
   draw_menu menu, state, vpage
 
   IF menu.items[state.pt]->t = 6 THEN
@@ -1921,9 +1936,11 @@ SUB scripterr (e as string, byval errorlevel as scriptErrEnum = serrBadOp, conte
  'Not worth worrying about this.
 END SUB
 
+'Called to interrupt interpreter if unresponsive.
+'Returns true if current interpreter block (e.g. while-do) should be aborted.
 'TODO: there's a lot of code duplicated between this and scripterr
-FUNCTION script_interrupt () as integer
- DIM as integer ret = NO
+FUNCTION script_interrupt () as bool
+ DIM as bool ret = NO
  DIM as string errtext()
  DIM as string msg
 
@@ -1959,7 +1976,7 @@ FUNCTION script_interrupt () as integer
   setkeys
 
   IF keyval(ccCancel) > 1 THEN 'continue
-   EXIT DO 
+   EXIT DO
   END IF
 
   IF keyval(scF1) > 1 THEN show_help("game_script_interrupt")

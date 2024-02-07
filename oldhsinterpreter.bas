@@ -10,6 +10,7 @@
 #include "config.bi"
 #include "util.bi"
 #include "udts.bi"
+#include "loading.bi"
 #include "scrconst.bi"
 #include "gglobals.bi"
 #include "allmodex.bi"
@@ -20,7 +21,6 @@
 'local subs and functions
 DECLARE SUB scriptinterpreter_loop ()
 DECLARE FUNCTION interpreter_occasional_checks () as integer
-DECLARE SUB scriptdump (header as string)
 DECLARE FUNCTION functiondone () as integer
 DECLARE SUB killtopscript ()
 DECLARE SUB substart (byref si as OldScriptState)
@@ -472,9 +472,11 @@ DO
    '--just load the first command
    substart scrat(nowscript)
   CASE stwait'---begin waiting for something
-   scriptinsts(nowscript).curkind = curcmd->kind
-   scriptinsts(nowscript).curvalue = curcmd->value
-   scriptinsts(nowscript).curargc = curcmd->argc
+   WITH scriptinsts(nowscript)
+    .curkind = curcmd->kind
+    .curvalue = curcmd->value
+    .curargc = curcmd->argc
+   END WITH
    EXIT DO
   CASE stdone'---script terminates
    '--if resuming a supended script, restore its state (normally stwait)
@@ -888,12 +890,42 @@ SUB scriptmath
    ELSE
     scriptret = SQRT(retvals(0))
    END IF
-  'When adding more math types remember to update mathname() in scriptstate
+  'When adding more math types remember to update mathname() in scriptcmdname
   CASE ELSE
    scripterr "unsupported math function id " & curcmd->value, serrError
  END SELECT
 END SUB
 
+'returns the srcpos of the current command of the given script (in nowscript), or 0 if that debug info not available
+FUNCTION script_current_srcpos(selectedscript as integer) as uinteger
+ 'Write curcmd out in case nowscript == selectedscript
+ WITH scriptinsts(nowscript)
+  .curkind = curcmd->kind
+  .curvalue = curcmd->value
+  .curargc = curcmd->argc
+ END WITH
+
+ WITH scrat(selectedscript)
+  DIM curnode as ScriptCommand ptr
+  curnode = cast(ScriptCommand ptr, .scrdata + .ptr)
+
+  debug "script_current_srcpos: hassrcpos = " & .scr->hassrcpos & "  kind/id = " & curnode->kind & "/" & curnode->value & " ptr = " & .ptr & " argc = " & curnode->argc
+  IF .scr->hassrcpos THEN
+   WITH *curnode
+    IF .kind = tyflow OR .kind = tymath OR .kind = tyfunct OR .kind = tyscript THEN
+     'Isn't a leaf node
+     RETURN (@.args(0))[.argc]  'Follows arg list (can't index .args() directly)
+     'RETURN cast(int32 ptr, curnode)[3 + .argc]
+    ELSE
+     ''''''''''''''''''''''''''''''''''''''''''''''TODO!!!: fall back to parent command
+    END IF
+   END WITH
+  END IF
+ END WITH
+ RETURN 0
+END FUNCTION
+
+'Dump interpreter state of nowscript to g_debug.txt
 SUB scriptdump (header as string)
  DIM statestr(9) as string
  statestr(0) = "none"
