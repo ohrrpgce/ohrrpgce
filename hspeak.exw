@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3W  2024-02-06 Add srcpos debug info, local var names, and srcfiles.txt
 --3Vb 2024-02-06 Disallow local and subscript with the same name
 --    2024-01-11 Fix lexing of identifiers ending in : & | or -
 --3Va 2022-04-08 Add exit
@@ -149,8 +150,7 @@
 --              $id="..." -> setstring
 --              $id+"..." -> appendstring
 --2E 2005-02-15 Changed license to GPL
---              Added += and -= operators thanks to a patch from
---              The Mad Cacti and Fyrewulff
+--              Added += and -= operators
 --2D 2002-08-03 Only a small change, strip out \r from lines of
 --              the script as we read them to avoid errors related
 --              to busted newlines
@@ -189,7 +189,7 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Vb"
+constant COMPILER_SUB_VERSION="W "
 constant COPYRIGHT_DATE="2024"
 
 --Known single-character commandline options
@@ -5612,7 +5612,13 @@ function generate_srcfiles_dot_txt()
   sequence result
   result=""
   for i=1 to length(file_list) do
-    result&=sprintf_utf("file=%s\nlump=%s\noffset=%d\nlength=%d\n",{absolute_path(file_list[i][FILE_NAME]),file_list[i][FILE_LUMP],file_list[i][FILE_OFFSET],length(file_list[i][FILE_TEXT])})
+    result&=sprintf_utf("file=%s\nlump=%s\noffset=%d\nlength=%d\n",
+      {
+        absolutize_path(file_list[i][FILE_NAME]),
+        file_list[i][FILE_LUMP],
+        file_list[i][FILE_OFFSET],
+        length(file_list[i][FILE_TEXT])
+      })
   end for
   return(result)
 end function

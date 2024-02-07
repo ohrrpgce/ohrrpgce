@@ -1193,7 +1193,7 @@ IF mode > 1 AND viewmode = 0 THEN
 
    DIM hs_header as HSHeader
    load_hsp_header tmpdir & "hs", hs_header
-   IF strcmp(STRPTR(hs_header.hspeak_version), STRPTR("3T ")) < 0 THEN
+   IF strcmp(STRPTR(hs_header.hspeak_version), STRPTR("3W ")) < 0 THEN
     'Didn't support line numbers
     edgeprint "Recompile your scripts with a", 0, ol - 27, uilook(uiDescription), page
     edgeprint "more recent version of HSpeak.", 0, ol - 18, uilook(uiDescription), page

@@ -40,6 +40,7 @@ CONST flowcontinue = 12
 CONST flowexit = 13
 CONST flowexitreturn = 14
 CONST flowswitch = 15
+CONST flowLAST = 15
 'case and subscript (16 and 17) never appear in compiled scripts
 'When adding new flow control remember to update scriptstate and flowname() in scriptcmdname
 '--MATH COMMANDS---

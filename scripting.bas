@@ -2003,6 +2003,7 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
  ELSE
   append_menu_item menu, "Enter slice editor/debugger", 5
  END IF
+
  IF recursivecall = 1 THEN  'don't reenter the debugger if possibly already inside!
   IF gam.debug_scripts <> 0 THEN
    state.pt = append_menu_item(menu, "Return to script debugger", 6)

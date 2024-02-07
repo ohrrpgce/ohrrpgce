@@ -235,8 +235,12 @@ global function normalize_filename(sequence s)
   end ifdef
 end function
 
---make a file path absolute if it is not (note this leaves .'s and ..'s intact)
-global function absolutize_path(sequence s,sequence basedir)
+--make a file path absolute if it is not (note this leaves .'s and ..'s intact),
+--relative to the current dir by default
+global function absolutize_path(sequence s,sequence basedir="")
+  if equal(basedir,"") then
+    basedir=current_dir()
+  end if
   ifdef WINDOWS then
     --FIXME: breaks on UNC paths
     if length(s)<3 or equal(s[2..3],":\\")=0 then
@@ -253,11 +257,6 @@ global function absolutize_path(sequence s,sequence basedir)
     end if
   end ifdef
   return s
-end function
-
---absolutize a path in the same way the OS does
-global function absolute_path(sequence s)
-  return absolutize_path(s,current_dir())
 end function
 
 --extract only portion of a string after the last of a delimiter--
