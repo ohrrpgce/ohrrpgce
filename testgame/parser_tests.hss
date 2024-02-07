@@ -251,7 +251,7 @@ script, namespace tests, arg, begin
   subscript, sub, constant ()                     # ERROR
   subscript, sub, NO OP ()                        # ERROR
   subscript, sub, namespace tests ()              # ERROR
-  subscript, sub, sub ()                          # ERROR  (known failure)
+  subscript, sub, sub ()                          # ERROR
   subscript, sub, arg ()                          # OK
   subscript, sub, v ()                            # OK
   subscript, namespace tests, arg ()              # ERROR
@@ -265,18 +265,17 @@ script, namespace tests, arg, begin
   v := subscript, sub ()                          # ERROR
   @obsolete("message") subscript, sub ()          # OK
   @obsolete, @obsolete(blarg), subscript, sub ()  # OK
-  ## Should shadowing scripts in an outer scope be allowed? (Currently not.) Seems useful.
-  ## Scripts with both of the following names have been declared, but hspeak
-  ## hasn't parsed anotherscript yet, so fails to report an error.
-  ## (Probably same thing with subscripts which are in scope.)
+  ## Should shadowing scripts/locals in an outer scope be allowed? (Currently not.) Seems useful.
+  ## Scripts named div and ascript have been declared, but hspeak
+  ## hasn't parsed ascript yet, so fails to report an error.
   subscript, div ()                               # ERROR (?)
   subscript, a script ()                          # ERROR (?) (known failure)
-  variable(sub), subscript, sub ()                # ERROR  (known failure)
-  subscript, sub (), variable(sub)                # ERROR  (known failure)
+  variable(sub), subscript, sub ()                # ERROR
+  subscript, sub (), variable(sub)                # ERROR
   subscript, sub (), subscript, foo (subscript, sub ())  # ERROR (?)
   subscript, foo (subscript, sub ()), subscript, sub ()  # ERROR (?) (known failure)
-  subscript, sub (), subscript, foo (variable (sub))     # ERROR (?) (known failure)
-  subscript, foo (variable (sub)), subscript, sub ()     # ERROR (?) (known failure)
+  subscript, sub (), subscript, foo (variable (sub))     # ERROR (?)
+  subscript, foo (variable (sub)), subscript, sub ()     # ERROR (?)
   ## Operators (builtin or from defineoperator above)
   subscript, add ()                               # ERROR
   subscript, sub, add ()                          # ERROR

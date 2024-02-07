@@ -1,6 +1,6 @@
 -- HamsterSpeak Compiler
 
---(C) Copyright 2001-2022 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+-- (C) Copyright 2001-2024 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 -- Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 -- This is a compiler for HamsterSpeak scripts used for plotscripting in
@@ -13,7 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
---3Vb 2024-01-11 Fix lexing of identifiers ending in : & | or -
+--3Vb 2024-02-06 Disallow local and subscript with the same name
+--    2024-01-11 Fix lexing of identifiers ending in : & | or -
 --3Va 2022-04-08 Add exit
 --3V  2022-04-07 Add showvalueof, and tracevalueof alias
 --3Ug 2021-12-12 Change license to Dual GPL+MIT (with consent of all contributors)
@@ -188,8 +189,8 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Va"
-constant COPYRIGHT_DATE="2022"
+constant COMPILER_SUB_VERSION="Vb"
+constant COPYRIGHT_DATE="2024"
 
 --Known single-character commandline options
 constant VALID_OPTIONS="abcdfjknstwuyz"
@@ -2108,12 +2109,29 @@ end procedure
 ---------------------------------------------------------------------------
 
 --Check whether an identifier is unused and available. If cur_script_num is set, also
---checks local variables in the current scope, but not nonlocal vars.
+--checks local variables and subscripts in the current scope, but not nonlocal vars.
 procedure check_undefined_string(Token s, string expect)
   sequence src_position
+  integer at
 
   check_for_reserved(s[CMD_TEXT],s[CMD_POS],expect)
   mustnt_be_a_number(s)
+
+  --Search for an in-scope subscript of that name (subscripts aren't shadowed)
+  --Also, when check_for_reserved is called from inside parse_script, script names haven't been added to global_scope yet
+  --so non-subscripts are missed by check_for_reserved.
+  at=lookup_scoped_script_name(s[CMD_TEXT])
+  if at then
+    src_position=decode_srcpos(all_scripts[at][SCRIPT_POS])
+    src_error(
+      sprintf_utf(
+        COLYEL&"%s"&COLRED&" can't be used as a %s because it's already declared as a %s on line %d of "&COLPNK&"%s"&COLRED,
+        {s[CMD_TEXT], expect, all_scripts[at][SCRIPT_TRIGGER_TOK][CMD_TEXT],
+         src_position[POS_LINE], src_position[POS_FILENAME]}
+      )
+      ,s[CMD_POS]
+    )
+  end if
 
   if cur_script_num!=0 then
     --Search for a local with that name. Ignore non-locals because they are allowed to be shadowed.
@@ -2648,33 +2666,17 @@ function parse_script(Token trigger, string parent_name, integer parent_idx, seq
       )
     end if
   end if
+
+  --Check name not already in use... unless it appears in a definescript block; if it did the name is already reserved.
+  --Note that we won't add it to script_list or global_scope yet; that happens later in check_script_declarations
+  if not find_in_column(full_name,script_list,PAIR_NAME) then
+    cur_script_num=parent_idx --temporarily to check for subscripts
+    check_undefined_string(name, COLYEL &trigger[CMD_TEXT] &COLRED &" name")
+    cur_script_num=0 --This probably isn't needed
+  end if
+
   previous_script=current_script
   current_script=full_name --name[CMD_TEXT]
-
-  --Check not already a script
-  cur_script_num=parent_idx
-  temp=lookup_scoped_script_name(name[CMD_TEXT])
-  cur_script_num=0
-  if temp then
-    if parent_idx then
-      msg="There already is a script or subscript named "&COLYEL&"%s"&COLRED&" in this context/scope, defined on line %d of "&COLPNK&"%s"&COLRED
-    else
-      msg="Script "&COLYEL&"%s"&COLRED&" appears more than once! It was previously defined on line %d of "&COLPNK&"%s"&COLRED
-    end if
-    src_position=decode_srcpos(all_scripts[temp][SCRIPT_POS])
-    src_error(
-      sprintf_utf(msg,{name[CMD_TEXT],src_position[POS_LINE],src_position[POS_FILENAME]})
-      ,name[CMD_POS]
-    )
-  end if
-
-  --Check not a reserved non-script name.
-  --This check is independent of the above 'name already in scope' check.
-  if not find_in_column(full_name,script_list,PAIR_NAME) then
-    --Doesn't appear in a definescript block; if it did the name is already reserved.
-    --Note that we won't add it to script_list yet; that happens later in check_script_declarations
-    check_undefined_string(name,"user script name to follow " &COLYEL &trigger[CMD_TEXT] &COLRED)
-  end if
 
   --Parse arguments
   arglist={}
