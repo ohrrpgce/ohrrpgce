@@ -2519,14 +2519,14 @@ end function
 'Waits for a new keyboard key, mouse or joystick button press. Clears the keypress and returns the scancode.
 'If wait_for_resize = YES, also returns scResize if the window was resized.
 'By default waits for a new keypress, adjust with trigger_level
-function waitforanykey (wait_for_resize as bool = NO, trigger_level as KeyBits = 4) as KBScancode
+function waitforanykey (wait_for_resize as bool = NO, trigger_level as KeyBits = 4, clearkeypress as bool = YES) as KBScancode
 	dim key as KBScancode
 	dim sleepjoymouse as integer = 5
 	dim remem_speed_control as bool = use_speed_control
 	dim original_resolution as XYPair = windowsize
 	use_speed_control = YES
 	skipped_frame.show()  'If we frame-skipped last frame, better show it
-	setkeys
+	'setkeys
 	do
 		setwait 55, 200
 		io_pollkeyevents()
@@ -2534,7 +2534,7 @@ function waitforanykey (wait_for_resize as bool = NO, trigger_level as KeyBits =
 		key = anykeypressed(sleepjoymouse = 0, sleepjoymouse = 0, trigger_level)
 		if key then
 			snapshot_check  'In case F12 pressed, otherwise it wouldn't work
-			setkeys  'Clear the keypress
+			if clearkeypress then setkeys  'Clear the keypress
 			use_speed_control = remem_speed_control
 			return key
 		end if

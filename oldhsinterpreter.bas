@@ -1069,7 +1069,7 @@ END SUB
 'Modify scroll, the top of a view of limit+1 items arranged in a grid of displaylines * displaycols, to move by steplines
 'Increments scroll by a multiple of displaycols.
 'If displaycols = 1 and the number of items is at least a pageful then won't exceed limit.
-SUB grid_menu_scroll(byref scroll as integer, steplines as integer, limit as integer, displaylines as integer, displaycols as integer = 1)
+SUB scroll_grid_menu(byref scroll as integer, steplines as integer, limit as integer, displaylines as integer, displaycols as integer = 1)
  IF steplines < 0 THEN
   scroll = large(0, scroll + steplines * displaycols)
  ELSE
@@ -1079,6 +1079,25 @@ SUB grid_menu_scroll(byref scroll as integer, steplines as integer, limit as int
   scroll += steplines * displaycols
  END IF
 END SUB
+
+FUNCTION plus_minus_scroll(byref scroll as integer, startspeed as integer, limit as integer, displaylines as integer, displaycols as integer = 1) as bool
+
+ DIM amount as integer
+ amount += accelerating_keydown(scPlus, limit, startspeed)
+ amount -= accelerating_keydown(scMinus, limit, startspeed)
+' IF pagekeys THEN
+  IF keyval(scPageUp) THEN amount = -displaylines + 1
+  IF keyval(scPageDown) THEN amount = displaylines - 1
+  IF keyval(scHome) THEN amount = -limit
+  IF keyval(scEnd) THEN amount = limit
+' END IF
+ scroll_grid_menu scroll, amount, limit, displaylines, displaycols
+ RETURN amount <> 0
+END FUNCTION
+
+LOCAL SUB comma_period_scroll(byref scroll as integer, limit as integer, displaylines as integer, displaycols as integer = 1)
+END SUB
+
 
 'The following function is an atrocious mess. Don't worry too much; it'll be totally replaced.
 SUB scriptwatcher (byref mode as integer, byval drawloop as bool = NO)
@@ -1197,7 +1216,7 @@ END IF
 
 DIM ol as integer = pBottom  'Line output Y position
 
-CONST var_spacing = 120  'Pixels apart to print each column of variables
+CONST var_spacing = 150  'Pixels apart to print each column of variables
 CONST local_lines = 4   'Number of lines of local variables
 'Number of columns of local or global variables
 DIM var_cols as integer = small(vpages(vpage)->w \ var_spacing, 6)
@@ -1345,7 +1364,7 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 1 OR viewmode = 5) THEN
  'Leave room for locals or source line or scriptstate
  ol = vpages(page)->h - (local_lines + 3) * 9 - 4
  'Stop this far from the top of the screen
- CONST header_height = 20
+ CONST header_height = 28
 
  DIM script_rows as integer = (ol - header_height) \ 9
 
@@ -1424,6 +1443,7 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 1 OR viewmode = 5) THEN
   ol -= 9
   IF ol < header_height THEN EXIT FOR
  NEXT i
+ edgeprint "Scripts:  ([/] scroll)", 0, ol, uilook(uiText), page
 
 END IF 'end drawing scripts list
 
@@ -1432,7 +1452,7 @@ END IF 'end drawing scripts list
 
 IF mode > 1 AND drawloop = NO THEN
  setvispage page, NO
- DIM w as KBScancode = waitforanykey(YES, 2)  'Wait for new or repeating key or a screen resize
+ DIM w as KBScancode = waitforanykey(YES, 2, NO)  'Wait for new or repeating key or a screen resize
  IF w = scEsc OR w = scF10 THEN
   mode = 0
   clearkey(scF10)
@@ -1445,40 +1465,42 @@ IF mode > 1 AND drawloop = NO THEN
  'Obsolete key kept for muscle memory, for now
  IF w = scV THEN loopvar(viewmode, 0, 5): GOTO redraw
 
- IF w = scPageUp THEN
-  selectedscript += 1
+ IF w = scRightBracket THEN 'scPageUp THEN
+  selectedscript -= accelerating_keydown(scRightBracket, 1000, 1)
   localsscroll = 0
-  grid_menu_scroll globalsscroll, -7, maxScriptGlobals,    displaylines, var_cols
+  'plus_minus_scroll globalsscroll, -7, maxScriptGlobals,    displaylines, var_cols
   GOTO redraw
  END IF
- IF w = scPageDown THEN
-  selectedscript -= 1
+ IF w = scLeftBracket THEN 'scPageDown THEN
+  selectedscript += accelerating_keydown(scLeftBracket, 1000, 1)
   localsscroll = 0
-  grid_menu_scroll globalsscroll,  7, maxScriptGlobals,    displaylines, var_cols
+  'plus_minus_scroll globalsscroll,  7, maxScriptGlobals,    displaylines, var_cols
   GOTO redraw
  END IF
 
- VAR minus = (w = scMinus OR w = scNumpadMinus)
- VAR plus = (w = scPlus OR w = scNumpadPlus)
- IF plus OR minus THEN
-  VAR neg = IIF(minus, -1, 1)
-  IF viewmode = 1 THEN grid_menu_scroll localsscroll,  neg * 1, numlocals - 1,       local_lines,  var_cols
-  IF viewmode = 2 THEN grid_menu_scroll globalsscroll, neg * 7, maxScriptGlobals,    displaylines, var_cols
-  IF viewmode = 3 THEN grid_menu_scroll stringsscroll, neg * 7, UBOUND(stringlines), displaylines
-  IF viewmode = 4 THEN grid_menu_scroll timersscroll,  neg * 7, UBOUND(timers),      displaylines
-  GOTO redraw
- END IF
+ DIM update as bool
+
+ ' SELECT CASE viewmode
+ '  CASE 0, 1, 7
+ '   update OR= period_comma_scroll(globalsscroll,  7, maxScriptGlobals,    displaylines, var_cols)
+ ' END SELECT
+
+ ' VAR minus = (w = scMinus OR w = scNumpadMinus)
+ ' VAR plus = (w = scPlus OR w = scNumpadPlus)
+ ' IF plus OR minus THEN
+ '  VAR neg = IIF(minus, -1, 1)
+  IF viewmode = 1 THEN update OR= plus_minus_scroll(localsscroll,  1, numlocals - 1,       local_lines,  var_cols)
+  IF viewmode = 2 THEN update OR= plus_minus_scroll(globalsscroll, 3, maxScriptGlobals,    displaylines, var_cols)
+  IF viewmode = 3 THEN update OR= plus_minus_scroll(stringsscroll, 3, UBOUND(stringlines), displaylines)
+  IF viewmode = 4 THEN update OR= plus_minus_scroll(timersscroll,  3, UBOUND(timers),      displaylines)
+  IF update THEN GOTO redraw
+' END IF
 
  IF w = scF1 THEN
   show_help("game_script_debugger")
   GOTO redraw
  ELSEIF w = scF2 THEN
-  IF viewmode = 0 THEN
-   'Old scriptstate() display (purposefully omitted from header)
-   viewmode = 5
-  ELSE
-   viewmode = 0
-  END IF
+  viewmode = IIF(viewmode = 0, 5, 0)
   GOTO redraw
  ELSEIF w >= scF3 AND w <= scF7 THEN
   viewmode = 1 + w - scF3   '1 to 5
@@ -1486,7 +1508,7 @@ IF mode > 1 AND drawloop = NO THEN
  END IF
 
  IF w = scP THEN 'frame stepping mode
-  mode = iif(mode = 2, 3, 2)
+  mode = IIF(mode = 2, 3, 2)
   GOTO redraw
  END IF
 

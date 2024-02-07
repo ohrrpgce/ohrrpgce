@@ -494,7 +494,7 @@ declare sub setkeyrepeat (repeat_wait as integer = 500, repeat_rate as integer =
 
 DECLARE FUNCTION interrupting_keypress () as bool
 DECLARE FUNCTION anykeypressed (checkjoystick as bool = YES, checkmouse as bool = YES, trigger_level as KeyBits = 2) as KBScancode
-DECLARE FUNCTION waitforanykey (wait_for_resize as bool = NO, trigger_level as KeyBits = 4) as KBScancode
+DECLARE FUNCTION waitforanykey (wait_for_resize as bool = NO, trigger_level as KeyBits = 4, clearkeypress as bool = YES) as KBScancode
 DECLARE SUB waitforkeyrelease ()
 
 DECLARE SUB setkeys (enable_inputtext as bool = NO)

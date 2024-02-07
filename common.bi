@@ -249,6 +249,8 @@ END ENUM
 
 DECLARE SUB reset_menu_edit_state ()
 
+DECLARE FUNCTION accelerating_keydown(key as KBScancode, maxspeed as integer, startspeed as integer = 0) as integer
+
 DECLARE FUNCTION keygrabber (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight) as bool
 DECLARE FUNCTION intgrabber OVERLOAD (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
 DECLARE FUNCTION intgrabber OVERLOAD (byref n as longint, min as longint, max as longint, less as KBScancode=ccLeft, more as KBScancode=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool

@@ -2185,12 +2185,17 @@ END SUB
 
 'Like "IIF(keyval(key) > 1, 1, 0)" except that it initially repeats slowly, and returns
 'progressively larger values the longer the key is down, up to a maximum of maxspeed.
-FUNCTION accelerating_keydown(key as KBScancode, maxspeed as integer) as integer
+'startspeed = 0 means initially repeat slowly, startspeed = 1 is initially same repeat as normal,
+'startspeed > 1 is same as startspeed = 1 but multiplies the return value.
+FUNCTION accelerating_keydown(key as KBScancode, maxspeed as integer, startspeed as integer = 0) as integer
 
  STATIC last_keydown_timestamp as double  'Timer
  STATIC key_momentum as integer  'Memory of effective milliseconds the key was down
 
- CONST STARTMS = 350        'Delay before key repeat (1 every 180ms)
+ 'These are used only if startspeed=0:
+ CONST START_REPEAT_WAIT = 350    'Delay in ms before initial key repeat
+ CONST START_REPEAT_RATE = 180    'Delay in ms between initial key repeats
+
  CONST STARTSPEEDMS = 1700  'Delay before repeat accelerates (to 1 every tick)
  CONST MAXSPEEDMS = 5000    'Time before maxspeed reached
 
@@ -2225,7 +2230,11 @@ FUNCTION accelerating_keydown(key as KBScancode, maxspeed as integer) as integer
 
   IF ms < STARTSPEEDMS THEN
    'RETURN IIF(keyval(key) > 1, 1, 0)  but slower
-   RETURN IIF(player_keyval(key, , , STARTMS, 180) > 1, 1, 0)
+   IF startspeed = 0 THEN
+    RETURN IIF(player_keyval(key, , , START_REPEAT_WAIT, START_REPEAT_RATE) > 1, 1, 0)
+   ELSE
+    RETURN IIF(keyval(key) > 1, startspeed, 0)
+   END IF
   END IF
 
   'x goes from 0 to 1 at MAXSPEEDMS
@@ -2234,8 +2243,9 @@ FUNCTION accelerating_keydown(key as KBScancode, maxspeed as integer) as integer
   'Map interval [0,1] -> [0,1], slope going from 2/3 to 4/3
   'x = 2*x/3 + x*x/3
 
-  'Always start at speed 1
-  RETURN large(1, maxspeed * (10^(x * 3) - 1) / 999.0)
+  'Always start with speed 1
+  IF startspeed = 0 THEN startspeed = 1
+  RETURN large(startspeed, maxspeed * (10^(x * 3) - 1) / 999.0)
  END IF
 END FUNCTION
 
