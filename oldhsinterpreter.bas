@@ -96,8 +96,9 @@ FUNCTION oldscriptstate_init (index as integer, script as ScriptData ptr) as zst
     DIM tryindex as integer = index - 1
     DO
      IF tryindex < 0 ORELSE scrat(tryindex).state < 0 THEN
-      'If it's a suspended script, it's in the wrong fibre
-      showbug "Could not find parent call frame on scrat stack"
+      '(If it's a suspended script, it's in the wrong fibre)
+      'This error can happen when reloading scripts 
+      showerror "Could not find parent call frame on scrat stack. Probably incompatible scripts were reloaded."
       RETURN @"corrupt/unsupported script"
      END IF
      'debug "scrat(" & tryindex &") = " & scrat(tryindex).id
@@ -822,13 +823,13 @@ SUB scriptmath
    END IF
   CASE 2' modulus
    IF retvals(1) = 0 THEN
-    scripterr "division by zero: " & retvals(0) & ",mod,0", serrBadOp
+    scripterr "Division by zero: " & retvals(0) & ",mod,0", serrBadOp
    ELSE
     scriptret = retvals(0) MOD retvals(1)
    END IF
   CASE 3' divide
    IF retvals(1) = 0 THEN
-    scripterr "division by zero: " & retvals(0) & "/0", serrBadOp
+    scripterr "Division by zero: " & retvals(0) & "/0", serrBadOp
    ELSE
     scriptret = retvals(0) \ retvals(1)
    END IF
@@ -892,7 +893,7 @@ SUB scriptmath
    END IF
   'When adding more math types remember to update mathname() in scriptcmdname
   CASE ELSE
-   scripterr "unsupported math function id " & curcmd->value, serrError
+   scripterr "Unsupported math function id " & curcmd->value, serrError
  END SELECT
 END SUB
 
@@ -1065,6 +1066,20 @@ scriptwatcher mode
 
 END SUB
 
+'Modify scroll, the top of a view of limit+1 items arranged in a grid of displaylines * displaycols, to move by steplines
+'Increments scroll by a multiple of displaycols.
+'If displaycols = 1 and the number of items is at least a pageful then won't exceed limit.
+SUB grid_menu_scroll(byref scroll as integer, steplines as integer, limit as integer, displaylines as integer, displaycols as integer = 1)
+ IF steplines < 0 THEN
+  scroll = large(0, scroll + steplines * displaycols)
+ ELSE
+  DIM displayend as integer = scroll + displaylines * displaycols - 1
+  steplines = small(steplines, CEIL((limit - displayend) / displaycols))
+  steplines = large(0, steplines)
+  scroll += steplines * displaycols
+ END IF
+END SUB
+
 'The following function is an atrocious mess. Don't worry too much; it'll be totally replaced.
 SUB scriptwatcher (byref mode as integer, byval drawloop as bool = NO)
 STATIC localsscroll as integer
@@ -1072,7 +1087,7 @@ STATIC globalsscroll as integer
 STATIC stringsscroll as integer
 STATIC timersscroll as integer
 STATIC selectedscript as integer
-STATIC bottom as integer
+STATIC bottomscript as integer
 STATIC viewmode as integer
 STATIC lastscript as integer
 'drawloop: if true, only draw the script debugger overlay (called from displayall); not interactive.
@@ -1080,12 +1095,8 @@ STATIC lastscript as integer
 'mode: 0 = do nothing, 1 = non-interactive (display over game), 2 >= interactive:
 '2 = normal mode, 3 = display game and step tick-by-tick on input
 
-DIM plots as string
-DIM marginstr as string
-' Displayed lines in the plotstring view mode. The last element of the array is ignored
-REDIM stringlines(0 TO 0) as string
-DIM linelen as integer
-DIM posdata as ScriptTokenPos
+' Displayed lines in the plotstring view mode
+REDIM stringlines() as string
 DIM page as integer
 
 DIM saved_gfxio_state as bool
@@ -1094,29 +1105,28 @@ IF mode >= 2 AND drawloop = NO THEN
  saved_gfxio_state = YES
 END IF
 
+DIM displaywidth as integer = vpages(vpage)->w \ 8  'In characters
+
+DIM datacol as integer = uilook(uiDescription)
+
+DIM strbgcol as integer = findrgb(100, 0, 200)
 FOR i as integer = 0 TO UBOUND(plotstr)
  ' Split each plotstring up onto multiple lines, each line is an element of stringlines
- plots = plotstr(i).s
- marginstr = LEFT(i & ": ", 3)
+ DIM plots as string = plotstr(i).s
+ DIM marginstr as string = rpad(i & ":", , 3)
  ' Wrap the string
- linelen = 0
- FOR j as integer = 0 TO LEN(plots) - 1
+ DIM linelen as integer = 0
+ FOR j as integer = 0 TO small(500, LEN(plots)) - 1
   linelen += 1
-  IF (linelen = 37 OR plots[j] = ASC(!"\n")) AND j <> LEN(plots) - 1 THEN 
-   'notice intentional waste of last string
-   REDIM PRESERVE stringlines(UBOUND(stringlines) + 1)
-   stringlines(UBOUND(stringlines) - 1) = marginstr + MID(plots, (j + 2) - linelen, linelen)
-   marginstr = "   "
+  IF (linelen = displaywidth - LEN(marginstr) ORELSE plots[j] = ASC(!"\n")) AND j <> LEN(plots) - 1 THEN
+   a_append stringlines(), marginstr + bgtag(strbgcol, MID(plots, (j + 2) - linelen, linelen))
+   marginstr = SPACE(LEN(marginstr))
    linelen = 0
   END IF
  NEXT
  ' Add the final piece
- REDIM PRESERVE stringlines(UBOUND(stringlines) + 1)
- IF UBOUND(stringlines) > 0 THEN
-  stringlines(UBOUND(stringlines) - 1) = marginstr + MID(plots, LEN(plots) + 1 - linelen, linelen)
- END IF
+ a_append stringlines(), marginstr + bgtag(strbgcol, MID(plots, LEN(plots) + 1 - linelen, linelen))
 NEXT
-stringsscroll = small(stringsscroll, (UBOUND(stringlines) - 1) - 19) 'recall that one string wasted
 
 IF nowscript >= 0 THEN
  WITH scriptinsts(nowscript)
@@ -1133,6 +1143,9 @@ END IF
 IF mode = 1 THEN waitforscript = 999: waitfordepth = 999: stepmode = 0
 
 redraw:
+
+''''''''''''''''''''''''''''''''''' Display '''''''''''''''''''''''''''''''''''
+
 'if in stepping mode, make a copy so debug info can be redrawn, need to keep dpage clean 
 'if called from displayall, need to keep a clean copy of nearly-drawn page to be used next tick 
 IF drawloop AND mode = 1 THEN
@@ -1146,29 +1159,31 @@ ELSE
  END IF
 END IF
 
+'Number of lines of text (9 pixels high) that can fit below the header at the top and the column header line
+DIM displaylines as integer = (vpages(page)->h - 4) \ 9 - 3
+
 'edgeprint callmode & " " & viewmode & " " & callspot, 140, 4, uilook(uiText), page
 
 selectedscript = bound(selectedscript, 0, nowscript)
 IF selectedscript = lastscript THEN selectedscript = nowscript
 lastscript = nowscript
 
-DIM hasargs as integer
+/'
+DIM hasargs as bool
 IF nowscript >= 0 THEN
  SELECT CASE scriptinsts(nowscript).curkind
   CASE tynumber, tyglobal, tylocal
-   hasargs = 0
+   hasargs = NO
   CASE ELSE
-   hasargs = 1
+   hasargs = YES
  END SELECT
 END IF
-
-'Number of lines of text (9 pixels high) that can fit below the header at the top.
-CONST displaylines = 19
+'/
 
 'Draw header at top of screen
 IF mode > 1 THEN
- edgeprint "F1   F2      F3   F4      F5      F6", 0, 0, uilook(uiDescription), page
- DIM tabnames(...) as string = {"Help", "Scripts", "Vars", "Globals", "Strings", "Timers"}
+ edgeprint "F1   F2     F3   F4      F5      F6     F7", 0, 0, uilook(uiDescription), page
+ DIM tabnames(...) as string = {"Help", "Source", "Vars", "Globals", "Strings", "Timers", "Stack"}
  DIM tabconcat as string
  FOR idx as integer = 0 TO UBOUND(tabnames)
   IF idx - 1 = viewmode THEN
@@ -1180,109 +1195,112 @@ IF mode > 1 THEN
  edgeprint tabconcat, 0, 9, uilook(uiText), page, YES
 END IF
 
-DIM ol as integer = pBottom  '191
+DIM ol as integer = pBottom  'Line output Y position
 
-IF mode > 1 AND viewmode = 0 THEN
+CONST var_spacing = 120  'Pixels apart to print each column of variables
+CONST local_lines = 4   'Number of lines of local variables
+'Number of columns of local or global variables
+DIM var_cols as integer = small(vpages(vpage)->w \ var_spacing, 6)
+
+IF mode > 1 AND (viewmode = 0 OR viewmode = 5) THEN
+ 'Source or Stack, both showing script position
+ DIM msg as string
  IF nowscript = -1 THEN
-  edgeprint "Script debugger: no scripts", 0, ol, uilook(uiDescription), page
- ELSE
+  msg = "Script debugger: no scripts"
+ ELSEIF viewmode = 0 THEN  'Source
+  DIM posdata as ScriptTokenPos
   IF get_script_line_info(posdata, selectedscript) THEN
-   wrapprint highlighted_script_line(posdata, 160, NO), 0, ol - 36, uilook(uiDescription), page
+   msg = highlighted_script_line(posdata, displaywidth * 3, @scriptinsts(selectedscript))
   ELSE
-   edgeprint "Script line number unknown.", 0, ol - 36, uilook(uiDescription), page
+   msg = !"Script line number unknown.\n"
 
    DIM hs_header as HSHeader
    load_hsp_header tmpdir & "hs", hs_header
    IF strcmp(STRPTR(hs_header.hspeak_version), STRPTR("3W ")) < 0 THEN
     'Didn't support line numbers
-    edgeprint "Recompile your scripts with a", 0, ol - 27, uilook(uiDescription), page
-    edgeprint "more recent version of HSpeak.", 0, ol - 18, uilook(uiDescription), page
+    msg &= !"Recompile your scripts with a more recent version of HSpeak.\n"
    ELSE
-    edgeprint "Recompile your scripts without", 0, ol - 27, uilook(uiDescription), page
-    edgeprint "disabling debug info.", 0, ol - 18, uilook(uiDescription), page
+    msg &= !"Recompile your scripts without disabling debug info.\n"
    END IF
-   edgeprint "Press F7 to see the old fall-back", 0, ol - 9, uilook(uiDescription), page
-   edgeprint "script position description instead.", 0, ol, uilook(uiDescription), page
+   msg &= "Press F7 to see the old fall-back script position description instead."
   END IF
+ ELSEIF viewmode = 5 THEN  'Stack
+  msg = scriptstate(selectedscript)
+  msg = text_left(msg, 1200)  'At most 1200 pixels wide (4 lines)
+  'msg &= !"\nLast return value: " & scriptret
  END IF
+ wrapprint msg, 0, pBottom, uilook(uiText), page 'uiDescription), page
 END IF
 
-IF mode > 1 AND viewmode = 5 THEN
- IF nowscript = -1 THEN
-  edgeprint "Script debugger: no scripts", 0, ol, uilook(uiDescription), page
- ELSE
-  DIM decmpl as string = scriptstate(selectedscript)
-  IF LEN(decmpl) > 200 THEN decmpl = "..." & RIGHT(decmpl, 197)
-  wrapprint decmpl, 0, ol, uilook(uiDescription), page
- ' edgeprint "Last return value: " & scriptret, 0, ol, uilook(uiDescription), page
- END IF
+DIM as integer scriptargs = 0, numlocals = 0
+IF selectedscript >= 0 THEN
+ WITH *scrat(selectedscript).scr
+  scriptargs = .args
+  numlocals = .vars
+ END WITH
 END IF
 
-DIM scriptargs as integer, numlocals as integer
-DIM localno as integer
 IF mode > 1 AND viewmode = 1 AND selectedscript >= 0 THEN
- 'local (but not nonlocal) variables and return value. Show up to 9 variables at a time
+ 'local (but not nonlocal) variables and return value. Show up to local_lines*var_cols variables at a time
  WITH scrat(selectedscript)
-  IF .scr->vars = 0 THEN
+  IF numlocals = 0 THEN
    edgeprint "Has no variables", 0, ol, uilook(uiText), page
    ol -= 9
   ELSE
-   scriptargs = .scr->args
-   numlocals = .scr->vars
    DIM temp as string
-   FOR i as integer = small((numlocals - localsscroll - 1) \ 3, 2) TO 0 STEP -1
-    FOR j as integer = 2 TO 0 STEP -1  'reverse order so the var name is what gets overwritten
-     localno = localsscroll + i * 3 + j
+   FOR i as integer = local_lines - 1 TO 0 STEP -1
+    FOR j as integer = var_cols - 1 TO 0 STEP -1  'Reverse order so the var name is what gets overwritten
+     VAR localno = localsscroll + i * var_cols + j
      IF localno < numlocals THEN
-      temp = localvariablename(localno, *.scr) & "="
-      edgeprint temp, j * 96, ol, uilook(uiText), page
-      edgeprint STR(heap(.frames(0).heap + localno)), j * 96 + 8 * LEN(temp), ol, uilook(uiDescription), page
+      temp = LEFT(localvariablename(localno, *.scr), 18) & "=" & fgtag(datacol) & heap(.frames(0).heap + localno)
+      edgeprint temp, j * var_spacing, ol, uilook(uiText), page, YES
      END IF
     NEXT
     ol -= 9
    NEXT
+   'Header for the locals section
    IF scriptargs = 999 THEN
-    edgeprint .scr->vars & " local variables and args:", 0, ol, uilook(uiText), page
+    edgeprint numlocals & " local variables and args: (+/- scroll)", 0, ol, uilook(uiText), page
    ELSE
     temp = scriptargs & " args, " & (numlocals - scriptargs) & " locals"
-    IF .scr->nonlocals > 0 THEN temp += "; excluding " & .scr->nonlocals & " nonlocals:"
+    IF .scr->nonlocals > 0 THEN
+     temp += "; excluding " & .scr->nonlocals & " nonlocals:"
+    ELSEIF numlocals > var_cols * local_lines THEN
+     temp += ": (+/- scroll)"
+    END IF
     edgeprint temp, 0, ol, uilook(uiText), page
    END IF
    ol -= 9
   END IF
-  edgeprint "Return value = ", 0, ol, uilook(uiText), page
-  edgeprint STR(.ret), 15 * 8, ol, uilook(uiDescription), page
+  edgeprint "Return value = " & fgtag(datacol) & .ret, 0, ol, uilook(uiText), page, YES
   ol -= 9
  END WITH
 END IF
 
-DIM globalno as integer
 IF mode > 1 AND viewmode = 2 THEN
  'display global variables
  FOR i as integer = displaylines - 1 TO 0 STEP -1
-  FOR j as integer = 2 TO 0 STEP -1   'reverse order so the var name is what gets overwritten
-   globalno = globalsscroll + i * 3 + j
-   edgeprint globalno & "=", j * 96, ol, uilook(uiText), page
-   edgeprint STR(global(globalno)), j * 96 + 8 * LEN(globalno & "="), ol, uilook(uiDescription), page
+  FOR j as integer = var_cols - 1 TO 0 STEP -1   'reverse order so the var name is what gets overwritten
+   DIM globalno as integer = globalsscroll + i * var_cols + j
+   IF globalno > UBOUND(global) THEN CONTINUE FOR
+   DIM temp as string = globalno & "=" & fgtag(datacol) & global(globalno)
+   edgeprint temp, j * var_spacing, ol, uilook(uiText), page, YES
   NEXT
   ol -= 9
  NEXT
- edgeprint "Global variables:", 0, ol, uilook(uiText), page
+ edgeprint "Global variables:  (+/- scroll)", 0, ol, uilook(uiText), page
  ol -= 9
 END IF
 
 IF mode > 1 AND viewmode = 3 THEN
  'display stringlines
  FOR i as integer = displaylines - 1 TO 0 STEP -1
-  IF MID(stringlines(i + stringsscroll), 1, 1) <> " " THEN
-   'string number text
-   edgeprint MID(stringlines(i + stringsscroll), 1, 3), 0, ol, uilook(uiText), page
-  END IF
-  textcolor uilook(uiText), uilook(uiDescription)
-  printstr MID(stringlines(i + stringsscroll), 4), 3*8, ol, page
+  DIM idx as integer = i + stringsscroll
+  IF idx > UBOUND(stringlines) THEN CONTINUE FOR
+  edgeprint stringlines(idx), 0, ol, uilook(uiText), page, YES
   ol -= 9
  NEXT
- edgeprint "Plotstrings:", 0, ol, uilook(uiText), page
+ edgeprint "Plotstrings:  (+/- scroll)", 0, ol, uilook(uiText), page
  ol -= 9
 END IF
 
@@ -1290,11 +1308,12 @@ IF mode > 1 AND viewmode = 4 THEN
  'display timers
  edgeprint "ID Count Speed Flags Str Trigger", 0, ol, uilook(uiText), page
  ol -= 9
- FOR i as integer = small(UBOUND(timers), displaylines - 1) TO 0 STEP -1
+ FOR i as integer = displaylines - 1 TO 0 STEP -1
   DIM id as integer = i + timersscroll
-  DIM as string text, flags
+  IF id > UBOUND(timers) THEN CONTINUE FOR
+  DIM text as string
   WITH timers(id)
-   text = LEFT(id & "   ", 3)
+   text = rpad(STR(id), , 3)
    IF .speed < 0 THEN
     IF .finished_tick = gam.script_log.tick THEN
      text &= "Trigg "
@@ -1302,101 +1321,118 @@ IF mode > 1 AND viewmode = 4 THEN
      text &= "Done  "
     END IF
    ELSE
-    text &= LEFT(.count & "      ", 6)
+    text &= rpad(STR(.count), , 6)
    END IF
-   text &= LEFT(ABS(.speed) & "      ", 6)  'negated if not running
-   flags &= .flags
-   text &= LEFT(flags & "      ", 6)
-   text &= LEFT(.st & "    ", 4)
+   text &= rpad(STR(ABS(.speed)), , 6)  'negated if not running
+   text &= rpad(STR(.flags), , 6)
+   text &= rpad(STR(.st), , 4)
    IF .trigger = -2 THEN
     text &= "Game Over"
    ELSEIF .trigger >= 0 THEN
     text &= scriptname(.trigger)
    END IF
   END WITH
-  textcolor uilook(uiText), 0
-  printstr text, 0, ol, page
+  edgeprint text, 0, ol, uilook(uiText), page
   ol -= 9
  NEXT
- edgeprint "Timers:", 0, ol, uilook(uiText), page
+ edgeprint "Timers:  (+/- scroll)", 0, ol, uilook(uiText), page
  ol -= 9
 END IF
-
-'IF mode > 1 THEN
-' edgeprint "argc=" & scrat(selectedscript).curargc & " argn=" & scrat(selectedscript).curargn & " ptr=" & scrat(selectedscript).ptr, 0, ol, uilook(uiDescription), page
-' ol -= 9
-'END IF
-
-DIM lastarg as integer
-DIM col as integer
-DIM waitcause as string
 
 IF mode > 1 AND (viewmode = 0 OR viewmode = 1 OR viewmode = 5) THEN
  'show scripts list
 
- '6 rows up
- ol = 200 - 6 * 9
+ 'Leave room for locals or source line or scriptstate
+ ol = vpages(page)->h - (local_lines + 3) * 9 - 4
+ 'Stop this far from the top of the screen
+ CONST header_height = 20
 
- edgeprint "# Name           Depth State CmdKn CmdID", 0, ol, uilook(uiText), page
+ DIM script_rows as integer = (ol - header_height) \ 9
+
+ DIM as integer statex, commandx  'Where to print state and command
+ IF viewmode = 5 THEN  'Stack
+  edgeprint "#   Name         Depth State Command", 0, ol, uilook(uiText), page
+  statex = 184
+  commandx = 232
+ ELSE  'Source
+  edgeprint "#   Name            State/Command", 0, ol, uilook(uiText), page
+  statex = 160
+  commandx = 160
+ END IF
  ol -= 9
  
  IF mode = 1 THEN
-  bottom = nowscript - (ol - 10) \ 9
+  bottomscript = nowscript - (script_rows - 1)
   selectedscript = nowscript
  ELSE
-  bottom = small(bottom, selectedscript)
-  bottom = large(bottom, selectedscript - (ol - 10) \ 9)
+'  bottomscript = bound(bottomscript, selectedscript, selectedscript - (ol - 10) \ 9)
+  bottomscript = large(small(bottomscript, selectedscript), selectedscript - (script_rows - 1))
  END IF
  
- FOR i as integer = large(bottom, 0) TO nowscript
+ FOR i as integer = large(bottomscript, 0) TO nowscript
   'if script is about to be executed, don't show it as having been already
-  IF scrat(i).curargn >= scriptinsts(i).curargc AND i <> nowscript THEN lastarg = -1 ELSE lastarg = 0
- 
+  DIM lastarg as bool = (scrat(i).curargn >= scriptinsts(i).curargc AND i <> nowscript)
+
+  DIM col as integer
   IF mode > 1 AND i = selectedscript THEN col = uilook(uiSelectedItem) ELSE col = uilook(uiText)
   edgeprint STR(i), 0, ol, col, page
-  edgeprint LEFT(scriptname(scrat(i).id), 17), 16, ol, col, page
-  edgeprint STR(scrat(i).depth), 160, ol, col, page
+  edgeprint LEFT(scriptname(scrat(i).id), 16), 28, ol, col, page
+  IF viewmode = 5 THEN
+   edgeprint STR(scrat(i).depth), 160, ol, col, page
+  END IF
+
+  DIM statemsg as string
   IF scrat(i).state < 0 THEN
    IF scriptinsts(i).started = NO THEN
-    edgeprint "Queued (not started)", 184, ol, col, page
+    statemsg = "Queued (not started)"
    ELSE
-    edgeprint "Suspended", 184, ol, col, page
+    statemsg = "Suspended"
    END IF
   ELSEIF scrat(i).state = stwait THEN
    IF scriptinsts(i).waiting = waitingOnCmd THEN
-    waitcause = commandname(scriptinsts(i).curvalue)
+    statemsg = commandname(scriptinsts(i).curvalue)
     SELECT CASE scriptinsts(i).curvalue
-     CASE 1, 3, 4, 9, 244'--wait, wait for hero, wait for NPC, wait for key, wait for scancode
-      waitcause += "(" & scriptinsts(i).waitarg & ")"
+     CASE 1, 3, 4, 9, 244, 508, 575
+      '--wait, wait for hero, wait for NPC, wait for key, wait for scancode, wait for slice, wait for dissolve
+      statemsg += "(" & scriptinsts(i).waitarg & ")"
     END SELECT
    ELSEIF scriptinsts(i).waiting = waitingOnTick THEN
-    waitcause = "forced-wait(" & scriptinsts(i).waitarg & ")"
+    statemsg = "forced-wait(" & scriptinsts(i).waitarg & ")"
    ELSE
-    waitcause = "!WAIT ERROR"
+    statemsg = "!WAIT ERROR"
    END IF
    IF menus_allow_gameplay() = NO THEN
-    waitcause = "Suspended by menu; " & waitcause
+    statemsg = "Suspended by menu; " & statemsg
    END IF
-   edgeprint waitcause, 184, ol, col, page
   ELSEIF scrat(i).state = stnext AND scriptinsts(i).curkind = tyscript AND lastarg THEN
-   edgeprint "Called #" & i + 1, 184, ol, col, page
+   statemsg = "Called #" & i + 1
   ELSEIF scrat(i).state = stnext AND scriptinsts(i).curkind = tyfunct AND scriptinsts(i).curvalue = 176 AND lastarg THEN
    'run script by id
-   edgeprint "Called #" & i + 1 & " by ID", 184, ol, col, page
+   statemsg = "Called #" & i + 1 & " by ID"
   ELSE
-   edgeprint STR(scrat(i).state), 184, ol, col, page
-   edgeprint STR(scriptinsts(i).curkind), 232, ol, col, page
-   edgeprint STR(scriptinsts(i).curvalue), 280, ol, col, page
+   IF viewmode = 5 THEN
+    statemsg = STR(scrat(i).state)
+    'edgeprint STR(.curkind), 232, ol, col, page
+    'edgeprint STR(.curvalue), 280, ol, col, page
+   END IF
+   WITH scriptinsts(i)
+    edgeprint scriptcmdname(.curkind, .curvalue, *.scr), commandx, ol, col, page
+   END WITH
   END IF
-  ol = ol - 9
-  IF ol < 20 THEN EXIT FOR
+  edgeprint statemsg, statex, ol, col, page
+
+  ol -= 9
+  IF ol < header_height THEN EXIT FOR
  NEXT i
 
 END IF 'end drawing scripts list
 
+
+''''''''''''''''''''''''''''''''''' Controls '''''''''''''''''''''''''''''''''''
+
 IF mode > 1 AND drawloop = NO THEN
  setvispage page, NO
- DIM w as KBScancode = waitforanykey( , 2)  'Wait for new or repeating key
+ DIM w as KBScancode = waitforanykey(YES, 2)  'Wait for new or repeating key or a screen resize
  IF w = scEsc OR w = scF10 THEN
   mode = 0
   clearkey(scF10)
@@ -1404,6 +1440,7 @@ IF mode > 1 AND drawloop = NO THEN
   clearpage page
   setvispage page
  END IF
+ IF w = scResize THEN GOTO redraw
 
  'Obsolete key kept for muscle memory, for now
  IF w = scV THEN loopvar(viewmode, 0, 5): GOTO redraw
@@ -1411,32 +1448,25 @@ IF mode > 1 AND drawloop = NO THEN
  IF w = scPageUp THEN
   selectedscript += 1
   localsscroll = 0
+  grid_menu_scroll globalsscroll, -7, maxScriptGlobals,    displaylines, var_cols
   GOTO redraw
  END IF
  IF w = scPageDown THEN
   selectedscript -= 1
   localsscroll = 0
+  grid_menu_scroll globalsscroll,  7, maxScriptGlobals,    displaylines, var_cols
   GOTO redraw
  END IF
- IF w = scMinus OR w = scNumpadMinus THEN
-  IF viewmode = 1 THEN localsscroll = large(0, localsscroll - 3): GOTO redraw
-  IF viewmode = 2 THEN globalsscroll = large(0, globalsscroll - 21): GOTO redraw
-  IF viewmode = 3 THEN stringsscroll = large(0, stringsscroll - 1): GOTO redraw
-  IF viewmode = 4 THEN timersscroll = large(0, timersscroll - 4): GOTO redraw
- END IF
- IF w = scPlus OR w = scNumpadPlus THEN
-  IF selectedscript >= 0 AND selectedscript <= nowscript THEN
-   numlocals = scrat(selectedscript).scr->vars
-  ELSE
-   numlocals = 0
-  END IF
 
-  'Locals only display in a few lines at the bottom
-  IF viewmode = 1 THEN localsscroll = small(large(numlocals - 8, 0), localsscroll + 3): GOTO redraw
-  IF viewmode = 2 THEN globalsscroll = small(maxScriptGlobals - (displaylines * 3 - 1), globalsscroll + 21): GOTO redraw
-  IF viewmode = 3 THEN stringsscroll = small(stringsscroll + 1, (UBOUND(stringlines) - 1) - (displaylines - 1)): GOTO redraw
-  'Timers have an extra 1 line header
-  IF viewmode = 4 THEN timersscroll = small(timersscroll + 4, UBOUND(timers) - (displaylines - 2)): GOTO redraw
+ VAR minus = (w = scMinus OR w = scNumpadMinus)
+ VAR plus = (w = scPlus OR w = scNumpadPlus)
+ IF plus OR minus THEN
+  VAR neg = IIF(minus, -1, 1)
+  IF viewmode = 1 THEN grid_menu_scroll localsscroll,  neg * 1, numlocals - 1,       local_lines,  var_cols
+  IF viewmode = 2 THEN grid_menu_scroll globalsscroll, neg * 7, maxScriptGlobals,    displaylines, var_cols
+  IF viewmode = 3 THEN grid_menu_scroll stringsscroll, neg * 7, UBOUND(stringlines), displaylines
+  IF viewmode = 4 THEN grid_menu_scroll timersscroll,  neg * 7, UBOUND(timers),      displaylines
+  GOTO redraw
  END IF
 
  IF w = scF1 THEN
@@ -1450,21 +1480,8 @@ IF mode > 1 AND drawloop = NO THEN
    viewmode = 0
   END IF
   GOTO redraw
- ELSEIF w = scF3 THEN
-  viewmode = 1
-  GOTO redraw
- ELSEIF w = scF4 THEN
-  viewmode = 2
-  GOTO redraw
- ELSEIF w = scF5 THEN
-  viewmode = 3
-  GOTO redraw
- ELSEIF w = scF6 THEN
-  viewmode = 4
-  GOTO redraw
- ELSEIF w = scF7 THEN
-  'Old scriptstate() display (purposefully omitted from header)
-  viewmode = 5
+ ELSEIF w >= scF3 AND w <= scF7 THEN
+  viewmode = 1 + w - scF3   '1 to 5
   GOTO redraw
  END IF
 
@@ -1555,7 +1572,7 @@ FUNCTION command_parent_node(script_slot as integer) as integer
 END FUNCTION
 
 FUNCTION mathvariablename (value as integer, scrdat as ScriptData) as string
- 'get a variable name from an variable id number passed to a math function or for
+ 'get a variable name from a "variable ID", used by setvariable/increment/decrement/for
  'locals (and args) numbered from 0
  IF value >= 0 THEN
   RETURN "global" & value

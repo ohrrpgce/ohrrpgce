@@ -197,7 +197,8 @@ SUB start_script_trigger_log
  print #fh,
  print #fh, "Solid lines '|' show triggered scripts which have already started running but are"
  print #fh, "waiting or paused due to either another script which was triggered (indicated by a"
- print #fh, "line to its right) or while waiting for a script they called (not shown)."
+ print #fh, "line to its right) or while waiting for a script they called (called scripts aren't"
+ print #fh, "shown, only triggered scripts are)."
  print #fh, "Dotted lines ':' show triggered scripts which have not even had a chance to start."
  print #fh, "(...as above...) means that a script continues waiting multiple ticks for the same reason."
  print #fh,
@@ -600,7 +601,8 @@ LOCAL FUNCTION loadscript_open_script (n as integer, expect_exists as bool = YES
  RETURN fh
 END FUNCTION
 
-'Loads a script or fetchs it from the cache. Returns NULL on failure.
+'Loads a script (putting it in the cache) or fetchs it from the cache. Returns NULL on failure.
+'Does not increment its refcount.
 'If loaddata is false, only loads the script header.
 FUNCTION loadscript (id as integer, loaddata as bool = YES) as ScriptData ptr
  'debuginfo "loadscript(" & id & " " & scriptname(id) & ", loaddata = " & loaddata & ")"
@@ -1652,16 +1654,12 @@ END FUNCTION
 'Format the line and statement that a script is currently at,
 'or returns 0 if debugging information unavailable.
 'maxchars is the maximum number of characters to print, if it's a very long line.
-'Text flicker won't work in script debugger, so 'flicker' enables it
-FUNCTION highlighted_script_line(posdata as ScriptTokenPos, maxchars as integer, flicker as bool) as string
+'scrinst is optionally used for its current ScriptCommand
+FUNCTION highlighted_script_line(posdata as ScriptTokenPos, maxchars as integer, scrinst as ScriptInst ptr = NULL) as string
  DIM start as integer
  DIM highlightcol as integer
  DIM linepiece as string
- STATIC tog as integer
- tog = tog XOR 1
- IF flicker = NO THEN tog = 0
 
- 'IF get_script_line_info(posdata, selectedscript) = 0 THEN debug "get script line failure!" : RETURN NO
  WITH posdata
   debug "posdata.linenum = " & posdata.linenum
   debug "posdata.col = " & posdata.col
@@ -1670,7 +1668,8 @@ FUNCTION highlighted_script_line(posdata as ScriptTokenPos, maxchars as integer,
   debug "posdata.filename = " & posdata.filename
  END WITH
 
- highlightcol = IIF(posdata.isvirtual, uilook(uiSelectedDisabled + tog), uilook(uiSelectedItem + tog))
+ 'highlightcol = IIF(posdata.isvirtual, uilook(uiSelectedDisabled + tog), uilook(uiSelectedItem + tog))
+ highlightcol = IIF(posdata.isvirtual, findrgb(128, 0, 200), findrgb(0, 0, 240))
 
  start = large(1, posdata.col - large(4, (maxchars - posdata.length) \ 2))
 
@@ -1678,22 +1677,32 @@ FUNCTION highlighted_script_line(posdata as ScriptTokenPos, maxchars as integer,
 
  ' Trim the line so that it's not too long
  linepiece = MID(posdata.linetext, start, maxchars)
+ ' Replace tabs. Using a single space should be fine, don't care about indentation of a single line.
+ replacestr linepiece, !"\t", " "
 
  ' Highlight the part of linepiece indicated by posdata
  ' (Note: posdata.col and MID both count columns/characters starting at one.)
  DIM relcol as integer = posdata.col - (start - 1)
  DIM length  as integer = bound(posdata.length, 1, maxchars)
  DIM token as string = MID(linepiece, relcol, length)
- linepiece = MID(linepiece, 1, relcol - 1) & fgtag(highlightcol, token) & MID(linepiece, relcol + length)
+ linepiece = MID(linepiece, 1, relcol - 1) & bgtag(highlightcol, token) & MID(linepiece, relcol + length)
 'MID(linepiece, relcol, length) = fgtag(highlightcol, token)
 
  IF start > 1 THEN MID(linepiece, 1, 3) = "..."  'This can't overlap with 'token'
  IF LEN(linepiece) < LEN(posdata.linetext) - (start - 1) THEN linepiece &= "..."
 
- DIM infostr as string
- infostr = IIF(posdata.isvirtual, "(Virtual)", "On") & " line " & posdata.linenum _
-           & " of " & posdata.filename & !":\n"
- RETURN infostr & linepiece
+ DIM prefix as string
+ IF posdata.isvirtual THEN
+  'For clarity, tell what this virtual node is
+  IF scrinst THEN
+   prefix = "Virtual " & bgtag(highlightcol, scriptcmdname(scrinst->curkind, scrinst->curvalue, *scrinst->scr)) & " on"
+  ELSE
+   prefix = "Virtual on"
+  END IF
+ ELSE
+  prefix = "On"
+ END IF
+ RETURN prefix & " line " & posdata.linenum & " of " & posdata.filename & !":\n" & linepiece
 END FUNCTION
 
 
@@ -1972,18 +1981,19 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
  IF nowscript >= 0 THEN
   DIM as ScriptTokenPos posdata
   IF get_script_line_info(posdata, nowscript) THEN
-   errtext &= !"\n" & fgtag(uilook(uiDescription)) & highlighted_script_line(posdata, 120, YES)
+   errtext &= !"\n" & fgtag(uilook(uiDescription)) & highlighted_script_line(posdata, 120, @scriptinsts(nowscript))
   END IF
  END IF
 
-' split(wordwrap(errmsg, large(80, vpages(vpage)->w - 16) \ 8), errtext())
+ DIM errsize as XYPair = textsize(errtext, rWidth - 16, , , vpage)
 
  DIM state as MenuState
  state.pt = 0
  DIM menu as MenuDef
  menu.anchorvert = alignTop
  menu.alignvert = alignTop
- menu.offset.y = 38
+ 'TODO: should change the position as the window is resized
+ menu.offset.y = 28 + errsize.h
  menu.bordersize = -4
 
  append_menu_item menu, "Ignore once", 0
@@ -2065,7 +2075,7 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
 
   clearpage vpage
 
-  centerbox rCenter, 12, rWidth - 10, 15, 3, vpage
+  centerbox rCenter, 11, rWidth - 10, 14, 3, vpage
   textcolor uilook(uiText), 0
   DIM header as string
   IF errorlevel >= serrBound THEN
@@ -2079,14 +2089,9 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
    printstr header, pCentered, 7, vpage
   END IF
 
-  wrapprint errtext, 8, 25, vpage, rWidth - 16
+  wrapprint errtext, 8, 24, , vpage, rWidth - 16
   draw_menu menu, state, vpage
 
-  IF menu.items[state.pt]->t = 6 THEN
-   textcolor uilook(uiMenuItem), 0
-   wrapprint !"The debugger is a usability train-wreck!\n" + _
-              "Press F1 inside the debugger to see help", 0, pBottom, , vpage , , , fontPlain
-  END IF
   setvispage vpage
 
   IF autotestmode THEN
@@ -2125,7 +2130,8 @@ FUNCTION script_interrupt () as bool
  state.pt = 0
  DIM menu as MenuDef
  menu.anchorvert = alignTop
- menu.offset.y = -100 + 38 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
+ menu.alignvert = alignTop
+ menu.offset.y = 38 + 10 * UBOUND(errtext)
  menu.bordersize = -4
 
  append_menu_item menu, "Continue running", 0
@@ -2184,7 +2190,7 @@ FUNCTION script_interrupt () as bool
 
   centerbox rCenter, 12, rWidth - 10, 15, 3, vpage
   textcolor uilook(uiText), 0
-  printstr "A script is stuck", pCentered, 7, vpage
+  printstr "A script is stuck", pCentered, 8, vpage
 
   FOR i as integer = 0 TO UBOUND(errtext)
    printstr errtext(i), 8, 25 + 10 * i, vpage
@@ -2192,11 +2198,6 @@ FUNCTION script_interrupt () as bool
 
   draw_menu menu, state, vpage
 
-  IF state.pt = 4 THEN
-   textcolor uilook(uiSelectedItem), 0 
-   wrapprint !"The debugger is a usability train-wreck!\n" + _
-              "Press F1 inside the debugger to see help", 0, pBottom, , vpage , , , fontPlain
-  END IF
   setvispage vpage
 
   dowait

@@ -470,6 +470,7 @@ TYPE OldScriptFrame
 END TYPE
 
 'State of an executing script, used by the old interpreter
+'There is one ScriptInst for each OldScriptState.
 TYPE OldScriptState
   scr as ScriptData ptr 'script in script() hashtable (duplicated from ScriptInst)
   scrdata as int32 ptr  'convenience pointer to .scr->ptr
@@ -479,7 +480,7 @@ TYPE OldScriptState
   state as integer      'current interpreter statemachine state; negated if suspended by another fibre
   ptr as integer        'the execution pointer (in int32's from the start of the script data), not same as ScriptData.ptr
   ret as integer        'the scripts current return value
-  curargn as integer    'current arg for current statement
+  curargn as integer    'current arg number for current statement
   depth as integer      'stack depth of current script
   id as integer         'id number of current script (duplicated from ScriptInst)
 END TYPE
@@ -491,6 +492,7 @@ ENUM WaitTypeEnum
 END ENUM
 
 'Externally visible state of an executing script, used outside the interpreter
+'There is one ScriptInst for each OldScriptState.
 TYPE ScriptInst
   scr as ScriptData ptr 'script in script() hashtable
   waiting as WaitTypeEnum  'Whether the script is waiting
@@ -500,9 +502,10 @@ TYPE ScriptInst
   started as bool       'used only if watched is true: whether the script has started
   id as integer         'id number of script
 
-  'these 3 items are only updated when the script interpreter is left. While inside
+  'These 3 items are only updated when the script interpreter is left. While inside
   'the script interpreter (command handlers) use the curcmd (ScriptCommand ptr) global.
-  'These are also updated when a script is stopped (either suspended, or interpretloop is left).
+  'These are also updated when a script is stopped (either suspended, or interpretloop is left,
+  'or when entering the debugger). But they are not set by scripterr.
   curkind as integer    'kind of current statement
   curvalue as integer   'value/id of current statement
   curargc as integer    'number of args for current statement  (used only in old script debugger...)

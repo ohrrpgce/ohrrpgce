@@ -1,8 +1,6 @@
-There is a reason that the script debugger was not officially announced. It's an incredible mess! It's also a bit broken at the moment.
-
 You'll find a little more help on the "Script Debugger" wiki page.
 
-The script debugger is most useful for inspecting the values of global and local variables, strings, timers, and see which scripts are running. You can't use the debugging to affect running scripts or modify anything.
+The script debugger is most useful for inspecting the values of global and local variables, strings, timers, and to see which scripts are running. You can't use the debugger to affect running scripts or modify anything.
 
 Press F10 or ESC to leave the debugger.
 
@@ -29,4 +27,4 @@ Press W to Wait until the selected script is resumed.
 
 Pressing P lets you continue to Play the game: in this mode any keys pressed other than those listed above cause the game to unpause for one tick, and are passed to the game.
 
-Alternatively, trying to wait for a script to finish when it contains a "while(1)... wait" loop or similar will cause the game to resume. 
+Alternatively, trying to wait for a script to finish when it contains a "while(1)... wait" loop or similar will cause the game to resume.

@@ -2919,7 +2919,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx, seq
 
   --Read the body
   --Every script is nested inside a big fat do() block
-  body={{"do",this[CMD_POS]}}
+  body={{"do",virtual_pos(name[CMD_POS])}}
   depth=0
   subscript_attributes={}
   while true do
