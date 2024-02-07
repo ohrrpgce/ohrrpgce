@@ -159,6 +159,8 @@ WHAT IS NEW?
       [Ralph]
     * "play music", "stop music", "current music" aliases to "play song",
       "stop song", "current song"
+    * "script layer" alias to "sprite layer", and "sl:sprite layer" alias to
+      "sl:script layer"
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

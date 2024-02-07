@@ -7524,6 +7524,7 @@ lookup slice(sl:textbox portrait box)
 lookup slice(sl:textbox choice box)
 lookup slice(sl:textbox root)
 lookup slice(sl:script layer)
+lookup slice(sl:sprite layer)  # Same as lookup slice(sl:script layer)
 lookup slice(sl:textbox layer)
 lookup slice(sl:string layer)
 lookup slice(sl:reserve)
@@ -7618,10 +7619,10 @@ while (true) do (
 			</seealso>
 		</command>
 
-		<command id="spritelayer">
-			<canon>sprite layer</canon>
-			<shortname>sprite layer</shortname>
-			<description>Returns a slice handle for the slice (also called the 'script layer') which is the default parent of all new script-created slices, such as created by <ref>loadherosprite</ref> and <ref>createrect</ref>. You can move slices elsewhere in the slice tree with <ref>setparent</ref>. You can use spritelayer together with <ref>firstchild</ref> if you want to loop through all your slices without knowing their handles. Another way to get this slice is to use <ref>lookupslice</ref>: <p>lookup slice(sl:script layer)</p>.</description>
+		<command id="scriptlayer">
+			<canon>script layer</canon>
+			<shortname>script layer</shortname>
+			<description>Returns a slice handle for the slice (also called the 'sprite layer') which is the default parent of all new script-created slices, such as created by <ref>loadherosprite</ref> and <ref>createrect</ref>. You can move slices elsewhere in the slice tree with <ref>setparent</ref>. You can use <tt>scriptlayer</tt> together with <ref>firstchild</ref> if you want to loop through all your slices (that you haven't reparented) without knowing their handles. Another way to get this slice is to use <ref>lookupslice</ref>: <p>lookup slice(sl:script layer)</p>.</description>
 			<example>variable(sl)
 sl := first child(sprite layer)
 while (sl) do, begin
@@ -7632,6 +7633,11 @@ while (sl) do, begin
 end
 </example>
 		</command>
+		<command id="spritelayer">
+			<alias>scriptlayer</alias>
+			<shortname>spritelayer</shortname>
+		</command>
+
 		<command id="getslicelookup">
 			<canon>get slice lookup (handle)</canon>
 			<shortname>get slice lookup</shortname>
