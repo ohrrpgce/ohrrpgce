@@ -87,6 +87,7 @@ DECLARE SUB stopsong
 DECLARE FUNCTION backcompat_sound_id (byval id as integer) as integer
 
 DECLARE FUNCTION decode_handle(byref ret as any ptr, handle as integer, errlvl as scriptErrEnum = serrBadOp) as HandleType
+DECLARE FUNCTION describe_handle(handle as integer, succinct as bool = NO) as string
 DECLARE FUNCTION get_handle_extravec(handle as integer) as integer vector ptr
 
 DECLARE FUNCTION getnpcref (byval seekid as NPCScriptref, byval copynum as integer, byval pool as integer=0) as NPCIndex

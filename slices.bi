@@ -737,7 +737,7 @@ DECLARE Sub SliceSetVisibility( byval s as Slice ptr, byval b as bool )
 DECLARE Sub SliceSetPaused( byval s as Slice ptr, byval b as bool )
 DECLARE Sub SliceSetClipping( byval s as Slice ptr, byval b as bool )
 
-DECLARE FUNCTION DescribeSlice(sl as Slice ptr) as string
+DECLARE FUNCTION DescribeSlice(sl as Slice ptr, succinct as bool = NO) as string
 DECLARE SUB slice_bad_op(sl as Slice ptr, message as zstring ptr, errlev as scriptErrEnum = serrBadOp)
 
 #IFDEF ENABLE_SLICE_DEBUG

@@ -5437,8 +5437,9 @@ handle_type_names(HandleType.MenuItem) = "menu item"
 handle_type_names(HandleType.Error) = "ERROR"
 
 'Try to recognise a value as a handle, returning a string for debugging and error messages such
-'as "0" or "1610612736 (Map slice 3 (map layer0))" or "-10 (copy of NPC 3)"
-FUNCTION describe_handle(handle as integer) as string
+'as "0" or "1610612736 (Map slice 3 (map layer0))" or "-10 (copy of NPC 3)".
+'Pass succinct = true to get a much shorter description.
+FUNCTION describe_handle(handle as integer, succinct as bool = NO) as string
  ' DIM htype as HandleType = get_handle_type(handle)
  'Call decode_handle to tell apart valid from invalid handles
  DIM obj as any ptr
@@ -5448,21 +5449,31 @@ FUNCTION describe_handle(handle as integer) as string
   CASE HandleType.Error, HandleType.None
    'Treat as not a handle
   CASE HandleType.Slice
-   info = DescribeSlice(CAST(Slice ptr, obj))
+   info = DescribeSlice(CAST(Slice ptr, obj), succinct)
   CASE HandleType.NPC
-   info = "reference for NPC " & ABS(CAST(NPCInst ptr, obj)->id) - 1 & " instance"
+   ' Too dubious, small negative integers could mean anything.
+   'info = "reference for NPC " & ABS(CAST(NPCInst ptr, obj)->id) - 1 & " instance"
   CASE HandleType.Menu
-   info = "handle for menu " & CAST(MenuDef ptr, obj)->record & " instance"
+   DIM index as integer = get_handle_payload(handle)
+   IF succinct THEN
+    info = "menu inst " & index & " (ID " & CAST(MenuDef ptr, obj)->record & ")"
+   ELSE
+    info = "menu handle " & index & " (menu ID " & CAST(MenuDef ptr, obj)->record & ")"
+   END IF
   CASE ELSE
    DIM typename as string = handle_type_names(htype)
    IF LEN(typename) THEN
-    'DIM index as integer = get_handle_payload(handle)
-    'info = typename & " " & index & " handle"
-    info = typename & " handle"
+    DIM index as integer = get_handle_payload(handle)
+    info = typename & " " & index & " handle"
+    'info = typename & " handle"
    END IF
  END SELECT
  IF LEN(info) THEN
-  RETURN handle & " (" & info & ")"
+  IF succinct THEN
+   RETURN info
+  ELSE
+   RETURN handle & " (" & info & ")"
+  END IF
  ELSE
   RETURN STR(handle)
  END IF

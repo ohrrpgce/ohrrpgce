@@ -398,6 +398,24 @@ FUNCTION SliceTypeName (t as SliceTypes) as string
  RETURN "Unknown"
 END FUNCTION
 
+
+DIM SHARED SliceShortTypeName(...) as zstring ptr = { _
+  @"", _
+  @"Specl", _
+  @"Cont", _
+  @"Rect", _
+  @"Sprite", _
+  @"Text", _
+  @"Map", _
+  @"Grid", _
+  @"Ellps", _
+  @"Scrol", _
+  @"Selct", _
+  @"Panel", _
+  @"Layout", _
+  @"Line" _
+}
+
 'Called from sliceedit.
 FUNCTION SliceLookupCodename (code as integer, slicelookup() as string, use_default as bool = YES) as string
  IF code > 0 ANDALSO code <= UBOUND(slicelookup) ANDALSO LEN(TRIM(slicelookup(code))) THEN
@@ -4913,12 +4931,20 @@ End function
 '==============================================================================
 '                              Slice Debugging
 
-'Return a string like "Sprite slice 11" or "Container slice" or "Rectangle slice (textbox box)"
-FUNCTION DescribeSlice(sl as Slice ptr) as string
+'Return a string like "Sprite slice 11" or "Container slice" or "Rectangle slice 7 (textbox box)",
+'or if 'succinct', "Sprite sl 11", "Cont", "textbox box sl 7"
+FUNCTION DescribeSlice(sl as Slice ptr, succinct as bool = NO) as string
  IF sl THEN
-  DIM sliceinfo as string = SliceTypeName(sl) & " slice"
-  IF sl->TableSlot THEN sliceinfo &= " " & sl->TableSlot
-  IF sl->Lookup THEN sliceinfo &= " (" & SliceLookupCodename(sl) & ")"
+  DIM sliceinfo as string
+  IF succinct THEN
+   sliceinfo = *SliceShortTypeName(sl->SliceType)
+   IF sl->TableSlot THEN sliceinfo &= " " & sl->TableSlot
+   IF sl->Lookup THEN sliceinfo &= ":" & LEFT(SliceLookupCodename(sl), 12)
+  ELSE
+   sliceinfo &= SliceTypeName(sl) & " slice"
+   IF sl->TableSlot THEN sliceinfo &= " " & sl->TableSlot
+   IF sl->Lookup THEN sliceinfo &= " (" & SliceLookupCodename(sl) & ")"
+  END IF
   RETURN sliceinfo
  ELSE
   'Normally this sub shouldn't be called with a null ptr
