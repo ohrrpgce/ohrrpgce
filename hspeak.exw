@@ -340,7 +340,7 @@ constant TIMING_ACTIVE=4
 --Version number for the .hs/.hsp format (not including HSZ files!)
 constant HSP_FORMAT_VERSION=1
 
-constant CODE_START_BYTE_OFFSET=28
+constant CODE_START_BYTE_OFFSET=32
 constant HSZ_FORMAT_VERSION=3
 
 constant MAXGLOBAL=50000  --largest ID
@@ -361,7 +361,8 @@ sequence optlist          optlist={}
 sequence file_list        file_list={}            --type {FILE_NAME,FILE_TEXT,FILE_LINE_EXTENTS}
 sequence additional_includes
                           additional_includes={}
-integer max_srcpos        max_srcpos=0            --Maximum possible value of a valid srcpos
+srcpos max_srcpos         max_srcpos=0            --Maximum possible value of a valid srcpos (for typechecking)
+srcpos script_position    script_position=0         --All srcpos's emitted to a .hsz are relative to this. (Length 0)
 integer debug_info        debug_info=false
 integer total_lines       total_lines=0
 sequence cmd              cmd={}                  --TokenList (but type checking is very slow)
@@ -381,7 +382,7 @@ map global_scope          global_scope=map:new()  --Maps all names in global sco
 --The number of data fields used is variable, between _SCRIPT_MIN_LAST and _SCRIPT_MAX_LAST
 constant SCRIPT_TRIGGER_TOK=1     --Trigger token (type {CMD_TEXT, CMD_POS}), e.g. "script"
 constant SCRIPT_NAME=2            --String, not fully-scoped
-constant SCRIPT_POS=3             --(scrpos of script name)
+constant SCRIPT_POS=3             --srcpos of script name token
 constant SCRIPT_FULL_NAME=4       --Full-scoped script name
 constant SCRIPT_ARG_TOKS=5        --List of argument name tokens (type {CMD_TEXT, CMD_POS})
                                   --Initially the tokens may include default values (like "a=4"), which are later removed
@@ -389,18 +390,19 @@ constant SCRIPT_BODY_TOKS=6       --List of tokens (type {CMD_TEXT, CMD_POS}) in
 constant SCRIPT_PARENT_IDX=7      --Index in all_scripts of parent, or 0 for none
 constant SCRIPT_NEST_DEPTH=8      --Nesting depth. A script is 0, subscript 1, sub-subscript 2...
 constant SCRIPT_ATTRIBUTES=9      --Temporary store, do not use. These attributes get copied to script_list's FUNC_ATTRS
-constant _SCRIPT_MIN_LAST=9
---The following are
-constant SCRIPT_ID=10             --Script ID. Value not appended until all IDs are assigned in check_script_declarations
-constant SCRIPT_TRIGGER_ID=11     --trigger ID. SCRIPT_TRIGGER_ID and later not appended until compile_a_script
-constant SCRIPT_NUM_NONLOCALS=12
+constant SCRIPT_END_POS=10        --A srcpos of the last token of the script ('end' or ')')
+constant _SCRIPT_MIN_LAST=10
+--The following are added later
+constant SCRIPT_ID=11             --Script ID. Value not appended until all IDs are assigned in check_script_declarations
+constant SCRIPT_TRIGGER_ID=12     --trigger ID. SCRIPT_TRIGGER_ID and later not appended until compile_a_script
+constant SCRIPT_NUM_NONLOCALS=13
 
-constant SCRIPT_VARIABLES=13      --VarList of locals and nonlocals
-constant SCRIPT_AST=14
-constant SCRIPT_BINARY=15
-constant _SCRIPT_MAX_LAST=15
+constant SCRIPT_VARIABLES=14      --VarList of locals and nonlocals
+constant SCRIPT_AST=15
+constant SCRIPT_BINARY=16
+constant _SCRIPT_MAX_LAST=16
 
-sequence all_scripts      all_scripts={}       --list of Scripts == {SCRIPT_*} (variable length)
+sequence all_scripts      all_scripts={}       --list of 'Script's == {SCRIPT_*} (variable length)
 
 atom start_time           start_time=time()
 atom run_time             run_time=0
@@ -518,8 +520,8 @@ integer was_warnings      was_warnings=false
 --
 --See also encode_srcpos and decode_srcpos
 type srcpos(object pos)
-  --need to allow 0 as a dummy value
-  if atom(pos) and pos=floor(pos) and pos>=0 and (max_srcpos>0 and pos<=max_srcpos) then
+  --need to allow 0 as a dummy value, and ignore max_srcpos if it's uninitialised)
+  if atom(pos) and pos=floor(pos) and pos>=0 and (max_srcpos=0 or pos<=max_srcpos) then
     --odd, 'or' and 'and' only seem to shortcut when used in if condition, not
     --in a general expression
     return true
@@ -1181,19 +1183,39 @@ end procedure
 
 ---------------------------------------------------------------------------
 
+--Returns  offset of a srcpos (usually you want to use decode_srcpos_file
+--instead if you want to know the file offset instead)
+function srcpos_offset(srcpos pos)
+  --Offset 0 is reserved invalid (used only for srcpos 0)
+  integer ret
+  --It appears to be a Euphoria euc bug that it's necessary to explicitly cast to integer
+  ret=floor(pos/power(2,9))-1
+  return ret
+end function
+
+---------------------------------------------------------------------------
+
+--Returns length of a srcpos (between 0 and 254)
+function srcpos_length(srcpos pos)
+  return and_bits(pos,power(2,8)-1)
+end function
+
+---------------------------------------------------------------------------
+
 --returns {filenumber,file position} pair, later being 1-based character offset
 function decode_srcpos_file(srcpos pos)
-  integer val
   integer len, offset
-  val=pos  --cast to int
 
   --0 is an invalid srcpos
-  if val=0 then
+  if pos=0 then
     simple_error("compiler bug: can't decode uninitialised srcpos")
   end if
 
   integer point
-  point=floor(val/power(2,9))
+  point=srcpos_offset(pos)
+  if not integer(point) or point<=0 then
+    simple_error(sprintf("compiler bug: bad srcpos offset %d", {point}))
+  end if
 
   for i=1 to length(file_list) do
     len=length(file_list[i][FILE_TEXT])
@@ -1221,7 +1243,7 @@ end function
 ---------------------------------------------------------------------------
 
 --Returns 1-based character number in file
-function srcpos_point(srcpos pos)
+function srcpos_file_offset(srcpos pos)
   sequence temp
   temp=decode_srcpos_file(pos)
   return temp[2]
@@ -1235,7 +1257,7 @@ end function
 --   for i=1 to filenum-1 do
 --     offset+=length(file_list[i][FILE_TEXT])+1
 --   end for
---   return offset
+--   return offset+1  --Offset 0 is reserved invalid
 -- end function
 
 ---------------------------------------------------------------------------
@@ -1248,7 +1270,11 @@ function encode_srcpos(integer baseoffset, integer offset, integer len)
   if len > 254 then
     len = 254
   end if
-  return (baseoffset+offset)*power(2,9)+len
+  if offset < 1 or len < 0 then
+    simple_error(sprintf("compiler bug! encode_srcpos(%d,%d,%d)\n",{baseoffset,offset,len}))
+  end if
+  --Offset 0 is reserved invalid; offsets start at 1
+  return (baseoffset+offset+1)*power(2,9)+len
 end function
 
 ---------------------------------------------------------------------------
@@ -1270,7 +1296,7 @@ function get_srcpos_text(srcpos pos)
   temp=decode_srcpos_file(pos)
   filenum=temp[1]
   point=temp[2]
-  tokenlen=and_bits(pos,power(2,9)-1)
+  tokenlen=srcpos_length(pos)
   if tokenlen=0 then
     return ""
   else
@@ -1290,10 +1316,14 @@ function decode_srcpos(srcpos pos)
   sequence lines
   sequence temp
 
+  if pos=0 then
+    simple_error("compiler bug: can't decode uninitialised srcpos")
+  end if
+
   temp=decode_srcpos_file(pos)
   filenum=temp[1]
   point=temp[2]
-  tokenlen=and_bits(pos,power(2,9)-1)
+  tokenlen=srcpos_length(pos)
 
   --Find the line it's on
   filetext=file_list[filenum][FILE_TEXT]
@@ -2119,10 +2149,10 @@ function tree_original_text(Node tree)
 
   --grab original text corresponding to this range of tokens
   filenum=srcpos_file_number(leftmost)
-  left_point=srcpos_point(leftmost)
+  left_point=srcpos_file_offset(leftmost)
 
   --this +1 is safe, guaranteed to be followed by either another argument or "end"
-  right_point=srcpos_point(script_toks[right_at+1][CMD_POS])
+  right_point=srcpos_file_offset(script_toks[right_at+1][CMD_POS])
   text=file_list[filenum][FILE_TEXT][left_point..right_point-1]
   --pretty_print(stdout, {"tree_original_text left/right_point:", left_point, right_point, "text:", text, decode_srcpos(leftmost)},{2})
 
@@ -2806,7 +2836,8 @@ end procedure
 
 ---------------------------------------------------------------------------
 
---Parse a script or subscript
+--Parse a script or subscript, finding the list of tokens (NOT yet transformed into a tree),
+--and appending an entry to all_scripts.
 --parent_name is a fully-scoped name of parent script, or ""
 --if this script isn't a subscript of another.
 --Returns Token with name of parsed script
@@ -2870,7 +2901,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx, seq
     arglist=append(arglist,this)
   end while
 
-  --Create all_scripts entry now for recursive calls; SCRIPT_BODY_TOKS filled in later,
+  --Create all_scripts entry now for recursive calls; SCRIPT_BODY_TOKS and SCRIPT_END_POS filled in later,
   --and more fields are appended in compile_a_script
   all_scripts=append(all_scripts,{
            trigger
@@ -2878,10 +2909,11 @@ function parse_script(Token trigger, string parent_name, integer parent_idx, seq
           ,name[CMD_POS]
           ,full_name
           ,arglist
-          ,{}
+          ,{}  --SCRIPT_BODY_TOKS
           ,parent_idx
           ,nest_depth
           ,attributes
+          ,0  --SCRIPT_END_POS
   })
   idx=length(all_scripts)
 
@@ -2905,6 +2937,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx, seq
     if compare("end",this[CMD_TEXT])=0 then
       depth-=1
       if depth=0 then
+        all_scripts[idx][SCRIPT_END_POS]=this[CMD_POS]
         exit--break while
       end if
     elsif compare("begin",this[CMD_TEXT])=0 then
@@ -2995,7 +3028,7 @@ procedure parse_top_level()
       --ignore
       get_cmd_block(false)
     elsif triggeridx>0 then
-      --A script
+      --"script"/etc. Negative trigger IDs are subscripts
       if trigger_list[triggeridx][PAIR_NUM]<0 then
         src_error(
           sprintf_utf(
@@ -4620,9 +4653,12 @@ function binary_compile_recurse(Node tree, VarList vars)
 
   result&=kind
   result&=id
-  if kind=KIND_NUMBER or kind=KIND_GLOBAL or kind=KIND_LOCAL or kind=KIND_NONLOCAL then
+  if kind=KIND_NUMBER then
+    --No children and no debug info
+  elsif kind=KIND_GLOBAL or kind=KIND_LOCAL or kind=KIND_NONLOCAL then
+    --No children, debug info
     if debug_info then
-      result&=tree[TREE_TRUNK][CMD_POS]
+      result&=cmdpos-script_position
     end if
   elsif kind=KIND_SCRIPT or kind=KIND_FUNCTION or kind=KIND_FLOW or kind=KIND_MATH then
     --Use id from what_kind_and_id
@@ -4640,7 +4676,7 @@ function binary_compile_recurse(Node tree, VarList vars)
     result&=repeat(0,numargs)
 
     if debug_info then
-      result&=tree[TREE_TRUNK][CMD_POS]
+      result&=cmdpos-script_position
     end if
 
     if nodeoffset=0 then
@@ -4648,14 +4684,6 @@ function binary_compile_recurse(Node tree, VarList vars)
       --node needs to have offset 0, so append it already
       compiled_data&=result
     end if
-
-    --This is an alternative scheme where the srcnode for each node is appended to its parent
-    --rather than to it. This results in smaller files because more nodes will be exactly duplicated.
-    -- if debug_info then
-    --   for i=1 to length(tree[TREE_BRANCHES]) do
-    --     result&=tree[TREE_BRANCHES][i][TREE_TRUNK][CMD_POS]
-    --   end for
-    -- end if
 
     for i=1 to numargs do
       --actually evaluate each argument and set the real offsets
@@ -4666,12 +4694,8 @@ function binary_compile_recurse(Node tree, VarList vars)
       result[3+i]=recurse_result
     end for
 
-    if debug_info then
-      result&=tree[TREE_TRUNK][CMD_POS]
-    end if
-
     if nodeoffset=0 then
-      --Root node: replace the dummy argument offsets
+      --Root node: replace the dummy argument offsets, and we're done.
       compiled_data[1..length(result)]=result
       return(nodeoffset)
     end if
@@ -4685,7 +4709,7 @@ function binary_compile_recurse(Node tree, VarList vars)
   --If we've have multiple copies of the exact same node (subtree), deduplicate them.
   --Don't bother with nodes with >4 children: unlikely to repeat.
   --The integer(result[2]) test here is to work around a bug in Euphoria (at least in 4.0.3 32-bit):
-  --map:hash throws an error if given an int which doesn't fix in a 31-bit integer
+  --map:hash throws an error if given an int which doesn't fit in a 31-bit integer
   if not fast_mode and length(result)<=7 and integer(result[2]) then
     if can_reference then  --If false, this node must be unique, so map:get won't find anything.
       at=map:get(node_lookup,result,-1)
@@ -4743,7 +4767,7 @@ function binary_compile(Script script)
   --12..13: parent script ID or 0 if none
   result&=output_word(get_parent_id(script))
   --14..15: Nesting depth
-  result&=output_word(script[SCRIPT_NEST_DEPTH]) 
+  result&=output_word(script[SCRIPT_NEST_DEPTH])
   --16..17: number of nonlocals
   result&=output_word(script[SCRIPT_NUM_NONLOCALS])
   --18..21: the length of the string table in 32-bit words, also unknown
@@ -4760,6 +4784,11 @@ function binary_compile(Script script)
   --after the header, or 0 if not present. Currently unknown.
   result&=output_word(0)
   result&=output_word(0)
+  --28..31: the srcpos offset of the start of the script
+  integer script_start
+  script_start=srcpos_offset(script[SCRIPT_TRIGGER_TOK][CMD_POS])
+  result&=int_to_bytes(script_start)
+  script_position=script_start*power(2,9) --aka encode_srcpos(0,script_start-1,0)
 
   --what follows is command data in the format [kindID,Value,argcount,argpointerlist]
   --numbers and variables have no argcount or argpointerlist
