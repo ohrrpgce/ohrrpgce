@@ -340,7 +340,7 @@ constant TIMING_ACTIVE=4
 --Version number for the .hs/.hsp format (not including HSZ files!)
 constant HSP_FORMAT_VERSION=1
 
-constant CODE_START_BYTE_OFFSET=18
+constant CODE_START_BYTE_OFFSET=28
 constant HSZ_FORMAT_VERSION=3
 
 constant MAXGLOBAL=50000  --largest ID
@@ -361,7 +361,8 @@ sequence optlist          optlist={}
 sequence file_list        file_list={}            --type {FILE_NAME,FILE_TEXT,FILE_LINE_EXTENTS}
 sequence additional_includes
                           additional_includes={}
-integer max_srcpos        max_srcpos=0
+integer max_srcpos        max_srcpos=0            --Maximum possible value of a valid srcpos
+integer debug_info        debug_info=false
 integer total_lines       total_lines=0
 sequence cmd              cmd={}                  --TokenList (but type checking is very slow)
 sequence reuse_ids        reuse_ids={}            --type {PAIR_NUM, REUSE_PARENT_AND_NAME={parent_id, PAIR_NAME}}
@@ -1079,6 +1080,9 @@ procedure init()
   end if
   if find('c',optlist) then
     colors_enabled=false
+  end if
+  if not find('n',optlist) then
+    debug_info=true
   end if
   --'x' used by old versions of Hamster Whisper to specify color code format
   --However this clashes with Latin-1 characters and doesn't work with UTF-8 anyway
@@ -3584,6 +3588,29 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Given a VarList with all local & nonlocal variables, returns a VarList
+--of just the locals, in-order
+function filter_local_variables(VarList vars)
+  sequence ret
+  integer next_idx
+  ret={}
+  next_idx=0
+  for i=length(vars) to 1 by -1 do
+    if vars[i][VAR_FRAME]=0 then
+      --Is local
+      if vars[i][VAR_ID]!=next_idx then
+        --This is really an assumption, not a bug
+        simple_error("compiler bug! Local vars are not in order")
+      end if
+      next_idx+=1
+      ret=append(ret,vars[i])
+    end if
+  end for
+  return ret
+end function
+
+---------------------------------------------------------------------------
+
 procedure add_local_variable(Token var)
   Script script
   VarList vars
@@ -4461,20 +4488,44 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Returns byte sequence of "32bitstring"-encoded string:
+--32 bit length followed one-char-per-byte padded to 4 byte multiple
+function encode_32bitstring(string string)
+  sequence ret
+  integer len
+  string=encode_ohr(string)
+  len=length(string)
+  ret=int_to_bytes(len)&string
+  if remainder(len,4) then
+    ret&=repeat(0,4-remainder(len,4))
+  end if
+  return ret
+end function
+
+---------------------------------------------------------------------------
+
 --add a string to the table for this script, return its offset
 function table_string(integer id)
-  integer len
   integer offset
-  sequence string
   offset=length(string_table)/4
-  string=encode_ohr(string_list[id])
-  len=length(string)
-  string_table&=int_to_bytes(len)
-  string_table&=string
-  if remainder(len,4) then
-    string_table&=repeat(0,4-remainder(len,4))
-  end if
+  string_table&=encode_32bitstring(string_list[id])
   return(offset)
+end function
+
+---------------------------------------------------------------------------
+
+--Used to turn the local var list into a string table.
+--vars must exclude nonlocals, and be in order.
+function variable_names_to_table(VarList vars)
+  string varname
+  sequence result
+  result={}
+  for i=1 to length(vars) do
+    --varname=vars[i][CMD_TEXT]
+    varname=get_srcpos_text(vars[i][CMD_POS])
+    result&=encode_32bitstring(varname)
+  end for
+  return(result)
 end function
 
 ---------------------------------------------------------------------------
@@ -4503,17 +4554,14 @@ function binary_compile_recurse(Node tree, VarList vars)
   id=kind_and_id[2]
   s=tree[TREE_TRUNK][CMD_TEXT]
   cmdpos=tree[TREE_TRUNK][CMD_POS]
-  if kind=KIND_NUMBER or kind=KIND_GLOBAL or kind=KIND_LOCAL or kind=KIND_NONLOCAL then
-    result&=kind
-    result&=id
-  elsif kind=KIND_REFERENCE then
+
+  if kind=KIND_REFERENCE then
     str_temp = s[2..length(s)]
     --is it a global variable?
     at=find(str_temp,global_list[PAIR_NAME])
     if at then
       --yes, it is a global, compile to global ID
-      result&=KIND_NUMBER
-      result&=global_list[PAIR_NUM][at]
+      id=global_list[PAIR_NUM][at]
     else
       --is it a script?
       at=lookup_scoped_script_name(str_temp)
@@ -4523,20 +4571,26 @@ function binary_compile_recurse(Node tree, VarList vars)
         if all_scripts[at][SCRIPT_PARENT_IDX] then
           src_error("References to subscripts haven't been implemented yet. Use a regular script instead if you need its ID.",cmdpos)
         end if
-        result&=KIND_NUMBER
-        result&=all_scripts[at][SCRIPT_ID]
+        id=all_scripts[at][SCRIPT_ID]
       else
         --is it a string literal?
         if length(str_temp)>7 and equal("$string",str_temp[1..7]) then
           value_temp=value(str_temp[8..length(str_temp)])
-          result&=KIND_NUMBER
-          result&=table_string(value_temp[2])
+          id=table_string(value_temp[2])
         else
           src_error(sprintf_utf("Reference "&COLYEL&"@%s"&COLRED&" not understood: references must be the name of a global variable or a script",{str_temp}),cmdpos)
         end if
       end if
     end if
+    kind=KIND_NUMBER
+  end if
 
+  result&=kind
+  result&=id
+  if kind=KIND_NUMBER or kind=KIND_GLOBAL or kind=KIND_LOCAL or kind=KIND_NONLOCAL then
+    if debug_info then
+      result&=tree[TREE_TRUNK][CMD_POS]
+    end if
   elsif kind=KIND_SCRIPT or kind=KIND_FUNCTION or kind=KIND_FLOW or kind=KIND_MATH then
     --Use id from what_kind_and_id
     if kind=KIND_FUNCTION then
@@ -4548,16 +4602,27 @@ function binary_compile_recurse(Node tree, VarList vars)
     if kind!=KIND_FLOW and numargs>MAX_ARGS then
       src_error(sprintf_utf("Number of arguments being passed (%d) is more than allowed (%d)",{numargs,MAX_ARGS}),cmdpos)
     end if
-    result&=kind
-    result&=id
     result&=numargs
     --Add placeholders for each argoffset
     result&=repeat(0,numargs)
+
+    if debug_info then
+      result&=tree[TREE_TRUNK][CMD_POS]
+    end if
+
     if nodeoffset=0 then
       --Special case: Most nodes are added after their children, but the root
       --node needs to have offset 0, so append it already
       compiled_data&=result
     end if
+
+    --This is an alternative scheme where the srcnode for each node is appended to its parent
+    --rather than to it. This results in smaller files because more nodes will be exactly duplicated.
+    -- if debug_info then
+    --   for i=1 to length(tree[TREE_BRANCHES]) do
+    --     result&=tree[TREE_BRANCHES][i][TREE_TRUNK][CMD_POS]
+    --   end for
+    -- end if
 
     for i=1 to numargs do
       --actually evaluate each argument and set the real offsets
@@ -4567,6 +4632,10 @@ function binary_compile_recurse(Node tree, VarList vars)
       end if
       result[3+i]=recurse_result
     end for
+
+    if debug_info then
+      result&=tree[TREE_TRUNK][CMD_POS]
+    end if
 
     if nodeoffset=0 then
       --Root node: replace the dummy argument offsets
@@ -4617,6 +4686,7 @@ function binary_compile(Script script)
   NodeList tree
   sequence result
   integer recurse_ret
+  sequence localvars
 
   string_table={}
   compiled_data={}
@@ -4625,7 +4695,7 @@ function binary_compile(Script script)
   --binary data is in a mix of 16-bit and 32-bit signed words.
   --the header is (mostly) 16-bit and the data (script format version 1+) is 32-bit.
 
-  --output header
+  --output header (0-based offsets given here)
   --0..1: the zero-rooted byte-offset of the first executable code byte
   result=output_word(CODE_START_BYTE_OFFSET)
   --2..3: the number of local variables (including args but not nonlocals)
@@ -4643,6 +4713,20 @@ function binary_compile(Script script)
   result&=output_word(script[SCRIPT_NEST_DEPTH]) 
   --16..17: number of nonlocals
   result&=output_word(script[SCRIPT_NUM_NONLOCALS])
+  --18..21: the length of the string table in 32-bit words, also unknown
+  result&=output_word(0)
+  result&=output_word(0)
+  --22..23: a bitfield detailing optional features.
+  if debug_info then
+    --First bit: non-leaf cmd nodes appended with srcpos
+    result&=output_word(1)
+  else
+    result&=output_word(0)
+  end if
+  --24..27: the offset of the local variable name table, in 32-bit words
+  --after the header, or 0 if not present. Currently unknown.
+  result&=output_word(0)
+  result&=output_word(0)
 
   --what follows is command data in the format [kindID,Value,argcount,argpointerlist]
   --numbers and variables have no argcount or argpointerlist
@@ -4665,10 +4749,30 @@ function binary_compile(Script script)
   exit_timing_zone()
   result&=convert_to_bytes(compiled_data)
   compiled_data={}
-  --append with a table of string literals and give its offset
+  --append with a table of string literals and give its offset and length
   if length(string_table)>0 then
+    if remainder((length(result)-CODE_START_BYTE_OFFSET),4) != 0 then
+      simple_error("compiler bug! string table not aligned")
+    end if
+    if remainder(length(string_table),4) != 0 then
+      simple_error("compiler bug! string table not padded")
+    end if
     result[9..12]=int_to_bytes(length(result))
+    result[19..22]=int_to_bytes(length(string_table)/4)
     result&=string_table
+  end if
+  if debug_info then
+    --append local variable names table
+    if remainder(length(result)-CODE_START_BYTE_OFFSET,4) != 0 then
+      simple_error("compiler bug! varname table not aligned")
+    end if
+    localvars=filter_local_variables(script[SCRIPT_VARIABLES])
+    if length(localvars) then
+      result[25..28]=int_to_bytes((length(result)-CODE_START_BYTE_OFFSET)/4)
+      --Could use seek_string_by_id instead of filter_local_variables
+      result&=variable_names_to_table(localvars)
+    end if
+    --Otherwise remains 0
   end if
   return(result)
 end function
@@ -5442,6 +5546,17 @@ end procedure
 
 ---------------------------------------------------------------------------
 
+function generate_srcfiles_dot_txt()
+  sequence result
+  result=""
+  for i=1 to length(file_list) do
+    result&=sprintf_utf("file=%s\nlump=%s\noffset=%d\nlength=%d\n",{absolute_path(file_list[i][FILE_NAME]),file_list[i][FILE_LUMP],file_list[i][FILE_OFFSET],length(file_list[i][FILE_TEXT])})
+  end for
+  return(result)
+end function
+
+---------------------------------------------------------------------------
+
 procedure write_output_file()
   sequence header
   integer fh
@@ -5475,7 +5590,7 @@ procedure write_output_file()
           simple_error(sprintf_utf("internal problem: unable to write script "&COLYEL&"%s"&COLRED,{all_scripts[i][SCRIPT_NAME]}))
         end if
       end for
-      if not find('n',optlist) then --no debug info
+      if debug_info then
         --write copy of scripts
         wrap_print("copying script source code into "&COLBWHI&"%s"&COLWHI&"\n",{dest_file})
         lh=begin_lump(fh,"source.lumped")
@@ -5485,6 +5600,10 @@ procedure write_output_file()
         write_script_files(fh)
         if end_lump(lh)=false then
           simple_error("unable to finish write of scripts source file")
+        end if
+        --write source file table (must occur after write_script_files)
+        if write_lump(fh,"srcfiles.txt",generate_srcfiles_dot_txt())=false then
+          simple_error("unable to write source files listing")
         end if
       end if
       close(fh)

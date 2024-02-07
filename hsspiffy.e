@@ -235,6 +235,31 @@ global function normalize_filename(sequence s)
   end ifdef
 end function
 
+--make a file path absolute if it is not (note this leaves .'s and ..'s intact)
+global function absolutize_path(sequence s,sequence basedir)
+  ifdef WINDOWS then
+    --FIXME: breaks on UNC paths
+    if length(s)<3 or equal(s[2..3],":\\")=0 then
+      if length(basedir)=3 then
+        --special case: basedir has a trailing \
+        return basedir&s
+      else
+        return basedir&"\\"&s
+      end if
+    end if
+  elsedef
+    if s[1]!='/' then
+      return basedir&"/"&s
+    end if
+  end ifdef
+  return s
+end function
+
+--absolutize a path in the same way the OS does
+global function absolute_path(sequence s)
+  return absolutize_path(s,current_dir())
+end function
+
 --extract only portion of a string after the last of a delimiter--
 global function get_suffix(sequence s,sequence delim)
   sequence broken
