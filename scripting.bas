@@ -1475,6 +1475,137 @@ END SUB
 '==========================================================================================
 
 
+'Read a local variable name from a script's variable name table if available,
+'otherwise returns ""
+FUNCTION get_script_var_name(var_id as integer, scrdat as ScriptData) as string
+ WITH scrdat
+  debug "get_script_var_name(" & var_id & ", script " & scriptname(scrdat.id) & "), size = " & .size
+
+  IF var_id < 0 OR var_id >= .vars THEN
+   scripterr __FUNCTION__ ": illegal variable id " & var_id
+   RETURN ""
+  END IF
+  IF .varnamestable = 0 THEN RETURN ""
+
+  'Walk through the variable name table to reach the i-th one.
+  DIM table_ptr as int32 ptr = .ptr + .varnamestable
+  FOR i as integer = 0 TO var_id
+   'debug "  var " & i & " offset " & table_ptr - .ptr & " len " & table_ptr[0]
+   'debug "    '" & read32bitstring(table_ptr) & "'"
+
+   DIM length_ints as integer = (table_ptr[0] + 3) \ 4
+   IF table_ptr + length_ints >= .ptr + .size THEN
+    scripterr "Script variable name table corrupt (too short)", serrError
+    RETURN "(unknown)"
+   END IF
+   IF i = var_id THEN RETURN read32bitstring(table_ptr)
+   table_ptr += length_ints + 1
+  NEXT
+
+/'
+  'Walk through the variable name table, which is composed of null-terminated C
+  'strings back to back, to reach the i-th one.
+  DIM table_ptr as zstring ptr = cast(zstring ptr, .ptr + .varnamestable)
+  DIM table_end as zstring ptr = cast(zstring ptr, .ptr + .size)
+  FOR i = 0 TO var_id
+   DIM strlength as integer = strnlen(table_ptr, table_end - table_ptr)
+   IF strlength = table_end - table_ptr THEN
+    'We hit the end without encountering a null
+    scripterr "Script variable name table corrupt (too short)", serrError
+    RETURN "(unknown)"
+   END IF
+   IF i = var_id THEN RETURN *table_ptr
+   table_ptr += strlength + 1
+  NEXT
+'/
+ END WITH
+END FUNCTION
+
+/'
+FUNCTION get_script_var_name(n as integer, scrdat as ScriptData) as string
+ 'Caching the names for a script within this function seems simplest
+ STATIC cachegame as string, cacheid as integer
+
+ 'This is the correct way to declare a dynamic static array. Also, you have to REDIM it before use!
+ STATIC cache() as string
+ REDIM PRESERVE cache(UBOUND(cache)) as string
+
+ WITH scrdat
+  IF n < 0 OR n >= .vars OR .varnamestable = 0 THEN RETURN ""
+
+  IF cachegame = game AND .id = cacheid THEN
+   RETURN cache(n)
+  ELSE
+   cachegame = game
+   cacheid = .id
+  END IF
+  REDIM cache(.vars - 1) as string
+
+  DIM as string filename = find_script_lump(.id)
+  DIM as integer fh
+  fh = FREEFILE
+  OPEN filename FOR BINARY AS fh
+
+  DIM as ubyte c
+  SEEK #fh, .varnamestable
+  FOR i = 0 TO .vars - 1
+   GET #fh, , c
+   WHILE c <> 0 AND EOF(fh) = 0
+    cache(i) &= CHR(c)
+    GET #fh, , c
+   WEND
+  NEXT
+
+  CLOSE fh
+
+  RETURN cache(n)
+ END WITH
+END FUNCTION
+'/
+
+FUNCTION scriptcmdname (kind as integer, id as integer, scrdat as ScriptData) as string
+ 'Trying to use compact names
+ STATIC mathname(25) as zstring ptr = {_
+         @"random", @"exponent", @"mod", @"divide", @"multiply", @"subtract",_
+         @"add", @"xor", @"or", @"and", @"equal", @"!equal", @"<", @">",_
+         @"<=", @">=", @"setvar", @"inc", @"dec", @"not", @"&&", @"||", @"^^",_
+         @"abs", @"sign", @"sqrt"_
+ }
+
+ STATIC flowname(16) as zstring ptr = {_
+         @"do", @"begin", @"end", @"return", @"if", @"then", @"else", @"for",_
+         @"", @"", @"while", @"break", @"continue", @"exit", @"exitreturn",_
+         @"switch", @"case"_
+ }
+
+ SELECT CASE kind
+  CASE tynumber
+   RETURN STR(id)
+  CASE tyflow
+   IF (id >= 0 AND id <= UBOUND(flowname)) ANDALSO LEN(*flowname(id)) THEN
+    RETURN *flowname(id)
+   ELSE
+    debug "scriptcmdname: bad flow " & id
+    RETURN "unknown_flow" & id
+   END IF
+  CASE tyglobal
+   RETURN "global" & id
+  CASE tylocal
+   RETURN localvariablename(id, scrdat)
+  CASE tymath
+   IF id >= 0 AND id <= UBOUND(mathname) THEN
+    RETURN *mathname(id)
+   ELSE
+    debug "scriptcmdname: bad math " & id
+    RETURN "unknown_math" & id
+   END IF
+  CASE tyfunct
+   RETURN commandname(id)
+  CASE tyscript
+   RETURN scriptname(id)
+ END SELECT
+END FUNCTION
+
 FUNCTION get_script_line_info(posdata as ScriptTokenPos, selectedscript as integer) as bool
  DIM as uinteger srcpos, charpos
 

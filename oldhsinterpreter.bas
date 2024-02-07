@@ -28,8 +28,7 @@ DECLARE SUB subdoarg (byref si as OldScriptState)
 DECLARE SUB subreturn (byref si as OldScriptState)
 DECLARE SUB unwindtodo (byref si as OldScriptState, byval levels as integer)
 DECLARE SUB readstackcommand (node as ScriptCommand, state as OldScriptState, byref stk as Stack, byref i as integer)
-DECLARE FUNCTION localvariablename (byval value as integer, byval scriptargs as integer) as string
-DECLARE FUNCTION mathvariablename (byval value as integer, byval scriptargs as integer) as string
+DECLARE FUNCTION mathvariablename (value as integer, scr as ScriptData) as string
 DECLARE FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = -1) as string
 DECLARE FUNCTION readscriptvar (byval id as integer) as integer
 DECLARE SUB writescriptvar (byval id as integer, byval newval as integer)
@@ -268,7 +267,6 @@ DO
         scrst.pos -= 3
         scriptret = 0
         .state = streturn
-       'When adding new flow control remember to update flowname(), etc, in scriptstate
        CASE ELSE
         '--do, then, etc... terminate normally
         dumpandreturn()
@@ -1462,33 +1460,34 @@ SUB readstackcommand (node as ScriptCommand, state as OldScriptState, byref stk 
  i -= 2
 END SUB
 
-FUNCTION localvariablename (byval value as integer, byval scriptargs as integer) as string
- 'get a variable name from a local/nonlocal variable number
- 'locals (and args) numbered from 0
- IF scriptargs = 999 THEN
-  'old HS file
+FUNCTION localvariablename (value as integer, scrdat as ScriptData) as string
+ 'Get a variable name from a ScriptCommand local/nonlocal variable number
+ 'Locals (and args) numbered from 0
+
+ DIM ret as string
+ ret = get_script_var_name(value, scrdat)
+ IF ret <> "" THEN RETURN ret
+
+ IF scrdat.args = 999 THEN
+  'old HS file: don't know the number of arguments
   RETURN "local" & value
- ELSEIF value < scriptargs THEN
+ ELSEIF value < scrdat.args THEN
   RETURN "arg" & value
  ELSEIF value >= 256 THEN
-  RETURN "nonloc" & (value SHR 8) & "_" & (value AND 255)
+  RETURN "nonlocal" & (value SHR 8) & "_" & (value AND 255)
  ELSE
-  RETURN "var" & (value - scriptargs)
+  'Not an arg
+  RETURN "var" & (value - scrdat.args)
  END IF
 END FUNCTION
 
-FUNCTION mathvariablename (byval value as integer, byval scriptargs as integer) as string
+FUNCTION mathvariablename (value as integer, scrdat as ScriptData) as string
  'get a variable name from an variable id number passed to a math function or for
  'locals (and args) numbered from 0
  IF value >= 0 THEN
-  mathvariablename = "global" & value
- ELSEIF scriptargs = 999 THEN
-  'old HS file
-  mathvariablename = "local" & (-value - 1)
- ELSEIF -value <= scriptargs THEN
-  mathvariablename = "arg" & (-value - 1)
+  RETURN "global" & value
  ELSE
-  mathvariablename = "var" & (-value - scriptargs - 1)
+  RETURN localvariablename (-value - 1, scrdat)
  END IF
 END FUNCTION
 
@@ -1508,7 +1507,6 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
  'recurse 2 = all scripts, including suspended ones
  'recurse 3 = only the specified script
 
- DIM flowname(15) as string
  DIM flowtype(15) as integer
  DIM flowbrakbrk(15) as integer
  DIM state as OldScriptState
@@ -1516,25 +1514,18 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
  DIM node as ScriptCommand
  DIM lastnode as ScriptCommand
 
- flowtype(0) = 0:	flowname(0) = "do"
- flowtype(3) = 1:	flowname(3) = "return"
- flowtype(4) = 3:	flowname(4) = "if":		flowbrakbrk(4) = 1
- flowtype(5) = 0:	flowname(5) = "then"
- flowtype(6) = 0:	flowname(6) = "else"
- flowtype(7) = 2:	flowname(7) = "for":		flowbrakbrk(7) = 4
- flowtype(10) = 2:	flowname(10) = "while":		flowbrakbrk(10) = 1
- flowtype(11) = 1:	flowname(11) = "break"
- flowtype(12) = 1:	flowname(12) = "continue"
- flowtype(13) = 1:	flowname(13) = "exit"
- flowtype(14) = 1:	flowname(14) = "exitreturn"
- flowtype(15) = 3:	flowname(15) = "switch"
-
- DIM mathname(25) as string = {_
-         "random", "exponent", "mod", "divide", "multiply", "subtract"_
-         ,"add", "xor", "or", "and", "equal", "!equal", "<<", ">>"_
-         ,"<=", ">=", "setvar", "inc", "dec", "not", "&&", "||", "^^"_
-         ,"abs", "sign", "sqrt"_
- }
+ flowtype(flowdo) = 0
+ flowtype(flowreturn) = 1
+ flowtype(flowif) = 3:     flowbrakbrk(flowif) = 1
+ flowtype(flowthen) = 0
+ flowtype(flowelse) = 0
+ flowtype(flowfor) = 2:    flowbrakbrk(flowfor) = 4
+ flowtype(flowwhile) = 2:  flowbrakbrk(flowwhile) = 1
+ flowtype(flowbreak) = 1
+ flowtype(flowcontinue) = 1
+ flowtype(flowexit) = 1
+ flowtype(flowexitreturn) = 1
+ flowtype(flowswitch) = 3
 
  DIM stkbottom as integer = -(scrst.pos - scrst.bottom)  'pointer arithmetic seems to be 31-bit signed (breakage on negative diff)!
  DIM stkpos as integer = 0
@@ -1600,18 +1591,18 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
   jmpnext:
   jmpread:
 
-  cmd = ""
+  cmd = scriptcmdname(node.kind, node.value, *scrinst.scr)
   hidearg = 0
   IF hideoverride THEN hidearg = -1: hideoverride = 0
   SELECT CASE node.kind
-    CASE tynumber
-     outstr = STR(node.value)
+    CASE tynumber, tyglobal, tylocal
+     outstr = cmd
+     cmd = ""
      hidearg = -1
     CASE tyflow
-     IF node.value < 0 ORELSE node.value > UBOUND(flowname) THEN
+     IF node.value < 0 ORELSE node.value > flowLAST THEN
       RETURN "CORRUPT SCRIPT DATA: flow " & node.value
      END IF
-     cmd = flowname(node.value)
      hidearg = -3
      IF state.depth = 0 THEN cmd = scriptname(state.id)
      IF state.state = ststart THEN hidearg = -1
@@ -1648,27 +1639,10 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
        END IF
       END IF
      END IF
-    CASE tyglobal
-     outstr = "global" & node.value
-     hidearg = -1
-    CASE tylocal, tynonlocal
-     'locals can only appear in the topmost script, which we made sure is loaded
-     outstr = localvariablename(node.value, scrinst.scr->args)
-     hidearg = -1
     CASE tymath
-     IF node.value < 0 ORELSE node.value > UBOUND(mathname) THEN
+     IF node.value < 0 ORELSE node.value > mathLAST THEN
       RETURN "CORRUPT SCRIPT DATA: math " & node.value
      END IF
-     cmd = mathname(node.value)
-    CASE tyfunct
-     cmd = commandname(node.value)
-    CASE tyscript
-     'IF recurse < 3 AND state.curargn >= node.argc THEN
-      'currently executing this script (must have already printed it out)
-      'cmd = "==>>"
-     'ELSE
-      cmd = scriptname(node.value)
-     'END IF
    END SELECT
    'debug "kind = " + STR(node.kind)
    'debug "cmd = " + cmd
@@ -1687,9 +1661,10 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
       END IF
       cmd += "("
       FOR i as integer = 1 TO state.curargn
+       'setvariable, increment, decrement, for
        IF i = 1 ANDALSO ((node.kind = tymath AND node.value >= 16 AND node.value <= 18) _
                          ORELSE (node.kind = tyflow AND node.value = flowfor)) THEN
-        cmd += mathvariablename(readstack(scrst, stkpos + i), scrinst.scr->args)
+        cmd += mathvariablename(readstack(scrst, stkpos + i), *scrinst.scr)
        ELSE
         cmd += STR(readstack(scrst, stkpos + i))
        END IF

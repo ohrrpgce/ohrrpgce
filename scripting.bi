@@ -55,6 +55,9 @@ DECLARE SUB load_hsp ()
 
 DECLARE FUNCTION script_string_constant(scriptinsts_slot as integer, offset as integer) as string
 
+DECLARE FUNCTION get_script_var_name (n as integer, scrdat as ScriptData) as string
+DECLARE FUNCTION localvariablename (value as integer, scrdat as ScriptData) as string
+DECLARE FUNCTION scriptcmdname (kind as integer, id as integer, scrdat as ScriptData) as string
 DECLARE FUNCTION get_script_line_info(posdata as ScriptTokenPos, selectedscript as integer) as bool
 DECLARE SUB print_script_line(posdata as ScriptTokenPos, y as integer, lines as integer, flicker as integer, page as integer)
 
