@@ -1321,13 +1321,13 @@ IF mode > 1 AND viewmode = 1 AND selectedscript >= 0 THEN
   ELSE
    'Header for the locals section
    IF scriptargs = 999 THEN
-    header = "    " & numlocals & " Local variables and args: (+/- scroll)"
+    header = "    " & numlocals & " Local variables and args: (`+`/`-` scroll)"
    ELSE
     header = "    " & scriptargs & " Args, " & (numlocals - scriptargs) & " Locals"
     IF .scr->nonlocals > 0 THEN
      header += "; excluding " & .scr->nonlocals & " nonlocals:"
     ELSEIF numlocals > var_cols * local_lines THEN
-     header += ": (+/- scroll)"
+     header += ": (`+`/`-` scroll)"
     END IF
    END IF
   END IF
@@ -1345,7 +1345,7 @@ IF mode > 1 AND viewmode = 2 THEN
   NEXT
   ol -= 9
  NEXT
- header = "Global variables:  (+/- scroll)"
+ header = "Global variables:  (`+`/`-` scroll)"
 END IF
 
 IF mode > 1 AND viewmode = 3 THEN
@@ -1356,7 +1356,7 @@ IF mode > 1 AND viewmode = 3 THEN
   edgeprint stringlines(idx), 0, ol, uilook(uiText), page, YES
   ol -= 9
  NEXT
- header = "Plotstrings:  (+/- scroll)"
+ header = "Plotstrings:  (`+`/`-` scroll)"
 END IF
 
 IF mode > 1 AND viewmode = 4 THEN
@@ -1390,12 +1390,12 @@ IF mode > 1 AND viewmode = 4 THEN
   edgeprint text, 0, ol, uilook(uiText), page
   ol -= 9
  NEXT
- header = "Timers:  (+/- scroll)"
+ header = "Timers:  (`+`/`-` scroll)"
 END IF
 
 IF LEN(header) THEN
  rectangle 0, ol - 1, rWidth, 10, barcol, page
- edgeprint header, 32, ol, uilook(uiText), page
+ edgeprint ticklite(header), 32, ol, uilook(uiText), page, YES
 END IF
 
 IF mode > 1 AND (viewmode = 0 OR viewmode = 1 OR viewmode = 5) THEN
@@ -1484,8 +1484,14 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 1 OR viewmode = 5) THEN
   ol -= 9
   IF ol < stop_y THEN EXIT FOR
  NEXT i
- edgeprint "Scripts:  ([/] scroll)", 0, ol, uilook(uiText), page
-
+ ol -= 10
+ rectangle 0, ol, rWidth, 19, barcol, page
+ edgeprint ticklite("    Scripts:  (`[`/`]` scroll)"), 0, ol, uilook(uiText), page, YES
+ ''Run until' is disabled if the topmost script is selected
+ DIM temp as string = "un until"
+ IF selectedscript = nowscript THEN temp = fgtag(uilook(uiDisabledItem), temp)
+ temp = ticklite("`S`tep  `N`ext/`R`" & temp & "/`F`inish script", shortcutcol)
+ edgeprint temp, 0, ol + 9, uilook(uiText), page, YES
 END IF 'end drawing scripts list
 
 
@@ -1549,7 +1555,7 @@ IF mode > 1 AND drawloop = NO THEN
   GOTO redraw
  END IF
 
- IF w = scP THEN 'frame stepping mode
+ IF w = scC THEN 'frame stepping mode
   mode = IIF(mode = 2, 3, 2)
   GOTO redraw
  END IF
@@ -1569,7 +1575,7 @@ IF mode > 1 AND drawloop = NO THEN
    waitforscript = nowscript
   END IF
  END IF
- IF w = scW THEN  'Wait to return to the selected script
+ IF w = scR THEN  'Wait to return to the selected script
   mode or= breakstnext
   waitforscript = selectedscript
   stepmode = stependscript

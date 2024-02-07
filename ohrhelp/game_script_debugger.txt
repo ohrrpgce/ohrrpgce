@@ -4,7 +4,9 @@ The script debugger is most useful for inspecting the values of global and local
 
 Press F10 or ESC to leave the debugger.
 
-Press V to toggle view mode. The default, script state view, shows the currently running command. Other modes allow you to view the values of the global variables, strings or timers, or the local variables of a script (unfortunately without the original variable names). Local variables are numbered according to the order they appear in the script (regardless of whether they're inside 'for' loops or other flow-control).
+Press F2 to F7 to toggle the view submode. The default, Source, shows the current line of code. Other modes allow you to view the values of the global variables, strings, timers, the local variables of a script, enter the slice debugger, or (for advanced use) see a description of evaluated arguments on the script stack.
+
+Script debug info, including line numbers and variable names, is only available since HSpeak 3V in Ichorescent. If you're debugging an old game, local variables are numbered according to the order they appear in the script (regardless of whether they're inside 'for' loops or other flow-control).
 
 While displaying timers, timers which triggered this tick have a count of "Trigg" while those that triggered earlier show as "Done". (Note that finished timers remember all their settings, so that they can be restarted easily with the settimer command).
 
@@ -15,7 +17,7 @@ The two coloured bars at the top of the screen show the amount of memory used in
 *************************************
 Advanced stepping commands:
 
-Press S to Step through part of a command. (Somewhat buggy!)
+Press S to Step through part of a command. (Somewhat buggy!) This will either go to the next line of code or the next statement on the line.
 
 Press U to wait for the current command (of the topmost script) to finish (go Up a command).
 
@@ -23,8 +25,8 @@ Press N to continue running until the script changes.
 
 Press F to wait for the topmost script to Finish.
 
-Press W to Wait until the selected script is resumed.
+Press R to continue running until the selected script is resumed. (Does nothing if it's already topmost.)
 
-Pressing P lets you continue to Play the game: in this mode any keys pressed other than those listed above cause the game to unpause for one tick, and are passed to the game.
+Pressing C (formerly P) lets you continue the game: in this mode any keys pressed other than those listed above cause the game to unpause for one tick, and are passed to the game.
 
 Alternatively, trying to wait for a script to finish when it contains a "while(1)... wait" loop or similar will cause the game to resume.
