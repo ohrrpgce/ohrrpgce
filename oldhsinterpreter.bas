@@ -1073,7 +1073,7 @@ STATIC bottom as integer
 STATIC viewmode as integer
 STATIC lastscript as integer
 'drawloop: if true, only draw the script debugger overlay (called from displayall); not interactive.
-'viewmode: 0 = script state, 1 = local variables, 2 = global variables, 3 = strings, 4 = timers
+'viewmode: 0 = script state, 1 = local variables, 2 = global variables, 3 = strings, 4 = timers, 5 = advanced state dump (scriptstate)
 'mode: 0 = do nothing, 1 = non-interactive (display over game), 2 >= interactive:
 '2 = normal mode, 3 = display game and step tick-by-tick on input
 
@@ -1082,6 +1082,7 @@ DIM marginstr as string
 ' Displayed lines in the plotstring view mode. The last element of the array is ignored
 REDIM stringlines(0 TO 0) as string
 DIM linelen as integer
+DIM posdata as ScriptTokenPos
 DIM page as integer
 
 DIM saved_gfxio_state as bool
@@ -1158,12 +1159,32 @@ IF nowscript >= 0 THEN
  END SELECT
 END IF
 
+IF mode > 1 THEN
+ 'Note: the colours here are fairly arbitrary
+ edgeprint "F1:Help", 0, 0, uilook(uiDescription), page
+ edgeprint "Script debug mode", 72, 0, uilook(uiText), page
+END IF
+
 DIM ol as integer = pBottom  '191
 
 IF mode > 1 AND viewmode = 0 THEN
  IF nowscript = -1 THEN
   edgeprint "Script debugger: no scripts", 0, ol, uilook(uiDescription), page
-  ol -= 9
+ ELSE
+  IF get_script_line_info(posdata, selectedscript) THEN
+   print_script_line posdata, ol - 36, 4, NO, page
+  ELSE
+   edgeprint "Script line number unknown. Recompile", 0, ol - 27, uilook(uiDescription), page
+   edgeprint "your scripts with a newer version of", 0, ol - 18, uilook(uiDescription), page
+   edgeprint "HSpeak, or recompile", 0, ol - 9, uilook(uiDescription), page
+   edgeprint "with debug info enabled.", 0, ol, uilook(uiDescription), page
+  END IF
+ END IF
+END IF
+
+IF mode > 1 AND viewmode = 5 THEN
+ IF nowscript = -1 THEN
+  edgeprint "Script debugger: no scripts", 0, ol, uilook(uiDescription), page
  ELSE
   DIM decmpl as string = scriptstate(selectedscript)
   IF LEN(decmpl) > 200 THEN decmpl = "..." & RIGHT(decmpl, 197)
@@ -1188,7 +1209,7 @@ IF mode > 1 AND viewmode = 1 AND selectedscript >= 0 THEN
     FOR j as integer = 2 TO 0 STEP -1  'reverse order so the var name is what gets overwritten
      localno = localsscroll + i * 3 + j
      IF localno < numlocals THEN
-      temp = localvariablename(localno, scriptargs) & "="
+      temp = localvariablename(localno, *.scr) & "="
       edgeprint temp, j * 96, ol, uilook(uiText), page
       edgeprint STR(heap(.frames(0).heap + localno)), j * 96 + 8 * LEN(temp), ol, uilook(uiDescription), page
      END IF
@@ -1283,7 +1304,7 @@ DIM lastarg as integer
 DIM col as integer
 DIM waitcause as string
 
-IF mode > 1 AND (viewmode = 0 OR viewmode = 1) THEN
+IF mode > 1 AND (viewmode = 0 OR viewmode = 1 OR viewmode = 5) THEN
  'show scripts list
 
  '6 rows up
@@ -1293,11 +1314,11 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 1) THEN
  ol -= 9
  
  IF mode = 1 THEN
-  bottom = nowscript - (ol - 6) \ 9
+  bottom = nowscript - (ol - 10) \ 9
   selectedscript = nowscript
  ELSE
   bottom = small(bottom, selectedscript)
-  bottom = large(bottom, selectedscript - (ol - 6) \ 9)
+  bottom = large(bottom, selectedscript - (ol - 10) \ 9)
  END IF
  
  FOR i as integer = large(bottom, 0) TO nowscript
@@ -1341,7 +1362,7 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 1) THEN
    edgeprint STR(scriptinsts(i).curvalue), 280, ol, col, page
   END IF
   ol = ol - 9
-  IF ol < 6 THEN EXIT FOR
+  IF ol < 10 THEN EXIT FOR
  NEXT i
 
 END IF 'end drawing scripts list
@@ -1356,7 +1377,7 @@ IF mode > 1 AND drawloop = NO THEN
   clearpage page
   setvispage page
  END IF
- IF w = scV THEN loopvar(viewmode, 0, 4): GOTO redraw
+ IF w = scV THEN loopvar(viewmode, 0, 5): GOTO redraw
  IF w = scPageUp THEN
   selectedscript += 1
   localsscroll = 0
