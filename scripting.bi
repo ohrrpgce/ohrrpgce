@@ -55,8 +55,8 @@ DECLARE SUB load_hsp ()
 
 DECLARE FUNCTION script_string_constant(scriptinsts_slot as integer, offset as integer) as string
 
-DECLARE FUNCTION get_script_var_name (n as integer, scrdat as ScriptData) as string
-DECLARE FUNCTION localvariablename (value as integer, scrdat as ScriptData) as string
+DECLARE FUNCTION script_lookup_local_name (var_id as integer, scrdat as ScriptData) as string
+DECLARE FUNCTION localvariablename (var_id as integer, scrdat as ScriptData) as string
 DECLARE FUNCTION scriptcmdname (kind as integer, id as integer, scrdat as ScriptData) as string
 DECLARE FUNCTION commandname (byval id as integer) as string
 

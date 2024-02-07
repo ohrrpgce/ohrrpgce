@@ -1529,27 +1529,6 @@ SUB readstackcommand (node as ScriptCommand, state as OldScriptState, byref stk 
  i -= 2
 END SUB
 
-FUNCTION localvariablename (value as integer, scrdat as ScriptData) as string
- 'Get a variable name from a ScriptCommand local/nonlocal variable number
- 'Locals (and args) numbered from 0
-
- DIM ret as string
- ret = get_script_var_name(value, scrdat)
- IF ret <> "" THEN RETURN ret
-
- IF scrdat.args = 999 THEN
-  'old HS file: don't know the number of arguments
-  RETURN "local" & value
- ELSEIF value < scrdat.args THEN
-  RETURN "arg" & value
- ELSEIF value >= 256 THEN
-  RETURN "nonlocal" & (value SHR 8) & "_" & (value AND 255)
- ELSE
-  'Not an arg
-  RETURN "var" & (value - scrdat.args)
- END IF
-END FUNCTION
-
 FUNCTION mathvariablename (value as integer, scrdat as ScriptData) as string
  'get a variable name from an variable id number passed to a math function or for
  'locals (and args) numbered from 0
