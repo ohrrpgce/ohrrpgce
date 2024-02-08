@@ -14,7 +14,7 @@
 
 --Changelog
 --3W  2024-02-06 Add srcpos debug info, local var names, and srcfiles.txt
---3Vb 2024-02-06 Disallow local and subscript with the same name
+--3Vb 2024-02-06 Disallow local/subscript or script/global with the same name
 --    2024-01-11 Fix lexing of identifiers ending in : & | or -
 --3Va 2022-04-08 Add exit
 --3V  2022-04-07 Add showvalueof, and tracevalueof alias

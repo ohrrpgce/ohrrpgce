@@ -248,7 +248,8 @@ WHAT IS NEW?
       are not configured to pause when targetting [James]
     * Script variable names ending with a : would cause an error when followed by
       comma [Ralph]
-    * HSpeak didn't notice when a local and a subscript had the same name [Ralph]
+    * HSpeak didn't notice when a local and a subscript, or a script followed by
+      a global variable, had the same name [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

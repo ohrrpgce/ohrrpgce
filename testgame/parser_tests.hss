@@ -225,9 +225,12 @@ globalvariable(9,eqstr)          # ERROR
 globalvariable(9,div)            # ERROR
 globalvariable(-1,ok)            # ERROR
 globalvariable(9,script)         # ERROR
+## (subscript isn't a trigger type like script/plotscript are)
+globalvariable(9,subscript)      # ERROR
 globalvariable(9,return)         # ERROR
 globalvariable(9,exitreturning)  # ERROR
 globalvariable(9,exit)           # ERROR
+globalvariable(9,flowtests)      # ERROR
 
 defineconstant(1,begin)          # ERROR
 
