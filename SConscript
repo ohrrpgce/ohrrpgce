@@ -242,14 +242,15 @@ if arch == 'x86':
     # x86 only: whether to use SSE2 instructions. These are always available on x86 Mac & Android and on x86_64
     sse2 = int(ARGUMENTS.get('sse2', 1))
 
-# We set gengcc=True if FB will default to it; we need to know whether it's used
-if FBC.version >= 1080 and arch == 'x86_64':
-    # FB 1.08 adds gas64 backend but doesn't use it yet
+if mac or arch not in ['x86', 'x86_64']:
+    # -gen gas not supported on Mac
     gengcc = True
-elif arch != 'x86':
-    gengcc = True
-if mac:
-    gengcc = True
+
+if 'gengcc' not in ARGUMENTS:
+    # FB 1.08 adds -gen gas64 emitter which targets x86_64, but doesn't default
+    # to it yet. And it couldn't compile the OHR until FB 1.20.
+    if arch == 'x86_64':
+        gengcc = True
 
 ################ Other commandline arguments
 
@@ -879,6 +880,12 @@ if gengcc:
                     print("WARNING: due to bug in old fbc, dropping arg -Wc %s" % tmp[-1])
                     tmp.pop()
             FBFLAGS += ["-Wc", ','.join(tmp)]
+
+if not gengcc:
+    if arch == 'x86_64':
+        FBFLAGS += ["-gen", "gas64"]
+    else:
+        FBFLAGS += ["-gen", "gas"]
 
 if mac:
     # Doesn't have --gc-sections. This is similar, but more aggressive than --gc-sections
@@ -1899,7 +1906,8 @@ Options:
                       on Unix (except Android and Mac)
   gengcc=1            Compile using C backend (faster binaries, longer compile
                       times, and some extra warnings). This is always used
-                      everywhere except x86 Windows/Linux/BSD. See also 'compiler'.
+                      everywhere except 32-bit x86 Windows/Linux/BSD. Pass gengcc=0
+                      on x86_64 to use experimental -gen gas64. See also 'compiler'.
   debug=0|1|2|3|4     Debug level:
                                   -exx |     debug info      | optimisation
                                  ------+---------------------+--------------
