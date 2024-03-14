@@ -2232,6 +2232,8 @@ end procedure
 ---------------------------------------------------------------------------
 
 --Warning: you normally want to use check_undefined_string instead of this
+--This does not check whether s is defined as a constant, subscript, or local variable,
+--and may miss scripts too.
 procedure check_for_reserved(string s, srcpos pos, string expect)
   string extra
   Symbol sym
@@ -2264,7 +2266,30 @@ end procedure
 procedure mustnt_be_a_number(Token s)
   --note that identifiers are allowed to start with -
   if length(exclude(s[CMD_TEXT],"-0123456789"))=0 and count('-',s[CMD_TEXT])!=length(s[CMD_TEXT]) then
-    src_error(sprintf_utf("Expected a name, but found a number "&COLYEL&"%s"&COLRED,{s[CMD_TEXT]}),s[CMD_POS])
+    --Work backwards to figured out if constant substitution has occurred on s[CMD_TEXT]
+    sequence src_position
+    sequence const_src_position
+    string original_text
+    string msg
+    src_position=decode_srcpos(s[CMD_POS])
+    original_text=src_position[POS_TOKTEXT]
+
+    object const_data
+    const_data=map:get(constant_list,original_text,{})
+    if length(const_data) then
+      const_src_position=decode_srcpos(const_data[CONST_POS])
+      msg=sprintf_utf("Expected a name, but found "&COLYEL&"%s"&COLRED&" which is defined as a constant on line %d of "&COLPNK&"%s"&COLRED&" with the value "&COLYEL&"%d"&COLRED,
+                      {
+                        original_text,
+                        const_src_position[POS_LINE],
+                        const_src_position[POS_FILENAME],
+                        const_data[CONST_VALUE]
+                      })
+    else
+      msg="Expected a name, but found a number "&COLYEL &s[CMD_TEXT] &COLRED
+    end if
+
+    src_error(msg, s[CMD_POS])
   end if
 end procedure
 
@@ -2313,7 +2338,9 @@ procedure check_undefined_string(Token s, string expect)
   sequence src_position
   integer at
 
+  --Check global_scope
   check_for_reserved(s[CMD_TEXT],s[CMD_POS],expect)
+  --Check constant_list and for number literals
   mustnt_be_a_number(s)
 
   --Search for an in-scope subscript of that name (subscripts aren't shadowed)
