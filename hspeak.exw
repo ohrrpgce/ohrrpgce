@@ -1694,7 +1694,7 @@ function lexer_read_number(string s, integer i, integer stop, integer posoff)
       integer digit
       digit=s[i]-'0'
       if digit>=base then
-        src_error(sprintf_utf("Found digit "&COLYEL&"%s"&COLRED&" which is too big, while parsing a base-%d number",{s[i],base}),encode_srcpos(posoff,i,1))
+        src_error(sprintf_utf("Found digit "&COLYEL&"%s"&COLRED&" which is not permitted in a base-%d number",{s[i],base}),encode_srcpos(posoff,i,1))
       end if
       text&=s[i]
       textend=i
@@ -1975,7 +1975,7 @@ function lex_line(sequence s, integer i, integer stop, integer posoff)
             --We haven't appended anything to tokens that needs removing.
             ident=""
             temp=lexer_read_number(s,i,stop,posoff)
-            tokens=append(tokens,{temp[2],encode_srcpos(posoff,i,i-textstart+1)})
+            tokens=append(tokens,{temp[2],encode_srcpos(posoff,i,temp[1]-i+1)})
             i=temp[1]
             textstart=0
             state=LEX_DIGIT  --Sensible last_state to avoid 'extra comma' error
