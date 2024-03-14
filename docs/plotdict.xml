@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2024-01-09">
+<plotscript version="wip" datecode="2024-03-15">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -4564,7 +4564,7 @@ plotscript, print learned spells, who=0, begin
     0 $= 1  # copy the static part to the displayed string
     0 $+ 2  # combine with the spell name
     show string at (0, 160, 100)
-    wait for keypress (anykey)
+    wait for key (anykey)
   )
   hide string (0)
 end</example>

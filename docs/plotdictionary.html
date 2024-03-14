@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2024-01-09)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2024-03-15)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1358,6 +1358,7 @@ function toggleContent(target) {
 		<a href="#about-script" class="ref">script, name, argumentnames (statements)</a><br>
 		<a href="#about-scripterror" class="ref">script error (string id)</a><br>
 		<a href="#about-scriptid" class="ref">Script IDs</a><br>
+		<a href="#about-scriptlayer" class="ref">script layer</a><br>
 		<a href="#about-scrolltoslice" class="ref">scroll to child</a><br>
 		<a href="#about-scrolltoslice" class="ref">scroll to slice (parent, sl, apply padding)</a><br>
 		<a href="#about-searchstring" class="ref">search string (ID1, ID2, start)</a><br>
@@ -1600,7 +1601,7 @@ function toggleContent(target) {
 		<a href="#about-spriteisdissolving" class="ref">sprite is dissolving (handle)</a><br>
 		<a href="#about-spriteishorizflipped" class="ref">sprite is horiz flipped (handle)</a><br>
 		<a href="#about-spriteisvertflipped" class="ref">sprite is vert flipped (handle)</a><br>
-		<a href="#about-spritelayer" class="ref">sprite layer</a><br>
+		<a href="#about-scriptlayer" class="ref">spritelayer</a><br>
 		<a href="#about-sqrt" class="ref">sqrt (number)</a><br>
 		<a href="#about-statusscreen" class="ref">status screen (who)</a><br>
 		<a href="#about-stopsong" class="ref">stop music</a><br>
@@ -8711,7 +8712,7 @@ plotscript, print learned spells, who=0, begin
     0 $= 1  # copy the static part to the displayed string
     0 $+ 2  # combine with the spell name
     show string at (0, 160, 100)
-    wait for keypress (anykey)
+    wait for key (anykey)
   )
   hide string (0)
 end</pre>
@@ -12814,7 +12815,8 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-lookupslice" class="ref">lookup slice (lookup code, root slice)</a><br>
 		<a href="#about-lookupnextslice" class="ref">lookup next slice (lookup code, current slice, root slice)</a><br>
 		<a href="#about-lookupancestor" class="ref">lookup ancestor (lookup code, slice)</a><br>
-		<a href="#about-spritelayer" class="ref">sprite layer</a><br>
+		<a href="#about-scriptlayer" class="ref">script layer</a><br>
+		<a href="#about-scriptlayer" class="ref">spritelayer</a><br>
 		<a href="#about-getslicelookup" class="ref">get slice lookup (handle)</a><br>
 		<a href="#about-setslicelookup" class="ref">set slice lookup (handle, code)</a><br>
 		<a href="#about-getheroslice" class="ref">get hero slice (rank)</a><br>
@@ -13601,6 +13603,7 @@ lookup slice(sl:textbox portrait box)
 lookup slice(sl:textbox choice box)
 lookup slice(sl:textbox root)
 lookup slice(sl:script layer)
+lookup slice(sl:sprite layer)  # Same as lookup slice(sl:script layer)
 lookup slice(sl:textbox layer)
 lookup slice(sl:string layer)
 lookup slice(sl:reserve)
@@ -13710,10 +13713,10 @@ while (true) do (
 		</p>
 </div>
 		<div class="command">
-			<a name="about-spritelayer"></a>
-				<h4>sprite layer</h4>
+			<a name="about-scriptlayer"></a>
+				<h4>script layer</h4>
 <p>
-			Returns a slice handle for the slice (also called the 'script layer') which is the default parent of all new script-created slices, such as created by <a href="#about-loadherosprite" class="ref">load hero sprite</a> and <a href="#about-createrect" class="ref">create rect</a>. You can move slices elsewhere in the slice tree with <a href="#about-setparent" class="ref">set parent</a>. You can use spritelayer together with <a href="#about-firstchild" class="ref">first child</a> if you want to loop through all your slices without knowing their handles. Another way to get this slice is to use <a href="#about-lookupslice" class="ref">lookup slice</a>: <span class="param">lookup slice(sl:script layer)</span>.
+			Returns a slice handle for the slice (also called the 'sprite layer') which is the default parent of all new script-created slices, such as created by <a href="#about-loadherosprite" class="ref">load hero sprite</a> and <a href="#about-createrect" class="ref">create rect</a>. You can move slices elsewhere in the slice tree with <a href="#about-setparent" class="ref">set parent</a>. You can use <span class="code">scriptlayer</span> together with <a href="#about-firstchild" class="ref">first child</a> if you want to loop through all your slices (that you haven't reparented) without knowing their handles. Another way to get this slice is to use <a href="#about-lookupslice" class="ref">lookup slice</a>: <span class="param">lookup slice(sl:script layer)</span>.
 			
 			<pre>variable(sl)
 sl := first child(sprite layer)
@@ -13727,6 +13730,11 @@ end
 			
 		</p>
 </div>
+		<div class="command">
+			<a name="about-spritelayer"></a>
+				<h4>spritelayer</h4>
+				An alias for <a href="#about-scriptlayer">script layer</a>.
+			</div>
 		<div class="command">
 			<a name="about-getslicelookup"></a>
 				<h4>get slice lookup (handle)</h4>
@@ -16427,7 +16435,7 @@ end
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					There are two types of slice used by the engine for which there are no commands:
-					'special' slices (such as <a href="#about-spritelayer" class="ref">sprite layer</a>),
+					'special' slices (such as <a href="#about-scriptlayer" class="ref">spritelayer</a>),
 					and 'map' slices (which are map layers).
 					However you can use <a href="#about-lookupslice" class="ref">lookup slice</a> to find each instance of these.
 					Special slices are nothing but container slices with special purposes (but not special behaviour).
@@ -17127,7 +17135,7 @@ set horiz align(sl, edge:right)
 			<a name="about-clonesprite"></a>
 				<h4>clone sprite (handle)</h4>
 <p>
-			Duplicates a sprite slice, returning a handle to it. The new sprite inherits only the sprite-related data; in all other ways it is like a freshly created new slice. For example, the parent of the new slice is <a href="#about-spritelayer" class="ref">sprite layer</a> and it starts out visible, with default anchoring, is at position 0,0, has no children, etc.. If you clone a sprite, remember that you will need to call <a href="#about-freesprite" class="ref">free sprite</a> on both the original and the clone.
+			Duplicates a sprite slice, returning a handle to it. The new sprite inherits only the sprite-related data; in all other ways it is like a freshly created new slice. For example, the parent of the new slice is <a href="#about-scriptlayer" class="ref">spritelayer</a> and it starts out visible, with default anchoring, is at position 0,0, has no children, etc.. If you clone a sprite, remember that you will need to call <a href="#about-freesprite" class="ref">free sprite</a> on both the original and the clone.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					If you want to copy a non-sprite slice, copy all the properties of the slice,
@@ -18868,7 +18876,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 <p>
 			
 				Searches through all the descendants of <span class="param">parent</span> for a slice containing the given <span class="param">x</span>, <span class="param">y</span> pixel screen position.
-				To search all your slices, you can often use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>, since that is the default parent of new slices.
+				To search all your slices, you can often use <a href="#about-scriptlayer" class="ref">spritelayer</a> as <span class="param">parent</span>, since that is the default parent of new slices.
 				<br>
 				<span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point;
 				the bottom-most one (returned by default) is number 0, next up is 1, etc.
@@ -18886,7 +18894,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 				For example, pass true for <span class="param">visibleonly</span> in order to avoid finding the children of Select slices
 				which are not selected (and therefore invisible).
 				<br>
-				This command never returns Special slices, such as the <a href="#about-spritelayer" class="ref">sprite layer</a> slice.
+				This command never returns Special slices, such as the <a href="#about-scriptlayer" class="ref">spritelayer</a> slice.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					A point on the left or top edge of a slice counts as inside the slice,
@@ -18925,7 +18933,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 			
 				Searches through all the descendants of <span class="param">parent</span> for a slice colliding (intersecting) with the given <span class="param">slice</span> (by screen position).
 				(Children of <span class="param">slice</span> are ignored.)
-				To search all your slices, you can often use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>, since that is the default parent of new slices.
+				To search all your slices, you can often use <a href="#about-scriptlayer" class="ref">spritelayer</a> as <span class="param">parent</span>, since that is the default parent of new slices.
 				<span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point;
   				the bottom most one (returned by default) is number 0, next up is 1, etc.
 				0 is returned if <span class="param">number</span> is too large (larger than or equal to the number of overlapping slices).
@@ -18937,7 +18945,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 				Pass true for <span class="param">visibleonly</span> in order to avoid finding the children of Select slices which are not selected (and therefore invisible).
 				<span class="param">visibleonly</span> defaults to false.
 				<br>
-				This command never returns Special slices, such as the <a href="#about-spritelayer" class="ref">sprite layer</a> slice, nor will it return <span class="param">slice</span> or any of its descendants.
+				This command never returns Special slices, such as the <a href="#about-scriptlayer" class="ref">spritelayer</a> slice, nor will it return <span class="param">slice</span> or any of its descendants.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					If a slice clips its children, then any parts of those children
@@ -23207,7 +23215,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 963 commands (of which 14 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 964 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
