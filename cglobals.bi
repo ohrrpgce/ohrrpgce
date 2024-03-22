@@ -14,6 +14,6 @@ EXTERN option_nowait as bool
 EXTERN option_hsflags as string
 EXTERN editing_a_game as bool
 EXTERN inside_importscripts as bool
-EXTERN counter_provoke_captions(provokeLAST) as string * 23
+EXTERN counter_provoke_captions(provokeLAST) as zstring * 24
 EXTERN last_active_seconds as double
 EXTERN export_translations_to as string

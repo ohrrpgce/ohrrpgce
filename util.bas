@@ -4211,8 +4211,8 @@ END FUNCTION
 'Perhaps doesn't belong here because scancodes are OHR-specific. However, OHR
 'scancodes are 95% the same as FB scancodes
 FUNCTION scancodename (k as KBScancode, longname as bool = NO) as string
- 'static scancodenames(...) as string * 18 = { ... }
- 'static joybuttonnames(...) as string * 20  = { ... }
+ 'static scancodenames(...) as zstring * 19 = { ... }
+ 'static joybuttonnames(...) as zstring * 22  = { ... }
  #INCLUDE "scancodenames.bi"
 
  DIM scname as string

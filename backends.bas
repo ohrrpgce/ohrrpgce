@@ -145,9 +145,9 @@ end extern
 
 type GfxBackendStuff
 	'FB doesn't allow initialising UDTs containing var-length strings
-	name as string * 7      'Without gfx_ prefix
-	alt_name as string * 7  'An alternative name that's also accepted
-	libname as string * 15  'Filename from which to load a dyn-linked backend, without extension
+	name as zstring * 8      'Without gfx_ prefix
+	alt_name as zstring * 8  'An alternative name that's also accepted
+	libname as zstring * 16  'Filename from which to load a dyn-linked backend, without extension
 	load as FnGfxLoad       'Set function ptrs. Is NULL if the backend is dynamically linked
 	wantpolling as bool     'Need allmodex to run the polling thread?
 	dylib as any ptr        'Handle for a loaded dynamic library, if any
@@ -180,7 +180,7 @@ dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "sdlpp", "gfx_sdl", NULL, 
 #endif
 
 ' Alternative spellings allowed
-dim shared valid_gfx_backends(...) as string * 10 = {"alleg", "directx", "dummy", "fb", "sdl", "sdl2", "console", "sdlpp", "sdl++"}
+dim shared valid_gfx_backends(...) as zstring * 10 = {"alleg", "directx", "dummy", "fb", "sdl", "sdl2", "console", "sdlpp", "sdl++"}
 
 dim shared gfx_choices() as GfxBackendStuff ptr
 'Initialises gfx_choices with pointers to *_stuff variables, in some build-dependent order

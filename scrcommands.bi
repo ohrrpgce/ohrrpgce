@@ -5,7 +5,7 @@
 'Don't bother to update this file. It is only for scripts compiled with versions
 'of HSpeak before 3H
 
-STATIC cmd_default_names(437) as string*24 => {"noop","wait","waitforall","waitforhero",_
+STATIC cmd_default_names(437) as zstring*25 => {"noop","wait","waitforall","waitforhero",_
         "waitfornpc","suspendnpcs","suspendplayer","resumenpcs","resumeplayer",_
         "waitforkey","walkhero","showtextbox","checktag","settag","","usedoor",_
         "fightformation","getitem","deleteitem","leader","getmoney","losemoney",_

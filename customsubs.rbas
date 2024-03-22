@@ -401,7 +401,7 @@ FUNCTION cond_grabber (cond as Condition, default as bool = NO, alwaysedit as bo
 
   CONST compare_chars as string = "=<>!"
   'Use strings instead of integers for convenience -- have to decode to use
-  STATIC statetable(3, 7) as string * 2 => { _
+  STATIC statetable(3, 7) as zstring * 3 => { _
      /'Current comparison type:               '/ _
      /'None  =    <>   <    <=   >    >=  Tag '/ _
       {"=" ,"=" ,"=" ,"<=","=" ,">=","=" ,"=" },  /' = pressed  '/ _

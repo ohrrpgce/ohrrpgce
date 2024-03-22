@@ -99,7 +99,7 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
       DIM GUID as SDL_JoystickGUID = SDL_JoystickGetGUID(joy)
       memcpy(@.model_guid(0), @GUID, sizeof(SDL_JoystickGUID))
 
-      DIM GUIDstr as string * 33
+      DIM GUIDstr as zstring * 33
       SDL_JoystickGetGUIDString(GUID, @GUIDstr[0], 32)
       debuginfo "Joystick " & joynum & " GUID " & GUIDstr & " instance_id " & .instance_id
 

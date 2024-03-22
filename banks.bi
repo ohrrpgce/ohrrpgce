@@ -2,7 +2,7 @@ type voice
 	vbyte(0 to 10) as ubyte
 end type
 
-dim shared gm_name(0 to 127) as string * 8 => { _
+dim shared gm_name(0 to 127) as zstring * 9 => { _
     "ACGPIANO", _
     "ACPIANO", _
     "ELGPIANO", _
@@ -264,7 +264,7 @@ dim shared gm_voice(0 to 127, 0 to 10) as ubyte => { _
     { &h6, &h84, &h0, &h0, &hA0, &hC6, &hF0, &h75, &h0, &h0, &hE } _
 }
 
-dim shared ibank_name(0 to 127) as string * 8 => { _
+dim shared ibank_name(0 to 127) as zstring * 9 => { _
     "ACOUPNO1", _
     "ACOUPNO2", _
     "ACOUPNO3", _

@@ -44,7 +44,7 @@ DECLARE SUB attack_preview_slice_defocus(byval sl as Slice Ptr)
 
 
 '--Globals
-DIM counter_provoke_captions(provokeLAST) as string * 23 = { _
+DIM counter_provoke_captions(provokeLAST) as zstring * 24 = { _
     "Default", "Always", "Never", "If attack hits", "If attack fails", "If attack misses", _
     "If attack doesn't hit", "If attack doesn't fail", "If attack doesn't miss" _
 }

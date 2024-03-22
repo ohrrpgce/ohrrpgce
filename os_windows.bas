@@ -289,7 +289,7 @@ function exceptFilterMessageBox(pExceptionInfo as PEXCEPTION_POINTERS) as clong
 
 	if want_exception_messagebox then
 		'Avoid calling FB string routines
-		dim msgbuf as string * 401
+		dim msgbuf as zstring * 401
 		if loaded_drmingw then
 			'This only happens if we loaded exchndl.dll
 			snprintf(strptr(msgbuf), 400, _
@@ -551,7 +551,7 @@ function list_subdirs (searchdir as string, nmask as string, byval showhidden as
 end function
 
 function os_get_documents_dir() as string
-	dim buf as string * MAX_PATH
+	dim buf as zstring * (MAX_PATH+1)
 	if SHGetSpecialFolderPathA then
 		' This is a very deprecated function; SHGetFolderPath is slightly more modern but apparently Win 2000+ only.
 		' Might be missing on Win95, and the Documents folder was only added in Win98 anyway.

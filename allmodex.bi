@@ -859,7 +859,7 @@ extern faded_in as bool
 extern faded_to_color as RGBcolor
 extern vpages() as Frame ptr
 extern vpagesp as Frame ptr ptr
-extern key2text(3,53) as string*1
+extern key2text(3,53) as zstring*2
 extern fonts() as Font ptr
 extern global_tog as integer
 extern max_display_fps as integer

@@ -4,7 +4,7 @@
 
 #include "scancodes.bi"
 
-static scancodenames(ccCancel to ...) as string * 18  = { _
+static scancodenames(ccCancel to ...) as zstring * 19  = { _
   "Cancel",                    /' -9 '/ _
   "Flee",                      /' -8 '/ _
   "Menu",                      /' -7 '/ _
@@ -164,7 +164,7 @@ static scancodenames(ccCancel to ...) as string * 18  = { _
   "Command/Win"                /' 121 '/ _
 }
 
-static joybuttonnames(128 to 151) as string * 21  = { _
+static joybuttonnames(128 to 151) as zstring * 22  = { _
   "Gamepad A",                      /' 128 '/ _
   "Gamepad B",                      /' 129 '/ _
   "Gamepad X",                      /' 130 '/ _

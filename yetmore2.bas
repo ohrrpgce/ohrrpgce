@@ -1908,7 +1908,7 @@ SUB try_reload_lumps_anywhere ()
  entered = YES
 
  'pal handled with special message
- STATIC ignorable_extns_(...) as string*3 => {"mn", "tmn", "d", "dor", "pal", "sng", "efs"}
+ STATIC ignorable_extns_(...) as zstring*4 => {"mn", "tmn", "d", "dor", "pal", "sng", "efs"}
  STATIC ignorable_extns as string vector
  IF ignorable_extns = NULL THEN
   v_new ignorable_extns

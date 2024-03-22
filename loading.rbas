@@ -5318,7 +5318,7 @@ FUNCTION unescape_str_for_web_translation(text as string, scan_template as zstri
   DO
     where = INSTR(where, ret, "$")
     IF where = 0 THEN EXIT DO
-    DIM embedtype as string * 10
+    DIM embedtype as zstring * 10
     DIM arg as integer
     DIM bytesparsed as integer = -1
     sscanf(@ret[where - 1], scan_template, strptr(embedtype), @arg, @bytesparsed)
