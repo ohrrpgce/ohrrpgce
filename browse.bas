@@ -48,7 +48,6 @@ Type BrowseMenuState
 End Type
 
 Type FilePreviewer Extends Object
-	Declare Destructor()
 	Declare Virtual Sub load_preview(filepath as string, br as BrowseMenuState)
 	Declare Virtual Sub unload_preview()
 	Declare Virtual Sub draw_preview()
@@ -370,6 +369,7 @@ ELSE
 END IF
 remember = default
 
+br.previewer->unload_preview()
 DELETE br.previewer
 
 'Restore held copies of page 2 and 3 (because the tileset editor still needs them)
@@ -402,10 +402,6 @@ END SUB
 
 
 '==============================================================================
-
-DESTRUCTOR FilePreviewer()
- unload_preview
-END DESTRUCTOR
 
 SUB FilePreviewer.load_preview(filepath as string, br as BrowseMenuState)
 END SUB
