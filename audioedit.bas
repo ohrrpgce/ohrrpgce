@@ -432,7 +432,7 @@ DO
  standardmenu menu(), state, , , dpage
  'Allow newlines in metadata but don't wrap, to cut off long comments
  edgeprint metadata, pMenuX, pMenuY + 9 * (UBOUND(menu) + 2), uilook(uiMenuItem), dpage, YES, YES
- edgeprint "F2: change preview volume", pInfoRight, pInfoY, uilook(uiMenuItem), dpage
+ edgeprint "F2: Preview volume " & CINT(100 * get_music_volume()) & "%", pInfoRight, pInfoY, uilook(uiMenuItem), dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -784,7 +784,7 @@ DO
  standardmenu menu(), state, , , dpage
  'Allow newlines in metadata but don't wrap, to cut off long comments
  edgeprint metadata, pMenuX, pMenuY + 9 * (UBOUND(menu) + 2), uilook(uiMenuItem), dpage, YES, YES
- edgeprint "F2: change preview volume", pInfoRight, pInfoY, uilook(uiMenuItem), dpage
+ edgeprint "F2: Preview volume " & CINT(100 * get_global_sfx_volume()) & "%", pInfoRight, pInfoY, uilook(uiMenuItem), dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -1036,7 +1036,13 @@ SUB generalmusicsfxmenu ()
     clearpage dpage
     highlight_menu_typing_selection disp(), menu_display(), selectst, state
     standardmenu menu_display(), state, , , dpage
-    edgeprint "F2: change preview volume", pInfoRight, pInfoY, uilook(uiMenuItem), dpage
+
+    SELECT CASE state.pt
+     CASE 1 TO lastmusicitem
+       edgeprint "F2: Preview volume " & CINT(100 * get_music_volume()) & "%", pInfoRight, pInfoY, uilook(uiMenuItem), dpage
+     CASE IS > lastmusicitem
+       edgeprint "F2: Preview volume " & CINT(100 * get_global_sfx_volume()) & "%", pInfoRight, pInfoY, uilook(uiMenuItem), dpage
+     END SELECT
 
     SWAP vpage, dpage
     setvispage vpage
