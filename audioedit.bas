@@ -542,6 +542,10 @@ SUB importsong_get_song_info (songname as string, songfile as string, bamfile as
   file_ext = ".mp3"
   songfile = temp & file_ext
   songtype = "MPEG Layer III (MP3)"
+ ELSEIF isfile(temp & ".flac") THEN ' Not supported by most builds, and importing isn't permitted
+  file_ext = ".flac"
+  songfile = temp & file_ext
+  songtype = "FLAC"
  ELSEIF isfile(temp & ".mid") THEN
   file_ext = ".mid"
   songfile = temp & file_ext
@@ -866,6 +870,10 @@ SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as
   file_ext = ".mp3"
   sfxfile = temp & file_ext
   sfxtype = "MPEG Layer III (MP3)"
+ ELSEIF isfile(temp & ".flac") THEN ' Not supported in most builds
+  file_ext = ".flac"
+  sfxfile = temp & file_ext
+  sfxtype = "FLAC"
  END IF
 
  '--add more formats here

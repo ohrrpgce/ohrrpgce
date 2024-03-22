@@ -420,6 +420,8 @@ function getmusictype (file as string) as MusicFormatEnum
 		chk = FORMAT_OGG
 	case "mp3"
 		chk = FORMAT_MP3
+	case "flac"
+		chk = FORMAT_FLAC
 	case "s3m"
 		chk = FORMAT_S3M
 	case "mod"
@@ -443,10 +445,13 @@ function find_music_lump(songnum as integer) as string
   songbase = workingdir & SLASH & "song" & songnum
   songfile = ""
 
-  IF real_isfile(songbase & ".mp3") THEN
-    songfile = songbase & ".mp3"
-  ELSEIF real_isfile(songbase & ".ogg") THEN
+  'In order of preference; multiple versions of the same song can appear
+  IF real_isfile(songbase & ".ogg") THEN
     songfile = songbase & ".ogg"
+  ELSEIF real_isfile(songbase & ".flac") THEN  'Not supported in most builds
+    songfile = songbase & ".flac"
+  ELSEIF real_isfile(songbase & ".mp3") THEN
+    songfile = songbase & ".mp3"
   ELSEIF real_isfile(songbase & ".mod") THEN
     songfile = songbase & ".mod"
   ELSEIF real_isfile(songbase & ".xm") THEN
@@ -473,6 +478,8 @@ function find_sfx_lump (sfxnum as integer) as string
 	sfxbase = workingdir & SLASH & "sfx" & sfxnum
 	if real_isfile(sfxbase & ".ogg") THEN
 		return sfxbase & ".ogg"
+	elseif real_isfile(sfxbase & ".flac") then  'Not supported in most builds
+		return sfxbase & ".flac"
 	elseif real_isfile(sfxbase & ".mp3") then
 		return sfxbase & ".mp3"
 	elseif real_isfile(sfxbase & ".wav") then

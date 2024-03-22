@@ -351,7 +351,7 @@ sub music_init()
 		'loaded. So force loading them. (SDL_mixer 2.0.2 only, earlier versions always
 		'loaded everything from Mix_OpenAudio). Increasing startup time just to get
 		'supported_formats is sad, but at least it prevents pauses later.
-		Mix_Init(MIX_INIT_MID or MIX_INIT_OGG or MIX_INIT_MP3 or MIX_INIT_MOD)
+		Mix_Init(MIX_INIT_MID or MIX_INIT_OGG or MIX_INIT_MP3 or MIX_INIT_MOD or MIX_INIT_FLAC)
 		'SDL_mixer 1.2.12 bug: if compiled against libmad Mix_Init sets the error "Mixer not built with MP3 support"
 		'if Mix_GetError then debug "Mix_Init: " & *Mix_GetError
 		Mix_ClearError
