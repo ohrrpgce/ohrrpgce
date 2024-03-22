@@ -1,5 +1,7 @@
 This screen allows you to choose tags that will automatically be turned ON depending on whether or not (at least one copy of) the hero is in your party and in a certain state. Dead heroes set these tags too, except for "Is alive", as do swapped-out locked heroes (which are hidden from the player).
 
+{{autoset_tags}}
+
 Have hero: Whether in active or reserve party.
 
 Is alive: Has greater than 0 HP, active or reserve party.

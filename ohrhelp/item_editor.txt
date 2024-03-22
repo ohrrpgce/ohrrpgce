@@ -46,6 +46,10 @@ Next are the usage rules:
   in the item screen, nor will it be
   possible to sell it in shops.
 
+ --- AUTOSET TAGS ---
+
+The follow conditions create Autoset tags. {{autoset_tags}}
+
 Own item TAG: This is a tag that will be turned on if you own at least one of this item. This includes both items in your inventory and items that are equipped to any hero. Press ENTER or SPACE to browse, press BACKSPACE to clear.
 
 Is in inventory TAG: This is a tag that will be turned on if you have at least one of this item in your inventory. It is not affected by items that are equipped to heroes.
@@ -53,6 +57,8 @@ Is in inventory TAG: This is a tag that will be turned on if you have at least o
 Is equipped TAG: This is a tag that will be turned on if any hero has this item equipped. It is not affected by the items you have in your inventory.
 
 Is equipped by active hero TAG: This tag will be turned on only if the item is equipped by one of the four heroes in your active party. It is not affected by items in your inventory, nor is it affected by items equipped by heroes in your reserve.
+
+
 
 Handle Position A: This is the position of the handle of the weapon for the hero's first frame of attack animation. Press ENTER or SPACE to position the point.
 
