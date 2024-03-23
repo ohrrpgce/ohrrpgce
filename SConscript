@@ -1387,6 +1387,10 @@ allmodexenv = commonenv.Clone(VAR_PREFIX = 'util-')
 gameenv['FBFLAGS'] += ['-d','IS_GAME',   '-m','game']
 editenv['FBFLAGS'] += ['-d','IS_CUSTOM', '-m','custom']
 
+if int(ARGUMENTS.get('upgrade', 1)) == 0:
+    # Not supported by Custom
+    gameenv['FBFLAGS'] += ["-d", "NO_UPGRADE"]
+
 ################ Modules
 
 # The following are linked into all executables, except miditest.
@@ -1927,6 +1931,8 @@ Options:
                       even less debug info), lto=1 and use -Os. Runs slower
                       (scripts by ~20%).  Adding lto=0 hugely shortens build time,
                       is not much larger, but even slower.
+  upgrade=0           (Game only.) Disable support for upgrading old games.
+                      As a sideeffect, don't copy .rpgdirs when playing them.
   pdb=1               (Windows only.) Produce .pdb debug info files, for CrashRpt
                       and BreakPad crash analysis. .pdb files are put in win32/.
                       Visual Studio or Visual C++ Build Tools must be installed.

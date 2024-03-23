@@ -175,6 +175,7 @@ DECLARE FUNCTION getpassword () as string
 DECLARE SUB upgrade (show_messages as bool)
 DECLARE SUB future_rpg_warning ()
 DECLARE SUB rpg_sanity_checks ()
+DECLARE SUB rpg_post_upgrade_sanity_checks ()
 DECLARE SUB fix_sprite_record_count(sprtype as SpriteType)
 DECLARE SUB fix_recordless_lump(lumpname as string, record_byte_size as integer, byval header_bytes as integer=0)
 DECLARE SUB fix_record_count(byref last_rec_index as integer, record_byte_size as integer, lumpname as string, info as string, skip_header_bytes as integer=0, count_offset as integer=0, errlvl as ErrorLevelEnum=errError)

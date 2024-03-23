@@ -542,25 +542,27 @@ killfile tmpdir + archinym + ".gen"  'So it doesn't override the copy in working
 DIM forcerpgcopy as bool = NO
 IF gen(genVersion) > CURRENT_RPG_VERSION THEN
  debug "genVersion = " & gen(genVersion)
- future_rpg_warning  '(fatal error is running_under_Custom)
+ future_rpg_warning  '(fatal error if running_under_Custom)
  forcerpgcopy = YES  'If we upgraded an .rpgdir in-place, we would probably damage it
 END IF
 
 IF usepreunlump = NO THEN
  unlump sourcerpg, workingdir
 ELSEIF NOT running_under_Custom THEN  'Won't unlump or upgrade if running under Custom
- IF NOT diriswriteable(workingdir) THEN
-  'We have to copy the game, otherwise we won't be able to upgrade it
-  '(it's too much trouble to properly check whether the game is already
-  'fully up to date, which is unlikely anyway): change workingdir!
-  debuginfo workingdir + " not writeable"
-  forcerpgcopy = YES
- END IF
- #IF NOT (defined(MINIMAL_OS) OR defined(__FB_ANDROID__))
-  'Copy the .rpgdir, because otherwise upgrade() would modify it, which is annoying
-  '(In future we want to instead use copy-on-write, for both .rpgs and .rpgdirs)
-  'Don't want to waste disk space on Android.
-  forcerpgcopy = YES
+ #IFNDEF NO_UPGRADE
+  IF NOT diriswriteable(workingdir) THEN
+   'We have to copy the game, otherwise we won't be able to upgrade it
+   '(it's too much trouble to properly check whether the game is already
+   'fully up to date, which is unlikely anyway): change workingdir!
+   debuginfo workingdir + " not writeable"
+   forcerpgcopy = YES
+  END IF
+  #IF NOT (defined(MINIMAL_OS) OR defined(__FB_ANDROID__))
+   'Copy the .rpgdir, because otherwise upgrade() would modify it, which is annoying
+   '(In future we want to instead use copy-on-write, for both .rpgs and .rpgdirs)
+   'Don't want to waste disk space on Android.
+   forcerpgcopy = YES
+  #ENDIF
  #ENDIF
  IF forcerpgcopy THEN
   workingdir = tmpdir + "playing.tmp"
@@ -598,12 +600,16 @@ rpg_sanity_checks
 
 xbload game + ".fnt", current_font(), "font missing from " + sourcerpg
 
-'--upgrade obsolete RPG files (if possible)
-IF NOT running_under_Custom THEN
- DIM show_upgrade_messages as bool = (gam.started_by_run_game = NO) AND (running_on_console = NO)
- upgrade show_upgrade_messages
-END IF
+#IFNDEF NO_UPGRADE
+ '--upgrade obsolete RPG files (if possible)
+ IF NOT running_under_Custom THEN
+  DIM show_upgrade_messages as bool = (gam.started_by_run_game = NO) AND (running_on_console = NO)
+  upgrade show_upgrade_messages
+ END IF
+#ENDIF
 
+'Especially if we skipped upgrade, check it isn't needed.
+rpg_post_upgrade_sanity_checks
 
 '======================== Stuff initialised once per .RPG =====================
 

@@ -4304,6 +4304,8 @@ END FUNCTION
 '                                    Upgrade old games
 '==========================================================================================
 
+#IFNDEF NO_UPGRADE
+
 /'
 'If you used r4109 (Zenzizenzic, 2011) or later to open a game last edited before
 'r1651 (Ubersetzung, 2007), all "weak to/strong to/absorbs/is enemytype" bits were
@@ -5655,6 +5657,8 @@ SUB fix_sprite_record_count(sprtype as SpriteType)
  END IF
 END SUB
 
+#ENDIF  '#IFNDEF NO_UPGRADE
+
 '==========================================================================================
 '                                   Data sanity checks
 '==========================================================================================
@@ -5790,6 +5794,17 @@ SUB rpg_sanity_checks
   END WITH
  END IF
 
+END SUB
+
+'Check that this game really has been upgraded. This is intended for NO_UPGRADE builds.
+SUB rpg_post_upgrade_sanity_checks()
+ IF gen(genVersion) <> CURRENT_RPG_VERSION THEN
+  fatalerror "Game needs to be upgraded, not supported by this engine build. (Failed genVersion)"
+ END IF
+ DIM flen as integer = filelen(workingdir + SLASH + "binsize.bin")
+ IF flen <> 2 * (binLASTENTRY + 1) THEN
+  fatalerror "Game needs to be upgraded, not supported by this engine build. (Failed binsize)"
+ END IF
 END SUB
 
 '==========================================================================================
