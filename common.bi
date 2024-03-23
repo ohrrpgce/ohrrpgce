@@ -25,10 +25,6 @@ TYPE FnEmbedCode as Sub(code as string, result as string, arg0 as any ptr, arg1 
 
 DECLARE FUNCTION common_setoption(opt as string, arg as string) as integer
 
-DECLARE SUB fadein (fadems as integer = 500)
-DECLARE SUB fadeout OVERLOAD (palidx as integer, fadems as integer = 500)
-DECLARE SUB fadeout OVERLOAD (red as integer, green as integer, blue as integer, fadems as integer = 500)
-
 DECLARE SUB ensure_normal_palette ()
 DECLARE SUB restore_previous_palette ()
 DECLARE SUB push_and_reset_gfxio_state ()
@@ -42,9 +38,6 @@ DECLARE SUB start_new_debug (title as string)
 DECLARE SUB end_debug ()
 DECLARE SUB debug_reload (nod as Node ptr)
 'Other debug and error reporting functions are declared in common_base.bi
-
-DECLARE FUNCTION filesize (file as string) as string
-DECLARE FUNCTION format_filesize (size as integer) as string
 
 DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as integer, byval offset as integer, byval maxlen as integer)
 DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as short, byval offset as integer, byval maxlen as integer)
@@ -92,8 +85,6 @@ DECLARE FUNCTION trigger_or_default(trigger as integer, default as integer) as i
 DECLARE FUNCTION scriptname (byval num as integer) as string
 DECLARE FUNCTION scriptname_default(id_or_trigger as integer, default_trigger as integer) as string
 
-DECLARE Function seconds2str(byval sec as integer, f as string = " %m: %S") as string
-
 DECLARE SUB loaddefaultpals (byval fileset as SpriteType, poffset() as integer)
 DECLARE SUB savedefaultpals (byval fileset as SpriteType, poffset() as integer, maxset as integer)
 DECLARE SUB guessdefaultpals (byval fileset as SpriteType, poffset() as integer)
@@ -109,11 +100,6 @@ DECLARE FUNCTION curbinsize (byval id as integer) as integer
 DECLARE FUNCTION defbinsize (byval id as integer) as integer
 DECLARE FUNCTION getbinsize (byval id as integer) as integer
 DECLARE FUNCTION dimbinsize (byval id as integer) as integer
-
-DECLARE FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
-DECLARE FUNCTION maplumpname (byval map as integer, oldext as string) as string
-DECLARE FUNCTION global_npcdef_filename (byval pool_id as integer=1) as string
-DECLARE FUNCTION npc_pool_name(pool as integer) as string
 
 DECLARE FUNCTION text_left (text as string, wide as integer, ellipsis as bool = YES, withtags as bool = YES, fontnum as integer = fontPlain) as string
 DECLARE FUNCTION text_right (text as string, wide as integer, ellipsis as bool = YES, withtags as bool = YES, fontnum as integer = fontPlain) as string
@@ -209,20 +195,19 @@ DECLARE FUNCTION readattackname OVERLOAD (byval index as integer) as string
 DECLARE FUNCTION readattackcaption (byval index as integer) as string
 DECLARE FUNCTION readenemyname OVERLOAD (byval index as integer, byval altfile as bool = USE_DT1_TMP) as string
 DECLARE SUB writeenemyname (byval index as integer, newname as string, byval altfile as bool = USE_DT1_TMP)
+DECLARE FUNCTION getheroname (hero_id as integer, use_default as bool = YES) as string
 DECLARE FUNCTION readitemname (byval index as integer) as string
 DECLARE FUNCTION readitemdescription (byval index as integer) as string
+DECLARE FUNCTION getmapname (byval m as integer) as string
 DECLARE FUNCTION readshopname (byval shopnum as integer) as string
 DECLARE FUNCTION getsongname (byval num as integer, byval prefixnum as bool = NO) as string
 DECLARE FUNCTION getsfxname (byval num as integer) as string
-DECLARE FUNCTION getheroname (hero_id as integer, use_default as bool = YES) as string
-DECLARE FUNCTION getmapname (byval m as integer) as string
-DECLARE SUB getstatnames(statnames() as string)
-DECLARE FUNCTION battle_statnames(statnum as integer) as string
-DECLARE SUB getelementnames(elmtnames() as string)
+DECLARE SUB getelementnames (elmtnames() as string)
 
-DECLARE FUNCTION getdisplayname (default as string) as string
-
-DECLARE SUB playsongnum (byval songnum as integer)
+DECLARE SUB getstatnames (statnames() as string)
+DECLARE FUNCTION battle_statnames (statnum as integer) as string
+DECLARE FUNCTION should_hide_hero_stat OVERLOAD (hero as HeroDef, byval statnum as integer) as bool
+DECLARE FUNCTION should_hide_hero_stat OVERLOAD (byval hero_id as integer, byval statnum as integer) as bool
 
 DECLARE FUNCTION open_document (url as string) as bool
 #DEFINE open_url open_document
@@ -279,12 +264,9 @@ DECLARE FUNCTION yesno(capt as zstring ptr, byval defaultval as bool=YES, byval 
 DECLARE FUNCTION popup_choice(capt as string, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", extra_message as zstring ptr=@"") as integer
 DECLARE FUNCTION pick_tooltip_pos(size as XYPair = XY(0,0)) as RelPosXY
 
-DECLARE FUNCTION confirmed_copy (srcfile as string, destfile as string) as bool
-DECLARE FUNCTION confirmed_copydirectory(src as string, dest as string) as bool
-DECLARE FUNCTION os_shell_move(src as string, dest as string) as bool
-
 DECLARE SUB create_default_menu(menu as MenuDef, add_sfx_volume as bool = YES)
 DECLARE SUB create_volume_menu(menu as MenuDef)
+DECLARE SUB init_battle_menu(menu as MenuDef, byval menu_id as integer=-1)
 
 DECLARE FUNCTION bound_arg(n as integer, min as integer, max as integer, argname as zstring ptr, context as zstring ptr = NULL, errlvl as scriptErrEnum = serrBound) as bool
 
@@ -296,6 +278,7 @@ DECLARE SUB insert_extra(byref extra as integer vector, index as integer, value 
 DECLARE FUNCTION delete_extra_range(byref extra as integer vector, first_index as integer, last_index as integer) as integer
 DECLARE FUNCTION find_extra(byref extra as integer vector, value as integer, startindex as integer = 0) as integer
 
+DECLARE FUNCTION max_tag() as integer
 DECLARE FUNCTION load_tag_name (byval index as integer) as string
 DECLARE SUB save_tag_name (tagname as string, byval index as integer)
 
@@ -378,8 +361,6 @@ DECLARE FUNCTION current_max_level() as integer
 DECLARE FUNCTION atlevel (byval lev as integer, byval a0 as integer, byval aMax as integer) as integer
 DECLARE FUNCTION atlevel_quadratic (byval lev as double, byval a0 as double, byval aMax as double, byval midpercent as double) as double
 
-DECLARE FUNCTION max_tag() as integer
-
 DECLARE FUNCTION ideal_ticks_per_second() as double
 DECLARE FUNCTION wtog_ticks() as integer
 DECLARE FUNCTION max_wtog() as integer
@@ -389,15 +370,6 @@ DECLARE SUB cleanup_global_reload_doc ()
 DECLARE FUNCTION get_reload_copy (byval n as NodePtr) as NodePtr
 DECLARE FUNCTION get_reload_empty (nodename as string = "") as NodePtr
 
-DECLARE SUB upgrade_hero_battle_menu_item(bmenu as NodePtr)
-DECLARE FUNCTION add_hero_battle_menu_item(byval parent as NodePtr, kind as string, byval value as integer = 0) as NodePtr
-DECLARE FUNCTION should_hide_hero_stat OVERLOAD (hero as HeroDef, byval statnum as integer) as bool
-DECLARE FUNCTION should_hide_hero_stat OVERLOAD (byval hero_id as integer, byval statnum as integer) as bool
-
-DECLARE FUNCTION find_on_word_boundary_excluding(haystack as string, needle as string, excludeword as string) as integer
-DECLARE FUNCTION find_on_word_boundary(haystack as string, needle as string) as integer
-
-DECLARE FUNCTION str_rect(s as string, byval x as integer, byval y as integer) as RectType
 
 DECLARE FUNCTION gamepad_virtual_keyboard OVERLOAD (default_str as string, max_length as integer=-1, byval multi_player as integer=-1) as string
 DECLARE FUNCTION gamepad_virtual_keyboard OVERLOAD (arr as ArrowSet, default_str as string, max_length as integer=-1) as string
@@ -411,9 +383,6 @@ DECLARE FUNCTION keyval_arrowset_down(arr as ArrowSet) as bool
 DECLARE FUNCTION keyval_arrowset_left(arr as ArrowSet) as bool
 DECLARE FUNCTION keyval_arrowset_confirm(arr as ArrowSet) as bool
 DECLARE FUNCTION keyval_arrowset_cancel(arr as ArrowSet) as bool
-
-DECLARE FUNCTION dissolve_type_caption(n as integer) as string
-DECLARE FUNCTION appear_type_caption(n as integer) as string
 
 TYPE FnNoArgsBool as FUNCTION () as bool
 DECLARE FUNCTION progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double) as bool
@@ -448,8 +417,6 @@ DECLARE SUB write_config OVERLOAD (key as zstring ptr, value as double)
 DECLARE SUB write_game_config OVERLOAD (key as zstring ptr, value as string)
 DECLARE SUB write_game_config OVERLOAD (key as zstring ptr, value as integer)
 DECLARE SUB write_game_config OVERLOAD (key as zstring ptr, value as double)
-
-DECLARE SUB init_battle_menu (menu as MenuDef, byval menu_id as integer=-1)
 
 DECLARE SUB init_text_box_slices(byref txtsl as SliceFwd ptr, box as TextBox, parent as SliceFwd ptr, revealed as bool)
 

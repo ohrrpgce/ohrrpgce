@@ -1275,6 +1275,36 @@ function split_chunk(in as string, index as integer, sep as string = chr(10), de
  return chunks(index)
 end function
 
+'Like INSTR (opposite arg order!), but only returns the offset of the first match starting at a word
+'boundary where 'excludeword' doesn't also match, unless query actually starts with excludeword.
+'This is intended to be used with select_by_typing on menus where you don't necessarily
+'want to start typing from the beginning.
+'For example needle="e" excludeword="edit" matches "edit enemy data" but not "edit items"
+'Returns 0 on no match.
+FUNCTION find_on_word_boundary_excluding(haystack as string, needle as string, excludeword as string) as integer
+ DIM excluding as bool = YES
+ IF LEN(excludeword) = 0 ORELSE starts_with(needle, excludeword) THEN
+  excluding = NO
+ END IF
+ DIM wordboundary as bool = YES
+ FOR index as integer = 1 TO LEN(haystack)
+  DIM alnum as integer = isalnum(haystack[index - 1])
+  IF alnum AND wordboundary THEN
+   IF MID(haystack, index, LEN(needle)) = needle ANDALSO _
+      (excluding = NO ORELSE MID(haystack, index, LEN(excludeword)) <> excludeword) THEN
+    RETURN index
+   END IF
+  END IF
+  wordboundary = (alnum = 0)
+ NEXT
+ RETURN 0
+END FUNCTION
+
+FUNCTION find_on_word_boundary(haystack as string, needle as string) as integer
+ RETURN find_on_word_boundary_excluding(haystack, needle, "")
+END FUNCTION
+
+
 FUNCTION days_since_datestr (datestr as string) as integer
  'Returns the number of days since a date given as a string in the format YYYY-MM-DD
  IF LEN(datestr) <> 10 THEN
@@ -1314,6 +1344,51 @@ FUNCTION format_duration(length as double, decimal_places as integer = 1) as str
  END IF
  RETURN msg
 END FUNCTION
+
+' Argument is a timeserial
+FUNCTION format_date(timeser as double) as string
+ IF timeser = 0 THEN RETURN "0"
+ RETURN FORMAT(timeser, "yyyy mmm dd hh:mm:ss")
+END FUNCTION
+
+FUNCTION seconds2str(sec as integer, f as string = " %m: %S") as string
+  DIM ret as string
+  DIM as integer s, m, h
+  s = sec mod 60
+  m = (sec \ 60) mod 60
+  h = (sec \ 3600)
+
+  DIM as integer i
+  FOR i as integer = 0 TO len(f) - 1
+    IF f[i] = asc("%") THEN
+      i += 1
+      SELECT CASE as CONST f[i]
+        CASE asc("s")
+          ret = ret & sec
+        CASE asc("S")
+          IF s < 10 THEN ret = ret & "0"
+          ret = ret & s
+        CASE asc("m")
+          ret = ret & (sec \ 60)
+        CASE asc("M")
+          IF m < 10 THEN ret = ret & "0"
+          ret = ret & m
+        CASE asc("h")
+          ret = ret & h
+        CASE asc("H")
+          IF h < 10 THEN ret = ret & "0"
+          ret = ret & h
+        CASE asc("%")
+          ret = ret & "%"
+      END SELECT
+    ELSE
+      ret = ret & chr(f[i])
+    END IF
+  NEXT
+
+  RETURN ret
+END FUNCTION
+
 
 SUB flusharray (array() as integer, byval size as integer=-1, byval value as integer=0)
  'If size is -1, then flush the entire array
@@ -2963,6 +3038,88 @@ FUNCTION copydirectory (src as string, dest as string, byval copyhidden as bool 
  
 END FUNCTION
 
+FUNCTION confirmed_copy (srcfile as string, destfile as string) as bool
+ 'Copy a file, check to make sure it really was copied, and show an error message if not.
+ 'The copy will not be read-only (this acts like writeablecopyfile()).
+ '(FIXME: The real error message is printed to debug by copy_file_replacing())
+ ' Returns true if the copy was okay, false if it failed
+ IF NOT isfile(srcfile) THEN
+  visible_debug "ERROR: file " & destfile & " was missing"
+  RETURN NO
+ END IF
+ ' I really hope that checking isfile is redundant, but who knows.
+ IF NOT copyfile(srcfile, destfile) THEN
+  visible_debug "ERROR: couldn't copy file to " & destfile
+  RETURN NO
+ END IF
+ IF NOT isfile(destfile) THEN
+  showbug "Couldn't copy file to " & destfile & ", although copyfile() succeeded"
+  RETURN NO
+ END IF
+ #IFDEF __FB_WIN32__
+  'On Windows copyfile() preserves file attributes, but we usually don't want the copy to be read-only
+  setwriteable destfile, YES
+ #ENDIF
+ RETURN YES
+END FUNCTION
+
+FUNCTION confirmed_copydirectory(src as string, dest as string) as bool
+ 'Copy a directory, but if it fails, clean up any partial copy and show a visible warning
+ 'Returns YES for success and NO for failure
+ DIM result as string
+ result = copydirectory(src, dest, YES)
+ IF result <> "" THEN
+  visible_debug result
+  IF isdir(dest) THEN
+   killdir dest, YES
+  END IF
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
+
+FUNCTION os_shell_move(src as string, dest as string) as bool
+ 'When used to move a directory on unixes, this should preserve bits and symlinks.
+ 'When used to move a directory on Windows this should just be a dang ol' move... except it doesn't work at all :(
+ 'Returns YES for success or NO for failure
+ 'Warning: doesn't send lump modification messages! So don't use to move lumps!
+ 'Use renamefile() instead (if renaming, not moving) to send those message, and for more robust error reporting.
+
+ IF isfile(dest) THEN
+  safekill dest
+ ELSEIF isdir(dest) THEN
+  killdir dest, YES
+ END IF
+ DIM src_is_file as bool = isfile(src)
+ IF NOT src_is_file ANDALSO NOT isdir(src) THEN
+  debug "os_shell_move: src file " & src & " does not exist"
+  RETURN NO
+ END IF
+ 
+ DIM stderr_s as string
+ DIM mv as string
+ DIM args as string
+ #IFDEF __FB_UNIX__
+  mv = "mv"
+  args = " -f"  ' Overwrite without confirmation
+ #ENDIF
+ #IFDEF __FB_WIN32__
+  mv = "move"
+  args = " /Y"  ' Overwrite without confirmation
+ #ENDIF
+ args &= " " & escape_filename(src) & " " & escape_filename(dest)
+
+ 'SHELL mv & args
+ IF run_and_get_output(mv & args, "", stderr_s) THEN
+  visible_debug "os_shell_move: move failed: " & stderr_s : RETURN NO
+ END IF
+
+ DIM success as bool = NO
+ IF src_is_file THEN success = isfile(dest) ELSE success = isdir(dest)
+ IF NOT success THEN debug "os_shell_move: dest file not created: " & dest
+ RETURN success
+END FUNCTION
+
 SUB killdir(directory as string, recurse as bool = NO)
 #ifdef DEBUG_FILE_IO
   debuginfo "killdir(" & directory & ", recurse = " & recurse & ")"
@@ -4264,6 +4421,31 @@ FUNCTION ends_with(s as string, suffix as string) as bool
  RETURN RIGHT(s, LEN(suffix)) = suffix
 END FUNCTION
 
+
+FUNCTION filesize (file as string) as string
+ 'returns size of a file in formatted string
+ IF isfile(file) THEN
+  RETURN format_filesize(FILELEN(file))
+ ELSE
+  RETURN "N/A"
+ END IF
+END FUNCTION
+
+FUNCTION format_filesize (size as integer) as string
+ DIM as bool fractional = (size > 1024)
+ DIM as string fsize, units
+ units = " B"
+ IF size > 1024 THEN units = " KB"
+ IF size > 1048576 THEN size = size / 1024 : units = " MB"
+ fsize = STR(size)
+ IF fractional THEN
+  size = size / 102.4
+  fsize = STR(size \ 10)
+  IF size < 1000 THEN fsize = fsize + "." + STR(size MOD 10)
+ END IF
+ RETURN fsize + units
+END FUNCTION
+
 FUNCTION count_directory_size(directory as string, byref file_count as integer = 0, limit as integer = 999999) as integer
  '--Count the bytes in all the files in a directory and all subdirectories.
  '--This doesn't consider the space taken by the directories themselves,
@@ -4773,12 +4955,6 @@ end sub
 
 '----------------------------------------------------------------------
 '                       other misc functions
-
-' Argument is a timeserial
-FUNCTION format_date(timeser as double) as string
- IF timeser = 0 THEN RETURN "0"
- RETURN FORMAT(timeser, "yyyy mmm dd hh:mm:ss")
-END FUNCTION
 
 ' For commandline utilities. Wait for a keypress and return it.
 FUNCTION readkey () as string

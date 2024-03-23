@@ -1622,6 +1622,22 @@ sub fadetopal(pal() as RGBcolor, fadems as integer = 500)
 	masterpal_changed
 end sub
 
+sub fadein (fadems as integer = 500)
+	fadetopal master(), fadems
+end sub
+
+sub fadeout (palidx as integer, fadems as integer = 500)
+	fadetocolor master(palidx), fadems
+end sub
+
+sub fadeout (red as integer, green as integer, blue as integer, fadems as integer = 500)
+	dim col as RGBcolor
+	col.r = red
+	col.g = green
+	col.b = blue
+	fadetocolor col, fadems
+end sub
+
 'Blend between two video pages... unless the screen is faded out, in which case blends in to newpage, ignoring oldpage
 sub fadetopage(oldpage as integer, newpage as integer, fadems as integer = 500)
 	dim was_faded_in as bool = faded_in
@@ -1801,6 +1817,13 @@ sub loadsong (songname as string)
 	var prev_subtimer = main_timer.switch(TimerIDs.FileIO)
 	music_play(songname, getmusictype(songname))
 	main_timer.switch(prev_subtimer)
+end sub
+
+'In Game, call wrappedsong instead.
+sub playsongnum (byval songnum as integer)
+	dim songfile as string = find_music_lump(songnum)
+	if songfile = "" then exit sub
+	loadsong songfile
 end sub
 
 'Doesn't work in SDL_mixer for MIDI music, so avoid
@@ -6542,6 +6565,13 @@ function textsize(text as string, wide as RelPos = rWidth, fontnum as integer = 
 	return retsize.size
 end function
 
+function str_rect(s as string, byval x as integer, byval y as integer) as RectType
+	dim r as RectType
+	r.size = textsize(s, rWidth)  'Wrapped to screen size
+	r.xy = relative_pos(XY(x, y), vpages(vpage)->size, r.size)
+	return r
+end function
+
 'Returns the default height of a line of text of a certain font.
 'Warning: this currently returns 10 for 8x8 fonts, because that's what text slices use. Sigh.
 'However standardmenu (calc_menu_rect) by default uses 9 for fontEdged and 8 for fontPlain
@@ -10824,6 +10854,56 @@ function frame_scaled32(src as Frame ptr, wide as integer, high as integer, mast
 	dim ret as Frame ptr = frame_with_surface(temp)
 	gfx_surfaceDestroy(@temp)
 	return ret
+end function
+
+function dissolve_type_caption(n as integer) as string
+	select case n
+		case 0: return "Random scatter"
+		case 1: return "Crossfade"
+		case 2: return "Diagonal Vanish"
+		case 3: return "Sink into Ground"
+		case 4: return "Squash"
+		case 5: return "Melt"
+		case 6: return "Vaporize"
+		case 7: return "Phase out"
+		case 8: return "Squeeze"
+		case 9: return "Shrink"
+		case 10: return "Flicker"
+		case 11: return "Shrink to Center"
+		case 12: return "Fade"
+		case 13: return "Ghostly fade"
+		case 14: return "Fade to white"
+		case 15: return "Puff"
+		case 16: return "Fade up"
+		case 17: return "Blip"
+		case else: return n & " Invalid!"
+	end select
+end function
+
+function appear_type_caption(n as integer) as string
+	'These are names for the inverted dissolve animations.
+	'They should only differ where the dissolve name doesn't make sense backwards
+	select case n
+		case 0: return "Random scatter"
+		case 1: return "Crossfade"
+		case 2: return "Diagonal Appear"
+		case 3: return "Rise from Ground"
+		case 4: return "Un-Squash"
+		case 5: return "Un-Melt"
+		case 6: return "Un-Vaporize"
+		case 7: return "Phase In"
+		case 8: return "Un-Squeeze"
+		case 9: return "Expand"
+		case 10: return "Flicker"
+		case 11: return "Expand from Center"
+		case 12: return "Fade"
+		case 13: return "Ghostly fade"
+		case 14: return "Fade from white"
+		case 15: return "Puff"
+		case 16: return "Fade down"
+		case 17: return "Blip"
+		case else: return n & " Invalid!"
+	end select
 end function
 
 'Public:

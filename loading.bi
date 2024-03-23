@@ -29,10 +29,12 @@ declare sub deserinventory8bit(invent() as inventslot, byref z as integer, buf()
 declare sub cleaninventory(invent() as inventslot)
 
 '' Maps
-
+declare function maplumpname (byval map as integer, oldext as string) as string
 declare function read_map_layer_name(gmap() as integer, layernum as integer) as string
 declare sub write_map_layer_name(gmap() as integer, layernum as integer, newname as string)
 
+declare function global_npcdef_filename (byval pool_id as integer=1) as string
+declare function npc_pool_name(pool as integer) as string
 declare sub LoadNPCD(file as string, dat() as NPCType, expect_exists as bool = YES)
 declare sub SaveNPCD(file as string, dat() as NPCType)
 declare sub SetNPCD(npcdata as NPCType, intoffset as integer, value as integer)
@@ -94,6 +96,8 @@ declare sub saveherodata (hero as HeroDef, byval index as integer)
 declare sub load_hero_from_reload(hero as HeroDef, byval parent as NodePtr, byval id as integer = -1)
 declare sub ClearHeroData (hero as HeroDef, id as integer = -1)
 declare function GetHeroHandPos(byval hero_id as integer, byval which_frame as integer) as XYPair
+declare sub upgrade_hero_battle_menu_item(bmenu as NodePtr)
+declare function add_hero_battle_menu_item(byval parent as NodePtr, kind as string, byval value as integer = 0) as NodePtr
 
 declare Sub LoadVehicle OVERLOAD (file as string, vehicle as VehicleData, byval record as integer)
 declare Sub LoadVehicle OVERLOAD (file as string, veh() as integer, vehname as string, byval record as integer)
@@ -229,6 +233,7 @@ DECLARE SUB load_npc_instances OVERLOAD (filename as string, npc() as NPCInst)
 DECLARE SUB load_npc_instances OVERLOAD (byval npcs_node as NodePtr, npc() as NPCInst)
 DECLARE SUB load_npc_instance (byval n as NodePtr, npc as NPCInst, map_offset as XYPair = XY(0,0))
 
+DECLARE FUNCTION getdisplayname (default as string) as string
 DECLARE FUNCTION load_gamename (filename as string="") as string
 DECLARE FUNCTION load_aboutline (filename as string="") as string
 DECLARE SUB save_gamename (s as string, filename as string="")
@@ -238,6 +243,7 @@ DECLARE SUB save_titletext (s as string)
 DECLARE SUB write_engine_version_node (byval parent as NodePtr, nodename as string)
 DECLARE FUNCTION read_engine_version_node (vernode as Node ptr) as EngineVersion
 DECLARE FUNCTION read_last_editor_version () as EngineVersion
+DECLARE FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
 DECLARE FUNCTION read_archinym_version () as string
 
 DECLARE SUB update_general_data ()

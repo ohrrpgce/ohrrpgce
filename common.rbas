@@ -275,22 +275,9 @@ FUNCTION common_setoption(opt as string, arg as string) as integer
  END IF
 END FUNCTION
 
-'fade in and out not actually used in custom
-SUB fadein (fadems as integer = 500)
- fadetopal master(), fadems
-END SUB
-
-SUB fadeout (palidx as integer, fadems as integer = 500)
- fadetocolor master(palidx), fadems
-END SUB
-
-SUB fadeout (red as integer, green as integer, blue as integer, fadems as integer = 500)
- DIM col as RGBcolor
- col.r = red
- col.g = green
- col.b = blue
- fadetocolor col, fadems
-END SUB
+'==========================================================================================
+'                               Save or reset gfx state
+'==========================================================================================
 
 'Call before showing debug screens and messages in Game, in case the screen is faded out or
 'the palette has been modified (e.g. for a scripted screen fade)
@@ -420,29 +407,9 @@ SUB save_window_state_to_config ()
  END IF
 END SUB
 
-FUNCTION filesize (file as string) as string
- 'returns size of a file in formatted string
- IF isfile(file) THEN
-  RETURN format_filesize(FILELEN(file))
- ELSE
-  RETURN "N/A"
- END IF
-END FUNCTION
-
-FUNCTION format_filesize (size as integer) as string
- DIM as bool fractional = (size > 1024)
- DIM as string fsize, units
- units = " B"
- IF size > 1024 THEN units = " KB"
- IF size > 1048576 THEN size = size / 1024 : units = " MB"
- fsize = STR(size)
- IF fractional THEN
-  size = size / 102.4
-  fsize = STR(size \ 10)
-  IF size < 1000 THEN fsize = fsize + "." + STR(size MOD 10)
- END IF
- RETURN fsize + units
-END FUNCTION
+'==========================================================================================
+'                                        debug logs
+'==========================================================================================
 
 ' If c/g_debug.txt already exists, archive it and create a new one.
 ' title is what message to write at the top
@@ -673,6 +640,10 @@ SUB debug_reload(nod as Node ptr)
  importantdebug = YES  'Preserve ?_debug.txt
 END SUB
 
+'==========================================================================================
+'                                      Text markup
+'==========================================================================================
+
 'Wrap a string in colour tags. Default to flashing.
 FUNCTION hilite(what as string, col as integer = -1) as string
  IF col = -1 THEN col = uilook(uiSelectedItem + global_tog)
@@ -728,6 +699,11 @@ FUNCTION bgtag(col as integer, text as string = "") as string
  END IF
 END FUNCTION
 
+'==========================================================================================
+'                                      notification
+'==========================================================================================
+'See also pop_warning
+
 'Draw a wrapped string in a box, by default at the middle of the page.
 'You can optionally specify a maximum width (default whole screen)
 'If shrink=NO then the textbox extends to maximum width, otherwise its width is minimal.
@@ -775,87 +751,9 @@ FUNCTION notification (msg as zstring ptr, shrink as bool = NO) as KBScancode
  RETURN scancode
 END FUNCTION
 
-FUNCTION confirmed_copy (srcfile as string, destfile as string) as bool
- 'Copy a file, check to make sure it really was copied, and show an error message if not.
- 'The copy will not be read-only (this acts like writeablecopyfile()).
- '(FIXME: The real error message is printed to debug by copy_file_replacing())
- ' Returns true if the copy was okay, false if it failed
- IF NOT isfile(srcfile) THEN
-  visible_debug "ERROR: file " & destfile & " was missing"
-  RETURN NO
- END IF
- ' I really hope that checking isfile is redundant, but who knows.
- IF NOT copyfile(srcfile, destfile) THEN
-  visible_debug "ERROR: couldn't copy file to " & destfile
-  RETURN NO
- END IF
- IF NOT isfile(destfile) THEN
-  showbug "Couldn't copy file to " & destfile & ", although copyfile() succeeded"
-  RETURN NO
- END IF
- #IFDEF __FB_WIN32__
-  'On Windows copyfile() preserves file attributes, but we usually don't want the copy to be read-only
-  setwriteable destfile, YES
- #ENDIF
- RETURN YES
-END FUNCTION
-
-FUNCTION confirmed_copydirectory(src as string, dest as string) as bool
- 'Copy a directory, but if it fails, clean up any partial copy and show a visible warning
- 'Returns YES for success and NO for failure
- DIM result as string
- result = copydirectory(src, dest, YES)
- IF result <> "" THEN
-  visible_debug result
-  IF isdir(dest) THEN
-   killdir dest, YES
-  END IF
-  RETURN NO
- END IF
- RETURN YES
-END FUNCTION
-
-FUNCTION os_shell_move(src as string, dest as string) as bool
- 'When used to move a directory on unixes, this should preserve bits and symlinks.
- 'When used to move a directory on Windows this should just be a dang ol' move... except it doesn't work at all :(
- 'Returns YES for success or NO for failure
- 'Warning: doesn't send lump modification messages! So don't use to move lumps!
- 'Use renamefile() instead (if renaming, not moving) to send those message, and for more robust error reporting.
-
- IF isfile(dest) THEN
-  safekill dest
- ELSEIF isdir(dest) THEN
-  killdir dest, YES
- END IF
- DIM src_is_file as bool = isfile(src)
- IF NOT src_is_file ANDALSO NOT isdir(src) THEN
-  debug "os_shell_move: src file " & src & " does not exist"
-  RETURN NO
- END IF
- 
- DIM stderr_s as string
- DIM mv as string
- DIM args as string
- #IFDEF __FB_UNIX__
-  mv = "mv"
-  args = " -f"  ' Overwrite without confirmation
- #ENDIF
- #IFDEF __FB_WIN32__
-  mv = "move"
-  args = " /Y"  ' Overwrite without confirmation
- #ENDIF
- args &= " " & escape_filename(src) & " " & escape_filename(dest)
-
- 'SHELL mv & args
- IF run_and_get_output(mv & args, "", stderr_s) THEN
-  visible_debug "os_shell_move: move failed: " & stderr_s : RETURN NO
- END IF
-
- DIM success as bool = NO
- IF src_is_file THEN success = isfile(dest) ELSE success = isdir(dest)
- IF NOT success THEN debug "os_shell_move: dest file not created: " & dest
- RETURN success
-END FUNCTION
+'==========================================================================================
+'                                   fixbits & prefbits
+'==========================================================================================
 
 LOCAL SUB load_fixbits_cache ()
  DIM fh as integer
@@ -913,7 +811,9 @@ SUB setprefbit(bitnum as integer, newval as bool = YES)
  setbit gen(), genidx, bitidx, newval
 END SUB
 
-'----- Styled boxes
+'==========================================================================================
+'                                       Styled boxes
+'==========================================================================================
 'All of the following require a box style rather than color, border, etc.
 
 'Backwards compatibility wrapper
@@ -960,7 +860,9 @@ FUNCTION lookup_box_border(border as RectBorderTypes) as RectBorderTypes
  RETURN 0
 END FUNCTION
 
-'----- Unstyled boxes
+'==========================================================================================
+'                                      Unstyled boxes
+'==========================================================================================
 'The following take col/bgcol/border instead of a box style number
 
 SUB edgebox (x as RelPos, y as RelPos, w as RelPos, h as RelPos, col as integer, bordercol as integer, page as integer, trans as RectTransTypes=transOpaque, border as RectBorderTypes=borderLine)
@@ -1086,30 +988,9 @@ ELSEIF borderindex >= 0 AND borderindex <= gen(genMaxBoxBorder) THEN
 END IF
 END SUB
 
-'------------------------------------------------------------------------------
-
-FUNCTION read32bitstring (stringptr as integer ptr) as string
- IF stringptr[0] < 0 THEN
-  showerror "Corrupt data: read invalid 32b string with negative length"
-  RETURN ""
- END IF
- DIM as string result = SPACE(stringptr[0])
- memcpy(STRPTR(result), @stringptr[1], stringptr[0])
- RETURN result
-END FUNCTION
-
-FUNCTION readbadgenericname (byval index as integer, filename as string, byval recsize as integer, byval offset as integer, byval size as integer, byval skip as integer = 0, byval expect_exists as bool=YES) as string
- 'recsize is in BYTES!
- 'TODO:  there isn't any good reason to load the whole record
- '       just to get the string field
- IF index >= 0 THEN
-  DIM buf(recsize \ 2 - 1) as integer
-  IF loadrecord(buf(), filename, recsize \ 2, index, expect_exists) THEN
-   RETURN readbadbinstring(buf(), offset, size, skip)
-  END IF
- END IF
- RETURN ""  'failure
-END FUNCTION
+'==========================================================================================
+'                                  Script names & IDs
+'==========================================================================================
 
 ' Given a trigger or script ID, return a script ID. If the script is missing
 ' show an error (Game only) if showerr, and return 0.
@@ -1160,43 +1041,9 @@ FUNCTION scriptname_default(id_or_trigger as integer, default_trigger as integer
  RETURN scriptname(id_or_trigger)
 END FUNCTION
 
-Function seconds2str(byval sec as integer, f as string = " %m: %S") as string
-  dim ret as string
-  dim as integer s, m, h
-  s = sec mod 60
-  m = (sec \ 60) mod 60
-  h = (sec \ 3600)
-
-  dim as integer i
-  FOR i as integer = 0 to len(f) - 1
-    if f[i] = asc("%") then
-      i+=1
-      select case as const f[i]
-        case asc("s")
-          ret = ret & sec
-        case asc("S")
-          if s < 10 then ret = ret & "0"
-          ret = ret & s
-        case asc("m")
-          ret = ret & (sec \ 60)
-        case asc("M")
-          if m < 10 then ret = ret & "0"
-          ret = ret & m
-        case asc("h")
-          ret = ret & h
-        case asc("H")
-          if h < 10 then ret = ret & "0"
-          ret = ret & h
-        case asc("%")
-          ret = ret & "%"
-      end select
-    else
-      ret = ret & chr(f[i])
-    end if
-  next
-
-  return ret
-end function
+'==========================================================================================
+'                                     Default palettes
+'==========================================================================================
 
 FUNCTION getdefaultpal(byval fileset as SpriteType, byval index as integer) as integer
  IF fileset < 0 OR fileset > sprTypeLastPT THEN
@@ -1326,6 +1173,10 @@ SUB guessdefaultpals(byval fileset as SpriteType, poffset() as integer)
  END SELECT
 END SUB
 
+'==========================================================================================
+'                                      binsize.bin
+'==========================================================================================
+
 ' Returns the default record size in BYTES to use for getbinsize() when binsize.bin is missing
 FUNCTION defbinsize (byval id as integer) as integer
  IF id = binATTACK     THEN RETURN 0   'attack.bin
@@ -1413,58 +1264,9 @@ SUB setbinsize (byval id as integer, byval size as integer)
  binsize_cache(id) = size
 END SUB
 
-'Normally gamedir will be workingdir, and sourcefile will be sourcerpg
-FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
- DIM iname as string
- DIM fh as integer
- IF isfile(gamedir + SLASH + "archinym.lmp") THEN
-  OPENFILE(gamedir + SLASH + "archinym.lmp", FOR_INPUT, fh)
-  LINE INPUT #fh, iname
-  CLOSE #fh
-  iname = LCASE(iname)
-  'IF isfile(gamedir + SLASH + iname + ".gen") THEN
-   RETURN iname
-  'ELSE
-  ' debug gamedir + SLASH + "archinym.lmp" + " invalid, ignored"
-  'END IF
- ELSE
-  debuginfo gamedir + SLASH + "archinym.lmp" + " unreadable"
- END IF
-
- ' for backwards compatibility with ancient games that lack archinym.lmp
- 'iname = LCASE(trimextension(trimpath(sourcefile)))
- 'IF isfile(gamedir + SLASH + iname + ".gen") THEN RETURN iname
-
- ' Otherwise just scan the directory for a .GEN lump
- ' (findfiles is case-insensitive)
- DIM listing() as string
- findfiles gamedir, "*.gen", , , listing()
- IF UBOUND(listing) = 0 THEN
-  debuginfo "But found " & listing(0)
-  RETURN LCASE(trimextension(listing(0)))
- END IF
-
- fatalerror sourcefile & " doesn't appear to be an OHRRPGCE game: doesn't contain crucial data files"
-END FUNCTION
-
-FUNCTION maplumpname (byval map_id as integer, oldext as string) as string
- IF map_id < 0 THEN showbug "maplumpname: Bad map " & map_id
- IF map_id < 100 THEN
-  return game & "." & oldext & RIGHT("0" & map_id, 2)
- ELSE
-  return workingdir & SLASH & map_id & "." & oldext
- END IF
-END FUNCTION
-
-FUNCTION global_npcdef_filename (byval pool_id as integer=1) as string
- RETURN workingdir & SLASH & "globalnpcs" & pool_id & ".n"
-END FUNCTION
-
-FUNCTION npc_pool_name(pool as integer) as string
- IF pool = 0 THEN RETURN "Local"
- IF pool = 1 THEN RETURN "Global"
- RETURN "Pool " & pool
-END FUNCTION
+'==========================================================================================
+'                                     Error display
+'==========================================================================================
 
 'Wrapper around SYSTEM - you should usually instead call exitprogram/cleanup_and_terminate
 'to cleanly quit Game/Custom respectively, or fatal_error_shutdown for unclean quit.
@@ -1695,6 +1497,10 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
 END SUB
 END EXTERN
 
+'==========================================================================================
+'                                 Font-aware text padding
+'==========================================================================================
+
 'Replacement for RIGHT: Return the right end of a string, trimming and prepending '...' if longer than wide pixels
 'Aware of text markup; doesn't break them.
 '(Might sometimes want to handle this using text slices instead)
@@ -1729,6 +1535,10 @@ FUNCTION text_left (text as string, wide as integer, ellipsis as bool = YES, wit
  IF ellipsis THEN ret &= "..."
  RETURN ret
 END FUNCTION
+
+'==========================================================================================
+'                                     Master palettes
+'==========================================================================================
 
 SUB loadpalette(pal() as RGBcolor, byval palnum as integer)
  IF palnum < 0 THEN
@@ -1897,20 +1707,6 @@ startTest(rgb)
   IF col.col <> &h801000ff THEN fail  'BGRA
 endTest
 #ENDIF
-
-'----------------------------------------------------------------------
-
-FUNCTION getmapname (byval mapnum as integer) as string
- DIM nameread(39) as integer
- ' Ignore a missing .mn file, but allow partially missing records...
- IF loadrecord(nameread(), game + ".mn", 40, mapnum, NO, YES) THEN
-  ' ...because the size of the record is twice the max size of the map name, which is a mistake.
-  DIM a as string = STRING(small((nameread(0) AND 255), 39), " ")
-  array2str nameread(), 1, a
-  RETURN a
- END IF
-END FUNCTION
-
 
 '==========================================================================================
 '                                        Minimaps
@@ -2110,7 +1906,8 @@ FUNCTION createminimap (layer as TileMap, tileset as TilesetData ptr, byref zoom
 END FUNCTION
 
 '==========================================================================================
-
+'                                    Read/write names
+'==========================================================================================
 
 FUNCTION readattackname (byval index as integer) as string
  RETURN readbadgenericname(index, game + ".dt6", 80, 24, 10, 1)
@@ -2138,12 +1935,34 @@ SUB writeenemyname (byval index as integer, newname as string, byval altfile as 
  saveenemydata enemy, index, altfile
 END SUB
 
+'use_default: don't return a blank name
+FUNCTION getheroname (hero_id as integer, use_default as bool = YES) as string
+ DIM her as HeroDef
+ IF hero_id >= 0 THEN
+  loadherodata her, hero_id
+  IF LEN(her.name) THEN RETURN her.name
+ END IF
+ IF use_default THEN RETURN "Hero " & hero_id
+ RETURN ""
+END FUNCTION
+
 FUNCTION readitemname (byval index as integer) as string
  RETURN readbadgenericname(index, game + ".itm", getbinsize(binITM), 0, 8, 0)
 END FUNCTION
 
 FUNCTION readitemdescription (byval index as integer) as string
  RETURN readbadgenericname(index, game + ".itm", getbinsize(binITM), 9, 36, 0)
+END FUNCTION
+
+FUNCTION getmapname (byval mapnum as integer) as string
+ DIM nameread(39) as integer
+ ' Ignore a missing .mn file, but allow partially missing records...
+ IF loadrecord(nameread(), game + ".mn", 40, mapnum, NO, YES) THEN
+  ' ...because the size of the record is twice the max size of the map name, which is a mistake.
+  DIM a as string = STRING(small((nameread(0) AND 255), 39), " ")
+  array2str nameread(), 1, a
+  RETURN a
+ END IF
 END FUNCTION
 
 FUNCTION readshopname (byval shopnum as integer) as string
@@ -2167,6 +1986,67 @@ FUNCTION getsfxname (byval num as integer) as string
  RETURN readbinstring(sfxd(), 0, 30)
 END FUNCTION
 
+SUB getelementnames(elmtnames() as string)
+ REDIM elmtnames(gen(genNumElements) - 1)
+ FOR i as integer = 0 TO gen(genNumElements) - 1
+  DIM default as string
+  default = "Element" & i+1
+  IF i < 8 THEN
+   'Original indices changed so maxlen could be expanded
+   default = readglobalstring(17 + i, default, 10)
+  ELSEIF i < 16 THEN
+   'Next 8 elements map to old enemytypes
+   default = LEFT(readglobalstring(1 + i, "EnemyType" & i, 10) + "-killer", 14)
+  END IF
+  elmtnames(i) = readglobalstring(174 + i*2, default, 14)
+ NEXT i
+END SUB
+
+'==========================================================================================
+'                                          Stats
+'==========================================================================================
+
+SUB getstatnames(statnames() as string)
+ REDIM statnames(statLast)
+ statnames(0) = readglobalstring(0, "HP", 10)
+ statnames(1) = readglobalstring(1, "MP", 10)
+ statnames(2) = readglobalstring(2, "Atk", 10)
+ statnames(3) = readglobalstring(3, "Aim", 10)
+ statnames(4) = readglobalstring(5, "Def", 10)
+ statnames(5) = readglobalstring(6, "Dodge", 10)
+ statnames(6) = readglobalstring(29, "Magic", 10)
+ statnames(7) = readglobalstring(30, "Will", 10)
+ statnames(8) = readglobalstring(8, "Speed", 10)
+ statnames(9) = readglobalstring(7, "Ctr", 10)
+ statnames(10) = readglobalstring(31, "MP~", 10)
+ statnames(11) = readglobalstring(4, "Hits", 10)
+END SUB
+
+FUNCTION battle_statnames(statnum as integer) as string
+ SELECT CASE statnum
+  CASE 0 TO 11
+   RETURN statnames(statnum)
+  CASE 12: RETURN "poison register"
+  CASE 13: RETURN "regen register"
+  CASE 14: RETURN "stun register"
+  CASE 15: RETURN "mute register"
+  CASE ELSE:
+   showerror "battle_statnames: Invalid stat " & statnum
+ END SELECT
+END FUNCTION
+
+FUNCTION should_hide_hero_stat(hero as HeroDef, byval statnum as integer) as bool
+ RETURN NodeByPath(hero.reld, "/stat_options/stat[" & statnum & "]/hide") <> NULL
+END FUNCTION
+
+FUNCTION should_hide_hero_stat(byval hero_id as integer, byval statnum as integer) as bool
+ DIM her as HeroDef
+ loadherodata her, hero_id
+ RETURN should_hide_hero_stat(her, statnum)
+END FUNCTION
+
+'==========================================================================================
+'                            Input grabbers (datafield editing)
 '==========================================================================================
 
 'Hook called when the selected menu item changes, so that any
@@ -2707,6 +2587,10 @@ FUNCTION stredit (s as string, byref insert as integer, maxl as integer = 999999
  s = LEFT(pre & post, maxl)
  
 END FUNCTION
+
+'==========================================================================================
+'                            Pop-up/Modal menus and displays
+'==========================================================================================
 
 SUB pop_warning(msg as zstring ptr, byval autoquit as bool = NO)
  'autoquit is specifically for cleanup_and_terminate and has no other use
@@ -3510,11 +3394,9 @@ FUNCTION pick_tooltip_pos(size as XYPair = XY(0,0)) as RelPosXY
  RETURN ret
 END FUNCTION
 
-SUB playsongnum (byval songnum as integer)
-  DIM songfile as string = find_music_lump(songnum)
-  IF songfile = "" THEN EXIT SUB
-  loadsong songfile
-END SUB
+'==========================================================================================
+'                                      Run programs
+'==========================================================================================
 
 '(Alias: open_url)
 ' Open a file or URL using default system handler (URLs must start with a protocol like
@@ -3766,6 +3648,10 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
 #ENDIF  'MINIMAL_OS
 
 END FUNCTION
+
+'==========================================================================================
+'                            Find and install helper programs
+'==========================================================================================
 
 FUNCTION get_support_dir (create_dir as bool = YES) as string
  'Returns, creating if needed, the support directory path.
@@ -4084,6 +3970,8 @@ FUNCTION missing_helper_message (appname as string) as string
 #ENDIF
 END FUNCTION
 
+'==========================================================================================
+
 SUB upgrade_message (s as string)
  ' Don't black out the screen to show upgrade messages if there aren't any
  IF show_upgrade_messages AND got_upgrade_messages = NO THEN
@@ -4107,7 +3995,6 @@ SUB upgrade_message (s as string)
   upgrade_overhead_time += temptime
  END IF
 END SUB
-
 
 '==========================================================================================
 '                                Emulated Console Display
@@ -4169,83 +4056,6 @@ SUB console_append_message (s as string)
   .x += textwidth(s)
   IF display THEN setvispage vpage
  END WITH
-END SUB
-
-
-'==========================================================================================
-'                                     Tile animations
-'==========================================================================================
-
-SUB animatetilesets (tilesets() as TilesetData ptr)
- FOR i as integer = 0 TO UBOUND(tilesets)
-  'Animate each tileset...
-  FOR j as integer = 0 TO i - 1
-   '--unless of course we already animated it for this frame
-   '  because the same tileset can be used on more than one layer...
-   IF tilesets(i) = tilesets(j) THEN CONTINUE FOR, FOR
-  NEXT
-  cycletile tilesets(i)->anim(), tilesets(i)->tastuf()
- NEXT
-END SUB
-
-SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
- DIM notstuck as integer
- FOR i as integer = 0 TO 1
-#IFDEF IS_GAME
-  IF istag(tastuf(1 + 20 * i), 0) THEN CONTINUE FOR
-#ENDIF
-  WITH tanim_state(i)
-   .skip = large(.skip - 1, 0)
-   IF .skip = 0 THEN
-    notstuck = 10
-    DO
-     SELECT CASE tastuf(2 + 20 * i + .pt)
-      CASE 0  'End of animation
-       IF .pt <> 0 THEN .cycle = 0  'this is done for the tile animation plotscript commands
-       .pt = 0
-      CASE 1  'Left
-       .cycle = .cycle - tastuf(11 + 20 * i + .pt) * 16
-       loopvar .pt, 0, 8
-      CASE 2  'Right
-       .cycle = .cycle + tastuf(11 + 20 * i + .pt) * 16
-       loopvar .pt, 0, 8
-      CASE 3  'Down
-       .cycle = .cycle + tastuf(11 + 20 * i + .pt)
-       loopvar .pt, 0, 8
-      CASE 4  'Up
-       .cycle = .cycle - tastuf(11 + 20 * i + .pt)
-       loopvar .pt, 0, 8
-      CASE 5  'Wait
-       .skip = tastuf(11 + 20 * i + .pt)
-       loopvar .pt, 0, 8
-#IFDEF IS_GAME
-      CASE 6  'If tag then stop
-       IF istag(tastuf(11 + 20 * i + .pt), 0) THEN
-        loopvar .pt, 0, 8
-       ELSE
-        .pt = 0
-        .cycle = 0
-       END IF
-#ENDIF
-      CASE ELSE  'Invalid
-       loopvar .pt, 0, 8
-     END SELECT
-     notstuck = large(notstuck - 1, 0)
-    LOOP WHILE notstuck AND .skip = 0
-   END IF
-  END WITH
- NEXT i
-END SUB
-
-'Reset state of all animations to beginning
-SUB reset_tile_anims(tileset as TilesetData ptr)
- FOR j as integer = 0 TO 1
-  WITH tileset->anim(j)
-   .cycle = 0
-   .pt = 0
-   .skip = 0
-  END WITH
- NEXT
 END SUB
 
 '==========================================================================================
@@ -4361,72 +4171,6 @@ FUNCTION filename_relative_to_datadir(filename as string) as string
  END IF
  RETURN ret
 END FUNCTION
-
-
-'==========================================================================================
-
-SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as bool = NO)
- 'If the length of records in this lump has changed (increased) according to binsize.bin, stretch it, padding records with zeroes.
- 'Note: does not create a lump if it doesn't exist.
- 'Pass 'repeating' as true when more than one lump with this bindex exists.
- ''headersize' is the number of bytes before the first record.
-
- IF getbinsize(bindex) < curbinsize(bindex) THEN
-
-  DIM oldsize as integer = getbinsize(bindex)
-  DIM newsize as integer = curbinsize(bindex)
-
-  upgrade_message trimpath(lumpf) & " record size = " & newsize
-
-  'Only bother to do this for records of nonzero size (this implies the file doesn't exist, right?)
-  IF oldsize > 0 ANDALSO isfile(lumpf) THEN
-
-   DIM tempf as string = lumpf & ".resize.tmp"
-
-   IF renamefile(lumpf, tempf) = NO THEN
-    fatalerror "Impossible to upgrade game: Could not move " & lumpf
-   END IF
-
-   DIM inputf as integer
-   DIM outputf as integer
-   IF OPENFILE(tempf, FOR_BINARY + ACCESS_READ, inputf) ORELSE _
-      OPENFILE(lumpf, FOR_BINARY + ACCESS_WRITE, outputf) THEN
-    fatalerror "Impossible to upgrade game: Could not open " & lumpf & "[.resize.tmp]"
-   END IF
-
-
-   'Round up record count. Due to various bugs a record might be short. Will be zero-extended.
-   '(Note that if a partial record is not extended here, then fix_record_count will do so)
-   DIM total_bytes as integer = LOF(inputf) - headersize
-   DIM records as integer = total_bytes \ oldsize
-   IF total_bytes MOD oldsize THEN
-    debuginfo "updaterecordslength: last record of " & trimpath(lumpf) & " is " & (total_bytes MOD oldsize) & " bytes, expected " & oldsize & ". Extending."
-    records += 1
-   END IF
-
-   IF headersize > 0 THEN
-    DIM headerbuf(headersize - 1) as BYTE
-    GET #inputf, , headerbuf()
-    PUT #outputf, , headerbuf()
-   END IF
-
-   DIM buf(newsize \ 2 - 1) as integer
-   FOR i as integer = 0 TO records - 1
-    loadrecord buf(), inputf, oldsize \ 2
-    storerecord buf(), outputf, newsize \ 2
-   NEXT
-
-   CLOSE inputf
-   CLOSE outputf
-   killfile tempf
-  END IF
-
-  'If we are repeating, we need to keep the old binsize intact
-  IF repeating = NO THEN setbinsize bindex, newsize
-
- END IF
-END SUB
-
 
 '==========================================================================================
 '                                        Passwords
@@ -5709,7 +5453,70 @@ SUB zero_out_pre_july_8_1999_general_map_data_garbage ()
 END SUB
 
 '==========================================================================================
+'                                        Data upgrades
+'==========================================================================================
 
+SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as bool = NO)
+ 'If the length of records in this lump has changed (increased) according to binsize.bin, stretch it, padding records with zeroes.
+ 'Note: does not create a lump if it doesn't exist.
+ 'Pass 'repeating' as true when more than one lump with this bindex exists.
+ ''headersize' is the number of bytes before the first record.
+
+ IF getbinsize(bindex) < curbinsize(bindex) THEN
+
+  DIM oldsize as integer = getbinsize(bindex)
+  DIM newsize as integer = curbinsize(bindex)
+
+  upgrade_message trimpath(lumpf) & " record size = " & newsize
+
+  'Only bother to do this for records of nonzero size (this implies the file doesn't exist, right?)
+  IF oldsize > 0 ANDALSO isfile(lumpf) THEN
+
+   DIM tempf as string = lumpf & ".resize.tmp"
+
+   IF renamefile(lumpf, tempf) = NO THEN
+    fatalerror "Impossible to upgrade game: Could not move " & lumpf
+   END IF
+
+   DIM inputf as integer
+   DIM outputf as integer
+   IF OPENFILE(tempf, FOR_BINARY + ACCESS_READ, inputf) ORELSE _
+      OPENFILE(lumpf, FOR_BINARY + ACCESS_WRITE, outputf) THEN
+    fatalerror "Impossible to upgrade game: Could not open " & lumpf & "[.resize.tmp]"
+   END IF
+
+
+   'Round up record count. Due to various bugs a record might be short. Will be zero-extended.
+   '(Note that if a partial record is not extended here, then fix_record_count will do so)
+   DIM total_bytes as integer = LOF(inputf) - headersize
+   DIM records as integer = total_bytes \ oldsize
+   IF total_bytes MOD oldsize THEN
+    debuginfo "updaterecordslength: last record of " & trimpath(lumpf) & " is " & (total_bytes MOD oldsize) & " bytes, expected " & oldsize & ". Extending."
+    records += 1
+   END IF
+
+   IF headersize > 0 THEN
+    DIM headerbuf(headersize - 1) as BYTE
+    GET #inputf, , headerbuf()
+    PUT #outputf, , headerbuf()
+   END IF
+
+   DIM buf(newsize \ 2 - 1) as integer
+   FOR i as integer = 0 TO records - 1
+    loadrecord buf(), inputf, oldsize \ 2
+    storerecord buf(), outputf, newsize \ 2
+   NEXT
+
+   CLOSE inputf
+   CLOSE outputf
+   killfile tempf
+  END IF
+
+  'If we are repeating, we need to keep the old binsize intact
+  IF repeating = NO THEN setbinsize bindex, newsize
+
+ END IF
+END SUB
 
 '(For fixed-length record lumps only)
 'Initialise, if needed, a lump that is missing or has length <= headersize by padding the file with zeros so that
@@ -5848,6 +5655,10 @@ SUB fix_sprite_record_count(sprtype as SpriteType)
  END IF
 END SUB
 
+'==========================================================================================
+'                                   Data sanity checks
+'==========================================================================================
+
 SUB future_rpg_warning ()
  'This sub displays forward-compat warnings when a new RPG file is loaded in
  'an old copy of game, or an old version of custom (ypsiliform or newer)
@@ -5981,6 +5792,10 @@ SUB rpg_sanity_checks
 
 END SUB
 
+'==========================================================================================
+'                                     Global strings
+'==========================================================================================
+
 SUB loadglobalstrings
  'we load the whole lump into memory because readglobalstring can be called
  'hunderds of times a second. It's stored in a raw format; good enough.
@@ -6022,6 +5837,10 @@ END FUNCTION
 FUNCTION money_name() as string
  RETURN titlecase(TRIM(_price_string("")))
 END FUNCTION
+
+'==========================================================================================
+'                                      Default menus
+'==========================================================================================
 
 PRIVATE SUB add_item_to_(menu as MenuDef, subtype as integer, hide_if_disabled as bool = NO)
  append_menu_item(menu, "", mtypeSpecial, subtype)
@@ -6080,6 +5899,45 @@ SUB create_volume_menu(menu as MenuDef)
 
  ClearMenuData mainmenu
 END SUB
+
+SUB init_battle_menu (menu as MenuDef, byval menu_id as integer=-1)
+ IF menu_id > gen(genMaxMenu) THEN
+  debug "Bad battle menu " & menu_id
+  menu_id = -1
+ END IF
+ IF menu_id < 0 THEN
+  'Default hero battle menu
+  ClearMenuData menu
+  WITH menu
+   'If the resolution is <= 320x200 the default menu is placed as if the align
+   'point were -8,+5 from Top-Right, otherwise it's positioned relative to the
+   'center, next to the HP/ready bars.
+   '(Have to use center-alignment because we might draw to a compatpage.)
+   .offset.x = small(320, gen(genResolutionX)) \ 2 - 8
+   .offset.y = -small(200, gen(genResolutionY)) \ 2 + 5
+   .alignhoriz = alignCenter
+   .alignvert = alignCenter
+   .anchorhoriz = alignRight
+   .anchorvert = alignTop
+   .textalign = alignLeft
+   .bordersize = -5
+   .itemspacing = -2
+   .highlight_selection = YES
+   .min_chars = 10
+   .maxrows = 23
+  END WITH
+ ELSE
+  DIM def_menu_set as MenuSet
+  def_menu_set.menufile = workingdir + SLASH + "menus.bin"
+  def_menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
+  LoadMenuData def_menu_set, menu, menu_id, YES
+ END IF
+END SUB
+
+'==========================================================================================
+'                              Generalised script errors
+'==========================================================================================
+'These routines are for when an error should possibly show a script error.
 
 'Check whether 'n' is within bounds.
 'See reporterr below.
@@ -6148,7 +6006,11 @@ SUB reporterr(msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context a
  END IF
 END SUB
 
-'Acess extra data vectors, while throwing script errors in the script interpreter or visible_debugs
+'==========================================================================================
+'                                     Extra data arrays
+'==========================================================================================
+
+'Access extra data vectors, while throwing script errors in the script interpreter or visible_debugs
 'outside it.
 
 SUB extra_index_error(index as integer, length as integer)
@@ -6242,6 +6104,32 @@ FUNCTION find_extra(byref extra as integer vector, value as integer, startindex 
  WEND
  RETURN -1
 END FUNCTION
+
+'==========================================================================================
+'                                           Tags
+'==========================================================================================
+
+FUNCTION max_tag() as integer
+ IF prefbit(32) THEN  'Don't limit maximum tags to 999
+  RETURN 15999
+ ELSE
+  RETURN 999
+ END IF
+END FUNCTION
+
+FUNCTION load_tag_name (byval index as integer) as string
+ IF index = 0 THEN RETURN ""
+ IF index = 1 THEN RETURN "Never"
+ IF index = -1 THEN RETURN "Always"
+ IF index > gen(genMaxTagName) THEN RETURN ""
+ RETURN readbadgenericname(ABS(index), game + ".tmn", 42, 0, 20, , NO)
+END FUNCTION
+
+SUB save_tag_name (tagname as string, byval index as integer)
+ DIM buf(20) as integer
+ writebadbinstring tagname, buf(), 0, 20
+ storerecord buf(), game + ".tmn", 42 \ 2, index
+END SUB
 
 Constructor HeroTagsCache()
  v_new this.checks
@@ -6379,6 +6267,10 @@ FUNCTION yesorno (byval n as integer, yes_cap as zstring ptr=@"YES", no_cap as z
  IF n THEN RETURN *yes_cap
  RETURN *no_cap
 END FUNCTION
+
+'==========================================================================================
+'                                Float display & editing
+'==========================================================================================
 
 'The problem with strformat("%.Xg", ...) is that it displays values larger than 10^X
 'in scientific form, even though that may be much longer than displaying it directly,
@@ -6557,19 +6449,9 @@ FUNCTION percent_grabber(byref float as single, byref repr as string = "", min a
  RETURN ret
 END FUNCTION
 
-FUNCTION load_tag_name (byval index as integer) as string
- IF index = 0 THEN RETURN ""
- IF index = 1 THEN RETURN "Never"
- IF index = -1 THEN RETURN "Always"
- IF index > gen(genMaxTagName) THEN RETURN ""
- RETURN readbadgenericname(ABS(index), game + ".tmn", 42, 0, 20, , NO)
-END FUNCTION
-
-SUB save_tag_name (tagname as string, byval index as integer)
- DIM buf(20) as integer
- writebadbinstring tagname, buf(), 0, 20
- storerecord buf(), game + ".tmn", 42 \ 2, index
-END SUB
+'=========================================================================================
+'                                Default font and palette
+'=========================================================================================
 
 /'
 
@@ -6662,6 +6544,10 @@ SUB load_gfx_defaults ()
  set_builtin_font current_font()
  textcolor uilook(uiText), 0
 END SUB
+
+'=========================================================================================
+'                              Mouse and key input helpers
+'=========================================================================================
 
 'Normally, clicking on a menu item selects it on mouse down and then menu_click returns
 'true on release. But if state.select_by_mouse_release then menu_click returns false
@@ -6836,6 +6722,82 @@ FUNCTION find_next_or_prev_keychord () as integer
  RETURN 0
 END FUNCTION
 
+'==========================================================================================
+'                                     Tile animations
+'==========================================================================================
+
+SUB animatetilesets (tilesets() as TilesetData ptr)
+ FOR i as integer = 0 TO UBOUND(tilesets)
+  'Animate each tileset...
+  FOR j as integer = 0 TO i - 1
+   '--unless of course we already animated it for this frame
+   '  because the same tileset can be used on more than one layer...
+   IF tilesets(i) = tilesets(j) THEN CONTINUE FOR, FOR
+  NEXT
+  cycletile tilesets(i)->anim(), tilesets(i)->tastuf()
+ NEXT
+END SUB
+
+SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
+ DIM notstuck as integer
+ FOR i as integer = 0 TO 1
+#IFDEF IS_GAME
+  IF istag(tastuf(1 + 20 * i), 0) THEN CONTINUE FOR
+#ENDIF
+  WITH tanim_state(i)
+   .skip = large(.skip - 1, 0)
+   IF .skip = 0 THEN
+    notstuck = 10
+    DO
+     SELECT CASE tastuf(2 + 20 * i + .pt)
+      CASE 0  'End of animation
+       IF .pt <> 0 THEN .cycle = 0  'this is done for the tile animation plotscript commands
+       .pt = 0
+      CASE 1  'Left
+       .cycle = .cycle - tastuf(11 + 20 * i + .pt) * 16
+       loopvar .pt, 0, 8
+      CASE 2  'Right
+       .cycle = .cycle + tastuf(11 + 20 * i + .pt) * 16
+       loopvar .pt, 0, 8
+      CASE 3  'Down
+       .cycle = .cycle + tastuf(11 + 20 * i + .pt)
+       loopvar .pt, 0, 8
+      CASE 4  'Up
+       .cycle = .cycle - tastuf(11 + 20 * i + .pt)
+       loopvar .pt, 0, 8
+      CASE 5  'Wait
+       .skip = tastuf(11 + 20 * i + .pt)
+       loopvar .pt, 0, 8
+#IFDEF IS_GAME
+      CASE 6  'If tag then stop
+       IF istag(tastuf(11 + 20 * i + .pt), 0) THEN
+        loopvar .pt, 0, 8
+       ELSE
+        .pt = 0
+        .cycle = 0
+       END IF
+#ENDIF
+      CASE ELSE  'Invalid
+       loopvar .pt, 0, 8
+     END SELECT
+     notstuck = large(notstuck - 1, 0)
+    LOOP WHILE notstuck AND .skip = 0
+   END IF
+  END WITH
+ NEXT i
+END SUB
+
+'Reset state of all animations to beginning
+SUB reset_tile_anims(tileset as TilesetData ptr)
+ FOR j as integer = 0 TO 1
+  WITH tileset->anim(j)
+   .cycle = 0
+   .pt = 0
+   .skip = 0
+  END WITH
+ NEXT
+END SUB
+
 SUB lockstep_tile_animation (tilesets() as TilesetData ptr, byval layer as integer)
  'Called after changing a layer's tileset to make sure its tile animation is in phase with other layers of the same tileset
  FOR i as integer = 0 TO UBOUND(tilesets)
@@ -6846,6 +6808,10 @@ SUB lockstep_tile_animation (tilesets() as TilesetData ptr, byval layer as integ
   END IF
  NEXT
 END SUB
+
+'=========================================================================================
+'                                        Tilesets
+'=========================================================================================
 
 SUB unloadtilesetdata (byref tileset as TilesetData ptr)
  IF tileset <> NULL THEN
@@ -6979,34 +6945,7 @@ SUB set_map_edge_draw_mode(gmap() as integer, wrap_layers_over_edge_of_crop_maps
  END SELECT
 END SUB
 
-'use_default: don't return a blank name
-FUNCTION getheroname (hero_id as integer, use_default as bool = YES) as string
- DIM her as HeroDef
- IF hero_id >= 0 THEN
-  loadherodata her, hero_id
-  IF LEN(her.name) THEN RETURN her.name
- END IF
- IF use_default THEN RETURN "Hero " & hero_id
- RETURN ""
-END FUNCTION
-
-'Index of last non-blank line, or -1 if none
-FUNCTION text_box_last_line(byref box as TextBox) as integer
- FOR i as integer = UBOUND(box.text) TO 0 STEP -1
-  IF LEN(TRIM(box.text(i))) > 0 THEN RETURN i
- NEXT
- RETURN -1
-END FUNCTION
-
-FUNCTION get_text_box_height(byref box as TextBox) as integer
- IF box.shrink >= 0 THEN RETURN 88 - box.shrink * 4
- DIM lastline as integer = text_box_last_line(box)
- IF lastline = -1 THEN RETURN 88  'Instead of 90 for a full box, why?
- DIM vsize as integer = 20 + lastline * 10
- IF vsize < 32 AND vsize > 24 THEN RETURN 32
- IF vsize <= 24 THEN RETURN 16
- RETURN vsize
-END FUNCTION
+'=========================================================================================
 
 FUNCTION last_inv_slot() as integer
  '--If genMaxInventory is 0, return the default inventory size
@@ -7021,6 +6960,10 @@ FUNCTION last_inv_slot() as integer
  END IF
  RETURN ret
 END FUNCTION
+
+'=========================================================================================
+'                                  Spriteset load helpers
+'=========================================================================================
 
 FUNCTION SpriteSize.lastrec() as integer
  RETURN gen(genmax) + genmax_offset
@@ -7179,6 +7122,10 @@ SUB unload_sprite_and_pal (byref img as GraphicPair)
  frame_unload @img.sprite
  palette16_unload @img.pal
 END SUB
+
+'=========================================================================================
+'                            String encoding and sanitization
+'=========================================================================================
 
 ' Convert a UTF8 string to the encoding used for the current game (Latin-1 or ASCII)
 ' Any codepoints not in Latin-1/ASCII get converted to '?'
@@ -7364,6 +7311,8 @@ FUNCTION sanitize_script_identifier (ident as string, allow_whitespace as bool =
  RETURN remove_nonprintable_ascii(tmp)
 END FUNCTION
 
+'=========================================================================================
+
 'Prompts the user for a file (or directory) path
 'ext: The file extension; must start with '.'
 'directory:  If blank, default to curdir. Is set to the directory used, even if canceled.
@@ -7446,57 +7395,9 @@ FUNCTION inputfilename (query as zstring ptr, ext as zstring ptr, byref director
  LOOP
 END FUNCTION
 
-FUNCTION getdisplayname (default as string) as string
- '--Get game's display name
- DIM n as string = load_gamename()
- IF n = "" THEN RETURN default
- RETURN n
-END FUNCTION
-
-SUB getstatnames(statnames() as string)
- REDIM statnames(statLast)
- statnames(0) = readglobalstring(0, "HP", 10)
- statnames(1) = readglobalstring(1, "MP", 10)
- statnames(2) = readglobalstring(2, "Atk", 10)
- statnames(3) = readglobalstring(3, "Aim", 10)
- statnames(4) = readglobalstring(5, "Def", 10)
- statnames(5) = readglobalstring(6, "Dodge", 10)
- statnames(6) = readglobalstring(29, "Magic", 10)
- statnames(7) = readglobalstring(30, "Will", 10)
- statnames(8) = readglobalstring(8, "Speed", 10)
- statnames(9) = readglobalstring(7, "Ctr", 10)
- statnames(10) = readglobalstring(31, "MP~", 10)
- statnames(11) = readglobalstring(4, "Hits", 10)
-END SUB
-
-FUNCTION battle_statnames(statnum as integer) as string
- SELECT CASE statnum
-  CASE 0 TO 11
-   RETURN statnames(statnum)
-  CASE 12: RETURN "poison register"
-  CASE 13: RETURN "regen register"
-  CASE 14: RETURN "stun register"
-  CASE 15: RETURN "mute register"
-  CASE ELSE:
-   showerror "battle_statnames: Invalid stat " & statnum
- END SELECT
-END FUNCTION
-
-SUB getelementnames(elmtnames() as string)
- REDIM elmtnames(gen(genNumElements) - 1)
- FOR i as integer = 0 TO gen(genNumElements) - 1
-  DIM default as string
-  default = "Element" & i+1
-  IF i < 8 THEN
-   'Original indices changed so maxlen could be expanded
-   default = readglobalstring(17 + i, default, 10)
-  ELSEIF i < 16 THEN
-   'Next 8 elements map to old enemytypes
-   default = LEFT(readglobalstring(1 + i, "EnemyType" & i, 10) + "-killer", 14)
-  END IF
-  elmtnames(i) = readglobalstring(174 + i*2, default, 14)
- NEXT i
-END SUB
+'=========================================================================================
+'                                  Read/write binstrings
+'=========================================================================================
 
 'See WriteByteStr for the straight-to-file version
 SUB writebinstring (savestr as string, array() as integer, byval offset as integer, byval maxlen as integer)
@@ -7599,6 +7500,33 @@ FUNCTION readbadbinstring (array() as integer, byval offset as integer, byval ma
 
  RETURN result
 END FUNCTION
+
+FUNCTION read32bitstring (stringptr as integer ptr) as string
+ IF stringptr[0] < 0 THEN
+  showerror "Corrupt data: read invalid 32b string with negative length"
+  RETURN ""
+ END IF
+ DIM as string result = SPACE(stringptr[0])
+ memcpy(STRPTR(result), @stringptr[1], stringptr[0])
+ RETURN result
+END FUNCTION
+
+FUNCTION readbadgenericname (byval index as integer, filename as string, byval recsize as integer, byval offset as integer, byval size as integer, byval skip as integer = 0, byval expect_exists as bool=YES) as string
+ 'recsize is in BYTES!
+ 'TODO:  there isn't any good reason to load the whole record
+ '       just to get the string field
+ IF index >= 0 THEN
+  DIM buf(recsize \ 2 - 1) as integer
+  IF loadrecord(buf(), filename, recsize \ 2, index, expect_exists) THEN
+   RETURN readbadbinstring(buf(), offset, size, skip)
+  END IF
+ END IF
+ RETURN ""  'failure
+END FUNCTION
+
+'=========================================================================================
+'                                 Special directories
+'=========================================================================================
 
 SUB set_app_dir()
  app_dir = add_trailing_slash(EXEPATH)  'FreeBasic builtin
@@ -7705,6 +7633,10 @@ FUNCTION get_documents_dir() as string
  RETURN ret
 END FUNCTION
 
+'=========================================================================================
+'                                     ohrhelp files
+'=========================================================================================
+
 PRIVATE FUNCTION help_dir_helper(dirname as string, fname as string) as integer
  IF LEN(fname) THEN RETURN isfile(dirname + SLASH + fname) ELSE RETURN isdir(dirname)
 END FUNCTION
@@ -7796,6 +7728,10 @@ SUB expand_help(byref helptext as string, helpkey as string)
   END IF
  LOOP
 END SUB
+
+'==========================================================================================
+'                                      Color picker
+'==========================================================================================
 
 'OK, NOW it supports negative n too
 FUNCTION xy_from_int(byval n as integer, byval wide as integer, byval high as integer) as XYPair
@@ -7895,6 +7831,10 @@ FUNCTION color_browser_256(byval start_color as integer=0) as integer
  RETURN ret
 END FUNCTION
 
+'==========================================================================================
+'                                     Levelling-up
+'==========================================================================================
+
 FUNCTION exptolevel (byval level as integer, byval curve as double = 0.2) as integer
 ' HINT: Customisation goes here :)
  IF level = 0 THEN RETURN 0
@@ -7937,13 +7877,9 @@ FUNCTION atlevel_quadratic (byval lev as double, byval a0 as double, byval aMax 
   RETURN (a * x^2 + b * x) * (aMax - a0) + a0 + .1
 END FUNCTION
 
-FUNCTION max_tag() as integer
- IF prefbit(32) THEN  'Don't limit maximum tags to 999
-  RETURN 15999
- ELSE
-  RETURN 999
- END IF
-END FUNCTION
+'==========================================================================================
+'                                     Animation rate
+'==========================================================================================
 
 FUNCTION ideal_ticks_per_second() as double
  'This is an idealized estimate, NOT a measurment of actual FPS
@@ -7976,6 +7912,10 @@ FUNCTION wtog_to_frame(wtog as integer) as integer
  RETURN small(wtog \ wtog_ticks(), WALKFRAMES - 1)
 END FUNCTION
 
+'==========================================================================================
+'                                   global_reload_doc
+'==========================================================================================
+
 SUB cleanup_global_reload_doc ()
  DIM rnod as reload.NodePtr = reload.DocumentRoot(global_reload_doc)
  DIM num as integer = reload.NumChildren(rnod)
@@ -8006,79 +7946,9 @@ FUNCTION get_reload_empty (nodename as string = "") as NodePtr
  RETURN result
 END FUNCTION
 
-' This adds any new properties to an existing Node for a hero battle menu
-' (and is also used to help create in the first place)
-SUB upgrade_hero_battle_menu_item(bmenu as NodePtr)
- IF bmenu."caption".exists = NO THEN SetChildNode(bmenu, "caption", "")
- IF bmenu."color".exists = NO THEN SetChildNode(bmenu, "color", 0)
- IF bmenu."enable_tag1".exists = NO THEN SetChildNode(bmenu, "enable_tag1", 0)
- IF bmenu."enable_tag2".exists = NO THEN SetChildNode(bmenu, "enable_tag2", 0)
- IF bmenu."hide_disabled".exists = NO THEN SetChildNode(bmenu, "hide_disabled", NO)
- IF bmenu."exclude_auto_battle".exists = NO THEN SetChildNode(bmenu, "exclude_auto_battle", NO)
-END SUB
-
-FUNCTION add_hero_battle_menu_item(byval parent as NodePtr, kind as string, byval value as integer = 0) as NodePtr
- DIM bmenu as NodePtr
- bmenu = AppendChildNode(parent, "menu")
- DIM kindnode as NodePtr
- kindnode = SetChildNode(bmenu, "kind")
- SELECT CASE kind
-  CASE "weapon", "items":
-   SetChildNode(kindnode, kind)
-  CASE "attack", "spells":
-   SetChildNode(kindnode, kind, value)
- END SELECT
- ' Initialise other data to defaults
- upgrade_hero_battle_menu_item bmenu
- RETURN bmenu
-END FUNCTION
-
-FUNCTION should_hide_hero_stat(hero as HeroDef, byval statnum as integer) as bool
- RETURN NodeByPath(hero.reld, "/stat_options/stat[" & statnum & "]/hide") <> NULL
-END FUNCTION
-
-FUNCTION should_hide_hero_stat(byval hero_id as integer, byval statnum as integer) as bool
- DIM her as HeroDef
- loadherodata her, hero_id
- RETURN should_hide_hero_stat(her, statnum)
-END FUNCTION
-
-
-'Like INSTR (opposite arg order!), but only returns the offset of the first match starting at a word
-'boundary where 'excludeword' doesn't also match, unless query actually starts with excludeword.
-'This is intended to be used with select_by_typing on menus where you don't necessarily
-'want to start typing from the beginning.
-'For example needle="e" excludeword="edit" matches "edit enemy data" but not "edit items"
-'Returns 0 on no match.
-FUNCTION find_on_word_boundary_excluding(haystack as string, needle as string, excludeword as string) as integer
- DIM excluding as bool = YES
- IF LEN(excludeword) = 0 ORELSE starts_with(needle, excludeword) THEN
-  excluding = NO
- END IF
- DIM wordboundary as bool = YES
- FOR index as integer = 1 TO LEN(haystack)
-  DIM alnum as integer = isalnum(haystack[index - 1])
-  IF alnum AND wordboundary THEN
-   IF MID(haystack, index, LEN(needle)) = needle ANDALSO _
-      (excluding = NO ORELSE MID(haystack, index, LEN(excludeword)) <> excludeword) THEN
-    RETURN index
-   END IF
-  END IF
-  wordboundary = (alnum = 0)
- NEXT
- RETURN 0
-END FUNCTION
-
-FUNCTION find_on_word_boundary(haystack as string, needle as string) as integer
- RETURN find_on_word_boundary_excluding(haystack, needle, "")
-END FUNCTION
-
-FUNCTION str_rect(s as string, byval x as integer, byval y as integer) as RectType
- DIM r as RectType
- r.size = textsize(s, rWidth)  'Wrapped to screen size
- r.xy = relative_pos(XY(x, y), vpages(vpage)->size, r.size)
- RETURN r
-END FUNCTION
+'=========================================================================================
+'                               Arrowsets & Virtual keyboard
+'=========================================================================================
 
 FUNCTION keyval_arrowset_up(arr as ArrowSet) as bool
  IF arr.U THEN IF keyval(arr.U) > 1 THEN RETURN YES
@@ -8442,6 +8312,8 @@ FUNCTION gamepad_virtual_keyboard (arr as ArrowSet, default_str as string, max_l
  RETURN result
 END FUNCTION
 
+'=========================================================================================
+
 FUNCTION progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as string, byval timeout_seconds as double) as bool
  'In contrast to a progress meter, a progress spinner has no idea how long this will take
  'so it just needs to animate until it succeeds or times out.
@@ -8534,56 +8406,9 @@ FUNCTION progress_spinner (byval exit_condition_func as FnNoArgsBool, caption as
  RETURN ret
 END FUNCTION
 
-FUNCTION dissolve_type_caption(n as integer) as string
- SELECT CASE n
-  CASE 0: RETURN "Random scatter"
-  CASE 1: RETURN "Crossfade"
-  CASE 2: RETURN "Diagonal Vanish"
-  CASE 3: RETURN "Sink into Ground"
-  CASE 4: RETURN "Squash"
-  CASE 5: RETURN "Melt"
-  CASE 6: RETURN "Vaporize"
-  CASE 7: RETURN "Phase out"
-  CASE 8: RETURN "Squeeze"
-  CASE 9: RETURN "Shrink"
-  CASE 10: RETURN "Flicker"
-  CASE 11: RETURN "Shrink to Center"
-  CASE 12: RETURN "Fade"
-  CASE 13: RETURN "Ghostly fade"
-  CASE 14: RETURN "Fade to white"
-  CASE 15: RETURN "Puff"
-  CASE 16: RETURN "Fade up"
-  CASE 17: RETURN "Blip"
-  CASE ELSE: RETURN n & " Invalid!"
- END SELECT
-END FUNCTION
-
-FUNCTION appear_type_caption(n as integer) as string
- 'These are names for the inverted dissolve animations.
- 'They should only differ where the dissolve name doesn't make sense backwards
- SELECT CASE n
-  CASE 0: RETURN "Random scatter"
-  CASE 1: RETURN "Crossfade"
-  CASE 2: RETURN "Diagonal Appear"
-  CASE 3: RETURN "Rise from Ground"
-  CASE 4: RETURN "Un-Squash"
-  CASE 5: RETURN "Un-Melt"
-  CASE 6: RETURN "Un-Vaporize"
-  CASE 7: RETURN "Phase In"
-  CASE 8: RETURN "Un-Squeeze"
-  CASE 9: RETURN "Expand"
-  CASE 10: RETURN "Flicker"
-  CASE 11: RETURN "Expand from Center"
-  CASE 12: RETURN "Fade"
-  CASE 13: RETURN "Ghostly fade"
-  CASE 14: RETURN "Fade from white"
-  CASE 15: RETURN "Puff"
-  CASE 16: RETURN "Fade down"
-  CASE 17: RETURN "Blip"
-  CASE ELSE: RETURN n & " Invalid!"
- END SELECT
-END FUNCTION
-
+'=========================================================================================
+'                                general.reld helpers
+'=========================================================================================
 '--Wrapper functions for getting and setting values from general.reld
 
 FUNCTION default_gen_bool(nodepath as string) as bool
@@ -8705,7 +8530,9 @@ FUNCTION gen_intgrabber(nodepath as string) as bool
  RETURN NO
 END FUNCTION
 
-'   Functions for reading/writing ohrrpgce_config.ini / gameconfig.ini
+'==========================================================================================
+'                  Reading/writing ohrrpgce_config.ini / gameconfig.ini
+'==========================================================================================
 
 ' Called on startup to set up config-related globals (excluding savedir)
 SUB set_game_config_globals(sourcerpg as string)
@@ -8885,39 +8712,27 @@ SUB write_game_config (key as zstring ptr, value as double)
  write_game_config key, FORMAT(value, "0.000")
 END SUB
 
-SUB init_battle_menu (menu as MenuDef, byval menu_id as integer=-1)
- IF menu_id > gen(genMaxMenu) THEN
-  debug "Bad battle menu " & menu_id
-  menu_id = -1
- END IF
- IF menu_id < 0 THEN
-  'Default hero battle menu
-  ClearMenuData menu
-  WITH menu
-   'If the resolution is <= 320x200 the default menu is placed as if the align
-   'point were -8,+5 from Top-Right, otherwise it's positioned relative to the
-   'center, next to the HP/ready bars.
-   '(Have to use center-alignment because we might draw to a compatpage.)
-   .offset.x = small(320, gen(genResolutionX)) \ 2 - 8
-   .offset.y = -small(200, gen(genResolutionY)) \ 2 + 5
-   .alignhoriz = alignCenter
-   .alignvert = alignCenter
-   .anchorhoriz = alignRight
-   .anchorvert = alignTop
-   .textalign = alignLeft
-   .bordersize = -5
-   .itemspacing = -2
-   .highlight_selection = YES
-   .min_chars = 10
-   .maxrows = 23
-  END WITH
- ELSE
-  DIM def_menu_set as MenuSet
-  def_menu_set.menufile = workingdir + SLASH + "menus.bin"
-  def_menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
-  LoadMenuData def_menu_set, menu, menu_id, YES
- END IF
-END SUB
+'==========================================================================================
+'                                       Textboxes
+'==========================================================================================
+
+'Index of last non-blank line, or -1 if none
+FUNCTION text_box_last_line(byref box as TextBox) as integer
+ FOR i as integer = UBOUND(box.text) TO 0 STEP -1
+  IF LEN(TRIM(box.text(i))) > 0 THEN RETURN i
+ NEXT
+ RETURN -1
+END FUNCTION
+
+FUNCTION get_text_box_height(byref box as TextBox) as integer
+ IF box.shrink >= 0 THEN RETURN 88 - box.shrink * 4
+ DIM lastline as integer = text_box_last_line(box)
+ IF lastline = -1 THEN RETURN 88  'Instead of 90 for a full box, why?
+ DIM vsize as integer = 20 + lastline * 10
+ IF vsize < 32 AND vsize > 24 THEN RETURN 32
+ IF vsize <= 24 THEN RETURN 16
+ RETURN vsize
+END FUNCTION
 
 'Creates the slices for a textbox, returning them in the txtsl variable.
 'revealed: if false, the text isn't revealed yet

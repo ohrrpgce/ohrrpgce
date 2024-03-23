@@ -177,6 +177,16 @@ END SUB
 '==========================================================================================
 
 
+FUNCTION global_npcdef_filename (byval pool_id as integer=1) as string
+ RETURN workingdir & SLASH & "globalnpcs" & pool_id & ".n"
+END FUNCTION
+
+FUNCTION npc_pool_name(pool as integer) as string
+ IF pool = 0 THEN RETURN "Local"
+ IF pool = 1 THEN RETURN "Global"
+ RETURN "Pool " & pool
+END FUNCTION
+
 ' Read NPC definitions from file. Resizes dat().
 SUB LoadNPCD(file as string, dat() as NPCType, expect_exists as bool = YES)
   DIM as integer i, j, f
@@ -655,6 +665,15 @@ SUB MapData.load(map_id as integer)
   DeSerDoors game & ".dox", door(), id
   DeSerDoorLinks maplumpname(id, "d"), doorlink()
 END SUB
+
+FUNCTION maplumpname (byval map_id as integer, oldext as string) as string
+ IF map_id < 0 THEN showbug "maplumpname: Bad map " & map_id
+ IF map_id < 100 THEN
+  return game & "." & oldext & RIGHT("0" & map_id, 2)
+ ELSE
+  return workingdir & SLASH & map_id & "." & oldext
+ END IF
+END FUNCTION
 
 FUNCTION read_map_layer_name(gmap() as integer, layernum as integer) as string
  IF layernum > 15 THEN
@@ -2198,6 +2217,33 @@ FUNCTION WritePicPalNode (byval parent as NodePtr, nodename as string, byval pic
   SetChildNode node, "pal", pal
  END IF
  RETURN node
+END FUNCTION
+
+' This adds any new properties to an existing Node for a hero battle menu
+' (and is also used to help create in the first place)
+SUB upgrade_hero_battle_menu_item(bmenu as NodePtr)
+ IF bmenu."caption".exists = NO THEN SetChildNode(bmenu, "caption", "")
+ IF bmenu."color".exists = NO THEN SetChildNode(bmenu, "color", 0)
+ IF bmenu."enable_tag1".exists = NO THEN SetChildNode(bmenu, "enable_tag1", 0)
+ IF bmenu."enable_tag2".exists = NO THEN SetChildNode(bmenu, "enable_tag2", 0)
+ IF bmenu."hide_disabled".exists = NO THEN SetChildNode(bmenu, "hide_disabled", NO)
+ IF bmenu."exclude_auto_battle".exists = NO THEN SetChildNode(bmenu, "exclude_auto_battle", NO)
+END SUB
+
+FUNCTION add_hero_battle_menu_item(byval parent as NodePtr, kind as string, byval value as integer = 0) as NodePtr
+ DIM bmenu as NodePtr
+ bmenu = AppendChildNode(parent, "menu")
+ DIM kindnode as NodePtr
+ kindnode = SetChildNode(bmenu, "kind")
+ SELECT CASE kind
+  CASE "weapon", "items":
+   SetChildNode(kindnode, kind)
+  CASE "attack", "spells":
+   SetChildNode(kindnode, kind, value)
+ END SELECT
+ ' Initialise other data to defaults
+ upgrade_hero_battle_menu_item bmenu
+ RETURN bmenu
 END FUNCTION
 
 'id is only used for debugging
@@ -4677,7 +4723,7 @@ END FUNCTION
 
 
 '==========================================================================================
-'                                        General data
+'                                      .rpg metadata
 '==========================================================================================
 
 LOCAL FUNCTION load_browse_record(filename as string, record as integer) as string
@@ -4697,6 +4743,13 @@ LOCAL SUB store_browse_record(filename as string, record as integer, newstr as s
  writebinstring newstr, tempbuf(), 0, 38
  storerecord tempbuf(), f, 20, record
 END SUB
+
+FUNCTION getdisplayname (default as string) as string
+ '--Get game's display name
+ DIM n as string = load_gamename()
+ IF n = "" THEN RETURN default
+ RETURN n
+END FUNCTION
 
 FUNCTION load_gamename (filename as string="") as string
  RETURN load_browse_record(filename, 0)
@@ -4727,6 +4780,53 @@ SUB save_titletext (s as string)
  SetContent(n, s)
  write_general_reld()
 END SUB
+
+'Normally gamedir will be workingdir, and sourcefile will be sourcerpg
+FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
+ DIM iname as string
+ DIM fh as integer
+ IF isfile(gamedir + SLASH + "archinym.lmp") THEN
+  OPENFILE(gamedir + SLASH + "archinym.lmp", FOR_INPUT, fh)
+  LINE INPUT #fh, iname
+  CLOSE #fh
+  iname = LCASE(iname)
+  'IF isfile(gamedir + SLASH + iname + ".gen") THEN
+   RETURN iname
+  'ELSE
+  ' debug gamedir + SLASH + "archinym.lmp" + " invalid, ignored"
+  'END IF
+ ELSE
+  debuginfo gamedir + SLASH + "archinym.lmp" + " unreadable"
+ END IF
+
+ ' for backwards compatibility with ancient games that lack archinym.lmp
+ 'iname = LCASE(trimextension(trimpath(sourcefile)))
+ 'IF isfile(gamedir + SLASH + iname + ".gen") THEN RETURN iname
+
+ ' Otherwise just scan the directory for a .GEN lump
+ ' (findfiles is case-insensitive)
+ DIM listing() as string
+ findfiles gamedir, "*.gen", , , listing()
+ IF UBOUND(listing) = 0 THEN
+  debuginfo "But found " & listing(0)
+  RETURN LCASE(trimextension(listing(0)))
+ END IF
+
+ fatalerror sourcefile & " doesn't appear to be an OHRRPGCE game: doesn't contain crucial data files"
+END FUNCTION
+
+'Return the second line of archinym.lmp for the current game, which is the version
+'of Custom or the tool that first created it.
+FUNCTION read_archinym_version () as string
+ DIM lines() as string
+ lines_from_file lines(), workingdir & SLASH & "archinym.lmp", NO
+ IF UBOUND(lines) >= 1 THEN RETURN lines(1)
+END FUNCTION
+
+
+'==========================================================================================
+'                                      general.reld
+'==========================================================================================
 
 'Create the editor_version (general.reld) or game_client (RSAV) node.
 'If if already exists, only modify it if the previous version wasn't newer.
@@ -4770,14 +4870,6 @@ FUNCTION read_last_editor_version() as EngineVersion
  DIM root as Node ptr
  root = get_general_reld()
  RETURN read_engine_version_node(root."editor_version".ptr)
-END FUNCTION
-
-'Return the second line of archinym.lmp for the current game, which is the version
-'of Custom or the tool that first created it.
-FUNCTION read_archinym_version () as string
- DIM lines() as string
- lines_from_file lines(), workingdir & SLASH & "archinym.lmp", NO
- IF UBOUND(lines) >= 1 THEN RETURN lines(1)
 END FUNCTION
 
 FUNCTION get_general_reld() as NodePtr

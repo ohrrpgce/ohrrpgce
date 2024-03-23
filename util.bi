@@ -449,6 +449,7 @@ declare function strhash (hstr as string) as unsigned integer
 '----------------------------------------------------------------------
 '                      Path and File Functions
 
+'Path manipulation
 declare function join_path (path1 as string, path2 as string) as string
 declare function normalize_path (filename as string) as string
 declare function simplify_path (pathname as string) as string
@@ -468,25 +469,36 @@ declare function absolute_path (pathname as string) as string
 declare function absolute_with_orig_path (file_or_dir as string, byval add_slash as bool = NO) as string
 declare function parentdir (pathname as string, byval upamount as integer = 1) as string
 declare function anycase (filename as string) as string
+declare function url_hostname (url as string) as string
+
+'Escaping
 declare function escape_filename (filename as string) as string
 declare function escape_filenamec cdecl alias "escape_filenamec" (byval filename as zstring ptr) as zstring ptr
 declare function fixfilename (filename as string) as string
 declare function lump_filename_valid (filename as string) as bool
-declare function url_hostname (url as string) as string
 declare function decode_filename (filename as string) as string
-declare sub touchfile (filename as string)
-declare sub extendfile (byval fh as integer, byval length as integer)
+
+'Find files/dirs
 declare sub findfiles (directory as string, namemask as string = "", filetype as FileTypeEnum = fileTypeFile, findhidden as bool = NO, filelist() as string)
 declare function find_file_portably (path as string) as string
 declare function find_file_anycase (path as string, file_type as FileTypeEnum = fileTypeFile) as string
+
+'Copy/move/delete/create file/dir
 declare function writeablecopyfile (src as string, dest as string) as bool
 declare sub copyfiles (src as string, dest as string, copyhidden as bool = NO, lowercase as bool = NO)
 declare function copydirectory (src as string, dest as string, byval copyhidden as bool = YES) as string
+declare function confirmed_copy (srcfile as string, destfile as string) as bool
+declare function confirmed_copydirectory(src as string, dest as string) as bool
+declare function os_shell_move(src as string, dest as string) as bool
 declare sub killdir (directory as string, recurse as bool = NO)
 declare function makedir (directory as string) as integer
 declare function safekill (filename as string) as bool
 declare sub safekill_pattern (dirname as string, filepattern as string)
 declare function killfile (filename as string) as bool
+declare sub touchfile (filename as string)
+declare sub extendfile (byval fh as integer, byval length as integer)
+
+'Check existence
 declare function fileisreadable(filename as string) as bool
 declare function fileiswriteable(filename as string) as bool
 declare function diriswriteable(filename as string) as bool
@@ -494,8 +506,13 @@ declare function isfile(filename as string) as bool
 declare function real_isfile(filename as string) as bool
 declare function is_not_file(filename as string) as bool
 declare function isdir (filename as string) as bool
+
+'File/dir size
+declare function filesize (file as string) as string
+declare function format_filesize (size as integer) as string
 declare function count_directory_size(directory as string, byref file_count as integer = 0, limit as integer = 999999) as integer
 
+'Read/write file
 declare function read_file (filename as string, expect_exists as bool = YES, byref success as bool = NO) as string
 declare sub write_file (filename as string, outdata as string)
 declare function string_from_first_line_of_file (filename as string) as string
@@ -1058,6 +1075,9 @@ declare Function wordwrap(z as string, byval width as integer, sep as string = c
 declare sub split(in as string, ret() as string, sep as string = chr(10))
 declare sub split_line_positions(original_text as string, lines() as string, line_starts() as integer, sep as string = chr(10))
 declare function split_chunk(in as string, index as integer, sep as string = chr(10), default as string="") as string
+declare function find_on_word_boundary_excluding(haystack as string, needle as string, excludeword as string) as integer
+declare function find_on_word_boundary(haystack as string, needle as string) as integer
+
 
 
 '----------------------------------------------------------------------
@@ -1092,6 +1112,8 @@ declare function ini_key_match(text as string, key as string, byref value as str
 
 declare function days_since_datestr(datestr as string) as integer
 declare function format_duration(length as double, decimal_places as integer = 1) as string
+declare function format_date(timeser as double) as string
+declare function seconds2str(sec as integer, f as string = " %m: %S") as string
 
 declare sub flusharray (array() as integer, byval size as integer=-1, byval value as integer=0)
 declare sub sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer = 0, byval stride as integer = SIZEOF(integer))
@@ -1106,8 +1128,6 @@ declare sub invert_permutation overload (indices() as integer, inverse() as inte
 declare sub invert_permutation overload (indices() as integer)
 
 declare function readkey () as string
-
-declare function format_date(timeser as double) as string
 
 #macro debug_if_slow(starttime, seconds, extrainfo)
   IF TIMER > starttime + seconds THEN _

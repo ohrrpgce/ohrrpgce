@@ -141,6 +141,10 @@ DECLARE SUB setpal_to_color (col as RGBcolor = TYPE(0))
 DECLARE FUNCTION masterpal_has_changed(pal() as RGBcolor) as bool
 DECLARE SUB fadetocolor (col as RGBcolor, fadems as integer = 500)
 DECLARE SUB fadetopal (pal() as RGBcolor, fadems as integer = 500)
+DECLARE SUB fadein (fadems as integer = 500)
+DECLARE SUB fadeout OVERLOAD (palidx as integer, fadems as integer = 500)
+DECLARE SUB fadeout OVERLOAD (red as integer, green as integer, blue as integer, fadems as integer = 500)
+
 
 '==========================================================================================
 
@@ -339,6 +343,7 @@ DECLARE SUB textcolor (fg as integer, bg as integer)
 DECLARE SUB text_layout_dimensions (retsize as StringSize ptr, z as string, endchar as integer = 999999, maxlines as integer = 999999, wide as integer = 999999, fontp as Font ptr, withtags as bool = YES, withnewlines as bool = YES)
 DECLARE FUNCTION textwidth(text as string, fontnum as integer = fontPlain, withtags as bool = YES, withnewlines as bool = YES) as integer
 DECLARE FUNCTION textsize(text as string, wide as RelPos = rWidth, fontnum as integer = fontPlain, withtags as bool = YES, page as integer = -1) as XYPair
+DECLARE FUNCTION str_rect(s as string, byval x as integer, byval y as integer) as RectType
 DECLARE FUNCTION lineheight(fontnum as integer = fontEdged) as integer
 DECLARE FUNCTION charsize OVERLOAD(char as integer, font as Font ptr) as XYPair
 DECLARE FUNCTION charsize OVERLOAD(char as integer, fontnum as integer) as XYPair
@@ -598,6 +603,7 @@ DECLARE SUB resume_mouserect ()
 DECLARE SUB setupmusic
 DECLARE SUB closemusic ()
 DECLARE SUB loadsong (f as string)
+DECLARE SUB playsongnum (songnum as integer)
 'DECLARE SUB pausesong ()
 'DECLARE SUB resumesong ()
 DECLARE FUNCTION get_music_volume () as single
@@ -643,6 +649,8 @@ declare sub rectangle_transformed(cols() as RGBcolor, transf as AffineTransform,
 
 declare sub rotozoom_transform(byref result as AffineTransform, size as XYPair, center as Float2 ptr = NULL, pos as Float2, angle as double, zoom as Float2)
 
+declare function dissolve_type_caption(n as integer) as string
+declare function appear_type_caption(n as integer) as string
 declare function frame_dissolved(spr as Frame ptr, tlength as integer, t as integer, style as integer) as Frame ptr
 declare sub frame_draw_dissolved (src as Frame ptr, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions, tlength as integer, tick as integer, style as integer)
 declare function default_dissolve_time(style as integer, w as integer, h as integer) as integer
