@@ -104,6 +104,8 @@ WHAT IS NEW?
       Doesn't restrict to integer ratios. [Ralph]
     * An Engine Settings menu (currently just graphics settings). Ctrl/Shift-F7
       to open anywhere (that key previously switched gfx backend) [Ralph]
+    * In the map editor, you can now drag with the middle mouse button as well
+      as the right (to avoid misclicks) [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

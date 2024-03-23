@@ -1,18 +1,6 @@
 The map editor is in Passability mode (also known as "Wallmap mode").
 
-F2 switch to picture mode
-F3 switch to passability mode
-F4 switch to door placement mode
-F5 switch to NPC placement mode
-F6 switch to foemap mode
-F7 switch to zonemap mode
-F8 show settings menu
-
-Use the arrow keys or RIGHT CLICK and drag to move around the map.
-
-Use SHIFT+arrow keys to move around the map faster.
-
-Use ALT+arrow keys to move the view of the map.
+{{mapedit_basic_controls}}
 
 While you are in passability mode, you will see thick flashing lines that indicate where walls are located. (You can customise how these look in the Settings.)
 

@@ -889,6 +889,7 @@ DO
  IF mouse_over = focusMap THEN mouse_over_tile = screen_to_map(st, mouse.pos) \ tilesize
 
  'Mouse right button is overloaded for a few different things; filter them out
+ '(The middle button just pans/skews.)
  DIM normal_right_release as bool = (mouse.release AND mouseRight) > 0
  DIM actually_panning as bool = NO
  IF mouse.drag_dist > 5 THEN
@@ -903,7 +904,7 @@ DO
    'Also, ignore normal mouse controls while panning or skewing the map
    '(Including if st.mouse_skewing not set yet: started by holding down Ctrl)
    IF (st.mouse_skewing OR actually_panning OR _
-       ((mouse.buttons AND mouseRight) AND keyval(scCtrl) > 0)) = NO THEN
+       ((mouse.buttons AND (mouseMiddle OR mouseRight)) AND keyval(scCtrl) > 0)) = NO THEN
     'In-bounds
 
     'Move cursor to mouse position?
@@ -1572,11 +1573,11 @@ DO
  '(Cursor movement with mouse was handled above, because we generally need to update
  'cursor position before handling clicks)
 
- IF st.mouse_attention = focusMap ANDALSO (mouse.clicks AND mouseRight) ANDALSO st.mouse_skewing = NO THEN
+ IF st.mouse_attention = focusMap ANDALSO (mouse.clicks AND (mouseMiddle OR mouseRight)) ANDALSO st.mouse_skewing = NO THEN
   'Possible drag just started
   st.drag_camera_start = st.camera
  END IF
- IF st.mouse_attention = focusMap ANDALSO (mouse.dragging AND mouseRight) _
+ IF st.mouse_attention = focusMap ANDALSO (mouse.dragging AND (mouseMiddle OR mouseRight)) _
     ANDALSO st.mouse_skewing = NO THEN
   mouse_pan = YES
   st.camera = st.drag_camera_start - (mouse.pos - mouse.clickstart) * st.mouse_pan_mult
@@ -1621,7 +1622,7 @@ DO
  st.moved = oldpos <> st.pos
 
  'Skew map layers (note that skew is measured in tenths of a pixel)
- IF (keyval(scCtrl) > 0 OR st.per_layer_skew <> 0) ANDALSO (mouse.dragging AND mouseRight) THEN
+ IF (keyval(scCtrl) > 0 OR st.per_layer_skew <> 0) ANDALSO (mouse.dragging AND (mouseMiddle OR mouseRight)) THEN
   'Record that we've started skewing the map with the mouse, so that we can
   'ignore this right-drag if Ctrl is released
   st.mouse_skewing = YES
@@ -1631,7 +1632,7 @@ DO
   IF keyval(ccRight) > 0 THEN st.per_layer_skew.x += 10
   IF keyval(ccUp) > 0 THEN st.per_layer_skew.y -= 10
   IF keyval(ccDown) > 0 THEN st.per_layer_skew.y += 10
- ELSEIF st.mouse_skewing ANDALSO mouse.dragging AND mouseRight THEN
+ ELSEIF st.mouse_skewing ANDALSO mouse.dragging AND (mouseMiddle OR mouseRight) THEN
   DIM numlayers as integer = UBOUND(st.map.tiles) + 1  '+1 for overhead
   st.per_layer_skew = (mouse.pos - mouse.clickstart) '* 5 / numlayers
  ELSE

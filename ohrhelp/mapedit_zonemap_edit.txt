@@ -2,19 +2,9 @@ The map editor is in Zone Mapping mode, single zone editing submode.
 
 A zone simply marks out part of the map; think of it like a map layer with two states per tile: included in the zone, or not. This submode is for editing a single zone at a time. You can place each tile in multiple zones (up to 15) and you can create 9999 zones per map. Zones may be used for restricting NPC movement, and for scripted effects. 
 
-F2 switch to picture mode
-F3 switch to passability mode
-F4 switch to door placement mode
-F5 switch to NPC placement mode
-F6 switch to foemap mode
-F7 switch to zonemap mode
-F8 show settings menu
+{{mapedit_basic_controls}}
 
-Z to switch to zone viewing submode.
-
-Use the arrow keys or RIGHT CLICK and drag to move around the map.
-
-Use SHIFT+arrow keys to move around the map faster.
+Press Z to switch to zone viewing submode.
 
 Press < and > or PageDown and PageUp to change the current zone number, or type in an ID number, or use the MOUSE WHEEL. There's no need to use sequential ID numbers.
 

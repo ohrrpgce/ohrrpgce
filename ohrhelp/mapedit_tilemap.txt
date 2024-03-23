@@ -1,18 +1,6 @@
 The map editor is in Picture mode (also known as "Tilemap mode").
 
-F2 switch to picture mode
-F3 switch to passability mode
-F4 switch to door placement mode
-F5 switch to NPC placement mode
-F6 switch to foemap mode
-F7 switch to zonemap mode
-F8 show settings menu
-
-Use the arrow keys or RIGHT CLICK and drag to move around the map.
-
-Use SHIFT+arrow keys to move around the map faster.
-
-Use ALT+arrow keys to move the view of the map.
+{{mapedit_basic_controls}}
 
 Along the top of the screen you will see a row of maptiles, with your currently selected maptile highlighted. You can click on them, press < and > to change your selected maptile, or use the MOUSE WHEEL, or press ENTER or RIGHT CLICK on the top bar to bring up a full-screen maptile picker.
 
@@ -110,7 +98,7 @@ ALT+# (a number key) disables or enables that layer (you can't disable layer 0).
 
 CTRL+F# or SHIFT+F# toggles visibility of a layer: F1 is layer 0, F2 is layer 1, and so on.
 
-Hold CTRL+SHIFT and press arrow keys, or press CTRL and drag with the RIGHT MOUSE button, to "skew" the map layers, drawing them with a 3D perspective so that you can tell them apart.
+Hold CTRL+SHIFT and press arrow keys, or press CTRL and drag with the MIDDLE or RIGHT MOUSE button, to "skew" the map layers, drawing them with a 3D perspective so that you can tell them apart.
 
 T tints the map layers, so that you can tell them apart. 
 Press T once to tint by layer height: from layer 0 to the topmost (including overhead tiles), tints shift through cyan, green, yellow, red and purple.
