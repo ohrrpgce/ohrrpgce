@@ -4612,7 +4612,7 @@ SUB load_script_triggers_and_names()
  ' Load lookup1.bin (script trigger -> script ID and name)
  DIM fh as integer
  IF OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY + ACCESS_READ, fh) THEN
-  debuginfo "lookup1.bin missing"
+  debuginfo "lookup1.bin missing"  'The game might have no scripts.
   REDIM lookup1_bin_cache(-1 TO -1)
  ELSE
   DIM as integer records = LOF(fh) \ 40
@@ -4637,7 +4637,7 @@ SUB load_script_triggers_and_names()
  END IF
 
  ' Load plotscr.lst (ID -> script name)
- IF OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY, fh) THEN
+ IF OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY + ACCESS_READ, fh) THEN
   debuginfo "plotscr.lst missing"  'Never imported any scripts
  ELSE
   DIM idx as integer = 0
