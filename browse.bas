@@ -369,8 +369,10 @@ ELSE
 END IF
 remember = default
 
-br.previewer->unload_preview()
-DELETE br.previewer
+IF br.previewer THEN
+ br.previewer->unload_preview()
+ DELETE br.previewer
+END IF
 
 'Restore held copies of page 2 and 3 (because the tileset editor still needs them)
 ' and they were clobbered by bit depth changing
