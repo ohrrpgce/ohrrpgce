@@ -622,7 +622,7 @@ FUNCTION inflict (byref h as integer = 0, byref targstat as integer = 0, attacke
    h *= -1      'cure bit
   END IF
 
-  DIM capdamage as bool = YES
+  DIM capdamage as bool = (attack.ignore_damage_cap = NO)
 
   IF attack.percent_damage_not_set = NO THEN
    'percentage attacks set stat

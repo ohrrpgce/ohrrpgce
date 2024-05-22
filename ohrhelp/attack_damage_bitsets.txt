@@ -39,3 +39,7 @@ This bitset prevents the attack from doing any more damage than the target's tar
 
 * Healing poison causes regen, and reverse
 Normally all status registers are capped to the maximum value (which means no effect). If this bit is set then attempting to heal the poison register above maximum will instead decrease the regen register by an equal amount, and vice versa. For example if 20 damage has been done to the poison register and it is healed by 50 then the poison is completely cured and the target gets 30 regen. This bit works for both attacker and target, and is particularly useful when either one absorbs damage.
+
+* Ignore damage cap
+When on, the global attack damage cap is ignored. It's set in the Stat Caps editor.
+Note that damage caps never apply to attacks set to "Show damage without inflicting" or with damage type "Set stat to % of [current/max]".

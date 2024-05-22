@@ -384,6 +384,7 @@ dmgbit(62) = "Damage can be Zero"
 dmgbit(69) = "% based attacks damage instead of set"
 dmgbit(83) = "Don't allow damage to exceed target stat"
 dmgbit(88) = "Healing poison causes regen, and vice versa"
+dmgbit(98) = "Ignore damage cap"
 
 
 '--191 attack bits allowed in menu.
@@ -2252,6 +2253,7 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
         '--mask bitsets which have no effect
         maskeddmgbit(0) = ""  'Cure instead of harm
         maskeddmgbit(83) = "" 'Don't allow damage to exceed target stat
+        maskeddmgbit(98) = "" 'Ignore damage cap
         'Enemy's "Harmed by cure" bitset also does nothing
 
       ELSE
@@ -2295,7 +2297,9 @@ SUB attack_editor_build_damage_menu(recbuf() as integer, menu() as string, menut
       maskeddmgbit(88) = ""  'Healing poison causes regen, and vice versa
     END IF
 
-    IF attack.show_damage_without_inflicting = NO AND setvalue = NO AND gen(genDamageCap) > 0 THEN
+    'Check whether the damage cap applies
+    IF attack.show_damage_without_inflicting = NO AND attack.ignore_damage_cap = NO AND _
+       setvalue = NO AND gen(genDamageCap) > 0 THEN
       'Both damage caps takes effect
       IF attack.damage_can_be_zero THEN
         preview += !"\nDMG = limit(DMG, 0 to " & gen(genDamageCap) & ")"

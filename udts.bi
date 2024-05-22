@@ -848,6 +848,7 @@ Type AttackData
 	obsolete_damage_mp as bool
 	do_not_randomize as bool       'Obsolete, replaced by .randomization
 	damage_can_be_zero as bool
+	ignore_damage_cap as bool
 	force_run as bool
 	force_victory as bool
 	force_battle_exit as bool

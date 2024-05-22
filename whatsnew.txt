@@ -106,6 +106,7 @@ WHAT IS NEW?
       to open anywhere (that key previously switched gfx backend) [Ralph]
     * In the map editor, you can now drag with the middle mouse button as well
       as the right (to avoid misclicks) [Ralph]
+    * Attack bit "Ignore damage cap" [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]
