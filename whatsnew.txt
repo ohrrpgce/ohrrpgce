@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-??? ? 2024 [Ichorescent]
+???? ? 2024 [Ichorescent]
 
   *** New Features
     * From the "Distribute Game" menu, you can upload your game directly to
