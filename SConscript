@@ -1077,7 +1077,8 @@ if web:
     EMFLAGS += ['EXIT_RUNTIME']
 
     EMFLAGS += ['INITIAL_MEMORY=128MB']
-    #EMFLAGS += ['ALLOW_MEMORY_GROWTH=1']
+    EMFLAGS += ['ALLOW_MEMORY_GROWTH=1']
+    EMFLAGS += ['STACK_SIZE=64MB']
     #EMFLAGS += ['MALLOC=emmalloc']  # Simpler/smaller allocator
 
     if debug >= 3:
