@@ -1078,7 +1078,9 @@ if web:
 
     EMFLAGS += ['INITIAL_MEMORY=128MB']
     EMFLAGS += ['ALLOW_MEMORY_GROWTH=1']
-    EMFLAGS += ['STACK_SIZE=64MB']
+    # Default stack is 64KB, not enough for the map editor, nor maybe battles?
+    EMFLAGS += ['STACK_SIZE=128KB']
+    EMFLAGS += ['STACK_OVERFLOW_CHECK=1']
     #EMFLAGS += ['MALLOC=emmalloc']  # Simpler/smaller allocator
 
     if debug >= 3:
