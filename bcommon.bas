@@ -8,6 +8,7 @@
 #include "common.bi"
 #include "loading.bi"
 #include "slices.bi"
+#include "bcommon.bi"
 
 'This is similar to fuzzythreshold. It interpolates between these values:
 ' 0.12  0.24  1.00  2.00 ...  x
@@ -267,12 +268,23 @@ FUNCTION attack_placement_over_targetpos(attack as AttackData, targpos as XYZTri
  RETURN TYPE<XYZTriple>(xt, yt, zt)
 END FUNCTION
 
+'Get the BattleSprite coords which would place a sprite of given size just off
+'the top/left/bottom/right edges of the visible battlefield.
+'(BattleSprite positions are the position of the top-left of the slice relative to
+'the battlefield slice, which min(320x200, screenres) in size and centered.)
+FUNCTION battle_offscreen_bounds(sprsize as XYPair) as RectPoints
+ DIM ret as RectPoints = get_formation_bounds()
+ ret.topleft -= sprsize
+ RETURN ret
+END FUNCTION
+
 'The size of the battlefield_sl slice, normally 320x200 (for now)
 FUNCTION get_battlefield_size() as XYPair
  RETURN small(XY(320, 200), XY(gen(genResolutionX), gen(genResolutionY)))
 END FUNCTION
 
-'The (max) size of the battle backdrop - equal to the resolution except in backcompat mode
+'The size of the battle viewport on the screen, ie. the (max) size of the battle
+'backdrop -- equal to the resolution except in 320x200 backcompat mode
 FUNCTION get_battle_res() as XYPair
  IF prefbit(56) THEN '"!Battles display at 320x200" off
   RETURN XY(gen(genResolutionX), gen(genResolutionY))
@@ -283,6 +295,7 @@ END FUNCTION
 
 'The valid bounds for enemy/hero formation coords, not including the sprite size
 'Coords are relative to the top-left of battlefield_sl.
+'This is also the range of BattleSprite positions for the visible part of the battlefield.
 FUNCTION get_formation_bounds() as RectPoints
  DIM screensz as XYPair = get_battle_res()
  DIM battlefieldsz as XYPair = get_battlefield_size()

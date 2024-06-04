@@ -4376,13 +4376,18 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
 
  '----NORMAL, DROP, SPREAD-RING, and SCATTER
  IF attack.attack_anim = atkAnimNormal OR attack.attack_anim = atkAnimDrop OR attack.attack_anim = atkAnimScatter OR (attack.attack_anim = atkAnimRing AND tcount > 1) THEN
+  DIM offscreen as RectPoints = battle_offscreen_bounds(bslot(12).size)
+  DIM batres as XYPair = get_battle_res()
+  DIM drop_ticks as integer = 8
+  DIM drop_speed as integer = (batres.h - 20) \ drop_ticks
   FOR i = 0 TO tcount - 1
    targetpos = attack_placement_over_target(attack, t(i), bat, bslot(), atkimgdirection)
    anim_setpos 12 + i, targetpos.x, targetpos.y, atkimgdirection
-   anim_setz 12 + i, targetpos.z
    IF attack.attack_anim = atkAnimDrop THEN
-    anim_setz 12 + i, targetpos.z + 180
+    'Originally, dropped from z=180 at a speed of 20 for 8 ticks, so ended up at z=20.
+    targetpos.z += drop_speed * drop_ticks + 20
    END IF
+   anim_setz 12 + i, targetpos.z
    IF attack.attack_anim = atkAnimRing THEN
     anim_setpos 12 + i, targetpos.x, targetpos.y - bslot(t(i)).w, atkimgdirection
    END IF
@@ -4399,11 +4404,11 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
      anim_absmove 12 + i, targetpos.x - bslot(t(i)).w, targetpos.y, 3, 3
     END IF
     IF attack.attack_anim = atkAnimDrop THEN
-     anim_zmove 12 + i, -10, 20
+     anim_zmove 12 + i, -drop_ticks, drop_speed
     END IF
     IF attack.attack_anim = atkAnimScatter THEN
-     ' Move to a random point (FIXME for non-320*200 resolutions)
-     anim_absmove 12 + i, randint(270), randint(150), 6, 6
+     ' Move to a random point
+     anim_relmove 12 + i, randint(240) - 120, randint(150) - 75, 6, 6
     END IF
    NEXT i
    IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
@@ -4491,12 +4496,12 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     END IF
    NEXT i
    'after all hits are done, projectile flies off the side of the screen
-   '(FIXME for non-320*200 resolutions)
+   DIM offscreen as RectPoints = battle_offscreen_bounds(bslot(12).size)
    IF is_hero(bat.acting) THEN
-    anim_absmove 12, -50, 100, 5, 5
+    anim_absmove 12, offscreen.left, 100, 5, 5
    END IF
    IF is_enemy(bat.acting) THEN
-    anim_absmove 12, 320, 100, 5, 5
+    anim_absmove 12, offscreen.right, 100, 5, 5
    END IF
    anim_waitforall
    anim_checkpoint
@@ -4512,6 +4517,10 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  
  '----PROJECTILE, REVERSE PROJECTILE and METEOR
  IF attack.attack_anim = atkAnimProjectile OR attack.attack_anim = atkAnimReverseProjectile OR attack.attack_anim = atkAnimMeteor THEN
+  DIM offscreen as RectPoints = battle_offscreen_bounds(bslot(12).size)
+  DIM meteor_ticks as integer = 6  'Note actually displayed for 12 ticks
+  DIM meteor_speed as integer 'px/tick
+  meteor_speed = (130 - offscreen.top) \ meteor_ticks  'Originally 30
   DIM projectile_start as XYZTriple
   projectile_start = projectile_start_position(attack, bat.acting, bat, bslot(), atkimgdirection)
   anim_advance bat.acting, attack, bslot(), t()
@@ -4527,14 +4536,14 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
      anim_setz 12 + i, targetpos.z
     END IF
     IF attack.attack_anim = atkAnimMeteor THEN
-     'FIXME for non-320*200 resolutions
+     'TODO: Don't have all the meteors originating from the same point
      IF is_hero(bat.acting) THEN
-      anim_setpos 12 + i, 320, 100, atkimgdirection
+      anim_setpos 12 + i, offscreen.right, 100, atkimgdirection
      END IF
      IF is_enemy(bat.acting) THEN
-      anim_setpos 12 + i, -50, 100, atkimgdirection
+      anim_setpos 12 + i, offscreen.left, 100, atkimgdirection
      END IF
-     anim_setz 12 + i, 180
+     anim_setz 12 + i, meteor_ticks * meteor_speed  'Will take 6 ticks to get to z=0
     END IF
    NEXT i
    IF is_hero(bat.acting) THEN anim_hero bat.acting, attack, bslot(), t()
@@ -4555,7 +4564,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
      anim_abszmove 12 + i, projectile_start.z, 6
     END IF
     IF attack.attack_anim = atkAnimMeteor THEN
-     anim_zmove 12 + i, -6, 30
+     anim_zmove 12 + i, -meteor_ticks, meteor_speed
     END IF
    NEXT i
    IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
@@ -4589,16 +4598,18 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  ' screen, sends them to intercept the targets all at the same time, and then moves them
  ' to the same x. So the projectiles all move at different speeds during each half.
  IF attack.attack_anim = atkAnimDriveby THEN
+  DIM offscreen as RectPoints = battle_offscreen_bounds(bslot(12).size)
+
   anim_advance bat.acting, attack, bslot(), t()
   FOR j as integer = 1 TO numhits
-   ' Create attack sprites
+   ' Put sprites at initial positions
    FOR i = 0 TO tcount - 1
     targetpos = attack_placement_over_target(attack, t(i), bat, bslot(), atkimgdirection)
     IF is_hero(bat.acting) THEN
-     anim_setpos 12 + i, 320, targetpos.y, atkimgdirection
+     anim_setpos 12 + i, offscreen.right, targetpos.y, atkimgdirection
     END IF
     IF is_enemy(bat.acting) THEN
-     anim_setpos 12 + i, -50, targetpos.y, atkimgdirection
+     anim_setpos 12 + i, offscreen.left, targetpos.y, atkimgdirection
     END IF
     anim_setz 12 + i, targetpos.z
    NEXT i
@@ -4625,10 +4636,10 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_flinchstart t(i), bslot(), attack
     targetpos = attack_placement_over_target(attack, t(i), bat, bslot(), atkimgdirection)
     IF is_hero(bat.acting) THEN
-     anim_absmove 12 + i, -50, targetpos.y, 5, 7
+     anim_absmove 12 + i, offscreen.left, targetpos.y, 5, 7
     END IF
     IF is_enemy(bat.acting) THEN
-     anim_absmove 12 + i, 320, targetpos.y, 5, 7
+     anim_absmove 12 + i, offscreen.right, targetpos.y, 5, 7
     END IF
     ' Z values are constant
    NEXT i
@@ -4705,21 +4716,26 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  
  '----WAVE
  IF attack.attack_anim = atkAnimWave THEN
+  DIM offscreen as RectPoints = battle_offscreen_bounds(bslot(12).size)
   DIM wave_start_x as integer
-  wave_start_x = -50
-  IF is_hero(bat.acting) THEN wave_start_x = 320
-  DIM pushback_x as integer
-  pushback_x = 24
-  IF is_hero(bat.acting) THEN pushback_x = -24
+  wave_start_x = offscreen.left
+  IF is_hero(bat.acting) THEN wave_start_x = offscreen.right
+  DIM x_velocity as integer
+  x_velocity = 24
+  IF is_hero(bat.acting) THEN x_velocity = -24
+  ' Time it takes each sprite to move across screen, total time is more
+  DIM ticks as integer = 1 + (offscreen.right - offscreen.left) \ ABS(x_velocity)
   ' Only use targetpos.y, and then only if there's just one target.
   targetpos = attack_placement_over_target(attack, t(0), bat, bslot(), atkimgdirection)
   anim_advance bat.acting, attack, bslot(), t()
   FOR j as integer = 1 TO numhits
    FOR i = 0 TO 11
     IF tcount > 1 OR attack.targ_set = 1 THEN
+     'Spread: a diagonal wave
      anim_setpos 12 + i, wave_start_x, i * 15, atkimgdirection
      anim_setz 12 + i, 0   'Can tweak this to change the effect
     ELSE
+     'Single target: a horizontal line
      anim_setpos 12 + i, wave_start_x, targetpos.y, atkimgdirection
      anim_setz 12 + i, targetpos.z
     END IF
@@ -4729,7 +4745,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    IF attack.sound_effect > 0 THEN anim_sound(attack.sound_effect - 1)
    FOR i = 0 TO 11
     anim_appear 12 + i
-    anim_setmove 12 + i, pushback_x, 0, 16, 0
+    anim_setmove 12 + i, x_velocity, 0, ticks, 0
     anim_wait 1
    NEXT i
    anim_checkpoint

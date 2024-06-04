@@ -829,10 +829,18 @@ TYPE RectPoints
   UNION
     p1 as XYPair
     topleft as XYPair
+    TYPE
+      left as integer
+      top as integer
+    END TYPE
   END UNION
   UNION
     p2 as XYPair
     bottomright as XYPair
+    TYPE
+      right as integer
+      bottom as integer
+    END TYPE
   END UNION
 END TYPE
 
