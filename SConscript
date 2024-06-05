@@ -1211,17 +1211,30 @@ for k in music:
 ################ OS-specific modules and libraries
 
 if web:
-    # IndexedDB-based persistent FS, used in JS rather than from FB
-    common_libraries += ["idbfs.js"]
+    # -lidbfs.js for IndexedDB local storage
+    common_libraries += ["idbfs.js", "workerfs.js"]
 
     # Emscripten settings which add libraries to the link
     EMFLAGS = []
+    emsdlflags = []
     #EMFLAGS += ['USE_SDL_IMAGE=0', 'USE_SDL_TTF=0', 'USE_SDL_NET=0']
     if 'sdl' in gfx:
         EMFLAGS += ['USE_SDL=1', 'USE_SDL_MIXER=1']
     elif 'sdl2' in gfx:
-        EMFLAGS += ['USE_SDL=2', 'USE_SDL_MIXER=2', 'SDL2_MIXER_FORMATS=["ogg", "mod", "mid"]']
-        #EMFLAGS += ['-s', 'USE_MODPLUG', '-s', 'USE_MPG123']
+        emsdlflags += ['-s', 'USE_SDL=2']
+        #emsdlflags += ['-s', 'ASSERTIONS=1']
+        emsdlflags += ['-s', 'USE_SDL_MIXER=2', '-s', 'SDL2_MIXER_FORMATS=["ogg", "mod", "mid"]']
+        #emsdlflags += ['-s', 'USE_MODPLUG', '-s', 'USE_MPG123']
+
+    emlinkflags = sum((['-s',flag] for flag in EMFLAGS), [])
+    commonenv['CCLINKFLAGS'] += emlinkflags + emsdlflags
+    commonenv['FBLINKERFLAGS'] += emlinkflags + emsdlflags
+    if linkgcc:
+        env['CCLINKFLAGS'] += emlinkflags
+        commonenv['CCLINKFLAGS'] += emlinkflags + emsdlflags
+    else:
+        env['FBLINKERFLAGS'] += emlinkflags
+        commonenv['FBLINKERFLAGS'] += emlinkflags + emsdlflags
 
     emlinkflags = Flatten([['-s',flag] for flag in EMFLAGS])
     commonenv['CCLINKFLAGS'] += emlinkflags
@@ -1522,9 +1535,15 @@ common_modules.append(DATAFILES_C)
 if web:
     # <TARGET>.data is created containing contents of ./data, mounted as /data in the file system
     editenv['CCLINKFLAGS'] += ['--preload-file', 'data']
-    # This is for testing convenience only
-    gameenv['CCLINKFLAGS'] += ['--preload-file', 'games']
-    editenv['CCLINKFLAGS'] += ['--preload-file', 'games']
+    
+    for eachenv in [editenv, gameenv]:
+        #soundfonts for midi
+        eachenv['CCLINKFLAGS'] += ['--preload-file', 'web/timidity.cfg@/etc/timidity/timidity.cfg']
+        eachenv['CCLINKFLAGS'] += ['--preload-file', 'web/soundfonts@/soundfonts']
+
+        # This is for testing convenience only
+        eachenv['CCLINKFLAGS'] += ['--preload-file', 'games']
+
 
 ################ Generate object file Nodes
 

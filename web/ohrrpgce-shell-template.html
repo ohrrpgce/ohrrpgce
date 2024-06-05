@@ -43,7 +43,22 @@
         from {transform: rotate(0deg);}
         to {transform: rotate(360deg);}
       }
+      #fileoptions #toggle-button {
+        font-size: 24px;
+        cursor: pointer;
+        float: right;
+      }
 
+      #fileoptions #content {
+        overflow: hidden;
+        transition: height 0.5s;
+        height: auto;
+        position: absolute;
+      }
+
+      #fileoptions.closed #content {
+        height: 0;
+      }
     </style>
   </head>
   <body>
@@ -53,29 +68,153 @@
     <div class="emscripten">
       <progress value="0" max="100" id="progress" hidden=1></progress>  
     </div>
-    <div class="emscripten_border">
-      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+    <div id="canvasborder" class="emscripten_border" onclick="focusCanvas()">
+      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=0></canvas>
+
+      <div id="fileoptions" class="emscripten emscripten_border">
+        <button id="toggle-button" onclick="toogleFileMenu()">▼</button>
+        <div id="fileoptions-content">
+          <div>
+            <label for="ohrfileinput">Add file</label>
+            <input type="file" id="ohrfileinput" onchange="loadFileFromPicker()">
+          </div>
+  
+          <div>
+            <label for="ohrfetchfile">Fetch file</label>
+            <input type="text" id="ohrfetchfile">
+            <input type="button" onclick="fetchFileFromURL()" value="Fetch">
+          </div>
+  
+          <div>
+            <label for="ohrfilepath">To Path</label>
+            <input type="text" id="ohrfilepath">
+          </div>
+  
+          <div>
+            <input type="button" onclick="syncFS(false)" value="Save"> 
+          </div>
+  
+          <div>
+            <input type="checkbox" id="resize">Resize canvas
+            <input type="checkbox" id="pointerLock" checked>Lock/hide mouse pointer
+            <input type="button" value="Fullscreen" onclick="Module.requestFullscreen(document.getElementById('pointerLock').checked, document.getElementById('resize').checked)">
+          </div>
+          <hr/>
+          <textarea class="emscripten" id="output" rows="8"></textarea>
+        </div>
+      </div>
+
     </div>
-    <hr/>
-    <div class="emscripten">
-      <input type="checkbox" id="resize">Resize canvas
-      <input type="checkbox" id="pointerLock" checked>Lock/hide mouse pointer
-      &nbsp;&nbsp;&nbsp;
-      <input type="button" value="Fullscreen" onclick="Module.requestFullscreen(document.getElementById('pointerLock').checked,
-                                                                                document.getElementById('resize').checked)">
-    </div>
-    
-    <hr/>
-    <textarea class="emscripten" id="output" rows="8"></textarea>
-    <hr>
+    <!-- required for console support, copied from fbc/lib/js-asmjs -->
+    <!-- might not actually need this, if we do it should be a prebuild step rather than copying the lib -->
+    <script type="text/javascript" src="fb_rtlib.js"></script>
     <script type='text/javascript'>
-      var statusElement = document.getElementById('status');
-      var progressElement = document.getElementById('progress');
-      var spinnerElement = document.getElementById('spinner');
+      let statusElement = document.getElementById('status');
+      let progressElement = document.getElementById('progress');
+      let spinnerElement = document.getElementById('spinner');
+
+      document.getElementById('ohrfilepath').value = "/workspace/";
+
+      function focusCanvas() {
+        document.getElementById('canvas').focus();
+      };
+
+      function getFilePath() {
+        let path = document.getElementById('ohrfilepath').value
+        if (!path.endsWith('/')) {
+          path += '/'
+        }
+        return path;
+      }
+
+      let reader = new FileReader();
+      var worker = new Worker('downloadworker.js');
+      worker.onmessage = function(event) {
+        if (event.data.error) {
+          console.error('Error occurred:', event.data.error);
+        } else {
+          let blob = event.data.blob;
+          let fileName = event.data.name;
+          let path = getFilePath();
+          blob.arrayBuffer().then(buffer => {
+            let fileData = new Uint8Array(buffer);
+            FS.writeFile(path + fileName, fileData);
+          });
+          
+        }
+      };
+
+      function fetchFileFromURL(){
+        let url = document.getElementById('ohrfetchfile').value
+        worker.postMessage(url);
+      }
+
+      function loadFileFromPicker() {
+        let files = document.getElementById('ohrfileinput').files;
+        let path = getFilePath();
+        let file = files[0];
+
+        reader.addEventListener('loadend', function() {
+          console.log("Writing file: "+file.name+" to location: "+path)
+          FS.writeFile(path + file.name, new Uint8Array(reader.result));
+          files.value = ''
+        });
+
+        reader.readAsArrayBuffer(file);
+      }
+
+      function onFileSystemSync() {
+        focusCanvas();
+        // add code here to run on the page load after the sync with indexdb
+        Module['removeRunDependency']("SYNC_DATA");
+      }
+
+      function syncFS(load, callback) {
+        console.log("Syncing IndexDB");
+
+        FS.syncfs(load, function(err) {
+          if (err) {
+          console.error("Problem with FS: "+ err)
+          } else {
+            console.debug("IndexDB filesystem ready");
+            if (callback) {
+              callback();
+            }
+          }
+        });
+      }
+
+      function toogleFileMenu() {
+        let fileOptions = document.getElementById('fileoptions');
+        let content = document.getElementById('fileoptions-content');
+        let toggleButton = document.getElementById('toggle-button');
+        fileOptions.classList.toggle('closed');
+        if (fileOptions.classList.contains('closed')) {
+            content.style.display = 'none';
+            toggleButton.innerText = "▲";
+        } else {
+            content.style.display = 'block';
+            toggleButton.innerText = "▼";
+        }
+      }
 
       var Module = {
-        preRun: [],
-        postRun: [],
+        postRun: [function(){
+          // the first three event handlers are FB's keyevents
+          // these can prevent certain keys from being pressed and consume events
+          JSEvents._removeHandler(0);
+          JSEvents._removeHandler(0);
+          JSEvents._removeHandler(0);
+        }],
+        preRun: [function() {
+          // make the game directory writable
+          FS.mkdir("/workspace");
+          FS.mount(IDBFS, {}, '/workspace');
+
+          // sync FS before application starts
+          Module['addRunDependency']("SYNC_DATA");
+          syncFS(true, onFileSystemSync);
+        }],
         print: (function() {
           var element = document.getElementById('output');
           if (element) element.value = ''; // clear browser cache

@@ -338,6 +338,10 @@ FUNCTION gfx_sdl2_init(byval terminate_signal_handler as sub cdecl (), byval win
 
   load_SDL_syms
 
+  #ifdef __FB_JS__
+    SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas")
+  #endif
+
   'Not needed, seems to work without
   'SDL_SetHint(SDL_HINT_WINDOWS_INTRESOURCE_ICON, windowicon)
   #ifndef IS_GAME
@@ -1434,6 +1438,11 @@ END SUB
 
 'may only be called from the main thread
 LOCAL SUB update_state()
+  /'#IFDEF __FB_JS__
+  IF is_html_input_focused() = 1 THEN
+    RETURN
+  END IF
+  #ENDIF'/
   SDL_PumpEvents()
   update_mouse()
   gfx_sdl2_process_events()
