@@ -178,6 +178,8 @@ WHAT IS NEW?
     * "free slice" on an already freed slice no longer shows a warning [Ralph]
     * Graphics export as .png instead of .bmp (a setting in ohrrpgce_config.ini)
       [Ralph]
+    * Small changes to some of the attack animations. Screen Center and spread
+      Ring didn't cause the same flinching as all other animations. [Ralph]
 
   *** Bugfixes
     * Various gfx_sdl2 window size/position/resizing and mouse glitches when

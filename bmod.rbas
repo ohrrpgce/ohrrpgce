@@ -4442,9 +4442,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
    NEXT i
-   IF attack.attack_anim <> atkAnimRing THEN
-    anim_wait 3
-   END IF
+   anim_wait 3
    FOR i = 0 TO tcount - 1
     anim_disappear 12 + i
     anim_flinchdone t(i), bslot(), attack
@@ -4495,7 +4493,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
      anim_disappear 24
     END IF
    NEXT i
-   'after all hits are done, projectile flies off the side of the screen
+   'after all hits are done, projectile flies off the side of the screen (towards the center)
    DIM offscreen as RectPoints = battle_offscreen_bounds(bslot(12).size)
    IF is_hero(bat.acting) THEN
     anim_absmove 12, offscreen.left, 100, 5, 5
@@ -4795,7 +4793,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
    NEXT i
-   anim_wait 1
+   anim_wait 3
    ' Destroy attacks
    anim_disappear 12
    FOR i = 0 TO tcount - 1
