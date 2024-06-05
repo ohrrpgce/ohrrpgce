@@ -43,7 +43,7 @@ DECLARE SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, pag
 DECLARE SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
-DECLARE SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
+DECLARE SUB flinch_anim_eachtick(byval who as integer, bslot() as BattleSprite)
 DECLARE SUB update_battle_slices(bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB update_battlesprite_slices(bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB update_battle_ui_slices(bat as BattleState, bslot() as BattleSprite)
@@ -466,6 +466,14 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
 
  DIM i as integer
 
+ '--In future we will handle slice animations here. For now, only the flinch animation
+ '--has been partially split out, and isn't a slice animation yet.
+ FOR i = 0 TO UBOUND(bslot)
+  IF bslot(i).flinch_anim THEN
+   flinch_anim_eachtick i, bslot()
+  END IF
+ NEXT
+
  '--decrement the animation wait ticks, and don't proceed until they are zero
  IF bat.wait_frames > 0 THEN bat.wait_frames -= 1: IF bat.wait_frames > 0 THEN EXIT SUB
  
@@ -652,6 +660,11 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
   CASE 27 'unhide(who)
     ww = popdw
     bslot(ww).hidden = NO
+  CASE 28 'flinch(who)
+    'The start of the flinch is setup by anim_flinchstart.
+    'This command queues the end of the flinch 3 ticks later
+    ww = popdw
+    bslot(ww).flinch_anim = 6
 
   END SELECT
  LOOP UNTIL bat.wait_frames <> 0 OR bat.atk.id = -1
@@ -3164,6 +3177,10 @@ SUB anim_skip_to_here()
  pushdw 23: pushdw ANIM_SKIP_SENTINEL: pushdw ANIM_SKIP_SENTINEL
 END SUB
 
+SUB anim_checkpoint()
+ pushdw 25
+END SUB
+
 SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
  '--If enemy can flinch and if attack allows flinching
  IF bslot(who).never_flinch = NO AND attack.targ_does_not_flinch = NO THEN
@@ -3180,22 +3197,24 @@ SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack
     anim_setframe who, frameATTACKA
    END IF
   END IF
+  pushdw 28: pushdw who  'flinch(who)
  END IF
 END SUB
 
-SUB anim_flinchdone(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
- '--If enemy can flinch and if attack allows flinching
- IF bslot(who).never_flinch = NO AND attack.targ_does_not_flinch = NO THEN
-  DIM flinch_x_dist as integer
-  flinch_x_dist = -3
-  IF is_enemy(who) THEN flinch_x_dist = 3
-  anim_setmove who, flinch_x_dist, 0, 2, 0
-  anim_setframe who, frameSTAND
- END IF
-END SUB
-
-SUB anim_checkpoint()
- pushdw 25
+SUB flinch_anim_eachtick(byval who as integer, bslot() as BattleSprite)
+ WITH bslot(who)
+  'After 3 ticks we start the slide back to the initial position
+  IF .flinch_anim = 3 THEN
+   DIM flinch_x_dist as integer = IIF(is_enemy(who), 3, -3)
+   'anim_setmove who, flinch_x_dist, 0, 2, 0
+   .xmov = flinch_x_dist  'xticks
+   .xspeed = 2  'xstep
+   'anim_setframe who, frameSTAND
+   .frame = frameSTAND
+   IF is_hero(who) THEN .walk = 0
+  END IF
+  .flinch_anim -= 1
+ END WITH
 END SUB
 
 '==============================================================================
@@ -4446,7 +4465,6 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    anim_wait 3
    FOR i = 0 TO tcount - 1
     anim_disappear 12 + i
-    anim_flinchdone t(i), bslot(), attack
    NEXT i
    anim_wait 2
    anim_skip_ahead_if_targetless
@@ -4488,7 +4506,6 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
     anim_wait 3
-    anim_flinchdone t(i), bslot(), attack
     IF i = 0 THEN
      'attacker relaxes after the first hit
      anim_disappear 24
@@ -4580,7 +4597,6 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    anim_wait 3
    FOR i = 0 TO tcount - 1
     anim_disappear 12 + i
-    anim_flinchdone t(i), bslot(), attack
    NEXT i
    anim_wait 3
    anim_skip_ahead_if_targetless
@@ -4648,7 +4664,6 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    ' Destroy attacks
    FOR i = 0 TO tcount - 1
     anim_disappear 12 + i
-    anim_flinchdone t(i), bslot(), attack
    NEXT i
    anim_wait 3
    anim_skip_ahead_if_targetless
@@ -4700,9 +4715,6 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    FOR aslot as integer = 0 TO 7
     anim_disappear 12 + aslot
    NEXT aslot
-   FOR i = 0 TO tcount - 1  ' Note tcount = 1
-    anim_flinchdone t(i), bslot(), attack
-   NEXT i
    anim_wait 3
    anim_skip_ahead_if_targetless
   NEXT j
@@ -4760,9 +4772,6 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    FOR i = 0 TO 11
     anim_disappear 12 + i
    NEXT i
-   FOR i = 0 TO tcount - 1
-    anim_flinchdone t(i), bslot(), attack
-   NEXT i
    anim_wait 2
    anim_skip_ahead_if_targetless
   NEXT j
@@ -4798,9 +4807,6 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    anim_wait 3
    ' Destroy attacks
    anim_disappear 12
-   FOR i = 0 TO tcount - 1
-    anim_flinchdone t(i), bslot(), attack
-   NEXT i
    anim_wait 3
    anim_skip_ahead_if_targetless
   NEXT j
