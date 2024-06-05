@@ -1477,7 +1477,8 @@ SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleS
    anim_setpos who, target->x + target->w, target->y + target->h - bslot(who).h, 0
   END IF
 
- CASE atkrAnimLand, atkrAnimNull, atkrAnimStandingCast, atkrAnimStandingStrike
+ CASE atkrAnimLand, atkrAnimNull, atkrAnimStandingCast, atkrAnimStandingStrike, _
+      atkrAnimRunAndHide, atkrAnimRunInUnHide
   ' Do nothing
 
  END SELECT
@@ -1641,7 +1642,7 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
    anim_setframe who, frameSTAND
   CASE atkrAnimStandingCast, atkrAnimStandingStrike
    anim_setframe who, frameSTAND
-  CASE atkrAnimNull, atkrAnimSpinStrike, atkrAnimJump, atkrAnimTeleport
+  CASE atkrAnimNull, atkrAnimSpinStrike, atkrAnimJump, atkrAnimTeleport, atkrAnimRunAndHide, atkrAnimRunInUnHide
   ' Do nothing
   END SELECT
  END IF

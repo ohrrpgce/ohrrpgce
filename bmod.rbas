@@ -4367,6 +4367,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    NEXT i
    anim_checkpoint
    anim_disappear 24
+   anim_setframe bat.acting, frameSTAND
    anim_skip_ahead_if_targetless
   NEXT j
   anim_skip_to_here
@@ -4383,10 +4384,6 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   FOR i = 0 TO tcount - 1
    targetpos = attack_placement_over_target(attack, t(i), bat, bslot(), atkimgdirection)
    anim_setpos 12 + i, targetpos.x, targetpos.y, atkimgdirection
-   IF attack.attack_anim = atkAnimDrop THEN
-    'Originally, dropped from z=180 at a speed of 20 for 8 ticks, so ended up at z=20.
-    targetpos.z += drop_speed * drop_ticks + 20
-   END IF
    anim_setz 12 + i, targetpos.z
    IF attack.attack_anim = atkAnimRing THEN
     anim_setpos 12 + i, targetpos.x, targetpos.y - bslot(t(i)).w, atkimgdirection
@@ -4398,6 +4395,10 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    IF is_enemy(bat.acting) THEN anim_enemy bat.acting, attack, bslot(), t()
    FOR i = 0 TO tcount - 1
     targetpos = attack_placement_over_target(attack, t(i), bat, bslot(), atkimgdirection)
+    IF attack.attack_anim = atkAnimDrop THEN
+     'Originally, dropped from z=180 at a speed of 20 for 8 ticks, so ended up at z=20.
+     anim_setz 12 + i, targetpos.z + drop_speed * drop_ticks + 20
+    END IF
     anim_appear 12 + i
     IF attack.attack_anim = atkAnimRing THEN
      ' Appear left of the target; will circle in a "ring"
@@ -4417,8 +4418,8 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_wait 3
    END IF
    anim_checkpoint
-   anim_setframe bat.acting, frameSTAND
    anim_disappear 24
+   anim_setframe bat.acting, frameSTAND
    IF attack.attack_anim = atkAnimRing THEN
     ' The attack sprites follow a diamond path around their targets.
     ' We don't modify z position, set above. The attacks will circle behind the targets too.
@@ -4489,8 +4490,9 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     anim_wait 3
     anim_flinchdone t(i), bslot(), attack
     IF i = 0 THEN
-     'attacker's weapon picture vanishes after the first hit
+     'attacker relaxes after the first hit
      anim_disappear 24
+     anim_setframe bat.acting, frameSTAND
     END IF
    NEXT i
    'after all hits are done, projectile flies off the side of the screen (towards the center)

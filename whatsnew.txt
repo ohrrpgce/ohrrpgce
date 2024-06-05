@@ -179,7 +179,8 @@ WHAT IS NEW?
     * Graphics export as .png instead of .bmp (a setting in ohrrpgce_config.ini)
       [Ralph]
     * Small changes to some of the attack animations. Screen Center and spread
-      Ring didn't cause the same flinching as all other animations. [Ralph]
+      Ring didn't cause the same flinching as all other animations. Sequential
+      Projectile doesn't leave the attacker in attack pose with no weapon. [Ralph]
 
   *** Bugfixes
     * Various gfx_sdl2 window size/position/resizing and mouse glitches when
@@ -258,6 +259,8 @@ WHAT IS NEW?
     * Attack animations such as Wave and Meteor will now start/stop fully off the
       screen edge when used with attack sprites larger than 50x50 or battle
       resolutions above 320x200 [Ralph]
+    * A multi-hit Drop attack kept falling downwards from the target instead of
+      the sky on the 2nd and later hits [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license
