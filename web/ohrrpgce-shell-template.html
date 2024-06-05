@@ -11,7 +11,10 @@
       div.emscripten_border { border: 1px solid black; }
       /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
       canvas.emscripten { border: 0px none; background-color: black; }
-
+      /* Remove the default focus white outline on the canvas when focused */
+      #canvas:focus {
+        outline: none;
+      }
       .spinner {
         height: 50px;
         width: 50px;
@@ -59,6 +62,14 @@
       #fileoptions.closed #content {
         height: 0;
       }
+
+      .full-screen-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+      }
     </style>
   </head>
   <body>
@@ -68,10 +79,10 @@
     <div class="emscripten">
       <progress value="0" max="100" id="progress" hidden=1></progress>  
     </div>
-    <div id="canvasborder" class="emscripten_border" onclick="focusCanvas()">
+    <div id="canvasborder" onclick="focusCanvas()">
       <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=0></canvas>
 
-      <div id="fileoptions" class="emscripten emscripten_border">
+      <div id="fileoptions" class="emscripten emscripten_border" style="display: none;">
         <button id="toggle-button" onclick="toogleFileMenu()">▼</button>
         <div id="fileoptions-content">
           <div>
@@ -197,6 +208,39 @@
             toggleButton.innerText = "▼";
         }
       }
+      let isCanvasOnly = false;
+
+      function toggleFullscreen() {
+        const canvas = document.getElementById('canvas');
+        canvas.classList.toggle('full-screen-canvas');
+      }
+
+      function toggleFileOptions() {
+        const fileOptions = document.getElementById('fileoptions');
+        const canvasBorder = document.getElementById('canvasborder');
+
+        // Toggle display
+        if (fileOptions.style.display === 'none') {
+          fileOptions.style.display = 'block';
+          canvasBorder.classList.add('emscripten_border');
+        } else {
+          fileOptions.style.display = 'none';
+          canvasBorder.classList.remove('emscripten_border');
+        }
+      }
+
+      document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey && event.shiftKey) {
+          // Toggle fullscreen mode for canvas (KeyF)
+          if (event.code === 'KeyF') {
+            toggleFullscreen();
+          }
+          // Toggle visibility of file options, L for load as O binds to other things
+          if (event.code === 'KeyL') {
+            toggleFileOptions();
+          }
+        }
+      });
 
       var Module = {
         postRun: [function(){
