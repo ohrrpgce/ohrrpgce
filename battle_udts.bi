@@ -177,6 +177,7 @@ TYPE BattleSprite
   self_bequesting as bool ' Only for self-targeted bequest attacks. Reset when the attack ends
                          'If the bequested attack is a self-targeting cure attack, or a
                          'transmogrify attack the attacker's death can be cancelled.
+  flinch_anim as integer
 END TYPE
 
 'This type stores the state of the currently animating attack
