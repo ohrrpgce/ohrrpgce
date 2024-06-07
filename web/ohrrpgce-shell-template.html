@@ -15,6 +15,23 @@
       #canvas:focus {
         outline: none;
       }
+      body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #canvasborder {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
       .spinner {
         height: 50px;
         width: 50px;
@@ -61,14 +78,6 @@
 
       #fileoptions.closed #content {
         height: 0;
-      }
-
-      .full-screen-canvas {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
       }
     </style>
   </head>
@@ -210,9 +219,25 @@
       }
       let isCanvasOnly = false;
 
-      function toggleFullscreen() {
-        const canvas = document.getElementById('canvas');
-        canvas.classList.toggle('full-screen-canvas');
+      function resizeCanvasKeepingAspect() {
+          const canvas = document.getElementById('canvas');
+          const container = document.getElementById('canvasborder');
+          const containerWidth = container.clientWidth;
+          const containerHeight = container.clientHeight;
+          const aspectRatio = canvas.width / canvas.height;
+      
+          if (containerWidth / containerHeight > aspectRatio) {
+              canvas.style.width = `${containerHeight * aspectRatio}px`;
+              canvas.style.height = `${containerHeight}px`;
+          } else {
+              canvas.style.width = `${containerWidth}px`;
+              canvas.style.height = `${containerWidth / aspectRatio}px`;
+          }
+      }
+
+      function canvasAdjuster() {
+          resizeCanvasKeepingAspect();
+          setTimeout(canvasAdjuster, 100);
       }
 
       function toggleFileOptions() {
@@ -231,10 +256,6 @@
 
       document.addEventListener('keydown', function(event) {
         if (event.ctrlKey && event.shiftKey) {
-          // Toggle fullscreen mode for canvas (KeyF)
-          if (event.code === 'KeyF') {
-            toggleFullscreen();
-          }
           // Toggle visibility of file options, L for load as O binds to other things
           if (event.code === 'KeyL') {
             toggleFileOptions();
@@ -316,6 +337,9 @@
       };
       Module.setStatus('Downloading...');
 
+      // Resize the canvas on window resize
+      window.addEventListener('resize', resizeCanvasKeepingAspect);
+
       window.onerror = function() {
         Module.setStatus('Exception thrown, see JavaScript console');
         spinnerElement.style.display = 'none';
@@ -323,6 +347,9 @@
           if (text) console.error('[post-exception status] ' + text);
         };
       };
+      Module['onRuntimeInitialized'] = function() {
+        setTimeout(canvasAdjuster, 100);
+      }
     </script>
     {{{ SCRIPT }}}
   </body>
