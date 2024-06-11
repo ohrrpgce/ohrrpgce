@@ -74,7 +74,7 @@ function global_setoption(opt as string, arg as string) as integer
                 'help = help & "-debugkeys         Turn on debug keys" & LINE_END
 #ENDIF
 #IFDEF IS_CUSTOM
-		help = help & "-distrib [zip|win|mac[32|64]|tarball[32|64]|debian[32|64]|all]" & LINE_END
+		help = help & "-distrib [zip|win|mac[32|64]|tarball[32|64]|debian[32|64]|web|all]" & LINE_END
 		help = help & "                    When opening a game, export a copy for distribution in the requested" & LINE_END
 		help = help & "                    format. mac/tarball/debian are aliases for mac64/tarball64/debian64." & LINE_END
 		help = help & "                    Not all formats are available on all platforms." & LINE_END

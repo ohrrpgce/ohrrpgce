@@ -2600,7 +2600,7 @@ END FUNCTION
 FUNCTION custom_setoption(opt as string, arg as string) as integer
  IF opt = "distrib" THEN
   SELECT CASE arg
-   CASE "zip", "win", "mac", "mac32", "mac64", "tarball", "tarball64", "tarball32", "debian", "debian64", "debian32", "all"
+   CASE "zip", "win", "mac", "mac32", "mac64", "tarball", "tarball64", "tarball32", "debian", "debian64", "debian32", "web", "all"
     auto_distrib = arg
     RETURN 2
   END SELECT
@@ -2634,3 +2634,18 @@ SUB preview_menu(menu as MenuDef, mstate as MenuState, viewport_page as integer,
  draw_menu menu, mstate, viewport_page
  IF destpage > -1 THEN draw_viewport_page viewport_page, destpage
 END SUB
+
+FUNCTION game_uses_midi_or_bam() as bool
+ 'Only checks whether a mid or bam exists. Does not go so far as to try and detect whether it ever gets played.
+ 'In cases where multiple formats exists with the same ID, find_music_lump() detects ogg and module formats firsdt before it finds midi, and bam is detected last
+ DIM songlump as string
+ DIM songtype as MusicFormatEnum
+ FOR songnum as integer = 0 TO gen(genMaxSong)
+  songlump = find_music_lump(songnum)
+  songtype = getmusictype(songlump)
+  IF songtype = FORMAT_MIDI ORELSE songtype = FORMAT_BAM THEN
+   RETURN YES
+  END IF
+ NEXT songnum
+ RETURN NO
+END FUNCTION

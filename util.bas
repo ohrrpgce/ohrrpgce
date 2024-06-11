@@ -1304,6 +1304,68 @@ FUNCTION find_on_word_boundary(haystack as string, needle as string) as integer
  RETURN find_on_word_boundary_excluding(haystack, needle, "")
 END FUNCTION
 
+FUNCTION extract_string_chunk(haystack as string, start_needle as string, end_needle as string, byref success as bool = NO, byref foundat as integer=0) as string
+ 'Extract and return a chunk of a larger string. (return chunk found between two substrings)
+ 'Matches after the first instance of start_needle up to before the first instance of end_needle that follows start_needle
+ 'Also returns the position where the returned substring was found in foundat (1 is the first char of the string)
+ success = NO
+ foundat = 0
+ DIM startpos as integer = INSTR(haystack, start_needle)
+ IF startpos = 0 THEN RETURN ""
+ startpos += LEN(start_needle)
+ DIM aftertext as string = MID(haystack, startpos)
+ DIM endpos as integer = INSTR(aftertext, end_needle)
+ IF endpos = 0 THEN RETURN ""
+ DIM chunk as string = MID(aftertext, 1, endpos - 1)
+ success = YES
+ foundat = startpos
+ RETURN chunk
+END FUNCTION
+
+#IFDEF __FB_MAIN__
+startTest(extract_string_chunk)
+ DIM teststr as string = !"foo <b>bar</b> baz"
+ DIM wasok as bool
+ DIM foundat as integer
+ IF extract_string_chunk(teststr, "<b>", "</b>", wasok, foundat) <> "bar" THEN fail
+ IF wasok = NO THEN fail
+ IF foundat <> 8 THEN fail
+ IF extract_string_chunk(teststr, "<nope>", "</never>", wasok, foundat) <> "" THEN fail
+ IF wasok = YES THEN fail
+endTest
+#ENDIF
+
+FUNCTION replace_string_chunk(haystack as string, start_needle as string, end_needle as string, new_chunk as string, byref success as bool = NO) as string
+ 'Looking to replace a simple substring? use replacestr instead. This function replaces the chunk between two substrings
+ 'On success, Returns the full string with the chunk replaced and set success arg to true
+ 'On failure, return the string unmodified, and set success arg to false
+ success = NO
+ DIM beforetext as string
+ DIM aftertext as string
+ 
+ DIM startpos as integer = INSTR(haystack, start_needle)
+ IF startpos = 0 THEN RETURN haystack
+ startpos += LEN(start_needle)
+ beforetext = MID(haystack, 1, startpos - 1)
+ aftertext = MID(haystack, startpos)
+ DIM endpos as integer = INSTR(aftertext, end_needle)
+ IF endpos = 0 THEN RETURN haystack
+ aftertext = MID(aftertext, endpos)
+ 
+ success = YES
+ RETURN beforetext & new_chunk & aftertext
+END FUNCTION
+
+#IFDEF __FB_MAIN__
+startTest(replace_string_chunk)
+ DIM teststr as string = !"foo <b>bar</b> baz"
+ DIM wasok as bool
+ IF replace_string_chunk(teststr, "<b>", "</b>", "MOONBEAMS", wasok) <> "foo <b>MOONBEAMS</b> baz" THEN fail
+ IF wasok = NO THEN fail
+ IF replace_string_chunk(teststr, "<no>", "</no>", "MOONBEAMS", wasok) <> "foo <b>bar</b> baz" THEN fail
+ IF wasok = YES THEN fail
+endTest
+#ENDIF
 
 FUNCTION days_since_datestr (datestr as string) as integer
  'Returns the number of days since a date given as a string in the format YYYY-MM-DD
@@ -2985,6 +3047,28 @@ SUB findfiles (directory as string, namemask as string = "", filetype as FileTyp
   DIR("C:\")
 
 #endif
+END SUB 'filelist
+
+'Recursively build alist of files including subdirectories.
+'This is similar to findfiles.
+'It fulls filelists with full paths including the base directory, subdirectories, and the filename at the end.
+' (in contrast to findfiles which only finds filenames, no path)
+'Don't pass anything for the cur_depth argument. That is only for recursion.
+SUB recursefiles (directory as string, namemask as string = "", findhidden as bool = NO, filelist() as string, cur_depth as integer = 0)
+ IF cur_depth = 0 THEN
+  REDIM filelist(-1 TO -1) as string
+ END IF
+ REDIM finder(-1 TO -1) as string
+ DIM longname as string
+ findfiles directory, namemask, fileTypeFile, findhidden, finder()
+ FOR i as integer = 0 to UBOUND(finder)
+  longname = join_path(directory, finder(i))
+  a_append filelist(), longname
+ NEXT i
+ findfiles directory, ALLFILES, fileTypeDirectory, findhidden, finder()
+ FOR i as integer = 0 to UBOUND(finder)
+  recursefiles join_path(directory, finder(i)), namemask, findhidden, filelist(), cur_depth + 1
+ NEXT i
 END SUB
 
 'Returns true on success
@@ -3188,6 +3272,20 @@ FUNCTION makedir (directory as string) as integer
   safe_shell "chmod +x " + escape_filename(directory), , NO
 #endif
   RETURN 0
+END FUNCTION
+
+'Returns 0 on success, including already existing
+'Also creates parent directories if needed
+FUNCTION makedir_recurse (directory as string) as integer
+ DIM parent as string = trimfilename(trim_trailing_slashes(directory))
+ IF NOT isdir(parent) THEN
+  IF parent = "" orelse parent = "/" THEN
+   'don't go any further
+  ELSE
+   IF makedir_recurse(parent) THEN RETURN 1 'failed to create parent
+  END IF
+ END IF
+ RETURN makedir(directory)
 END FUNCTION
 
 'True on successful deletion, false if couldn't or didn't exist

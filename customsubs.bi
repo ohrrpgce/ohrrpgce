@@ -98,4 +98,6 @@ DECLARE FUNCTION custom_setoption(opt as string, arg as string) as integer
 
 DECLARE SUB preview_menu(menu as MenuDef, mstate as MenuState, viewport_page as integer, destpage as integer = -1)
 
+DECLARE FUNCTION game_uses_midi_or_bam() as bool
+
 #endif

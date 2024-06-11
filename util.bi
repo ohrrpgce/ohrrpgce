@@ -480,6 +480,7 @@ declare function decode_filename (filename as string) as string
 
 'Find files/dirs
 declare sub findfiles (directory as string, namemask as string = "", filetype as FileTypeEnum = fileTypeFile, findhidden as bool = NO, filelist() as string)
+declare sub recursefiles (directory as string, namemask as string = "", findhidden as bool = NO, filelist() as string, cur_depth as integer = 0)
 declare function find_file_portably (path as string) as string
 declare function find_file_anycase (path as string, file_type as FileTypeEnum = fileTypeFile) as string
 
@@ -492,6 +493,7 @@ declare function confirmed_copydirectory(src as string, dest as string) as bool
 declare function os_shell_move(src as string, dest as string) as bool
 declare sub killdir (directory as string, recurse as bool = NO)
 declare function makedir (directory as string) as integer
+declare function makedir_recurse (directory as string) as integer
 declare function safekill (filename as string) as bool
 declare sub safekill_pattern (dirname as string, filepattern as string)
 declare function killfile (filename as string) as bool
@@ -1085,7 +1087,8 @@ declare sub split_line_positions(original_text as string, lines() as string, lin
 declare function split_chunk(in as string, index as integer, sep as string = chr(10), default as string="") as string
 declare function find_on_word_boundary_excluding(haystack as string, needle as string, excludeword as string) as integer
 declare function find_on_word_boundary(haystack as string, needle as string) as integer
-
+declare function extract_string_chunk(haystack as string, start_needle as string, end_needle as string, byref success as bool = NO, byref foundat as integer=0) as string
+declare function replace_string_chunk(haystack as string, start_needle as string, end_needle as string, new_chunk as string, byref success as bool = NO) as string
 
 
 '----------------------------------------------------------------------

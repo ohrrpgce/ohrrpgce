@@ -22,13 +22,16 @@ TYPE FnGatherFiles as FUNCTION (build_variant as string, basename as string, des
 DECLARE FUNCTION distribute_game_as_windows_zip (dest_override as string = "") as string
 DECLARE FUNCTION distribute_game_as_windows_installer (dest_override as string = "") as string
 DECLARE FUNCTION distribute_game_as_linux_tarball (which_arch as string, dest_override as string = "") as string
+DECLARE FUNCTION distribute_game_as_web_zip (dest_override as string = "") as string
 DECLARE FUNCTION gather_common_files (basename as string, destdir as string, distinfo as DistribState, newline as string) as bool
 DECLARE FUNCTION gather_files_for_windows (buildname as string, basename as string, destdir as string, distinfo as DistribState) as bool
 DECLARE FUNCTION gather_files_for_linux (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
 DECLARE FUNCTION gather_files_for_mac (which_arch as string, basename as string, destdir as string, distinfo as DistribState) as bool
+DECLARE FUNCTION gather_files_for_web (buildname as string, basename as string, destdir as string, distinfo as DistribState) as bool
 DECLARE FUNCTION add_windows_gameplayer(basename as string, destdir as string) as string
 DECLARE FUNCTION add_linux_gameplayer(which_arch as string, basename as string, destdir as string) as string
 DECLARE FUNCTION add_mac_gameplayer(which_arch as string, basename as string, destdir as string) as string
+DECLARE FUNCTION add_web_gameplayer(basename as string, destdir as string) as string
 DECLARE FUNCTION package_game (build_variant as string, byref destname as string, dest_override as string = "", use_subdir as bool, gather_files as FnGatherFiles, byref basename as string = "") as string
 DECLARE FUNCTION agreed_to_download(agree_file as string, description as string) as bool
 DECLARE FUNCTION download_gameplayer_if_needed(url as string, destfile as string, agree_filename as string, description as string) as bool
@@ -88,6 +91,9 @@ DECLARE FUNCTION generate_copyright_line(distinfo as DistribState) as string
 DECLARE FUNCTION distribute_game_as_mac_app (which_arch as string, dest_override as string = "") as string
 DECLARE FUNCTION fix_mac_app_executable_bit_on_windows(zipfile as string, exec_path_in_zip as string) as bool
 DECLARE SUB dist_basicstatus (s as string)
+DECLARE FUNCTION extract_web_data_files(js_file as string, data_file as string, output_dir as string) as bool
+DECLARE FUNCTION recreate_web_data_file(js_file as string, data_file as string, from_dir as string) as bool
+DECLARE FUNCTION web_data_cleanup(output_dir as string) as bool
 
 DECLARE SUB itch_io_options_menu()
 DECLARE FUNCTION itch_game_url(distinfo as DistribState) as string
@@ -108,7 +114,6 @@ DECLARE FUNCTION distribute_game_for_steam_windows () as string
 DECLARE FUNCTION dist_yesno(capt as string, byval defaultval as bool=YES, byval escval as bool=NO) as bool
 DECLARE SUB dist_info (msg as zstring ptr, errlvl as errorLevelEnum = errDebug)
 DIM SHARED auto_choose_default as bool = NO
-
 
 '#################################### Menu #####################################
 
@@ -183,6 +188,8 @@ SUB DistribMenu.toplevel_menu()
  IF NOT tools_for_debian THEN
   defunselectable " (requires ar+tar+gzip)"
  END IF
+
+ IF defitem_act("Export Web Browser .zip") THEN presave : distribute_game_as_web_zip
 
  IF defitem_act("Upload this game to itch.io...") THEN enter_submenu "itch_io"
  IF defitem_act("Package for Steam...") THEN enter_submenu "steam"
@@ -2003,6 +2010,9 @@ SUB auto_export_distribs (distrib_type as string)
    dist_info "auto distrib: linux 64bit tarball export unavailable"
   END IF
  END IF
+ IF distrib_type = "web" ORELSE distrib_type = "all" THEN
+  distribute_game_as_web_zip
+ END IF
  auto_choose_default = NO
 END SUB
 
@@ -2320,5 +2330,276 @@ FUNCTION add_steamworks_lib(libname as string, destdir as string) as string
  END IF
 
  RETURN outfile
+END FUNCTION
+
+FUNCTION distribute_game_as_web_zip (dest_override as string = "") as string
+ IF dist_yesno("Warning: The web port does not currently support persistent save games. Save slots are deleted when the browser tab closes. Continue anyway?", YES, NO) = NO THEN RETURN ""
+ RETURN package_game("", "$pkgname-web.zip", dest_override, NO, @gather_files_for_web)
+END FUNCTION
+
+'Copies all the needed files for a web distribution into destdir. Returns true on success.
+FUNCTION gather_files_for_web (buildname as string, basename as string, destdir as string, distinfo as DistribState) as bool
+ DIM gameplayer as string
+ gameplayer = add_web_gameplayer(basename, destdir)
+ IF gameplayer = "" THEN RETURN NO
+
+ IF copy_or_relump(sourcerpg, join_path(destdir, basename & ".rpg")) = NO THEN RETURN NO
+
+ DIM js_file as string = join_path(destdir, "ohrrpgce-game.js")
+ DIM data_file as string = join_path(destdir, "ohrrpgce-game.data")
+ DIM output_dir as string = join_path(destdir, "data")
+ IF NOT extract_web_data_files(js_file, data_file, output_dir) THEN
+  dist_info "ERROR: Failed to extract web data files" : RETURN NO
+ END IF
+ 
+ IF NOT web_data_cleanup(destdir) THEN
+  dist_info "ERROR: Failed to clean up web data files" : RETURN NO
+ END IF
+
+ IF NOT recreate_web_data_file(js_file, data_file, output_dir) THEN
+  dist_info "ERROR: Failed to recreate web data file" : RETURN NO
+ END IF
+ killdir output_dir
+
+ RETURN gather_common_files(basename, destdir, distinfo, !"\n")
+END FUNCTION
+
+FUNCTION extract_web_data_files(js_file as string, data_file as string, output_dir as string) as bool
+ 'js-file is the minified javascript file to search for the loadPackage metadata
+ '  it may fail if this is not minified, but that is okay, it is always minified :)
+ '
+ 'data_file is the package of data files to extract
+ '
+ 'output_dir will be created, and all the data files are dumped in there, preserving directory structure
+ IF NOT isdir(output_dir) THEN
+  IF makedir(output_dir) THEN
+   dist_info "ERROR: Failed to create output dir " & output_dir : RETURN NO
+  END IF
+ END IF
+ IF NOT diriswriteable(output_dir) THEN
+  dist_info "ERROR: Unable to write to output dir " & output_dir : RETURN NO
+ END IF
+
+ DIM js_text as string = string_from_file(js_file)
+ DIM success as bool
+ DIM loadPackage_text as string = extract_string_chunk(js_text, "loadPackage(", ")", success)
+ IF NOT success THEN
+  dist_info "ERROR: Failed to extract loadPackage() from " & js_file : RETURN NO
+ END IF
+
+ DIM remains as string = loadPackage_text
+ DIM fh_in as integer
+ DIM fh_out as integer
+ DIM filename as string
+ DIM out_filename as string
+ DIM start_str as string
+ DIM start_pos as integer
+ DIM end_str as string
+ DIM end_pos as integer
+ DIM found as bool
+ DIM foundat as integer
+ DIM foundcount as integer = 0
+ DIM parsefail as bool = NO
+ DIM buflen as integer
+ REDIM buf(0) as ubyte
+
+ fh_in = FREEFILE
+ OPEN data_file FOR BINARY ACCESS READ as #fh_in
+
+ debug "Parsing web data files..." 
+ DO
+   filename = extract_string_chunk(remains, """filename"":""", """", found, foundat)
+   IF NOT found THEN EXIT DO
+   foundcount += 1
+   remains = MID(remains, foundat + len(filename))
+   start_str = "?"
+   end_str = "?"
+
+   start_str = extract_string_chunk(remains, """start"":", ",", found, foundat)
+   IF NOT found THEN parsefail = YES : EXIT DO
+   IF parse_int(start_str, @start_pos, YES) = NO THEN parsefail = YES : EXIT DO
+   remains = MID(remains, foundat + len(start_str))
+
+   end_str = extract_string_chunk(remains, """end"":", "}", found, foundat)
+   IF NOT found THEN parsefail = YES : EXIT DO
+   IF parse_int(end_str, @end_pos, YES) = NO THEN parsefail = YES : EXIT DO
+   remains = MID(remains, foundat + len(end_str))
+
+   debuginfo "Found data filename=" & filename & " from " & start_str & " to " & end_str
+   
+   out_filename = join_path(output_dir, trim_path_root(filename))
+   makedir_recurse trimfilename(out_filename)
+   fh_out = FREEFILE
+   OPEN out_filename FOR BINARY ACCESS WRITE as #fh_out
+    buflen = end_pos - start_pos
+    REDIM buf(buflen - 1) as ubyte
+    GET #fh_in, 1 + start_pos, buf()
+    PUT #fh_out, 1, buf()
+   CLOSE #fh_out
+   debuginfo "Wrote data file to " & out_filename
+ 
+ LOOP
+ CLOSE #fh_in
+
+ IF parsefail THEN
+  dist_info "ERROR: Failed to parse offsets for data file " & filename & " (""" & start_str & """,""" & end_str & """) from " & js_file : RETURN NO
+ END IF
+
+ IF foundcount = 0 THEN
+  dist_info "ERROR: Failed to find any filenames in loadPackage() " & js_file : RETURN NO
+ END IF
+
+ RETURN YES
+END FUNCTION
+
+FUNCTION recreate_web_data_file(js_file as string, data_file as string, from_dir as string) as bool
+ 'js-file is the minified javascript file to insert the new loadPackage metadata
+ 'data_file is the package of data files to recreate. The old existing file will be deleted.
+ 'from_dir contains the files and folders to add to the data package. It isn't deleted afterwards. The caller is responsible for that.
+ 'Returns true for success
+
+ REDIM filelist(-1 TO -1) as string
+ recursefiles from_dir, ALLFILES, YES, filelist()
+ DIM howmany AS integer = UBOUND(filelist)
+ DIM size(howmany) as integer
+ DIM cur_offset as integer = 0
+ DIM offset(howmany) as integer
+ DIM pkgpath(howmany) as string
+ DIM fh_in as integer
+ DIM fh_out as integer
+ REDIM buf(0) as ubyte
+ 
+ 'Remove the old data file
+ killfile data_file
+
+ 'Open the new data file for writing 
+ fh_out = FREEFILE
+ OPEN data_file FOR BINARY ACCESS WRITE as #fh_out
+
+ 'Build a list of files and loop through it
+ FOR i as integer = 0 TO UBOUND(filelist)
+  pkgpath(i) = filelist(i)
+  replacestr(pkgpath(i), trim_trailing_slashes(from_dir), "", 1)
+  size(i) = FILELEN(filelist(i))
+  offset(i) = cur_offset
+  cur_offset += size(i)
+  debuginfo "Repackaging web data file " & filelist(i) & " -> " & pkgpath(i) & " (size=" & size(i) & ", offset=" & offset(i) & ")"
+  'Now read the file and write it to the data package
+  fh_in = FREEFILE
+  OPEN filelist(i) FOR BINARY ACCESS READ as #fh_in
+  REDIM buf(size(i)) as ubyte
+  GET #fh_in, 1, buf()
+  PUT #fh_out, 1 + offset(i), buf()
+  CLOSE #fh_in
+ NEXT i
+
+ CLOSE #fh_out
+
+ 'Now we generate the json metadata
+ DIM metadata as string = "{""files"":["
+ FOR i as integer = 0 TO UBOUND(filelist)
+  IF i <> 0 THEN metadata &= ","
+  metadata &= "{""filename"":""" & escape_string(pkgpath(i), """") & ""","
+  metadata &= """start"":" & offset(i) & ","
+  metadata &= """end"":" & offset(i) + size(i) & "}"
+ NEXT i
+ metadata &= "],""remote_package_size"":" & FILELEN(data_file) & "}"
+ 
+ 'Now insert the metadata into the javascript file
+ DIM js_text as string = string_from_file(js_file)
+ DIM replace_ok as bool
+ js_text = replace_string_chunk(js_text, "loadPackage(", ")", metadata, replace_ok)
+ IF NOT replace_ok THEN
+  dist_info "ERROR: Failed to to update loadPackage() metadata in " & js_file : RETURN NO
+ END IF
+ string_to_file(js_text, js_file)
+
+ RETURN YES
+END FUNCTION
+
+FUNCTION add_web_gameplayer(basename as string, destdir as string) as string
+ 'Download a precompiled web player package,
+ 'extract it to destdir (creating it but not clearing if already existing),
+ 'and return the full path to index.html therein.
+ '
+ 'Returns "" for failure.
+
+ DIM destexe as string = destdir & SLASH & "index.html"
+
+ DIM dldir as string = gameplayer_dir()
+ IF dldir = "" THEN RETURN ""
+  
+ '--Decide which url to download
+ DIM url as string
+ DIM dlfile as string
+ IF version_branch = "wip" THEN
+  'If using any wip release, get the latest wip release
+  dlfile = "ohrrpgce-player-web-wip.zip"
+  url = "http://hamsterrepublic.com/ohrrpgce/nightly/" & dlfile
+ ELSE
+  'Use this stable release
+  dlfile = "ohrrpgce-player-web" & version_release_tag & ".zip"
+  url = "http://hamsterrepublic.com/ohrrpgce/archive/" & dlfile
+ END IF
+
+ DIM destzip as string = dldir & SLASH & dlfile
+
+ '--Prompt & download if missing or out of date
+ IF NOT download_gameplayer_if_needed(url, destzip, "web.download.agree", "the Web OHRRPGCE game player") THEN RETURN ""
+ 
+ IF extract_zipfile(destzip, destdir) = NO THEN RETURN ""
+ 
+ 'Sanity check contents
+ IF sanity_check_buildinfo(destdir & SLASH & "buildinfo.ini") = NO THEN RETURN ""
+ IF NOT isfile(destdir & SLASH & "ohrrpgce-game.html") THEN dist_info "ERROR: Failed to unzip ohrrpgce-game.html" : RETURN ""
+ IF NOT isfile(destdir & SLASH & "ohrrpgce-game.js") THEN dist_info "ERROR: Failed to unzip ohrrpgce-game.js" : RETURN ""
+
+ IF renamefile(destdir & SLASH & "ohrrpgce-game.html", destexe) = NO THEN dist_info "ERROR: Couldn't rename ohrrpgce-game.html" : RETURN ""
+ RETURN destexe
+END FUNCTION
+
+FUNCTION web_data_cleanup(output_dir as string) as bool
+ 'Assumes we have already unpacked the web data files into output_dir/data/*
+ 'Deletes unwanted files, and moves RPG files into the correct place
+ 'Returns true on success, false on failure
+ DIM data_dir as string = join_path(output_dir, "data")
+ IF NOT isdir(data_dir) THEN
+  dist_info "ERROR: Could not find temp data dir " & data_dir : RETURN NO
+ END IF
+ 
+ 'Remove sample games folder
+ killdir join_path(data_dir, "games"), YES
+ 
+ 'Move the RPG file(s)
+ DIM src_rpg as string
+ DIM dest_rpg as string
+ REDIM rpgfiles(0) as string
+ findfiles output_dir, "*.rpg", , , rpgfiles()
+ IF UBOUND(rpgfiles) = -1 THEN
+  dist_info "ERROR: Could not find " & data_dir & SLASH & "*.rpg" : RETURN NO
+ END IF
+ FOR i as integer = 0 TO UBOUND(rpgfiles)
+  src_rpg = join_path(output_dir, rpgfiles(i))
+  dest_rpg = join_path(data_dir, rpgfiles(i))
+  debuginfo "Move " & src_rpg & " -> " & dest_rpg
+  IF renamefile(src_rpg, dest_rpg) = NO THEN
+   dist_info "ERROR: Could not move " & src_rpg & " to " & dest_rpg : RETURN NO
+  END IF
+ NEXT i
+ 
+ 'Create the ohrrpgce_arguments.txt file
+ DIM rpg_name as string = trimextension(trimpath(sourcerpg)) & ".rpg"
+ string_to_file rpg_name, join_path(data_dir, "ohrrpgce_arguments.txt")
+ 
+ 'Delete the midi soundfont if it is unused
+ IF game_uses_midi_or_bam() THEN
+  debuginfo "This game uses midi or bam, keep the soundfont"
+ ELSE
+  debuginfo "This game uses midi or bam, discard the soundfont"
+  killdir join_path(data_dir, "soundfonts"), YES
+  killdir join_path(data_dir, "etc"), YES
+ END IF
+ 
+ RETURN YES
 END FUNCTION
 
