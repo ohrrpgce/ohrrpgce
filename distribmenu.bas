@@ -189,7 +189,7 @@ SUB DistribMenu.toplevel_menu()
   defunselectable " (requires ar+tar+gzip)"
  END IF
 
- IF defitem_act("Export Web Browser .zip") THEN presave : distribute_game_as_web_zip
+ IF defitem_act("Export Web Browser .zip (EXPERIMENTAL)") THEN presave : distribute_game_as_web_zip
 
  IF defitem_act("Upload this game to itch.io...") THEN enter_submenu "itch_io"
  IF defitem_act("Package for Steam...") THEN enter_submenu "steam"
