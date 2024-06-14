@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2024-03-15">
+<plotscript version="wip" datecode="2024-06-14">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -2759,7 +2759,7 @@ end</example>
 		<command id="camerafollowsslice">
 			<canon>camera follows slice (slice)</canon>
 			<shortname>camera follows slice</shortname>
-			<description>With this command, you can make the camera follow a slice instead of the hero. The slice will be centered on the screen. To revert the camera to normal, use <ref>camerafollowshero</ref>.</description>
+			<description>With this command, you can make the camera follow a slice instead of the hero. The slice's anchor point will be centered on the screen. To revert the camera to normal, use <ref>camerafollowshero</ref>. Note that this command usually only makes sense for slices that are parented to a map layer, or parented to something attached to a map layer like a hero or NPC.</description>
 		</command>
 		<command id="pancamera">
 			<canon>pan camera (direction,distance,pixelstep)</canon>
