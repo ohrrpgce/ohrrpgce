@@ -69,7 +69,7 @@ declare sub reload_global_animations(def_anim as SpriteSet ptr, sprtype as Sprit
 declare sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
 declare sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions)
 declare sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions)
-declare sub draw_clipped_surf(src as Surface ptr, master_pal as RGBcolor ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Surface ptr, opts as DrawOptions = def_drawoptions)
+declare sub draw_clipped_surf(src as Surface ptr, master_pal as RGBcolor ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, destsurf as Surface ptr, opts as DrawOptions = def_drawoptions)
 
 'declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(filen as string, w as integer, h as integer, bitdepth as integer) as integer
@@ -4756,8 +4756,6 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 		subtimer = gfx_op_timer.substart(TimerIDs.Blend)
 	end if
 
-	get_cliprect(dest)  'Set clipping Frame
-
 	'copied from the asm
 	ypos = y \ 20
 	calc = y mod 20
@@ -9308,27 +9306,26 @@ end sub
 'Guaranteed to always return the same result on the same thread.
 'Also ensures that the cliprect is for the given Frame, if given.
 function get_cliprect(fr as Frame ptr = NULL) byref as ClipState
+	dim cliprectp as ClipState ptr
 	#ifdef NO_TLS
 		static cliprect as ClipState
-		if fr then setclip , , , , fr
-		return cliprect
+		cliprectp = @cliprect
 	#else
-
-		dim cliprectp as ClipState ptr = cast(ClipState ptr, tls_get(tlsKeyClipRect))
+		cliprectp = cast(ClipState ptr, tls_get(tlsKeyClipRect))
 		if cliprectp = NULL then
 			cliprectp = new ClipState
 			tls_set(tlsKeyClipRect, cliprectp)
 		end if
-
-		if fr andalso cliprectp->frame <> fr then
-			cliprectp->frame = fr
-			cliprectp->l = 0
-			cliprectp->t = 0
-			cliprectp->r = fr->w - 1
-			cliprectp->b = fr->h - 1
-		end if
-		return *cliprectp
 	#endif
+
+	if fr andalso cliprectp->frame <> fr then
+		cliprectp->frame = fr
+		cliprectp->l = 0
+		cliprectp->t = 0
+		cliprectp->r = fr->w - 1
+		cliprectp->b = fr->h - 1
+	end if
+	return *cliprectp
 end function
 
 'Set the bounds used by most Frame drawing functions.
@@ -9373,7 +9370,6 @@ end function
 
 'Blit a Frame with setclip clipping.
 'trans: draw transparently, either using ->mask if available, or otherwise use colour 0 as transparent
-'warning! Make sure setclip/get_cliprect has been called before calling this
 'write_mask:
 '    If the destination has a mask, sets the mask for the destination rectangle
 '    equal to the mask (or color-key) for the source rectangle. Does not OR them.
@@ -9386,7 +9382,7 @@ local sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integ
 	starty = y
 	endy = y + src->h - 1
 
-	dim byref cliprect as ClipState = get_cliprect()
+	dim byref cliprect as ClipState = get_cliprect(dest)
 
 	if startx < cliprect.l then
 		srcoffset = (cliprect.l - startx)
@@ -9413,7 +9409,7 @@ end sub
 
 ' Blit a Frame with setclip clipping and opts->scale <> 1. opts can not be NULL!
 local sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions)
-	dim byref cliprect as ClipState = get_cliprect()
+	dim byref cliprect as ClipState = get_cliprect(dest)
 	dim as integer sxfrom, sxto, syfrom, syto
 
 	sxfrom = large(cliprect.l, x)
@@ -9426,9 +9422,10 @@ local sub draw_clipped_scaled(src as Frame ptr, pal as Palette16 ptr = NULL, x a
 end sub
 
 ' Blit a Surface with setclip clipping.
-local sub draw_clipped_surf(src as Surface ptr, master_pal as RGBcolor ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Surface ptr, opts as DrawOptions)
+' Kludge: we pass in the dest as both a Frame ptr and Surface ptr to be able to get the cliprect.
+local sub draw_clipped_surf(src as Surface ptr, master_pal as RGBcolor ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool, dest as Frame ptr, destsurf as Surface ptr, opts as DrawOptions)
 
-	dim byref cliprect as ClipState = get_cliprect()
+	dim byref cliprect as ClipState = get_cliprect(dest)
 
 	' It's OK for the src and dest rects to have negative size or be off
 	' the edge of src/dest, because gfx_surfaceCopy properly clips them.
@@ -9447,7 +9444,7 @@ local sub draw_clipped_surf(src as Surface ptr, master_pal as RGBcolor ptr, pal 
 	dim destRect as SurfaceRect = (x, y, cliprect.r, cliprect.b)
 
 	opts.color_key0 = trans  'Clobbers def_drawoptions.color_key0
-	if gfx_surfaceCopy(@srcRect, src, master_pal, pal, @destRect, dest, opts) then
+	if gfx_surfaceCopy(@srcRect, src, master_pal, pal, @destRect, destsurf, opts) then
 		debug "gfx_surfaceCopy error"
 	end if
 	def_drawoptions.color_key0 = NO
@@ -10626,7 +10623,6 @@ end sub
 ' and the dest is 32-bit.
 sub frame_draw overload (src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as RelPos, y as RelPos, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
 	BUG_IF(src = NULL orelse dest = NULL, "trying to draw from/to null frame")
-	get_cliprect(dest)  'Set clipping Frame
 
 	x = relative_pos(x, dest->w, src->w)
 	y = relative_pos(y, dest->h, src->h)
@@ -10683,7 +10679,7 @@ local sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as 
 		end if
 		'/
 
-		draw_clipped_surf src_surface, @masterpal(0), pal, x, y, trans, dest_surface, opts
+		draw_clipped_surf src_surface, @masterpal(0), pal, x, y, trans, dest, dest_surface, opts
 
 		/'
 	cleanup:
@@ -10747,7 +10743,7 @@ sub frame_draw_transformed(src as Frame ptr, masterpal() as RGBcolor, pal as Pal
 	dim byref cliprect as ClipState = get_cliprect(dest)
 	dim destrect as SurfaceRect = (cliprect.l, cliprect.t, cliprect.r, cliprect.b)
 
-	opts.color_key0 = trans  'Clobbers def_drawoptions.color_key0
+	opts.color_key0 = trans  'Can clobber def_drawoptions.color_key0, so we reset it after drawing
 
 	if opts.with_blending andalso opts.argbModifier.col <> &hffffffff andalso vertex_cols = NULL then
 		'gfx_renderQuadTexture doesn't support argbModifier
