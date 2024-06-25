@@ -261,6 +261,7 @@ WHAT IS NEW?
       resolutions above 320x200 [Ralph]
     * A multi-hit Drop attack kept falling downwards from the target instead of
       the sky on the 2nd and later hits [Ralph]
+    * You couldn't disable the Windowed/Fullscreen options with a tag [Ralph/RMZ]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

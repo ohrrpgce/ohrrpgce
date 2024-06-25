@@ -3218,8 +3218,9 @@ FUNCTION update_menu_item (mi as MenuDefItem) as bool
    ' Purchases disabled on platforms that don't have a supported store
    IF .sub_t = spPurchases ANDALSO NOT supports_in_app_purchases() THEN .disabled = YES
    IF .sub_t = spWindowed OR .sub_t = spFullscreen THEN
-    .disabled = YES
-    IF supports_fullscreen_toggling_well() THEN
+    'If a tag already set disabled = YES, skip the checks that could revert to NO
+    IF .disabled = NO ANDALSO supports_fullscreen_toggling_well() THEN
+     .disabled = YES
      DIM fullscreen as bool
      IF try_check_fullscreen(fullscreen) THEN
       IF fullscreen ANDALSO .sub_t = spWindowed THEN .disabled = NO
