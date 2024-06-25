@@ -335,7 +335,7 @@ IF LEN(gam.want.rungame) = 0 THEN
 
  debuginfo "Setting default window settings..."
  set_safe_zone_margin default_margin()
- IF overrode_default_fullscreen = NO AND supports_fullscreen_well() THEN
+ IF overrode_default_fullscreen = NO AND supports_fullscreen_toggling_well() THEN
   gfx_setwindowed(YES)
  END IF
  set_resolution read_config_int("gfx.resolution_w", 320), read_config_int("gfx.resolution_h", 200)
@@ -3219,7 +3219,7 @@ FUNCTION update_menu_item (mi as MenuDefItem) as bool
    IF .sub_t = spPurchases ANDALSO NOT supports_in_app_purchases() THEN .disabled = YES
    IF .sub_t = spWindowed OR .sub_t = spFullscreen THEN
     .disabled = YES
-    IF supports_fullscreen_well() THEN
+    IF supports_fullscreen_toggling_well() THEN
      DIM fullscreen as bool
      IF try_check_fullscreen(fullscreen) THEN
       IF fullscreen ANDALSO .sub_t = spWindowed THEN .disabled = NO

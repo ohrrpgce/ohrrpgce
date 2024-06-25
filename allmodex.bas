@@ -1218,17 +1218,18 @@ function try_check_fullscreen(byref fullscreen as bool) as bool
 	return NO
 end function
 
-'Whether this platform has separate windowed and fullscreen modes. False on consoles.
+'Whether this platform has separate windowed and fullscreen modes. False on consoles and android, but not web.
 function windowed_platform() as bool
-#ifdef __FB_ANDROID__
+#if defined(__FB_JS__)
+	return YES
+#elseif defined(__FB_ANDROID__) or defined(MINIMAL_OS)
 	return NO
 #else
-	'Including web
 	return YES
 #endif
 end function
 
-function supports_fullscreen_well () as bool
+function supports_fullscreen_toggling_well () as bool
 	'Return YES if we should show the fullscreen/windowed menu options
 	'and obey a game's fullscreen/windowed setting.
 	'Note: even if this returns false, you can still try to fullscreen using alt-tab

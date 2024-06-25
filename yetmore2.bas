@@ -1361,7 +1361,7 @@ SUB apply_game_window_settings (reloading as bool = NO)
   gam.fullscreen_config_file = game_config_file
  END IF
 
- IF supports_fullscreen_well() AND overrode_default_fullscreen = NO AND _
+ IF supports_fullscreen_toggling_well() AND overrode_default_fullscreen = NO AND _
     user_toggled_fullscreen = NO AND running_under_Custom = NO AND _
     gam.shared_fullscreen_setting = NO THEN
   DIM setting as string = read_ini_prefixed_str(gam.fullscreen_config_file, "gfx.fullscreen")

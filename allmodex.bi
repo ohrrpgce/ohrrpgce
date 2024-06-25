@@ -128,7 +128,7 @@ DECLARE SUB set_scale_factor (scale as integer, change_windowsize as bool = YES)
 DECLARE SUB toggle_fps_display ()
 
 DECLARE FUNCTION windowed_platform() as bool
-DECLARE FUNCTION supports_fullscreen_well () as bool
+DECLARE FUNCTION supports_fullscreen_toggling_well () as bool
 DECLARE FUNCTION try_check_fullscreen(byref fullscreen as bool) as bool
 
 DECLARE SUB setvispage (page as integer, skippable as bool = YES)
