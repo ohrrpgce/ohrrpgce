@@ -4411,3 +4411,13 @@ FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1
  RETURN st.result
 END FUNCTION
 
+FUNCTION game_check_menu_key() as bool
+ IF prefbit(58) THEN
+  'no key repeats
+  RETURN (carray(ccMenu) AND 4) > 0
+ ELSE
+  'allow key repeats
+  RETURN carray(ccMenu) > 1
+ END IF
+END FUNCTION
+

@@ -316,6 +316,8 @@ SUB edit_backcompat_bitsets()
  END IF
  bitname(54) = "!Disable cost checking for autotarget spells in random spell lists"
  bitname(57) = "Use old direction key tiebreaking"
+ bitname(58) = "Ignore key repeats for confirm, cancel, and menu"
+ bitname(59) = "Always allow key repeat for confirm in battles"
  edit_global_bitsets bitname(), "share_general_game_backcompat_bitsets"
 END SUB
 
