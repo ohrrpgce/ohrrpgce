@@ -1263,5 +1263,5 @@ EXTERN default_arg as integer
 EXTERN "C"
 EXTERN program_start_timer as double
 END EXTERN
-
+'''''
 #ENDIF

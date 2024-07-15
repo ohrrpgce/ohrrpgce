@@ -276,7 +276,9 @@ IF overrode_default_zoom = NO THEN
  set_scale_factor read_config_int("gfx.zoom", 2), YES
 END IF
 setmodex
+#IFNDEF __FB_JS__
 unlock_resolution 320, 200   'Minimum window size
+#ENDIF
 
 setupmusic
 
@@ -339,7 +341,9 @@ IF LEN(gam.want.rungame) = 0 THEN
   gfx_setwindowed(YES)
  END IF
  set_resolution read_config_int("gfx.resolution_w", 320), read_config_int("gfx.resolution_h", 200)
+#IFNDEF __FB_JS__
  unlock_resolution 320, 200   'Minimum window size
+#ENDIF
  IF overrode_default_zoom = NO THEN
   'If it was set on the commandline, then it should still be set to that; game didn't change it
   set_scale_factor read_config_int("gfx.zoom", 2), YES
