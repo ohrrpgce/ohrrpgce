@@ -35,6 +35,7 @@ DECLARE FUNCTION touch_virtual_keyboard (default_str as string, max_length as in
 DECLARE FUNCTION hero_uses_lmp (byval hero_slot as integer) as bool
 DECLARE FUNCTION is_shop_empty(byval shop_id as integer, byval shoptype as integer) as bool
 
+DECLARE FUNCTION game_check_cancel_key() as bool
 DECLARE FUNCTION game_check_menu_key() as bool
 
 #endif
