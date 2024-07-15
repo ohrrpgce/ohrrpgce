@@ -157,7 +157,7 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
    END IF
   END IF
   IF game_check_cancel_key() THEN do_quit = YES
-  IF carray(ccUse) > 1 THEN do_pick = YES
+  IF game_check_use_key() THEN do_pick = YES
 
   buyst.alert_ticks = large(0, buyst.alert_ticks - 1)
   IF buyst.alert_ticks <= 0 THEN
@@ -1371,7 +1371,7 @@ DO
   IF carray(ccRight) > 1 THEN st.pt = -2: MenuSound gen(genCursorSFX)
  END IF
 
- IF carray(ccUse) > 1 ORELSE (get_gen_bool("/mouse/mouse_menus") ANDALSO (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 ANDALSO (readmouse.buttons AND mouseRight) = 0 ) THEN
+ IF game_check_use_key() ORELSE (get_gen_bool("/mouse/mouse_menus") ANDALSO (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 ANDALSO (readmouse.buttons AND mouseRight) = 0 ) THEN
   IF newgame_opt AND st.pt = -1 THEN
    'Selected "New Game"
    MenuSound gen(genAcceptSFX)
@@ -1450,7 +1450,7 @@ FUNCTION picksave_confirm(menu() as string, byval loading as bool, byval newgame
    MenuSound gen(genCancelSFX)
    RETURN NO
   END IF
-  IF carray(ccUse) > 1 THEN RETURN state.pt = 0
+  IF game_check_use_key() THEN RETURN state.pt = 0
 
   usemenu state
   usemenusounds
@@ -1711,7 +1711,7 @@ DO
   top = ic - (pagesize - 1)
  END IF
  IF game_check_cancel_key() THEN do_quit = YES
- IF carray(ccUse) > 1  THEN do_pick = YES
+ IF game_check_use_key()  THEN do_pick = YES
 
  IF get_gen_bool("/mouse/mouse_menus") THEN
   IF rect_collide_point(box, readmouse.pos) THEN
@@ -2222,7 +2222,7 @@ SUB status_screen (byval slot as integer)
   playtimer
   IF game_check_cancel_key() THEN EXIT DO
   DIM do_next as bool = NO
-  IF carray(ccUse) > 1 THEN do_next = YES
+  IF game_check_use_key() THEN do_next = YES
   IF get_gen_bool("/mouse/mouse_menus") THEN
    IF (readmouse.release AND mouseLeft) THEN
     do_next = YES
@@ -2629,7 +2629,7 @@ FUNCTION item_screen () as integer
    item_screen_cancel_action st
   END IF
 
-  IF carray(ccUse) > 1 ORELSE st.re_use THEN
+  IF game_check_use_key() ORELSE st.re_use THEN
    item_screen_use_action st
   END IF
 
@@ -2837,7 +2837,7 @@ SUB spell_screen (byval slot as integer)
   setkeys
   playtimer
   IF game_check_cancel_key() THEN EXIT DO
-  IF carray(ccUse) > 1 THEN
+  IF game_check_use_key() THEN
   END IF
   IF is_active_party_slot(slot) THEN
    IF NOT st.in_list THEN
@@ -3030,7 +3030,7 @@ SUB equip_menu_controls_slot_picker (st as EquipMenuState)
  IF usemenu(st.slot, 0, 0, 6, 6) THEN
   st.item_info = equip_menu_equipped_item_info(st)
  END IF
- IF carray(ccUse) > 1 THEN
+ IF game_check_use_key() THEN
   do_pick = YES
  END IF
  
@@ -3118,7 +3118,7 @@ SUB equip_menu_controls_equip_change (st as EquipMenuState)
   equip_menu_stat_bonus st
   st.item_info = equip_menu_available_item_info(st)
  END IF
- IF carray(ccUse) > 1 THEN do_pick = YES
+ IF game_check_use_key() THEN do_pick = YES
 
  IF get_gen_bool("/mouse/mouse_menus") THEN
   DIM hover as integer = -1
@@ -3654,7 +3654,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
    END IF
   END IF
 
-  IF carray(ccUse) > 1 THEN
+  IF game_check_use_key() THEN
    do_effect = YES
   END IF
   
@@ -3925,7 +3925,7 @@ SUB spells_menu_control_which_list(sp as SpellsMenuState)
   spells_menu_refresh_list sp
  END IF
  DIM do_pick as bool = NO
- IF carray(ccUse) > 1 THEN do_pick = YES
+ IF game_check_use_key() THEN do_pick = YES
 
  IF get_gen_bool("/mouse/mouse_menus") THEN
   DIM hover as integer = -1
@@ -4031,7 +4031,7 @@ SUB spells_menu_control_pick_spell(sp as SpellsMenuState)
    END IF
   END IF
  END IF
- IF carray(ccUse) > 1 OR sp.re_use THEN
+ IF game_check_use_key() OR sp.re_use THEN
   do_pick = YES
  END IF
 
@@ -4389,7 +4389,7 @@ FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1
   END IF
 
   'IF game_check_cancel_key() THEN EXIT DO
-  'IF carray(ccUse) > 1 THEN
+  'IF game_check_use_key() THEN
   'END IF
   IF keyval(scF8) > 1 THEN
    slice_editor st.sl
@@ -4409,6 +4409,16 @@ FUNCTION touch_virtual_keyboard (default_str as string, max_length as integer=-1
  DeleteSlice @(st.sl)
  
  RETURN st.result
+END FUNCTION
+
+FUNCTION game_check_use_key() as bool
+ IF prefbit(58) THEN
+  'no key repeats
+  RETURN (carray(ccUse) AND 4) > 0
+ ELSE
+  'allow key repeats
+  RETURN carray(ccUse) > 1
+ END IF
 END FUNCTION
 
 FUNCTION game_check_cancel_key() as bool

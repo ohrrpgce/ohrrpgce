@@ -331,7 +331,7 @@ SUB verify_quit
 
   'Keyboard controls
   IF game_check_cancel_key() THEN EXIT DO
-  IF (carray(ccUse) > 1 AND ABS(ptr2) > usethreshold) OR ABS(ptr2) > walkthreshold THEN
+  IF (game_check_use_key() AND ABS(ptr2) > usethreshold) OR ABS(ptr2) > walkthreshold THEN
    IF ptr2 < 0 THEN gam.quit = YES: fadeout uilook(uiFadeoutQuit)
    EXIT DO
   END IF

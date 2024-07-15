@@ -869,7 +869,7 @@ DO
   END IF
   IF herow(0).xygo = 0 THEN
    'While on a vehicle, menu and use keys are handled in vehicle_controls()
-   IF carray(ccUse) > 1 ANDALSO vstate.active = NO ANDALSO usenpc(0, find_useable_npc()) THEN
+   IF game_check_use_key() ANDALSO vstate.active = NO ANDALSO usenpc(0, find_useable_npc()) THEN
     cancel_hero_pathfinding(0)
    ELSE
 
@@ -3044,7 +3044,7 @@ SUB player_menu_keys ()
     write_game_config "game.gfx.margin", get_safe_zone_margin()
    END IF
   END IF
-  IF carray(ccUse) > 1 THEN
+  IF game_check_use_key() THEN
    activate_menu_item mi, topmenu
   ELSEIF menu_click(mstates(topmenu)) THEN
    IF readmouse.left_click_age <= menus(topmenu).age THEN

@@ -20,6 +20,7 @@
 #include "scriptcommands.bi"
 #include "moresubs.bi"
 #include "walkabouts.bi"
+#include "menustuf.bi"
 
 DECLARE FUNCTION user_triggered_vehicle_use_action() as bool
 DECLARE FUNCTION vehscramble(byval target as XYPair) as bool
@@ -1084,7 +1085,7 @@ END SUB
 
 LOCAL FUNCTION user_triggered_vehicle_use_action() as bool
  IF readbit(gen(), genSuspendBits, suspendwalkabouts) THEN RETURN NO
- IF carray(ccUse) > 1 THEN RETURN YES
+ IF game_check_use_key() THEN RETURN YES
  IF get_gen_bool("/mouse/move_hero") THEN
   IF readmouse().release AND mouseLeft THEN
    DIM clickpos as XYPair = XY(mapx, mapy) + readmouse().pos

@@ -470,7 +470,7 @@ FUNCTION user_textbox_advance() as bool
  END IF
 
  'Keyboard/joystick textbox advance
- IF carray(ccUse) > 1 THEN RETURN YES
+ IF game_check_use_key() THEN RETURN YES
 
  RETURN NO
 END FUNCTION
@@ -662,7 +662,7 @@ DO
   st.party.need_update = YES
  END IF
  
- IF carray(ccUse) > 1 THEN st.do_pick = YES
+ IF game_check_use_key() THEN st.do_pick = YES
  
  IF st.do_quit THEN EXIT DO
  
@@ -1080,7 +1080,7 @@ FUNCTION teleporttool () as bool
    END IF
    IF enter_or_space() THEN pickpoint = YES
   ELSE
-   IF carray(ccUse) > 1 THEN 'confirm and teleport
+   IF game_check_use_key() THEN 'confirm and teleport
     IF gam.map.id <> destmap THEN teleporttool = YES
     gam.map.id = destmap
     (heropos(0)) = dest * 20
@@ -1207,7 +1207,7 @@ DO
   who = loop_active_party_slot(who, 1)
   menusound gen(genCursorSFX)
  END IF
- IF carray(ccUse) > 1 THEN EXIT DO
+ IF game_check_use_key() THEN EXIT DO
 
  IF get_gen_bool("/mouse/mouse_menus") THEN
   DIM old_who as integer = who
@@ -1320,7 +1320,7 @@ ELSE
   setwait speedcontrol
   setkeys YES
   playtimer
-  IF carray(ccUse) > 1 AND keyval(scSpace) = 0 THEN
+  IF game_check_use_key() AND keyval(scSpace) = 0 THEN
    IF LEN(gam.hero(who).name) > 0 THEN
     ret = YES
     EXIT DO
@@ -1690,7 +1690,7 @@ DO
  DIM do_pick as bool = NO
 
  IF game_check_cancel_key() THEN do_quit = YES
- IF carray(ccUse) > 1 THEN do_pick = YES
+ IF game_check_use_key() THEN do_pick = YES
 
  IF get_gen_bool("/mouse/mouse_menus") ANDALSO autopick = NO THEN
   IF rect_collide_point(box, readmouse.pos) THEN
@@ -1844,7 +1844,7 @@ DO
   menusound gen(genCursorSFX)
   state.pt = state.pt XOR 1
  END IF
- IF carray(ccUse) > 1 THEN do_pick = YES
+ IF game_check_use_key() THEN do_pick = YES
 
  IF get_gen_bool("/mouse/mouse_menus") THEN
   IF rect_collide_point(Type(60, 60, 200, 60), readmouse.pos) THEN
