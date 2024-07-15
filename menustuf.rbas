@@ -4421,6 +4421,16 @@ FUNCTION game_check_use_key() as bool
  END IF
 END FUNCTION
 
+FUNCTION game_battle_check_use_key() as bool
+ IF prefbit(58) ANDALSO NOT prefbit(59) THEN
+  'no key repeats
+  RETURN (carray(ccUse) AND 4) > 0
+ ELSE
+  'allow key repeats
+  RETURN carray(ccUse) > 1
+ END IF
+END FUNCTION
+
 FUNCTION game_check_cancel_key() as bool
  IF prefbit(58) THEN
   'no key repeats

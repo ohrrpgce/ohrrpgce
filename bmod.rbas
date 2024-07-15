@@ -1082,7 +1082,7 @@ SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
  END IF
  
  'confirm
- IF game_check_use_key() THEN do_pick = YES
+ IF game_battle_check_use_key() THEN do_pick = YES
  IF do_pick THEN
   IF autotestmode THEN write_checkpoint
   menusound gen(genAcceptSFX)
@@ -3715,7 +3715,7 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
  
   usemenusounds
   usemenu .menust
-  IF game_check_use_key() THEN do_pick = YES
+  IF game_battle_check_use_key() THEN do_pick = YES
   
   IF get_gen_bool("/mouse/mouse_battles") THEN
    IF .menust.hover >= 0 THEN
@@ -3961,7 +3961,7 @@ SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprit
  END WITH
 
  IF game_check_cancel_key() THEN do_cancel = YES
- IF game_check_use_key() THEN do_pick = YES
+ IF game_battle_check_use_key() THEN do_pick = YES
 
  IF get_gen_bool("/mouse/mouse_battles") THEN
   bat.sptr_hover = -1
@@ -4083,7 +4083,7 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
  END IF
 
  IF game_check_cancel_key() THEN do_cancel = YES
- IF game_check_use_key() THEN do_pick = YES
+ IF game_battle_check_use_key() THEN do_pick = YES
 
  bat.item.hover = -1
  IF get_gen_bool("/mouse/mouse_battles") THEN

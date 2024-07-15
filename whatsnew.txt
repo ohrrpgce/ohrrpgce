@@ -107,7 +107,8 @@ WHAT IS NEW?
     * In the map editor, you can now drag with the middle mouse button as well
       as the right (to avoid misclicks) [Ralph]
     * Attack bit "Ignore damage cap" [Ralph]
-    * Bitset "Ignore key repeats for confirm, cancel, and menu" [James]
+    * Bitset "Ignore key repeats for confirm, cancel, and menu" and also
+      exception bitset "Always allow key repeat for confirm in battles" [James]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]
