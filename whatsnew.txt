@@ -264,6 +264,8 @@ WHAT IS NEW?
     * A multi-hit Drop attack kept falling downwards from the target instead of
       the sky on the 2nd and later hits [Ralph]
     * You couldn't disable the Windowed/Fullscreen options with a tag [Ralph/RMZ]
+    * After creating or moving an NPC the position of its walkabout slice wasn't
+      immediately correct when checked by a script [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

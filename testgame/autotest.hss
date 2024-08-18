@@ -1960,6 +1960,7 @@ script, npc tests, begin
   npc extra tests
   npc tag and onetime tests
   use npc script tests
+  npc slice tests
   alter npc tests
 end
 
@@ -2138,6 +2139,26 @@ script, use npc script tests, begin
   delete npc(7)
 
   free slice(tick counter slice)
+end
+
+script, npc slice tests, begin
+  $0="npc slice tests"
+  # Test positioning of NPC slices.
+  # Note that there's lots of tests for npc slices elsewhere too,
+  # in particular sprite slice spritesets are tested in "global npc tests".
+
+  variable(n1, sl1)
+  n1 := create npc(9, 10, 8, west)
+
+  # Check that walkabout slice positions are set immediately
+  sl1 := get npc slice(n1)
+  assert(slice x(sl1) == 10 * 20 && slice y(sl1) == 8 * 20)
+  set NPC position(n1, 3, 4)
+  assert(slice x(sl1) == 3 * 20 && slice y(sl1) == 4 * 20)
+  put NPC(n1, 31, 41)
+  assert(slice x(sl1) == 31 && slice y(sl1) == 41)
+
+  delete npc(n1)
 end
 
 script, alter npc tests, begin

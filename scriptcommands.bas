@@ -1233,8 +1233,11 @@ SUB script_commands(byval cmdid as integer)
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    cropposition retvals(1), retvals(2), 20
-   npc(npcref).x = retvals(1)
-   npc(npcref).y = retvals(2)
+   WITH npc(npcref)
+    .x = retvals(1)
+    .y = retvals(2)
+    update_walkabout_pos .sl, .x, .y, .z
+   END WITH
   END IF
  CASE 137'--put camera
   gen(genCameraMode) = stopcam
@@ -3700,8 +3703,11 @@ SUB script_commands(byval cmdid as integer)
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    cropposition retvals(1), retvals(2), 1
-   npc(npcref).x = retvals(1) * 20
-   npc(npcref).y = retvals(2) * 20
+   WITH npc(npcref)
+    .x = retvals(1) * 20
+    .y = retvals(2) * 20
+    update_walkabout_pos .sl, .x, .y, .z
+   END WITH
   END IF
  CASE 101'--NPC direction
   npcref = getnpcref(retvals(0), 0)
@@ -3811,16 +3817,20 @@ SUB script_commands(byval cmdid as integer)
     END IF
     IF i > -1 THEN
      'This deletes the walkabout slice
-     CleanNPCInst npc(i)
+     DIM byref npci as NPCInst = npc(i)
+     CleanNPCInst npci
      DIM npc_id as integer = retvals(0)
-     npc(i).id = npc_id + 1
-     npc(i).pool = pool
+     npci.id = npc_id + 1
+     npci.pool = pool
      cropposition retvals(1), retvals(2), 1
-     npc(i).x = retvals(1) * 20
-     npc(i).y = retvals(2) * 20
-     npc(i).dir = ABS(retvals(3)) MOD 4
-     npc(i).sl = create_npc_slices(i)  'Calls set_walkabout_sprite
-     'debug "npc(" & i & ").sl=" & npc(i).sl & " [create npc(" & retvals(0) & ")]"
+     npci.x = retvals(1) * 20
+     npci.y = retvals(2) * 20
+     npci.dir = ABS(retvals(3)) MOD 4
+     npci.sl = create_npc_slices(i)  'Calls set_walkabout_sprite
+     'Although not guaranteed to be up to date before the screen is drawn (e.g. due to map wrapping),
+     'try to keep the slice position accurate
+     update_walkabout_pos npci.sl, npci.x, npci.y, npci.z
+     'debug "npc(" & i & ").sl=" & npci.sl & " [create npc(" & retvals(0) & ")]"
      update_npc_zones i
      scriptret = (i + 1) * -1
     END IF
