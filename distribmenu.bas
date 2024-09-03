@@ -1513,7 +1513,7 @@ SUB write_debian_control_file(controlfile as string, basename as string, pkgver 
  PUT #fh, , "Installed-Size: " & size_in_kibibytes & LF
  'FIXME: the Depends: line could vary depending on gfx and music backends
  'This minimum libc version is taken from "scons portable=1" output (see nightly build logs)
- PUT #fh, , "Depends: libc6 (>= 2.14), libncurses5 (>= 5.4), libsdl2-mixer-2.0-0 (>= 2.0.1), libsdl2-2.0-0 (>= 2.0.5), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1" & LF
+ PUT #fh, , "Depends: libc6 (>= 2.14), libsdl2-mixer-2.0-0 (>= 2.0.1), libsdl2-2.0-0 (>= 2.0.5), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1" & LF
  IF LEN(website) > 0 THEN
   PUT #fh, , "Homepage: " & website & LF
  END IF

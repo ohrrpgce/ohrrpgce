@@ -169,7 +169,7 @@ def create_dpkg(outdir):
 
     maintainer = '"OHRRPGCE Development Team" <ohrrpgce@lists.motherhamster.org>'
     # For gfx_sdl builds:  libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2)
-    depends = "libc6 (>= 2.14), libncurses5 (>= 5.4), libsdl2-mixer-2.0-0 (>= 2.0.1), libsdl2-2.0-0 (>= 2.0.5), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1"
+    depends = "libc6 (>= 2.14), libsdl2-mixer-2.0-0 (>= 2.0.1), libsdl2-2.0-0 (>= 2.0.5), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1"
     recommends = "madplay, vorbis-tools"
     version = read_version()
 
@@ -191,7 +191,7 @@ Description: Official Hamster Republic Role Playing Game Construction Engine
  you can use to create your own RPG game in a style similar to the
  classic Final Fantasy games on the NES and SNES which have so shaped the
  RPG genre. To learn how to create your own game, or to download other
- people's games, visit http://HamsterRepublic.com/ohrrpgce/
+ people's games, visit https://HamsterRepublic.com/ohrrpgce/
 """
     , (package_name, calculate_size(files), maintainer, version, depends, recommends))
     install(package_name, debian = True)
