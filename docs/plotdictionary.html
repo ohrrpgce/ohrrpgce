@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2024-06-14)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2024-10-03)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -888,6 +888,8 @@ function toggleContent(target) {
 		<a href="#about-getchildautosort" class="ref">get child autosort (handle)</a><br>
 		<a href="#about-getcolor" class="ref">get color (index)</a><br>
 		<a href="#about-getcount" class="ref">get count</a><br>
+		<a href="#about-getcurrentmapautorunscript" class="ref">get current map autorun script</a><br>
+		<a href="#about-getcurrentmapautorunscriptargument" class="ref">get current map autorun script argument</a><br>
 		<a href="#about-getdamagecap" class="ref">get damage cap</a><br>
 		<a href="#about-getdeathscript" class="ref">get death script</a><br>
 		<a href="#about-getdefaultherohandx" class="ref">get default hero hand x (who, frame)</a><br>
@@ -20504,6 +20506,8 @@ end</pre>
 		<a href="#about-geteachstepscript" class="ref">get each step script</a><br>
 		<a href="#about-setinsteadofbattlescript" class="ref">set instead of battle script (id)</a><br>
 		<a href="#about-getinsteadofbattlescript" class="ref">get instead of battle script</a><br>
+		<a href="#about-getcurrentmapautorunscript" class="ref">get current map autorun script</a><br>
+		<a href="#about-getcurrentmapautorunscriptargument" class="ref">get current map autorun script argument</a><br>
 </div></ul>
 </div>
 		<div class="command">
@@ -20638,6 +20642,26 @@ end</pre>
 				<h4>get instead of battle script</h4>
 <p>
 			Returns a reference to the script that is run instead of battles.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getcurrentmapautorunscript"></a>
+				<h4>get current map autorun script</h4>
+<p>
+			Returns a reference to the script that is run automatically when you load the current map.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getcurrentmapautorunscriptargument"></a>
+				<h4>get current map autorun script argument</h4>
+<p>
+			Returns the argument value that will be automatically passed to the autorun script on the current map. Is this useful? Not very!
 			
 			
 			
@@ -23215,7 +23239,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 964 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 966 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

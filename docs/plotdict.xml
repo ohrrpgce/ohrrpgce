@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2024-06-14">
+<plotscript version="wip" datecode="2024-10-03">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -12169,6 +12169,16 @@ end</example>
 			<canon>get instead of battle script</canon>
 			<shortname>get instead of battle script</shortname>
 			<description>Returns a reference to the script that is run instead of battles.</description>
+		</command>
+		<command id="getcurrentmapautorunscript">
+			<canon>get current map autorun script</canon>
+			<shortname>get current map autorun script</shortname>
+			<description>Returns a reference to the script that is run automatically when you load the current map.</description>
+		</command>
+		<command id="getcurrentmapautorunscriptargument">
+			<canon>get current map autorun script argument</canon>
+			<shortname>get current map autorun script argument</shortname>
+			<description>Returns the argument value that will be automatically passed to the autorun script on the current map. Is this useful? Not very!</description>
 		</command>
 	</section>		<!--Script Triggers-->
 

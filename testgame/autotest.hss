@@ -52,6 +52,7 @@ global variable(122, observed hero count)
 global variable(123, move hero count)
 global variable(124, timer expect arg 1)
 global variable(125, timer expect arg 2)
+global variable(126, autorun counter)
 global variable(50000, the global with the biggest id)
 
 # 200-500 used in hstests.hss
@@ -138,6 +139,7 @@ script, run tests 1, begin
   death tests
   trigger tests
   door tests
+  map autorun tests
   npc tests
   menu tests
   textbox tests
@@ -7053,6 +7055,38 @@ plotscript, after resetgame, arg1, arg2, arg3, begin
     assert(arg3 == 0)
     # exit the script and continue to next tests
   )
+end
+
+########################################################################
+
+script, map autorun tests, begin
+  $0="map autorun tests"
+  autorun counter := 0
+  variable(last map, last x, last y)
+  last map := current map
+  last x := hero x(me)
+  last y := hero y(me)
+  w
+  
+  teleport to map(map:map with an autorun, 1, 1)
+  assert(autorun counter == 1)
+
+  # teleporting to a map you are already on does still run the autorun
+  teleport to map(map:map with an autorun, 2, 2)
+  assert(autorun counter == 2)
+  
+  # force a re-run of the autorun
+  run script by id(get current map autorun script, get current map autorun script argument)
+  assert(autorun counter == 3)
+  
+  w
+  teleport to map(last map, last x, last y)
+
+end
+
+plotscript, simple autorun, arg, begin
+  assert(arg == 444)
+  autorun counter += 1
 end
 
 ########################################################################

@@ -1430,6 +1430,14 @@ script,draw npcs above heroes,hsd:setting=1,begin
   write gmap(16,hsd:setting)
 end
 
+script,get current map autorun script, begin
+  return (read gmap(7))
+end
+
+script,get current map autorun script argument, begin
+  return (read gmap(8))
+end
+
 #--------------------------------------------------------------------------
 # read/write pass block wrappers
 

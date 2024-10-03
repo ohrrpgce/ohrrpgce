@@ -166,6 +166,8 @@ WHAT IS NEW?
       "stop song", "current song"
     * "script layer" alias to "sprite layer", and "sl:sprite layer" alias to
       "sl:script layer"
+    * "get current map autorun script", "get current map autorun script argument"
+      [James]
 
   *** Changes
     * Removed support for optional prefixes on .ini config settings (e.g.

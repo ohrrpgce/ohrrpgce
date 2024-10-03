@@ -131,6 +131,7 @@ define constant, begin
 8,map:Only one local npc
 9,map:Many local NPCs
 10,map:obsolete map data DO NOT EDIT
+11,map:map with an autorun
 1,atk:SelfStab
 2,atk:L10 Wolf
 3,atk:Force Run
