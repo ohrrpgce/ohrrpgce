@@ -49,18 +49,19 @@ build_package() {
   else
     SUFFIX=-x86
   fi
+  echo "SUFFIX=${SUFFIX}"
 
   ./distrib-mac.sh ${MORE_ARGS} || return
 
-  mv distrib/OHRRPGCE-*-wip$SUFFIX.dmg distrib/OHRRPGCE-wip$SUFFIX.dmg &&
+  mv -v distrib/OHRRPGCE-*-wip$SUFFIX.dmg distrib/OHRRPGCE-wip$SUFFIX.dmg &&
   scp -p distrib/OHRRPGCE-wip$SUFFIX.dmg $UPLOAD_DEST/ohrrpgce/nightly/
   rm distrib/OHRRPGCE-wip$SUFFIX.dmg
 
-  mv distrib/ohrrpgce-player-mac-*-wip$SUFFIX.tar.gz distrib/ohrrpgce-player-mac-wip$SUFFIX.tar.gz &&
+  mv -v distrib/ohrrpgce-player-mac-*-wip$SUFFIX.tar.gz distrib/ohrrpgce-player-mac-wip$SUFFIX.tar.gz &&
   scp -p distrib/ohrrpgce-player-mac-wip$SUFFIX.tar.gz $UPLOAD_DEST/ohrrpgce/nightly/
   rm distrib/ohrrpgce-player-mac-wip$SUFFIX.tar.gz
 
-  scp -p distrib/ohrrpgce-mac-util$SUFFIX.zip $UPLOAD_DEST/ohrrpgce/nightly/
+  scp -v -p distrib/ohrrpgce-mac-util$SUFFIX.zip $UPLOAD_DEST/ohrrpgce/nightly/
   rm distrib/ohrrpgce-mac-util$SUFFIX.zip
 }
 
