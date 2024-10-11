@@ -53,15 +53,17 @@ build_package() {
 
   ./distrib-mac.sh ${MORE_ARGS} || return
 
-  mv -v distrib/OHRRPGCE-*-wip$SUFFIX.dmg distrib/OHRRPGCE-wip$SUFFIX.dmg &&
+  NEWESTMATCH=$(ls -1 distrib/OHRRPGCE-*-wip$SUFFIX.dmg | last -1)
+  mv -v "$NEWESTMATCH" distrib/OHRRPGCE-wip$SUFFIX.dmg &&
   scp -p distrib/OHRRPGCE-wip$SUFFIX.dmg $UPLOAD_DEST/ohrrpgce/nightly/
   rm distrib/OHRRPGCE-wip$SUFFIX.dmg
 
-  mv -v distrib/ohrrpgce-player-mac-*-wip$SUFFIX.tar.gz distrib/ohrrpgce-player-mac-wip$SUFFIX.tar.gz &&
+  NEWESTMATCH=$(ls -1 distrib/ohrrpgce-player-mac-*-wip$SUFFIX.tar.gz | last -1)
+  mv -v "$NEWESTMATCH" distrib/ohrrpgce-player-mac-wip$SUFFIX.tar.gz &&
   scp -p distrib/ohrrpgce-player-mac-wip$SUFFIX.tar.gz $UPLOAD_DEST/ohrrpgce/nightly/
   rm distrib/ohrrpgce-player-mac-wip$SUFFIX.tar.gz
 
-  scp -v -p distrib/ohrrpgce-mac-util$SUFFIX.zip $UPLOAD_DEST/ohrrpgce/nightly/
+  scp -p distrib/ohrrpgce-mac-util$SUFFIX.zip $UPLOAD_DEST/ohrrpgce/nightly/
   rm distrib/ohrrpgce-mac-util$SUFFIX.zip
 }
 
