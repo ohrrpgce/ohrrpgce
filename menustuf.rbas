@@ -83,12 +83,7 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
  
  load_shop_stuff shop_id, buyst.stuff_list
 
- '--Preserve the screen underneath
- DIM page as integer
- DIM holdscreen as integer
- page = compatpage
- holdscreen = allocatepage
- copypage page, holdscreen
+ DIM holdscreen as integer = duplicatepage(vpage)
 
  '--walking frame numbers used for animating heroes
  DIM walks(15) as integer
@@ -207,17 +202,17 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
 
 
   'Draw the screen
-  copypage holdscreen, page
+  copypage holdscreen, vpage
   'Draw menu first so it goes below pricebox in case of overlap
-  draw_menu menu, st, page
-  DrawSlice buyst.root_sl, page
-  draw_menu buyst.info, buyst.info_st, page
+  draw_menu menu, st, vpage
+  DrawSlice buyst.root_sl, vpage
+  draw_menu buyst.info, buyst.info_st, vpage
   setvispage vpage
+
   dowait
  LOOP
 
  '--Restore the saved screen
- freepage page
  freepage holdscreen
 
  DeleteSlice @(buyst.root_sl)
