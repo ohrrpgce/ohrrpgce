@@ -3730,7 +3730,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
      centerbox 160, 100, small(LEN(caption) * 8 + 16, 320), 24, 1, page
      edgeprint caption, pCenteredLeft, 95, uilook(uiText), page
      IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1
-     setvispage page
+     setvispage vpage
      waitforanykey
      menu_attack_targ_picker = YES
     ELSE
