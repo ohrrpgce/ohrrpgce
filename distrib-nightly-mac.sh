@@ -52,11 +52,15 @@ build_package() {
   echo "SUFFIX=${SUFFIX}"
 
   ./distrib-mac.sh ${MORE_ARGS} || return
+  echo "Done running distrib-mac.sh"
 
   NEWESTMATCH=$(ls -1 distrib/OHRRPGCE-*-wip$SUFFIX.dmg | last -1)
-  mv -v "$NEWESTMATCH" distrib/OHRRPGCE-wip$SUFFIX.dmg \
-    && scp -p distrib/OHRRPGCE-wip$SUFFIX.dmg $UPLOAD_DEST/ohrrpgce/nightly/ \
-    && rm distrib/OHRRPGCE-wip$SUFFIX.dmg
+  echo "Moving $NEWESTMATCH -> distrib/OHRRPGCE-wip$SUFFIX.dmg"
+  mv -v "$NEWESTMATCH" distrib/OHRRPGCE-wip$SUFFIX.dmg
+  echo "Uploading distrib/OHRRPGCE-wip$SUFFIX.dmg"
+  scp -p distrib/OHRRPGCE-wip$SUFFIX.dmg $UPLOAD_DEST/ohrrpgce/nightly/
+  echo "Cleaning up distrib/OHRRPGCE-wip$SUFFIX.dmg"
+  rm distrib/OHRRPGCE-wip$SUFFIX.dmg
 
   NEWESTMATCH=$(ls -1 distrib/ohrrpgce-player-mac-*-wip$SUFFIX.tar.gz | last -1)
   mv -v "$NEWESTMATCH" distrib/ohrrpgce-player-mac-wip$SUFFIX.tar.gz \
