@@ -5318,8 +5318,32 @@ SUB clear_attack_queue_slot(byval slot as integer)
  END WITH
 END SUB
 
-' This is drawn at the top of the screen, rather than the top of the compatpage
 SUB display_attack_queue (bslot() as BattleSprite)
+ ' Visualize the queue's targetting data with lines
+ DIM as integer x1, y1, x2, y2, col
+ FOR i as integer = 0 TO UBOUND(atkq)
+  WITH atkq(i)
+   IF .used THEN
+    IF is_hero(.attacker) THEN
+     col = findrgb(small(.attacker * 20, 255), 255, small(.attacker * 20, 255))
+    ELSE
+     col = findrgb(255, small(.attacker * 20, 255), small(.attacker * 20, 255))
+    END IF
+    x1 = bslot(.attacker).x + bslot(.attacker).w / 2
+    y1 = bslot(.attacker).y + bslot(.attacker).h / 2
+    FOR j as integer = 0 TO UBOUND(.t)
+     IF .t(j) > -1 THEN
+      x2 = bslot(.t(j)).x + bslot(.t(j)).w / 2
+      y2 = bslot(.t(j)).y + bslot(.t(j)).h / 2
+      drawline x1, y1, x2, y2, col, vpage
+     END IF
+    NEXT j
+   END IF
+  END WITH
+ NEXT i
+
+ ' Display the queue as text
+ ' This is drawn at the top of the screen, rather than the top of the compatpage
  DIM s as string
  DIM targstr as string
  FOR i as integer = 0 TO UBOUND(atkq)
