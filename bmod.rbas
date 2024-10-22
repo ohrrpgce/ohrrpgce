@@ -131,6 +131,7 @@ DECLARE SUB update_battle_targ_hover_slices (layer as Slice Ptr, bat as BattleSt
 DECLARE SUB instantiate_battle_targ_hover_slices (layer as Slice Ptr)
 DECLARE SUB ExpandTextBattleSprite (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 DECLARE SUB ExpandTextBattleState (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+DECLARE SUB force_retargetting_for_attacker (byref bat as BattleState, bslot() as BattleSprite, index as integer)
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
@@ -741,6 +742,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
     END IF
   END SELECT
 
+  DIM oldval as bool = bslot(targ).turncoat_attacker
   SELECT CASE attack.change_turncoat
    CASE 1: 'Turncoat
     bslot(targ).turncoat_attacker = YES
@@ -753,6 +755,10 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
      bslot(targ).turncoat_attacker = bslot(targ).enemy.turncoat_attacker
     END IF
   END SELECT
+  IF bslot(targ).turncoat_attacker <> oldval THEN
+   'Turncoat status has changed, force a retarget of any current commands
+   force_retargetting_for_attacker bat, bslot(), targ
+  END IF
 
   SELECT CASE attack.change_defector
    CASE 1: 'Defector
@@ -5526,6 +5532,18 @@ SUB battle_check_delays(byref bat as BattleState, bslot() as BattleSprite)
      bat.anim_ready = NO
      clear_attack_queue_slot i
      EXIT FOR
+    END IF
+   END IF
+  END WITH
+ NEXT i
+END SUB
+
+SUB force_retargetting_for_attacker (byref bat as BattleState, bslot() as BattleSprite, index as integer)
+ FOR i as integer = 0 TO UBOUND(atkq)
+  WITH atkq(i)
+   IF .used THEN
+    IF .attacker = index THEN
+     autotarget .attacker, .attack, bslot(), bat, .t(), NO
     END IF
    END IF
   END WITH
