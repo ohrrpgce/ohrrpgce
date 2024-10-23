@@ -1159,18 +1159,20 @@ END SUB
 SUB testanimpattern (tastuf() as integer, byref taset as integer)
  DIM sample as TileMap
  DIM tilesetview as TileMap
- DIM tanim_state(1) as TileAnimState
- DIM tileset as Frame ptr = NULL
+ DIM tileset as TilesetData
  DIM tog as integer
  DIM csr as integer
  DIM x as integer
  DIM y as integer
 
- tileset = mxs_frame_to_tileset(vpages(3))
+ tileset.spr = mxs_frame_to_tileset(vpages(3))
+ FOR i as integer = 0 TO UBOUND(tastuf)
+  tileset.tastuf(i) = tastuf(i)
+ NEXT
 
  cleantilemap tilesetview, 16, 3
- FOR y as integer = 0 TO 2
-  FOR x as integer = 0 TO 15
+ FOR y = 0 TO 2
+  FOR x = 0 TO 15
    writeblock tilesetview, x, y, tastuf(20 * taset) + x + y * 16
   NEXT
  NEXT
@@ -1190,11 +1192,10 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
 
   clearpage dpage
   '--draw available animating tiles--
-  drawmap tilesetview, 0, 0, tileset, dpage, , , , 10, 60
+  drawmap tilesetview, 0, 0, tileset.spr, , dpage, , , , 10, 60
 
   '--draw sample--
-  setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
-  cycletile tanim_state(), tastuf()
+  cycletile tileset.anim(), tileset.tastuf()
 
   cleantilemap sample, 3, 3
   FOR x = 0 TO 2
@@ -1202,7 +1203,7 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
     writeblock sample, x, y, 160 + (taset * 48) + csr
    NEXT
   NEXT
-  drawmap sample, -130, 0, tileset, dpage, , , , 100, 60
+  drawmap sample, -130, 0, tileset.spr, @tileset, dpage, , , , 100, 60
 
   '--Draw cursor--
   y = csr \ 16
@@ -1213,7 +1214,7 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
   setvispage vpage
   dowait
  LOOP
- frame_unload @tileset
+ frame_unload @tileset.spr
  unloadtilemap sample
  unloadtilemap tilesetview
 END SUB

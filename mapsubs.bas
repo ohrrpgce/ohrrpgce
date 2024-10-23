@@ -2089,7 +2089,7 @@ DO
    st.zones_needupdate = YES
   END IF
   '--Draw NPC zones
-  drawmap st.zoneoverlaymap, st.mapx, st.mapy, st.overlaytileset, dpage, YES, , , 20
+  drawmap st.zoneoverlaymap, st.mapx, st.mapy, st.overlaytileset, , dpage, YES, , , 20
 
   '--Draw npcs, if not done already
   IF draw_npcs_overlaid THEN
@@ -2174,14 +2174,16 @@ DO
  IF st.editmode = zone_mode THEN
   IF st.zonesubmode = zone_edit_mode THEN
    'Draw a single zone
-   drawmap st.zoneoverlaymap, st.mapx, st.mapy, st.overlaytileset, dpage, YES, , , 20
+   drawmap st.zoneoverlaymap, st.mapx, st.mapy, st.overlaytileset, , dpage, YES, , , 20
   ELSE
    'Draw all zones on this tile
-   drawmap st.zoneviewmap, st.mapx, st.mapy, st.zonetileset(st.zoneviewtileset), dpage, YES, , , 20, , YES
+   drawmap st.zoneviewmap, st.mapx, st.mapy, st.zonetileset(st.zoneviewtileset), , dpage, YES, , , 20, , YES
    IF st.showzonehints THEN
-    'Overlay 'hints' at hidden zones
-    setanim ABS(st.gauze_ticker \ 5 - 4), 0
-    drawmap st.zoneoverlaymap, st.mapx, st.mapy, st.overlaytileset, dpage, YES, , , 20
+    'Overlay animated 'hints' at hidden zones, using animated tiles,
+    'setting the state of the animation manually using a dummy TilesetData.
+    DIM animated_overlay as TilesetData
+    animated_overlay.anim(0).cycle = ABS(st.gauze_ticker \ 5 - 4)
+    drawmap st.zoneoverlaymap, st.mapx, st.mapy, st.overlaytileset, @animated_overlay, dpage, YES, , , 20
    END IF
   END IF
  END IF
@@ -3572,7 +3574,7 @@ SUB mapedit_gmapdata(st as MapEditState)
    DIM tilepos as XYPair = (12 + 8 * LEN(menu[midx(6)].text), 4 + 9 * (midx(6) - state.top))
    DIM tileview as Frame ptr
    tileview = frame_new_view(vpages(dpage), tilepos.x, tilepos.y, 20, 20)
-   drawmap sampmap, 0, 0, st.tilesets(0)->spr, tileview ', NO, 0, NULL, NO
+   drawmap sampmap, 0, 0, st.tilesets(0)->spr, , tileview ', NO, 0, NULL, NO
    frame_unload @tileview
   END IF
   SWAP vpage, dpage
@@ -4720,8 +4722,7 @@ SUB mapedit_export_map_image(st as MapEditState)
 
  FOR layer as integer = 0 TO UBOUND(st.map.tiles)
   IF LayerIsEnabled(st.map.gmap(), layer) THEN
-   setanim st.tilesets(layer)
-   drawmap st.map.tiles(layer), 0, 0, st.tilesets(layer)->spr, dest, _
+   drawmap st.map.tiles(layer), 0, 0, st.tilesets(layer), page, _
            layer > 0, IIF(layer > 0, 0, 1), @st.map.pass
   END IF
   'Draw NPCs?
@@ -4730,8 +4731,7 @@ SUB mapedit_export_map_image(st as MapEditState)
   END IF
  NEXT
  IF LayerIsEnabled(st.map.gmap(), 0) THEN
-   setanim st.tilesets(0)
-   drawmap st.map.tiles(0), 0, 0, st.tilesets(0)->spr, dest, _
+   drawmap st.map.tiles(0), 0, 0, st.tilesets(0), page, _
            NO, 2, @st.map.pass
  END IF
 

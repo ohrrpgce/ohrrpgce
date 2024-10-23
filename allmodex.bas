@@ -208,9 +208,7 @@ dim shared resizing_enabled as bool = NO    'Current backend state (maybe this s
 
 'State for drawing maps (I wish we didn't have any global state)
 dim shared bordertile as integer
-'Tileset animation states
-dim shared anim1 as integer
-dim shared anim2 as integer
+
 
 type SkippedFrame
 	page as integer = -1
@@ -4692,23 +4690,29 @@ local function calcblock (tmap as TileMap, x as integer, y as integer, overheadm
 	return block
 end function
 
+'drawmap helper: initialize animoffsets() from tileset animation state
+local sub setup_tile_anim (animoffsets() as integer, tileset as TilesetData ptr)
+	for i as integer = 0 to 1
+		animoffsets(i) = tileset->anim(i).cycle + tileset->tastuf(i * 20)
+	next
+end sub
+
 'Given a tile number, possibly animated, translate it to the static tile to display
-function translate_animated_tile(todraw as integer) as integer
+local function translate_animated_tile(animoffsets() as integer, todraw as integer) as integer
 	if todraw >= 208 then
-		return (todraw - 48 + anim2) mod 160
+		return (todraw - 48 + animoffsets(1)) mod 160
 	elseif todraw >= 160 then
-		return (todraw + anim1) mod 160
+		return (todraw + animoffsets(0)) mod 160
 	else
 		return todraw
 	end if
 end function
 
 sub drawmap (tmap as TileMap, x as integer, y as integer, tileset as TilesetData ptr, p as integer, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, ystart as integer = 0, yheight as integer = -1, pal as Palette16 ptr = NULL, opts as DrawOptions = def_drawoptions)
-	setanim tileset
-	drawmap tmap, x, y, tileset->spr, p, trans, overheadmode, pmapptr, ystart, yheight, , pal, opts
+	drawmap tmap, x, y, tileset->spr, tileset, p, trans, overheadmode, pmapptr, ystart, yheight, , pal, opts
 end sub
 
-sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, p as integer, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, ystart as integer = 0, yheight as integer = -1, largetileset as bool = NO, pal as Palette16 ptr = NULL, opts as DrawOptions = def_drawoptions)
+sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, tilesetanims as TilesetData ptr = NULL, p as integer, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, ystart as integer = 0, yheight as integer = -1, largetileset as bool = NO, pal as Palette16 ptr = NULL, opts as DrawOptions = def_drawoptions)
 'Draw a single map layer; see overload below for args.
 'ystart is the distance from the top to start drawing, yheight the number of lines. yheight=-1 indicates extend to bottom of screen
 'There are no options in the X direction because they've never been used, and I don't forsee them being (can use Frames or slices instead)
@@ -4719,12 +4723,12 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 	dim saveclip as ClipState = get_cliprect(vpages(p))
 	mapview = frame_new_view(vpages(p), 0, ystart, vpages(p)->w, iif(yheight = -1, vpages(p)->h, yheight))
 	setclip saveclip.l, saveclip.t - ystart, saveclip.r, saveclip.b - ystart, mapview
-	drawmap tmap, x, y, tilesetsprite, mapview, trans, overheadmode, pmapptr, largetileset, pal, opts
+	drawmap tmap, x, y, tilesetsprite, tilesetanims, mapview, trans, overheadmode, pmapptr, largetileset, pal, opts
 	frame_unload @mapview
 	get_cliprect() = saveclip
 end sub
 
-sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, dest as Frame ptr, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, largetileset as bool = NO, pal as Palette16 ptr = NULL, opts as DrawOptions = def_drawoptions)
+sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, tilesetanims as TilesetData ptr = NULL, dest as Frame ptr, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, largetileset as bool = NO, pal as Palette16 ptr = NULL, opts as DrawOptions = def_drawoptions)
 'Draw a single map layer.
 'This version of drawmap paints over the entire dest Frame given to it.
 'x and y are the camera position at the top left corner of the Frame, not
@@ -4736,6 +4740,7 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 'overheadmode = 2 : draw overhead tiles only
 'largetileset : A hack which disables tile animation, instead using tilesets with 256 tiles
 'opts : Note that DrawOptions.scale is not yet supported
+'tilesetanims : tileset animations (.tastuf()) and state (.anim) are taken from this TilesetData
 
 	dim sptr as ubyte ptr
 	dim plane as integer
@@ -4755,6 +4760,11 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 	if opts.with_blending then
 		' Does nothing if timing not enabled
 		subtimer = gfx_op_timer.substart(TimerIDs.Blend)
+	end if
+
+	dim animoffsets(1) as integer
+	if tilesetanims then
+		setup_tile_anim animoffsets(), tilesetanims
 	end if
 
 	'copied from the asm
@@ -4787,7 +4797,7 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 		while tx < dest->w
 			todraw = calcblock(tmap, xpos, ypos, overheadmode, pmapptr)
 			if largetileset = NO then
-				todraw = translate_animated_tile(todraw)
+				todraw = translate_animated_tile(animoffsets(), todraw)
 			end if
 
 			'get the tile
@@ -4813,17 +4823,7 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 	gfx_op_timer.substop subtimer
 end sub
 
-'Set tile animation state for drawmap... yuck
-sub setanim (cycle1 as integer, cycle2 as integer)
-	anim1 = cycle1
-	anim2 = cycle2
-end sub
-
-sub setanim (tileset as TilesetData ptr)
-	anim1 = tileset->tastuf(0) +  tileset->anim(0).cycle
-	anim2 = tileset->tastuf(20) + tileset->anim(1).cycle
-end sub
-
+'Sets global state used by drawmap, yuck
 '-2: draw nothing beyond the map edge
 '-1: wrap map
 '0+: draw this tile beyong the map edge (but only when drawing layer 0)
@@ -4832,17 +4832,18 @@ sub setoutside (defaulttile as integer)
 end sub
 
 ' Draws all map layers at a single tile coordinate. Used for drawing the minimap.
-' Respects setoutside. Changes the setanim (current tileset animation) state.
+' Respects setoutside.
 sub draw_layers_at_tile(composed_tile as Frame ptr, tiles as TileMap ptr vector, tilesets as TilesetData ptr vector, tx as integer, ty as integer, pmapptr as TileMap ptr = NULL)
 	BUG_IF(v_len(tiles) <> v_len(tilesets), "mismatched vectors")
 	for idx as integer = 0 to v_len(tiles) - 1
 		'It's possible that layer <> idx if for example drawing a minimap of a single map layer
 		dim layer as integer = tiles[idx]->layernum
-		setanim tilesets[idx]
+		dim animoffsets(1) as integer
+		setup_tile_anim animoffsets(), tilesets[idx]
 		with *tilesets[idx]
 			dim todraw as integer = calcblock(*tiles[idx], tx, ty, 0, 0)
 			if todraw < 0 then continue for
-			todraw = translate_animated_tile(todraw)
+			todraw = translate_animated_tile(animoffsets(), todraw)
 
 			frame_draw .spr, , 0, -todraw * 20, (layer > 0), composed_tile
 

@@ -186,12 +186,11 @@ DECLARE FUNCTION readblock (map as TileMap, x as integer, y as integer, default 
 DECLARE SUB writeblock (map as TileMap, x as integer, y as integer, v as integer)
 
 DECLARE SUB drawmap OVERLOAD (tmap as TileMap, x as integer, y as integer, tileset as TilesetData ptr, p as integer, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, ystart as integer = 0, yheight as integer = -1, pal as Palette16 ptr = NULL, opts as DrawOptions = def_drawoptions)
-DECLARE SUB drawmap OVERLOAD (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, p as integer, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, ystart as integer = 0, yheight as integer = -1, largetileset as bool = NO, pal as Palette16 ptr = NULL, opts as DrawOptions = def_drawoptions)
-DECLARE SUB drawmap OVERLOAD (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, dest as Frame ptr, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, largetileset as bool = NO, pal as Palette16 ptr = NULL, opts as DrawOptions = def_drawoptions)
+DECLARE SUB drawmap OVERLOAD (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, tilesetanims as TilesetData ptr = NULL, p as integer, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, ystart as integer = 0, yheight as integer = -1, largetileset as bool = NO, pal as Palette16 ptr = NULL, opts as DrawOptions = def_drawoptions)
+DECLARE SUB drawmap OVERLOAD (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame ptr, tilesetanims as TilesetData ptr = NULL, dest as Frame ptr, trans as bool = NO, overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, largetileset as bool = NO, pal as Palette16 ptr = NULL, opts as DrawOptions = def_drawoptions)
+
 DECLARE SUB draw_layers_at_tile(composed_tile as Frame ptr, tiles as TileMap ptr vector, tilesets as TilesetData ptr vector, tx as integer, ty as integer, pmapptr as TileMap ptr = NULL)
 
-DECLARE SUB setanim OVERLOAD (cycle1 as integer, cycle2 as integer)
-DECLARE sub setanim OVERLOAD (tileset as TilesetData ptr)
 DECLARE SUB setoutside (defaulttile as integer)
 
 
