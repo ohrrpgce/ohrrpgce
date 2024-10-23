@@ -268,6 +268,7 @@ October 28 2024 [Ichorescent]
     * You couldn't disable the Windowed/Fullscreen options with a tag [Ralph/RMZ]
     * After creating or moving an NPC the position of its walkabout slice wasn't
       immediately correct when checked by a script [Ralph]
+    * Map General Settings menu now actually shows animated map edge tiles [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license

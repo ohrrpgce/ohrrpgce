@@ -46,7 +46,7 @@ Display Map Name: This is the number of game ticks that the map name will be aut
 
 Map Edge Mode: can be "crop", "wrap", or "use default edge tile". A cropping map cannot be scrolled past the edges at all. A wrapping map will loop around. If you go off the left edge of it, you will come around to the right edge seamlessly. "default edge tile" means that the empty space beyond the edge of the map will be filled with a default tile, maybe grass, or water, or blank void.
 
-Map Edge Tile only matters if you have set the map edge mode to "use default edge tile". You can type in a maptile ID number, or press the left and right arrows to browse. A preview of the chosen tile is displayed.
+Map Edge Tile only matters if you have set the map edge mode to "use default edge tile". You can type in a maptile ID number, or press the left and right arrows to browse. Animated tiles have IDs > 160. A preview of the chosen tile is displayed.
 
 
 Script Settings:

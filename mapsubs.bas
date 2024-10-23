@@ -3566,15 +3566,16 @@ SUB mapedit_gmapdata(st as MapEditState)
   standardmenu cast(BasicMenuItem vector, menu_display), state, 4, 4, dpage, menuopts
   IF map.gmap(10) THEN
    'Harm tile flash color preview
-   rectangle 4 + 8 * LEN(menu[midx(10)].text), 4 + 9 * (midx(10) - state.top), 8, 8, map.gmap(10), dpage
+   rectangle 4 + 8 * LEN(menu[midx(10)].text), 4 + 10 * (midx(10) - state.top), 8, 8, map.gmap(10), dpage
   END IF
   IF need_default_edge_tile(st.map) THEN
-   'Show default edge tile
+   'Show default edge tile (possibly animated)
    writeblock sampmap, 0, 0, map.gmap(6)
-   DIM tilepos as XYPair = (12 + 8 * LEN(menu[midx(6)].text), 4 + 9 * (midx(6) - state.top))
+   animatetilesets st.tilesets()
+   DIM tilepos as XYPair = (12 + 8 * LEN(menu[midx(6)].text), 4 + 10 * (midx(6) - state.top))
    DIM tileview as Frame ptr
    tileview = frame_new_view(vpages(dpage), tilepos.x, tilepos.y, 20, 20)
-   drawmap sampmap, 0, 0, st.tilesets(0)->spr, , tileview ', NO, 0, NULL, NO
+   drawmap sampmap, 0, 0, st.tilesets(0)->spr, st.tilesets(0), tileview ', NO, 0, NULL, NO
    frame_unload @tileview
   END IF
   SWAP vpage, dpage
@@ -5840,10 +5841,7 @@ SUB mapedit_pickblock(st as MapEditState)
   IF dowait THEN
    tog = tog XOR 1
    chequer_scroll += 1
-   IF st.animations_enabled THEN
-    'Update tile animations
-    cycletile tilesetdata->anim(), tilesetdata->tastuf()
-   END IF
+   IF st.animations_enabled THEN animatetilesets st.tilesets()
   END IF
  LOOP
  unloadtilemap tilesetview
