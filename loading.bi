@@ -141,6 +141,7 @@ DECLARE SUB save_tile_anims (byval tileset_num as integer, tastuf() as integer)
 DECLARE FUNCTION tile_anim_pattern_number(tileid as integer) as integer
 DECLARE FUNCTION tile_anim_deanimate_tile (tileid as integer, tastuf() as integer) as integer
 DECLARE FUNCTION tile_anim_animate_tile (tileid as integer, pattern_num as integer, tastuf() as integer) as integer
+DECLARE FUNCTION tile_anim_current_display_tile(tileid as integer, tileset as TilesetData ptr) as integer
 DECLARE FUNCTION tile_anim_is_empty(pattern_num as integer, tastuf() as integer) as bool
 
 DECLARE SUB palette16_save (pal as Palette16 ptr, pal_num as integer)

@@ -1164,6 +1164,7 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
  DIM csr as integer
  DIM x as integer
  DIM y as integer
+ DIM anim_range_start as integer = tastuf(20 * taset)
 
  tileset.spr = mxs_frame_to_tileset(vpages(3))
  FOR i as integer = 0 TO UBOUND(tastuf)
@@ -1173,7 +1174,7 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
  cleantilemap tilesetview, 16, 3
  FOR y = 0 TO 2
   FOR x = 0 TO 15
-   writeblock tilesetview, x, y, tastuf(20 * taset) + x + y * 16
+   writeblock tilesetview, x, y, anim_range_start + x + y * 16
   NEXT
  NEXT
 
@@ -1190,9 +1191,13 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
   IF keyval(ccLeft) > 1 THEN loopvar csr, 0, 47, -1
   IF keyval(ccRight) > 1 THEN loopvar csr, 0, 47, 1
 
+  DIM animated_tile as integer = 160 + (taset * 48) + csr
+
+  setoutside -2  'Don't draw beyond tilemap edge
+
   clearpage dpage
   '--draw available animating tiles--
-  drawmap tilesetview, 0, 0, tileset.spr, , dpage, , , , 10, 60
+  drawmap tilesetview, 0, 0, @tileset, dpage, , , , 10, 60
 
   '--draw sample--
   cycletile tileset.anim(), tileset.tastuf()
@@ -1200,10 +1205,19 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
   cleantilemap sample, 3, 3
   FOR x = 0 TO 2
    FOR y = 0 TO 2
-    writeblock sample, x, y, 160 + (taset * 48) + csr
+    writeblock sample, x, y, animated_tile
    NEXT
   NEXT
-  drawmap sample, -130, 0, tileset.spr, @tileset, dpage, , , , 100, 60
+  drawmap sample, -130, 0, @tileset, dpage, , , , 100, 60
+
+  '--Highlight current display tile for the sample--
+  DIM display_tile as integer = tile_anim_current_display_tile(animated_tile, @tileset) - anim_range_start
+  'This tile might not be on the previewed part of the tileset. Improve later.
+  IF in_bound(display_tile, 0, 47) THEN
+   y = display_tile \ 16
+   x = display_tile - y * 16
+   drawants vpages(dpage), 20 * x, 10 + 20 * y, 20, 20, findrgb(150,150,150)
+  END IF
 
   '--Draw cursor--
   y = csr \ 16

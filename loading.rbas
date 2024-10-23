@@ -3416,6 +3416,13 @@ FUNCTION tile_anim_animate_tile (tileid as integer, pattern_num as integer, tast
  RETURN 160 + 48 * pattern_num + idoffset
 END FUNCTION
 
+'Which tile a tileid (animated or not) is currently displayed as
+FUNCTION tile_anim_current_display_tile(tileid as integer, tileset as TilesetData ptr) as integer
+ IF tileid < 160 THEN RETURN tileid
+ RETURN tile_anim_deanimate_tile(tileid, tileset->tastuf()) _
+        + tileset->anim(tile_anim_pattern_number(tileid)).cycle
+END FUNCTION
+
 'Returns whether one of the tile animation patterns is unused (0 length)
 FUNCTION tile_anim_is_empty(pattern_num as integer, tastuf() as integer) as bool
  'IF first command is 'End of animation'
