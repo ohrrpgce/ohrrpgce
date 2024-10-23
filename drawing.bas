@@ -1200,7 +1200,7 @@ SUB testanimpattern (tastuf() as integer, byref taset as integer)
   drawmap tilesetview, 0, 0, @tileset, dpage, , , , 10, 60
 
   '--draw sample--
-  cycletile tileset.anim(), tileset.tastuf()
+  animatetileset tileset
 
   cleantilemap sample, 3, 3
   FOR x = 0 TO 2

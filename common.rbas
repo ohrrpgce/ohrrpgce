@@ -6749,43 +6749,44 @@ SUB animatetilesets (tilesets() as TilesetData ptr)
    '  because the same tileset can be used on more than one layer...
    IF tilesets(i) = tilesets(j) THEN CONTINUE FOR, FOR
   NEXT
-  cycletile tilesets(i)->anim(), tilesets(i)->tastuf()
+  animatetileset *tilesets(i)
  NEXT
 END SUB
 
-SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
+SUB animatetileset (tileset as TilesetData)
  DIM notstuck as integer
- FOR i as integer = 0 TO 1
+ FOR pattern as integer = 0 TO 1
 #IFDEF IS_GAME
-  IF istag(tastuf(1 + 20 * i), 0) THEN CONTINUE FOR
+  IF istag(tileset.tastuf(1 + 20 * pattern), 0) THEN CONTINUE FOR
 #ENDIF
-  WITH tanim_state(i)
+  WITH tileset.anim(pattern)
    .skip = large(.skip - 1, 0)
    IF .skip = 0 THEN
     notstuck = 10
     DO
-     SELECT CASE tastuf(2 + 20 * i + .pt)
+     DIM arg as integer = tileset.tastuf(11 + 20 * pattern + .pt)
+     SELECT CASE tileset.tastuf(2 + 20 * pattern + .pt)
       CASE 0  'End of animation
        IF .pt <> 0 THEN .cycle = 0  'this is done for the tile animation plotscript commands
        .pt = 0
       CASE 1  'Left
-       .cycle = .cycle - tastuf(11 + 20 * i + .pt) * 16
+       .cycle -= arg * 16
        loopvar .pt, 0, 8
       CASE 2  'Right
-       .cycle = .cycle + tastuf(11 + 20 * i + .pt) * 16
+       .cycle += arg * 16
        loopvar .pt, 0, 8
       CASE 3  'Down
-       .cycle = .cycle + tastuf(11 + 20 * i + .pt)
+       .cycle += arg
        loopvar .pt, 0, 8
       CASE 4  'Up
-       .cycle = .cycle - tastuf(11 + 20 * i + .pt)
+       .cycle -= arg
        loopvar .pt, 0, 8
       CASE 5  'Wait
-       .skip = tastuf(11 + 20 * i + .pt)
+       .skip = arg
        loopvar .pt, 0, 8
 #IFDEF IS_GAME
       CASE 6  'If tag then stop
-       IF istag(tastuf(11 + 20 * i + .pt), 0) THEN
+       IF istag(arg, 0) THEN
         loopvar .pt, 0, 8
        ELSE
         .pt = 0
@@ -6799,13 +6800,13 @@ SUB cycletile (tanim_state() as TileAnimState, tastuf() as integer)
     LOOP WHILE notstuck AND .skip = 0
    END IF
   END WITH
- NEXT i
+ NEXT pattern
 END SUB
 
 'Reset state of all animations to beginning
-SUB reset_tile_anims(tileset as TilesetData ptr)
- FOR j as integer = 0 TO 1
-  WITH tileset->anim(j)
+SUB reset_tile_anims(tileset as TilesetData)
+ FOR pattern as integer = 0 TO 1
+  WITH tileset.anim(pattern)
    .cycle = 0
    .pt = 0
    .skip = 0
@@ -6861,7 +6862,7 @@ SUB loadtilesetdata (tilesets() as TilesetData ptr, byval layer as integer, byva
   load_tile_anims tilesetnum, .tastuf()
  END WITH
 
- reset_tile_anims tilesets(layer)
+ reset_tile_anims *tilesets(layer)
  lockstep_tile_animation tilesets(), layer
 END SUB
 
@@ -6924,7 +6925,7 @@ SUB loadmaptilesets (tilesets() as TilesetData ptr, gmap() as integer, resetanim
  FOR i as integer = 0 TO UBOUND(tilesets)
   tileset = get_layer_tileset(i, gmap())
   loadtilesetdata tilesets(), i, tileset
-  IF resetanimations THEN reset_tile_anims tilesets(i)
+  IF resetanimations THEN reset_tile_anims *tilesets(i)
  NEXT
 END SUB
 
@@ -6934,7 +6935,7 @@ SUB reloadtileanimations (tilesets() as TilesetData ptr, gmap() as integer)
  FOR i as integer = 0 TO UBOUND(tilesets)
   tileset = get_layer_tileset(i, gmap())
   load_tile_anims tileset, tilesets(i)->tastuf()
-  reset_tile_anims tilesets(i)
+  reset_tile_anims *tilesets(i)
  NEXT
 END SUB
 
