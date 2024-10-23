@@ -4693,7 +4693,7 @@ end function
 'drawmap helper: initialize animoffsets() from tileset animation state
 local sub setup_tile_anim (animoffsets() as integer, tileset as TilesetData ptr)
 	for i as integer = 0 to 1
-		animoffsets(i) = tileset->anim(i).cycle + tileset->tastuf(i * 20)
+		animoffsets(i) = POSMOD(tileset->anim(i).cycle + tileset->tastuf(i * 20), 160)
 	next
 end sub
 
