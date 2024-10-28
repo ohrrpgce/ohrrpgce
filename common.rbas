@@ -1212,7 +1212,7 @@ FUNCTION curbinsize (byval id as integer) as integer
  IF id = binDT0        THEN RETURN 858 '.dt0
  IF id = binDT1        THEN RETURN 744 '.dt1
  IF id = binITM        THEN RETURN 480 '.itm
- IF id = binTAP        THEN RETURN 40  '.tap
+ IF id = binTAP        THEN RETURN 314 '.tap
  RETURN 0
 END FUNCTION
 
@@ -4614,6 +4614,7 @@ IF gen(genVersion) = 1 THEN
   '--left 1--
   .cmd(3).op = taopLeft
   .cmd(3).arg = 1
+  '--end--
  END WITH
  FOR i as integer = 0 TO gen(genMaxTile)
   save_tile_anims i, tanim()
@@ -4980,6 +4981,17 @@ IF full_upgrade THEN
  END IF
  safekill game + ".mxs"
  sprite_empty_cache
+END IF
+
+IF getfixbit(fixExtendedTileAnims) = 0 THEN
+ upgrade_message "Extend tile animations..."
+ 'load_tile_anims initializes the new data if the fixbit is off
+ REDIM tanim(1) as TileAnimPattern
+ FOR i as integer = 0 TO gen(genMaxTile)
+  load_tile_anims i, tanim()
+  save_tile_anims i, tanim()
+ NEXT i
+ setfixbit(fixExtendedTileAnims, 1)
 END IF
 
 'Workaround bug #2013: Backdrops were drawn immediately above (instead of) spritelayer until
@@ -6601,18 +6613,22 @@ FUNCTION menu_click (state as MenuState) as bool
  RETURN NO
 END FUNCTION
 
-FUNCTION menu_click_outside(m as MenuDef) as bool
+FUNCTION menu_click_outside(menurect as RectType, menu_age as integer = 30) as bool
  DIM use_mouse as bool = YES
 #IFDEF IS_GAME
  use_mouse = get_gen_bool("/mouse/mouse_menus") OR (force_use_mouse > 0)
 #ENDIF
  IF use_mouse THEN
   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
-   IF readmouse.left_click_age > m.age THEN RETURN NO
-   IF NOT rect_collide_point(m.rect, readmouse().pos) THEN RETURN YES
+   IF readmouse.left_click_age > menu_age THEN RETURN NO
+   IF NOT rect_collide_point(menurect, readmouse().pos) THEN RETURN YES
   END IF
  END IF
  RETURN NO
+END FUNCTION
+
+FUNCTION menu_click_outside(m as MenuDef) as bool
+ RETURN menu_click_outside(m.rect, m.age)
 END FUNCTION
 
 FUNCTION menu_click_outside_with_page(m as MenuDef, viewport_page as integer) as bool
@@ -6623,17 +6639,21 @@ FUNCTION menu_click_outside_with_page(m as MenuDef, viewport_page as integer) as
  RETURN result
 END FUNCTION
 
-FUNCTION menu_right_click_close(m as MenuDef) as bool
+FUNCTION menu_right_click_close(menurect as RectType) as bool
  DIM use_mouse as bool = YES
 #IFDEF IS_GAME
  use_mouse = get_gen_bool("/mouse/mouse_menus") OR (force_use_mouse > 0)
 #ENDIF
  IF use_mouse THEN
   IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
-   IF NOT rect_collide_point(m.rect, readmouse().pos) THEN RETURN YES
+   IF NOT rect_collide_point(menurect, readmouse().pos) THEN RETURN YES
   END IF
  END IF
  RETURN NO
+END FUNCTION
+
+FUNCTION menu_right_click_close(m as MenuDef) as bool
+ RETURN menu_right_click_close(m.rect)
 END FUNCTION
 
 'Whether a mouse click should dismiss a modal message box
@@ -6765,32 +6785,40 @@ SUB animatetileset (tileset as TilesetData)
   WITH tileset.tanim_state(pattern)
    .skip = large(.skip - 1, 0)
    IF .skip = 0 THEN
+    CONST lastcmd = UBOUND(tileset.tanim(pattern).cmd)
     notstuck = 10
     DO
      DIM byref cmd as TileAnimCmd = tileset.tanim(pattern).cmd(.pt)
      SELECT CASE cmd.op
       CASE taopEnd
-       IF .pt <> 0 THEN .cycle = 0  'this is done for the tile animation plotscript commands
+       'Don't reset if the pattern is empty (.pt = 0), so tile animation
+       'script commands can set .cycle
+       IF .pt <> 0 THEN .cycle = 0
+       .pt = 0
+      CASE taopReset
+       .cycle = 0
+       loopvar .pt, 0, lastcmd
+      CASE taopLoop
        .pt = 0
       CASE taopUp
        .cycle -= cmd.arg * 16
-       loopvar .pt, 0, 8
+       loopvar .pt, 0, lastcmd
       CASE taopDown
        .cycle += cmd.arg * 16
-       loopvar .pt, 0, 8
+       loopvar .pt, 0, lastcmd
       CASE taopRight
        .cycle += cmd.arg
-       loopvar .pt, 0, 8
+       loopvar .pt, 0, lastcmd
       CASE taopLeft
        .cycle -= cmd.arg
-       loopvar .pt, 0, 8
+       loopvar .pt, 0, lastcmd
       CASE taopWait
        .skip = cmd.arg
-       loopvar .pt, 0, 8
+       loopvar .pt, 0, lastcmd
 #IFDEF IS_GAME
       CASE taopCheckTag  'Or else stop
        IF istag(cmd.arg, 0) THEN
-        loopvar .pt, 0, 8
+        loopvar .pt, 0, lastcmd
        ELSE
         .pt = 0
         .cycle = 0
@@ -6801,7 +6829,7 @@ SUB animatetileset (tileset as TilesetData)
         debug "Unknown tile animation op " & cmd.op & " in tileset " & tileset.num
         seen_unknown = YES
        END IF
-       loopvar .pt, 0, 8
+       loopvar .pt, 0, lastcmd
      END SELECT
      notstuck -= 1
     LOOP WHILE notstuck > 0 AND .skip = 0

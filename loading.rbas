@@ -3387,7 +3387,27 @@ SUB load_tile_anims (byval tileset_num as integer, tanim() as TileAnimPattern)
    FOR idx as integer = 0 TO 8
     .cmd(idx).op = tapbuf(2 + idx)
     .cmd(idx).arg = tapbuf(11 + idx)
+    .cmd(idx).arg2 = tapbuf(20 + idx)
    NEXT
+   .tileset_num = tapbuf(29)
+   .range_length = tapbuf(30)
+   .range_stride = tapbuf(31)
+   'offsets 32-33 reserved
+   FOR idx as integer = 9 TO maxTileAnimCmds
+    DIM offset as integer = 34 + 3 * (idx - 9)
+    .cmd(idx).op = tapbuf(offset)
+    .cmd(idx).arg = tapbuf(offset + 1)
+    .cmd(idx).arg2 = tapbuf(offset + 2)
+   NEXT
+
+   IF getfixbit(fixExtendedTileAnims) = 0 THEN
+    'tapbuf(20) and up are uninitialised
+    .tileset_num = tileset_num
+    .range_length = 48
+    .range_stride = 1
+    'Previously-full patterns looped without resetting
+    .cmd(9).op = taopLoop
+   END IF
   END WITH
  NEXT
 END SUB
@@ -3396,11 +3416,30 @@ SUB save_tile_anims (byval tileset_num as integer, tanim() as TileAnimPattern)
  DIM tapbuf(dimbinsize(binTAP)) as integer
  FOR pattern as integer = 0 TO 1
   WITH tanim(pattern)
+   'In future these are intended for supporting a variable number of animation
+   'patterns per tileset, in the same way as menu item records, and maybe shared
+   'patterns between tilesets, without having to replace .TAP.
+   'For now it's saved but ignored.
+   .tileset_num = tileset_num
+   .range_length = 48
+   .range_stride = 1
+
    tapbuf(0) = .range_start
    tapbuf(1) = .disable_tag
    FOR idx as integer = 0 TO 8
     tapbuf(2 + idx) = .cmd(idx).op
     tapbuf(11 + idx) = .cmd(idx).arg
+    tapbuf(20 + idx) = .cmd(idx).arg2
+   NEXT
+   tapbuf(29) = .tileset_num
+   tapbuf(30) = .range_length
+   tapbuf(31) = .range_stride
+   'offsets 32-33 reserved
+   FOR idx as integer = 9 TO maxTileAnimCmds
+    DIM offset as integer = 34 + 3 * (idx - 9)
+    tapbuf(offset) = .cmd(idx).op
+    tapbuf(offset + 1) = .cmd(idx).arg
+    tapbuf(offset + 2) = .cmd(idx).arg2
    NEXT
   END WITH
   storerecord tapbuf(), game & ".tap", getbinsize(binTAP) \ 2, 2 * tileset_num + pattern

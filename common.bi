@@ -304,9 +304,11 @@ DECLARE FUNCTION boolgrabber (byref thebool as bool, byref state as MenuState) a
 DECLARE FUNCTION booleangrabber (byref thebool as boolean, byref state as MenuState) as bool
 
 DECLARE FUNCTION menu_click (state as MenuState) as bool
-DECLARE FUNCTION menu_click_outside(m as MenuDef) as bool
+DECLARE FUNCTION menu_click_outside OVERLOAD (menurect as RectType, menu_age as integer = 30) as bool
+DECLARE FUNCTION menu_click_outside OVERLOAD (m as MenuDef) as bool
 DECLARE FUNCTION menu_click_outside_with_page(m as MenuDef, viewport_page as integer) as bool
-DECLARE FUNCTION menu_right_click_close(m as MenuDef) as bool
+DECLARE FUNCTION menu_right_click_close OVERLOAD (menurect as RectType) as bool
+DECLARE FUNCTION menu_right_click_close OVERLOAD (m as MenuDef) as bool
 DECLARE FUNCTION click_dismiss () as bool
 DECLARE FUNCTION enter_click (state as MenuState) as bool
 DECLARE FUNCTION enter_space_click (state as MenuState) as bool

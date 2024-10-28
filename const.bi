@@ -33,7 +33,7 @@ CONST CURRENT_RPG_VERSION = 23
 ' 20 - callipygous release. Added general.reld (including new version system) and maxScriptCmdID checking.
 ' 21 - fufluns replaced all .PT# and .MXS with .rgfx
 ' 22 - ichorescent switched to extra data vectors in .Z and slicetree_*.reld
-' 23 - ichorescent made .TAP binsize-sized
+' 23 - ichorescent made .TAP binsize-sized, extended them, and added new ops
 
 CONST CURRENT_RGFX_VERSION = 1
 ' Version number embedded in each .rgfx file.
@@ -302,8 +302,9 @@ CONST fixInitDefaultVolumes = 28 'genMusicVolume and genSFXVolume have been init
 CONST fixAttackMultipliers = 29  'Initialise attack damage and aim multipliers, randomization, and absorption.
 CONST fixCheckForBrokenTBChains = 30 'Ran check_for_broken_textbox_after_chains()
 CONST fixCheckTryingToMoveDirection = 31 'Checked whether "trying to move direction" script exists
+CONST fixExtendedTileAnims = 32  'Initialised .TAP record fields at indices 20+
 
-CONST sizeFixBits = 32 ' *** Update this when adding fix bits (last bit + 1) ***
+CONST sizeFixBits = 33 ' *** Update this when adding fix bits (last bit + 1) ***
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_onetime = 15999 'The last available onetime use flag. (The first is 2.)
@@ -329,6 +330,7 @@ CONST maxMPLevel = 7   'Max level of FF1-style level-MP, 0-based (Note: the spel
 CONST spellsPerLMP = 3 'Number of spells at each level-MP level
 CONST maxElements = 64 'Maximum selectable number of elements
 CONST maxDoorsPerMap = 99 '0 thru 99
+CONST maxTileAnimCmds = 49 'Ubound of TileAnimPattern.cmd()
 CONST maxMapHistoryMem = 2000000 'In number of MapEditUndoTiles (8 bytes)
 CONST maxSpriteHistoryMem = 16000000  'Max size of sprite undo history, in bytes
 CONST maxFrameSize = 4096 'Max width or height of a Frame (in memory or .rgfx) or importable image.
