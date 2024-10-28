@@ -476,8 +476,8 @@ def source_files(srcdir = "."):
         if os.path.isdir(".git"):
             print_system("git svn info > svninfo.txt")
             filelist = print_check_output(*"git ls-tree -r --full-tree --name-only HEAD".split())
-        elif os.path.isdir(".svn") or os.path.isdir("../.svn"):
-            # We're in a checkout of wip/ or of the whole svn repo
+        elif os.path.isdir(".svn") or os.path.isdir("../.svn") or os.path.isdir("../../.svn"):
+            # We're in a checkout of wip/ or of the whole svn repo or a rel/codename branch
             print_system("svn info > svninfo.txt")
             filelist = print_check_output("svn", "list", "-R")
         else:
