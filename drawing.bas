@@ -1090,7 +1090,9 @@ SUB setanimpattern (tanim() as TileAnimPattern, taset as integer, tilesetnum as 
     'Shortcut keys: <,> to change op, left/right/intgrabber to change arg
     IF curcmd THEN
      WITH *curcmd
-      IF keygrabber(.op, 0, taopLAST, scLeftCaret, scRightCaret) THEN state.need_update = YES
+      DIM int_op as integer = .op
+      IF keygrabber(int_op, 0, taopLAST, scLeftCaret, scRightCaret) THEN state.need_update = YES
+      .op = int_op
       IF .op <= taopLAST THEN  'Not invalid
        IF intgrabber(.arg, llim(.op), ulim(.op)) THEN state.need_update = YES
       END IF
