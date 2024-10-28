@@ -1,16 +1,23 @@
-This is a binary-only distribution of the OHRRPGCE. Full source code of the
-game engine and game editor is available under a dual GPLv2+ & MIT license.
-For information about getting the source code, visit:
+This distribution includes the OHRRPGCE game engine. Games made with the
+OHRRPGCE will be under a different copyright and license not described by this
+file. Please see any included README files or in-game credits for information
+about the copyright and licensing of the included game data.
 
- http://HamsterRepublic.com/ohrrpgce/source.php
+The Official Hamster Republic RPG Construction Engine (OHRRPGCE) is free
+software dual licensed under the GNU GPL v2+ and MIT Licenses as included below,
+meaning you may use and redistribute it under the terms of either license.
+This distribution may include binary code which can't be distributed under
+the GPL, and the GPL does not automatically apply to it.
 
-The OHRRPGCE is a generic game engine. The game data files may be under a
-different licence. Please see the included README files for more information
-about the licensing of the included game data
+(C) Copyright 1997-2024 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+For a list of developers see:
+ https://rpg.hamsterrepublic.com/ohrrpgce/Contributors
+To obtain the source code, visit:
+ https://rpg.hamsterrepublic.com/ohrrpgce/Source
 
 ------------------------------------------------------------------------------
 
-                      MIT License
+                           MIT License
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,12 +38,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ------------------------------------------------------------------------------
-
+
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
  Copyright (C) 1989, 1991 Free Software Foundation, Inc.
-                       59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+		       59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 

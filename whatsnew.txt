@@ -2,27 +2,31 @@ WHAT IS NEW?
 
 October 28 2024 [Ichorescent]
 
-  *** Summary
-    * Source code license has been changed to Dual GPLv2+ & MIT license
-      by unanimous consent of all OHRRPGCE contributors
-    * Changes to ports
+  *** Highlights
+    * Ports
       * New experimental web port (lacks save game support)
-      * Many changes to facilitate console porting
+      * Steam Achievements support
+      * Distribute to itch.io option
+      * Commercial console ports such as Switch, PS4/5 and XBox
       * Android port doesn't currently work on Android 12 or newer
        (don't worry this will get fixed in the future)
-    * Misc new features and fixes, Including but not limited to:
-      * new battle features
-      * new script commands
-      * new slice features and improved slice editor
-      * Improved support for non-default screen resolutions (other than 320x200)
-      * improved mouse/touch support
-      * improved config support
-      * improvements to distribute game menu
-      * Improved debug tools
+      * Linux packages and games will now work without installing libraries
+      * Builds to support ancient Win95 PCs
+    * Marvellous new features and fixes, including but not limited to:
+      * New battle features including Turncoat and Defector
+      * New script commands including variable length extra data arrays
+      * New slice features and improved slice editor GUI
+      * Improved support for screen resolutions other than 320x200
+      * Improved mouse/touch support
       * Improvements to both fullscreen and windowed modes
+      * Debug tools including slice and script profiling
+    * Source code license has been changed to Dual GPLv2+ & MIT license
     * And more, detailed below!
-    
+
   *** New Features
+    * Experimental Web (wasm) port! You can export your game to a .zip including
+      an .html file from the Distribute Game menu. However saved games aren't
+      yet kept after closing the page [Blain Maguire, Ralph, James]
     * From the "Distribute Game" menu, you can upload your game directly to
       itch.io [James]
     * gfx_fb backend (the one noone uses) supports non 320x200 games now [Ralph]
@@ -132,6 +136,15 @@ October 28 2024 [Ichorescent]
     * Tile animation patterns can be up to 50 commands long rather than just 9
       (whew). Added Reset and Loop (without Reset) commands. And made the
       pattern editor a little faster to use. [Ralph]
+    * Support for Steam Achievements (editor under General Game Data). The
+      achievements system currently has no effect in games not distributed via
+      Steam, but will in future! [Mike, Ralph]
+    * Games, and the engine itself, packaged for Linux (except Debian .deb) now
+      include all libraries and should run an any system [Ralph]
+    * "win-win95" engine builds which support Windows 95 or later and Pentium
+      Pro or later. (Regular gfx_sdl2 Windows builds require Win XP and a
+      Pentium 4 (SSE2) CPU but run faster.) For now you need to manually
+      download and combine your .rpg with ohrrpgce-player-*-win95.zip [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]
@@ -292,12 +305,16 @@ October 28 2024 [Ichorescent]
     * After creating or moving an NPC the position of its walkabout slice wasn't
       immediately correct when checked by a script [Ralph]
     * Map General Settings menu now actually shows animated map edge tiles [Ralph]
+    * Our most infamous crash bug (Bug #1060), "Occasional MIDI crash when
+      looping on Windows", is fixed after over a decade! Some very short or blank
+      MIDIs crashed very often. Credit to the SDL_Mixer team.
+    * You could activate NPCs while riding a vehicle by clicking on them [James]
 
   *** Stuff Only Developers Will Notice
     * Source code license has been changed to Dual GPLv2+ & MIT license
-      by unanimous consent of all OHRRPGCE contributors [James, Ralph,
+      by unanimous consent of all previous OHRRPGCE contributors [James, Ralph,
       Mike, Simon, David, Yuriy, Jay, Matthias, Adam, Lakan, Taoki,
-      Daniel, SwordPlay, zzo38]
+      Daniel, SwordPlay, zzo38, Lenny]
     * FreeBASIC 1.04+ now required to compile
     * UI in Battle (Hero names, meters, HP, status icons) are now all
       slice-based instead of hardcoded. It still looks the same by
@@ -307,6 +324,10 @@ October 28 2024 [Ichorescent]
     * gfx_fb and gfx_console take a --nogfx arg, combine with --print to create
       commandline programs [Ralph]
     * Help pages can include template_name.txt using {{name}} syntax [Ralph]
+    * New system for packaging the engine [Ralph]
+    * Ratalaika Games has private (commercial) ports of the OHRRPGCE to consoles
+      including PS4/5, Switch and XBox One/Series X, and made many improvements
+      that will make future ports easier [Matt Gambrell, Ralph]
 
 
 September 13 2021 [Hróðvitnir]

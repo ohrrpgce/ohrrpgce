@@ -1,10 +1,16 @@
-The Source Code of the O.H.R.RPG.C.E is free software.
-Dual licensed under the GNU GPL v2+ and MIT Licenses.
-(C) Copyright 1997-2021 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+The Official Hamster Republic RPG Construction Engine (OHRRPGCE) is free
+software dual licensed under the GNU GPL v2+ and MIT Licenses as included below,
+meaning you may use and redistribute it under the terms of either license.
+
+(C) Copyright 1997-2024 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+For a list of developers see:
+ https://rpg.hamsterrepublic.com/ohrrpgce/Contributors
+To obtain the source code, visit:
+ https://rpg.hamsterrepublic.com/ohrrpgce/Source
 
 ------------------------------------------------------------------------------
 
-                      MIT License
+                           MIT License
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
