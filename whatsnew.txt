@@ -130,7 +130,8 @@ October 28 2024 [Ichorescent]
     * Bitset "Ignore key repeats for confirm, cancel, and menu" and also
       exception bitset "Always allow key repeat for confirm in battles" [James]
     * Tile animation patterns can be up to 50 commands long rather than just 9
-      (whew) and added Reset and Loop (without Reset) commands [Ralph]
+      (whew). Added Reset and Loop (without Reset) commands. And made the
+      pattern editor a little faster to use. [Ralph]
 
    * New Plotscripting Features
     * "dir X", "dir Y" [Ralph]

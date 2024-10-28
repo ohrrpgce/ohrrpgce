@@ -1,9 +1,9 @@
 This screen lets you define an animation pattern.
 
-There can be up to 9 commands in the pattern. Use the up and down arrow keys to move through the list of animation commands. Press ENTER or SPACE to start editing a command.
+There can be up to 50 commands in the pattern. Use the up and down arrow keys to move through the list of animation commands. Press ENTER or CLICK to start editing a command.
 These commands will be evaluated in order from the top to the bottom. When the animation reaches the end of the list, it starts over again at the top.
 
-When you are editing a command, you can use the left and right arrows to choose a command type. Each command also has a value which you can type. Press ENTER when you are done editing a command to return to the list of commands.
+When you are editing a command, you can use the left and right arrows to choose a command type. Most commands also have a value (parameter) which you can set. Press ENTER or ESC when you are done editing a command to return to the list of commands.
 
 Think of the animation as a cursor that moves around the tileset choosing which tile to display, starting from a base tile.  Then the commands act on this cursor like so:
 
@@ -35,9 +35,13 @@ If tag do rest: This lets you choose
 End of animation: This causes the
     animation to skip back to the
     first command and to reset to the
-    initial tile. It is useful if
-    your animation is simple and does
-    not require all 9 commands.
+    initial tile.
+    Equivalent to Reset + Loop.
+Reset: Revert to the original tile.
+Loop: Go back to the top of the
+    pattern without resetting. You
+    can use to create very long
+    animation loops.
 
 For example, you might have two tiles side-by-side in your tileset. You can make an animation pattern that moves an imaginary cursor back and forth between these two tiles, resulting in an animation.  Here is how the pattern would be written:
 
@@ -47,4 +51,4 @@ left 1
 wait 4
 end of animation
 
-If you use all 9 commands and do not end with an "end of animation" command, then your animation will NOT reset to the initial tile when it reaches the end, but will still loop back to the start! This is probably not what you want, although you can exploit it to create a very long animation loop!
+If you use all 50 commands and do not end with an "end of animation" command, then your animation will NOT reset to the initial tile when it reaches the end: it will Loop rather than End.

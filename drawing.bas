@@ -1040,6 +1040,7 @@ SUB setanimpattern (tanim() as TileAnimPattern, taset as integer, tilesetnum as 
 
  DIM context as integer = 0  '0 = main menu, 1 = detail menu
  DIM tog as integer
+ DIM curcmd as TileAnimCmd ptr = NULL
 
  'Main menu
  DIM state as MenuState
@@ -1061,22 +1062,56 @@ SUB setanimpattern (tanim() as TileAnimPattern, taset as integer, tilesetnum as 
 
   SELECT CASE context
    CASE 0  '''''Main menu
-    IF keyval(ccCancel) > 1 THEN EXIT DO
     IF usemenu(state) THEN state.need_update = YES
+    IF in_bound(state.pt, 0, maxTileAnimCmds) THEN
+     curcmd = @tanim(taset).cmd(state.pt)
+    ELSE
+     curcmd = NULL
+    END IF
+
+    IF keyval(ccCancel) > 1 THEN EXIT DO
     IF enter_space_click(state) THEN
      IF state.pt = -1 THEN  'Previous menu
       EXIT DO
      ELSE
-      context = 1
+      IF curcmd ANDALSO numargs(curcmd->op) = 0 THEN
+       DIM newop as integer
+       newop = multichoice("Select action:", animop(), taopRight)
+       IF newop > -1 THEN
+        curcmd->op = newop
+        context = IIF(numargs(curcmd->op) = 0, 0, 1)
+        state.need_update = YES
+       END IF
+      ELSE
+       context = 1
+      END IF
      END IF
+    END IF
+    'Shortcut keys: <,> to change op, left/right/intgrabber to change arg
+    IF curcmd THEN
+     WITH *curcmd
+      IF keygrabber(.op, 0, taopLAST, scLeftCaret, scRightCaret) THEN state.need_update = YES
+      IF .op <= taopLAST THEN  'Not invalid
+       IF intgrabber(.arg, llim(.op), ulim(.op)) THEN state.need_update = YES
+      END IF
+     END WITH
     END IF
 
    CASE 1  '''''Detail menu
     usemenu state2
     'The final "loop" can't be changed
-    IF in_bound(state.pt, 0, maxTileAnimCmds) THEN
-     WITH tanim(taset).cmd(state.pt)
+    IF curcmd THEN
+     WITH *curcmd
       IF state2.pt = 0 THEN  'Select op
+       IF enter_space_click(state2) THEN
+        DIM newop as integer
+        newop = multichoice("Select action:", animop(), taopRight)
+        IF newop > -1 THEN
+         .op = newop
+         context = IIF(numargs(curcmd->op) = 0, 0, 1)  'Don't need to stay in this submenu
+         state.need_update = YES
+        END IF
+       END IF
        IF intgrabber(.op, 0, taopLAST) THEN state.need_update = YES
       END IF
       IF state2.pt = 1 THEN  'Select param
@@ -1103,7 +1138,15 @@ SUB setanimpattern (tanim() as TileAnimPattern, taset as integer, tilesetnum as 
   clearpage dpage
   state.active = (context = 0)
   standardmenu menu(), state, , , dpage
-  state2.active = (context = 1) AND in_bound(state.pt, 0, maxTileAnimCmds)
+  state2.active = (context = 1) ANDALSO curcmd  'Not final forced Loop
+  IF context = 0 THEN
+   IF curcmd ANDALSO curcmd->op = taopEnd THEN
+    edgeprint "Enter/</> to pick op", pInfoX, pInfoY, uilook(uiDisabledItem), dpage
+   ELSE
+    edgeprint "Enter: Edit, </>: change op, Left/Right: change value", pInfoX, pInfoY, uilook(uiDisabledItem), dpage
+   END IF
+  END IF
+
   IF context = 1 THEN
    'Draw the detail-edit menu immediately below the selected menu item in the main menu
    floatrect = XYWH(pMenuX + 4, pMenuY + (state.pt - state.top + 1) * 9 + 13, 310, 10 * (1 + UBOUND(menu2)))
