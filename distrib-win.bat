@@ -6,10 +6,12 @@ ECHO Building sdl2 executables...
 REM scons continues if can't create the pdb files
 support\rm -f game.exe custom.exe relump.exe unlump.exe hspeak.exe win32\game.pdb win32\custom.pdb
 
-REM Equivalent to gfx=sdl2+directx+fb music=sdl2
-CALL scons game custom buildname=sdl2 %SCONS_ARGS% || exit /b 1
+REM compile hspeak, unlump and relump FIRST so their buildinfo.ini does not clobber the real one
 REM Would compile with lto=1 to reduce unlump/relump size, but that causes mingw-w64 gcc 8.1.0 to crash
 CALL scons hspeak unlump relump win95=1 sse2=0 %SCONS_ARGS% || exit /b 1
+REM Equivalent to gfx=sdl2+directx+fb music=sdl2
+REM this generates the buildinfo.ini that is used for subsequent ohrpackage.py
+CALL scons game custom buildname=sdl2 %SCONS_ARGS% || exit /b 1
 
 ECHO ------------------------------------------
 ECHO Packaging game player ohrrpgce-player-win-*-sdl2.zip ...
