@@ -1223,10 +1223,12 @@ DO
  IF carray(ccLeft) > 1 THEN
   who = loop_active_party_slot(who, -1)
   menusound gen(genCursorSFX)
+  wtog = 0
  END IF
  IF carray(ccRight) > 1 THEN
   who = loop_active_party_slot(who, 1)
   menusound gen(genCursorSFX)
+  wtog = 0
  END IF
  IF game_check_use_key() THEN EXIT DO
 
