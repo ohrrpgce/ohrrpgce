@@ -8938,14 +8938,14 @@ SUB init_text_box_slices(byref txtsl as Slice ptr, box as TextBox, parent as Sli
    'Invisible box
    ChangeRectangleSlice img_box, , , , borderNone, transHollow
   END IF
-  img_box->Width = 50
-  img_box->Height = 50
   img_box->X = box.portrait_pos.x - 4
   img_box->Y = box.portrait_pos.y - 3
   '--Then load the portrait
   DIM img_sl as Slice Ptr
   img_sl = NewSliceOfType(slSprite, img_box, SL_TEXTBOX_PORTRAIT)
   ChangeSpriteSlice img_sl, sprTypePortrait, img_id, pal_id
+  img_box->Width = img_sl->width
+  img_box->Height = img_sl->height
  END IF
 
  '--set up the choice-box (if any)

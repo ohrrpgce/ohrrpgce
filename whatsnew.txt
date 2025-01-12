@@ -34,6 +34,8 @@ February 1 2025 [Jocoserious]
       increases it to zero (it keeps it unchanged) [Ralph]
     * The order/team menu and the hero-picker menu now automatically get
       taller to accommodate tall hero sprites [James]
+    * Text box portrait boxes now size correctly to the portrait sprite
+      instead of always being 50x50 [James]
   
 
 October 28 2024 [Ichorescent]
