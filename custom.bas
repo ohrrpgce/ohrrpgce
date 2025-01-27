@@ -1138,12 +1138,12 @@ FUNCTION check_ok_to_open (filename as string) as bool
     RETURN check_a_crashed_workingdir(sessinfo)
    ELSE
     DIM msg as string
-    msg = "Another copy of " CUSTOMEXE " is already editing " & decode_filename(sourcerpg) & _
+    msg = "Another copy of " CUSTOMEXE " seems to be already editing " & decode_filename(sourcerpg) & _
           !".\nYou can't open the same game twice at once! " _
           "(Make a copy first if you really want to.)"
     'IF is_windows_9x() THEN
      'sessinfo.running is not reliable on Win9x, so provide a bypass ... maybe it's not 100% reliable anyway
-     IF twochoice(msg, "OK, quit", "No! I swear it's crashed! Recover it.") = 1 THEN
+     IF twochoice(msg, "OK, quit", "No! I swear it's crashed! Continue") = 1 THEN
       RETURN check_a_crashed_workingdir(sessinfo)
      END IF
     'ELSE

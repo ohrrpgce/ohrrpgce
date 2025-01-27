@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2024-11-08">
+<plotscript version="wip" datecode="2025-01-27">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -4020,13 +4020,15 @@ fade screen in</example>
 
 
 		<command id="renamehero">
-			<canon>rename hero (who)</canon>
+			<canon>rename hero (heroid)</canon>
 			<shortname>rename hero</shortname>
 			<description>
 				Pops up a name-editing box that allows you to change the name of a hero in the party.
 				The game and scripts are paused while this menu is up.
 				<lb/>
-				The argument is the hero&apos;s ID number, or name in the format hero:name.
+				The <tt>heroid</tt> argument is the hero&apos;s ID number, for example a constant in the format <tt>hero:name</tt>, unlike most hero commands!
+				Use <ref>renameherobyslot</ref> to use a "who" argument.
+				<lb/>
 				The return value is true if the player renamed the hero, or false if they cancelled.
 			</description>
 		</command>
@@ -4037,8 +4039,9 @@ fade screen in</example>
 				Pops up a name-editing box that allows you to change the name of a hero in the party.
 				The game and scripts are paused while this menu is up.
 				<lb/>
-				The argument is the hero&apos;s position in the party as returned by <ref>findhero</ref>.
-				The return value is true if the player the hero renamed, or false if they cancelled.
+				The <tt>who</tt> argument is the hero&apos;s position in the party as returned by <ref>findhero</ref>.
+				<lb/>
+				The return value is true if the player renamed the hero, or false if they cancelled.
 			</description>
 		</command>
 
@@ -4111,7 +4114,7 @@ fade screen in</example>
 		<command id="getheroautobattle">
 			<canon>get hero auto battle (who)</canon>
 			<shortname>get hero auto battle</shortname>
-			<description>Returns true if the hero is set to fight automatically in battles, or false if the hero will be under normal player control. The hero number should be the hero's position in the battle party (not the name or caterpillar rank)</description>
+			<description>Returns <tt>true</tt> if the hero is set to fight automatically in battles, or <tt>false</tt> if the hero will be under normal player control. <tt>who</tt> should be the hero's position in the party as returned by <ref>findhero</ref>.</description>
 			<seealso>
 				<ref>setheroautobattle</ref>
 			</seealso>
@@ -4119,7 +4122,7 @@ fade screen in</example>
 		<command id="setheroautobattle">
 			<canon>set hero auto battle (who, bool)</canon>
 			<shortname>set hero auto battle</shortname>
-			<description>Changes whether or not the hero should fight automatically in battles (true), or if the hero will be under normal player control (false). The hero number should be the hero's position in the battle party (not the name or caterpillar rank)</description>
+			<description>Changes whether or not the hero should fight automatically in battles (<tt>true</tt>), or if the hero will be under normal player control (<tt>false</tt>). <tt>who</tt> should be the hero's position in the party as returned by <ref>findhero</ref>.</description>
 			<seealso>
 				<ref>getheroautobattle</ref>
 			</seealso>
@@ -5438,6 +5441,7 @@ end
 				<warn>
 					All axes are meant to return 0 when the player isn't touching the stick/trigger,
 					but you must NOT rely on this as joysticks/thumbsticks in general don't return to exactly 0,0!
+					In fact, some of them never report exactly 0!
 					Instead, you must use a "dead zone" around 0 where input is ignored.
 					For example, ignore values between -50 and 50.
 					Also, if you push a stick diagonally (e.g. up-right) it probably won't reach 100,-100.
@@ -8641,7 +8645,7 @@ map y := slice screen y(sl) + camera pixel y</example>
 				<ref>setslicevelocityy</ref> at the same time (except that those let you use
 				different <p>ticks</p> for the X and Y velocities).
 				The <p>ticks</p> argument is optional.
-				If you do not specify the number of ticks, the slice will keep moving indefinitely.
+				If you do not specify the number of ticks (or pass -1), the slice will keep moving indefinitely.
 				If you specify the number of ticks, the velocity will expire and be set back to
 				zero automatically after that number of ticks has passed.
 				<lb/>
