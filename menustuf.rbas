@@ -44,6 +44,8 @@ DECLARE FUNCTION equip_menu_equipped_item_info(st as EquipMenuState) as string
 DECLARE FUNCTION equip_menu_available_item_info(st as EquipMenuState) as string
 
 DECLARE FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as integer, byval attacker as integer, use_caption as string, byval x_offset as integer=0, byval really_use_attack as bool=YES) as bool
+DECLARE FUNCTION menu_attack_targ_picker_make_slices(x_offset as integer) as Slice Ptr
+DECLARE SUB menu_targpick_plank_state_callback (byval sl as Slice Ptr, byval state as PlankItemState)
 DECLARE FUNCTION getOOBtarg (byval search_direction as integer, byval attacker as integer, byref target as integer, byval atk as integer) as bool
 
 DECLARE SUB spells_menu_refresh_list(sp as SpellsMenuState)
@@ -3634,6 +3636,13 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  DIM allow_spread as bool = NO
  DIM must_spread as bool = NO
  
+
+ 
+ '--Build the menu from slices
+ DIM ps as PlankState 'This menu is not fully plankified, but I did want to be able to call set_plank_state
+ ps.m = menu_attack_targ_picker_make_slices(x_offset)
+ ps.state_callback = @menu_targpick_plank_state_callback
+ 
  IF attack_id >= 0 THEN
   loadattackdata atk, attack_id
   allow_spread = (atk.targ_set = 2)
@@ -3695,6 +3704,10 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
 
   IF game_check_use_key() THEN
    do_effect = YES
+  END IF
+  
+  IF keyval(scF8) > 1 THEN
+   slice_editor ps.m
   END IF
   
   '--handle mouse
@@ -3798,17 +3811,20 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
 
   '--draw the targ picker menu
   copypage holdscreen, page
-  centerbox 160 + x_offset, 47, 160, 88, 2, page
   FOR i as integer = 0 TO 3
-   IF gam.hero(i).id >= 0 THEN
+   DIM holder as Slice ptr = LookupSlice(SL_PLANK_HOLDER, ps.m)
+   DIM plank as Slice Ptr = SliceChildByIndex(holder, i)
+   IF plank <> NULL THEN
     DIM targetted as bool = (targ = i ORELSE (spread ANDALSO chkOOBtarg(attacker, i, attack_id)))
-    IF targetted THEN rectangle 84 + x_offset, 8 + i * 20, 152, 20, uilook(uiHighlight2), page
+    IF targetted THEN ps.cur = holder
+    set_plank_state ps, plank, iif(targetted, plankSEL, plankNORMAL)
     DIM frame as integer = 0
     IF targetted THEN frame = wtog_to_frame(wtog)
-    set_walkabout_frame gam.hero(i).sl, dirDown, frame
-    DrawSliceAt LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, gam.hero(i).sl), 89 + x_offset, 8 + i * 20, 20, 20, page, YES
-    col = uilook(uiMenuItem)
-    IF targetted THEN col = uilook(uiSelectedItem + tog)
+    IF gam.hero(i).id >= 0 THEN
+     set_walkabout_frame plank, dirDown, frame
+    END IF
+
+    caption = ""
     IF attack_id >= 0 THEN
      IF atk.targ_stat = statHP or atk.targ_stat = statMP THEN
       caption = gam.hero(i).stat.cur.sta(atk.targ_stat) & "/" & gam.hero(i).stat.max.sta(atk.targ_stat) & " " & statnames(atk.targ_stat)
@@ -3818,14 +3834,17 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
       'Targets a register, which does nothing, but maybe the attack has some side effect
       caption = gam.hero(i).name
      END IF
-     edgeprint caption, 119 + x_offset, 16 + i * 20, col, page
     ELSEIF learn_id >= 0 THEN
-     edgeprint gam.hero(i).name, 119 + x_offset, 16 + i * 20, col, page
+     caption = gam.hero(i).name
     END IF
+    DIM txt as Slice Ptr = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
+    ChangeTextSlice txt, caption
    END IF
   NEXT i
-  centerfuz 160 + x_offset, 100, LEN(use_caption) * 8 + 32, 16, 4, page
-  edgeprint use_caption, pCentered + x_offset, 95, uilook(uiText), page
+  DIM txt as Slice Ptr = LookupSlice(SL_SINGLE_CAPTION_TEXT, ps.m, slText)
+  ChangeTextSlice txt, use_caption
+   
+  DrawSlice ps.m, page
  
   setvispage vpage
   dowait
@@ -3834,7 +3853,91 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  setkeys
  freepage page
  freepage holdscreen
+ DeleteSlice @(ps.m)
 END FUNCTION
+
+FUNCTION menu_attack_targ_picker_make_slices(x_offset as integer) as Slice Ptr
+ DIM root_sl as Slice Ptr = NewSliceOfType(slSpecial)
+ root_sl->Fill = YES
+ RefreshSliceScreenPos root_sl
+
+ DIM box as Slice Ptr = NewSliceOfType(slRectangle, root_sl)
+ WITH *box
+  .x = x_offset 
+  .y = 3
+  .Width = 160
+  .Height = 88
+  .AnchorHoriz = alignCenter
+  .AnchorVert = alignTop
+  .AlignHoriz = alignCenter
+  .AlignVert = alignTop
+  .PaddingLeft = 4
+  .PaddingRight = 4
+  .PaddingTop = 5
+  .PaddingBottom = 0
+ END WITH
+ ChangeRectangleSlice box, 1
+ 
+ DIM grid as Slice Ptr = NewSliceOfType(slGrid, box, SL_PLANK_HOLDER)
+ WITH *grid
+  .Fill = YES
+ END WITH
+ ChangeGridSlice grid, 4, 1
+ 
+ FOR i as integer = 0 TO 3
+  '--Plank
+  DIM plank as Slice Ptr = NewSliceOfType(slContainer, grid)
+  plank->Fill = YES
+  '--Rectangle that highlights the selected one
+  DIM target_rect as Slice Ptr = NewSliceOfType(slRectangle, plank, SL_PLANK_MENU_SELECTABLE)
+  target_rect->Fill = YES
+  ChangeRectangleSlice target_rect, , uiHighlight2 * -1 - 1, , borderNone
+  IF gam.hero(i).id >= 0 THEN
+   '--Copy of the hero's walkabout slices
+   DIM walk as Slice Ptr = CloneSliceTree(gam.hero(i).sl)
+   SetSliceParent walk, plank
+   walk->X = 5
+   walk->Y = 0
+   RealignSlice walk, alignLeft, alignBottom, alignLeft, alignBottom
+   DIM spr as Slice Ptr = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walk)
+   'Cancel any foot offset copied from the current map
+   spr->Y = 0
+   '--Text caption
+   DIM txt as Slice Ptr = NewSliceOfType(slText, plank, SL_PLANK_MENU_SELECTABLE)
+   ChangeTextSlice txt, "placeholder", uiMenuItem * -1 - 1, YES
+   RealignSlice txt, alignLeft, alignCenter, alignLeft, alignCenter
+   txt->X = 35
+   txt->Y = 3
+  END IF
+ NEXT i
+
+ DIM caption_rect as Slice ptr = NewSliceOfType(slRectangle, box)
+ RealignSlice caption_rect, alignCenter, alignBottom, alignCenter, alignTop
+ WITH *caption_rect
+  .Y = 1
+  .Width = LEN("placeholder") * 8 + 32
+  .Height = 16
+ END WITH
+ ChangeRectangleSlice caption_rect, 3, , , , transFuzzy
+ DIM caption as Slice ptr = NewSliceOfType(slText, caption_rect, SL_SINGLE_CAPTION_TEXT)
+ CenterSlice caption
+ ChangeTextSlice caption, "placeholder", uilook(uiText), YES
+ 
+ RETURN root_sl
+END FUNCTION
+
+SUB menu_targpick_plank_state_callback (byval sl as Slice Ptr, byval state as PlankItemState)
+ 'First call the default callback
+ set_plank_state_default_callback sl, state
+ 'Now custom stuff for the menu attack target picker
+ SELECT CASE sl->SliceType
+  CASE slRectangle:
+   'This menu uses a different bgcol for the highlight
+   SELECT CASE state
+    CASE plankSEL: ChangeRectangleSlice sl, , uiHighlight2 * -1 - 1
+   END SELECT
+ END SELECT
+END SUB
 
 SUB spells_menu_refresh_list(sp as SpellsMenuState)
  IF sp.lists(sp.listnum).magic_type < 0 THEN EXIT SUB

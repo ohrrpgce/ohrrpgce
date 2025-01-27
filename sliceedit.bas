@@ -3332,6 +3332,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   append_simplemenu_item menu, "shop_buy_info_panel", , , -102027
   append_simplemenu_item menu, "status_hide_if_no_hp", , , -102028
   append_simplemenu_item menu, "pathfind_dest_display", , , -102100
+  append_simplemenu_item menu, "single_caption_text", , , -102200
   append_simplemenu_item menu, "battle_ui_layer", , , -200100
   append_simplemenu_item menu, "battle_hero_info_area", , , -200101
   append_simplemenu_item menu, "battle_hero_info_template", , , -200102
