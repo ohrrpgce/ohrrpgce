@@ -3636,12 +3636,11 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  DIM allow_spread as bool = NO
  DIM must_spread as bool = NO
  
-
- 
  '--Build the menu from slices
  DIM ps as PlankState 'This menu is not fully plankified, but I did want to be able to call set_plank_state
  ps.m = menu_attack_targ_picker_make_slices(x_offset)
  ps.state_callback = @menu_targpick_plank_state_callback
+ DIM holder as Slice Ptr = LookupSlice(SL_PLANK_HOLDER, ps.m)
  
  IF attack_id >= 0 THEN
   loadattackdata atk, attack_id
@@ -3716,7 +3715,8 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   IF get_gen_bool("/mouse/mouse_menus") THEN
    DIM hover as integer = -1
    FOR i as integer = 0 to 3
-    IF rect_collide_point(XYWH(84 + x_offset, 8 + 20 * i, 152, 20), readmouse.pos) THEN hover = i
+    DIM hover_sl as Slice Ptr = SliceChildByIndex(holder, i)
+    IF SliceCollidePoint(hover_sl, readmouse.pos) THEN hover = i
    NEXT i
 
    IF hover = -1 ANDALSO ((readmouse.release AND mouseLeft) ORELSE (readmouse.release AND mouseRight)) THEN
@@ -3857,6 +3857,15 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
 END FUNCTION
 
 FUNCTION menu_attack_targ_picker_make_slices(x_offset as integer) as Slice Ptr
+
+ DIM tallness as integer = 20
+ FOR i as integer = 0 to 3
+  IF gam.hero(i).id >= 0 THEN
+   DIM spr as Slice Ptr = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, gam.hero(i).sl)
+   tallness = large(tallness, spr->Height)
+  END IF
+ NEXT i
+
  DIM root_sl as Slice Ptr = NewSliceOfType(slSpecial)
  root_sl->Fill = YES
  RefreshSliceScreenPos root_sl
@@ -3866,7 +3875,7 @@ FUNCTION menu_attack_targ_picker_make_slices(x_offset as integer) as Slice Ptr
   .x = x_offset 
   .y = 3
   .Width = 160
-  .Height = 88
+  .Height = tallness * 4 + 2
   .AnchorHoriz = alignCenter
   .AnchorVert = alignTop
   .AlignHoriz = alignCenter

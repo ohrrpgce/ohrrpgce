@@ -32,8 +32,9 @@ February 14 2025 [Jocoserious]
       is passed to "Test Game" also [James]
     * An attack which tries to decrease a stat that's below zero no longer
       increases it to zero (it keeps it unchanged) [Ralph]
-    * The order/team menu and the hero-picker menu now automatically get
-      taller to accommodate tall hero sprites [James]
+    * The order/team menu and the hero-picker menu and the heal/cure
+      target picker now automatically get taller to accommodate tall
+      hero sprites [James]
     * Text box portrait boxes now size correctly to the portrait sprite
       instead of always being 50x50 [James]
   
