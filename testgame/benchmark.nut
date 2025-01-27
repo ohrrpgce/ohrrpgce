@@ -217,6 +217,65 @@ function benchmark_call_multiarg_script() {
 
 /******************************/
 
+function benchmark_distance() {
+    local x = 300
+    local y = 400
+    local res
+    local end = MICRO_LOOPCOUNT / 10 + 1
+    for (local i = 0; i < end; i++) {
+        res = sqrt((i - x)*(i - x) + (i - y)*(i - x))
+        res = sqrt((i - x)*(i - x) + (i - y)*(i - x))
+        res = sqrt((i - x)*(i - x) + (i - y)*(i - x))
+        res = sqrt((i - x)*(i - x) + (i - y)*(i - x))
+        res = sqrt((i - x)*(i - x) + (i - y)*(i - x))
+        res = sqrt((i - x)*(i - x) + (i - y)*(i - x))
+        res = sqrt((i - x)*(i - x) + (i - y)*(i - x))
+        res = sqrt((i - x)*(i - x) + (i - y)*(i - x))
+        res = sqrt((i - x)*(i - x) + (i - y)*(i - x))
+        res = sqrt((i - x)*(i - x) + (i - y)*(i - x))
+    }
+}
+
+function benchmark_distance_squared() {
+    local x = 300
+    local y = 400
+    local res
+    local end = MICRO_LOOPCOUNT / 10 + 1
+    for (local i = 0; i < end; i++) {
+        res = (i - x)*(i - x) + (i - y)*(i - y)  // Vastly faster than pow(,2)
+        res = (i - x)*(i - x) + (i - y)*(i - y)
+        res = (i - x)*(i - x) + (i - y)*(i - y)
+        res = (i - x)*(i - x) + (i - y)*(i - y)
+        res = (i - x)*(i - x) + (i - y)*(i - y)
+        res = (i - x)*(i - x) + (i - y)*(i - y)
+        res = (i - x)*(i - x) + (i - y)*(i - y)
+        res = (i - x)*(i - x) + (i - y)*(i - y)
+        res = (i - x)*(i - x) + (i - y)*(i - y)
+        res = (i - x)*(i - x) + (i - y)*(i - y)
+    }
+}
+
+function benchmark_manhatten_distance() {
+    local x = 300
+    local y = 400
+    local res
+    local end = MICRO_LOOPCOUNT / 10 + 1
+    for (local i = 0; i < end; i++) {
+        res = abs(i - x) + abs(i - y)  // abs is quite slow
+        res = abs(i - x) + abs(i - y)
+        res = abs(i - x) + abs(i - y)
+        res = abs(i - x) + abs(i - y)
+        res = abs(i - x) + abs(i - y)
+        res = abs(i - x) + abs(i - y)
+        res = abs(i - x) + abs(i - y)
+        res = abs(i - x) + abs(i - y)
+        res = abs(i - x) + abs(i - y)
+        res = abs(i - x) + abs(i - y)
+    }
+}
+
+/******************************/
+
 function fibonacci(n) {
     if (n < 2) return 1
     return fibonacci(n-2) + fibonacci(n-1)
@@ -417,6 +476,9 @@ run_benchmark(benchmark_array_append, 100)
 run_benchmark(benchmark_string_append, MICRO_LOOPCOUNT, 0.25)
 run_benchmark(benchmark_call_script, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_call_multiarg_script, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_distance, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_distance_squared, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_manhatten_distance, MICRO_LOOPCOUNT)
 printnl("\nGeneral benchmarks\n")
 run_benchmark(benchmark_recursive_fibonacci, 1, 2)
 run_benchmark(benchmark_fixedmul, 1)
@@ -424,4 +486,4 @@ run_benchmark(benchmark_string_iter, 1)
 run_benchmark(benchmark_crappy_sqrt, 1)
 run_benchmark(benchmark_bubble_fill, 40)
 run_benchmark(benchmark_bubble_sort, 1, 1, benchmark_bubble_fill)
-printnl("Total time score: " + score)
+printnl("Total time: " + score)

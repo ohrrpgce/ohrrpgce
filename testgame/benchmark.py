@@ -166,6 +166,51 @@ def benchmark_call_multiarg_script():
       empty_multiarg_script (i, i, i, i)
       empty_multiarg_script (i, i, i, i)
 
+def benchmark_distance():
+  x = 300
+  y = 400
+  for i in range(MICRO_LOOPCOUNT // 10 + 1):
+    res = ((i - x)**2 + (i - y)**2)**0.5
+    res = ((i - x)**2 + (i - y)**2)**0.5
+    res = ((i - x)**2 + (i - y)**2)**0.5
+    res = ((i - x)**2 + (i - y)**2)**0.5
+    res = ((i - x)**2 + (i - y)**2)**0.5
+    res = ((i - x)**2 + (i - y)**2)**0.5
+    res = ((i - x)**2 + (i - y)**2)**0.5
+    res = ((i - x)**2 + (i - y)**2)**0.5
+    res = ((i - x)**2 + (i - y)**2)**0.5
+    res = ((i - x)**2 + (i - y)**2)**0.5
+
+def benchmark_distance_squared():
+  x = 300
+  y = 400
+  for i in range(MICRO_LOOPCOUNT // 10 + 1):
+    res = (i - x)**2 + (i - y)**2  # (i - x)*(i - x) is slightly slower
+    res = (i - x)**2 + (i - y)**2
+    res = (i - x)**2 + (i - y)**2
+    res = (i - x)**2 + (i - y)**2
+    res = (i - x)**2 + (i - y)**2
+    res = (i - x)**2 + (i - y)**2
+    res = (i - x)**2 + (i - y)**2
+    res = (i - x)**2 + (i - y)**2
+    res = (i - x)**2 + (i - y)**2
+    res = (i - x)**2 + (i - y)**2
+
+def benchmark_manhatten_distance():
+  x = 300
+  y = 400
+  for i in range(MICRO_LOOPCOUNT // 10 + 1):
+    res = abs(i - x) + abs(i - y)
+    res = abs(i - x) + abs(i - y)
+    res = abs(i - x) + abs(i - y)
+    res = abs(i - x) + abs(i - y)
+    res = abs(i - x) + abs(i - y)
+    res = abs(i - x) + abs(i - y)
+    res = abs(i - x) + abs(i - y)
+    res = abs(i - x) + abs(i - y)
+    res = abs(i - x) + abs(i - y)
+    res = abs(i - x) + abs(i - y)
+
 def fibonacci(n):
   if n <= 1:
       return 1
@@ -326,6 +371,9 @@ run_benchmark(benchmark_array_append, 100)
 run_benchmark(benchmark_string_append, MICRO_LOOPCOUNT, 0.25)
 run_benchmark(benchmark_call_script, MICRO_LOOPCOUNT)
 run_benchmark(benchmark_call_multiarg_script, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_distance, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_distance_squared, MICRO_LOOPCOUNT)
+run_benchmark(benchmark_manhatten_distance, MICRO_LOOPCOUNT)
 print("\nGeneral benchmarks\n")
 run_benchmark(benchmark_recursive_fibonacci, 1, 2)
 run_benchmark(benchmark_fixedmul, 1)
@@ -333,4 +381,4 @@ run_benchmark(benchmark_string_iter, 1)
 run_benchmark(benchmark_crappy_sqrt, 1)
 run_benchmark(benchmark_bubble_fill, 40)
 run_benchmark(benchmark_bubble_sort, 1, init_func=benchmark_bubble_fill)
-print("Total time score: %d" % score)
+print("Total time: %d" % score)

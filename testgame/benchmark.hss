@@ -42,6 +42,8 @@ plotscript, main, begin
   variable (score, score2, loops)
 
   init
+  show string($2 = "Running benchmarks.\nResults are logged to g_debug.txt")
+  $2 = ""
 
   wait (2)
   $2 = "Micro-benchmarks"
@@ -117,6 +119,8 @@ plotscript, main, begin
     score += run benchmark (@benchmark: one arg command, loops)
     $1 = "one arg command with variable"
     score += run benchmark (@benchmark: one arg command with variable, loops)
+    $1 = "sqrt"
+    score += run benchmark (@benchmark: sqrt, loops)
     $1 = "more complex one arg command"
     score += run benchmark (@benchmark: more complex one arg command, loops)
     $1 = "slice X"
@@ -144,6 +148,12 @@ plotscript, main, begin
     $1 = "read global array"  # Compare to "array index"
     score += run benchmark (@benchmark: read global array, loops)
   )
+  $1 = "distance"
+  score += run benchmark (@benchmark: distance, loops)
+  $1 = "distance squared"
+  score += run benchmark (@benchmark: distance squared, loops)
+  $1 = "manhatten distance"
+  score += run benchmark (@benchmark: manhatten distance, loops)
 
   $2 = ""
   trace (2)
@@ -197,20 +207,22 @@ plotscript, main, begin
     # and whether gfx_fb is used
     $1 = "check all keys"
     run benchmark (@benchmark: check all keys, 1)
-
-    # This score doesn't depend on the speed of implementation of any commands
-    $1 = "Benchmark time for interpreter (lower's better): "
-    append number (1, score)
-    trace (1)
-    show string at (1, 0, 180)
   )
 
+
+  $2 = "Benchmark times (lower is faster):"
+  if (PSBENCH) then (
+    # This score doesn't depend on the speed of implementation of any commands
+    $2 + "\nScript interpreter: "
+    append number (2, score)
+  )
   score += score2
-  $2 = "Total time score: "
+  $2 + "\nTotal time: "
   append number (2, score)
   trace (2)
   show string (2)
-  wait (60)
+
+  wait (80)
   game over
 end
 
@@ -720,6 +732,22 @@ script, benchmark: one arg command with variable, begin
   )
 end
 
+script, benchmark: sqrt, begin
+  variable (i)
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    sqrt (i)
+    sqrt (i)
+    sqrt (i)
+    sqrt (i)
+    sqrt (i)
+    sqrt (i)
+    sqrt (i)
+    sqrt (i)
+    sqrt (i)
+    sqrt (i)
+  )
+end
+
 script, benchmark: more complex one arg command, begin
   variable (i, sl)
   for (i, 0, MICRO LOOPCOUNT / 10) do (
@@ -923,6 +951,57 @@ script, benchmark: write global, begin
     write global (UNUSED GLOBAL, 0)
     write global (UNUSED GLOBAL, 0)
     write global (UNUSED GLOBAL, 0)
+  )
+end
+
+script, benchmark: distance, begin
+  variable (i, x, y, res)
+  x := 300, y := 400
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    res := sqrt((i -- x)^2 + (i -- y)^2)
+    res := sqrt((i -- x)^2 + (i -- y)^2)
+    res := sqrt((i -- x)^2 + (i -- y)^2)
+    res := sqrt((i -- x)^2 + (i -- y)^2)
+    res := sqrt((i -- x)^2 + (i -- y)^2)
+    res := sqrt((i -- x)^2 + (i -- y)^2)
+    res := sqrt((i -- x)^2 + (i -- y)^2)
+    res := sqrt((i -- x)^2 + (i -- y)^2)
+    res := sqrt((i -- x)^2 + (i -- y)^2)
+    res := sqrt((i -- x)^2 + (i -- y)^2)
+  )
+end
+
+script, benchmark: distance squared, begin
+  variable (i, x, y, res)
+  x := 300, y := 400
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    res := (i -- x)^2 + (i -- y)^2
+    res := (i -- x)^2 + (i -- y)^2
+    res := (i -- x)^2 + (i -- y)^2
+    res := (i -- x)^2 + (i -- y)^2
+    res := (i -- x)^2 + (i -- y)^2
+    res := (i -- x)^2 + (i -- y)^2
+    res := (i -- x)^2 + (i -- y)^2
+    res := (i -- x)^2 + (i -- y)^2
+    res := (i -- x)^2 + (i -- y)^2
+    res := (i -- x)^2 + (i -- y)^2
+  )
+end
+
+script, benchmark: manhatten distance, begin
+  variable (i, x, y, res)
+  x := 300, y := 400
+  for (i, 0, MICRO LOOPCOUNT / 10) do (
+    res := abs(i -- x) + abs(i -- y)
+    res := abs(i -- x) + abs(i -- y)
+    res := abs(i -- x) + abs(i -- y)
+    res := abs(i -- x) + abs(i -- y)
+    res := abs(i -- x) + abs(i -- y)
+    res := abs(i -- x) + abs(i -- y)
+    res := abs(i -- x) + abs(i -- y)
+    res := abs(i -- x) + abs(i -- y)
+    res := abs(i -- x) + abs(i -- y)
+    res := abs(i -- x) + abs(i -- y)
   )
 end
 
