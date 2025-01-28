@@ -4,12 +4,13 @@ February 14 2025 [Jocoserious]
 
   *** New Features
     * Shift Tile tileset animation command. Non-animated uses likely! [Ralph]
-    * Add a bitset to hide the battle menu while you are targeting an
-      attack [James]
 
    * Battle Features
     * Attacks can set a tag if their targetting fails [James]
-    * New attack bitset "Replace stored targets" [James]
+    * New attack bitset "Replace stored targets" ("Add to stored targets" +
+      "Delete stored targets" does not work!) [James]
+    * Add a bitset to hide the battle menu while you are targeting an
+      attack [James]
 
    * Ports
     * Uploading your game to itch.io now supports web build too [James]
@@ -18,7 +19,7 @@ February 14 2025 [Jocoserious]
 
    * Plotscripting Features
     * "running on web" command
-  
+
   *** Bugfixes
     * It is now possible to re-enable any tag disabled battle menu item,
       not just specific attacks [James]
@@ -37,7 +38,7 @@ February 14 2025 [Jocoserious]
       hero sprites [James]
     * Text box portrait boxes now size correctly to the portrait sprite
       instead of always being 50x50 [James]
-  
+
 
 October 28 2024 [Ichorescent]
 
