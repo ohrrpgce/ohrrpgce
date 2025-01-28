@@ -95,7 +95,7 @@ DECLARE SUB spriteedit_export (default_name as string, spr as Frame ptr, pal as 
 DECLARE FUNCTION default_export_name (sprtype as SpriteType, setnum as integer, framenum as integer = 0, fullset as bool) as string
 
 ' Spriteset editor
-DECLARE SUB edit_animations(sprset as SpriteSet ptr, pal as Palette16 ptr)
+DECLARE SUB edit_animations(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext)
 DECLARE SUB spriteset_resize_menu_rebuild(byref root as Slice ptr, ss as Frame ptr, pal as integer)
 
 
@@ -4399,6 +4399,7 @@ TYPE SpriteSetEditor
   anim_preview as SpriteState ptr
   pal as Palette16 ptr
   tog as integer
+  context as AnimationContext
 
   DECLARE SUB display()
   DECLARE SUB run(sprtype as SpriteType, setnum as integer)
@@ -5325,6 +5326,7 @@ SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
  ss = spriteset_load(sprtype, setnum)
  anim_preview = NEW SpriteState(ss)
  pal = palette16_load(-1, sprtype, setnum)
+ context = acHeroSprite
 
  setkeys
  DO
@@ -5335,7 +5337,7 @@ SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
 
   IF keyval(ccCancel) > 1 THEN EXIT DO
 
-  IF keyval(scE) > 1 THEN edit_animations(ss, pal)
+  IF keyval(scE) > 1 THEN edit_animations(ss, pal, context)
   IF keyval(scX) > 1 THEN export_menu()
    
   display()
@@ -5436,8 +5438,9 @@ TYPE AnimationEditor
   sprset as SpriteSet ptr
   sprstate as SpriteState ptr
   pal as Palette16 ptr
+  sprtype_context as AnimationContext
 
-  DECLARE CONSTRUCTOR(sprset as SpriteSet ptr, pal as Palette16 ptr)
+  DECLARE CONSTRUCTOR(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext)
   DECLARE DESTRUCTOR()
 
   ' Top-level menu
@@ -5452,15 +5455,16 @@ TYPE AnimationEditor
   DECLARE SUB edit_animation(anim_name as string)
 END TYPE
 
-SUB edit_animations(sprset as SpriteSet ptr, pal as Palette16 ptr)
-  DIM as AnimationEditor editor = AnimationEditor(sprset, pal)
+SUB edit_animations(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext)
+  DIM as AnimationEditor editor = AnimationEditor(sprset, pal, sprtype_context)
   editor.toplevel()
 END SUB
 
-CONSTRUCTOR AnimationEditor(sprset as SpriteSet ptr, pal as Palette16 ptr)
+CONSTRUCTOR AnimationEditor(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext)
   this.sprset = sprset
   this.pal = pal
   this.sprstate = NEW SpriteState(sprset)
+  this.sprtype_context = sprtype_context
 END CONSTRUCTOR
 
 DESTRUCTOR AnimationEditor()

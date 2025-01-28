@@ -12051,6 +12051,17 @@ function SpriteSet.describe() as string
 	       & ", " & ubound(animations) & " animations>"
 end function
 
+sub split_variantname(variantname as string, byref anim as string, byref variant as string)
+	dim spacepos as integer = instr(variantname, " ")
+	if spacepos then
+		anim = left(variantname, spacepos - 1)
+		variant = mid(variantname, spacepos + 1)
+	else
+		anim = variantname
+		variant = ""
+	end if
+end sub
+
 ' Searches for an animation with a certain name, or NULL if there
 ' are no animations with that name.
 ' variantname is either just the name of the animation, or the
@@ -12062,13 +12073,7 @@ end function
 '  - then prefer the first animation (with that name)
 function SpriteSet.find_animation(variantname as string) as Animation ptr
 	dim as string name, variant
-	dim spacepos as integer = instr(variantname, " ")
-	if spacepos then
-		name = left(variantname, spacepos - 1)
-		variant = mid(variantname, spacepos + 1)
-	else
-		name = variantname
-	end if
+	split_variantname variantname, name, variant
 
 	dim best_match as Animation ptr
 	for idx as integer = 0 to ubound(animations)
@@ -12076,7 +12081,7 @@ function SpriteSet.find_animation(variantname as string) as Animation ptr
 			' Right name, check how good the match is
 			if animations(idx).variant = variant then
 				return @animations(idx)        'Exact match
-			elseif len(animations(idx).variant) then
+			elseif len(animations(idx).variant) = 0 then
 				best_match = @animations(idx)  'Prefer nonvariant animations
 			elseif best_match = NULL then
 				best_match = @animations(idx)  'Otherwise, default to the first variant

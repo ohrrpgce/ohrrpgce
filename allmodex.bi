@@ -742,6 +742,38 @@ declare function masterpal_to_gfxpal(pal() as RGBcolor) as RGBPalette ptr
 '==========================================================================================
 '                                 SpriteSets and Animations
 
+
+' Contexts in which an animation or animation variant name has a builtin meaning
+Enum AnimationContext
+	acWalkaboutSprite = 1
+	acHeroSprite = 2
+	acEnemySprite = 4
+	acAttackSprite = 8
+	acWeaponSprite = 16
+	acPortraitSprite = 32
+
+	acAny       = 65535
+	'Heroes, enemies, and walkabouts
+	acActor     = acWalkaboutSprite or acHeroSprite or acEnemySprite
+	'Walkabouts (heroes/npcs)
+	acWalkabout = acWalkaboutSprite
+	'In-battle heroes and enemies (BattleSprites)
+	acBattler   = acHeroSprite or acEnemySprite
+	'In-battle heroes
+	acBatHero   = acHeroSprite
+	'In-battle enemies
+	acBatEnemy  = acEnemySprite
+	'Walkabout and in-battle heroes
+	acHero      = acWalkaboutSprite or acHeroSprite
+End Enum
+
+' Describes a builtin animation or variant name
+Type AnimVariantInfo
+	name as zstring ptr
+	context as AnimationContext
+	description as zstring ptr
+End Type
+
 Enum AnimOpType
 	animOpWait      = 0 '(ms)
 	animOpWaitMS    = 1 '(ms)
@@ -802,6 +834,8 @@ declare function load_global_animations(sprtype as SpriteType, rgfxdoc as Reload
 
 declare function frame_array_to_vector(frames as Frame ptr) as Frame ptr vector
 declare function frame_vector_to_array(frames as Frame ptr vector) as Frame ptr
+
+declare sub split_variantname(variantname as string, byref anim as string, byref variant as string)
 
 ' The animation state of a SpriteSet instance
 Type SpriteState
@@ -919,5 +953,8 @@ extern "C"
 'invalid blank temp array descriptor is created and passed.)
 extern curmasterpal(256) as RGBcolor
 end extern
+
+extern builtin_animations(32) as AnimVariantInfo
+extern builtin_anim_variants(32) as AnimVariantInfo
 
 #ENDIF
