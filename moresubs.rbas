@@ -739,7 +739,8 @@ SUB hero_swap_menu_mouse_control (st as OrderTeamState)
  DIM old_swapme as integer = st.swapme
  DIM centerx as integer = vpages(st.page)->w \ 2
  DIM centery as integer = vpages(st.page)->h \ 2
- DIM order_box as RectType = XYWH(centerx - 130\2, centery - 38\2 - 34, 130, 38)
+ DIM order_box as RectType = XYWH(centerx - 130\2, centery - 32 - st.tallness, 130, 18 + st.tallness)
+ 'centerbox centerx, centery - 24 - st.tallness/2, 130, 18 + st.tallness, 1, st.page
  DIM reserve_w as integer = st.charsize.x * 8 + 16
  DIM reserve_h as integer = small(st.charsize.y, 8) * 10 + 10
  DIM reserve_box as RectType = XYWH(centerx - reserve_w\2, centery - reserve_h\2 + small(st.charsize.y, 8) * 5, reserve_w, reserve_h)
@@ -747,8 +748,8 @@ SUB hero_swap_menu_mouse_control (st as OrderTeamState)
   'In the order box
   DIM hover as integer = -1
   FOR i as integer = 0 TO 3
-   DIM as integer xpos = centerx - 55 + (30 * i), ypos = centery - 40
-   IF rect_collide_point(XYWH(xpos, ypos, 30, 30), readmouse.pos) THEN hover = i
+   DIM as integer xpos = centerx - 55 + (30 * i), ypos = centery - 20 - st.tallness
+   IF rect_collide_point(XYWH(xpos, ypos, 30, st.tallness + 10), readmouse.pos) THEN hover = i
   NEXT i
   IF hover >= 0 THEN
    IF (readmouse.release AND mouseLeft) THEN
