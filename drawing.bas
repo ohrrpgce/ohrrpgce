@@ -5510,6 +5510,7 @@ TYPE AnimationEditor
   DECLARE FUNCTION cur_anim() as string
   DECLARE FUNCTION animation_info(variantname as string) as string
   DECLARE SUB new_animation()
+  DECLARE SUB delete_animation()
   DECLARE SUB export_menu(anim_name as string)
 
   ' Individual animation editor
@@ -5600,6 +5601,8 @@ SUB AnimationEditor.toplevel()
       export_menu cur_anim()
     ELSEIF keyval(scInsert) > 1 OR keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
       new_animation()
+    ELSEIF keyval(scDelete) > 1 THEN
+      delete_animation()
     ELSEIF enter_space_click(topstate) THEN
       IF topstate.pt = -1 THEN EXIT DO
       IF topstate.pt = topstate.last THEN
@@ -5634,6 +5637,15 @@ SUB AnimationEditor.export_menu(anim_name as string)
   export_gif sprset, pal, filename, anim_name
  ELSEIF choice = 1 THEN
   export_gif sprset, pal, filename, anim_name, YES
+ END IF
+END SUB
+
+SUB AnimationEditor.delete_animation()
+ IF cur_anim() = "" THEN EXIT SUB
+ IF yesno("Really delete animation `" & cur_anim() &"'? No undo!", NO) THEN
+  sprstate->stop_animation()
+  sprset->delete_animation(cur_anim())
+  rebuild_toplevel_menu  'Updates state.pt
  END IF
 END SUB
 

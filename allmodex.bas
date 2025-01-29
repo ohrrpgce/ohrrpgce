@@ -11962,12 +11962,17 @@ constructor SpriteSet(frameset as Frame ptr)
 end constructor
 
 destructor SpriteSet()
-	delete_all_animations()
+	'If a SpriteSet is being deleted, noone should still be playing its animations!
+	'(The Animations can remain referenced, but the Frames might be gone)
+	delete_all_animations(YES)
 end destructor
 
-sub SpriteSet.delete_all_animations()
+sub SpriteSet.delete_all_animations(check_no_references as bool = NO)
 	for idx as integer = 0 to v_len(animations) - 1
-		delete animations[idx]
+		if check_no_references then
+			BUG_IF(animations[idx]->refcount <> 1, "Leaked reference to animation")
+		end if
+		animations[idx]->dereference()
 		animations[idx] = 0
 	next
 	v_free animations
@@ -12065,13 +12070,13 @@ function SpriteSet.describe() as string
 end function
 
 'variantname can contain a trailing space
-sub split_variantname(variantname as string, byref anim as string, byref variant as string)
+sub split_variantname(variantname as string, byref animname as string, byref variant as string)
 	dim spacepos as integer = instr(variantname, " ")
 	if spacepos then
-		anim = left(variantname, spacepos - 1)
+		animname = left(variantname, spacepos - 1)
 		variant = mid(variantname, spacepos + 1)
 	else
-		anim = variantname
+		animname = variantname
 		variant = ""
 	end if
 end sub
@@ -12085,25 +12090,34 @@ end sub
 '  - then prefer an animation with blank variant
 '  - then prefer the first animation (with that name)
 function SpriteSet.find_animation(variantname as string, exact as bool = NO) as Animation ptr
+	dim idx as integer = find_animation_idx(variantname, exact)
+	if idx < 0 then
+		return NULL
+	else
+		return animations[idx]
+	end if
+end function
+
+function SpriteSet.find_animation_idx(variantname as string, exact as bool = NO) as integer
 	dim as string name, variant
 	split_variantname variantname, name, variant
 
-	dim best_match as Animation ptr
+	dim best_match as integer = -1
 	for idx as integer = 0 to v_len(animations) - 1
 		if animations[idx]->name = name then
 			' Right name, check how good the match is
 			if animations[idx]->variant = variant then
-				return animations[idx]        'Exact match
+				return idx        'Exact match
 			elseif len(animations[idx]->variant) = 0 then
-				best_match = animations[idx]  'Prefer nonvariant animations
+				best_match = idx  'Prefer nonvariant animations
 			elseif best_match = NULL then
-				best_match = animations[idx]  'Otherwise, default to the first variant
+				best_match = idx  'Otherwise, default to the first variant
 			end if
 		end if
 	next
 	if exact then
 		'Didn't find exact match
-		return NULL
+		return -1
 	else
 		return best_match
 	end if
@@ -12121,14 +12135,36 @@ function SpriteSet.new_animation(name as string = "", variant as string = "") as
 	return ret
 end function
 
+sub SpriteSet.delete_animation(variantname as string)
+	dim idx as integer = find_animation_idx(variantname, YES)  'exact=YES
+	if idx >= 0 then
+		animations[idx]->dereference()
+		v_delete_slice animations, idx, idx + 1
+	end if
+end sub
 
 constructor Animation()
+	reference()
 end constructor
 
 constructor Animation(name as string, variant as string = "")
 	this.name = name
 	this.variant = variant
+	reference()
 end constructor
+
+function Animation.reference() as Animation ptr
+	refcount += 1
+	return @this
+end function
+
+sub Animation.dereference()
+	refcount -= 1
+	BUG_IF(refcount < 0, "Too many Animation.dereference()")
+	if refcount = 0 then
+		delete @this
+	end if
+end sub
 
 sub Animation.append(optype as AnimOpType, arg1 as integer = 0, arg2 as integer = 0)
 	redim preserve ops(ubound(ops) + 1)
@@ -12152,6 +12188,7 @@ constructor SpriteState(ptno as SpriteType, record as integer)
 end constructor
 
 destructor SpriteState()
+	set_anim(NULL)  'Dec refcount
 	spriteset_unload @ss
 end destructor
 
@@ -12165,14 +12202,25 @@ sub SpriteState.start_animation(variantname as string, loopcount as integer = 0)
 	anim_step = 0
 	anim_loop = loopcount
 	anim_looplimit = ANIMATION_LOOPLIMIT
-	anim = ss->find_animation(variantname)
+
+	set_anim(ss->find_animation(variantname))
 end sub
 
 ' Doesn't reset the sprite.
 sub SpriteState.stop_animation()
-	anim = NULL
+	set_anim(NULL)
 	anim_wait = 0
 	anim_step = 0
+end sub
+
+sub SpriteState.set_anim(newanim as Animation ptr)
+	if anim then
+		anim->dereference()
+	end if
+	if newanim then
+		newanim->reference()
+	end if
+	anim = newanim
 end sub
 
 ' Resets everything that an animation might change, but doesn't stop it
@@ -12221,7 +12269,7 @@ function SpriteState.animate_step() as bool
 		' anim_loop = 0 means default number of loops
 		' Also refuse to loop if empty.
 		if anim_loop = 0 or anim_loop = 1 orelse ubound(anim->ops) = -1 then
-			anim = NULL
+			stop_animation()
 			return YES
 		end if
 		if anim_loop > 0 then anim_loop -= 1
@@ -12244,7 +12292,7 @@ function SpriteState.animate_step() as bool
 				/'
 				if .arg1 >= ss->num_frames then
 					debug "Animation '" & anim->name & "': illegal frame number " & .arg1
-					anim = NULL
+					stop_animation()
 					return NO
 				end if
 				'/
@@ -12255,7 +12303,7 @@ function SpriteState.animate_step() as bool
 				if anim_loop > 0 then
 					anim_loop -= 1
 					if anim_loop = 0 then
-						anim = NULL
+						stop_animation()
 						return YES
 					end if
 				end if
@@ -12270,7 +12318,7 @@ function SpriteState.animate_step() as bool
 				offset.y += .arg2
 			case else
 				debug "bad animation opcode " & .type & " in '" & anim->name & "'"
-				anim = NULL
+				stop_animation()
 				return NO
 		end select
 	end with
@@ -12290,7 +12338,7 @@ function SpriteState.animate() as bool
 
 	' Exceeded the loop limit
 	debug "animation '" & anim->name & "' got stuck in an infinite loop"
-	anim = NULL
+	stop_animation()
 	return NO
 end function
 

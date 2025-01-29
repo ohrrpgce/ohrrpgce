@@ -802,8 +802,15 @@ Type Animation
 	ops(any) as AnimationOp
 	'opsnode as Reload.NodePtr   'RELOAD-based replacement for ops()
 
+	'Animation is refcounted only so that animations can be safely replaced in Test Game while they are playing
+	refcount as integer
+
 	declare constructor()
 	declare constructor(name as string, variant as string = "")
+
+	'Inc/dec refcount, and delete self
+	declare function reference() as Animation ptr
+	declare sub dereference()
 
 	declare sub append(type as AnimOpType, arg1 as integer = 0, arg2 as integer = 0)
 End Type
@@ -816,7 +823,7 @@ declare function ms_to_frames(ms as integer) as integer
 declare function frames_to_ms(frames as integer) as integer
 
 Type SpriteSet
-	animations as Animation ptr vector
+	animations as Animation ptr vector  'Owned reference to each Animation
 	frames as Frame ptr    'Does NOT count as a reference
 	'uses refcount from frames
 	global_animations as SpriteSet ptr  'The default animations for sprites of this type. May be NULL
@@ -824,13 +831,15 @@ Type SpriteSet
 	'This is private!
 	declare constructor(frameset as Frame ptr)
 	declare destructor()
-	declare sub delete_all_animations()
 
 	declare function num_frames() as integer
 	declare sub reference()
 	declare function describe() as string
+	declare function find_animation_idx(variantname as string, exact as bool = NO) as integer
 	declare function find_animation(variantname as string, exact as bool = NO) as Animation ptr
 	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
+	declare sub delete_animation(variantname as string)
+	declare sub delete_all_animations(check_no_references as bool = NO)
 End Type
 
 declare function spriteset_load(ptno as SpriteType, record as integer) as SpriteSet ptr
@@ -842,13 +851,14 @@ declare function load_global_animations(sprtype as SpriteType, rgfxdoc as Reload
 declare function frame_array_to_vector(frames as Frame ptr) as Frame ptr vector
 declare function frame_vector_to_array(frames as Frame ptr vector) as Frame ptr
 
-declare sub split_variantname(variantname as string, byref anim as string, byref variant as string)
+declare sub split_variantname(variantname as string, byref animname as string, byref variant as string)
 
 ' The animation state of a SpriteSet instance
 Type SpriteState
 	ss as SpriteSet ptr
 	frame_num as integer
-	anim as Animation ptr      'The currently playing animation or NULL (Not owned)
+	anim as Animation ptr      'The currently playing animation or NULL
+	                           'anim must be set using set_anim()!
 	anim_step as integer       'Current op index in the current animation
 	anim_wait as integer       'Equal to 0 if not waiting, otherwise the number of ticks into the wait.
 	anim_loop as integer       '-1:infinite, 0<:number of times to play after current
@@ -859,6 +869,7 @@ Type SpriteState
 	declare constructor(sprset as SpriteSet ptr)
 	declare constructor(ptno as SpriteType, record as integer)
 	declare destructor()
+	declare sub set_anim(newanim as Animation ptr)
 
 	declare sub start_animation(name as string, loopcount as integer = 0)
 	declare sub stop_animation()
