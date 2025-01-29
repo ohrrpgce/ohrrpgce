@@ -188,10 +188,17 @@ declare sub a_sort (dest() as integer, src() as integer)
 ' and redimming. Has to be a macro since FB doesn't have templates,
 ' and can't be named a_remove as that clashes.
 #MACRO a_any_remove(array, which)
-  FOR _aidx as integer = which TO UBOUND(array) - 1
-    SWAP array(_aidx), array(_aidx + 1)
-  NEXT
-  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1) 'FB now supports zero-length arrays
+  SCOPE
+    DIM as integer lower = LBOUND(array), upper = UBOUND(array) - 1
+    IF lower > upper THEN
+      ERASE array
+    ELSE
+      FOR _aidx as integer = which TO upper
+        SWAP array(_aidx), array(_aidx + 1)
+      NEXT
+      REDIM PRESERVE array(lower TO upper)
+    END IF
+  END SCOPE
 #ENDMACRO
 
 

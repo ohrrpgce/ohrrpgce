@@ -5493,10 +5493,10 @@ END DESTRUCTOR
 
 SUB AnimationEditor.rebuild_toplevel_menu()
   REDIM topmenu(-1 TO -1) as string
-  topmenu(-1) = "Previous menu"
+  topmenu(-1) = "Previous Menu"
   FOR idx as integer = 0 TO UBOUND(sprset->animations)
     WITH sprset->animations(idx)
-      a_append topmenu(), .name + " " + .variant
+      a_append topmenu(), RTRIM(.name + " " + .variant)
     END WITH
   NEXT
   a_append topmenu(), "Add new animation..."
@@ -5656,7 +5656,7 @@ FUNCTION AnimationNamePicker.each_tick() as bool
 END FUNCTION
 
 SUB AnimationNamePicker.draw_underlays()
-  fuzzyrect 0, 0, , , findrgb(64, 64, 180), vpage
+  fuzzyrect 0, 0, , , findrgb(32, 32, 100), vpage, 50, , 1
   edgeprint title, pCentered, pTop + 10, uilook(uiText), vpage
   IF name_indices(state.pt) >= 0 THEN
     wrapprint *names_list[name_indices(state.pt)].description, pInfoX, pInfoY, uilook(uiText), vpage
@@ -5689,6 +5689,11 @@ SUB AnimationEditor.new_animation()
   DIM variant as string
   IF variant_idx > 0 THEN variant = *builtin_anim_variants(variant_idx).name  '0 is none
 
+  IF sprset->find_animation(anim & " " & variant, YES) THEN 'exact=YES
+   notification "An animation named '" & RTRIM(anim & " " & variant) & "' already exists"
+   EXIT SUB
+  END IF
+
   ' Note: duplicates are currently allowed. Will never be run
   sprset->new_animation(anim, variant)
 
@@ -5700,15 +5705,28 @@ END SUB
 
 '================================ Editing an Animation ====================================
 
+'Temporary; should rewrite the menu using EditorKit instead
+CONST itemdatExit = -1
+CONST itemdatAddStep = -2
+CONST itemdatPlay = -3
+CONST itemdatLoop = -4
+CONST itemdatReset = -5
 
 'SUB additem(byref menu as SimpleMenuItem vector, caption as string)
  'append_simplemenu_item
 'END SUB
 
+CONST first_op_pt = 2  'state.pt for first op (if any)
+
 SUB rebuild_animation_menu(byref menu as SimpleMenuItem vector, anim as Animation)
  v_new menu
- FOR i as integer = 0 TO UBOUND(anim.ops)
-  WITH anim.ops(i)
+ append_simplemenu_item menu, "Previous Menu", , , itemdatExit
+
+ append_simplemenu_item menu, "Ops:", YES, uilook(eduiHeading)  'unselectable
+ 'Update first_op_pt if adding anything here
+
+ FOR idx as integer = 0 TO UBOUND(anim.ops)
+  WITH anim.ops(idx)
    DIM caption as string
    SELECT CASE .type
     CASE animOpWait
@@ -5720,13 +5738,15 @@ SUB rebuild_animation_menu(byref menu as SimpleMenuItem vector, anim as Animatio
     CASE ELSE
      caption = STR(.arg1)   '& " " & .arg2
    END SELECT
-   append_simplemenu_item menu, anim_op_names(.type) & " " & caption
+   append_simplemenu_item menu, "- " & anim_op_names(.type) & " " & caption, , , idx
   END WITH
  NEXT
- append_simplemenu_item menu, fgcol_text("Add step (+)", uilook(uiSelectedDisabled))
+ append_simplemenu_item menu, "- Add step (+)", , uilook(eduiSpecial), itemdatAddStep
 
- 'append_simplemenu_item menu, "-" + fgcol_text(": Delete step", uilook(uiSelectedDisabled))
- 'append_simplemenu_item menu, "+" + fgcol_text(": Add step", uilook(uiSelectedDisabled))
+ append_simplemenu_item menu, "", YES, uilook(uiDisabledItem)  'unselectable
+ append_simplemenu_item menu, "Reset sprite (R)", , , itemdatReset
+ append_simplemenu_item menu, "Play looped (L)", , , itemdatLoop
+ append_simplemenu_item menu, "Play (P)", , , itemdatPlay
 END SUB
 
 'Edit a single animation
@@ -5746,7 +5766,7 @@ SUB AnimationEditor.edit_animation(anim_name as string)
  DIM menuopts as MenuOptions
  menuopts.wide = 80  ' Minimum width
  menuopts.calc_size = YES
- DIM mpos as XYPair = (4,4)
+ DIM mpos as XYPair = (pMenuX, pMenuY)
 
  'Precompute the menu size
  calc_menu_rect state, menuopts, mpos, vpage, cast(BasicMenuItem vector, menu)
@@ -5761,18 +5781,24 @@ SUB AnimationEditor.edit_animation(anim_name as string)
   DIM curop as AnimationOp ptr = NULL
 
   IF animating THEN
+   ' Menu cursor shows the current op
 
    sprstate->animate()
    framenum = sprstate->frame_num
-   state.pt = sprstate->anim_step
+   state.pt = first_op_pt + sprstate->anim_step
    IF sprstate->anim = NULL THEN
     animating = NO
     ' Stay on the last op if we reached the end
-    state.pt = small(state.pt, UBOUND(anim.ops))
+    state.pt = first_op_pt + small(state.pt, UBOUND(anim.ops))
    END IF
 
-   IF keyval(ccCancel) > 1 or keyval(scP) > 1 THEN
+   IF keyval(ccCancel) > 1 ORELSE keyval(scP) > 1 THEN
     animating = NO
+    sprstate->stop_animation()  'Not necessary, since we don't call animate() anyway
+   ELSEIF keyval(scR) > 1 THEN  'Allow reset too
+    animating = NO
+    sprstate->reset()
+    sprstate->stop_animation()
    END IF
 
   ELSE
@@ -5780,23 +5806,62 @@ SUB AnimationEditor.edit_animation(anim_name as string)
     usemenu state, menu
    END IF
    DIM op_idx as integer = -1
-   IF state.pt <= UBOUND(anim.ops) THEN op_idx = state.pt
+   DIM itemdat as integer = menu[state.pt].dat
+   IF itemdat >= 0 THEN op_idx = itemdat
+   curop = NULL
    IF op_idx > -1 THEN curop = @anim.ops(op_idx)
+
+   DIM add_step as bool = keyval(scInsert) ORELSE keyval(scPlus) > 1 ORELSE keyval(scNumpadPlus) > 1
+   DIM delete_step as bool = keyval(scDelete) > 1 ORELSE keyval(scMinus) > 1 ORELSE keyval(scNumpadMinus) > 1
+   DIM play_anim as bool = keyval(scP) > 1
+   DIM loop_anim as bool = keyval(scL) > 1
+   DIM reset_anim as bool = keyval(scR) > 1
+
+   IF enter_space_click(state) THEN
+    SELECT CASE itemdat
+     CASE itemdatExit
+      EXIT DO
+     CASE itemdatAddStep
+      add_step = YES
+     CASE itemdatPlay
+      play_anim = YES
+     CASE itemdatLoop
+      loop_anim = YES
+     CASE itemdatReset
+      reset_anim = YES
+     CASE IS >= 0
+      'Replace an op
+      DIM newtype as AnimOpType
+      newtype = multichoice("Replace with which operator?", anim_op_fullnames(), , , "animation_ops")
+      WITH anim.ops(op_idx)
+       IF newtype >= 0 ANDALSO op_idx <> .type THEN
+        .type = newtype
+        .arg1 = 0
+        .arg2 = 0
+        curop = NULL
+       END IF
+      END WITH
+    END SELECT
+   END IF
 
    IF keyval(ccCancel) > 1 THEN EXIT DO
    IF keyval(scF1) > 1 THEN show_help "animation_edit"
 
-   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
+   IF add_step THEN
     ' Add op
     DIM newtype as AnimOpType
     newtype = multichoice("Which operator?", anim_op_fullnames(), , , "animation_ops")
     IF newtype >= 0 THEN
-     DIM newidx as integer = UBOUND(anim.ops) + 1
-     REDIM PRESERVE anim.ops(newidx)
+     DIM newidx as integer = IIF(op_idx > -1, op_idx, UBOUND(anim.ops) + 1)
+     REDIM PRESERVE anim.ops(UBOUND(anim.ops) + 1)
+     'Shift all following ops up 1
+     FOR idx as integer = UBOUND(anim.ops) - 1 TO newidx STEP -1
+      SWAP anim.ops(idx), anim.ops(op_idx + 1)
+     NEXT
      anim.ops(newidx).type = newtype
      curop = NULL
     END IF
-   ELSEIF keyval(scDelete) > 1 OR keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
+   ELSEIF delete_step THEN
     ' Delete op
     IF curop THEN
      a_any_remove(anim.ops, op_idx)  'macro
@@ -5804,24 +5869,27 @@ SUB AnimationEditor.edit_animation(anim_name as string)
      REDIM PRESERVE anim.ops(UBOUND(anim.ops) - 1)
     END IF
     curop = NULL
-   ELSEIF keyval(scP) > 1 THEN
+   ELSEIF play_anim THEN
     ' Play (may or may not loop)
     sprstate->start_animation(anim_name)
     animating = YES
-   ELSEIF keyval(scL) > 1 THEN
+   ELSEIF loop_anim THEN
     ' Loop
     sprstate->start_animation(anim_name, -1)
     animating = YES
+   ELSEIF reset_anim THEN
+    ' Reset sprite
+    sprstate->reset()
    ELSEIF keyval(scShift) > 0 AND op_idx >= 0 THEN
     ' Rearranging items
     IF keyval(ccUp) > 1 AND op_idx > 0 THEN
      SWAP anim.ops(op_idx), anim.ops(op_idx - 1)
-     state.pt -= 1
+     op_idx -= 1
     ELSEIF keyval(ccDown) > 1 AND op_idx < UBOUND(anim.ops) THEN
      SWAP anim.ops(op_idx), anim.ops(op_idx + 1)
-     state.pt += 1
+     op_idx += 1
     END IF
-    op_idx = state.pt
+    state.pt = first_op_pt + op_idx
     curop = @anim.ops(op_idx)
    END IF
 
@@ -5841,8 +5909,6 @@ SUB AnimationEditor.edit_animation(anim_name as string)
     CASE animOpFrame
      intgrabber curop->arg1, 0, sprset->num_frames - 1
      framenum = curop->arg1  ' Update visual
-    CASE ELSE
-     intgrabber curop->arg1, -9999, 9999
     END SELECT
    END IF
 
@@ -5856,22 +5922,25 @@ SUB AnimationEditor.edit_animation(anim_name as string)
   frame_draw @sprset->frames[framenum], pal, pCentered, pBottom - 30, , vpage
 
   fuzzyrect vpages(vpage), state.rect, uilook(uiBackground)
-  standardmenu cast(BasicMenuItem vector, menu), state, mpos.x, mpos.y, vpage, menuopts
+  edgeprint anim_name, pCentered, mpos.y, uilook(uiText), vpage
+  standardmenu cast(BasicMenuItem vector, menu), state, mpos.x, mpos.y + 12, vpage, menuopts
 
   DIM message as string
   IF animating THEN
    message = "P/ESC to Stop"
   ELSE
-   message = "(P)lay  (L)oop"
+   message = "" '"(P)lay  (L)oop"
    IF curop THEN
     ' IF the op has multiple editable fields
-    IF curop->type = animOpWait OR curop->type = animOpWaitMS THEN message += "  TAB to select arg"
+    IF curop->type = animOpWait OR curop->type = animOpWaitMS THEN message += "  Tab to select arg"
    END IF
   END IF
   edgeprint message, pInfoX, pInfoY, uilook(uiText), vpage
 
-  edgeprint "-: Delete step", pInfoRight, pMenuY, uilook(uiDisabledItem), vpage
-  edgeprint "+: Insert step", pInfoRight, pMenuY + 10, uilook(uiDisabledItem), vpage
+  edgeprint "Del/-: Delete step", pInfoRight, pMenuY, uilook(uiMenuItem), vpage
+  edgeprint "Ins/+: Insert step", pInfoRight, pMenuY + 10, uilook(uiMenuItem), vpage
+  edgeprint "Shift-" & CHR(27) & CHR(26) & ": Reorder", pInfoRight, pMenuY + 20, uilook(uiMenuItem), vpage
+  edgeprint "Enter: Replace step", pInfoRight, pMenuY + 30, uilook(uiMenuItem), vpage
 
   setvispage vpage
   dowait

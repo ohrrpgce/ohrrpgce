@@ -84,5 +84,6 @@ CONST colInvalid = -999
 
 CONST eduiHeading = uiText
 CONST eduiNote = uiSelectedDisabled      'Unselectable (not disabled) menu items which show some info, ideally not highlighted
+CONST eduiSpecial = uiSelectedDisabled   'Menu items distinct from normal ones, e.g. "Append <item>"
 
 #ENDIF

@@ -12051,6 +12051,7 @@ function SpriteSet.describe() as string
 	       & ", " & ubound(animations) & " animations>"
 end function
 
+'variantname can contain a trailing space
 sub split_variantname(variantname as string, byref anim as string, byref variant as string)
 	dim spacepos as integer = instr(variantname, " ")
 	if spacepos then
@@ -12062,16 +12063,15 @@ sub split_variantname(variantname as string, byref anim as string, byref variant
 	end if
 end sub
 
-' Searches for an animation with a certain name, or NULL if there
-' are no animations with that name.
+' Searches for an animation with a certain name, or NULL if there's no match.
+' If exact=YES, the variant must match exactly, otherwise looks for best match.
 ' variantname is either just the name of the animation, or the
-' name plus a variant separated by a space, like "walk upleft".
-' The variant is optional, and the nearest match is picked amongst animations
-' which match the name:
+' name plus an optional variant separated by a space, e.g. "walk upleft", "walk ", "walk".
+' The nearest match is picked amongst animations which match the name:
 '  - prefer variant as specified
 '  - then prefer an animation with blank variant
 '  - then prefer the first animation (with that name)
-function SpriteSet.find_animation(variantname as string) as Animation ptr
+function SpriteSet.find_animation(variantname as string, exact as bool = NO) as Animation ptr
 	dim as string name, variant
 	split_variantname variantname, name, variant
 
@@ -12088,7 +12088,12 @@ function SpriteSet.find_animation(variantname as string) as Animation ptr
 			end if
 		end if
 	next
-	return best_match
+	if exact then
+		'Didn't find exact match
+		return NULL
+	else
+		return best_match
+	end if
 end function
 
 ' Append a new blank animation and return pointer
@@ -12147,6 +12152,20 @@ sub SpriteState.start_animation(variantname as string, loopcount as integer = 0)
 	anim = ss->find_animation(variantname)
 end sub
 
+' Doesn't reset the sprite.
+sub SpriteState.stop_animation()
+	anim = NULL
+	anim_wait = 0
+	anim_step = 0
+end sub
+
+' Resets everything that an animation might change, but doesn't stop it
+sub SpriteState.reset()
+	frame_num = 0
+	offset.x = 0
+	offset.y = 0
+end sub
+
 function SpriteState.cur_frame() as Frame ptr
 	if ss = NULL then return NULL
 	if frame_num < 0 or frame_num >= ss->num_frames then return NULL
@@ -12173,7 +12192,8 @@ function SpriteState.skip_wait() as integer
 end function
 
 ' Advance the animation by one op.
-' Returns true on success, false on an error.
+' Returns true on success or finished animation, false on error.
+' Sets anim = NULL on error or finished animation.
 ' Does not check for infinite loops; caller must do that.
 function SpriteState.animate_step() as bool
 	if anim = NULL then return NO
@@ -12183,7 +12203,8 @@ function SpriteState.animate_step() as bool
 		debuginfo "anim done"
 		anim_looplimit -= 1
 		' anim_loop = 0 means default number of loops
-		if anim_loop = 0 or anim_loop = 1 then
+		' Also refuse to loop if empty.
+		if anim_loop = 0 or anim_loop = 1 orelse ubound(anim->ops) = -1 then
 			anim = NULL
 			return YES
 		end if

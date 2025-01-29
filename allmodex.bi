@@ -824,7 +824,7 @@ Type SpriteSet
 	declare function num_frames() as integer
 	declare sub reference()
 	declare function describe() as string
-	declare function find_animation(variantname as string) as Animation ptr
+	declare function find_animation(variantname as string, exact as bool = NO) as Animation ptr
 	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
 End Type
 
@@ -856,6 +856,8 @@ Type SpriteState
 	declare destructor()
 
 	declare sub start_animation(name as string, loopcount as integer = 0)
+	declare sub stop_animation()
+	declare sub reset()
 	declare function cur_frame() as Frame ptr
 
 	' Three ways to advance the animation:
