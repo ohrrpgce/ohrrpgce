@@ -808,18 +808,23 @@ Type Animation
 	declare sub append(type as AnimOpType, arg1 as integer = 0, arg2 as integer = 0)
 End Type
 
+'No automatic deletion
+DECLARE_VECTOR_OF_TYPE(Animation ptr, Animation_ptr)
+
 declare sub set_animation_framerate(ms as integer)
 declare function ms_to_frames(ms as integer) as integer
 declare function frames_to_ms(frames as integer) as integer
 
 Type SpriteSet
-	animations(any) as Animation
+	animations as Animation ptr vector
 	frames as Frame ptr    'Does NOT count as a reference
 	'uses refcount from frames
 	global_animations as SpriteSet ptr  'The default animations for sprites of this type. May be NULL
 	                                    '(This counts as a reference)
 	'This is private!
 	declare constructor(frameset as Frame ptr)
+	declare destructor()
+	declare sub delete_all_animations()
 
 	declare function num_frames() as integer
 	declare sub reference()

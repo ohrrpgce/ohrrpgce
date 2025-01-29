@@ -182,6 +182,7 @@ dim shared numpad2text(...) as zstring*2 => {"7","8","9","","4","5","6","","1","
 
 ' Frame type table
 DEFINE_VECTOR_OF_TYPE_COMMON(Frame ptr, Frame_ptr, @_frame_copyctor, @frame_unload)
+DEFINE_VECTOR_OF_TYPE(Animation ptr, Animation_ptr)
 
 
 '--------- Module shared variables ---------
@@ -11955,10 +11956,22 @@ end sub
 ' This should only be called from within allmodex
 constructor SpriteSet(frameset as Frame ptr)
 	BUG_IF(frameset = NULL orelse frameset->arrayelem, "need first Frame in array")
-	'redim animations(0 to -1)
 	frames = frameset
 	frameset->sprset = @this
+	'No need to init the animations vector until one is created
 end constructor
+
+destructor SpriteSet()
+	delete_all_animations()
+end destructor
+
+sub SpriteSet.delete_all_animations()
+	for idx as integer = 0 to v_len(animations) - 1
+		delete animations[idx]
+		animations[idx] = 0
+	next
+	v_free animations
+end sub
 
 function SpriteSet.num_frames() as integer
 	return frames->arraylen
@@ -12048,7 +12061,7 @@ end sub
 
 function SpriteSet.describe() as string
 	return "spriteset:<" & num_frames & " frames: 0x" & hexptr(frames) _
-	       & ", " & ubound(animations) & " animations>"
+	       & ", " & v_len(animations) & " animations>"
 end function
 
 'variantname can contain a trailing space
@@ -12076,15 +12089,15 @@ function SpriteSet.find_animation(variantname as string, exact as bool = NO) as 
 	split_variantname variantname, name, variant
 
 	dim best_match as Animation ptr
-	for idx as integer = 0 to ubound(animations)
-		if animations(idx).name = name then
+	for idx as integer = 0 to v_len(animations) - 1
+		if animations[idx]->name = name then
 			' Right name, check how good the match is
-			if animations(idx).variant = variant then
-				return @animations(idx)        'Exact match
-			elseif len(animations(idx).variant) = 0 then
-				best_match = @animations(idx)  'Prefer nonvariant animations
+			if animations[idx]->variant = variant then
+				return animations[idx]        'Exact match
+			elseif len(animations[idx]->variant) = 0 then
+				best_match = animations[idx]  'Prefer nonvariant animations
 			elseif best_match = NULL then
-				best_match = @animations(idx)  'Otherwise, default to the first variant
+				best_match = animations[idx]  'Otherwise, default to the first variant
 			end if
 		end if
 	next
@@ -12098,10 +12111,13 @@ end function
 
 ' Append a new blank animation and return pointer
 function SpriteSet.new_animation(name as string = "", variant as string = "") as Animation ptr
-	redim preserve animations(ubound(animations) + 1)
-	dim ret as Animation ptr = @animations(ubound(animations))
+	dim ret as Animation ptr = new Animation()
 	ret->name = name
 	ret->variant = variant
+	if animations = NULL then
+		v_new animations
+	end if
+	v_append animations, ret
 	return ret
 end function
 

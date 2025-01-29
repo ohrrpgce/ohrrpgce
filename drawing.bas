@@ -5347,8 +5347,8 @@ END SUB
 SUB SpriteSetEditor.update_previews()
  delete_previews()
 
- FOR idx as integer = 0 TO UBOUND(ss->animations)
-  WITH ss->animations(idx)
+ FOR idx as integer = 0 TO v_len(ss->animations) - 1
+  WITH *ss->animations[idx]
    DIM sprst as SpriteState ptr
    sprst = NEW SpriteState(ss)
    ' Play each animation normally: only once if it doesn't end in Repeat
@@ -5413,8 +5413,8 @@ SUB SpriteSetEditor.display()
   frame_draw anim_previews(idx)->cur_frame(), pal, 10 + spacing * idx, 100, , vpage
 
   ' Show name
-  ASSERT(idx <= UBOUND(ss->animations))
-  WITH ss->animations(idx)
+  ASSERT(idx < v_len(ss->animations))
+  WITH *ss->animations[idx]
    DIM anim_name as string = .name + " " + .variant
    edgeprint anim_name, 10 + spacing * idx, 100 + ancBottom, uilook(uiText), vpage
   END WITH
@@ -5535,8 +5535,8 @@ END DESTRUCTOR
 SUB AnimationEditor.rebuild_toplevel_menu()
   REDIM topmenu(-1 TO -1) as string
   topmenu(-1) = "Previous Menu"
-  FOR idx as integer = 0 TO UBOUND(sprset->animations)
-    WITH sprset->animations(idx)
+  FOR idx as integer = 0 TO v_len(sprset->animations) - 1
+    WITH *sprset->animations[idx]
       a_append topmenu(), RTRIM(.name + " " + .variant)
     END WITH
   NEXT

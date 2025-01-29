@@ -3804,8 +3804,8 @@ SUB save_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)
   DIM anims as Node ptr
   anims = AppendChildNode(sprset_node, "_animations")  'FIXME: temporary location
 
-  FOR idx as integer = 0 TO UBOUND(sprset->animations)
-    save_animation_node anims, sprset->animations(idx)
+  FOR idx as integer = 0 TO v_len(sprset->animations) - 1
+    save_animation_node anims, *sprset->animations[idx]
   NEXT idx
 END SUB
 
@@ -3814,7 +3814,7 @@ SUB load_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)
   DIM anims as Node ptr = sprset_node."_animations".ptr  'FIXME: temporary location
   ' May be missing, eg for box borders
   IF anims = NULL THEN EXIT SUB
-  ERASE sprset->animations   'In case called from sprite cache to reload inplace
+  sprset->delete_all_animations()   'In case called from sprite cache to reload inplace
   READNODE anims
     load_animation_node anims."anim".ptr, sprset
   END READNODE
@@ -4125,7 +4125,7 @@ SUB rgfx_save_spriteset(rgfxdoc as DocPtr, fr as Frame ptr, sprtype as SpriteTyp
   'Animations
   DIM sprset as SpriteSet ptr = fr->sprset
   IF sprset THEN
-    IF UBOUND(sprset->animations) >= 0 THEN
+    IF v_len(sprset->animations) > 0 THEN
       save_animations_node ss_node, sprset
     END IF
   END IF
