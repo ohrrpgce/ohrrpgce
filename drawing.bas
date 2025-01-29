@@ -92,10 +92,10 @@ DECLARE SUB readredospr (ss as SpriteEditState)
 ' Sprite import/export
 DECLARE FUNCTION spriteedit_import16(byref ss as SpriteEditState) as Frame ptr
 DECLARE SUB spriteedit_export (default_name as string, spr as Frame ptr, pal as Palette16 ptr)
-DECLARE FUNCTION default_export_name (sprtype as SpriteType, setnum as integer, framenum as integer = 0, fullset as bool) as string
+DECLARE FUNCTION default_export_name (sprtype as SpriteType, setnum as integer, framenum as integer = -1, fullset as bool = NO) as string
 
 ' Spriteset editor
-DECLARE SUB edit_animations(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext)
+DECLARE SUB edit_animations(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext, default_export_filename as string = "")
 DECLARE SUB spriteset_resize_menu_rebuild(byref root as Slice ptr, ss as Frame ptr, pal as integer)
 
 
@@ -2899,11 +2899,14 @@ SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
  area(25).hidecursor = NO
 END SUB
 
-FUNCTION default_export_name (sprtype as SpriteType, setnum as integer, framenum as integer = 0, fullset as bool) as string
+FUNCTION default_export_name (sprtype as SpriteType, setnum as integer, framenum as integer = -1, fullset as bool = NO) as string
  DIM s as string
  s = game_fname & " " & exclude(LCASE(sprite_sizes(sprtype).name), " ")
  IF fullset THEN
   s &= " set " & setnum
+ ELSEIF framenum = -1 THEN
+  'For animations
+  s &= " " & setnum
  ELSE
   s &= " " & setnum & " frame " & framenum
  END IF
@@ -5375,13 +5378,13 @@ SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
    anim_previews(idx)->animate()
   NEXT
 
-  IF keyval(ccCancel) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 ORELSE (readmouse.release AND mouseRight) THEN EXIT DO
 
-  IF keyval(scE) > 1 THEN
-   edit_animations(ss, pal, context)
+  IF keyval(scE) > 1 ORELSE enter_or_space() THEN
+   edit_animations(ss, pal, context, default_export_name(sprtype, setnum))
    update_previews()
   END IF
-  IF keyval(scX) > 1 THEN export_menu()
+  'IF keyval(scX) > 1 THEN export_menu()  'Super unfinished
 
   display()
   dowait
@@ -5398,7 +5401,7 @@ END SUB
 SUB SpriteSetEditor.display()
  clearpage vpage
 
- DIM caption as string = "(E)dit, e(X)port"
+ DIM caption as string = "E: Edit animations"
  printstr caption, pRight, pBottom, vpage
 
  DIM as integer x, y
@@ -5407,16 +5410,18 @@ SUB SpriteSetEditor.display()
   x += ss->frames[idx].w
  NEXT
 
- DIM spacing as integer = large(60, ss->frames[0].w + 15)
+ DIM spacing as integer = large(40, ss->frames[0].w + 6)
 
  FOR idx as integer = 0 TO UBOUND(anim_previews)
-  frame_draw anim_previews(idx)->cur_frame(), pal, 10 + spacing * idx, 100, , vpage
+  DIM where as XYPair = XY(10 + spacing * idx, 100 + 10 * idx)
+
+  frame_draw anim_previews(idx)->cur_frame(), pal, where.x, where.y, , vpage
 
   ' Show name
   ASSERT(idx < v_len(ss->animations))
   WITH *ss->animations[idx]
    DIM anim_name as string = .name + " " + .variant
-   edgeprint anim_name, 10 + spacing * idx, 100 + ancBottom, uilook(uiText), vpage
+   edgeprint anim_name, where.x, where.y + ancBottom, uilook(uiText), vpage
   END WITH
  NEXT
 
@@ -5497,6 +5502,7 @@ TYPE AnimationEditor
   sprstate as SpriteState ptr
   pal as Palette16 ptr
   sprtype_context as AnimationContext
+  default_export_filename as string
 
   DECLARE CONSTRUCTOR(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext)
   DECLARE DESTRUCTOR()
@@ -5508,6 +5514,7 @@ TYPE AnimationEditor
   DECLARE SUB toplevel()
   DECLARE SUB rebuild_toplevel_menu()
   DECLARE FUNCTION cur_anim() as string
+  DECLARE FUNCTION cur_anim_idx() as integer
   DECLARE FUNCTION animation_info(variantname as string) as string
   DECLARE SUB new_animation()
   DECLARE SUB delete_animation()
@@ -5517,8 +5524,9 @@ TYPE AnimationEditor
   DECLARE SUB edit_animation(anim_name as string)
 END TYPE
 
-SUB edit_animations(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext)
+SUB edit_animations(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext, default_export_filename as string = "")
   DIM as AnimationEditor editor = AnimationEditor(sprset, pal, sprtype_context)
+  editor.default_export_filename = default_export_filename
   editor.toplevel()
 END SUB
 
@@ -5546,6 +5554,16 @@ SUB AnimationEditor.rebuild_toplevel_menu()
   init_menu_state topstate, topmenu()
 END SUB
 
+'Get sprset->animations index of selected animation
+FUNCTION AnimationEditor.cur_anim_idx() as integer
+  IF topstate.pt >= 0 ANDALSO topstate.pt <> topstate.last THEN
+    RETURN topstate.pt
+  ELSE
+    RETURN -1
+  END IF
+END FUNCTION
+
+'Name of selected animation
 FUNCTION AnimationEditor.cur_anim() as string
   IF topstate.pt >= 0 ANDALSO topstate.pt <> topstate.last THEN
     RETURN topmenu(topstate.pt)
@@ -5583,15 +5601,16 @@ END FUNCTION
 ' lets you create/edit them.
 ' This ought to be much better integrated into the spriteset browser
 SUB AnimationEditor.toplevel()
-  rebuild_toplevel_menu
-
   set_animation_framerate gen(genMillisecPerFrame)
+
+  rebuild_toplevel_menu
+  sprstate->start_animation(cur_anim())
 
   DO
     setwait gen(genMillisecPerFrame)
     setkeys
 
-    IF usemenu(topstate) ANDALSO cur_anim() <> "" THEN
+    IF keyval(scShift) = 0 ANDALSO usemenu(topstate) THEN
       sprstate->start_animation(cur_anim())
     END IF
 
@@ -5603,6 +5622,8 @@ SUB AnimationEditor.toplevel()
       new_animation()
     ELSEIF keyval(scDelete) > 1 THEN
       delete_animation()
+    ELSEIF keyval(scR) > 1 THEN
+      sprstate->reset()
     ELSEIF enter_space_click(topstate) THEN
       IF topstate.pt = -1 THEN EXIT DO
       IF topstate.pt = topstate.last THEN
@@ -5610,15 +5631,36 @@ SUB AnimationEditor.toplevel()
       ELSE
         edit_animation(cur_anim())
       END IF
+
+    ELSEIF keyval(scShift) > 0 ANDALSO cur_anim_idx() >= 0 THEN
+      ' Reorder animations
+      DIM anidx as integer = cur_anim_idx()
+      DIM shift as integer = 0
+      IF keyval(ccUp) > 1 AND anidx > 0 THEN
+        shift = -1
+      ELSEIF keyval(ccDown) > 1 AND anidx < v_len(sprset->animations) - 1 THEN
+        shift = 1
+      END IF
+      IF shift THEN
+        SWAP sprset->animations[anidx], sprset->animations[anidx + shift]
+        topstate.pt += shift
+        rebuild_toplevel_menu
+        'sprstate->start_animation(cur_anim())
+      END IF
     END IF
 
     sprstate->animate()
 
     clearpage vpage
-    textcolor uilook(uiMenuItem), 0
-    printstr ticklite("e`x`port"), pInfoRight, pInfoY, vpage, YES
+
+    'Draw command palette
+    edgeprint "Del: Delete", pInfoRight, pMenuY + 0, uilook(uiMenuItem), vpage
+    edgeprint "Shift-" & CHR(8) & ": Reorder", pInfoRight, pMenuY + 10, uilook(uiMenuItem), vpage
+    edgeprint "R: Reset sprite", pInfoRight, pMenuY + 20, uilook(uiMenuItem), vpage
+    edgeprint "X: Export", pInfoRight, pMenuY + 30, uilook(uiMenuItem), vpage
+
     wrapprint animation_info(cur_anim()), pInfoX, pInfoY, uilook(uiMenuItem), vpage
-    frame_draw sprstate->cur_frame(), pal, pCentered + 20, pBottom - 60, , vpage
+    frame_draw sprstate->cur_frame(), pal, pCentered, pBottom - 50, , vpage
     standardmenu topmenu(), topstate, , , vpage
     setvispage vpage
     dowait
@@ -5632,16 +5674,16 @@ SUB AnimationEditor.export_menu(anim_name as string)
  DIM choices(...) as string = { "Animated .gif", "Transparent animated .gif" }
  DIM choice as integer = multichoice("Export `" & anim_name & "' animation how?", choices())
  IF choice = -1 THEN EXIT SUB
- DIM filename as string = inputfilename("Filename?", ".gif", "", "", anim_name)
+ DIM filename as string = inputfilename("Filename?", ".gif", "", "", default_export_filename & " " & anim_name)
  IF choice = 0 THEN
-  export_gif sprset, pal, filename, anim_name
+  export_gif sprset, pal, filename & ".gif", anim_name
  ELSEIF choice = 1 THEN
-  export_gif sprset, pal, filename, anim_name, YES
+  export_gif sprset, pal, filename & ".gif", anim_name, YES
  END IF
 END SUB
 
 SUB AnimationEditor.delete_animation()
- IF cur_anim() = "" THEN EXIT SUB
+ IF cur_anim_idx() < 0 THEN EXIT SUB
  IF yesno("Really delete animation `" & cur_anim() &"'? No undo!", NO) THEN
   sprstate->stop_animation()
   sprset->delete_animation(cur_anim())
@@ -5743,7 +5785,7 @@ SUB AnimationEditor.new_animation()
   IF variant_idx > 0 THEN variant = *builtin_anim_variants(variant_idx).name  '0 is none
 
   IF sprset->find_animation(anim & " " & variant, YES) THEN 'exact=YES
-   notification "An animation named '" & RTRIM(anim & " " & variant) & "' already exists"
+   notification "An animation named `" & RTRIM(anim & " " & variant) & "' already exists"
    EXIT SUB
   END IF
 
@@ -5753,6 +5795,7 @@ SUB AnimationEditor.new_animation()
   ' Go to the new animation
   rebuild_toplevel_menu
   topstate.pt = UBOUND(topmenu) - 1
+  correct_menu_state topstate
   sprstate->start_animation(anim & " " & variant)
 END SUB
 
@@ -5797,7 +5840,7 @@ SUB rebuild_animation_menu(byref menu as SimpleMenuItem vector, anim as Animatio
  append_simplemenu_item menu, "- Add step (+)", , uilook(eduiSpecial), itemdatAddStep
 
  append_simplemenu_item menu, "", YES, uilook(uiDisabledItem)  'unselectable
- append_simplemenu_item menu, "Reset sprite (R)", , , itemdatReset
+ 'append_simplemenu_item menu, "Reset sprite (R)", , , itemdatReset
  append_simplemenu_item menu, "Play looped (L)", , , itemdatLoop
  append_simplemenu_item menu, "Play (P)", , , itemdatPlay
 END SUB
@@ -5825,7 +5868,6 @@ SUB AnimationEditor.edit_animation(anim_name as string)
  calc_menu_rect state, menuopts, mpos, vpage, cast(BasicMenuItem vector, menu)
 
  DIM animating as bool = NO  'Current mode: whether playing the animation, or editing it
- DIM framenum as integer = 0
 
  DO
   setwait gen(genMillisecPerFrame)
@@ -5837,21 +5879,21 @@ SUB AnimationEditor.edit_animation(anim_name as string)
    ' Menu cursor shows the current op
 
    sprstate->animate()
-   framenum = sprstate->frame_num
    state.pt = first_op_pt + sprstate->anim_step
    IF sprstate->anim = NULL THEN
     animating = NO
     ' Stay on the last op if we reached the end
-    state.pt = first_op_pt + small(state.pt, UBOUND(anim.ops))
+    state.pt = first_op_pt + UBOUND(anim.ops)
    END IF
 
-   IF keyval(ccCancel) > 1 ORELSE keyval(scP) > 1 THEN
-    animating = NO
-    sprstate->stop_animation()  'Not necessary, since we don't call animate() anyway
-   ELSEIF keyval(scR) > 1 THEN  'Allow reset too
+   IF keyval(scR) > 1 THEN  'Allow reset too
     animating = NO
     sprstate->reset()
     sprstate->stop_animation()
+   'ELSEIF keyval(ccCancel) > 1 ORELSE keyval(scP) > 1
+   ELSEIF anykeypressed() THEN
+    animating = NO
+    sprstate->stop_animation()  'Not necessary, since we don't call animate() anyway
    END IF
 
   ELSE
@@ -5961,7 +6003,7 @@ SUB AnimationEditor.edit_animation(anim_name as string)
      IF keyval(scTab) > 1 THEN curop->type = animOpWait
     CASE animOpFrame
      intgrabber curop->arg1, 0, sprset->num_frames - 1
-     framenum = curop->arg1  ' Update visual
+     sprstate->frame_num = curop->arg1  ' Update visual
     END SELECT
    END IF
 
@@ -5972,12 +6014,13 @@ SUB AnimationEditor.edit_animation(anim_name as string)
   ' Draw screen
   clearpage vpage
   draw_background vpages(vpage), bgChequer
-  frame_draw @sprset->frames[framenum], pal, pCentered, pBottom - 30, , vpage
+  frame_draw sprstate->cur_frame(), pal, pCentered, pBottom - 50, , vpage
 
   fuzzyrect vpages(vpage), state.rect, uilook(uiBackground)
   edgeprint anim_name, pCentered, mpos.y, uilook(uiText), vpage
   standardmenu cast(BasicMenuItem vector, menu), state, mpos.x, mpos.y + 12, vpage, menuopts
 
+  ' Draw tooltip
   DIM message as string
   IF animating THEN
    message = "P/ESC to Stop"
@@ -5990,10 +6033,13 @@ SUB AnimationEditor.edit_animation(anim_name as string)
   END IF
   edgeprint message, pInfoX, pInfoY, uilook(uiText), vpage
 
-  edgeprint "Del/-: Delete step", pInfoRight, pMenuY, uilook(uiMenuItem), vpage
-  edgeprint "Ins/+: Insert step", pInfoRight, pMenuY + 10, uilook(uiMenuItem), vpage
-  edgeprint "Shift-" & CHR(27) & CHR(26) & ": Reorder", pInfoRight, pMenuY + 20, uilook(uiMenuItem), vpage
-  edgeprint "Enter: Replace step", pInfoRight, pMenuY + 30, uilook(uiMenuItem), vpage
+  ' Draw command palette
+  DIM where as XYPair = (pInfoRight, pMenuY + 12)
+  edgeprint "Ins/+: Insert step", where.x, where.y + 0, uilook(uiMenuItem), vpage
+  edgeprint "Del/-: Delete step", where.x, where.y + 10, uilook(uiMenuItem), vpage
+  edgeprint "Shift-" & CHR(8) & ": Reorder", where.x, where.y + 20, uilook(uiMenuItem), vpage
+  edgeprint "Enter: Replace step", where.x, where.y + 30, uilook(uiMenuItem), vpage
+  edgeprint "R: Reset sprite", where.x, where.y + 40, uilook(uiMenuItem), vpage
 
   setvispage vpage
   dowait
