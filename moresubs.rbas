@@ -783,8 +783,10 @@ SUB hero_swap_menu_mouse_control (st as OrderTeamState)
     END IF
    END IF
   END IF
-  mouse_scroll_menu(st.reserve)
-  mouse_drag_menu(st.reserve)
+  IF st.reserve.pt >= 0 THEN
+   mouse_scroll_menu(st.reserve)
+   mouse_drag_menu(st.reserve)
+  END IF
  ELSE
   'Anywhere outside the boxes
   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
