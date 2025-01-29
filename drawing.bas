@@ -5323,6 +5323,13 @@ SUB spriteset_resize_menu_rebuild(byref root as Slice ptr, sprset as Frame ptr, 
   DrawSlice root, vpage
 END SUB
 
+'==========================================================================================
+'                                Spriteset Detail Editor
+'==========================================================================================
+' This barebones "editor" is currently nothing but a front to the animation
+' editor (and .gif export), but the plan is for it to show all frames and
+' animations, so the spriteset browser can omit or overlap frames.
+
 SUB spriteset_detail_editor(sprtype as SpriteType, setnum as integer)
  DIM editor as SpriteSetEditor
  editor.run sprtype, setnum
@@ -5332,7 +5339,7 @@ SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
  ss = spriteset_load(sprtype, setnum)
  anim_preview = NEW SpriteState(ss)
  pal = palette16_load(-1, sprtype, setnum)
- context = acHeroSprite
+ context = acHeroSprite  'FIXME
 
  setkeys
  DO
@@ -5349,6 +5356,10 @@ SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
   display()
   dowait
  LOOP
+ 'Save animations
+ 'FIXME: save_animations_node / load_animations_node saves the animations to a temporary
+ 'node which we will ignore in future.
+ rgfx_save_spriteset ss->frames, sprtype, setnum
  spriteset_unload @ss
  palette16_unload @pal
  DELETE anim_preview

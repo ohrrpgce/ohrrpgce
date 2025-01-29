@@ -3802,7 +3802,7 @@ END SUB
 ' Add an "animations" child to sprset_node
 SUB save_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)
   DIM anims as Node ptr
-  anims = AppendChildNode(sprset_node, "animations")
+  anims = AppendChildNode(sprset_node, "_animations")  'FIXME: temporary location
 
   FOR idx as integer = 0 TO UBOUND(sprset->animations)
     save_animation_node anims, sprset->animations(idx)
@@ -3811,7 +3811,7 @@ END SUB
 
 ' Load from the "animations" node
 SUB load_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)
-  DIM anims as Node ptr = sprset_node."animations".ptr
+  DIM anims as Node ptr = sprset_node."_animations".ptr  'FIXME: temporary location
   ' May be missing, eg for box borders
   IF anims = NULL THEN EXIT SUB
   ERASE sprset->animations   'In case called from sprite cache to reload inplace

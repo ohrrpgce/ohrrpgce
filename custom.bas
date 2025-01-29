@@ -1373,7 +1373,7 @@ SUB secret_menu ()
      "(Unused)", _
      "(Unused)", _
      "(Unused)", _
-     "New Spriteset/Animation Editor", _
+     "Spriteset browser", _
      "New backdrop browser", _
      "RGFX tests", _
      "Backend Keyrepeat Bugtest", _
@@ -1412,6 +1412,7 @@ SUB secret_menu ()
    IF st.pt = 12 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
    '13-16 unused
    IF st.pt = 17 THEN
+    'Nothing special here except that you can select Backdrop and Enemy
     DIM options(...) as string = {"Hero", "Small Enemy", "Medium Enemy", "Large Enemy", "Walkabouts", "Weapons", "Attack", "Boxborder", "Portrait", "Backdrop", "Enemy"}
     DIM sprtype as SpriteType = multichoice("Edit what?", options())
     IF sprtype > -1 THEN spriteset_editor sprtype
