@@ -775,6 +775,7 @@ Type AnimVariantInfo
 End Type
 
 Enum AnimOpType
+	animOpUnknown   = -1
 	animOpWait      = 0 '(ms)
 	animOpWaitMS    = 1 '(ms)
 	animOpFrame     = 2 '(frameid)
@@ -799,6 +800,7 @@ Type Animation
 	variant as string
 	'numitems as integer
 	ops(any) as AnimationOp
+	'opsnode as Reload.NodePtr   'RELOAD-based replacement for ops()
 
 	declare constructor()
 	declare constructor(name as string, variant as string = "")

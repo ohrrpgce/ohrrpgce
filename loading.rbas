@@ -3750,6 +3750,17 @@ SUB save_animation_node(parent as Node ptr, anim as Animation)
       IF .arg2 THEN AppendChildNode(op, "arg2", .arg2)
     END WITH
   NEXT idx
+
+  /' WIP new RELOAD-based in-memory storage scheme!
+  DIM ops as Node ptr = CloneNodeTree(anim.opsnode)
+  AddChild(anode, ops)
+  'Delete the integer value of each operator node, which was cached there in load_animation_node.
+  DIM op as Node ptr = FirstChild(ops)
+  WHILE op
+    SetContent(op)
+    op = NextSibling(op)
+  WEND
+  '/
 END SUB
 
 ' Append a new animation, from a "anim" node
@@ -3762,14 +3773,7 @@ SUB load_animation_node(animnode as Node ptr, sprset as SpriteSet ptr)
 
   DIM op as Node ptr = FirstChild(animnode."ops".ptr)
   WHILE op
-    DIM optype as AnimOpType = -1
-    DIM opname as string = NodeName(op)
-    FOR idx as integer = 0 TO UBOUND(anim_op_node_names)
-      IF opname = anim_op_node_names(idx) THEN
-        optype = idx
-        EXIT FOR
-      END IF
-    NEXT
+    DIM optype as AnimOpType = a_find(anim_op_node_names(), NodeName(op))
     IF optype = -1 THEN
       reporterr "Unsupport animation data: unknown anim op " & NodeName(op), serrError
       EXIT SUB
@@ -3778,6 +3782,21 @@ SUB load_animation_node(animnode as Node ptr, sprset as SpriteSet ptr)
     anim->append(optype, op."arg1", op."arg2")
     op = NextSibling(op)
   WEND
+
+  /' WIP new RELOAD-based in-memory storage scheme!
+  anim->opsnode = animnode."ops".ptr
+
+  'Lookup each op name, cache it as the integer value of the node
+  DIM op as Node ptr = FirstChild(anim->opsnode)
+  WHILE op
+    DIM optype as AnimOpType = a_find(anim_op_node_names(), NodeName(op))
+    IF optype = -1 THEN
+      reporterr "Unsupported animation data: unknown anim op " & NodeName(op), serrError
+    END IF
+    SetContent(op, optype)
+    op = NextSibling(op)
+  WEND
+  '/
 END SUB
 
 ' Add an "animations" child to sprset_node
