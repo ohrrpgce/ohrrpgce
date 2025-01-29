@@ -4396,13 +4396,15 @@ DIM SpriteSetBrowser.remem_framenum(sprTypeLastPickable) as integer
 
 TYPE SpriteSetEditor
   ss as SpriteSet ptr
-  anim_preview as SpriteState ptr
+  anim_previews(any) as SpriteState ptr
   pal as Palette16 ptr
   tog as integer
   context as AnimationContext
 
   DECLARE SUB display()
   DECLARE SUB run(sprtype as SpriteType, setnum as integer)
+  DECLARE SUB update_previews()
+  DECLARE SUB delete_previews()
   DECLARE SUB export_menu()
 END TYPE
 DECLARE SUB export_gif(ss as SpriteSet ptr, pal as Palette16 ptr, fname as string, anim as string, transparent as bool = NO)
@@ -4887,7 +4889,7 @@ SUB SpriteSetBrowser.edit_any(setnum as integer, framenum as integer)
 END SUB
 
 SUB SpriteSetBrowser.edit_spriteset(setnum as integer)
-  DIM _choices(...) as string = {"Draw spritesheet", "Export spritesheet", "Import spritesheet", "Resize", "Animations"}
+  DIM _choices(...) as string = {"Draw spritesheet", "Export spritesheet", "Import spritesheet", "Resize", "Detail/Animations"}
   REDIM choices() as string
   a_copy _choices(), choices()
   IF keyval(scShift) = 0 THEN a_pop choices()  'Remove Animations
@@ -5335,24 +5337,52 @@ SUB spriteset_detail_editor(sprtype as SpriteType, setnum as integer)
  editor.run sprtype, setnum
 END SUB
 
+SUB SpriteSetEditor.delete_previews()
+ FOR idx as integer = 0 TO UBOUND(anim_previews)
+  DELETE anim_previews(idx)
+ NEXT
+ ERASE anim_previews
+END SUB
+
+SUB SpriteSetEditor.update_previews()
+ delete_previews()
+
+ FOR idx as integer = 0 TO UBOUND(ss->animations)
+  WITH ss->animations(idx)
+   DIM sprst as SpriteState ptr
+   sprst = NEW SpriteState(ss)
+   ' Play each animation normally: only once if it doesn't end in Repeat
+   sprst->start_animation(.name + " " + .variant)
+   REDIM PRESERVE anim_previews(idx)
+   anim_previews(idx) = sprst
+  END WITH
+ NEXT
+END SUB
+
 SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
  ss = spriteset_load(sprtype, setnum)
- anim_preview = NEW SpriteState(ss)
  pal = palette16_load(-1, sprtype, setnum)
  context = acHeroSprite  'FIXME
+ update_previews()
 
  setkeys
  DO
   setwait 55
   setkeys
   tog XOR= 1
-  anim_preview->animate()
+
+  FOR idx as integer = 0 TO UBOUND(anim_previews)
+   anim_previews(idx)->animate()
+  NEXT
 
   IF keyval(ccCancel) > 1 THEN EXIT DO
 
-  IF keyval(scE) > 1 THEN edit_animations(ss, pal, context)
+  IF keyval(scE) > 1 THEN
+   edit_animations(ss, pal, context)
+   update_previews()
+  END IF
   IF keyval(scX) > 1 THEN export_menu()
-   
+
   display()
   dowait
  LOOP
@@ -5362,7 +5392,7 @@ SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
  rgfx_save_spriteset ss->frames, sprtype, setnum
  spriteset_unload @ss
  palette16_unload @pal
- DELETE anim_preview
+ delete_previews()
 END SUB
 
 SUB SpriteSetEditor.display()
@@ -5377,7 +5407,18 @@ SUB SpriteSetEditor.display()
   x += ss->frames[idx].w
  NEXT
 
- frame_draw anim_preview->cur_frame(), pal, 0, 100, , vpage
+ DIM spacing as integer = large(60, ss->frames[0].w + 15)
+
+ FOR idx as integer = 0 TO UBOUND(anim_previews)
+  frame_draw anim_previews(idx)->cur_frame(), pal, 10 + spacing * idx, 100, , vpage
+
+  ' Show name
+  ASSERT(idx <= UBOUND(ss->animations))
+  WITH ss->animations(idx)
+   DIM anim_name as string = .name + " " + .variant
+   edgeprint anim_name, 10 + spacing * idx, 100 + ancBottom, uilook(uiText), vpage
+  END WITH
+ NEXT
 
  '--screen update
  setvispage vpage
@@ -5557,7 +5598,7 @@ SUB AnimationEditor.toplevel()
     IF keyval(scF1) > 1 THEN show_help "animation_editor"
     IF keyval(scX) > 1 AND cur_anim() <> "" THEN
       export_menu cur_anim()
-    ELSEIF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
+    ELSEIF keyval(scInsert) > 1 OR keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
       new_animation()
     ELSEIF enter_space_click(topstate) THEN
       IF topstate.pt = -1 THEN EXIT DO
