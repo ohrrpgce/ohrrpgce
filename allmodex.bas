@@ -12249,12 +12249,15 @@ end destructor
 ' to loop forever. loopcount <> 0 overrides this, giving a fixed number of
 ' times to play, or < 0 to repeat forever
 sub SpriteState.start_animation(variantname as string, loopcount as integer = 0)
+	start_animation(ss->find_animation(variantname), loopcount)
+end sub
+
+sub SpriteState.start_animation(anim as Animation ptr, loopcount as integer = 0)
 	anim_wait = 0
 	anim_step = 0
 	anim_loop = loopcount
 	anim_looplimit = ANIMATION_LOOPLIMIT
-
-	set_anim(ss->find_animation(variantname))
+	set_anim(anim)
 end sub
 
 ' Doesn't reset the sprite.

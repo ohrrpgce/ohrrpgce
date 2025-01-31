@@ -1,5 +1,5 @@
 'OHRRPGCE CUSTOM - Spriteset, tileset, backdrop and animation editors
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #include "config.bi"
@@ -4399,13 +4399,18 @@ DIM SpriteSetBrowser.remem_framenum(sprTypeLastPickable) as integer
 
 TYPE SpriteSetEditor
   ss as SpriteSet ptr
-  anim_previews(any) as SpriteState ptr
+  anim_previews(any) as SpriteState ptr  'First the SpriteSet's animations, then the global animations
+  preview_pos(any) as XYPair
+  preview_names(any) as string
+  overridden_animations(any) as string   'List of global animations overridden by a local one
   pal as Palette16 ptr
   tog as integer
   context as AnimationContext
 
   DECLARE SUB display()
+  DECLARE SUB display_animation(animstate as SpriteState ptr, where as XYPair, name as string)
   DECLARE SUB run(sprtype as SpriteType, setnum as integer)
+  DECLARE SUB create_preview(anim as Animation ptr, rowidx as integer, colidx as integer)
   DECLARE SUB update_previews()
   DECLARE SUB delete_previews()
   DECLARE SUB export_menu()
@@ -5345,21 +5350,54 @@ SUB SpriteSetEditor.delete_previews()
   DELETE anim_previews(idx)
  NEXT
  ERASE anim_previews
+ ERASE preview_pos
+ ERASE preview_names
+END SUB
+
+SUB SpriteSetEditor.create_preview(anim as Animation ptr, rowidx as integer, colidx as integer)
+
+ DIM xspacing as integer = large(40, ss->frames[0].w + 6)
+ DIM rowspacing as integer = ss->frames[0].h + 50
+ DIM where as XYPair = XY(10 + xspacing * colidx, 10 + 10 * colidx + rowspacing * rowidx)
+
+ DIM sprst as SpriteState ptr = NEW SpriteState(ss)
+ ' Play each animation normally: only once if it doesn't end in Repeat
+ sprst->start_animation(anim)
+ ASSERT(sprst->anim)
+ DIM idx as integer = UBOUND(anim_previews) + 1
+ REDIM PRESERVE anim_previews(idx)
+ anim_previews(idx) = sprst
+ REDIM PRESERVE preview_pos(idx)
+ preview_pos(idx) = where
+ a_append preview_names(), anim->name + " " + anim->variant
 END SUB
 
 SUB SpriteSetEditor.update_previews()
  delete_previews()
 
- FOR idx as integer = 0 TO v_len(ss->animations) - 1
-  WITH *ss->animations[idx]
-   DIM sprst as SpriteState ptr
-   sprst = NEW SpriteState(ss)
-   ' Play each animation normally: only once if it doesn't end in Repeat
-   sprst->start_animation(.name + " " + .variant)
-   REDIM PRESERVE anim_previews(idx)
-   anim_previews(idx) = sprst
-  END WITH
+ ERASE overridden_animations
+
+ DIM as integer idx, colidx
+
+ FOR idx = 0 TO v_len(ss->animations) - 1
+  create_preview ss->animations[idx], 1, idx
  NEXT
+
+ DIM global as AnimationSet ptr = ss->global_animations
+ IF global THEN
+  FOR idx = 0 TO v_len(global->animations) - 1
+   DIM name as string
+   WITH *global->animations[idx]
+    name = .name & " " & .variant
+   END WITH
+   IF ss->find_animation(name, YES) THEN  'exact=YES
+    a_append(overridden_animations(), name)
+   ELSE
+    create_preview global->animations[idx], 2, colidx
+    colidx += 1
+   END IF
+  NEXT
+ END IF
 END SUB
 
 SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
@@ -5398,11 +5436,20 @@ SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
  delete_previews()
 END SUB
 
+SUB SpriteSetEditor.display_animation(animstate as SpriteState ptr, where as XYPair, name as string)
+ frame_draw animstate->cur_frame(), pal, where.x, where.y, , vpage
+
+ ' Show name
+ WITH *animstate->anim
+  edgeprint name, where.x, where.y + ancBottom, uilook(uiText), vpage
+ END WITH
+END SUB
+
 SUB SpriteSetEditor.display()
  clearpage vpage
 
  DIM caption as string = "E: Edit animations"
- printstr caption, pRight, pBottom, vpage
+ edgeprint caption, pMenuX, pInfoY, uilook(uiText), vpage
 
  DIM as integer x, y
  FOR idx as integer = 0 to ss->num_frames - 1
@@ -5410,19 +5457,22 @@ SUB SpriteSetEditor.display()
   x += ss->frames[idx].w
  NEXT
 
- DIM spacing as integer = large(40, ss->frames[0].w + 6)
-
  FOR idx as integer = 0 TO UBOUND(anim_previews)
-  DIM where as XYPair = XY(10 + spacing * idx, 100 + 10 * idx)
+  ASSERT(anim_previews(idx))
+  display_animation anim_previews(idx), preview_pos(idx), preview_names(idx)
+ NEXT
 
-  frame_draw anim_previews(idx)->cur_frame(), pal, where.x, where.y, , vpage
+ DIM rowspacing as integer = ss->frames[0].h + 50
+ DIM where as XYPair = XY(pMenuX, 10 + rowspacing * 1 - 12 + ancBottom)
+ edgeprint "Animations:", where.x, where.y, uilook(eduiHeading), vpage
+ where.y += rowspacing
+ edgeprint "Global Animations:", where.x, where.y, uilook(eduiHeading), vpage
+ where.y += rowspacing
+ edgeprint "Overridden Globals:", where.x, where.y, uilook(eduiHeading), vpage
 
-  ' Show name
-  ASSERT(idx < v_len(ss->animations))
-  WITH *ss->animations[idx]
-   DIM anim_name as string = .name + " " + .variant
-   edgeprint anim_name, where.x, where.y + ancBottom, uilook(uiText), vpage
-  END WITH
+ FOR idx as integer = 0 TO UBOUND(overridden_animations)
+  where.y += 9
+  edgeprint overridden_animations(idx), where.x, where.y, uilook(uiMenuItem), vpage
  NEXT
 
  '--screen update

@@ -840,6 +840,7 @@ Type AnimationSet Extends Object
 	declare virtual function reference() as AnimationSet ptr
 
 	declare function find_animation_idx(variantname as string, exact as bool = NO) as integer
+	'Note find_animation does not increment refcount!
 	declare function find_animation(variantname as string, exact as bool = NO) as Animation ptr
 	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
 	declare sub delete_animation(variantname as string)
@@ -896,7 +897,8 @@ Type SpriteState
 	declare destructor()
 	declare sub set_anim(newanim as Animation ptr)
 
-	declare sub start_animation(name as string, loopcount as integer = 0)
+	declare sub start_animation overload(name as string, loopcount as integer = 0)
+	declare sub start_animation overload(anim as Animation ptr, loopcount as integer = 0)
 	declare sub stop_animation()
 	declare sub reset()
 	declare function cur_frame() as Frame ptr
