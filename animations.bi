@@ -8,7 +8,7 @@
 
 
 ' Contexts in which an animation or animation variant name has a builtin meaning
-Enum AnimationContext
+enum AnimationContext
 	acWalkaboutSprite = 1
 	acHeroSprite = 2
 	acEnemySprite = 4
@@ -29,16 +29,16 @@ Enum AnimationContext
 	acBatEnemy  = acEnemySprite
 	'Walkabout and in-battle heroes
 	acHero      = acWalkaboutSprite or acHeroSprite
-End Enum
+end enum
 
 ' Describes a builtin animation or variant name
-Type AnimVariantInfo
+type AnimVariantInfo
 	name as zstring ptr
 	context as AnimationContext
 	description as zstring ptr
-End Type
+end type
 
-Enum AnimOpType
+enum AnimOpType
 	animOpUnknown   = -1
 	animOpWait      = 0 '(ms)
 	animOpWaitMS    = 1 '(ms)
@@ -47,17 +47,17 @@ Enum AnimOpType
 	animOpSetOffset = 4 '(x,y)
 	animOpRelOffset = 5 '(x,y)
 	animOpLAST      = 5
-End Enum
+end enum
 
 extern anim_op_names() as string      ' Short names used for display and debug
 extern anim_op_node_names() as string ' Short names used for RELOAD serialisation
 extern anim_op_fullnames() as string  ' Descriptive captions used in editor
 
-Type AnimationOp
+type AnimationOp
 	type as AnimOpType
 	arg1 as integer
 	arg2 as integer
-End Type
+end type
 
 #if 0
 	#define  DEBUG_ANIM_CACHE(x) x
@@ -65,7 +65,7 @@ End Type
 	#define  DEBUG_ANIM_CACHE(x)
 #endif
 
-Type Animation
+type Animation
 	name as string
 	variant as string
 	'numitems as integer
@@ -83,12 +83,12 @@ Type Animation
 	declare sub dereference()
 
 	declare sub append(type as AnimOpType, arg1 as integer = 0, arg2 as integer = 0)
-End Type
+end type
 
 'No automatic deletion
 DECLARE_VECTOR_OF_TYPE(Animation ptr, Animation_ptr)
 
-Type AnimationSet Extends Object
+type AnimationSet extends Object
 	refcount as integer         'If this is an SpriteSet, is set to NOREFC
 	animations as Animation ptr vector  'Owned reference to each Animation
 	global_animations as AnimationSet ptr  'The default animations for sprites of this type. May be NULL
@@ -105,13 +105,13 @@ Type AnimationSet Extends Object
 	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
 	declare sub delete_animation(variantname as string)
 	declare sub delete_all_animations(check_no_references as bool = NO)
-End Type
+end type
 
-Type SpriteSetFwd as SpriteSet
-Type FrameFwd as Frame
+type SpriteSetFwd as SpriteSet
+type FrameFwd as Frame
 
 ' The animation state of a SpriteSet instance
-Type SpriteState
+type SpriteState
 	ss as SpriteSetFwd ptr
 	frame_num as integer
 	anim as Animation ptr      'The currently playing animation or NULL
@@ -141,7 +141,7 @@ Type SpriteState
 	declare function skip_wait() as integer
 	' Advance by one animation op
 	declare function animate_step() as bool
-End Type
+end type
 
 
 declare sub set_animation_framerate(ms as integer)
@@ -151,4 +151,4 @@ declare function frames_to_ms(frames as integer) as integer
 declare sub animset_unload(pp as AnimationSet ptr ptr)
 declare sub split_variantname(variantname as string, byref animname as string, byref variant as string)
 
-DECLARE SUB spriteset_default_global_animations(byref animset as AnimationSet, sprtype as SpriteType)
+declare sub spriteset_default_global_animations(byref animset as AnimationSet, sprtype as SpriteType)

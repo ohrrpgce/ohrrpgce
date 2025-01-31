@@ -19,7 +19,7 @@ dim shared ms_per_frame as integer = 55
 
 ' Number of loops/non-forwards branches that can occur in an animation without a
 ' wait before it's considered to be stuck in an infinite loop.
-CONST ANIMATION_LOOPLIMIT = 10
+const ANIMATION_LOOPLIMIT = 10
 
 ' Short names used for listing an animation
 redim anim_op_names(animOpLAST) as string
@@ -49,7 +49,7 @@ anim_op_fullnames(animOpSetOffset) = "Move to offset (unimp)"
 anim_op_fullnames(animOpRelOffset) = "Add to offset (unimp)"
 
 ' Built-in variants have names starting with :, which are not allowed for user names
-DIM SHARED builtin_variants_table(4) as IntStrPair
+dim shared builtin_variants_table(4) as IntStrPair
 '  => { _
 '   (varUp,       "up"), _
 '   (varRight,    "right"), _
@@ -61,67 +61,67 @@ DIM SHARED builtin_variants_table(4) as IntStrPair
 '   '(varHover,    "hover"), _
 '   '(varDisabled, "disabled"), _
 
-DIM builtin_animations(...) as AnimVariantInfo => { _
-  (@"idle",        acAny,        @"Default when no other animation running, e.g. standing still"), _
-  (@"walk",        acActor,      @"Normal/default movement"), _
-  (@"retreat",     acBattler,    @"Walking back to start after attacking"), _
-  (@"flee",        acBattler,    @"Fleeing from battle"), _
-  (@"victory",     acBatHero,    @"Victory dance after a battle"), _
-  (@"walkinplace", acWalkabout,  @"NPCs with Walk-in-Place movetype"), _
-  (@"talk",        acWalkabout,  @"For heroes and NPCs, when an NPC shows a textbox"), _
-  (@"attack",      acBattler,    @"Default attack animation"), _
-  (@"cast",        acBattler,    @"`Cast' attack animation"), _
-  (@"useitem",     acBatHero,    @"Doing an attack linked to an item"), _
-/'  (@"jump",        acBattler,   @"`Jump' attack animation"), '/ _
-/'  (@"land",        acBattler,   @"`Land' attack animation"), '/ _
-  (@"hurt",        acBattler,    @"When hit by an attack"), _
-/'  (@"healed",      acBattler,   @"When healed in a battle"), '/ _
-  /' die disabled; need to figure out how to handle or supersede enemy dissolve '/ _
-/'  (@"die",         acBattler,    @"Used instead of `hurt' when dying"), (happens before enemy dissolve) '/ _
-  (@"dead",        acBatHero,    @"Heroes with 0 HP"), _
-/'  (@"revive",      acBatHero,   @"When HP increases above 0") '/ _
-  (NULL, 0, NULL) _
+dim builtin_animations(...) as AnimVariantInfo => { _
+	(@"idle",        acAny,        @"Default when no other animation running, e.g. standing still"), _
+	(@"walk",        acActor,      @"Normal/default movement"), _
+	(@"retreat",     acBattler,    @"Walking back to start after attacking"), _
+	(@"flee",        acBattler,    @"Fleeing from battle"), _
+	(@"victory",     acBatHero,    @"Victory dance after a battle"), _
+	(@"walkinplace", acWalkabout,  @"NPCs with Walk-in-Place movetype"), _
+	(@"talk",        acWalkabout,  @"For heroes and NPCs, when an NPC shows a textbox"), _
+	(@"attack",      acBattler,    @"Default attack animation"), _
+	(@"cast",        acBattler,    @"`Cast' attack animation"), _
+	(@"useitem",     acBatHero,    @"Doing an attack linked to an item"), _
+	/'(@"jump",        acBattler,   @"`Jump' attack animation"), '/ _
+	/'(@"land",        acBattler,   @"`Land' attack animation"), '/ _
+	(@"hurt",        acBattler,    @"When hit by an attack"), _
+	/'(@"healed",      acBattler,   @"When healed in a battle"), '/ _
+	/' die disabled; need to figure out how to handle or supersede enemy dissolve '/ _
+	/'(@"die",         acBattler,    @"Used instead of `hurt' when dying"), (happens before enemy dissolve) '/ _
+	(@"dead",        acBatHero,    @"Heroes with 0 HP"), _
+	/'(@"revive",      acBatHero,   @"When HP increases above 0") '/ _
+	(NULL, 0, NULL) _
 }
 
-DIM builtin_anim_variants(...) as AnimVariantInfo => { _
-  (@"(none)",      acAny,        @"Used if there's no more specific animation"), _
-  (@"up",          acActor,      @"Facing direction"), _
-  (@"right",       acActor,      @"Facing direction"), _
-  (@"down",        acActor,      @"Facing direction"), _
-  (@"left",        acActor,      @"Facing direction"), _
-  (@"weak",        acBattler,    @"HP less than the Weak threshold (see Battle System Options)"), _
-/'  (@"missed",      acBattler,   @"Performing or hit by an attack that missed"), '/ _
-/'  (@"resisted",    acBattler,   @"Performing or hit by an attack that failed"), '/ _
-  (NULL, 0, NULL) _
+dim builtin_anim_variants(...) as AnimVariantInfo => { _
+	(@"(none)",      acAny,        @"Used if there's no more specific animation"), _
+	(@"up",          acActor,      @"Facing direction"), _
+	(@"right",       acActor,      @"Facing direction"), _
+	(@"down",        acActor,      @"Facing direction"), _
+	(@"left",        acActor,      @"Facing direction"), _
+	(@"weak",        acBattler,    @"HP less than the Weak threshold (see Battle System Options)"), _
+	/'(@"missed",      acBattler,   @"Performing or hit by an attack that missed"), '/ _
+	/'(@"resisted",    acBattler,   @"Performing or hit by an attack that failed"), '/ _
+	(NULL, 0, NULL) _
 }
 
 
 ' Creates the default global animations for a sprite type in an existing AnimationSet.
 ' TODO: very unfinished. These could be defined in a RELOAD data file instead of by code.
-SUB spriteset_default_global_animations(byref animset as AnimationSet, sprtype as SpriteType)
-  debuginfo "Using default global animations for " & sprite_sizes(sprtype).name
+sub spriteset_default_global_animations(byref animset as AnimationSet, sprtype as SpriteType)
+	debuginfo "Using default global animations for " & sprite_sizes(sprtype).name
 
-  animset.delete_all_animations()
-  IF sprtype = sprTypeHero THEN
-    WITH *animset.new_animation("idle")
-      .append(animOpFrame, frameSTAND)    '0
-    END WITH
-    WITH *animset.new_animation("walk", "left")
-      .append(animOpFrame, frameSTAND)    '0
-      .append(animOpWait, 2*55)
-      .append(animOpFrame, frameSTEP)     '1
-      .append(animOpWait, 2*55)
-      .append(animOpRepeat)
-    END WITH
-    WITH *animset.new_animation("attack", "left")
-      .append(animOpFrame, frameATTACKA)  '2
-      .append(animOpWait, 2*55)
-      .append(animOpFrame, frameATTACKB)  '3
-      .append(animOpWait, 2*55)
-      .append(animOpFrame, frameSTAND)  '0
-    END WITH
-  END IF
-END SUB
+	animset.delete_all_animations()
+	if sprtype = sprTypeHero then
+		with *animset.new_animation("idle")
+			.append(animOpFrame, frameSTAND)    '0
+		end with
+		with *animset.new_animation("walk", "left")
+			.append(animOpFrame, frameSTAND)    '0
+			.append(animOpWait, 2*55)
+			.append(animOpFrame, frameSTEP)     '1
+			.append(animOpWait, 2*55)
+			.append(animOpRepeat)
+		end with
+		with *animset.new_animation("attack", "left")
+			.append(animOpFrame, frameATTACKA)  '2
+			.append(animOpWait, 2*55)
+			.append(animOpFrame, frameATTACKB)  '3
+			.append(animOpWait, 2*55)
+			.append(animOpFrame, frameSTAND)  '0
+		end with
+	end if
+end sub
 
 sub set_animation_framerate(ms as integer)
 	' We bound to 5-200 because set_speedcontrol does the same thing
@@ -140,6 +140,7 @@ end function
 '==========================================================================================
 '                                         Animation
 '==========================================================================================
+
 
 constructor Animation()
 	reference()
