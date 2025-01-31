@@ -111,7 +111,7 @@ type SpriteSetFwd as SpriteSet
 type FrameFwd as Frame
 
 ' The animation state of a SpriteSet instance
-type SpriteState
+type AnimationState
 	ss as SpriteSetFwd ptr
 	frame_num as integer
 	anim as Animation ptr      'The currently playing animation or NULL

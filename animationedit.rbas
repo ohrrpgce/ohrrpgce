@@ -23,8 +23,8 @@ SUB export_gif(ss as SpriteSet ptr, pal as Palette16 ptr, fname as string, anim_
 
   DIM ms_remainder as integer = 0  'Left over wait ms due to rounding
 
-  DIM sprst as SpriteState ptr
-  sprst = NEW SpriteState(ss)
+  DIM sprst as AnimationState ptr
+  sprst = NEW AnimationState(ss)
   sprst->start_animation(anim_name, 1)  'Loop once
 
   ' Run until the first wait
@@ -67,7 +67,7 @@ END SUB
 
 TYPE AnimationEditor
   sprset as SpriteSet ptr
-  sprstate as SpriteState ptr
+  animstate as AnimationState ptr
   pal as Palette16 ptr
   sprtype_context as AnimationContext
   default_export_filename as string
@@ -101,12 +101,12 @@ END SUB
 CONSTRUCTOR AnimationEditor(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext)
   this.sprset = sprset
   this.pal = pal
-  this.sprstate = NEW SpriteState(sprset)
+  this.animstate = NEW AnimationState(sprset)
   this.sprtype_context = sprtype_context
 END CONSTRUCTOR
 
 DESTRUCTOR AnimationEditor()
-  DELETE sprstate
+  DELETE animstate
 END DESTRUCTOR
 
 SUB AnimationEditor.rebuild_toplevel_menu()
@@ -172,14 +172,14 @@ SUB AnimationEditor.toplevel()
   set_animation_framerate gen(genMillisecPerFrame)
 
   rebuild_toplevel_menu
-  sprstate->start_animation(cur_anim())
+  animstate->start_animation(cur_anim())
 
   DO
     setwait gen(genMillisecPerFrame)
     setkeys
 
     IF keyval(scShift) = 0 ANDALSO usemenu(topstate) THEN
-      sprstate->start_animation(cur_anim())
+      animstate->start_animation(cur_anim())
     END IF
 
     IF keyval(ccCancel) > 1 THEN EXIT DO
@@ -191,7 +191,7 @@ SUB AnimationEditor.toplevel()
     ELSEIF keyval(scDelete) > 1 THEN
       delete_animation()
     ELSEIF keyval(scR) > 1 THEN
-      sprstate->reset()
+      animstate->reset()
     ELSEIF enter_space_click(topstate) THEN
       IF topstate.pt = -1 THEN EXIT DO
       IF topstate.pt = topstate.last THEN
@@ -213,11 +213,11 @@ SUB AnimationEditor.toplevel()
         SWAP sprset->animations[anidx], sprset->animations[anidx + shift]
         topstate.pt += shift
         rebuild_toplevel_menu
-        'sprstate->start_animation(cur_anim())
+        'animstate->start_animation(cur_anim())
       END IF
     END IF
 
-    sprstate->animate()
+    animstate->animate()
 
     clearpage vpage
 
@@ -228,7 +228,7 @@ SUB AnimationEditor.toplevel()
     edgeprint "X: Export", pInfoRight, pMenuY + 30, uilook(uiMenuItem), vpage
 
     wrapprint animation_info(cur_anim()), pInfoX, pInfoY, uilook(uiMenuItem), vpage
-    frame_draw sprstate->cur_frame(), pal, pCentered, pBottom - 50, , vpage
+    frame_draw animstate->cur_frame(), pal, pCentered, pBottom - 50, , vpage
     standardmenu topmenu(), topstate, , , vpage
     setvispage vpage
     dowait
@@ -253,7 +253,7 @@ END SUB
 SUB AnimationEditor.delete_animation()
  IF cur_anim_idx() < 0 THEN EXIT SUB
  IF yesno("Really delete animation `" & cur_anim() &"'? No undo!", NO) THEN
-  sprstate->stop_animation()
+  animstate->stop_animation()
   sprset->delete_animation(cur_anim())
   rebuild_toplevel_menu  'Updates state.pt
  END IF
@@ -364,7 +364,7 @@ SUB AnimationEditor.new_animation()
   rebuild_toplevel_menu
   topstate.pt = UBOUND(topmenu) - 1
   correct_menu_state topstate
-  sprstate->start_animation(anim & " " & variant)
+  animstate->start_animation(anim & " " & variant)
 END SUB
 
 '================================ Editing an Animation ====================================
@@ -446,9 +446,9 @@ SUB AnimationEditor.edit_animation(anim_name as string)
   IF animating THEN
    ' Menu cursor shows the current op
 
-   sprstate->animate()
-   state.pt = first_op_pt + sprstate->anim_step
-   IF sprstate->anim = NULL THEN
+   animstate->animate()
+   state.pt = first_op_pt + animstate->anim_step
+   IF animstate->anim = NULL THEN
     animating = NO
     ' Stay on the last op if we reached the end
     state.pt = first_op_pt + UBOUND(anim.ops)
@@ -456,12 +456,12 @@ SUB AnimationEditor.edit_animation(anim_name as string)
 
    IF keyval(scR) > 1 THEN  'Allow reset too
     animating = NO
-    sprstate->reset()
-    sprstate->stop_animation()
+    animstate->reset()
+    animstate->stop_animation()
    'ELSEIF keyval(ccCancel) > 1 ORELSE keyval(scP) > 1
    ELSEIF anykeypressed() THEN
     animating = NO
-    sprstate->stop_animation()  'Not necessary, since we don't call animate() anyway
+    animstate->stop_animation()  'Not necessary, since we don't call animate() anyway
    END IF
 
   ELSE
@@ -534,15 +534,15 @@ SUB AnimationEditor.edit_animation(anim_name as string)
     curop = NULL
    ELSEIF play_anim THEN
     ' Play (may or may not loop)
-    sprstate->start_animation(anim_name)
+    animstate->start_animation(anim_name)
     animating = YES
    ELSEIF loop_anim THEN
     ' Loop
-    sprstate->start_animation(anim_name, -1)
+    animstate->start_animation(anim_name, -1)
     animating = YES
    ELSEIF reset_anim THEN
     ' Reset sprite
-    sprstate->reset()
+    animstate->reset()
    ELSEIF keyval(scShift) > 0 AND op_idx >= 0 THEN
     ' Rearranging items
     IF keyval(ccUp) > 1 AND op_idx > 0 THEN
@@ -571,7 +571,7 @@ SUB AnimationEditor.edit_animation(anim_name as string)
      IF keyval(scTab) > 1 THEN curop->type = animOpWait
     CASE animOpFrame
      intgrabber curop->arg1, 0, sprset->num_frames - 1
-     sprstate->frame_num = curop->arg1  ' Update visual
+     animstate->frame_num = curop->arg1  ' Update visual
     END SELECT
    END IF
 
@@ -582,7 +582,7 @@ SUB AnimationEditor.edit_animation(anim_name as string)
   ' Draw screen
   clearpage vpage
   draw_background vpages(vpage), bgChequer
-  frame_draw sprstate->cur_frame(), pal, pCentered, pBottom - 50, , vpage
+  frame_draw animstate->cur_frame(), pal, pCentered, pBottom - 50, , vpage
 
   fuzzyrect vpages(vpage), state.rect, uilook(uiBackground)
   edgeprint anim_name, pCentered, mpos.y, uilook(uiText), vpage

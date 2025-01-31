@@ -4397,7 +4397,7 @@ DIM SpriteSetBrowser.remem_framenum(sprTypeLastPickable) as integer
 
 TYPE SpriteSetEditor
   ss as SpriteSet ptr
-  anim_previews(any) as SpriteState ptr  'First the SpriteSet's animations, then the global animations
+  anim_previews(any) as AnimationState ptr  'First the SpriteSet's animations, then the global animations
   preview_pos(any) as XYPair
   preview_names(any) as string
   overridden_animations(any) as string   'List of global animations overridden by a local one
@@ -4406,7 +4406,7 @@ TYPE SpriteSetEditor
   context as AnimationContext
 
   DECLARE SUB display()
-  DECLARE SUB display_animation(animstate as SpriteState ptr, where as XYPair, name as string)
+  DECLARE SUB display_animation(animstate as AnimationState ptr, where as XYPair, name as string)
   DECLARE SUB run(sprtype as SpriteType, setnum as integer)
   DECLARE SUB create_preview(anim as Animation ptr, rowidx as integer, colidx as integer)
   DECLARE SUB update_previews()
@@ -5358,7 +5358,7 @@ SUB SpriteSetEditor.create_preview(anim as Animation ptr, rowidx as integer, col
  DIM rowspacing as integer = ss->frames[0].h + 50
  DIM where as XYPair = XY(10 + xspacing * colidx, 10 + 10 * colidx + rowspacing * rowidx)
 
- DIM sprst as SpriteState ptr = NEW SpriteState(ss)
+ DIM sprst as AnimationState ptr = NEW AnimationState(ss)
  ' Play each animation normally: only once if it doesn't end in Repeat
  sprst->start_animation(anim)
  ASSERT(sprst->anim)
@@ -5434,7 +5434,7 @@ SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
  delete_previews()
 END SUB
 
-SUB SpriteSetEditor.display_animation(animstate as SpriteState ptr, where as XYPair, name as string)
+SUB SpriteSetEditor.display_animation(animstate as AnimationState ptr, where as XYPair, name as string)
  frame_draw animstate->cur_frame(), pal, where.x, where.y, , vpage
 
  ' Show name

@@ -294,22 +294,22 @@ end sub
 
 
 '==========================================================================================
-'                                       SpriteState
+'                                       AnimationState
 '==========================================================================================
 
 
-constructor SpriteState(sprset as SpriteSet ptr)
+constructor AnimationState(sprset as SpriteSet ptr)
 	ss = sprset
 	ss->reference()  'Inc refcount, because dec it in destructor
 	frame_num = 0
 end constructor
 
-constructor SpriteState(ptno as SpriteType, record as integer)
+constructor AnimationState(ptno as SpriteType, record as integer)
 	ss = spriteset_load(ptno, record)
 	frame_num = 0
 end constructor
 
-destructor SpriteState()
+destructor AnimationState()
 	set_anim(NULL)  'Dec refcount
 	spriteset_unload @ss
 end destructor
@@ -319,11 +319,11 @@ end destructor
 ' Normally an animation specifies how many times it loops (unimplemented), or ends in Repeat
 ' to loop forever. loopcount <> 0 overrides this, giving a fixed number of
 ' times to play, or < 0 to repeat forever
-sub SpriteState.start_animation(variantname as string, loopcount as integer = 0)
+sub AnimationState.start_animation(variantname as string, loopcount as integer = 0)
 	start_animation(ss->find_animation(variantname), loopcount)
 end sub
 
-sub SpriteState.start_animation(anim as Animation ptr, loopcount as integer = 0)
+sub AnimationState.start_animation(anim as Animation ptr, loopcount as integer = 0)
 	anim_wait = 0
 	anim_step = 0
 	anim_loop = loopcount
@@ -332,13 +332,13 @@ sub SpriteState.start_animation(anim as Animation ptr, loopcount as integer = 0)
 end sub
 
 ' Doesn't reset the sprite.
-sub SpriteState.stop_animation()
+sub AnimationState.stop_animation()
 	set_anim(NULL)
 	anim_wait = 0
 	anim_step = 0
 end sub
 
-sub SpriteState.set_anim(newanim as Animation ptr)
+sub AnimationState.set_anim(newanim as Animation ptr)
 	if anim then
 		anim->dereference()
 	end if
@@ -349,13 +349,13 @@ sub SpriteState.set_anim(newanim as Animation ptr)
 end sub
 
 ' Resets everything that an animation might change, but doesn't stop it
-sub SpriteState.reset()
+sub AnimationState.reset()
 	frame_num = 0
 	offset.x = 0
 	offset.y = 0
 end sub
 
-function SpriteState.cur_frame() as Frame ptr
+function AnimationState.cur_frame() as Frame ptr
 	if ss = NULL then return NULL
 	if frame_num < 0 or frame_num >= ss->num_frames then return NULL
 	return @ss->frames[frame_num]
@@ -365,7 +365,7 @@ end function
 ' Returns -1 and does nothing if not waiting, -2 on error.
 ' The return value ought to be independent of ms_per_frame
 ' Note: any time already spent on the current wait is ignored.
-function SpriteState.skip_wait() as integer
+function AnimationState.skip_wait() as integer
 	if anim = NULL then return -2
 	' Look at the current op instead of anim_wait, because it might be a wait
 	' which we haven't looked at yet.
@@ -384,7 +384,7 @@ end function
 ' Returns true on success or finished animation, false on error.
 ' Sets anim = NULL on error or finished animation.
 ' Does not check for infinite loops; caller must do that.
-function SpriteState.animate_step() as bool
+function AnimationState.animate_step() as bool
 	if anim = NULL then return NO
 
 	' This condition only If the animation doesn't end up looping, re
@@ -451,7 +451,7 @@ function SpriteState.animate_step() as bool
 end function
 
 ' Advance time by one tick. True on success or finished (anim is now NULL!), false on an error/infinite loop
-function SpriteState.animate() as bool
+function AnimationState.animate() as bool
 	if anim = NULL then return NO
 
 	while anim_looplimit > 0
@@ -467,7 +467,7 @@ function SpriteState.animate() as bool
 end function
 
 /'
-sub SpriteState.draw(x as integer, y as integer, trans as bool = YES, page as integer)
+sub AnimationState.draw(x as integer, y as integer, trans as bool = YES, page as integer)
 	dim as integer realx, realy
 	realx = x + offset.x
 	realy = y + offset.y
