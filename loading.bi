@@ -157,7 +157,7 @@ DECLARE FUNCTION rgfx_open OVERLOAD (filename as string, expect_exists as bool =
 DECLARE FUNCTION rgfx_open OVERLOAD (sprtype as SpriteType, expect_exists as bool = NO, options as Reload.LoadOptions = optNone) as DocPtr
 DECLARE FUNCTION rgfx_find_spriteset (rgfxdoc as DocPtr, sprtype as SpriteType, setnum as integer) as Node ptr
 DECLARE FUNCTION rgfx_num_spritesets (rgfxdoc as DocPtr, sprtype as SpriteType) as integer
-DECLARE FUNCTION rgfx_load_spriteset OVERLOAD (rgfxdoc as Reload.DocPtr, sprtype as SpriteType, setnum as integer, cache_def_anims as bool = NO) as Frame ptr
+DECLARE FUNCTION rgfx_load_spriteset OVERLOAD (rgfxdoc as Reload.DocPtr, sprtype as SpriteType, setnum as integer, cache_def_anims as bool = YES) as Frame ptr
 DECLARE FUNCTION rgfx_load_spriteset OVERLOAD (sprtype as SpriteType, setnum as integer, expect_exists as bool = YES) as Frame ptr
 DECLARE SUB rgfx_save_spriteset OVERLOAD (rgfxdoc as DocPtr, fr as Frame ptr, sprtype as SpriteType, setnum as integer, defpal as integer = -1)
 DECLARE SUB rgfx_save_spriteset OVERLOAD (fr as Frame ptr, sprtype as SpriteType, setnum as integer, defpal as integer = -1)

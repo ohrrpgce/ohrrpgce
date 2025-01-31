@@ -795,6 +795,12 @@ Type AnimationOp
 	arg2 as integer
 End Type
 
+#if 0
+	#define  DEBUG_ANIM_CACHE(x) x
+#else
+	#define  DEBUG_ANIM_CACHE(x)
+#endif
+
 Type Animation
 	name as string
 	variant as string
@@ -823,10 +829,15 @@ declare function ms_to_frames(ms as integer) as integer
 declare function frames_to_ms(frames as integer) as integer
 
 Type AnimationSet Extends Object
+	refcount as integer         'If this is an SpriteSet, is set to NOREFC
 	animations as Animation ptr vector  'Owned reference to each Animation
 	global_animations as AnimationSet ptr  'The default animations for sprites of this type. May be NULL
-	                                    '(This counts as a reference)
-	declare virtual destructor()
+	                                       '(This counts as a reference)
+	DEBUG_ANIM_CACHE(debugname as string)
+
+	declare destructor()
+	'The inverse of .reference() is animset_unload()
+	declare virtual function reference() as AnimationSet ptr
 
 	declare function find_animation_idx(variantname as string, exact as bool = NO) as integer
 	declare function find_animation(variantname as string, exact as bool = NO) as Animation ptr
@@ -835,19 +846,28 @@ Type AnimationSet Extends Object
 	declare sub delete_all_animations(check_no_references as bool = NO)
 End Type
 
-Type SpriteSet Extends AnimationSet
-	frames as Frame ptr    'Does NOT count as a reference
-	'uses refcount from frames
+declare sub animset_unload(pp as AnimationSet ptr ptr)
 
-	'This is private!
+'SpriteSet is intended as replacement for holding pointers to arrays of Frames,
+'and also holds any animations.
+'Each SpriteSet is tied to a Frame array, and the two are always deleted together
+'(by frame_freemem), although a Frame array might not have a SpriteSet until
+'spriteset_for_frame() is called.
+'SpriteSet references need to be managed using ->reference() and spriteset_unload()
+Type SpriteSet Extends AnimationSet
+	'refcount is set to NOREFC and references are instead tracked with frames->refcount
+
+	frames as Frame ptr    'Never NULL. Does NOT count as a reference
+
+	'This is private! Should be called only by frame_load or spriteset_for_frame
 	declare constructor(frameset as Frame ptr)
 
 	declare function num_frames() as integer
-	declare sub reference()
+	'The inverse of .reference() is spriteset_unload()
+	declare function reference() as SpriteSet ptr override
 	declare function describe() as string
 End Type
 
-declare sub animset_unload(pp as AnimationSet ptr ptr)
 declare function spriteset_load(ptno as SpriteType, record as integer) as SpriteSet ptr
 declare sub spriteset_unload(ss as SpriteSet ptr ptr)
 declare function spriteset_for_frame(fr as Frame ptr) as SpriteSet ptr

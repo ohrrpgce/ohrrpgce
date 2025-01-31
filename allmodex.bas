@@ -9632,6 +9632,8 @@ local sub sprite_update_cache_range(minkey as integer, maxkey as integer)
 				if pt->p->sprset then
 					'We DON'T do the same trick with SpriteSets.
 					'You mustn't hold onto SpriteSet ptrs when gfx are reloaded, they will become invalid!
+					'However, it's OK to keep an Animation ptr which has been ->referenced()
+
 					'Update cross-link
 					pt->p->sprset->frames = pt->p
 				end if
@@ -9665,12 +9667,10 @@ sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid, setnum as integer
 		if sprcacheB_used <> 0 or sprcache.numitems <> 0 then
 			debug "sprite_empty_cache: corruption: sprcacheB_used=" & sprcacheB_used & " items=" & sprcache.numitems
 		end if
-		' TODO: omitting this because without refcounting, can't avoid a crash if still in use
-		'empty_spriteset_global_animations_cache
+		empty_spriteset_global_animations_cache
 	elseif setnum < 0 then
 		sprite_empty_cache_range(SPRITE_CACHE_MULT * sprtype, SPRITE_CACHE_MULT * (sprtype + 1) - 1)
-		' TODO: as above
-		'animset_unload @spriteset_global_animations_cache(sprtype)
+		animset_unload @spriteset_global_animations_cache(sprtype)
 	else
 		dim which as integer = SPRITE_CACHE_MULT * sprtype + setnum
 		sprite_empty_cache_range(which, which)
@@ -9784,9 +9784,6 @@ local sub _cache_sprtype(byref doc as DocPtr, sprtype as SpriteType)
 		end if
 		frame_unload @fr
 	next
-	if doc then
-		spriteset_load_global_animations sprtype, doc  'Doesn't have to be freed.
-	end if
 end sub
 
 'Equivalent to loading and freeing all graphics of one type, but vastly faster.
@@ -10146,10 +10143,10 @@ function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame 
 			ret = mxs
 		end if
 	else
-		ret = rgfx_load_spriteset(sprtype, record, NO)
+		ret = rgfx_load_spriteset(sprtype, record, NO)  'expect_exists=NO
 
 		if ret then
-			'OK
+			'OK. ret already has a sprset.
 		elseif sprtype = sprTypeBackdrop then
 			'Returns a blank Frame on error
 			ret = frame_load_mxs(graphics_file("mxs"), record)
@@ -10157,6 +10154,7 @@ function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame 
 				sprset = new SpriteSet(ret)  'Attaches to ret
 			end if
 		else
+			'Not in the .rgfx file, try .pt#, or create a blank spriteset
 			with sprite_sizes(sprtype)
 				'debug "loading " & sprtype & "  " & record
 				'cachemiss += 1
@@ -10168,6 +10166,7 @@ function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame 
 			if ret then
 				initialise_backcompat_pt_frameids ret, sprtype
 				sprset = new SpriteSet(ret)  'Attaches to ret
+				DEBUG_ANIM_CACHE(sprset->debugname = "SS" & sprtype & "_" & record)
 				sprset->global_animations = spriteset_load_global_animations(sprtype)
 			end if
 		end if
@@ -10389,11 +10388,6 @@ sub frame_unload cdecl(ppfr as Frame ptr ptr)
 			debug frame_describe(fr) & " already freed!"
 			exit sub
 		end if
-		'Theoretically possible to have an un-refcounted Frame/SpriteSet which uses refcounted default animations
-		if .sprset andalso .sprset->global_animations then
-			'TODO: add refcounting
-			'animset_unload @.sprset->global_animations
-		end if
 		if .refcount = NOREFC then
 			exit sub
 		end if
@@ -10426,7 +10420,7 @@ sub frame_unload cdecl(ppfr as Frame ptr ptr)
 				if .cached then
 					sprite_to_B_cache(fr->cacheentry)
 				else
-					'Frees .surf
+					'Frees .surf and .sprset
 					frame_freemem(fr)
 				end if
 			end if
@@ -11955,22 +11949,36 @@ end sub
 ' This should only be called from within allmodex
 constructor SpriteSet(frameset as Frame ptr)
 	BUG_IF(frameset = NULL orelse frameset->arrayelem, "need first Frame in array")
+	BUG_IF(frameset->sprset, "Overwriting Frame->sprset ptr")
 	frames = frameset
 	frameset->sprset = @this
+	refcount = NOREFC
 	'No need to init the animations vector until one is created
 end constructor
 
 destructor AnimationSet()
 	'If deleting an AnimationSet that's a SpriteSet, noone should still be playing its animations!
 	'(The Animations can remain referenced, but the Frames might be gone)
-	delete_all_animations(YES)
+	delete_all_animations(YES)  'check_no_references = YES
+
+	animset_unload @global_animations
 end destructor
 
 ' WARNING: if this is a SpriteSet, call spriteset_unload instead
 sub animset_unload(pp as AnimationSet ptr ptr)
 	if *pp <> NULL then
-		'TODO: implement refcounting
-		delete *pp
+		with **pp
+			if .refcount = NOREFC then  'This is a SpriteSet
+				showbug "animset_unload called on SpriteSet"
+				spriteset_unload cast(SpriteSet ptr ptr, pp)
+			else
+				.refcount -= 1
+				BUG_IF(.refcount < 0, "Negative animset refc")
+				if .refcount = 0 then
+					delete *pp
+				end if
+			end if
+		end with
 		*pp = NULL
 	end if
 end sub
@@ -11993,14 +12001,17 @@ end function
 'Create a SpriteSet for a Frame if it doesn't have one
 function spriteset_for_frame(fr as Frame ptr) as SpriteSet ptr
 	if fr->sprset then return fr->sprset
-	return new SpriteSet(fr)
+	var ret = new SpriteSet(fr)
+	DEBUG_ANIM_CACHE(ret->debugname = "ssForFrame")
+	return ret
 end function
 
 ' Load the global animations for a sprtype from rgfx, or defaults if they don't exist.
-' If loadinto=NULL, creates a new AnimationSet, otherwise returns loadinto with its animations replaced.
+' If loadinto=NULL, creates a new AnimationSet with .refcount=1, otherwise returns loadinto with its animations replaced.
 local function spriteset_load_global_animations_uncached(sprtype as SpriteType, rgfxdoc as Doc ptr = NULL, loadinto as AnimationSet ptr = NULL) as AnimationSet ptr
 	dim ret as AnimationSet ptr
 	if rgfxdoc then
+		' Will create new if loadinto=NULL, unless animations missing
 		ret = rgfx_load_global_animations(rgfxdoc, loadinto)
 	else
 		rgfxdoc = rgfx_open(sprtype, NO)
@@ -12014,6 +12025,9 @@ local function spriteset_load_global_animations_uncached(sprtype as SpriteType, 
 			ret = loadinto
 		else
 			ret = new AnimationSet
+			DEBUG_ANIM_CACHE(ret->debugname = "defglobalanims" & sprtype)
+			' Result goes in the cache
+			ret->reference()
 		end if
 		spriteset_default_global_animations(*ret, sprtype)
 	end if
@@ -12021,16 +12035,17 @@ local function spriteset_load_global_animations_uncached(sprtype as SpriteType, 
 end function
 
 ' Load (with caching) the global animations (or defaults if they don't exist) for a sprtype.
-' Use animset_unload to free the result.
+' Increments the refcount. Use animset_unload to deref/free the result.
 ' If rgfxdoc is already open you can optionally pass it to avoid reloading.
 function spriteset_load_global_animations(sprtype as SpriteType, rgfxdoc as Doc ptr = NULL) as AnimationSet ptr
 	dim ret as AnimationSet ptr
 	ret = spriteset_global_animations_cache(sprtype)
-	if ret then return ret
+	if ret then return ret->reference()
 
 	ret = spriteset_load_global_animations_uncached(sprtype, rgfxdoc)
+	' ret has .refcount = 1
 	spriteset_global_animations_cache(sprtype) = ret
-	return ret
+	return ret->reference()
 end function
 
 ' Called when updating the sprite cache. Updates the AnimationSet of global animations in-place
@@ -12038,14 +12053,22 @@ end function
 local sub update_spriteset_global_animations_cache(sprtype as SpriteType)
 	dim byref cached as AnimationSet ptr = spriteset_global_animations_cache(sprtype)
 
-	' If cached=NULL, creates a new AnimationSet, otherwise returns cached with its animations replaced.
+	' If cached=NULL, creates a new AnimationSet with refc=1, otherwise returns cached with its animations replaced.
 	' If the animations don't exist, loads the defaults.
 	cached = spriteset_load_global_animations_uncached(sprtype, NULL, cached)
+
+	DEBUG_ANIM_CACHE(if cached then ? strprintf("update global_animations_cache(%d) refc=%d", sprtype, cached->refcount))
 end sub
 
 sub empty_spriteset_global_animations_cache()
-	for idx as integer = lbound(spriteset_global_animations_cache) to ubound(spriteset_global_animations_cache)
-		animset_unload @spriteset_global_animations_cache(idx)
+	for sprtype as SpriteType = lbound(spriteset_global_animations_cache) to ubound(spriteset_global_animations_cache)
+		var byref cached = spriteset_global_animations_cache(sprtype)
+		if cached andalso cached->refcount > 1 then
+			'TODO: switch to debugc errBug
+			showbug strprintf("global_animations_cache(%d) leak with refc=%d", sprtype, cached->refcount)
+		end if
+		DEBUG_ANIM_CACHE(if cached then ? strprintf("empty_global_animations_cache(%d)", sprtype))
+		animset_unload @cached
 	next
 end sub
 
@@ -12072,9 +12095,25 @@ sub spriteset_unload(ss as SpriteSet ptr ptr)
 end sub
 
 ' Increment refcount.
-sub SpriteSet.reference()
-	if frames then frame_reference frames
-end sub
+function AnimationSet.reference() as AnimationSet ptr
+	'The SpriteSet.reference override should be called when refcount = NOREFC
+	BUG_IF(refcount = NOREFC, "Bad AnimationSet.refcount", @this)
+	refcount += 1
+	DEBUG_ANIM_CACHE(? "AnimationSet.reference(" & debugname & "): refc=" & refcount)
+	return @this
+end function
+
+' Increment refcount.
+function SpriteSet.reference() as SpriteSet ptr
+	BUG_IF(refcount <> NOREFC, "Bad SpriteSet.refcount", @this)
+	if frames then
+		frame_reference frames
+	else
+		showbug "SpriteSet.reference(): no frames!"
+	end if
+	DEBUG_ANIM_CACHE(? "SpriteSet.reference(" & debugname & "): frames.refc=" & frames->refcount)
+	return @this
+end function
 
 function SpriteSet.describe() as string
 	return "spriteset:<" & num_frames & " frames: 0x" & hexptr(frames) _
@@ -12276,7 +12315,6 @@ function SpriteState.animate_step() as bool
 
 	' This condition only If the animation doesn't end up looping, re
 	if anim_step > ubound(anim->ops) then
-		debuginfo "anim done"
 		anim_looplimit -= 1
 		' anim_loop = 0 means default number of loops
 		' Also refuse to loop if empty.

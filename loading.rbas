@@ -3984,11 +3984,17 @@ SUB add_sprite_idx_backcompat_translation(rgfxdoc as DocPtr, sprtype as SpriteTy
   SetKeyValueNode(ids, "key", TRANSLATION_KEY(sprtype, oldidx), newidx, "idx")
 END SUB
 
+'Returns NULL if animations missing.
+'Otherwise, returns loadinto with the animations replaced, or if loadinto=NULL, a new AnimationSet with .refcount=1
 FUNCTION rgfx_load_global_animations(rgfxdoc as Doc ptr, loadinto as AnimationSet ptr = NULL) as AnimationSet ptr
   DIM root as Node ptr = DocumentRoot(rgfxdoc)
   'Global animations may be missing because this sprite type doesn't have animations
   IF GetChildByName(root, "_animations") = NULL THEN RETURN NULL 'FIXME: temporary location
-  IF loadinto = NULL THEN loadinto = NEW AnimationSet()
+  IF loadinto = NULL THEN
+    loadinto = NEW AnimationSet()
+    DEBUG_ANIM_CACHE(loadinto->debugname = "rgfxglobalanims")
+    loadinto->reference()
+  END IF
   load_animations_node(root, loadinto)
   RETURN loadinto
 END FUNCTION
@@ -4044,7 +4050,7 @@ END FUNCTION
 'Default palette is not loaded yet.
 'cache_def_anims should be NO when loading from an .rgfx file outside of the
 'current .rpg and YES otherwise
-FUNCTION rgfx_load_spriteset(rgfxdoc as DocPtr, sprtype as SpriteType, setnum as integer, cache_def_anims as bool = NO) as Frame ptr
+FUNCTION rgfx_load_spriteset(rgfxdoc as DocPtr, sprtype as SpriteType, setnum as integer, cache_def_anims as bool = YES) as Frame ptr
   DIM as Node ptr ss_node, frameset_node
   ss_node = rgfx_find_spriteset(rgfxdoc, sprtype, setnum)
   IF ss_node = NULL THEN
