@@ -11961,13 +11961,13 @@ constructor SpriteSet(frameset as Frame ptr)
 	'No need to init the animations vector until one is created
 end constructor
 
-destructor SpriteSet()
-	'If a SpriteSet is being deleted, noone should still be playing its animations!
+destructor AnimationSet()
+	'If deleting an AnimationSet that's a SpriteSet, noone should still be playing its animations!
 	'(The Animations can remain referenced, but the Frames might be gone)
 	delete_all_animations(YES)
 end destructor
 
-sub SpriteSet.delete_all_animations(check_no_references as bool = NO)
+sub AnimationSet.delete_all_animations(check_no_references as bool = NO)
 	for idx as integer = 0 to v_len(animations) - 1
 		if check_no_references then
 			BUG_IF(animations[idx]->refcount <> 1, "Leaked reference to animation")
@@ -12092,7 +12092,7 @@ end sub
 '  - prefer variant as specified
 '  - then prefer an animation with blank variant
 '  - then prefer the first animation (with that name)
-function SpriteSet.find_animation(variantname as string, exact as bool = NO) as Animation ptr
+function AnimationSet.find_animation(variantname as string, exact as bool = NO) as Animation ptr
 	dim idx as integer = find_animation_idx(variantname, exact)
 	if idx < 0 then
 		return NULL
@@ -12101,7 +12101,7 @@ function SpriteSet.find_animation(variantname as string, exact as bool = NO) as 
 	end if
 end function
 
-function SpriteSet.find_animation_idx(variantname as string, exact as bool = NO) as integer
+function AnimationSet.find_animation_idx(variantname as string, exact as bool = NO) as integer
 	dim as string name, variant
 	split_variantname variantname, name, variant
 
@@ -12127,7 +12127,7 @@ function SpriteSet.find_animation_idx(variantname as string, exact as bool = NO)
 end function
 
 ' Append a new blank animation and return pointer
-function SpriteSet.new_animation(name as string = "", variant as string = "") as Animation ptr
+function AnimationSet.new_animation(name as string = "", variant as string = "") as Animation ptr
 	dim ret as Animation ptr = new Animation()
 	ret->name = name
 	ret->variant = variant
@@ -12138,7 +12138,7 @@ function SpriteSet.new_animation(name as string = "", variant as string = "") as
 	return ret
 end function
 
-sub SpriteSet.delete_animation(variantname as string)
+sub AnimationSet.delete_animation(variantname as string)
 	dim idx as integer = find_animation_idx(variantname, YES)  'exact=YES
 	if idx >= 0 then
 		animations[idx]->dereference()
@@ -12195,7 +12195,7 @@ destructor SpriteState()
 	spriteset_unload @ss
 end destructor
 
-' Lookup an animation and start it. See SpriteSet.find_animation() for documentation
+' Lookup an animation and start it. See AnimationSet.find_animation() for documentation
 ' of variantname (animation name plus optional variant).
 ' Normally an animation specifies how many times it loops (unimplemented), or ends in Repeat
 ' to loop forever. loopcount <> 0 overrides this, giving a fixed number of

@@ -146,8 +146,8 @@ DECLARE FUNCTION tile_anim_is_empty(pattern_num as integer, tanim() as TileAnimP
 
 DECLARE SUB palette16_save (pal as Palette16 ptr, pal_num as integer)
 
-DECLARE SUB save_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)
-DECLARE SUB load_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)
+DECLARE SUB save_animations_node(sprset_node as Node ptr, sprset as AnimationSet ptr)
+DECLARE SUB load_animations_node(sprset_node as Node ptr, sprset as AnimationSet ptr)
 
 DECLARE SUB convert_mxs_to_rgfx(infile as string, outfile as string, sprtype as SpriteType)
 DECLARE SUB convert_pt_to_rgfx(dest_type as SpriteType)

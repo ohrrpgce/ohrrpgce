@@ -3766,12 +3766,12 @@ SUB save_animation_node(parent as Node ptr, anim as Animation)
 END SUB
 
 ' Append a new animation, from a "anim" node
-SUB load_animation_node(animnode as Node ptr, sprset as SpriteSet ptr)
+SUB load_animation_node(animnode as Node ptr, animset as AnimationSet ptr)
   IF animnode."name".exists = NO THEN reporterr "Bad animation data: name missing", serrError : EXIT SUB
   IF animnode."ops".exists = NO THEN reporterr "Unsupported animation data: 'ops' missing", serrError : EXIT SUB
 
   DIM anim as Animation ptr
-  anim = sprset->new_animation(animnode."name".string, animnode."variant".string.default(""))
+  anim = animset->new_animation(animnode."name".string, animnode."variant".string.default(""))
 
   DIM op as Node ptr = FirstChild(animnode."ops".ptr)
   WHILE op
@@ -3801,24 +3801,24 @@ SUB load_animation_node(animnode as Node ptr, sprset as SpriteSet ptr)
   '/
 END SUB
 
-' Add an "animations" child to sprset_node
-SUB save_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)
+' Add an "animations" child to parent
+SUB save_animations_node(parent as Node ptr, animset as AnimationSet ptr)
   DIM anims as Node ptr
-  anims = AppendChildNode(sprset_node, "_animations")  'FIXME: temporary location
+  anims = AppendChildNode(parent, "_animations")  'FIXME: temporary location
 
-  FOR idx as integer = 0 TO v_len(sprset->animations) - 1
-    save_animation_node anims, *sprset->animations[idx]
+  FOR idx as integer = 0 TO v_len(animset->animations) - 1
+    save_animation_node anims, *animset->animations[idx]
   NEXT idx
 END SUB
 
 ' Load from the "animations" node
-SUB load_animations_node(sprset_node as Node ptr, sprset as SpriteSet ptr)
-  DIM anims as Node ptr = sprset_node."_animations".ptr  'FIXME: temporary location
+SUB load_animations_node(parent as Node ptr, animset as AnimationSet ptr)
+  DIM anims as Node ptr = parent."_animations".ptr  'FIXME: temporary location
   ' May be missing, eg for box borders
   IF anims = NULL THEN EXIT SUB
-  sprset->delete_all_animations()   'In case called from sprite cache to reload inplace
+  animset->delete_all_animations()   'In case called from sprite cache to reload inplace
   READNODE anims
-    load_animation_node anims."anim".ptr, sprset
+    load_animation_node anims."anim".ptr, animset
   END READNODE
 END SUB
 

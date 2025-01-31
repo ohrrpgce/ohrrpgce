@@ -822,24 +822,31 @@ declare sub set_animation_framerate(ms as integer)
 declare function ms_to_frames(ms as integer) as integer
 declare function frames_to_ms(frames as integer) as integer
 
-Type SpriteSet
-	animations as Animation ptr vector  'Owned reference to each Animation
-	frames as Frame ptr    'Does NOT count as a reference
-	'uses refcount from frames
-	global_animations as SpriteSet ptr  'The default animations for sprites of this type. May be NULL
-	                                    '(This counts as a reference)
-	'This is private!
-	declare constructor(frameset as Frame ptr)
-	declare destructor()
+Type SpriteSetFwd as SpriteSet
 
-	declare function num_frames() as integer
-	declare sub reference()
-	declare function describe() as string
+Type AnimationSet Extends Object
+	animations as Animation ptr vector  'Owned reference to each Animation
+	global_animations as SpriteSetFwd ptr  'The default animations for sprites of this type. May be NULL
+	                                    '(This counts as a reference)
+	declare virtual destructor()
+
 	declare function find_animation_idx(variantname as string, exact as bool = NO) as integer
 	declare function find_animation(variantname as string, exact as bool = NO) as Animation ptr
 	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
 	declare sub delete_animation(variantname as string)
 	declare sub delete_all_animations(check_no_references as bool = NO)
+End Type
+
+Type SpriteSet Extends AnimationSet
+	frames as Frame ptr    'Does NOT count as a reference
+	'uses refcount from frames
+
+	'This is private!
+	declare constructor(frameset as Frame ptr)
+
+	declare function num_frames() as integer
+	declare sub reference()
+	declare function describe() as string
 End Type
 
 declare function spriteset_load(ptno as SpriteType, record as integer) as SpriteSet ptr
