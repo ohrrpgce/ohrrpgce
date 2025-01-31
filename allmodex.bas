@@ -11998,7 +11998,7 @@ local function load_global_animations_uncached(sprtype as SpriteType) as SpriteS
 	dim rgfxdoc as Doc ptr
 	rgfxdoc = rgfx_open(sprtype, NO)
 	if rgfxdoc = NULL then
-		return default_global_animations(sprtype)
+		return NULL
 	end if
 	dim ret as SpriteSet ptr
 	ret = rgfx_load_global_animations(rgfxdoc)
@@ -12020,6 +12020,9 @@ function load_global_animations(sprtype as SpriteType, rgfxdoc as Doc ptr = NULL
 		ret = rgfx_load_global_animations(rgfxdoc)
 	else
 		ret = load_global_animations_uncached(sprtype)
+	end if
+	if ret = NULL then
+		ret = default_global_animations(sprtype)
 	end if
 	if ret then
 		sprite_add_cache(sprtype, SPRITE_CACHE_GLOBAL_ANIMS, ret->frames)

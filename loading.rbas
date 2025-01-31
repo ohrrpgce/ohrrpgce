@@ -3712,6 +3712,8 @@ END SUB
 ' Creates the default global animations for an old 4-bit .PT# file.
 ' TODO: very unfinished. These could be defined in a RELOAD data file instead of by code.
 FUNCTION default_global_animations(sprtype as SpriteType) as SpriteSet ptr
+  debuginfo "Using default global animations for " & sprite_sizes(sprtype).name
+
   DIM ss as SpriteSet ptr = empty_spriteset()
   IF sprtype = sprTypeHero THEN
     WITH *ss->new_animation("idle")
@@ -3986,7 +3988,7 @@ END SUB
 FUNCTION rgfx_load_global_animations(rgfxdoc as Doc ptr) as SpriteSet ptr
   DIM root as Node ptr = DocumentRoot(rgfxdoc)
   'Global animations may be missing because this sprite type doesn't have animations
-  IF GetChildByName(root, "animations") = NULL THEN RETURN NULL
+  IF GetChildByName(root, "_animations") = NULL THEN RETURN NULL 'FIXME: temporary location
   DIM ret as SpriteSet ptr = empty_spriteset()
   load_animations_node(root, ret)
   RETURN ret
@@ -4074,6 +4076,7 @@ FUNCTION rgfx_load_spriteset(rgfxdoc as DocPtr, sprtype as SpriteType, setnum as
 
   'Global animations
   IF cache_def_anims THEN
+    'Get from/add to cache
     sprset->global_animations = load_global_animations(sprtype, rgfxdoc)
   ELSE
     sprset->global_animations = rgfx_load_global_animations(rgfxdoc)
@@ -4146,7 +4149,7 @@ END SUB
 
 SUB rgfx_save_global_animations(rgfxdoc as DocPtr, def_anim as SpriteSet ptr)
   DIM root_node as Node ptr = DocumentRoot(rgfxdoc)
-  FreeChildNode root_node, "animations"  'If it exists
+  FreeChildNode root_node, "_animations"  'If it exists  FIXME: temporary location
   save_animations_node root_node, def_anim
 END SUB
 
