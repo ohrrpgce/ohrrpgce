@@ -399,6 +399,8 @@ sub rebuild_animation_menu(byref menu as SimpleMenuItem vector, anim as Animatio
           caption = FORMAT(0.001 * .arg1, "0.000") & "sec (" & ms_to_frames(.arg1) & " frame(s))"
         case animOpRepeat
           'pass
+        case animOpPlayFrameGroup
+          caption = (100 * .arg1) & ", " & .arg2 & " frame(s) each"
         case else
           caption = STR(.arg1)   '& " " & .arg2
       end select
@@ -572,6 +574,13 @@ sub AnimationEditor.edit_animation(anim_name as string)
           case animOpFrame
             intgrabber curop->arg1, 0, sprset->num_frames - 1
             animstate->frame_num = curop->arg1  ' Update visual
+          case animOpPlayFrameGroup
+            if keyval(scShift) > 0 then
+              intgrabber curop->arg2, 0, 9999
+            else
+              intgrabber curop->arg1, 0, sprset->num_frame_groups - 1
+            end if
+            animstate->frame_num = frameid_to_frame(sprset->frames, 100 * curop->arg1)  ' Update visual
         end select
       end if
 
@@ -602,12 +611,22 @@ sub AnimationEditor.edit_animation(anim_name as string)
     edgeprint message, pInfoX, pInfoY, uilook(uiText), vpage
 
     ' Draw command palette
-    dim where as XYPair = (pInfoRight, pMenuY + 12)
-    edgeprint "Ins/+: Insert step", where.x, where.y + 0, uilook(uiMenuItem), vpage
-    edgeprint "Del/-: Delete step", where.x, where.y + 10, uilook(uiMenuItem), vpage
-    edgeprint "Shift-" & CHR(8) & ": Reorder", where.x, where.y + 20, uilook(uiMenuItem), vpage
-    edgeprint "Enter: Replace step", where.x, where.y + 30, uilook(uiMenuItem), vpage
-    edgeprint "R: Reset sprite", where.x, where.y + 40, uilook(uiMenuItem), vpage
+    dim cmds() as string
+    a_append cmds(), "Ins/+: Insert step"
+    a_append cmds(), "Del/-: Delete step"
+    a_append cmds(), "Shift-" & CHR(8) & ": Reorder"
+    'a_append cmds(), "</>: Change op"
+    a_append cmds(), CHR(27) & "/" & CHR(26) & ": Edit arg1"
+    a_append cmds(), "Shift-" & CHR(27) & CHR(26) & ": Edit arg2"
+    a_append cmds(), "Enter: Replace step"
+    a_append cmds(), "R: Reset sprite"
+
+    dim cmdstate as MenuState
+    cmdstate.active = NO
+    init_menu_state cmdstate, cmds()
+    dim menuopts as MenuOptions
+    menuopts.edged = YES
+    standardmenu cmds(), cmdstate, 500 - 25 * 8 , pMenuY + 12, vpage, menuopts
 
     setvispage vpage
     dowait

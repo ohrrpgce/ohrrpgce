@@ -11883,17 +11883,17 @@ end function
 
 
 'Find a frame in a frameset, returning frame index.
-'If fail = NO, then return the nearest match if the frame doesn't exist. Otherwise return -1.
+'If exact = NO, then return the nearest match if the frame doesn't exist. Otherwise return -1.
 'The nearest match is the previous frameid that exists
 'frameset must be the first Frame in the frameset
-function frameid_to_frame(frameset as Frame ptr, frameid as integer, fail as bool = NO) as integer
+function frameid_to_frame(frameset as Frame ptr, frameid as integer, exact as bool = NO) as integer
 	dim nearest as integer = 0
 	for idx as integer = 0 to frameset->arraylen - 1
 		dim thisid as integer = frameset[idx].frameid
 		if thisid = frameid then return idx
 		if thisid < frameid then nearest = idx
 	next
-	if fail then return -1
+	if exact then return -1
 	return nearest
 end function
 
@@ -11915,6 +11915,10 @@ end constructor
 
 function SpriteSet.num_frames() as integer
 	return frames->arraylen
+end function
+
+function SpriteSet.num_frame_groups() as integer
+	return 1 + frames[frames->arraylen - 1].frameid \ 100
 end function
 
 'Create a SpriteSet for a Frame if it doesn't have one

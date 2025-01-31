@@ -46,7 +46,8 @@ enum AnimOpType
 	animOpRepeat    = 3  '()     Start the animation over
 	animOpSetOffset = 4 '(x,y)
 	animOpRelOffset = 5 '(x,y)
-	animOpLAST      = 5
+	animOpPlayFrameGroup = 6 '(groupidx,ms)
+	animOpLAST      = 6
 end enum
 
 extern anim_op_names() as string      ' Short names used for display and debug
@@ -117,7 +118,8 @@ type AnimationState
 	anim as Animation ptr      'The currently playing animation or NULL
 	                           'anim must be set using set_anim()!
 	anim_step as integer       'Current op index in the current animation
-	anim_wait as integer       'Equal to 0 if not waiting, otherwise the number of ticks into the wait.
+	anim_advanced as bool      'True immediately after anim_step changes, false if waited
+	anim_wait as integer       'Equal to 0 if not waiting otherwise the number of ticks into the wait.
 	anim_loop as integer       '-1:infinite, 0<:number of times to play after current
 	anim_looplimit as integer  '(Private) Number of looping ops remaining before
 	                           'infinite loop protection is triggered.

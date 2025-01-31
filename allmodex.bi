@@ -668,7 +668,7 @@ declare function frame_load_4bit(filen as string, record as integer, numframes a
 declare function frame_load_mxs(filen as string, record as integer) as Frame ptr
 declare function frameset_to_node(fr as Frame ptr, parent as Reload.NodePtr) as Reload.NodePtr
 declare function frameset_from_node(node as Reload.NodePtr) as Frame ptr
-declare function frameid_to_frame(frameset as Frame ptr, frameid as integer, fail as bool = NO) as integer
+declare function frameid_to_frame(frameset as Frame ptr, frameid as integer, exact as bool = NO) as integer
 extern "C"
 declare function frame_reference (p as Frame ptr) as Frame ptr
 declare sub frame_assign(ptr_to_replace as Frame ptr ptr, new_value as Frame ptr)
@@ -760,6 +760,7 @@ Type SpriteSet Extends AnimationSet
 	declare constructor(frameset as Frame ptr)
 
 	declare function num_frames() as integer
+	declare function num_frame_groups() as integer
 	'The inverse of .reference() is spriteset_unload()
 	declare function reference() as SpriteSet ptr override
 	declare function describe() as string

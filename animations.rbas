@@ -29,6 +29,7 @@ anim_op_names(animOpFrame) =     "frame"
 anim_op_names(animOpRepeat) =    "repeat"
 anim_op_names(animOpSetOffset) = "set offset"
 anim_op_names(animOpRelOffset) = "add offset"
+anim_op_names(animOpPlayFrameGroup) = "frame group"
 
  ' Short names used for RELOAD serialisation
 redim anim_op_node_names(animOpLAST) as string
@@ -38,6 +39,7 @@ anim_op_node_names(animOpFrame) =     "frame"
 anim_op_node_names(animOpRepeat) =    "repeat"
 anim_op_node_names(animOpSetOffset) = "setoffset"
 anim_op_node_names(animOpRelOffset) = "addoffset"
+anim_op_node_names(animOpPlayFrameGroup) = "framegroup"
 
 ' Descriptive captions
 redim anim_op_fullnames(animOpLAST) as string
@@ -47,6 +49,7 @@ anim_op_fullnames(animOpFrame) =     "Set frame"
 anim_op_fullnames(animOpRepeat) =    "Repeat animation"
 anim_op_fullnames(animOpSetOffset) = "Move to offset (unimp)"
 anim_op_fullnames(animOpRelOffset) = "Add to offset (unimp)"
+anim_op_fullnames(animOpPlayFrameGroup) = "Play frame group"
 
 ' Built-in variants have names starting with :, which are not allowed for user names
 dim shared builtin_variants_table(4) as IntStrPair
@@ -106,19 +109,31 @@ sub spriteset_default_global_animations(byref animset as AnimationSet, sprtype a
 		with *animset.new_animation("idle")
 			.append(animOpFrame, frameSTAND)    '0
 		end with
-		with *animset.new_animation("walk", "left")
-			.append(animOpFrame, frameSTAND)    '0
-			.append(animOpWait, 2*55)
-			.append(animOpFrame, frameSTEP)     '1
-			.append(animOpWait, 2*55)
+		with *animset.new_animation("walk")
+			.append(animOpPlayFrameGroup, 0, 2) '110)  (frameSTAND + frameSTEP)
 			.append(animOpRepeat)
 		end with
-		with *animset.new_animation("attack", "left")
-			.append(animOpFrame, frameATTACKA)  '2
-			.append(animOpWait, 2*55)
-			.append(animOpFrame, frameATTACKB)  '3
-			.append(animOpWait, 2*55)
+		with *animset.new_animation("attack")
+			.append(animOpPlayFrameGroup, 1, 2) '110)  (frameATTACKA + frameATTACKB)
 			.append(animOpFrame, frameSTAND)  '0
+		end with
+	end if
+	if sprtype = sprTypeWalkabout then
+		with *animset.new_animation("walk", "up")
+			.append(animOpPlayFrameGroup, 0, 2) '110)
+			.append(animOpRepeat)
+		end with
+		with *animset.new_animation("walk", "right")
+			.append(animOpPlayFrameGroup, 1, 2) '110)
+			.append(animOpRepeat)
+		end with
+		with *animset.new_animation("walk", "down")
+			.append(animOpPlayFrameGroup, 2, 2) '110)
+			.append(animOpRepeat)
+		end with
+		with *animset.new_animation("walk", "left")
+			.append(animOpPlayFrameGroup, 3, 2) '110)
+			.append(animOpRepeat)
 		end with
 	end if
 end sub
@@ -326,6 +341,7 @@ end sub
 sub AnimationState.start_animation(anim as Animation ptr, loopcount as integer = 0)
 	anim_wait = 0
 	anim_step = 0
+	anim_advanced = YES
 	anim_loop = loopcount
 	anim_looplimit = ANIMATION_LOOPLIMIT
 	set_anim(anim)
@@ -387,7 +403,7 @@ end function
 function AnimationState.animate_step() as bool
 	if anim = NULL then return NO
 
-	' This condition only If the animation doesn't end up looping, re
+	' This happens only if the animation doesn't end with Repeat
 	if anim_step > ubound(anim->ops) then
 		anim_looplimit -= 1
 		' anim_loop = 0 means default number of loops
@@ -440,6 +456,41 @@ function AnimationState.animate_step() as bool
 			case animOpRelOffset
 				offset.x += .arg1
 				offset.y += .arg2
+			case animOpPlayFrameGroup
+				dim frameidx as integer
+				if anim_advanced then
+					' Set initial frame
+					frameidx = frameid_to_frame(ss->frames, .arg1 * 100, YES)  'exact=YES
+					'? "animOpPlayFrameGroup: start at frame " & frameidx
+					if frameidx = -1 then
+						'debug "frame group missing"
+						exit select
+					end if
+					frame_num = frameidx
+				end if
+
+				anim_wait += 1
+				if anim_wait > .arg2 then 'ms_to_frames(.arg2) then
+					'? "animOpPlayFrameGroup: wait done"
+
+					' Next frame
+					dim frameid as integer = ss->frames[frame_num].frameid + 1
+					frameidx = frameid_to_frame(ss->frames, frameid, YES)  'exact=YES
+					'? "animOpPlayFrameGroup: advance to id=" & frameid & " idx=" & frameidx
+
+					if frameidx = -1 then
+						anim_wait = 0  'Done
+					else
+						frame_num = frameidx
+						anim_wait = 1  'Start wait
+						anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
+						return YES  'Wait
+					end if
+				else
+					'? "animOpPlayFrameGroup: waiting"
+					anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
+					return YES  'Wait
+				end if
 			case else
 				debug "bad animation opcode " & .type & " in '" & anim->name & "'"
 				stop_animation()
@@ -456,7 +507,12 @@ function AnimationState.animate() as bool
 
 	while anim_looplimit > 0
 		if animate_step() = NO then return NO  'stop on error
-		if anim_wait > 0 then return YES  'stop if waiting
+		if anim_wait > 0 then
+			anim_advanced = NO
+			return YES  'stop if waiting
+		else
+			anim_advanced = YES
+		end if
 		if anim = NULL then return YES  'stop if finished animating
 	wend
 
