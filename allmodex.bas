@@ -1,5 +1,5 @@
 'OHRRPGCE - the graphics, audio and user input library!
-'(C) Copyright 1997-2017 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 '
 'This module is completely bool-clean (bool always used when appropriate)
@@ -64,7 +64,8 @@ end type
 
 declare sub _frame_copyctor cdecl(dest as Frame ptr ptr, src as Frame ptr ptr)
 declare sub init_frame_with_surface(ret as Frame ptr, surf as Surface ptr)
-declare sub reload_global_animations(def_anim as SpriteSet ptr, sprtype as SpriteType)
+declare sub update_spriteset_global_animations_cache(sprtype as SpriteType)
+declare sub empty_spriteset_global_animations_cache()
 
 declare sub frame_draw_internal(src as Frame ptr, masterpal() as RGBcolor, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
 declare sub draw_clipped(src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, trans as bool = YES, dest as Frame ptr, opts as DrawOptions)
@@ -488,13 +489,12 @@ end type
 
 CONST SPRITE_CACHE_MULT = 1000000
 #define SPRITE_CACHE_KEY(sprtype, record) (sprtype * SPRITE_CACHE_MULT + record)
-' Record number used for the dummy SpriteSet holding global animations
-const SPRITE_CACHE_GLOBAL_ANIMS = 999999
 
 dim shared sprcache as HashTable
 dim shared sprcacheB as DoubleList(SpriteCacheEntry)
 dim shared sprcacheB_used as integer    'number of slots full
 'dim shared as integer cachehit, cachemiss
+dim shared spriteset_global_animations_cache(sprTypeFirst to sprTypeLast) as AnimationSet ptr
 
 dim shared mouse_grab_requested as bool = NO
 dim shared mouse_grab_nested_pauses as integer = 0
@@ -9564,7 +9564,7 @@ local function sprite_cacheB_shrink(amount as integer) as bool
 	wend
 end function
 
-sub sprite_empty_cache_range(minkey as integer, maxkey as integer, leakmsg as string)
+local sub sprite_empty_cache_range(minkey as integer, maxkey as integer)
 	dim iterstate as uinteger = 0
 	dim as SpriteCacheEntry ptr pt, nextpt
 
@@ -9600,51 +9600,44 @@ local sub sprite_update_cache_range(minkey as integer, maxkey as integer)
 			dim sprtype as integer = pt->hash \ SPRITE_CACHE_MULT
 			dim record as integer = pt->hash mod SPRITE_CACHE_MULT
 
-			if record = SPRITE_CACHE_GLOBAL_ANIMS then
-				'Unlike normal SpriteSets, the one holding the default animations must
-				'be updated inplace because others point to it.
-				reload_global_animations(pt->p->sprset, sprtype)
-			else
+			dim newframe as Frame ptr
+			newframe = frame_load_uncached(sprtype, record)
 
-				dim newframe as Frame ptr
-				newframe = frame_load_uncached(sprtype, record)
-
-				if newframe <> NULL then
-					dim numframes as integer = newframe->arraylen
-					if newframe->arraylen <> pt->p->arraylen then
-						'Unfortunately, this error will occur if you change the number
-						'of frames in the spriteset editor. Only thing we can do about it is
-						'try to unload all affected Frames before updating the cache.
-						showbug "sprite_update_cache: number of frames changed for sprite " & pt->hash
-						numframes = small(numframes, pt->p->arraylen)
-					end if
-
-					'Transplant the data from the new Frame into the old Frame, so that no
-					'pointers need to be updated. pt (the SpriteCacheEntry) doesn't need to
-					'to be modified at all
-
-					dim refcount as integer = pt->p->refcount
-					dim wantmask as bool = (pt->p->mask <> NULL)
-					'Remove the host's previous organs (deletes SpriteSet)
-					frame_delete_members pt->p
-					'Insert the new organs
-					memcpy(pt->p, newframe, sizeof(Frame) * numframes)
-					'Having removed everything from the donor, dispose of it
-					Deallocate(newframe)
-					'Fix the bits we just clobbered
-					pt->p->cached = 1
-					pt->p->refcount = refcount
-					pt->p->cacheentry = pt
-					if pt->p->sprset then
-						'We DON'T do the same trick with SpriteSets.
-						'You mustn't hold onto SpriteSet ptrs when gfx are reloaded, they will become invalid!
-						'Update cross-link
-						pt->p->sprset->frames = pt->p
-					end if
-					'Make sure we don't crash if we were using a mask (might be the wrong mask though)
-					if wantmask then frame_add_mask pt->p
-
+			if newframe <> NULL then
+				dim numframes as integer = newframe->arraylen
+				if newframe->arraylen <> pt->p->arraylen then
+					'Unfortunately, this error will occur if you change the number
+					'of frames in the spriteset editor. Only thing we can do about it is
+					'try to unload all affected Frames before updating the cache.
+					showbug "sprite_update_cache: number of frames changed for sprite " & pt->hash
+					numframes = small(numframes, pt->p->arraylen)
 				end if
+
+				'Transplant the data from the new Frame into the old Frame, so that no
+				'pointers need to be updated. pt (the SpriteCacheEntry) doesn't need to
+				'to be modified at all
+
+				dim refcount as integer = pt->p->refcount
+				dim wantmask as bool = (pt->p->mask <> NULL)
+				'Remove the host's previous organs (deletes SpriteSet)
+				frame_delete_members pt->p
+				'Insert the new organs
+				memcpy(pt->p, newframe, sizeof(Frame) * numframes)
+				'Having removed everything from the donor, dispose of it
+				Deallocate(newframe)
+				'Fix the bits we just clobbered
+				pt->p->cached = 1
+				pt->p->refcount = refcount
+				pt->p->cacheentry = pt
+				if pt->p->sprset then
+					'We DON'T do the same trick with SpriteSets.
+					'You mustn't hold onto SpriteSet ptrs when gfx are reloaded, they will become invalid!
+					'Update cross-link
+					pt->p->sprset->frames = pt->p
+				end if
+				'Make sure we don't crash if we were using a mask (might be the wrong mask though)
+				if wantmask then frame_add_mask pt->p
+
 			end if
 		else
 			'Don't bother if not in use
@@ -9660,6 +9653,7 @@ sub sprite_update_cache(sprtype as SpriteType)
 	if sprtype = sprTypeTileset then
 		sprite_update_cache sprTypeTilesetStrip
 	end if
+	update_spriteset_global_animations_cache sprtype
 end sub
 
 'Attempt to completely empty the sprite cache, detecting memory leaks
@@ -9667,15 +9661,19 @@ end sub
 'or with two: remove a specific spriteset
 sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid, setnum as integer = -1)
 	if sprtype = sprTypeInvalid then
-		sprite_empty_cache_range(INT_MIN, INT_MAX, "leaked sprite ")
+		sprite_empty_cache_range(INT_MIN, INT_MAX)
 		if sprcacheB_used <> 0 or sprcache.numitems <> 0 then
 			debug "sprite_empty_cache: corruption: sprcacheB_used=" & sprcacheB_used & " items=" & sprcache.numitems
 		end if
+		' TODO: omitting this because without refcounting, can't avoid a crash if still in use
+		'empty_spriteset_global_animations_cache
 	elseif setnum < 0 then
-		sprite_empty_cache_range(SPRITE_CACHE_MULT * sprtype, SPRITE_CACHE_MULT * (sprtype + 1) - 1, "leaked sprite ")
+		sprite_empty_cache_range(SPRITE_CACHE_MULT * sprtype, SPRITE_CACHE_MULT * (sprtype + 1) - 1)
+		' TODO: as above
+		'animset_unload @spriteset_global_animations_cache(sprtype)
 	else
 		dim which as integer = SPRITE_CACHE_MULT * sprtype + setnum
-		sprite_empty_cache_range(which, which, "leaked sprite ")
+		sprite_empty_cache_range(which, which)
 	end if
 end sub
 
@@ -9787,7 +9785,7 @@ local sub _cache_sprtype(byref doc as DocPtr, sprtype as SpriteType)
 		frame_unload @fr
 	next
 	if doc then
-		load_global_animations sprtype, doc  'Doesn't have to be freed.
+		spriteset_load_global_animations sprtype, doc  'Doesn't have to be freed.
 	end if
 end sub
 
@@ -10170,7 +10168,7 @@ function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame 
 			if ret then
 				initialise_backcompat_pt_frameids ret, sprtype
 				sprset = new SpriteSet(ret)  'Attaches to ret
-				sprset->global_animations = load_global_animations(sprtype)
+				sprset->global_animations = spriteset_load_global_animations(sprtype)
 			end if
 		end if
 	end if
@@ -10393,7 +10391,8 @@ sub frame_unload cdecl(ppfr as Frame ptr ptr)
 		end if
 		'Theoretically possible to have an un-refcounted Frame/SpriteSet which uses refcounted default animations
 		if .sprset andalso .sprset->global_animations then
-			spriteset_unload @.sprset->global_animations
+			'TODO: add refcounting
+			'animset_unload @.sprset->global_animations
 		end if
 		if .refcount = NOREFC then
 			exit sub
@@ -11967,6 +11966,15 @@ destructor AnimationSet()
 	delete_all_animations(YES)
 end destructor
 
+' WARNING: if this is a SpriteSet, call spriteset_unload instead
+sub animset_unload(pp as AnimationSet ptr ptr)
+	if *pp <> NULL then
+		'TODO: implement refcounting
+		delete *pp
+		*pp = NULL
+	end if
+end sub
+
 sub AnimationSet.delete_all_animations(check_no_references as bool = NO)
 	for idx as integer = 0 to v_len(animations) - 1
 		if check_no_references then
@@ -11988,56 +11996,57 @@ function spriteset_for_frame(fr as Frame ptr) as SpriteSet ptr
 	return new SpriteSet(fr)
 end function
 
-'A dummy SpriteSet
-function empty_spriteset() as SpriteSet ptr
-	dim fr as Frame ptr = frame_new(1, 1, 1)
-	return new SpriteSet(fr)
-end function
-
-local function load_global_animations_uncached(sprtype as SpriteType) as SpriteSet ptr
-	dim rgfxdoc as Doc ptr
-	rgfxdoc = rgfx_open(sprtype, NO)
-	if rgfxdoc = NULL then
-		return NULL
-	end if
-	dim ret as SpriteSet ptr
-	ret = rgfx_load_global_animations(rgfxdoc)
-	FreeDocument rgfxdoc
-	return ret
-end function
-
-'Returns a dummy SpriteSet which contains the global (default) animations for a sprtype,
-'loaded from the cache, or from rgfx or the defaults if missing.
-'Use spriteset_unload to free the result.
-'If rgfxdoc is already open you can optionally pass it to avoid reloading.
-function load_global_animations(sprtype as SpriteType, rgfxdoc as Doc ptr = NULL) as SpriteSet ptr
-	dim cached as Frame ptr
-	cached = sprite_fetch_from_cache(sprtype, SPRITE_CACHE_GLOBAL_ANIMS)
-	if cached then return cached->sprset
-
-	dim ret as SpriteSet ptr
+' Load the global animations for a sprtype from rgfx, or defaults if they don't exist.
+' If loadinto=NULL, creates a new AnimationSet, otherwise returns loadinto with its animations replaced.
+local function spriteset_load_global_animations_uncached(sprtype as SpriteType, rgfxdoc as Doc ptr = NULL, loadinto as AnimationSet ptr = NULL) as AnimationSet ptr
+	dim ret as AnimationSet ptr
 	if rgfxdoc then
-		ret = rgfx_load_global_animations(rgfxdoc)
+		ret = rgfx_load_global_animations(rgfxdoc, loadinto)
 	else
-		ret = load_global_animations_uncached(sprtype)
+		rgfxdoc = rgfx_open(sprtype, NO)
+		if rgfxdoc then
+			ret = rgfx_load_global_animations(rgfxdoc, loadinto)
+			FreeDocument rgfxdoc
+		end if
 	end if
 	if ret = NULL then
-		ret = default_global_animations(sprtype)
-	end if
-	if ret then
-		sprite_add_cache(sprtype, SPRITE_CACHE_GLOBAL_ANIMS, ret->frames)
+		if loadinto then
+			ret = loadinto
+		else
+			ret = new AnimationSet
+		end if
+		spriteset_default_global_animations(*ret, sprtype)
 	end if
 	return ret
 end function
 
-'Called when updating the sprite cache. Updates a SpriteSet in-place.
-'Variant on rgfx_load_global_animations.
-local sub reload_global_animations(def_anim as SpriteSet ptr, sprtype as SpriteType)
-	dim rgfxdoc as Doc ptr = rgfx_open(sprtype, YES)
-	FAIL_IF(rgfxdoc = NULL, "failed")
-	'This overwrites the existing animations
-	load_animations_node(DocumentRoot(rgfxdoc), def_anim)
-	FreeDocument rgfxdoc
+' Load (with caching) the global animations (or defaults if they don't exist) for a sprtype.
+' Use animset_unload to free the result.
+' If rgfxdoc is already open you can optionally pass it to avoid reloading.
+function spriteset_load_global_animations(sprtype as SpriteType, rgfxdoc as Doc ptr = NULL) as AnimationSet ptr
+	dim ret as AnimationSet ptr
+	ret = spriteset_global_animations_cache(sprtype)
+	if ret then return ret
+
+	ret = spriteset_load_global_animations_uncached(sprtype, rgfxdoc)
+	spriteset_global_animations_cache(sprtype) = ret
+	return ret
+end function
+
+' Called when updating the sprite cache. Updates the AnimationSet of global animations in-place
+' (unlike normal SpriteSets, which don't need to be modified inplace).
+local sub update_spriteset_global_animations_cache(sprtype as SpriteType)
+	dim byref cached as AnimationSet ptr = spriteset_global_animations_cache(sprtype)
+
+	' If cached=NULL, creates a new AnimationSet, otherwise returns cached with its animations replaced.
+	' If the animations don't exist, loads the defaults.
+	cached = spriteset_load_global_animations_uncached(sprtype, NULL, cached)
+end sub
+
+sub empty_spriteset_global_animations_cache()
+	for idx as integer = lbound(spriteset_global_animations_cache) to ubound(spriteset_global_animations_cache)
+		animset_unload @spriteset_global_animations_cache(idx)
+	next
 end sub
 
 ' Load a spriteset from file, or return a reference if already cached.
@@ -12072,7 +12081,7 @@ function SpriteSet.describe() as string
 	       & ", " & v_len(animations) & " animations>"
 end function
 
-'variantname can contain a trailing space
+' variantname can contain a trailing space
 sub split_variantname(variantname as string, byref animname as string, byref variant as string)
 	dim spacepos as integer = instr(variantname, " ")
 	if spacepos then

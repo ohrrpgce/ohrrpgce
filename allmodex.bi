@@ -1,5 +1,5 @@
 'OHRRPGCE - the graphics, audio and user input library!
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #IFNDEF ALLMODEX_BI
@@ -822,11 +822,9 @@ declare sub set_animation_framerate(ms as integer)
 declare function ms_to_frames(ms as integer) as integer
 declare function frames_to_ms(frames as integer) as integer
 
-Type SpriteSetFwd as SpriteSet
-
 Type AnimationSet Extends Object
 	animations as Animation ptr vector  'Owned reference to each Animation
-	global_animations as SpriteSetFwd ptr  'The default animations for sprites of this type. May be NULL
+	global_animations as AnimationSet ptr  'The default animations for sprites of this type. May be NULL
 	                                    '(This counts as a reference)
 	declare virtual destructor()
 
@@ -849,11 +847,11 @@ Type SpriteSet Extends AnimationSet
 	declare function describe() as string
 End Type
 
+declare sub animset_unload(pp as AnimationSet ptr ptr)
 declare function spriteset_load(ptno as SpriteType, record as integer) as SpriteSet ptr
 declare sub spriteset_unload(ss as SpriteSet ptr ptr)
 declare function spriteset_for_frame(fr as Frame ptr) as SpriteSet ptr
-declare function empty_spriteset() as SpriteSet ptr
-declare function load_global_animations(sprtype as SpriteType, rgfxdoc as Reload.DocPtr = NULL) as SpriteSet ptr
+declare function spriteset_load_global_animations(sprtype as SpriteType, rgfxdoc as Reload.DocPtr = NULL) as AnimationSet ptr
 
 declare function frame_array_to_vector(frames as Frame ptr) as Frame ptr vector
 declare function frame_vector_to_array(frames as Frame ptr vector) as Frame ptr

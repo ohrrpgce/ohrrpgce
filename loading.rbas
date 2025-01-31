@@ -3709,24 +3709,24 @@ END SUB
 '==================================== Animations ==========================================
 
 
-' Creates the default global animations for an old 4-bit .PT# file.
+' Creates the default global animations for a sprite type in an existing AnimationSet.
 ' TODO: very unfinished. These could be defined in a RELOAD data file instead of by code.
-FUNCTION default_global_animations(sprtype as SpriteType) as SpriteSet ptr
+SUB spriteset_default_global_animations(byref animset as AnimationSet, sprtype as SpriteType)
   debuginfo "Using default global animations for " & sprite_sizes(sprtype).name
 
-  DIM ss as SpriteSet ptr = empty_spriteset()
+  animset.delete_all_animations()
   IF sprtype = sprTypeHero THEN
-    WITH *ss->new_animation("idle")
+    WITH *animset.new_animation("idle")
       .append(animOpFrame, frameSTAND)    '0
     END WITH
-    WITH *ss->new_animation("walk", "left")
+    WITH *animset.new_animation("walk", "left")
       .append(animOpFrame, frameSTAND)    '0
       .append(animOpWait, 2*55)
       .append(animOpFrame, frameSTEP)     '1
       .append(animOpWait, 2*55)
       .append(animOpRepeat)
     END WITH
-    WITH *ss->new_animation("attack", "left")
+    WITH *animset.new_animation("attack", "left")
       .append(animOpFrame, frameATTACKA)  '2
       .append(animOpWait, 2*55)
       .append(animOpFrame, frameATTACKB)  '3
@@ -3734,8 +3734,7 @@ FUNCTION default_global_animations(sprtype as SpriteType) as SpriteSet ptr
       .append(animOpFrame, frameSTAND)  '0
     END WITH
   END IF
-  RETURN ss
-END FUNCTION
+END SUB
 
 ' Appends an "anim" node to parent
 SUB save_animation_node(parent as Node ptr, anim as Animation)
@@ -3814,9 +3813,9 @@ END SUB
 ' Load from the "animations" node
 SUB load_animations_node(parent as Node ptr, animset as AnimationSet ptr)
   DIM anims as Node ptr = parent."_animations".ptr  'FIXME: temporary location
-  ' May be missing, eg for box borders
-  IF anims = NULL THEN EXIT SUB
   animset->delete_all_animations()   'In case called from sprite cache to reload inplace
+  ' May be missing, eg for box borders, older files, (or just no animations?)
+  IF anims = NULL THEN EXIT SUB
   READNODE anims
     load_animation_node anims."anim".ptr, animset
   END READNODE
@@ -3985,13 +3984,13 @@ SUB add_sprite_idx_backcompat_translation(rgfxdoc as DocPtr, sprtype as SpriteTy
   SetKeyValueNode(ids, "key", TRANSLATION_KEY(sprtype, oldidx), newidx, "idx")
 END SUB
 
-FUNCTION rgfx_load_global_animations(rgfxdoc as Doc ptr) as SpriteSet ptr
+FUNCTION rgfx_load_global_animations(rgfxdoc as Doc ptr, loadinto as AnimationSet ptr = NULL) as AnimationSet ptr
   DIM root as Node ptr = DocumentRoot(rgfxdoc)
   'Global animations may be missing because this sprite type doesn't have animations
   IF GetChildByName(root, "_animations") = NULL THEN RETURN NULL 'FIXME: temporary location
-  DIM ret as SpriteSet ptr = empty_spriteset()
-  load_animations_node(root, ret)
-  RETURN ret
+  IF loadinto = NULL THEN loadinto = NEW AnimationSet()
+  load_animations_node(root, loadinto)
+  RETURN loadinto
 END FUNCTION
 
 'Number of spriteset nodes (or relevant spriteset nodes, in case of enemy backcompat)
@@ -4077,7 +4076,7 @@ FUNCTION rgfx_load_spriteset(rgfxdoc as DocPtr, sprtype as SpriteType, setnum as
   'Global animations
   IF cache_def_anims THEN
     'Get from/add to cache
-    sprset->global_animations = load_global_animations(sprtype, rgfxdoc)
+    sprset->global_animations = spriteset_load_global_animations(sprtype, rgfxdoc)
   ELSE
     sprset->global_animations = rgfx_load_global_animations(rgfxdoc)
   END IF
