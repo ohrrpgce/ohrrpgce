@@ -79,6 +79,7 @@ DECLARE SUB resolution_menu ()
 DECLARE SUB translations_menu ()
 DECLARE SUB general_scripts_menu ()
 DECLARE SUB script_error_mode_menu ()
+DECLARE SUB animations_editor(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext, default_export_filename as string = "")
 
 DECLARE FUNCTION export_translations (fname as string) as bool
 DECLARE FUNCTION compile_andor_import_scripts (f as string, quickimport as bool = NO) as bool
