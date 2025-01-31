@@ -1455,6 +1455,7 @@ if web:
 # (.bas files only)
 shared_modules += ['achievements.rbas',
                    'allmodex',
+                   'animations.rbas',
                    'audiofile',
                    'backends',
                    'bam2mid',

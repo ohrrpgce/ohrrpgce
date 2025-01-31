@@ -14,6 +14,7 @@
 #include "matrixMath.bi"
 #include "lib/gif.bi"
 #include "music.bi"
+#include "animations.bi"
 
 
 'This Type is misnamed. But currently, a Palette16 virtually always has numcolors=16
@@ -26,6 +27,8 @@ End Type
 
 Type SpriteCacheEntryFwd as SpriteCacheEntry
 Type SpriteSetFwd as SpriteSet
+
+const NOREFC = -1234   'allmodex internal use
 
 'An 8 bit, single frame of a sprite.
 'Don't forget to update definition in allmodex.h when changing this!!
@@ -740,114 +743,7 @@ declare function masterpal_to_gfxpal(pal() as RGBcolor) as RGBPalette ptr
 
 
 '==========================================================================================
-'                                 SpriteSets and Animations
-
-
-' Contexts in which an animation or animation variant name has a builtin meaning
-Enum AnimationContext
-	acWalkaboutSprite = 1
-	acHeroSprite = 2
-	acEnemySprite = 4
-	acAttackSprite = 8
-	acWeaponSprite = 16
-	acPortraitSprite = 32
-
-	acAny       = 65535
-	'Heroes, enemies, and walkabouts
-	acActor     = acWalkaboutSprite or acHeroSprite or acEnemySprite
-	'Walkabouts (heroes/npcs)
-	acWalkabout = acWalkaboutSprite
-	'In-battle heroes and enemies (BattleSprites)
-	acBattler   = acHeroSprite or acEnemySprite
-	'In-battle heroes
-	acBatHero   = acHeroSprite
-	'In-battle enemies
-	acBatEnemy  = acEnemySprite
-	'Walkabout and in-battle heroes
-	acHero      = acWalkaboutSprite or acHeroSprite
-End Enum
-
-' Describes a builtin animation or variant name
-Type AnimVariantInfo
-	name as zstring ptr
-	context as AnimationContext
-	description as zstring ptr
-End Type
-
-Enum AnimOpType
-	animOpUnknown   = -1
-	animOpWait      = 0 '(ms)
-	animOpWaitMS    = 1 '(ms)
-	animOpFrame     = 2 '(frameid)
-	animOpRepeat    = 3  '()     Start the animation over
-	animOpSetOffset = 4 '(x,y)
-	animOpRelOffset = 5 '(x,y)
-	animOpLAST      = 5
-End Enum
-
-extern anim_op_names() as string      ' Short names used for display and debug
-extern anim_op_node_names() as string ' Short names used for RELOAD serialisation
-extern anim_op_fullnames() as string  ' Descriptive captions used in editor
-
-Type AnimationOp
-	type as AnimOpType
-	arg1 as integer
-	arg2 as integer
-End Type
-
-#if 0
-	#define  DEBUG_ANIM_CACHE(x) x
-#else
-	#define  DEBUG_ANIM_CACHE(x)
-#endif
-
-Type Animation
-	name as string
-	variant as string
-	'numitems as integer
-	ops(any) as AnimationOp
-	'opsnode as Reload.NodePtr   'RELOAD-based replacement for ops()
-
-	'Animation is refcounted only so that animations can be safely replaced in Test Game while they are playing
-	refcount as integer
-
-	declare constructor()
-	declare constructor(name as string, variant as string = "")
-
-	'Inc/dec refcount, and delete self
-	declare function reference() as Animation ptr
-	declare sub dereference()
-
-	declare sub append(type as AnimOpType, arg1 as integer = 0, arg2 as integer = 0)
-End Type
-
-'No automatic deletion
-DECLARE_VECTOR_OF_TYPE(Animation ptr, Animation_ptr)
-
-declare sub set_animation_framerate(ms as integer)
-declare function ms_to_frames(ms as integer) as integer
-declare function frames_to_ms(frames as integer) as integer
-
-Type AnimationSet Extends Object
-	refcount as integer         'If this is an SpriteSet, is set to NOREFC
-	animations as Animation ptr vector  'Owned reference to each Animation
-	global_animations as AnimationSet ptr  'The default animations for sprites of this type. May be NULL
-	                                       '(This counts as a reference)
-	DEBUG_ANIM_CACHE(debugname as string)
-
-	declare destructor()
-	'The inverse of .reference() is animset_unload()
-	declare virtual function reference() as AnimationSet ptr
-
-	declare function find_animation_idx(variantname as string, exact as bool = NO) as integer
-	'Note find_animation does not increment refcount!
-	declare function find_animation(variantname as string, exact as bool = NO) as Animation ptr
-	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
-	declare sub delete_animation(variantname as string)
-	declare sub delete_all_animations(check_no_references as bool = NO)
-End Type
-
-declare sub animset_unload(pp as AnimationSet ptr ptr)
+'                                       SpriteSets
 
 'SpriteSet is intended as replacement for holding pointers to arrays of Frames,
 'and also holds any animations.
@@ -876,41 +772,6 @@ declare function spriteset_load_global_animations(sprtype as SpriteType, rgfxdoc
 
 declare function frame_array_to_vector(frames as Frame ptr) as Frame ptr vector
 declare function frame_vector_to_array(frames as Frame ptr vector) as Frame ptr
-
-declare sub split_variantname(variantname as string, byref animname as string, byref variant as string)
-
-' The animation state of a SpriteSet instance
-Type SpriteState
-	ss as SpriteSet ptr
-	frame_num as integer
-	anim as Animation ptr      'The currently playing animation or NULL
-	                           'anim must be set using set_anim()!
-	anim_step as integer       'Current op index in the current animation
-	anim_wait as integer       'Equal to 0 if not waiting, otherwise the number of ticks into the wait.
-	anim_loop as integer       '-1:infinite, 0<:number of times to play after current
-	anim_looplimit as integer  '(Private) Number of looping ops remaining before
-	                           'infinite loop protection is triggered.
-	offset as XYPair
-
-	declare constructor(sprset as SpriteSet ptr)
-	declare constructor(ptno as SpriteType, record as integer)
-	declare destructor()
-	declare sub set_anim(newanim as Animation ptr)
-
-	declare sub start_animation overload(name as string, loopcount as integer = 0)
-	declare sub start_animation overload(anim as Animation ptr, loopcount as integer = 0)
-	declare sub stop_animation()
-	declare sub reset()
-	declare function cur_frame() as Frame ptr
-
-	' Three ways to advance the animation:
-	' Advance time by one tick
-	declare function animate() as bool
-	' Advance time until the next wait
-	declare function skip_wait() as integer
-	' Advance by one animation op
-	declare function animate_step() as bool
-End Type
 
 
 '==========================================================================================

@@ -50,7 +50,7 @@ end extern
 
 'Note: While non-refcounted frames work (at last check), it's not used anywhere, and you most probably do not need it
 'NOREFC is also used to indicate uncached Palette16's. Note Palette16's are NOT refcounted in the way as frames
-const NOREFC = -1234
+'const NOREFC = -1234
 const FREEDREFC = -4321
 
 type XYPair_node 	'only used for floodfill
@@ -251,7 +251,6 @@ dim shared flagtime as double = 0.0
 dim shared setwait_called as bool
 dim shared tickcount as integer = 0
 dim use_speed_control as bool = YES
-dim shared ms_per_frame as integer = 55     'This is only used by the animation system, not the framerate control
 dim requested_framerate as double           'Set by last setwait, takes into account the fps_multiplier
 dim shared base_fps_multiplier as double = 1.0 'Doesn't include effect of shift+tab
 dim shared fps_multiplier as double = 1.0   'Effective speed multiplier, affects all setwait/dowaits
@@ -11877,53 +11876,11 @@ function masterpal_to_gfxpal(pal() as RGBcolor) as RGBPalette ptr
 	return ret
 end function
 
+
 '==========================================================================================
-'                            SpriteSet/Animation/SpriteState
+'                                        SpriteSet
 '==========================================================================================
 
-' Number of loops/non-forwards branches that can occur in an animation without a
-' wait before it's considered to be stuck in an infinite loop.
-CONST ANIMATION_LOOPLIMIT = 10
-
-' Short names used for listing an animation
-redim anim_op_names(animOpLAST) as string
-anim_op_names(animOpWait) =      "wait"
-anim_op_names(animOpWaitMS) =    "wait"
-anim_op_names(animOpFrame) =     "frame"
-anim_op_names(animOpRepeat) =    "repeat"
-anim_op_names(animOpSetOffset) = "set offset"
-anim_op_names(animOpRelOffset) = "add offset"
-
- ' Short names used for RELOAD serialisation
-redim anim_op_node_names(animOpLAST) as string
-anim_op_node_names(animOpWait) =      "wait"
-anim_op_node_names(animOpWaitMS) =    "waitms"
-anim_op_node_names(animOpFrame) =     "frame"
-anim_op_node_names(animOpRepeat) =    "repeat"
-anim_op_node_names(animOpSetOffset) = "setoffset"
-anim_op_node_names(animOpRelOffset) = "addoffset"
-
-' Descriptive captions
-redim anim_op_fullnames(animOpLAST) as string
-anim_op_fullnames(animOpWait) =      "Wait (num frames)"
-anim_op_fullnames(animOpWaitMS) =    "Wait (seconds)"
-anim_op_fullnames(animOpFrame) =     "Set frame"
-anim_op_fullnames(animOpRepeat) =    "Repeat animation"
-anim_op_fullnames(animOpSetOffset) = "Move to offset (unimp)"
-anim_op_fullnames(animOpRelOffset) = "Add to offset (unimp)"
-
-sub set_animation_framerate(ms as integer)
-	' We bound to 5-200 because set_speedcontrol does the same thing
-	ms_per_frame = bound(ms, 5, 200)
-end sub
-
-function ms_to_frames(ms as integer) as integer
-	return large(1, INT(ms / ms_per_frame))
-end function
-
-function frames_to_ms(frames as integer) as integer
-	return frames * ms_per_frame
-end function
 
 'Find a frame in a frameset, returning frame index.
 'If fail = NO, then return the nearest match if the frame doesn't exist. Otherwise return -1.
@@ -11955,44 +11912,6 @@ constructor SpriteSet(frameset as Frame ptr)
 	refcount = NOREFC
 	'No need to init the animations vector until one is created
 end constructor
-
-destructor AnimationSet()
-	'If deleting an AnimationSet that's a SpriteSet, noone should still be playing its animations!
-	'(The Animations can remain referenced, but the Frames might be gone)
-	delete_all_animations(YES)  'check_no_references = YES
-
-	animset_unload @global_animations
-end destructor
-
-' WARNING: if this is a SpriteSet, call spriteset_unload instead
-sub animset_unload(pp as AnimationSet ptr ptr)
-	if *pp <> NULL then
-		with **pp
-			if .refcount = NOREFC then  'This is a SpriteSet
-				showbug "animset_unload called on SpriteSet"
-				spriteset_unload cast(SpriteSet ptr ptr, pp)
-			else
-				.refcount -= 1
-				BUG_IF(.refcount < 0, "Negative animset refc")
-				if .refcount = 0 then
-					delete *pp
-				end if
-			end if
-		end with
-		*pp = NULL
-	end if
-end sub
-
-sub AnimationSet.delete_all_animations(check_no_references as bool = NO)
-	for idx as integer = 0 to v_len(animations) - 1
-		if check_no_references then
-			BUG_IF(animations[idx]->refcount <> 1, "Leaked reference to animation")
-		end if
-		animations[idx]->dereference()
-		animations[idx] = 0
-	next
-	v_free animations
-end sub
 
 function SpriteSet.num_frames() as integer
 	return frames->arraylen
@@ -12120,289 +12039,6 @@ function SpriteSet.describe() as string
 	       & ", " & v_len(animations) & " animations>"
 end function
 
-' variantname can contain a trailing space
-sub split_variantname(variantname as string, byref animname as string, byref variant as string)
-	dim spacepos as integer = instr(variantname, " ")
-	if spacepos then
-		animname = left(variantname, spacepos - 1)
-		variant = mid(variantname, spacepos + 1)
-	else
-		animname = variantname
-		variant = ""
-	end if
-end sub
-
-' Searches for an animation with a certain name, or NULL if there's no match.
-' If exact=YES, the variant must match exactly, otherwise looks for best match.
-' variantname is either just the name of the animation, or the
-' name plus an optional variant separated by a space, e.g. "walk upleft", "walk ", "walk".
-' The nearest match is picked amongst animations which match the name:
-'  - prefer variant as specified
-'  - then prefer an animation with blank variant
-'  - then prefer the first animation (with that name)
-function AnimationSet.find_animation(variantname as string, exact as bool = NO) as Animation ptr
-	dim idx as integer = find_animation_idx(variantname, exact)
-	if idx < 0 then
-		return NULL
-	else
-		return animations[idx]
-	end if
-end function
-
-function AnimationSet.find_animation_idx(variantname as string, exact as bool = NO) as integer
-	dim as string name, variant
-	split_variantname variantname, name, variant
-
-	dim best_match as integer = -1
-	for idx as integer = 0 to v_len(animations) - 1
-		if animations[idx]->name = name then
-			' Right name, check how good the match is
-			if animations[idx]->variant = variant then
-				return idx        'Exact match
-			elseif len(animations[idx]->variant) = 0 then
-				best_match = idx  'Prefer nonvariant animations
-			elseif best_match = NULL then
-				best_match = idx  'Otherwise, default to the first variant
-			end if
-		end if
-	next
-	if exact then
-		'Didn't find exact match
-		return -1
-	else
-		return best_match
-	end if
-end function
-
-' Append a new blank animation and return pointer
-function AnimationSet.new_animation(name as string = "", variant as string = "") as Animation ptr
-	dim ret as Animation ptr = new Animation()
-	ret->name = name
-	ret->variant = variant
-	if animations = NULL then
-		v_new animations
-	end if
-	v_append animations, ret
-	return ret
-end function
-
-sub AnimationSet.delete_animation(variantname as string)
-	dim idx as integer = find_animation_idx(variantname, YES)  'exact=YES
-	if idx >= 0 then
-		animations[idx]->dereference()
-		v_delete_slice animations, idx, idx + 1
-	end if
-end sub
-
-constructor Animation()
-	reference()
-end constructor
-
-constructor Animation(name as string, variant as string = "")
-	this.name = name
-	this.variant = variant
-	reference()
-end constructor
-
-function Animation.reference() as Animation ptr
-	refcount += 1
-	return @this
-end function
-
-sub Animation.dereference()
-	refcount -= 1
-	BUG_IF(refcount < 0, "Too many Animation.dereference()")
-	if refcount = 0 then
-		delete @this
-	end if
-end sub
-
-sub Animation.append(optype as AnimOpType, arg1 as integer = 0, arg2 as integer = 0)
-	redim preserve ops(ubound(ops) + 1)
-	with ops(ubound(ops))
-		.type = optype
-		.arg1 = arg1
-		.arg2 = arg2
-	end with
-end sub
-
-
-constructor SpriteState(sprset as SpriteSet ptr)
-	ss = sprset
-	ss->reference()  'Inc refcount, because dec it in destructor
-	frame_num = 0
-end constructor
-
-constructor SpriteState(ptno as SpriteType, record as integer)
-	ss = spriteset_load(ptno, record)
-	frame_num = 0
-end constructor
-
-destructor SpriteState()
-	set_anim(NULL)  'Dec refcount
-	spriteset_unload @ss
-end destructor
-
-' Lookup an animation and start it. See AnimationSet.find_animation() for documentation
-' of variantname (animation name plus optional variant).
-' Normally an animation specifies how many times it loops (unimplemented), or ends in Repeat
-' to loop forever. loopcount <> 0 overrides this, giving a fixed number of
-' times to play, or < 0 to repeat forever
-sub SpriteState.start_animation(variantname as string, loopcount as integer = 0)
-	start_animation(ss->find_animation(variantname), loopcount)
-end sub
-
-sub SpriteState.start_animation(anim as Animation ptr, loopcount as integer = 0)
-	anim_wait = 0
-	anim_step = 0
-	anim_loop = loopcount
-	anim_looplimit = ANIMATION_LOOPLIMIT
-	set_anim(anim)
-end sub
-
-' Doesn't reset the sprite.
-sub SpriteState.stop_animation()
-	set_anim(NULL)
-	anim_wait = 0
-	anim_step = 0
-end sub
-
-sub SpriteState.set_anim(newanim as Animation ptr)
-	if anim then
-		anim->dereference()
-	end if
-	if newanim then
-		newanim->reference()
-	end if
-	anim = newanim
-end sub
-
-' Resets everything that an animation might change, but doesn't stop it
-sub SpriteState.reset()
-	frame_num = 0
-	offset.x = 0
-	offset.y = 0
-end sub
-
-function SpriteState.cur_frame() as Frame ptr
-	if ss = NULL then return NULL
-	if frame_num < 0 or frame_num >= ss->num_frames then return NULL
-	return @ss->frames[frame_num]
-end function
-
-' Advance time until the next wait, skipping the current one, and returns number of ms that the wait was for.
-' Returns -1 and does nothing if not waiting, -2 on error.
-' The return value ought to be independent of ms_per_frame
-' Note: any time already spent on the current wait is ignored.
-function SpriteState.skip_wait() as integer
-	if anim = NULL then return -2
-	' Look at the current op instead of anim_wait, because it might be a wait
-	' which we haven't looked at yet.
-	with anim->ops(anim_step)
-		if .type <> animOpWait and .type <> animOpWaitMS then
-			return -1
-		end if
-		dim ret as integer = .arg1
-		anim_wait = ms_to_frames(ret)
-		if animate() = NO then ret = -2  ' Until next wait
-		return ret
-	end with
-end function
-
-' Advance the animation by one op.
-' Returns true on success or finished animation, false on error.
-' Sets anim = NULL on error or finished animation.
-' Does not check for infinite loops; caller must do that.
-function SpriteState.animate_step() as bool
-	if anim = NULL then return NO
-
-	' This condition only If the animation doesn't end up looping, re
-	if anim_step > ubound(anim->ops) then
-		anim_looplimit -= 1
-		' anim_loop = 0 means default number of loops
-		' Also refuse to loop if empty.
-		if anim_loop = 0 or anim_loop = 1 orelse ubound(anim->ops) = -1 then
-			stop_animation()
-			return YES
-		end if
-		if anim_loop > 0 then anim_loop -= 1
-		anim_step = 0
-	end if
-
-	with anim->ops(anim_step)
-		select case .type
-			case animOpWait, animOpWaitMS
-				' These two opcodes are identical, differing only in how
-				' they are treated by the editor
-				anim_wait += 1
-				if anim_wait > ms_to_frames(.arg1) then
-					anim_wait = 0
-				else
-					anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
-					return YES
-				end if
-			case animOpFrame
-				/'
-				if .arg1 >= ss->num_frames then
-					debug "Animation '" & anim->name & "': illegal frame number " & .arg1
-					stop_animation()
-					return NO
-				end if
-				'/
-				frame_num = frameid_to_frame(ss->frames, .arg1)
-			case animOpRepeat
-				' If a loop count was specified when playing the animation,
-				' then only loop that many times, otherwise repeat forever
-				if anim_loop > 0 then
-					anim_loop -= 1
-					if anim_loop = 0 then
-						stop_animation()
-						return YES
-					end if
-				end if
-				anim_step = 0
-				anim_looplimit -= 1
-				return YES
-			case animOpSetOffset
-				offset.x = .arg1
-				offset.y = .arg2
-			case animOpRelOffset
-				offset.x += .arg1
-				offset.y += .arg2
-			case else
-				debug "bad animation opcode " & .type & " in '" & anim->name & "'"
-				stop_animation()
-				return NO
-		end select
-	end with
-	anim_step += 1
-	return YES
-end function
-
-' Advance time by one tick. True on success or finished (anim is now NULL!), false on an error/infinite loop
-function SpriteState.animate() as bool
-	if anim = NULL then return NO
-
-	while anim_looplimit > 0
-		if animate_step() = NO then return NO  'stop on error
-		if anim_wait > 0 then return YES  'stop if waiting
-		if anim = NULL then return YES  'stop if finished animating
-	wend
-
-	' Exceeded the loop limit
-	debug "animation '" & anim->name & "' got stuck in an infinite loop"
-	stop_animation()
-	return NO
-end function
-
-/'
-sub SpriteState.draw(x as integer, y as integer, trans as bool = YES, page as integer)
-	dim as integer realx, realy
-	realx = x + offset.x
-	realy = y + offset.y
-	frame_draw(cur_frame(), pal, realx, realy, trans, page)
-end sub
-'/
 
 '==========================================================================================
 '                           Platform specific wrapper functions

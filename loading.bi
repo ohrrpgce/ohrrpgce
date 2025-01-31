@@ -165,7 +165,6 @@ DECLARE SUB rgfx_save_global_animations (rgfxdoc as DocPtr, def_anim as SpriteSe
 DECLARE FUNCTION read_sprite_idx_backcompat_translation (rgfxdoc as DocPtr, sprtype as SpriteType, oldidx as integer) as integer
 DECLARE SUB add_sprite_idx_backcompat_translation (rgfxdoc as DocPtr, sprtype as SpriteType, oldidx as integer, newidx as integer)
 DECLARE FUNCTION rgfx_load_global_animations(rgfxdoc as Doc ptr, loadinto as AnimationSet ptr = NULL) as AnimationSet ptr
-DECLARE SUB spriteset_default_global_animations(byref animset as AnimationSet, sprtype as SpriteType)
 DECLARE SUB default_frame_group_info(sprtype as SpriteType, info() as FrameGroupInfo)
 
 DECLARE FUNCTION split_spritesheet(sheet as Frame ptr, framesize as XYPair, numframes as integer) as Frame ptr
