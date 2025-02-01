@@ -95,7 +95,7 @@ def expressionList():       return QUES, (expression, STAR, (PLUS, ",", CHECKPNT
 # expressions are more carefully parsed, in order to match parentheses and find commas
 def expression():           return PLUS, [("(", CHECKPNT, expressionList, ")"),
                                           ("{", CHECKPNT, expressionList, "}"),
-                                          nodeSpec, string, genericToken]
+                                          nodeSpec, nodeZeroSpec, string, genericToken]
 
 def typename():             return QUES, "const", STAR, namespace, identifier, STAR, re.compile('ptr|vector', re.I)
 #def typename():             return dottedIdentifier, STAR, re.compile('ptr|vector', re.I)
@@ -143,7 +143,7 @@ def withNodeEnd():          return "end", "withnode"
 def loadArray():            return "loadarray", CHECKPNT, dottedIdentifier, "(", "$", identifier, ")", "=", expression
 
 # Not implemented
-def nodeSpecAssignment():   return nodeSpec, "=", CHECKPNT, expression
+def nodeSpecAssignment():   return [nodeSpec, nodeZeroSpec], "=", CHECKPNT, expression
 
 def directive():            return "#", re.compile("warn_func|error_func"), CHECKPNT, "=", identifier
 
