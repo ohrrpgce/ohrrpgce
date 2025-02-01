@@ -6,10 +6,11 @@ A nodespec is an expression for a typed value a child/descendent Node of a "root
 Syntax:
   nodevar."childname"[."deeper descendants" ...][.attribute]...
 
-nodevar must be a Node ptr variable. Zero length nodespecs aren't implemented yet, so you can only
+nodevar must be a Node ptr expression. Zero length nodespecs aren't implemented yet, so you can only
 refer to descendants (you need to call GetInteger, etc. manually to get a node's value directly).
-nodevar has to be either a local variable or function argument. (This strict requirement should
-probably be removed.)
+nodevar has to be either a local variable declared with DIM or function argument, or
+a dotted expression like cont.root or .root declared with "declare as nodeptr" (see below).
+(This requirement should probably be loosened further.)
 
 Nodespecs on a 'LoadArray' line can also contain an index, see the LoadArray section.
 
@@ -43,6 +44,17 @@ Nodespecs on a 'LoadArray' line can also contain an index, see the LoadArray sec
 .oob_error      : For LoadArray only. Print errors instead of warning messages and exit the sub
 				  or function on out-of-bounds errors.
 
+
+= Declare as NodePtr =
+
+If you want a nodespec starting with an expression which isn't a simple variable because it contains
+dots, such as cont.root."foo" or .root."foo", or otherwise isn't recognised e.g. a reference to
+a UDT member inside a method, place a declaration in the same function:
+  DECLARE AS NODEPTR expression [, expression]...
+
+You can use "node ptr" instead of "nodeptr".
+E.g.
+  declare as Node ptr this.root, parent
 
 = WithNode =
 Syntax:

@@ -58,7 +58,10 @@ endTest
 
 startTest(testDimParsing)
 	dim var1 as integer, var2 as integer ptr vector
-	dim as nodeptr root = DocumentRoot(doc), helper = root."helper".ptr
+	'FIXME: this line compiles only with --careful
+	'dim as nodeptr root = DocumentRoot(doc), helper = root."helper".ptr
+	dim as nodeptr root = DocumentRoot(doc)
+	dim as nodeptr helper = root."helper".ptr
 	dim byref helper_alias as nodeptr = helper
 	dim byref as nodeptr helper_alias2 = helper, root_alias = root
 
@@ -481,41 +484,73 @@ startTest(testLoadArray1)
 
 endTest
 
+type NodeHolder
+	root as Node ptr
+	root2 as NodePtr
+end type
+
+startTest(testDeclareNodeptr)
+	dim hold as NodeHolder
+	declare as nodeptr hold.root
+	hold.root = DocumentRoot(doc)
+
+	AppendChildNode(hold.root, "child", 300)
+	if hold.root."child" <> 300 then fail
+	dim sum as integer = 0
+	readnode hold.root, ignoreall
+		sum += hold.root."child"
+	end readnode
+
+	with hold
+		declare as node ptr .root
+		if .root."child" <> 300 then fail
+	end with
+
+	AppendChildNode(hold.root."child".ptr, "x", 10)
+	readnode hold.root."child" as c
+		sum += c."x"
+	end readnode
+	if sum <> 310 then fail
+endTest
+
 startTest(testMixedDocuments)
 	# warn_func = count_unexpected_warnings
 	doc2 = CreateDocument()
 	if doc2 = null then fail
 
-	dim root as NodePtr = DocumentRoot(doc)
+	dim hold as NodeHolder
+	declare as nodeptr hold.root, hold.root2
 
-	dim root2 as NodePtr = CreateNode(doc2, "foo")
-	if root2 = 0 then fail
-	SetRootNode(doc2, root2)
+	hold.root = DocumentRoot(doc)
 
-	AppendChildNode(root2, "child2", 3001)
-	AppendChildNode(root2, "child1", 3002)
-	dim as node ptr n = FirstChild(root2), n2
+	hold.root2 = CreateNode(doc2, "foo")
+	if hold.root2 = 0 then fail
+	SetRootNode(doc2, hold.root2)
+
+	AppendChildNode(hold.root2, "child2", 3001)
+	AppendChildNode(hold.root2, "child1", 3002)
+	dim as node ptr n = FirstChild(hold.root2), n2
 	AppendChildNode(n, "party", 4001)
 	AppendChildNode(n, "", 4002)
 
-	if root."helper" <> 100 then fail
-	if root2."child1" <> 3002 then fail
+	if hold.root."helper" <> 100 then fail
+	if hold.root2."child1" <> 3002 then fail
 
-	withnode root2."child2" as ch
+	withnode hold.root2."child2" as ch
 		if ch."party" <> 4001 then fail
 		n2 = ch
 	end withnode
 	if n2."party" <> 4001 then fail
 
-	readnode root2
-		root2."helper".ignore
+	readnode hold.root2
+		hold.root2."helper".ignore
 	end readnode
 	if unexpected_warns <> 2 then fail
 	unexpected_warns = 0
 	if bad_warning then fail
 
 	dim sum as integer
-	readnode root2."child2" as dummy
+	readnode hold.root2."child2" as dummy
 		sum += dummy.""
 	end readnode
 	if sum <> 4002 then fail
@@ -524,7 +559,7 @@ startTest(testMixedDocuments)
 	if bad_warning then fail
 
 	sum = 0
-	readnode root."helper" as dummy
+	readnode hold.root."helper" as dummy
 		sum += dummy."int"
 	end readnode
 	if sum <> 12345 then fail
