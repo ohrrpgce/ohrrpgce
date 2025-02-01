@@ -69,21 +69,21 @@ end type
 type Animation
 	name as string
 	variant as string
-	'numitems as integer
-	ops(any) as AnimationOp
-	'opsnode as Reload.NodePtr   'RELOAD-based replacement for ops()
+	'ops(any) as AnimationOp
+	opsnode as Reload.NodePtr   'RELOAD-based replacement for ops()
 
 	'Animation is refcounted only so that animations can be safely replaced in Test Game while they are playing
 	refcount as integer
 
-	declare constructor()
 	declare constructor(name as string, variant as string = "")
+	declare sub replace_ops(copy_from as Reload.NodePtr)
 
 	'Inc/dec refcount, and delete self
 	declare function reference() as Animation ptr
 	declare sub dereference()
 
-	declare sub append(type as AnimOpType, arg1 as integer = 0, arg2 as integer = 0)
+	declare function append(optype as AnimOpType) as Reload.Node ptr
+	declare sub mutate_op(op as Reload.NodePtr, optype as AnimOpType)
 end type
 
 'No automatic deletion
@@ -115,9 +115,10 @@ type FrameFwd as Frame
 type AnimationState
 	ss as SpriteSetFwd ptr
 	frame_num as integer
-	anim as Animation ptr      'The currently playing animation or NULL
+	anim as Animation ptr      'The currently playing animation or NULL.
 	                           'anim must be set using set_anim()!
-	anim_step as integer       'Current op index in the current animation
+	curop as Reload.NodePtr    'Current animation op. Child (future: descendent) of anim->ops
+	'anim_step as integer      'Child index of curop
 	anim_advanced as bool      'True immediately after anim_step changes, false if waited
 	anim_wait as integer       'Equal to 0 if not waiting otherwise the number of ticks into the wait.
 	anim_loop as integer       '-1:infinite, 0<:number of times to play after current

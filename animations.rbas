@@ -17,6 +17,10 @@ using Reload
 
 dim shared ms_per_frame as integer = 55
 
+' A single global document for all Animation.opsnode RELOAD nodes (they are orphaned).
+' Access via get_anim_doc().
+dim shared _anim_doc as DocPtr
+
 ' Number of loops/non-forwards branches that can occur in an animation without a
 ' wait before it's considered to be stuck in an infinite loop.
 const ANIMATION_LOOPLIMIT = 10
@@ -99,41 +103,67 @@ dim builtin_anim_variants(...) as AnimVariantInfo => { _
 }
 
 
+function get_anim_doc() as DocPtr
+	if _anim_doc = NULL then _anim_doc = CreateDocument()
+	return _anim_doc
+end function
+
 ' Creates the default global animations for a sprite type in an existing AnimationSet.
 ' TODO: very unfinished. These could be defined in a RELOAD data file instead of by code.
 sub spriteset_default_global_animations(byref animset as AnimationSet, sprtype as SpriteType)
 	debuginfo "Using default global animations for " & sprite_sizes(sprtype).name
 
+	dim n as NodePtr
+	#define op(opname) n = .append(opname)
+	#define arg(argname, argvalue) AppendChildNode(n, argname, argvalue)
+
 	animset.delete_all_animations()
 	if sprtype = sprTypeHero then
 		with *animset.new_animation("idle")
-			.append(animOpFrame, frameSTAND)    '0
+			op(animOpFrame)
+			arg("frame", frameSTAND)    '0
 		end with
 		with *animset.new_animation("walk")
-			.append(animOpPlayFrameGroup, 0, 2) '110)  (frameSTAND + frameSTEP)
-			.append(animOpRepeat)
+			op(animOpPlayFrameGroup)
+			arg("framegroup", 0)  '(frameSTAND + frameSTEP)
+			arg("ms", 110)
+			op(animOpRepeat)
 		end with
 		with *animset.new_animation("attack")
-			.append(animOpPlayFrameGroup, 1, 2) '110)  (frameATTACKA + frameATTACKB)
-			.append(animOpFrame, frameSTAND)  '0
+			op(animOpPlayFrameGroup)
+			op(animOpPlayFrameGroup)
+			arg("framegroup", 1)  '(frameATTACKA + frameATTACKB)
+			arg("ms", 110)
+			op(animOpFrame)
+			arg("frame", frameSTAND)    '0
 		end with
 	end if
 	if sprtype = sprTypeWalkabout then
 		with *animset.new_animation("walk", "up")
-			.append(animOpPlayFrameGroup, 0, 2) '110)
-			.append(animOpRepeat)
+			op(animOpPlayFrameGroup)
+			arg("framegroup", 0)
+			arg("ms", 110)
+			op(animOpRepeat)
 		end with
 		with *animset.new_animation("walk", "right")
-			.append(animOpPlayFrameGroup, 1, 2) '110)
-			.append(animOpRepeat)
+			op(animOpPlayFrameGroup)
+			arg("framegroup", 1)
+			arg("ms", 110)
+			op(animOpRepeat)
 		end with
+		dumpnodetree n
+		dumpnodetree animset.animations[1]->opsnode
 		with *animset.new_animation("walk", "down")
-			.append(animOpPlayFrameGroup, 2, 2) '110)
-			.append(animOpRepeat)
+			op(animOpPlayFrameGroup)
+			arg("framegroup", 2)
+			arg("ms", 110)
+			op(animOpRepeat)
 		end with
 		with *animset.new_animation("walk", "left")
-			.append(animOpPlayFrameGroup, 3, 2) '110)
-			.append(animOpRepeat)
+			op(animOpPlayFrameGroup)
+			arg("framegroup", 3)
+			arg("ms", 110)
+			op(animOpRepeat)
 		end with
 	end if
 end sub
@@ -144,7 +174,8 @@ sub set_animation_framerate(ms as integer)
 end sub
 
 function ms_to_frames(ms as integer) as integer
-	return large(1, INT(ms / ms_per_frame))
+	if ms <= 0 then return 0
+	return large(1, CINT(ms / ms_per_frame))  'Round to nearest
 end function
 
 function frames_to_ms(frames as integer) as integer
@@ -157,14 +188,16 @@ end function
 '==========================================================================================
 
 
-constructor Animation()
-	reference()
-end constructor
+' constructor Animation()
+' 	reference()
+' 	opsnode = CreateNode(get_anim_doc)
+' end constructor
 
 constructor Animation(name as string, variant as string = "")
 	this.name = name
 	this.variant = variant
 	reference()
+	this.opsnode = CreateNode(get_anim_doc, "ops")
 end constructor
 
 function Animation.reference() as Animation ptr
@@ -180,13 +213,21 @@ sub Animation.dereference()
 	end if
 end sub
 
-sub Animation.append(optype as AnimOpType, arg1 as integer = 0, arg2 as integer = 0)
-	redim preserve ops(ubound(ops) + 1)
-	with ops(ubound(ops))
-		.type = optype
-		.arg1 = arg1
-		.arg2 = arg2
-	end with
+sub Animation.replace_ops(copy_from as NodePtr)
+	FreeNode(opsnode)
+	opsnode = CloneNodeTree(copy_from, get_anim_doc)
+end sub
+
+function Animation.append(optype as AnimOpType) as NodePtr
+	BUG_IF(opsnode = 0, "opsnode null", 0)
+	return AppendChildNode(opsnode, anim_op_node_names(optype), optype)
+end function
+
+' Changes the type (operator) of an op while leaving its children unmodified, which
+' is useful if the new type takes the same args.
+sub Animation.mutate_op(op as NodePtr, optype as AnimOpType)
+	SetContent(op, optype)
+	RenameNode(op, anim_op_node_names(optype))
 end sub
 
 
@@ -289,9 +330,7 @@ end function
 
 ' Append a new blank animation and return pointer
 function AnimationSet.new_animation(name as string = "", variant as string = "") as Animation ptr
-	dim ret as Animation ptr = new Animation()
-	ret->name = name
-	ret->variant = variant
+	dim ret as Animation ptr = new Animation(name, variant)
 	if animations = NULL then
 		v_new animations
 	end if
@@ -338,20 +377,27 @@ sub AnimationState.start_animation(variantname as string, loopcount as integer =
 	start_animation(ss->find_animation(variantname), loopcount)
 end sub
 
+'OK for anim to be NULL
 sub AnimationState.start_animation(anim as Animation ptr, loopcount as integer = 0)
 	anim_wait = 0
-	anim_step = 0
+	'anim_step = 0
 	anim_advanced = YES
 	anim_loop = loopcount
 	anim_looplimit = ANIMATION_LOOPLIMIT
 	set_anim(anim)
+	if anim then
+		curop = FirstChild(anim->opsnode)
+	else
+		curop = NULL
+	end if
 end sub
 
 ' Doesn't reset the sprite.
 sub AnimationState.stop_animation()
 	set_anim(NULL)
 	anim_wait = 0
-	anim_step = 0
+	'anim_step = 0
+	curop = NULL
 end sub
 
 sub AnimationState.set_anim(newanim as Animation ptr)
@@ -382,18 +428,19 @@ end function
 ' The return value ought to be independent of ms_per_frame
 ' Note: any time already spent on the current wait is ignored.
 function AnimationState.skip_wait() as integer
-	if anim = NULL then return -2
+	if anim = NULL orelse curop = NULL then return -2
 	' Look at the current op instead of anim_wait, because it might be a wait
 	' which we haven't looked at yet.
-	with anim->ops(anim_step)
-		if .type <> animOpWait and .type <> animOpWaitMS then
+	declare as NodePtr curop
+	select case curop..int
+		case animOpWait, animOpWaitMS, animOpPlayFrameGroup
+			dim ret as integer = curop."ms"
+			anim_wait = ms_to_frames(ret)
+			if animate() = NO then ret = -2  ' Until next wait
+			return ret
+		case else
 			return -1
-		end if
-		dim ret as integer = .arg1
-		anim_wait = ms_to_frames(ret)
-		if animate() = NO then ret = -2  ' Until next wait
-		return ret
-	end with
+	end select
 end function
 
 ' Advance the animation by one op.
@@ -401,103 +448,109 @@ end function
 ' Sets anim = NULL on error or finished animation.
 ' Does not check for infinite loops; caller must do that.
 function AnimationState.animate_step() as bool
+	declare as NodePtr curop
+	'? "animate_step: curop", curop, curop..name, curop..int
+
 	if anim = NULL then return NO
 
 	' This happens only if the animation doesn't end with Repeat
-	if anim_step > ubound(anim->ops) then
+	if curop = NULL then
 		anim_looplimit -= 1
 		' anim_loop = 0 means default number of loops
 		' Also refuse to loop if empty.
-		if anim_loop = 0 or anim_loop = 1 orelse ubound(anim->ops) = -1 then
+		if anim_loop = 0 or anim_loop = 1 orelse NumChildren(anim->opsnode) = 0 then
 			stop_animation()
 			return YES
 		end if
 		if anim_loop > 0 then anim_loop -= 1
-		anim_step = 0
+		'anim_step = 0
+		curop = FirstChild(anim->opsnode)
 	end if
 
-	with anim->ops(anim_step)
-		select case .type
-			case animOpWait, animOpWaitMS
-				' These two opcodes are identical, differing only in how
-				' they are treated by the editor
-				anim_wait += 1
-				if anim_wait > ms_to_frames(.arg1) then
-					anim_wait = 0
-				else
-					anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
+	declare as nodeptr curop
+
+	select case curop..int
+		case animOpWait, animOpWaitMS
+			' These two opcodes are identical, differing only in how ' they are treated by the editor
+			anim_wait += 1
+			if anim_wait > ms_to_frames(curop."ms") then
+				anim_wait = 0
+			else
+				anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
+				return YES
+			end if
+		case animOpFrame
+			frame_num = frameid_to_frame(ss->frames, curop."frame")
+		case animOpRepeat
+			' If a loop count was specified when playing the animation,
+			' then only loop that many times, otherwise repeat forever
+			if anim_loop > 0 then
+				anim_loop -= 1
+				if anim_loop = 0 then
+					stop_animation()
 					return YES
 				end if
-			case animOpFrame
-				/'
-				if .arg1 >= ss->num_frames then
-					debug "Animation '" & anim->name & "': illegal frame number " & .arg1
-					stop_animation()
-					return NO
-				end if
-				'/
-				frame_num = frameid_to_frame(ss->frames, .arg1)
-			case animOpRepeat
-				' If a loop count was specified when playing the animation,
-				' then only loop that many times, otherwise repeat forever
-				if anim_loop > 0 then
-					anim_loop -= 1
-					if anim_loop = 0 then
-						stop_animation()
-						return YES
-					end if
-				end if
-				anim_step = 0
-				anim_looplimit -= 1
-				return YES
-			case animOpSetOffset
-				offset.x = .arg1
-				offset.y = .arg2
-			case animOpRelOffset
-				offset.x += .arg1
-				offset.y += .arg2
-			case animOpPlayFrameGroup
-				dim frameidx as integer
-				if anim_advanced then
-					' Set initial frame
-					frameidx = frameid_to_frame(ss->frames, .arg1 * 100, YES)  'exact=YES
-					'? "animOpPlayFrameGroup: start at frame " & frameidx
-					if frameidx = -1 then
-						'debug "frame group missing"
-						exit select
-					end if
-					frame_num = frameidx
-				end if
+			end if
+			curop = FirstChild(anim->opsnode)
+			'anim_step = 0
+			anim_looplimit -= 1
+			return YES
+		case animOpSetOffset
+			offset.x = curop."x"
+			offset.y = curop."y"
+		case animOpRelOffset
+			offset.x += curop."x"
+			offset.y += curop."y"
 
-				anim_wait += 1
-				if anim_wait > .arg2 then 'ms_to_frames(.arg2) then
-					'? "animOpPlayFrameGroup: wait done"
+		case animOpPlayFrameGroup
+			dim frameidx as integer
 
-					' Next frame
-					dim frameid as integer = ss->frames[frame_num].frameid + 1
-					frameidx = frameid_to_frame(ss->frames, frameid, YES)  'exact=YES
-					'? "animOpPlayFrameGroup: advance to id=" & frameid & " idx=" & frameidx
+			if anim_advanced then
+				' Set initial frame
+				frameidx = frameid_to_frame(ss->frames, curop."framegroup" * 100, YES)  'exact=YES
+				'? "animOpPlayFrameGroup: start at frame " & frameidx
+				if frameidx = -1 then
+					'debug "frame group missing"
+					exit select
+				end if
+				frame_num = frameidx
+			end if
 
-					if frameidx = -1 then
-						anim_wait = 0  'Done
-					else
-						frame_num = frameidx
-						anim_wait = 1  'Start wait
-						anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
-						return YES  'Wait
-					end if
+			anim_wait += 1
+			if anim_wait > ms_to_frames(curop."ms") then
+				'? "animOpPlayFrameGroup: wait done"
+
+				' Next frame
+				dim frameid as integer = ss->frames[frame_num].frameid + 1
+				frameidx = frameid_to_frame(ss->frames, frameid, YES)  'exact=YES
+				'? "animOpPlayFrameGroup: advance to id=" & frameid & " idx=" & frameidx
+
+				if frameidx = -1 then
+					anim_wait = 0  'Done
 				else
-					'? "animOpPlayFrameGroup: waiting"
+					frame_num = frameidx
+					anim_wait = 1  'Start wait
 					anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
 					return YES  'Wait
 				end if
-			case else
-				debug "bad animation opcode " & .type & " in '" & anim->name & "'"
-				stop_animation()
-				return NO
-		end select
-	end with
-	anim_step += 1
+			else
+				'? "animOpPlayFrameGroup: waiting"
+				anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
+				return YES  'Wait
+			end if
+
+		case animOpUnknown
+			' An opcode from a future version not recognised by load_animation_node,
+			' which already printed an error. Skip it.
+		case else
+			' Shouldn't happen
+			showbug "bad animation opcode " & curop..name & " " & curop..int & " in '" & anim->name & "'"
+			stop_animation()
+			return NO
+	end select
+
+	curop = NextSibling(curop)  'NULL if finished
+	'anim_step += 1
 	return YES
 end function
 
@@ -521,12 +574,3 @@ function AnimationState.animate() as bool
 	stop_animation()
 	return NO
 end function
-
-/'
-sub AnimationState.draw(x as integer, y as integer, trans as bool = YES, page as integer)
-	dim as integer realx, realy
-	realx = x + offset.x
-	realy = y + offset.y
-	frame_draw(cur_frame(), pal, realx, realy, trans, page)
-end sub
-'/

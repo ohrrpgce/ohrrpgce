@@ -3670,25 +3670,17 @@ SUB save_animation_node(parent as Node ptr, anim as Animation)
   AppendChildNode(anode, "name", anim.name)
   IF LEN(anim.variant) THEN AppendChildNode(anode, "variant", anim.variant)
 
-  DIM ops as Node ptr = AppendChildNode(anode, "ops")
-  FOR idx as integer = 0 TO UBOUND(anim.ops)
-    WITH anim.ops(idx)
-      DIM op as Node ptr = AppendChildNode(ops, anim_op_node_names(.type))
-      IF .arg1 THEN AppendChildNode(op, "arg1", .arg1)
-      IF .arg2 THEN AppendChildNode(op, "arg2", .arg2)
-    END WITH
-  NEXT idx
-
-  /' WIP new RELOAD-based in-memory storage scheme!
-  DIM ops as Node ptr = CloneNodeTree(anim.opsnode)
+  ' Add copy of ops
+  BUG_IF(NodeName(anim.opsnode) <> "ops", "bad opsnode")
+  DIM ops as Node ptr = CloneNodeTree(anim.opsnode, GetDocument(anode))
   AddChild(anode, ops)
-  'Delete the integer value of each operator node, which was cached there in load_animation_node.
+
+  ' Delete the integer value of each operator node, which was cached there in load_animation_node.
   DIM op as Node ptr = FirstChild(ops)
   WHILE op
     SetContent(op)
     op = NextSibling(op)
   WEND
-  '/
 END SUB
 
 ' Append a new animation, from a "anim" node
@@ -3698,23 +3690,9 @@ SUB load_animation_node(animnode as Node ptr, animset as AnimationSet ptr)
 
   DIM anim as Animation ptr
   anim = animset->new_animation(animnode."name".string, animnode."variant".string.default(""))
+  anim->replace_ops(animnode."ops".ptr)
 
-  DIM op as Node ptr = FirstChild(animnode."ops".ptr)
-  WHILE op
-    DIM optype as AnimOpType = a_find(anim_op_node_names(), NodeName(op))
-    IF optype = -1 THEN
-      reporterr "Unsupport animation data: unknown anim op " & NodeName(op), serrError
-      EXIT SUB
-    END IF
-
-    anim->append(optype, op."arg1", op."arg2")
-    op = NextSibling(op)
-  WEND
-
-  /' WIP new RELOAD-based in-memory storage scheme!
-  anim->opsnode = animnode."ops".ptr
-
-  'Lookup each op name, cache it as the integer value of the node
+  ' Lookup each op name, cache it as the integer value of the node
   DIM op as Node ptr = FirstChild(anim->opsnode)
   WHILE op
     DIM optype as AnimOpType = a_find(anim_op_node_names(), NodeName(op))
@@ -3724,14 +3702,12 @@ SUB load_animation_node(animnode as Node ptr, animset as AnimationSet ptr)
     SetContent(op, optype)
     op = NextSibling(op)
   WEND
-  '/
 END SUB
 
 ' Add an "animations" child to parent
 SUB save_animations_node(parent as Node ptr, animset as AnimationSet ptr)
   DIM anims as Node ptr
   anims = AppendChildNode(parent, "_animations")  'FIXME: temporary location
-
   FOR idx as integer = 0 TO v_len(animset->animations) - 1
     save_animation_node anims, *animset->animations[idx]
   NEXT idx

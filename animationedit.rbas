@@ -7,6 +7,7 @@
 #include "custom_udts.bi"
 #include "string.bi"
 #include "allmodex.bi"
+#include "reload.bi"
 
 ' Export a certain animation as a looping gif
 sub export_gif(ss as SpriteSet ptr, pal as Palette16 ptr, fname as string, anim_name as string, transparent as bool = NO)
@@ -79,6 +80,10 @@ type AnimationEditor
   topmenu(any) as string
   topstate as MenuState
 
+  ' Animation editing menu
+  first_op_pt as integer
+  last_op_pt as integer
+
   declare sub toplevel()
   declare sub rebuild_toplevel_menu()
   declare function cur_anim() as string
@@ -90,6 +95,8 @@ type AnimationEditor
 
   ' Individual animation editor
   declare sub edit_animation(anim_name as string)
+  declare sub rebuild_animation_menu(byref menu as SimpleMenuItem vector, anim as Animation)
+
 end type
 
 sub animations_editor(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext, default_export_filename as string = "")
@@ -172,6 +179,7 @@ sub AnimationEditor.toplevel()
   set_animation_framerate gen(genMillisecPerFrame)
 
   rebuild_toplevel_menu
+  ' (There may be no animations)
   animstate->start_animation(cur_anim())
 
   do
@@ -380,33 +388,43 @@ const itemdatReset = -5
 'append_simplemenu_item
 'END SUB
 
-const first_op_pt = 2  'state.pt for first op (if any)
+function format_ms(ms as integer) as string
+  return ms_to_frames(ms) & " frame(s) (" & FORMAT(0.001 * ms, "0.000") & "sec)"
+end function
 
-sub rebuild_animation_menu(byref menu as SimpleMenuItem vector, anim as Animation)
+sub AnimationEditor.rebuild_animation_menu(byref menu as SimpleMenuItem vector, anim as Animation)
   v_new menu
   append_simplemenu_item menu, "Previous Menu", , , itemdatExit
-
   append_simplemenu_item menu, "Ops:", YES, uilook(eduiHeading)  'unselectable
-  'Update first_op_pt if adding anything here
 
-  for idx as integer = 0 to UBOUND(anim.ops)
-    with anim.ops(idx)
-      dim caption as string
-      select case .type
-        case animOpWait
-          caption = ms_to_frames(.arg1) & " frame(s) (" & FORMAT(0.001 * .arg1, "0.000") & "sec)"
-        case animOpWaitMS
-          caption = FORMAT(0.001 * .arg1, "0.000") & "sec (" & ms_to_frames(.arg1) & " frame(s))"
-        case animOpRepeat
-          'pass
-        case animOpPlayFrameGroup
-          caption = (100 * .arg1) & ", " & .arg2 & " frame(s) each"
-        case else
-          caption = STR(.arg1)   '& " " & .arg2
-      end select
-      append_simplemenu_item menu, "- " & anim_op_names(.type) & " " & caption, , , idx
-    end with
-  next
+  first_op_pt = v_len(menu)  'state.pt for first op (if any)
+
+  dim op as NodePtr = FirstChild(anim.opsnode)
+  dim idx as integer
+  while op
+    dim caption as string
+    select case op..int
+      case animOpWait
+        caption = format_ms(op."ms")
+      case animOpWaitMS
+        caption = FORMAT(0.001 * op."ms", "0.000") & "sec (" & ms_to_frames(op."ms") & " frame(s))"
+      case animOpRepeat
+        'pass
+      case animOpFrame
+        caption = op."frame".string
+      case animOpPlayFrameGroup
+        caption = (100 * op."framegroup") & ", " & format_ms(op."ms")
+      case else
+        caption = "???" 'STR(.arg1)   '& " " & .arg2
+    end select
+    append_simplemenu_item menu, "- " & anim_op_names(op..int) & " " & caption, , , idx
+    idx += 1
+    op = NextSibling(op)
+  wend
+
+  last_op_pt = v_len(menu) - 1
+
+
   append_simplemenu_item menu, "- Add step (+)", , uilook(eduiSpecial), itemdatAddStep
 
   append_simplemenu_item menu, "", YES, uilook(uiDisabledItem)  'unselectable
@@ -415,10 +433,19 @@ sub rebuild_animation_menu(byref menu as SimpleMenuItem vector, anim as Animatio
   append_simplemenu_item menu, "Play (P)", , , itemdatPlay
 end sub
 
+' Edit a number of milliseconds as number of frames
+function intgrabber_ms_as_frames(ms_node as NodePtr, minframes as integer, maxframes as integer) as bool
+  dim frames as integer = ms_to_frames(ms_node..int)
+  if intgrabber(frames, minframes, maxframes, , , , , , , , NO) then  'wrap = NO
+    SetContent(ms_node, frames_to_ms(frames))
+    return YES
+  end if
+end function
+
 ' Edit a single animation
 sub AnimationEditor.edit_animation(anim_name as string)
 
-  dim BYREF anim as Animation = *sprset->find_animation(anim_name)
+  dim byref anim as Animation = *sprset->find_animation(anim_name)
   if @anim = NULL then
     visible_debug "Animation Editor: animation " & anim_name & " doesn't exist"
     exit sub
@@ -443,17 +470,18 @@ sub AnimationEditor.edit_animation(anim_name as string)
     setwait gen(genMillisecPerFrame)
     setkeys
 
-    dim curop as AnimationOp ptr = NULL
+    dim curop as Node ptr = NULL
 
     if animating then
       ' Menu cursor shows the current op
 
       animstate->animate()
-      state.pt = first_op_pt + animstate->anim_step
+      'state.pt = first_op_pt + animstate->anim_step
+      state.pt = first_op_pt + NodeIndex(animstate->curop)
       if animstate->anim = NULL then
         animating = NO
         ' Stay on the last op if we reached the end
-        state.pt = first_op_pt + UBOUND(anim.ops)
+        state.pt = last_op_pt
       end if
 
       if keyval(scR) > 1 then  'Allow reset too
@@ -474,7 +502,7 @@ sub AnimationEditor.edit_animation(anim_name as string)
       dim itemdat as integer = menu[state.pt].dat
       if itemdat >= 0 then op_idx = itemdat
       curop = NULL
-      if op_idx > -1 then curop = @anim.ops(op_idx)
+      if op_idx > -1 then curop = ChildByIndex(anim.opsnode, op_idx) : assert(curop)
 
       dim add_step as bool = keyval(scInsert) orelse keyval(scPlus) > 1 orelse keyval(scNumpadPlus) > 1
       dim delete_step as bool = keyval(scDelete) > 1 orelse keyval(scMinus) > 1 orelse keyval(scNumpadMinus) > 1
@@ -495,17 +523,16 @@ sub AnimationEditor.edit_animation(anim_name as string)
           case itemdatReset
             reset_anim = YES
           case IS >= 0
-            'Replace an op
+            ' Replace an op
             dim newtype as AnimOpType
             newtype = multichoice("Replace with which operator?", anim_op_fullnames(), , , "animation_ops")
-            with anim.ops(op_idx)
-              if newtype >= 0 andalso op_idx <> .type then
-                .type = newtype
-                .arg1 = 0
-                .arg2 = 0
-                curop = NULL
-              end if
-            end with
+            if newtype >= 0 andalso newtype <> curop..int then
+              ' Maybe use anim.mutate_op instead?
+              dim newop as NodePtr = anim.append(newtype)
+              AddSiblingAfter(curop, newop)
+              FreeNode curop
+              curop = newop
+            end if
         end select
       end if
 
@@ -517,23 +544,18 @@ sub AnimationEditor.edit_animation(anim_name as string)
         dim newtype as AnimOpType
         newtype = multichoice("Which operator?", anim_op_fullnames(), , , "animation_ops")
         if newtype >= 0 then
-          dim newidx as integer = iif(op_idx > -1, op_idx, UBOUND(anim.ops) + 1)
-          redim preserve anim.ops(UBOUND(anim.ops) + 1)
-          'Shift all following ops up 1
-          for idx as integer = UBOUND(anim.ops) - 1 to newidx step -1
-            swap anim.ops(idx), anim.ops(op_idx + 1)
-          next
-          anim.ops(newidx).type = newtype
-          curop = NULL
+          dim newop as NodePtr = anim.append(newtype)
+          if curop then
+            AddSiblingBefore curop, newop
+          end if
+          curop = newop
         end if
       elseif delete_step then
         ' Delete op
         if curop then
-          a_any_remove(anim.ops, op_idx)  'macro
-        elseif UBOUND(anim.ops) > 0 then
-          redim preserve anim.ops(UBOUND(anim.ops) - 1)
+          FreeNode curop
+          curop = NextSibling(curop)
         end if
-        curop = NULL
       elseif play_anim then
         ' Play (may or may not loop)
         animstate->start_animation(anim_name)
@@ -545,42 +567,45 @@ sub AnimationEditor.edit_animation(anim_name as string)
       elseif reset_anim then
         ' Reset sprite
         animstate->reset()
-      elseif keyval(scShift) > 0 and op_idx >= 0 then
+      elseif keyval(scShift) > 0 andalso curop then
         ' Rearranging items
-        if keyval(ccUp) > 1 and op_idx > 0 then
-          swap anim.ops(op_idx), anim.ops(op_idx - 1)
+        if keyval(ccUp) > 1 andalso PrevSibling(curop) then
+          SwapSiblingNodes curop, PrevSibling(curop)
           op_idx -= 1
-        elseif keyval(ccDown) > 1 and op_idx < UBOUND(anim.ops) then
-          swap anim.ops(op_idx), anim.ops(op_idx + 1)
+        elseif keyval(ccDown) > 1 andalso NextSibling(curop) then
+          SwapSiblingNodes curop, NextSibling(curop)
           op_idx += 1
         end if
         state.pt = first_op_pt + op_idx
-        curop = @anim.ops(op_idx)
+        'curop unchanged
       end if
 
       ' Editing op arguments
       if curop then
-        select case curop->type
+        select case curop..int
           case animOpWait
-            ' arg1 is in ms, but change number of frames
-            dim frames as integer = ms_to_frames(curop->arg1)
-            if intgrabber(frames, 0, 9999) then
-              curop->arg1 = frames_to_ms(frames)
-            end if
-            if keyval(scTab) > 1 then curop->type = animOpWaitMS
+            ' Arg is ms, but edit as number of frames
+            intgrabber_ms_as_frames GetOrCreateChild(curop, "ms"), 0, 1000000
+            if keyval(scTab) > 1 then anim.mutate_op(curop, animOpWaitMS)
           case animOpWaitMS
-            intgrabber curop->arg1, 0, 9999
-            if keyval(scTab) > 1 then curop->type = animOpWait
+            dim ms as integer = curop."ms"
+            intgrabber ms, 0, 9999, , , , , , , 10, NO  'moreless_step = 10, wrap = NO
+            SetChildNode(curop, "ms", ms)
+            if keyval(scTab) > 1 then anim.mutate_op(curop, animOpWait)
           case animOpFrame
-            intgrabber curop->arg1, 0, sprset->num_frames - 1
-            animstate->frame_num = curop->arg1  ' Update visual
+            dim frame as integer = curop."frame"
+            intgrabber frame, 0, sprset->num_frames - 1
+            SetChildNode(curop, "frame", frame)
+            animstate->frame_num = curop."frame"  ' Update visual
           case animOpPlayFrameGroup
             if keyval(scShift) > 0 then
-              intgrabber curop->arg2, 0, 9999
+              intgrabber_ms_as_frames GetOrCreateChild(curop, "ms"), 0, 1000000
             else
-              intgrabber curop->arg1, 0, sprset->num_frame_groups - 1
+              dim framegroup as integer = curop."framegroup"
+              intgrabber framegroup, 0, sprset->num_frame_groups - 1
+              SetChildNode(curop, "framegroup", framegroup)
             end if
-            animstate->frame_num = frameid_to_frame(sprset->frames, 100 * curop->arg1)  ' Update visual
+            animstate->frame_num = frameid_to_frame(sprset->frames, 100 * curop."framegroup")  ' Update visual
         end select
       end if
 
@@ -605,7 +630,7 @@ sub AnimationEditor.edit_animation(anim_name as string)
       message = "" '"(P)lay  (L)oop"
       if curop then
         ' If the op has multiple editable fields
-        if curop->type = animOpWait or curop->type = animOpWaitMS then message += "  Tab to select arg"
+        if curop..int = animOpWait orelse curop..int = animOpWaitMS then message += "  Tab to select arg"
       end if
     end if
     edgeprint message, pInfoX, pInfoY, uilook(uiText), vpage
