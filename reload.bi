@@ -161,14 +161,15 @@ Declare Function GetChildByContent(byval nod as NodePtr, content as longint, nam
 
 Declare Function DocumentRoot(byval doc as DocPtr) as NodePtr
 Declare Function GetDocument(byval nod as NodePtr) as DocPtr
-Declare Function NumChildren(byval nod as NodePtr) as Integer
+Declare Function NumChildren(byval nod as NodePtr) as integer
 Declare Function CountChildren(byval nod as NodePtr, byval withname as zstring ptr) as integer
+Declare Function NodeIndex(byval nod as NodePtr) as integer
 Declare Function NodeParent(byval nod as NodePtr) as NodePtr
 Declare Function FirstChild(byval nod as NodePtr, byval name as zstring ptr = null) as NodePtr
 Declare Function NextSibling(byval nod as NodePtr, byval name as zstring ptr = null) as NodePtr
 Declare Function PrevSibling(byval nod as NodePtr, byval name as zstring ptr = null) as NodePtr
 Declare Function NodeType(byval nod as NodePtr) as NodeTypes
-Declare Function NodeName(byval nod as NodePtr) as String
+Declare Function NodeName(byval nod as NodePtr) as string
 Declare Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
 Declare Sub SwapNodePrev(byval node as Nodeptr)
 Declare Sub SwapNodeNext(byval node as Nodeptr)

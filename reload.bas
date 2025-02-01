@@ -1571,7 +1571,7 @@ Function GetDocument(byval nod as NodePtr) as DocPtr
 	return nod->doc
 end Function
 
-Function NumChildren(byval nod as NodePtr) as Integer
+Function NumChildren(byval nod as NodePtr) as integer
 	if nod = null then return 0
 	return nod->numChildren
 end Function
@@ -1587,6 +1587,20 @@ Function CountChildren(byval nod as NodePtr, byval withname as zstring ptr) as i
 		ch = ch->nextSib
 	wend
 	return count
+end Function
+
+'Index of this node amongst its siblings
+Function NodeIndex(byval nod as NodePtr) as integer
+	if nod = null then return 0
+	if nod->parent then return 0
+	dim index as integer = 0
+	dim ch as NodePtr = nod->parent->children
+	while ch
+		if ch = nod then return index
+		index += 1
+		ch = ch->nextSib
+	wend
+	showbug "NodeIndex: memory corruption"
 end Function
 
 Function NodeParent(byval nod as NodePtr) as NodePtr
