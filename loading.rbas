@@ -4055,7 +4055,17 @@ SUB rgfx_save_spriteset(fr as Frame ptr, sprtype as SpriteType, setnum as intege
   FreeDocument rgfxdoc
 END SUB
 
-SUB rgfx_save_global_animations(rgfxdoc as DocPtr, def_anim as SpriteSet ptr)
+SUB rgfx_save_global_animations(sprtype as SpriteType)
+  DIM rgfxdoc as Doc ptr = rgfx_open(sprtype, YES, optNoDelay)
+  IF rgfxdoc = NULL THEN EXIT SUB
+  DIM animset as AnimationSet ptr = spriteset_load_global_animations(sprtype, rgfxdoc)
+  rgfx_save_global_animations(rgfxdoc, animset)
+  animset_unload @animset
+  SerializeBin graphics_file(rgfx_lumpnames(sprtype)), rgfxdoc
+  FreeDocument rgfxdoc
+END SUB
+
+SUB rgfx_save_global_animations(rgfxdoc as DocPtr, def_anim as AnimationSet ptr)
   DIM root_node as Node ptr = DocumentRoot(rgfxdoc)
   FreeChildNode root_node, "_animations"  'If it exists  FIXME: temporary location
   save_animations_node root_node, def_anim

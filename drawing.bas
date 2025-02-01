@@ -5439,6 +5439,9 @@ SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
  'FIXME: save_animations_node / load_animations_node saves the animations to a temporary
  'node which we will ignore in future.
  rgfx_save_spriteset ss->frames, sprtype, setnum
+ 'TODO: Editing global animations not implemented yet
+ 'rgfx_save_global_animations sprtype
+
  spriteset_unload @ss
  palette16_unload @pal
  delete_previews()
