@@ -143,6 +143,7 @@ Declare Function LoadNode overload(byval ret as nodeptr, byval recursive as bool
 
 Declare sub SerializeXML overload (byval doc as DocPtr, byval fh as integer, byval debugging as bool = NO, byval shortform as bool = NO)
 Declare sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as bool, byval shortform as bool, byval ind as integer = 0)
+Declare sub DumpNodeTree(byval nod as NodePtr)
 
 Declare sub SerializeBin overload (file as string, byval doc as DocPtr)
 

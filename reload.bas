@@ -914,6 +914,7 @@ Sub AddChild(byval par as NodePtr, byval nod as NodePtr)
 	BUG_IF(nod = 0, "null node")
 	BUG_IF(NodeHasAncestor(par, nod), "creating a loop!")  'includes par = nod
 	BUG_IF(nod->doc->root = nod, "can't reparent the root")
+	BUG_IF(nod->doc <> par->doc, "node from different Doc!")  'Use CloneNodeTree first!
 
 	'first, remove us from our old parent
 	RemoveParent(nod)
@@ -941,6 +942,7 @@ sub AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr)
 	BUG_IF(NodeHasAncestor(sib, nod), "creating a loop!")  'íncludes sib = nod
 	BUG_IF(nod->doc->root = nod, "can't reparent the root")
 	BUG_IF(sib->parent = 0, "sib has no parent")
+	BUG_IF(nod->doc <> sib->doc, "node from different Doc!")  'Use CloneNodeTree first!
 
 	'first, remove us from our old parent
 	RemoveParent(nod)
@@ -965,6 +967,7 @@ sub AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr)
 	BUG_IF(NodeHasAncestor(sib, nod), "creating a loop!")  'íncludes sib = nod
 	BUG_IF(nod->doc->root = nod, "can't reparent the root")
 	BUG_IF(sib->parent = 0, "sib has no parent")
+	BUG_IF(nod->doc <> sib->doc, "node from different Doc!")  'Use CloneNodeTree first!
 
 	'first, remove us from our old parent
 	RemoveParent(nod)
@@ -990,7 +993,7 @@ sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 	BUG_IF(doc = null, "null doc")
 	BUG_IF(nod = null, "null node")
 	BUG_IF(nod->parent, "has parent")
-	BUG_IF(nod->doc <> doc, "node was created in the context of another RELOAD doc")
+	BUG_IF(nod->doc <> doc, "node from different Doc!")  'Use CloneNodeTree first!
 
 	if doc->root = nod then return
 
@@ -1059,8 +1062,8 @@ end function
 
 'Serializes a document as XML to a file
 sub SerializeXML (byval doc as DocPtr, byval fh as integer, byval debugging as bool = NO, byval shortform as bool = NO)
-	if doc = null then exit sub
-	
+	BUG_IF(doc = null, "null doc")
+
 	print #fh, "<?xml version=""1.0"" encoding=""iso-8859-1"" ?>"
 	SerializeXML(doc->root, fh, debugging, shortform)
 end sub
@@ -1071,8 +1074,8 @@ end sub
 'shortform:  If true, print only hash of long zstrings.
 'ind:        Indentation amount.
 sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as bool, byval shortform as bool, byval ind as integer = 0)
-	if nod = null then exit sub
-	
+	BUG_IF(nod = null, "null node")
+
 	if nod->flags AND nfNotLoaded then
 		LoadNode(nod, YES)
 	end if
@@ -1167,6 +1170,11 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 	else
 		print #fh,
 	end if
+end sub
+
+'Print to stdout
+sub DumpNodeTree(byval nod as NodePtr)
+	SerializeXML(nod, 0, YES, YES)
 end sub
 
 Function FindDescendentByName(byval nod as NodePtr, nam as zstring ptr) as NodePtr
@@ -1362,7 +1370,7 @@ end function
 
 'Return pointer to a child node if it exists, otherwise create it (as a null node)
 Function GetOrCreateChild(byval parent as NodePtr, n as zstring ptr) as NodePtr
-	if parent = NULL then return NULL
+	BUG_IF(parent = NULL, "null parent", NULL)
 
 	'first, check to see if this node already exists
 	dim ret as NodePtr = GetChildByName(parent, n)
@@ -1500,7 +1508,7 @@ end function
 
 'Appends a child node of name n with a null value.
 Function AppendChildNode(byval parent as NodePtr, n as zstring ptr) as NodePtr
-	if parent = 0 then return 0
+	BUG_IF(parent = 0, "null parent", NULL)
 
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
 
@@ -1637,7 +1645,7 @@ End Function
 
 Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
 	BUG_IF(nod1 = 0 orelse nod2 = 0, "null node")
-	BUG_IF(nod1 = nod2, "don't swap with self")
+	BUG_IF(nod1 = nod2, "can't swap with self")
 	BUG_IF(NodeParent(nod1) <> NodeParent(nod2), "can't swap non-siblings")
 
 	dim par as NodePtr
@@ -1696,7 +1704,7 @@ end sub
 'The doc is an optional doc ptr that new new node should belong to. If omitted, the clone
 'will be in the same doc as the original node
 Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0) as NodePtr
-	BUG_IF(nod = NULL, "null node ptr", NULL)
+	BUG_IF(nod = NULL, "null node", NULL)
 	dim n as NodePtr
 	if doc then
 		n = CreateNode(doc, NodeName(nod))
