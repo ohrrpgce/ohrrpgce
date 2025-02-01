@@ -103,7 +103,7 @@ class FatalParseError(ParseError):
         elif isinstance(expected, list):
             return "one of: " + ", ".join(self.describePattern(elem) for elem in expected)
         elif type(expected) == type(word_regex):
-            return "<Regex>"
+            return expected.pattern
         elif type(expected) == ignore:
             return expected.display
         elif callable(expected):

@@ -1,16 +1,20 @@
 This is the documentation for the RELOADbasiC extension of FreeBASIC.
 
 = Nodespecs =
-A nodespec is an expression for a typed value a child/descendent Node of a "root" NodePtr variable.
+A nodespec is an expression for a typed value of a "root" NodePtr variable or a child/descendent Node.
 
-Syntax:
+Descendant syntax:
   nodevar."childname"[."deeper descendants" ...][.attribute]...
 
-nodevar must be a Node ptr expression. Zero length nodespecs aren't implemented yet, so you can only
-refer to descendants (you need to call GetInteger, etc. manually to get a node's value directly).
-nodevar has to be either a local variable declared with DIM or function argument, or
-a dotted expression like cont.root or .root declared with "declare as nodeptr" (see below).
-(This requirement should probably be loosened further.)
+Zero spec syntax:
+  nodevar..attribute[.attribute]...
+
+nodevar must be a Node ptr expression: either a local variable declared with DIM or as a function
+argument, or an expression, possibly containing dots, like cont.root or .root declared with "declare
+as nodeptr" (see below).  (This requirement should probably be loosened further.)
+
+Zero spec nodespecs are just an alternative to calling GetInteger, etc.  They can't be used where a
+nodespec is required by WITHNODE, READNODE or LOADARRAY.  They must have an attribute.
 
 Nodespecs on a 'LoadArray' line can also contain an index, see the LoadArray section.
 
@@ -126,7 +130,7 @@ Syntax:
  (inside a READNODE block)
  LOADARRAY array_name($varname) = <expression containing nodespec indexed by varname>
 
-Syntax for indexed nodespec:
+Syntax for indexed nodespec (can't be zero spec):
 where nodespec[$varname].continued_nodespec
   nodevar."childname" `[$'  varname `]' [."descendants" ...] [.attribute ...]
   eg.
@@ -181,7 +185,6 @@ effect for the rest of the function. Can't be placed inside ReadNode, WithNode.
 * Finish writing this file
 * Clean up the source: handling of output and indent is horrible. Also variable naming confusion between strings, ASTNodes, others (NodeSpecs)
 * Assigning to nodespecs, other writing features
-* Zero length nodespecs
 * .once
 * .longint
 * nodespecs rooted by Doc ptrs

@@ -140,6 +140,30 @@ startTest(testMissingNodes)
 	if root."not here".default(3).zstringsize <> 3 then fail
 endTest
 
+startTest(testNodeZeroSpec)
+	dim root as Node ptr = DocumentRoot(doc)
+	dim partyslot as Node ptr = root."party"."slot".ptr
+	dim nullnode as Node ptr = root."not here".ptr
+
+	if partyslot..integer <> 3 then fail
+
+	'check default defaults
+	if nullnode..integer <> 0 then fail
+	if nullnode..string <> "" then fail
+	if nullnode..float <> 0.0 then fail
+	if nullnode..bool <> 0 then fail
+	if nullnode..zstring <> NULL then fail
+	if nullnode..zstringsize <> 0 then fail
+
+	'check defaults
+	if nullnode..default(-1) <> -1 then fail
+	if nullnode..default("dd").string <> "dd" then fail
+	if nullnode..default(3.141).float <> 3.141 then fail
+	if nullnode..default(2).bool <> 2 then fail
+	if nullnode..default(@"blarg").zstring <> @"blarg" then fail
+	if nullnode..default(3).zstringsize <> 3 then fail
+endTest
+
 extern unexpected_warns as integer
 dim unexpected_warns as integer
 dim shared bad_warning as integer
@@ -487,11 +511,12 @@ endTest
 type NodeHolder
 	root as Node ptr
 	root2 as NodePtr
+	child as Node ptr
 end type
 
 startTest(testDeclareNodeptr)
 	dim hold as NodeHolder
-	declare as nodeptr hold.root
+	declare as nodeptr hold.root, hold.child
 	hold.root = DocumentRoot(doc)
 
 	AppendChildNode(hold.root, "child", 300)
@@ -511,6 +536,9 @@ startTest(testDeclareNodeptr)
 		sum += c."x"
 	end readnode
 	if sum <> 310 then fail
+
+	hold.child = hold.root."child".ptr
+	if hold.child..integer <> 300 then fail
 endTest
 
 startTest(testMixedDocuments)

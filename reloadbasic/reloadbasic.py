@@ -48,8 +48,8 @@ def string():               return re.compile(r'"(""|[^"\n])*"|!"(""|\\.|[^"\n])
 
 def identifier():           return re.compile(r'[_a-zA-Z]\w*')
 
-# Not ending in a dot. Matches x  .x  x.y
-def dottedIdentifier():     return re.compile(r'[_.a-zA-Z]([_.0-9a-zA-Z]*[_0-9a-zA-Z])?')
+# Not ending in a dot nor containing a double dot. Matches x  .x  x.y
+def dottedIdentifier():     return re.compile(r'(\.?[_a-zA-Z][_0-9a-zA-Z]*)+')
 
 def namespace():            return PLUS, (identifier, ".")
 
@@ -67,20 +67,26 @@ def nodeSpec():             return (AND(re.compile('.*\.\s*"')),
                                     STAR, (".", CHECKPNT, re.compile('\w+'),
                                            QUES, ("(", CHECKPNT, expression, ")")))
 
+# Does not support nodeIndex, otherwise similar to nodeSpec. Parse ..attr as . followed by .attr
+def nodeZeroSpec():         return (AND(re.compile('.*\.\.')),
+                                    dottedIdentifier, AND(".."), ".",
+                                    PLUS, (".", CHECKPNT, re.compile('\w+'),
+                                           QUES, ("(", CHECKPNT, expression, ")")))
+
 #def simpleNodeSpec():      return [nodeSpec, identifier]
 
 # tokenLists are represent an arbitrary line of code, and are used where we don't
 # really want to parse the input, only find nodeSpecs and (Exit|Continue) ReadNode
 # Strings are still parsed, to make sure they don't confuse the parser.
-# Optimisation: check for occurrence of ." before doing (very!) expensive splitting into tokens,
+# Optimisation: check for occurrence of ." or .. or READNODE before doing (very!) expensive splitting into tokens,
 # otherwise gulp the whole line.
-def tokenList():            return [(AND(re.compile('.*(\.\s*"|readnode)', re.I)),
+def tokenList():            return [(AND(re.compile('.*(\.\.|\.\s*"|readnode)', re.I)),
                                        [nodeSpecAssignment,
-                                        (STAR, [nodeSpec, string, readNodeExit, readNodeContinue,
+                                        (STAR, [string, nodeSpec, nodeZeroSpec, readNodeExit, readNodeContinue,
                                                 IGNORE('identifier', r'[a-zA-Z0-9._]+|[^\s"]')])]),
                                     re.compile(".*")],
 # Unoptimised version
-#def tokenList():            return STAR, [nodeSpec, string, readNodeExit, readNodeContinue,
+#def tokenList():            return STAR, [nodeSpec, nodeZeroSpec, string, readNodeExit, readNodeContinue,
 #                                          IGNORE('identifier', r'[a-zA-Z0-9._]+|[^\s"]')]
 
 def expressionList():       return QUES, (expression, STAR, (PLUS, ",", CHECKPNT, expression))
@@ -379,14 +385,17 @@ def one_of(collection):
     return "one of " + ", ".join(str(item) for item in collection)
 
 class NodeSpec(object):
-    def __init__(self, node, cur_line, force_type = None, index_vars = ()):
+    def __init__(self, node, cur_line, force_type = None, index_vars = (), zero = False):
         """
         node should be a nodeSpec ASTNode.
         force_type forces the value type to something; it can't be overridden.
         index_vars is a list of variable names which may be used for array indexing,
         by default indices are not allowed.
         """
-        assert node.name == "nodeSpec"
+        if zero:
+            assert node.name == "nodeZeroSpec"
+        else:
+            assert node.name == "nodeSpec"
 
         self.node = node
         self.root_var = get_ident(node[0])
@@ -399,6 +408,7 @@ class NodeSpec(object):
         self.warn = False
         self.ignore = False
         self.oob_error = False
+        self.zero = zero
 
         last_attribute = None
         for element in node[1:]:
@@ -810,8 +820,8 @@ class ReloadBasicFunction(object):
                 nodeptr = 'GetChildByName(%s, "%s")' % (nodeptr, get_string(namenode))
         else:
             note = []
-            
-            _, prologue = self.ensure_nameindex_table(nodespec.root_var, False)
+            if len(nodespec.indices):  # not self.zero
+                _, prologue = self.ensure_nameindex_table(nodespec.root_var, False)
             for namenode in nodespec.indices:
                 nodeptr = 'GetChildByNameIndex(%s, %s)' % (nodeptr, self.intern_nodename(get_string(namenode)))
                 note.append(get_string(namenode))
@@ -916,6 +926,12 @@ class ReloadBasicFunction(object):
                 if node.name == "nodeSpec":
                     if handle_nodespecs:
                         nodespec = NodeSpec(node, self.cur_line)
+                        nodespec.check_expression_usage()
+                        repl, prol = self.nodespec_translation(nodespec)
+                        replacements.append((node, repl))
+                        prologue += prol
+                elif node.name == "nodeZeroSpec":
+                        nodespec = NodeSpec(node, self.cur_line, zero = True)
                         nodespec.check_expression_usage()
                         repl, prol = self.nodespec_translation(nodespec)
                         replacements.append((node, repl))
@@ -1378,7 +1394,7 @@ class ReloadBasicFunction(object):
             #self.used_temp_vars = 0
 
             nodetype = node.name
-            #print nodetype
+            #print(lineno, nodetype, node)
             if nodetype == "tokenList":
                 replacements, prologue = self.freeform_translations(node)
                 #print "tokens", replacements, repr(prologue)
