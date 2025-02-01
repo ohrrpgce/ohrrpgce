@@ -2147,15 +2147,18 @@ END FUNCTION
 'Modify an integer according to key input (less and more are scancodes for decrementing and incrementing)
 'If returninput is true, returns whether the user tried to modify the int,
 'otherwise returns true only if the int actually changed.
-'If autoclamp is false, n is clamped within allowable range only if a key is pressed
-FUNCTION intgrabber (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
+'autoclamp: If is false, n is clamped within allowable range only if a key is pressed
+'moreless_step:
+'           The (minimum without acceleration) amount that the more/less keys step by.
+'wrap:      Whether less/more keys wrap around
+FUNCTION intgrabber (byref n as integer, min as integer, max as integer, less as KBScancode=ccLeft, more as KBScancode=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton, moreless_step as integer=1, wrap as bool=YES) as bool
  DIM as longint temp = n
- intgrabber = intgrabber(temp, cast(longint, min), cast(longint, max), less, more, returninput, use_clipboard, autoclamp, scrollwheel)
+ intgrabber = intgrabber(temp, cast(longint, min), cast(longint, max), less, more, returninput, use_clipboard, autoclamp, scrollwheel, moreless_step, wrap)
  n = temp
 END FUNCTION
 
 'See above for documentation
-FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as KBScancode=ccLeft, more as KBScancode=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton) as bool
+FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as KBScancode=ccLeft, more as KBScancode=ccRight, returninput as bool=NO, use_clipboard as bool=YES, autoclamp as bool=YES, scrollwheel as WheelHandlingEnum=wheelRightButton, moreless_step as integer=1, wrap as bool=YES) as bool
  STATIC clip as longint
  DIM old as longint = n
  DIM typed as bool = NO
@@ -2169,16 +2172,16 @@ FUNCTION intgrabber (byref n as longint, min as longint, max as longint, less as
  ELSEIF scrollwheel = wheelAlways THEN
   updown = readmouse().wheel_clicks
  END IF
- DIM maxspeed as integer = small(1000, (max - min) \ 10)
+ DIM maxspeed as integer = small(1000, (max - min) \ 10 \ moreless_step)
  IF more <> scNone THEN updown += accelerating_keydown(more, maxspeed)
  IF less <> scNone THEN updown -= accelerating_keydown(less, maxspeed)
 
  IF updown THEN
   'Don't wrap while acceleration is active, it's confusing
-  IF ABS(updown) = 1 THEN
-   loopvar n, min, max, updown
+  IF wrap ANDALSO ABS(updown) = 1 THEN
+   loopvar n, min, max, moreless_step * updown
   ELSE
-   n = bound(n + updown, min, max)
+   n = bound(n + moreless_step * updown, min, max)
   END IF
   typed = YES
  ELSEIF keyval(scDelete) > 1 THEN
