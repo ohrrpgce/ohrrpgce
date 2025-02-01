@@ -26,9 +26,10 @@ def openwrapper(filename, mode, encoding='utf-8'):
 ############################### RB PEG grammar #################################
 
 
-type_attributes = 'ptr', 'integer', 'string', 'float', 'double', 'zstring', 'zstringsize', 'bool', 'exists'
+type_attributes = 'ptr', 'integer', 'string', 'float', 'double', 'zstring', 'zstringsize', 'bool', 'exists', 'name'
+type_aliases = {'int': 'integer', 'str': 'string'}
 boolean_attributes = 'required', 'warn', 'ignore', 'oob_error'
-attributes = type_attributes + boolean_attributes + ('default',)
+attributes = type_attributes + tuple(type_aliases.keys()) + boolean_attributes + ('default',)
 
 # Unlike in normal grammar or regex notation, these *precede* the element they act on
 CHECKPNT = -3  # no backtracking allowed once this point is reached
@@ -436,6 +437,7 @@ class NodeSpec(object):
                 element = element.lower()
                 if element not in attributes:
                     raise LanguageError("Invalid nodespec attribute '" + element + "'", node) 
+                element = type_aliases.get(element, element)
                 last_attribute = element
                 self.attributes.append(element)
                 if element in type_attributes:
@@ -513,15 +515,16 @@ class NodeSpec(object):
         if self.default != None:
             raise LanguageError("Don't give a default value for a " + name + " nodespec", self.node)
 
-    # For ptr, integer, string, float, double, zstring, zstringsize, bool, exists
+    # For ptr, integer, string, float, double, zstring, zstringsize, bool, exists, name
     # GetInteger actually returns longint, which FB doesn't like inside an IIF
     # These return NULL, 0, "", NULL, 0.0, 0.0, NULL, 0, NO, NO if {ptr} is NULL
     getters = (
         "{ptr}", "CINT(GetInteger({ptr}))", "GetString({ptr})", "GetFloat({ptr})", "GetFloat({ptr})",
-        "GetZString({ptr})", "GetZStringSize({ptr})", "(GetInteger({ptr}) <> 0)", "({ptr} <> NULL)"
+        "GetZString({ptr})", "GetZStringSize({ptr})", "(GetInteger({ptr}) <> 0)", "({ptr} <> NULL)",
+        "NodeName({ptr})"
         )
 
-    defaults = ("NULL", "0", '""', "0.0", "0.0", "NULL", "0", "NO", "NO")
+    defaults = ("NULL", "0", '""', "0.0", "0.0", "NULL", "0", "NO", "NO", '""')
 
     def get_default(self):
         """

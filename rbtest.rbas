@@ -49,9 +49,11 @@ startTest(testBasicReading)
 	
 	if nod."int" <> 12345 then fail
 	if nod."int".integer <> 12345 then fail
+	if nod."int".int <> 12345 then fail
 	if nod."int_like" <> 54321 then fail
 	if nod."float".float <> 1234.5678 then fail
 	if nod."string".string <> "1 2 3 4 5 6 7 8 9 0" then fail
+	if nod."string".str <> "1 2 3 4 5 6 7 8 9 0" then fail
 	if not nod."null".exists then fail
 	if not nod."int".bool then fail
 endTest
@@ -92,9 +94,10 @@ startTest(testNestedNodes)
 	dim root as Node ptr = DocumentRoot(doc)
 	nod1 = root."party"."slot"."stats"."stat"."max".ptr
 	if NodeName(nod1) <> "max" then fail
-	if GetInteger(nod1) <> 100 then fail
+	if nod1..name <> "max" then fail
+	if nod1..int <> 100 then fail
 	withnode root."party"."slot"."stats"."stat" as stat
-		if NodeName(stat."max".ptr) <> "max" then fail
+		if stat."max".name <> "max" then fail
 		if stat."max" <> 100 then fail
 		if stat."max".integer <> 100 then fail
 	end withnode
@@ -103,7 +106,7 @@ startTest(testNestedNodes)
 		withnode party."slot" as slot
 			withnode slot."stats" as stats
 				withnode stats."stat" as stat
-					if NodeName(stat."max".ptr) <> "max" then fail
+					if stat."max".name <> "max" then fail
 					if stat."max" <> 100 then fail
 					if stat."max".integer <> 100 then fail
 				end withnode
@@ -129,6 +132,7 @@ startTest(testMissingNodes)
 	if root."not here".bool <> 0 then fail
 	if root."not here".zstring <> NULL then fail
 	if root."not here".zstringsize <> 0 then fail
+	if root."not here".name <> "" then fail
 
 	'check defaults
 	if root."not here".default(-1).integer <> -1 then fail
@@ -138,6 +142,7 @@ startTest(testMissingNodes)
 	if root."not here".default(2).bool <> 2 then fail
 	if root."not here".default(@"blarg").zstring <> @"blarg" then fail
 	if root."not here".default(3).zstringsize <> 3 then fail
+	if root."not here".default("n").name <> "n" then fail
 endTest
 
 startTest(testNodeZeroSpec)
@@ -146,6 +151,7 @@ startTest(testNodeZeroSpec)
 	dim nullnode as Node ptr = root."not here".ptr
 
 	if partyslot..integer <> 3 then fail
+	if partyslot..name <> "slot" then fail
 
 	'check default defaults
 	if nullnode..integer <> 0 then fail
@@ -154,6 +160,7 @@ startTest(testNodeZeroSpec)
 	if nullnode..bool <> 0 then fail
 	if nullnode..zstring <> NULL then fail
 	if nullnode..zstringsize <> 0 then fail
+	if nullnode..name <> "" then fail
 
 	'check defaults
 	if nullnode..default(-1) <> -1 then fail
@@ -162,6 +169,7 @@ startTest(testNodeZeroSpec)
 	if nullnode..default(2).bool <> 2 then fail
 	if nullnode..default(@"blarg").zstring <> @"blarg" then fail
 	if nullnode..default(3).zstringsize <> 3 then fail
+	if nullnode..default("n").name <> "n" then fail
 endTest
 
 extern unexpected_warns as integer

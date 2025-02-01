@@ -20,10 +20,13 @@ Nodespecs on a 'LoadArray' line can also contain an index, see the LoadArray sec
 
 
 == Nodespec type attributes ==
-.ptr		    : NodePtr: A pointer to the node itself, not its value.
+.ptr            : NodePtr: A pointer to the node itself, not its value.
+.name           : The NodeName
 .integer        : (Default)
+.int            : Alias
 .double
 .string
+.str            : Alias
 .zstring
 .zstringsize    : Length of the zstring/binary blob
 .bool           : Equal to GetInteger(node) <> 0, like GetChildNodeBool. Always either YES or NO.
