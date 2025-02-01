@@ -4399,14 +4399,14 @@ TYPE SpriteSetEditor
   ss as SpriteSet ptr
   anim_previews(any) as AnimationState ptr  'First the SpriteSet's animations, then the global animations
   preview_pos(any) as XYPair
-  preview_names(any) as string
+  preview_anims(any) as Animation ptr    '(references) Keep these separately since anim_previews().anim gets nulled
   overridden_animations(any) as string   'List of global animations overridden by a local one
   pal as Palette16 ptr
   tog as integer
   context as AnimationContext
 
   DECLARE SUB display()
-  DECLARE SUB display_animation(animstate as AnimationState ptr, where as XYPair, name as string)
+  DECLARE SUB display_animation(animstate as AnimationState ptr, where as XYPair, anim as Animation ptr)
   DECLARE SUB run(sprtype as SpriteType, setnum as integer)
   DECLARE SUB create_preview(anim as Animation ptr, rowidx as integer, colidx as integer)
   DECLARE SUB update_previews()
@@ -5346,17 +5346,21 @@ END SUB
 SUB SpriteSetEditor.delete_previews()
  FOR idx as integer = 0 TO UBOUND(anim_previews)
   DELETE anim_previews(idx)
+  preview_anims(idx)->dereference()
  NEXT
  ERASE anim_previews
  ERASE preview_pos
- ERASE preview_names
+ ERASE preview_anims
 END SUB
 
 SUB SpriteSetEditor.create_preview(anim as Animation ptr, rowidx as integer, colidx as integer)
 
  DIM xspacing as integer = large(40, ss->frames[0].w + 6)
- DIM rowspacing as integer = ss->frames[0].h + 50
- DIM where as XYPair = XY(10 + xspacing * colidx, 10 + 10 * colidx + rowspacing * rowidx)
+ DIM rowspacing as integer = ss->frames[0].h + 70
+ DIM stagger as integer = colidx MOD 4
+ DIM where as XYPair = XY(10 + xspacing * colidx, 10 * stagger + rowspacing * rowidx)
+ 'Extra spacing between each stagger group
+ where.x += (colidx \ 4) * 40
 
  DIM sprst as AnimationState ptr = NEW AnimationState(ss)
  ' Play each animation normally: only once if it doesn't end in Repeat
@@ -5367,7 +5371,8 @@ SUB SpriteSetEditor.create_preview(anim as Animation ptr, rowidx as integer, col
  anim_previews(idx) = sprst
  REDIM PRESERVE preview_pos(idx)
  preview_pos(idx) = where
- a_append preview_names(), anim->name + " " + anim->variant
+ REDIM PRESERVE preview_anims(idx)
+ preview_anims(idx) = anim->reference()
 END SUB
 
 SUB SpriteSetEditor.update_previews()
@@ -5419,6 +5424,11 @@ SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
   IF keyval(scE) > 1 ORELSE enter_or_space() THEN
    animations_editor(ss, pal, context, default_export_name(sprtype, setnum))
    update_previews()
+  ELSEIF keyval(scP) > 1 THEN
+   FOR idx as integer = 0 TO UBOUND(anim_previews)
+    'anim_previews(idx)->reset()
+    anim_previews(idx)->start_animation(preview_anims(idx))
+   NEXT
   END IF
   'IF keyval(scX) > 1 THEN export_menu()  'Super unfinished
 
@@ -5434,34 +5444,43 @@ SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
  delete_previews()
 END SUB
 
-SUB SpriteSetEditor.display_animation(animstate as AnimationState ptr, where as XYPair, name as string)
+SUB SpriteSetEditor.display_animation(animstate as AnimationState ptr, where as XYPair, anim as Animation ptr)
  frame_draw animstate->cur_frame(), pal, where.x, where.y, , vpage
 
  ' Show name
- WITH *animstate->anim
-  edgeprint name, where.x, where.y + ancBottom, uilook(uiText), vpage
- END WITH
+ DIM name as string = anim->name + " " + anim->variant
+ edgeprint name, where.x, where.y + ancBottom, uilook(uiText), vpage
 END SUB
 
 SUB SpriteSetEditor.display()
  clearpage vpage
 
- DIM caption as string = "E: Edit animations"
+ DIM caption as string = "E: Edit animations  P: Play all"
  edgeprint caption, pMenuX, pInfoY, uilook(uiText), vpage
 
- DIM as integer x, y
+ edgeprint "Frame groups:", pMenuX, pMenuY, uilook(eduiHeading), vpage
+
+ DIM as integer x = pMenuX, y = pMenuY + 12, frameh = ss->frames[0].h, spacercol = findrgb(100,100,100), spacing
  FOR idx as integer = 0 to ss->num_frames - 1
+  spacing = 1
+  IF ss->frame_starts_group(idx) THEN
+   edgeprint STR(ss->frames[idx].frameid), x + 4, y - 12, uilook(uiMenuItem), vpage
+   spacing += 3
+  END IF
+  rectangle x, y, spacing, frameh, spacercol, vpage
+  x += spacing
   frame_draw @ss->frames[idx], pal, x, y, , vpage
   x += ss->frames[idx].w
  NEXT
+ rectangle x, y, 1, frameh, spacercol, vpage
 
  FOR idx as integer = 0 TO UBOUND(anim_previews)
   ASSERT(anim_previews(idx))
-  display_animation anim_previews(idx), preview_pos(idx), preview_names(idx)
+  display_animation anim_previews(idx), preview_pos(idx), preview_anims(idx)
  NEXT
 
- DIM rowspacing as integer = ss->frames[0].h + 50
- DIM where as XYPair = XY(pMenuX, 10 + rowspacing * 1 - 12 + ancBottom)
+ DIM rowspacing as integer = frameh + 70
+ DIM where as XYPair = XY(pMenuX, rowspacing * 1 - 12 + ancBottom)
  edgeprint "Animations:", where.x, where.y, uilook(eduiHeading), vpage
  where.y += rowspacing
  edgeprint "Global Animations:", where.x, where.y, uilook(eduiHeading), vpage

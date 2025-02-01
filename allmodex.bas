@@ -11921,6 +11921,11 @@ function SpriteSet.num_frame_groups() as integer
 	return 1 + frames[frames->arraylen - 1].frameid \ 100
 end function
 
+function SpriteSet.frame_starts_group(frameidx as integer) as bool
+	BUG_IF(frameidx >= frames->arraylen, "bad frameidx", NO)
+	return (frames[frameidx].frameid MOD 100) = 0
+end function
+
 'Create a SpriteSet for a Frame if it doesn't have one
 function spriteset_for_frame(fr as Frame ptr) as SpriteSet ptr
 	if fr->sprset then return fr->sprset

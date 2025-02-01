@@ -761,6 +761,7 @@ Type SpriteSet Extends AnimationSet
 
 	declare function num_frames() as integer
 	declare function num_frame_groups() as integer
+	declare function frame_starts_group(frameidx as integer) as bool
 	'The inverse of .reference() is spriteset_unload()
 	declare function reference() as SpriteSet ptr override
 	declare function describe() as string
