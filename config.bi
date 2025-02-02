@@ -258,6 +258,8 @@ TYPE boolint as long  '32 bit
     TYPE ssize_t as integer
   #ENDIF
 #ENDIF
+TYPE int16 as short
+TYPE uint16 as ushort
 
 END NAMESPACE
 

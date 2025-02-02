@@ -46,6 +46,8 @@ typedef struct Frame {
 	                 //If this is a view, then 'image' and 'mask' mustn't be freed, but 'surf' must be.
 	int noresize:1;  //(Video pages only.) Don't resize this page to the window size
 	int fixeddepth:1;//(Video pages only.) Not affected by switch_to_32bit/8bit_vpages: Not a render target.
+	int generation;  //(For Frames in the sprite cache) Should be incremented to inform that the Frame
+	                 //may have been modified/reloaded.
 
 	Surface *surf;   //If not NULL, this is a Surface-backed Frame, and image/mask are NULL,
 	                 //but all other members are correct (including .pitch), and match the Surface.

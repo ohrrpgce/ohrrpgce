@@ -4045,6 +4045,9 @@ SUB rgfx_save_spriteset(rgfxdoc as DocPtr, fr as Frame ptr, sprtype as SpriteTyp
   IF sprtype >= sprTypeSmallEnemy AND sprtype <= sprTypeLargeEnemy THEN
     AppendChildNode(ss_node, "info", sprite_sizes(sprtype).name & " " & setnum)
   END IF
+
+  'fr is likely in the sprite cache, and may have been modified. Now's a good time to mark it modified.
+  fr->generation += 1
 END SUB
 
 SUB rgfx_save_spriteset(fr as Frame ptr, sprtype as SpriteType, setnum as integer, defpal as integer = -1)

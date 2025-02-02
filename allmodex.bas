@@ -9638,7 +9638,8 @@ local sub sprite_update_cache_range(minkey as integer, maxkey as integer)
 				end if
 				'Make sure we don't crash if we were using a mask (might be the wrong mask though)
 				if wantmask then frame_add_mask pt->p
-
+				'Increment version number
+				pt->p->generation += 1
 			end if
 		else
 			'Don't bother if not in use
