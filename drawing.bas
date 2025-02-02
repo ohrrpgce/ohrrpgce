@@ -4985,6 +4985,7 @@ SUB SpriteSetBrowser.delete_frame(setnum as integer, framenum as integer)
   DIM frvec as Frame ptr vector = frame_array_to_vector(ss)
   frame_unload @ss
 
+  'Frame ptr vectors autodelete the Frames
   v_delete_slice frvec, framenum, framenum + 1
 
   ss = frame_vector_to_array(frvec)

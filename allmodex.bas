@@ -10051,7 +10051,8 @@ function frame_array_to_vector(frames as Frame ptr) as Frame ptr vector
 	dim ret as Frame ptr vector
 	v_new ret
 	for idx as integer = 0 TO frames->arraylen - 1
-		v_append ret, frame_duplicate(@frames[idx])
+		'Don't use v_append, to avoid _frame_copyctor
+		v_expand(ret)[0] = frame_duplicate(@frames[idx])
 	next
 	return ret
 end function
