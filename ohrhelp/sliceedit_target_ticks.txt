@@ -1,0 +1,7 @@
+If this is > 0, the slice moves towards a target position, in this number of ticks/frames.
+
+This is set by the "move slice to" and "move slice by" script commands.
+
+A slice can have either a velocity or a target, not both.
+
+Slices don't move in the slice editor.

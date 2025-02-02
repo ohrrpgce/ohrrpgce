@@ -1,0 +1,3 @@
+The target position of a moving slice. The slice's X/Y position will move to this over the course of "Target ticks" frames.
+
+This is set by the "move slice to" (and indirectly by "move slice by") script commands.

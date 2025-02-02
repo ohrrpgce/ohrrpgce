@@ -4,6 +4,7 @@ February 14 2025 [Jocoserious]
 
   *** New Features
     * Shift Tile tileset animation command. Non-animated uses likely! [Ralph]
+    * Add Movement section to the slice editor for Velocity and Target [Ralph]
 
    * Battle Features
     * Attacks can set a tag if their targetting fails [James]

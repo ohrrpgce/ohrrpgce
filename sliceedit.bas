@@ -115,6 +115,7 @@ TYPE SliceEditState
  expand_alignment as bool
  expand_special as bool
  expand_padding as bool
+ expand_movement as bool
  expand_extra as bool
  expand_sort as bool
  expand_meta as bool
@@ -246,6 +247,8 @@ CONST slgrLAYOUT2NDDIR = 4096
 CONST slgrEXTRALENGTH = 8192
 CONST slgrEXTRAEDITOR = 16384
 CONST slgrEXTRA = 32768
+CONST slgrVELOCITY = 1 shl 16
+CONST slgrTARGET = 1 shl 17
 '--This system won't be able to expand forever ... :(
 
 '==============================================================================
@@ -1877,17 +1880,18 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
    WITH ses
     DIM expand as bool
     expand = .expand_dimensions OR .expand_visible OR .expand_alignment OR _
-             .expand_special OR .expand_padding OR .expand_extra OR .expand_sort OR _
-             .expand_meta
+             .expand_special OR .expand_padding OR .expand_movement OR .expand_sort OR _
+             .expand_meta OR .expand_extra
     expand XOR= YES
     .expand_dimensions = expand
     .expand_visible = expand
     .expand_alignment = expand
     .expand_special = expand
     .expand_padding = expand
-    .expand_extra = expand
     .expand_sort = expand
+    .expand_movement = expand
     .expand_meta = expand
+    .expand_extra = expand
    END WITH
    state.need_update = YES
   END IF
@@ -2267,6 +2271,18 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, b
   IF intgrabber(temp, INT_MIN, INT_MAX) THEN
    sl->Extra(index) = temp
    state.need_update = YES
+  END IF
+ END IF
+ IF rule.group AND slgrVELOCITY THEN
+  'At most one of velocity and target can be set
+  IF sl->VelTicks <> 0 THEN 'state.need_update THEN
+   sl->TargTicks = 0
+  END IF
+ END IF
+ IF rule.group AND slgrTARGET THEN
+  'At most one of velocity and target can be set
+  IF sl->TargTicks <> 0 THEN 'state.need_update THEN
+   SetSliceTarg sl, sl->Targ.X, sl->Targ.Y, sl->TargTicks
   END IF
  END IF
 
@@ -2824,6 +2840,38 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   a_append menu(), " Custom sort order" & sortNA & ": " & .Sorter
  END IF
 
+ sliceed_header menu(), rules(), "[Movement]", @ses.expand_movement
+ IF ses.expand_movement THEN
+  IF ses.privileged THEN
+   'Hidden because there's no script command for this, and because it probably should
+   'affect animations too.
+   a_append menu(), " Paused: " & yesorno(.Paused)
+   sliceed_rule_tog rules(), "paused", @.Paused
+  END IF
+  a_append menu(), " Velocity X ticks: " & IIF(.VelTicks.X < 0, "forever", STR(.VelTicks.X))
+  sliceed_rule rules(), "velocity_ticks", erIntgrabber, @.VelTicks.X, -1, 999999, slgrVELOCITY
+  IF .VelTicks.X THEN
+   a_append menu(), "  Velocity X: " & .Velocity.X
+   sliceed_rule rules(), "velocity", erIntgrabber, @.Velocity.X, -999999, 999999
+  END IF
+
+  a_append menu(), " Velocity Y ticks: " & IIF(.VelTicks.Y < 0, "forever", STR(.VelTicks.Y))
+  sliceed_rule rules(), "velocity_ticks", erIntgrabber, @.VelTicks.Y, -1, 999999, slgrVELOCITY
+  IF .VelTicks.Y THEN
+   a_append menu(), "  Velocity Y: " & .Velocity.Y
+   sliceed_rule rules(), "velocity", erIntgrabber, @.Velocity.Y, -999999, 999999
+  END IF
+
+  a_append menu(), " Target ticks: " & .TargTicks
+  sliceed_rule rules(), "target_ticks", erIntgrabber, @.TargTicks, 0, 999999, slgrTARGET
+  IF .TargTicks > 0 THEN
+   a_append menu(), "  Target X: " & .Targ.X
+   sliceed_rule rules(), "target", erIntgrabber, @.Targ.X, -999999, 999999
+   a_append menu(), "  Target Y: " & .Targ.Y
+   sliceed_rule rules(), "target", erIntgrabber, @.Targ.Y, -999999, 999999
+  END IF
+ END IF
+
  sliceed_header menu(), rules(), "[Metadata]", @ses.expand_meta
  IF ses.expand_meta THEN
   a_append menu(), " Screen X: " & (.ScreenX - ses.draw_root->ScreenX)
@@ -2839,7 +2887,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
 
  sliceed_header menu(), rules(), "[Extra Data]", @ses.expand_extra
  IF ses.expand_extra THEN
-  DIM length as integer = IIF(sl->ExtraVec, v_len(sl->ExtraVec), 3)
+  DIM length as integer = IIF(.ExtraVec, v_len(.ExtraVec), 3)
   a_append menu(), " Length: " & length
   sliceed_rule_none rules(), "extra_length", slgrEXTRALENGTH
   FOR i as integer = 0 TO small(10, length) - 1

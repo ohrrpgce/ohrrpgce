@@ -1,0 +1,7 @@
+The number of ticks that the slice will move. The ticks in the X/Y directions can be different, although that's usually not what you want.
+
+The value -1 means "forever".
+
+A slice can have either a velocity or a target, not both.
+
+Slices don't move in the slice editor.

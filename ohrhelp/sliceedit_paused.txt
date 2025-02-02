@@ -1,0 +1,3 @@
+Pausing a slice stops it from moving automatically according to its Velocity and Target.
+
+Either way, slices don't move in the slice editor. You'll have to test movement in-game.

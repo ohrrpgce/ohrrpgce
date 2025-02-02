@@ -3255,7 +3255,7 @@ SUB script_commands(byval cmdid as integer)
     .TargTicks = 0
    END WITH
   END IF
- CASE 501 '--set slice velocity y (handle, pixels per tick)
+ CASE 501 '--set slice velocity y (handle, pixels per tick, ticks)
   sl = get_arg_slice(0)
   IF sl THEN
    WITH *sl

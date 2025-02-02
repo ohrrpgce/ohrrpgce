@@ -3933,7 +3933,9 @@ end Function
 '=============================================================================
 '                                Slice Velocity
 
-'Slice has velocity. Note returns true if it's paused. Returns false without error if sl=0.
+'Slice has velocity. Note: returns true if it's paused.
+'Warning: inconsistently returns false if VelTicks>0 but Velocity=0, but true if TargTicks>0 but Targ=Pos.
+'Returns false without error if sl=0.
 Function SliceIsMoving(byval sl as Slice ptr) as bool
  if sl = 0 then return NO
  return sl->Velocity <> 0 orelse sl->TargTicks > 0

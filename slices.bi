@@ -343,9 +343,12 @@ Type Slice
   Paused as boolean        'Whether to not apply target and velocity movement to this slice tree
   Clip as boolean
 
+  'At most one of Velocity or Targ should be used at one time.
+
   'moving at a constant pixels-per-tick speed (direct setting should cancel targ)
   Velocity as XYPair
   'limit the number of cycles to apply velocity before auto-clearing it (-1 means forever, 0 clears instantly)
+  'FIXME: is -1 allowed by scripts?
   VelTicks as XYPair
 
   'moving to a destination in constant time. (replaces velocity)
