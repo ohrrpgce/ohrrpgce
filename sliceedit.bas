@@ -2657,7 +2657,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      IF dat->rotate ORELSE dat->zoom <> 1. THEN
       STATIC SmoothCapts(2) as zstring ptr = {@"None", @"Smooth", @"Smoother (scale_surface)"}
       DIM msg as string = safe_captionz(SmoothCapts(), dat->rz_smooth)
-      IF dat->rz_smooth ANDALSO vpages_are_32bit = NO THEN msg &= " (ignored: Ctrl-3 to switch to 32bit)"
+      IF dat->rz_smooth ANDALSO vpages_are_32bit = NO THEN msg &= " (ignored: Ctrl-3 to switch to 24bit)"
       a_append menu(), "  Smoothing: " & msg
       sliceed_rule rules(), "sprite_smooth_rotozoom", erIntGrabber, @(dat->rz_smooth), 0, 2, slgrUPDATESPRITE
      END IF
@@ -3750,7 +3750,7 @@ SUB SliceEditSettingsMenu.update()
  add_item 16, , "Global Editor Options (F9)"
 #ENDIF
  add_item 19, , "Show template slices: " & yesorno(template_slices_shown) & " (F10)"
- add_item 17, , "Switch to " & IIF(vpages_are_32bit, 8, 32) & "-bit color mode (Shft/Ctrl-F3)"
+ add_item 17, , "Switch to " & IIF(vpages_are_32bit, 8, 24) & "-bit color mode (Shft/Ctrl-F3)"
  IF NOT vpages_are_32bit THEN
   add_item 18, , "Blend algorithm: " & BlendAlgoCaptions(gen(gen8bitBlendAlgo)) & " (Shft/Ctrl-F5)"
  END IF
