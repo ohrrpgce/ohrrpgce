@@ -1,5 +1,7 @@
 //window.h
-//by Jay Tennant 10/30/09; updated 4/21/11
+//(C) Copyright 2009-2017 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+//
 //window wrapper
 
 #pragma once

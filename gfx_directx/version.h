@@ -1,5 +1,7 @@
 //gfx_directx_version.h
-//by Jay Tennant 12/30/09
+//(C) Copyright 2009-2017 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+//
 //backend version
 
 #ifndef GFX_DIRECTX_VERSION_H

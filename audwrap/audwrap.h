@@ -1,9 +1,5 @@
-/*
-(C) Copyright 2006 Mike Caron
-Please read LICENSE.txt for GPL License details and disclaimer of liability
-See README.txt for code docs. This code (unlike the main source) is clean and
-elegant, so no appologies are necessary.
-*/
+// (C) Copyright 2006-2017 Mike Caron and the OHRRPGCE Developers
+// Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #ifndef __AUDWRAP_H__
 #define __AUDWRAP_H__

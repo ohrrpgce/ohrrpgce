@@ -1,3 +1,6 @@
+//(C) Copyright 2009-2017 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+
 //TESTAPP determines whether the test app is running (TRUE/FALSE)
 #ifndef TESTAPP
 #ifdef _DEBUG

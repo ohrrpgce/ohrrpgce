@@ -1,4 +1,6 @@
 // Windows-specific routines for wchar_t <-> OHR's encoding
+//(C) Copyright 2017 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #ifndef OHRSTRING_H
 #define OHRSTRING_H

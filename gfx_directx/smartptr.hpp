@@ -1,4 +1,6 @@
 // SmartPtr.h
+// (C) Copyright 2009 Jay Tennant and the OHRRPGCE Developers
+// Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 //
 // Defines a smart pointer class that does not depend on any ATL headers
 

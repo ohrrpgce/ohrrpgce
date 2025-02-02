@@ -1,5 +1,7 @@
 //BackendDebugger.h
-//by Jay Tennant 12/12/10
+//(C) Copyright 2010 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+//
 //defines backend debugger as an accessor
 // NOTE: can no longer be compiled, gfx_directx_cls_* headers don't exist
 

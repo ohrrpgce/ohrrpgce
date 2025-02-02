@@ -1,4 +1,6 @@
 // This module is linked into all OHRRPGCE utilities on Windows, and also gfx_directx.dll
+//(C) Copyright 1997-2019 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #include "../config.h"
 #include <windows.h>

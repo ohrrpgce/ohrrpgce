@@ -1,5 +1,7 @@
 //CBackend.h
-//by Jay Tennant 12/27/10
+//(C) Copyright 2010 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+//
 //implements IBackend
 
 #pragma once

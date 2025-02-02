@@ -1,5 +1,7 @@
 //DllFunctionInterface.h
-//by Jay Tennant 12/9/10
+//(C) Copyright 2010 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+//
 //macros for dll function exporting, function importing, and class generation for function importing
 //
 //directives that the programmer may define:

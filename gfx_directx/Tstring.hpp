@@ -1,5 +1,7 @@
 //Tstring.h
-//by Jay Tennant 12/8/09; updated 1/26/10; updated 9/7/10; updated 12/8/10
+//(C) Copyright 2009-2010 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+//
 //typedef's a string template of type TCHAR; thread safe
 
 #ifndef TSTRING_H

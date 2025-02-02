@@ -1,3 +1,6 @@
+//(C) Copyright 2017 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+
 #include "../config.h"
 #include <windows.h>
 #include <string>

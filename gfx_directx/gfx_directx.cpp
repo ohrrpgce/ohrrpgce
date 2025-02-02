@@ -1,3 +1,6 @@
+//(C) Copyright 2009-2021 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+
 #define ISOLATION_AWARE_ENABLED 1
 
 #include "../config.h"

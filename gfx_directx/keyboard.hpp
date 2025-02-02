@@ -1,5 +1,7 @@
 //keyboard.h
-//by Jay Tennant 9/25/10; updated 4/21/11
+//(C) Copyright 2009-2012 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+//
 //manages keyboard input processing from window messages, converting to ohr-specific scancodes
 
 #pragma once

@@ -1,5 +1,7 @@
 //joystick.h
-//by Jay Tennant 10/5/10; updated 4/21/11
+//(C) Copyright 2010-2017 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+//
 //manages joystick input through directinput
 
 #pragma once

@@ -1,5 +1,7 @@
 //gfx_palette.h
-//by Jay Tennant 10/30/09
+//(C) Copyright 2010 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+//
 //template class for a palette
 
 #ifndef GFX_PALETTE_H

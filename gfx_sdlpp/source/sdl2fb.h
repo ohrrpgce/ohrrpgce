@@ -1,5 +1,7 @@
 //sdl2fb.h
-//started 1/7/10
+//(C) Copyright 2010 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+//
 //converts sdl keysym's to fb scancodes
 //only concerned with certain keys, though
 

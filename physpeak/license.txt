@@ -1,5 +1,6 @@
 This program is dual-licensed under the following license and under
-the OHRRPGCE's license (the GNU GPL v2+, see ../LICENSE.TXT).
+the OHRRPGCE's dual GNU GPL v2+ or MIT licenses (see ../LICENSE.TXT).
+Hence you may use and distribute it under any of the three licenses.
 
 Copyright 2020 leonardo.masoni@gmail.com
 

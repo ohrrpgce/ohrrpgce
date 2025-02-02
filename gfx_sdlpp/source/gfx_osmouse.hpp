@@ -1,5 +1,7 @@
 //gfx_osmouse.h
-//by Jay Tennant 12/4/09; updated for sdl 1/7/10
+//(C) Copyright 2010 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+//
 //manages os mouse state for clip cursor, visibility
 //the push count is in place to cover in case the window loses focus, has a menu accessed, etc.
 //if push count is 0, OSMouse will carry out activity; if push count != 0, OSMouse will suspend mouse control activity

@@ -1,5 +1,7 @@
 //_tstring.h
-//by Jay Tennant 12/8/09; updated 1/5/10
+//(C) Copyright 2010 Jay Tennant and the OHRRPGCE Developers
+//Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
+//
 //typedef's a string template of type T_CHAR
 // Windows specific. This is redundant to, but a different implementation from,
 // gfx_directx\Tstring.h
