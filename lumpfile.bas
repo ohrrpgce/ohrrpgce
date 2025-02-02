@@ -739,7 +739,7 @@ function extract_lump(lf as integer, srcfile as string, destfile as string, size
 		else
 			debug "unlumpfile(" + srcfile + "): " + destfile + " not writable, skipping"
 		end if
-		if isfile(destfile) then
+		if real_isfile(destfile) then
 			debug "(file already exists)"
 		end if
 		return NO
@@ -956,7 +956,7 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string, showerrors 
 	end if
 end sub
 
-' Unlump certain lumps, defined by fmask, to directory path.
+' Unlump certain lumps, defined by fmask (a filename with optional ?/* wildcards), to directory 'path'.
 ' Returns a string containing error message, which is empty on success.
 function unlumpfile_internal (lumpfile as string, fmask as string, path as string, showerrors as bool = YES, verbose as bool = NO) as string
 	dim lf as integer
@@ -1051,6 +1051,7 @@ function unlumpfile_internal (lumpfile as string, fmask as string, path as strin
 	return errmsg
 end function
 
+'Extract a single file from an .rpg or .rpgdir
 'lump may include * or ? wildcards
 sub copylump(package as string, lump as string, dest as string, byval ignoremissing as bool = NO)
 	dest = add_trailing_slash(dest)
@@ -1065,7 +1066,6 @@ sub copylump(package as string, lump as string, dest as string, byval ignoremiss
 		end if
 		writeablecopyfile lumpfile, dest + trimpath(lcase(lumpfile))
 	else
-		'lumpfile
 		'Don't show errors if we don't really care (actually this matters only in one place:
 		'don't show a very scary error when browsing for RPGs if there is a corrupt file in
 		'the directory)
@@ -1073,7 +1073,7 @@ sub copylump(package as string, lump as string, dest as string, byval ignoremiss
 	end if
 end sub
 
-'Return whether any lumps in a lumped file exist which match fmask.
+'Return whether any lumps in a lumped file exist which match fmask (a filename with optional ?/* wildcards)
 function islumpfile (lumpfile as string, fmask as string) as bool
 	#ifdef DEBUG_FILE_IO
 		debuginfo "islumpfile(" & lumpfile & ", " & fmask & ")"
@@ -1220,6 +1220,7 @@ function lumpfiles (filelist() as string, lumpfile as string, path as string) as
 	return ret
 end function
 
+'Check for a match with ? and * globbing wildcards
 function matchmask(match as string, mask as string) as bool
 	dim i as integer
 	dim m as integer
@@ -1293,7 +1294,7 @@ sub fixlumporder (filelist() as string)
 	temp = a_findcasei(filelist(), "archinym.lmp")
 	if temp > -1 then swap filelist(1), filelist(temp)
 
-	'--exclude illegal *.tmp files; shuffle them to the end of the array, then trimming them
+	'Exclude *.tmp files: shuffle them to the end of the array, then trim them.
 	writepos = 0
 	for readpos = 0 to ubound(filelist)
 		if lcase(right(filelist(readpos), 4)) <> ".tmp" then
