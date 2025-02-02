@@ -2074,7 +2074,7 @@ Sub LoadSpriteSliceImage(byval sl as Slice ptr, warn_if_missing as bool = NO)
   if .scaled then
    if .img.sprite->size <> sl->Size then
     'Becomes a 32-bit sprite
-    frame_assign @.img.sprite, frame_scaled32(.img.sprite, sl->Width, sl->Height, master(), .img.pal)
+    frame_assign @.img.sprite, frame_scaled32(@.img.sprite[.frame], sl->Width, sl->Height, master(), .img.pal)
     palette16_unload @.img.pal
     'Should set .paletted = NO? But the removal of the palette is reversible
    end if
@@ -2119,7 +2119,10 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
    showbug "out of range frame " & .frame & " for slice " & SlicePath(sl)
    .frame = 0
   end if
-  spr = @spr[.frame]
+  'Only a single frame is scaled and cached
+  if .scaled = NO then
+   spr = @spr[.frame]
+  end if
 
   if spr->image = NULL then
    'This is a Surface-backed slice, and flipping and dissolving aren't supported yet.
@@ -2465,7 +2468,11 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
     .loaded = NO
    end if
   end if
-  if frame >= 0 then .frame = frame
+  if frame >= 0 andalso .frame <> frame then
+   .frame = frame
+   'Only a single frame is scaled and cached, so need to reload when it changes
+   if .scaled then .loaded = NO
+  end if
   if fliph <> NONBOOL then .flipHoriz = (fliph <> 0)
   if flipv <> NONBOOL then .flipVert = (flipv <> 0)
   if trans <> NONBOOL then .trans = (trans <> 0)
