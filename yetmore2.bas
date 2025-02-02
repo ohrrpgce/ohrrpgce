@@ -1076,7 +1076,7 @@ SUB CPUUsageMode.update()
   addline "  By slice type:"
   addline "  -Map layers", .timers(TimerIDs.Map), YES
   addline "  -Text", .timers(TimerIDs.Text), YES
-  addline "  -Other", .timers(TimerIDs.Default)
+  addline "  -Sprites/other", .timers(TimerIDs.Default)
  END WITH
  WITH gfx_op_timer
   addline "  By draw type:"
