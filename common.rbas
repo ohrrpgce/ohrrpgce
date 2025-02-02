@@ -507,6 +507,11 @@ SUB debug (msg as const zstring ptr)
  debuginfo "! " & *msg
 END SUB
 
+LOCAL FUNCTION get_timestamp() as string
+ IF program_start_timer <> 0.0 THEN RETURN strprintf("%4.1f  ", TIMER - program_start_timer)
+ RETURN ""
+END FUNCTION
+
 EXTERN "C"
 
 'A debug message which is only logged/printed once. Use if would otherwise be to spammy.
@@ -567,15 +572,11 @@ END SUB
 SUB early_debuginfo (msg as const zstring ptr)
  external_log msg
  IF debug_to_console THEN PRINT *msg
- log_buffer &= *msg & LINE_END
+ DIM tagged_msg as string = get_timestamp() & *msg
+ log_buffer &= tagged_msg & LINE_END
 END SUB
 
 END EXTERN
-
-LOCAL FUNCTION get_timestamp() as string
- IF program_start_timer <> 0.0 THEN RETURN strprintf("%4.1f  ", TIMER - program_start_timer)
- RETURN ""
-END FUNCTION
 
 SUB debuginfo (msg as const zstring ptr)
  'Use for throwaway messages like upgrading
