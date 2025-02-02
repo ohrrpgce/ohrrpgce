@@ -2005,6 +2005,14 @@ Sub DisposeSpriteSlice(byval sl as Slice ptr)
  sl->SpriteData = 0
 end sub
 
+'Draw an X
+Local Function frame_load_dummy(size as XYPair) as Frame ptr
+ dim ret as Frame ptr = frame_new(size.w, size.h, , YES)
+ drawline ret, 0, 0, size.w - 1, size.h - 1, uilook(uiSelectedItem)
+ drawline ret, size.w - 1, 0, 0, size.h - 1, uilook(uiSelectedItem)
+ return ret
+end Function
+
 ' Load a sprite's Frame and Palette16, so that its size is known
 ' Afterwards, the Frame ptr won't be NULL, unless sl->SliceData doesn't exist.
 Sub LoadSpriteSliceImage(byval sl as Slice ptr, warn_if_missing as bool = NO)
@@ -2044,26 +2052,36 @@ Sub LoadSpriteSliceImage(byval sl as Slice ptr, warn_if_missing as bool = NO)
   if .loaded then exit sub
 
   'Load the sprite
-  if .spritetype = sprTypeFrame then  'This can happen if you clone a sprite, otherwise shouldn't
+  if .spritetype = sprTypeFrame then
+   'Either an asset sprite, or SetSpriteToFrame was used in which case this just
+   'reverts to .original_img
    LoadAssetSprite sl, warn_if_missing
   else
    load_sprite_and_pal .img, .spritetype, .record, .pal   'Unloads old sprite/pal
   end if
   .loaded = YES  'Set YES even if loading failed, so we don't try again
-  frame_unload @.original_img
-  if .img.sprite then
-   .original_img = frame_reference(.img.sprite)
-   .img_gen = .original_img->generation
-   if .scaled then
-    if .img.sprite->size <> sl->Size then
-     'Becomes a 32-bit sprite
-     frame_assign @.img.sprite, frame_scaled32(.img.sprite, sl->Width, sl->Height, master(), .img.pal)
-     palette16_unload @.img.pal
-    end if
-   else
-    sl->Size = .img.sprite->size
-   end if
+  if .img.sprite = NULL then
+   ' Draw an X (the actual width and height were hopefully loaded from a .slice file)
+   if sl->Width <= 0 or sl->Height <= 0 then sl->Size = XY(16,16)
+   .img.sprite = frame_load_dummy(sl->Size)
   end if
+  frame_assign @.original_img, frame_reference(.img.sprite)
+  .img_gen = .original_img->generation
+
+  .frame = small(.frame, .img.sprite->arraylen - 1)
+
+  'Update slice size and possibly scale the sprite
+  if .scaled then
+   if .img.sprite->size <> sl->Size then
+    'Becomes a 32-bit sprite
+    frame_assign @.img.sprite, frame_scaled32(.img.sprite, sl->Width, sl->Height, master(), .img.pal)
+    palette16_unload @.img.pal
+    'Should set .paletted = NO? But the removal of the palette is reversible
+   end if
+  else
+   sl->Size = .img.sprite->size
+  end if
+
  end with
 end sub
 
@@ -2178,24 +2196,23 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
  end with
 end sub
 
-' Actually load the asset for a sprite slice, or load a placeholder Frame
-' if it's missing. If the assetfile is "", always loads a placeholder with no warning.
+' Load .img.sprite for an asset sprite slice. If the assetfile is "", unloads .img with no warning.
+' This sub doesn't update .original_img, assumes the caller does.
 Local Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
  BUG_IF(sl = 0, "null ptr")
 
  with *sl->SpriteData
-  frame_unload(@.img.sprite)
-  palette16_unload(@.img.pal)
-  frame_unload(@.original_img)
-  .record = 0
-  .pal = -1  'No palette anyway
-  .paletted = NO
-  .frame = 0
-  .loaded = YES  'Even if an error occurs, we create a Frame
+  unload_sprite_and_pal .img
 
   dim assetfile as string
-  if .assetfile then assetfile = *.assetfile
-  dim filename as string = finddatafile(assetfile, NO)  'Handle missing file below
+  if .assetfile then
+   assetfile = *.assetfile
+  else
+   'SetSpriteToFrame was used. We can't load an image, but we can revert to the original (pre-scaling)
+   .img.sprite = frame_reference(.original_img)
+   exit sub
+  end if
+  dim filename as string = finddatafile(assetfile, NO)  'Handle missing file ourselves
   if len(filename) then
    if .load_asset_as_32bit then
     .img.sprite = image_import_as_frame_32bit(filename)
@@ -2204,41 +2221,33 @@ Local Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
     .img.sprite = image_import_as_frame_8bit(filename, master(), , transp_color)
    end if
   end if
-  if .img.sprite then
-   if .scaled = NO then
-    sl->Width = .img.sprite->w
-    sl->Height = .img.sprite->h
-   end if
-  else
+  if .img.sprite = NULL then
    if warn_if_missing andalso len(assetfile) then
     visible_debug "Data file " & iif(len(filename), "corrupt", "missing") _
-                  & !":\ndata/" & assetfile _
+                  & !":\n" & assetfile _
                   & !"\nThe OHRRPGCE apparently isn't installed properly. Try reinstalling, or report this error."
    end if
-   ' Draw an X (the width and height were hopefully loaded from a .slice file)
-   .img.sprite = frame_new(sl->Width, sl->Height, , YES)
-   drawline .img.sprite, 0, 0, sl->Width - 1, sl->Height - 1, uilook(uiSelectedItem)
-   drawline .img.sprite, sl->Width - 1, 0, 0, sl->Height - 1, uilook(uiSelectedItem)
   end if
-  .original_img = frame_reference(.img.sprite)
-  .img_gen = .img.sprite->generation
  end with
 End Sub
 
 ' Turn a sprite slice into an 'asset' sprite, meaning it is loaded from an image in the data/ dir.
 ' assetname should be the name of a file in data/, or can be blank if that isn't decided yet (in slice editor).
+' Warning: once a Sprite is an asset sprite it can't turn back into a normal sprite using ChangeSpriteSlice, etc,
+' as sl->assetfile is only reset by UnloadSpriteSlice
 Sub SetSpriteToAsset(sl as Slice ptr, assetfile as string, warn_if_missing as bool = YES)
  BUG_IF(sl = 0, "null ptr")
 
- 'Create temp copy, in case assetfile is dat->assetfile, which we're about to delete
- dim filename as string = assetfile
  UnloadSpriteSlice sl
  with *sl->SpriteData
   .spritetype = sprTypeFrame
   .assetfile = callocate(sizeof(string))
-  *.assetfile = filename
+  *.assetfile = assetfile
+  .record = 0
+  .frame = 0
+  .paletted = NO
+  .pal = -1
  end with
- 'LoadAssetSprite sl, warn_if_missing
  LoadSpriteSliceImage sl, warn_if_missing
 End Sub
 
@@ -2442,6 +2451,7 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
    BUG_IF(spritetype < sprTypeFirstLoadable orelse spritetype > sprTypeLastLoadable, "Invalid type " & spritetype)
    .spritetype = spritetype
    .loaded = NO
+   .paletted = sprite_sizes(spritetype).paletted
   end if
   if record >= 0 then
    .record = record
@@ -2494,12 +2504,10 @@ Sub SpriteSliceUpdate(sl as Slice ptr)
   else
    .record = small(.record, sprite_sizes(.spritetype).lastrec)
 
-   'Load the sprite image (and palette) immediately, so that the size of the slice
-   'and number of frames are correct
+   'Reload the sprite image (and palette) immediately, so that the size of the slice
+   'and number of frames are correct. This will bound .frame
    .loaded = NO  'Force reload
    LoadSpriteSliceImage sl
-
-   .frame = small(.frame, SpriteSliceNumFrames(sl) - 1)
   end if
  end with
 end sub
