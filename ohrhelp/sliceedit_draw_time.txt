@@ -1,0 +1,3 @@
+Inside the slice editor, the engine times how long the currently selected slice takes to draw to the screen on average. This doesn't include any other processing such as repositioning or sorting child slices. This lets you check the consequences of expensive operations such as blending, rotating or dissolving large sprites: the OHRRPGCE doesn't currently use hardware accelerated rendering.
+
+The time is in us (microseconds, a millionth of a second), and this is also shown as a fraction of the time available for each frame, using the game's selected frame rate (frames per second). For example, a 60 FPS game has 16.6ms to draw each frame (and run scripts, etc.), so 16us is 0.1% of a frame.
