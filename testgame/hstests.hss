@@ -180,6 +180,30 @@ script, exit tests, begin
   assert(return 0 == 0)
   assert(return 1 == 1)
   assert(return 2 == 2)
+
+  variable(ctr1, ctr2, ctr3, ctr4)
+
+  subscript, nesting exit, begin
+    variable(i, j)
+    for (i, 1, 3) do (
+      for (j, 1, 3) do (
+        ctr1 += i
+        if (i == 2) then (exit)
+        ctr2 += 1
+      )
+      ctr3 += 1
+    )
+    ctr4 += 1
+  end
+  nesting exit
+  assert(ctr1 == 5)
+  assert(ctr2 == 3)
+  assert(ctr3 == 1)
+  assert(ctr4 == 0)
+  ctr1 := 0
+  ctr2 := 0
+  ctr3 := 0
+  ctr4 := 0
 end
 
 # This script does quite a bit more testing of continue than break.
@@ -494,6 +518,47 @@ script, continue break tests, begin
   assert(ctr2 == 1)
   assert(ctr3 == 2)
   assert(ctr4 == 13)
+  ctr1 := 0
+  ctr2 := 0
+  ctr3 := 0
+  ctr4 := 0
+
+  # Test that breaking/continuing through if/then/else works
+  subscript, much nesting test, begin
+    variable(i, j, t, f)
+    t := true
+    for (i, 1, 4) do (
+      # i=1: ctr1 += 1, ctr2 += 2, ctr3 += 122
+      # i=2: ctr1 += 2, ctr2 += 8, ctr3 += 200
+      # i=3: ctr1 += 3, ctr2 += 9
+      # i=4: ctr1 += 4, ctr2 += 16
+      if (t) then (
+        ctr1 += i
+        for (j, 1, 2) do (
+          if (f) then (ctr4 += 1)
+          else (
+            ctr2 += i^2
+            switch (i) do (
+              case (2) continue (2)
+              case (5) ctr4 += 1
+              case (3) continue (3)
+              case (4) break (3)
+            )
+            ctr3 += i
+          )
+          ctr3 += i * 10
+        )
+        ctr3 += i * 100
+      ) else (
+        ctr4 += 1
+      )
+    )
+  end
+  much nesting test
+  assert(ctr1 == 10)
+  assert(ctr2 == 35)
+  assert(ctr3 == 322)
+  assert(ctr4 == 0)
   ctr1 := 0
   ctr2 := 0
   ctr3 := 0
@@ -870,6 +935,7 @@ script, math tests, begin
   write global(@another global, 4)
   assert(another global == 4)
 
+  logical math tests
   larger math tests
 
   assert(multdiv(10, 20, 30) == 7)
@@ -896,6 +962,173 @@ script, larger math tests, begin
   assert(bitcount(0x70000000) == 3)
   assert(bitcount(0x11111111) == 8)
   assert(bitcount(0x107030ff) == 1+3+2+4+4)
+end
+
+
+script, logical math tests, begin
+
+  # These tests are written under the assumption that a future version of HamsterSpeak
+  # might have true/false values which are equal but not identical to 1/0.
+  variable (nz, z, t, f)
+  z := 0
+  nz := -2  # Equal to 1,xor,-1
+  t := true
+  f := false
+
+  assert(t)
+  assert(nz)
+  assert(z == false)
+  assert(f == 0)
+  assert(t == 1)
+  assert(0 == f)
+  assert(1 == t)
+  assert(t <> f)
+  assert(f <> t)
+  assert(t <> -1)
+  assert(t <> nz)
+  assert(2 * f == 0)
+  assert(f * 2 == 0)
+  assert(2 * t == 2)
+  assert(t * 2 == 2)
+  assert(f + t == t)
+  assert(t + t == 2)
+
+  # not
+
+  assert(not(f) == true)
+  assert(not(z) == true)
+  assert(not(not(z)) == false)
+  assert(not(t) == false)
+  assert(not(nz) == false)
+  assert(not(not(nz)) == true)
+
+  # &&
+
+  assert((f && f) == false)
+  assert((z && z) == false)
+  assert((f && z) == false)
+  assert((z && f) == false)
+
+  assert((t && 0) == false)
+  assert((t && f) == false)
+
+  assert((0 && t) == false)
+  assert((f && t) == false)
+
+  assert((nz && t) == true)
+  assert((t && nz) == true)
+  assert((nz && nz) == true)
+  assert((nz && 256) == true)
+  assert((t && t) == true)
+
+  # ||
+
+  assert((f || f) == false)
+  assert((z || z) == false)
+  assert((f || z) == false)
+  assert((z || f) == false)
+
+  assert((t || 0) == true)
+  assert((t || f) == true)
+
+  assert((0 || t) == true)
+  assert((f || t) == true)
+
+  assert((nz || t) == true)
+  assert((t || nz) == true)
+  assert((nz || nz) == true)
+  assert((nz || 256) == true)
+  assert((t || t) == true)
+
+  # ^^
+
+  assert((f ^^ f) == false)
+  assert((z ^^ z) == false)
+  assert((f ^^ z) == false)
+  assert((z ^^ f) == false)
+
+  assert((t ^^ 0) == true)
+  assert((t ^^ f) == true)
+
+  assert((0 ^^ t) == true)
+  assert((f ^^ t) == true)
+
+  assert((nz ^^ t) == false)
+  assert((t ^^ nz) == false)
+  assert((nz ^^ nz) == false)
+  assert((nz ^^ 256) == false)
+  assert((t ^^ t) == false)
+
+  # Check hspeak's optimiser
+  assert((0 && 0) == f)
+  assert((2 && 0) == f)
+  assert((0 && 2) == f)
+  assert((2 && 4) == t)
+  assert((0 || 0) == f)
+  assert((4 || 0) == t)
+  assert((0 || 4) == t)
+  assert((2 || 4) == t)
+  assert((0 ^^ 0) == f)
+  assert((2 ^^ 0) == t)
+  assert((0 ^^ 2) == t)
+  assert((2 ^^ 4) == f)
+  assert((false && false) == f)
+  assert((2 && false) == f)
+  assert((false && 2) == f)
+  assert((2 && 4) == t)
+  assert((false || false) == f)
+  assert((4 || false) == t)
+  assert((0 || true) == t)
+  assert((true || true) == t)
+  assert((0 ^^ 0) == f)
+  assert((true ^^ 0) == t)
+  assert((0 ^^ true) == t)
+  assert((true ^^ true) == f)
+
+  # Test shortcut evaluation
+
+  variable (calls, failure)
+  subscript, tcall, begin
+    calls += 1
+    return (true)
+  end
+  subscript, fcall, begin
+    calls += 1
+  end
+  subscript, nevercalled, begin
+    failure := true
+  end
+
+  assert((1 || nevercalled) == t)
+  assert((0 && nevercalled) == f)
+  assert((tcall || nevercalled) == t)
+  assert(calls == 1)
+  assert((fcall && nevercalled) == f)
+  assert(calls == 2)
+  assert(failure == false)
+
+  # Nesting
+  assert(((1 || nevercalled) || nevercalled) == t)
+  assert(((0 && nevercalled) && nevercalled) == f)
+  assert(((1 && (0 && nevercalled)) && nevercalled) == f)
+  assert(((2*t && (f*2 && nevercalled)) && nevercalled) == f)
+
+  # Testing mixture of math ops that are fast-pathed by the interpreter and logical ops and calls that aren't
+  calls := 0
+  assert(nz && (1 + (fcall || t)))
+  assert(calls == 1)
+  assert(2 * (nz && (1 + (fcall || t)) && (nz * (t && tcall) * nz)) == 2)
+  assert(calls == 3)
+  assert(not(((t || nevercalled) * 10) * (tcall && 1) -- 10))
+  assert(calls == 4)
+  assert(failure == false)
+
+  calls := 0
+  if (1 && 1 && 1 && 1 && fcall && 1) then (failure := true) else (calls += 1)
+  if (1 && 1 && 1 && tcall || 1 && nevercalled) then (calls += 1) else (failure := true)
+  if (0 || 0 || 0 || 0 || tcall || 0) then (calls += 1) else (failure := true)
+  assert(calls == 6)
+  assert(failure == false)
 end
 
 ########################################################################
