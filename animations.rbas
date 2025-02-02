@@ -151,8 +151,6 @@ sub spriteset_default_global_animations(byref animset as AnimationSet, sprtype a
 			arg("ms", 110)
 			op(animOpRepeat)
 		end with
-		dumpnodetree n
-		dumpnodetree animset.animations[1]->opsnode
 		with *animset.new_animation("walk", "down")
 			op(animOpPlayFrameGroup)
 			arg("framegroup", 2)
