@@ -470,9 +470,9 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   safekill tmpdir & "plotscr.lst.old.tmp"
 
   textcolor uilook(uiText), 0
-  console_show_message "Imported " & viscount & " plotscripts."
+  console_show_message "Imported " & viscount & " plotscripts and " & (numscripts - viscount) & " other scripts"
   IF option_nowait THEN
-   PRINT "Imported " & viscount & " plotscripts."
+   PRINT "Imported " & viscount & " plotscripts and " & (numscripts - viscount) & " other scripts"
   END IF
 
   IF quickimport THEN
@@ -1292,7 +1292,7 @@ SUB script_usage_list ()
  visit_scripts @script_usage_visitor
 
  IF UBOUND(script_usage_menu) = 1 THEN
-  a_append script_usage_menu(), 0, "No scripts imported!"
+  a_append script_usage_menu(), 0, "No plotscripts imported!"
  END IF
 
  'sort, and build menu() (for standardmenu)
