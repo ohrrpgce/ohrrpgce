@@ -2295,7 +2295,13 @@ Sub CloneSpriteSlice(byval sl as Slice ptr, byval cl as Slice ptr)
   .d_back     = dat->d_back
   .d_auto     = dat->d_auto
   .drawopts   = dat->drawopts
-  '.img and .loaded remain NULLs, NO  (for no reason. FIXME: what about Frame sprites?)
+  if .spritetype = sprTypeFrame then
+   .img.sprite = frame_reference(dat->img.sprite)
+   .img.pal = palette16_reference(dat->img.pal)
+   .loaded = dat->loaded
+  else
+   '.img and .loaded remain NULLs, NO
+  end if
  end with
 end sub
 

@@ -733,6 +733,7 @@ declare function palette16_new_from_indices(pal() as integer) as Palette16 ptr
 declare function palette16_load(num as integer, autotype as SpriteType = sprTypeInvalid, spr as integer = 0, expect_exists as bool = YES) as Palette16 ptr
 declare function palette16_load_pal_uncached(fil as string, num as integer) as Palette16 ptr
 declare sub palette16_unload(p as Palette16 ptr ptr)
+declare function palette16_reference(pal as Palette16 ptr) as Palette16 ptr
 declare function palette16_duplicate(pal as Palette16 ptr) as Palette16 ptr
 declare sub palette16_reload_cache()
 declare sub palette16_update_cache(num as integer)

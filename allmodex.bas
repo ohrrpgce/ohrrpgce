@@ -454,7 +454,7 @@ dim shared textbg as integer
 'displaypal is used for display (including screenshots and gifs), while curmasterpal is for drawing.
 'curmasterpal is used for colors drawn to a 32-bit vpage, and for nearcolor lookups when drawing
 'to a 8-bit vpage (e.g. drawing with blending), and for exporting.
-'In 32-bit mode, displaypal is mever used; in 8-bit mode, displaypal gets faded in and out.
+'In 32-bit mode, displaypal is never used; in 8-bit mode, displaypal gets faded in and out.
 dim shared displaypal(0 to 256) as RGBcolor   'Current display palette; in 8-bit mode includes screen fades
 extern "C"
 dim shared curmasterpal(0 to 256) as RGBcolor 'Palette at last setpal/fadein, excludes any screen fades
@@ -11767,6 +11767,13 @@ sub Palette16_unload(palptr as Palette16 ptr ptr)
 	end if
 	*palptr = 0
 end sub
+
+function Palette16_reference(pal as Palette16 ptr) as Palette16 ptr
+	if pal = NULL then return NULL
+	BUG_IF(pal->refcount <= 0, "Bad refc " & pal->refcount, NULL)
+	pal->refcount += 1
+	return pal
+end function
 
 function Palette16_duplicate(pal as Palette16 ptr) as Palette16 ptr
 	dim ret as Palette16 ptr = palette16_new(pal->numcolors)
