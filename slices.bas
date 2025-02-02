@@ -1988,6 +1988,7 @@ Declare Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
 Sub UnloadSpriteSlice(byval sl as Slice ptr)
  with *sl->SpriteData
   unload_sprite_and_pal .img
+  frame_unload @.original_img
   if .assetfile then
    *.assetfile = ""      ' Frees the string contents
    deallocate .assetfile ' Free the string descriptor
@@ -2013,6 +2014,7 @@ Sub LoadSpriteSliceImage(byval sl as Slice ptr, warn_if_missing as bool = NO)
  with *sl->SpriteData
   if .img.sprite then
    '.loaded is true
+   if .img_gen <> .original_img->generation then .loaded = NO
    'Check whether need to reload the graphic because it needs to be re-scaled (.scaled),
    if .scaled then
     if .img.sprite->Size <> sl->Size then .loaded = NO
@@ -2040,13 +2042,18 @@ Sub LoadSpriteSliceImage(byval sl as Slice ptr, warn_if_missing as bool = NO)
   end if
 
   if .loaded then exit sub
+
+  'Load the sprite
   if .spritetype = sprTypeFrame then  'This can happen if you clone a sprite, otherwise shouldn't
    LoadAssetSprite sl, warn_if_missing
   else
    load_sprite_and_pal .img, .spritetype, .record, .pal   'Unloads old sprite/pal
   end if
   .loaded = YES  'Set YES even if loading failed, so we don't try again
+  frame_unload @.original_img
   if .img.sprite then
+   .original_img = frame_reference(.img.sprite)
+   .img_gen = .original_img->generation
    if .scaled then
     if .img.sprite->size <> sl->Size then
      'Becomes a 32-bit sprite
@@ -2179,6 +2186,7 @@ Local Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
  with *sl->SpriteData
   frame_unload(@.img.sprite)
   palette16_unload(@.img.pal)
+  frame_unload(@.original_img)
   .record = 0
   .pal = -1  'No palette anyway
   .paletted = NO
@@ -2212,6 +2220,8 @@ Local Sub LoadAssetSprite(sl as Slice ptr, warn_if_missing as bool = YES)
    drawline .img.sprite, 0, 0, sl->Width - 1, sl->Height - 1, uilook(uiSelectedItem)
    drawline .img.sprite, sl->Width - 1, 0, 0, sl->Height - 1, uilook(uiSelectedItem)
   end if
+  .original_img = frame_reference(.img.sprite)
+  .img_gen = .img.sprite->generation
  end with
 End Sub
 
@@ -2245,6 +2255,8 @@ Sub SetSpriteToFrame(sl as Slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = 
  with *sl->SpriteData
   .spritetype = sprTypeFrame
   .img.sprite = fr
+  .original_img = frame_reference(fr)
+  .img_gen = fr->generation
   .record = -1
   .frame = 0
   '.trans preserved
@@ -2298,7 +2310,9 @@ Sub CloneSpriteSlice(byval sl as Slice ptr, byval cl as Slice ptr)
   if .spritetype = sprTypeFrame then
    .img.sprite = frame_reference(dat->img.sprite)
    .img.pal = palette16_reference(dat->img.pal)
+   .original_img = frame_reference(dat->original_img)
    .loaded = dat->loaded
+   .img_gen = dat->img_gen
   else
    '.img and .loaded remain NULLs, NO
   end if
@@ -2447,6 +2461,7 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
   if trans <> NONBOOL then .trans = (trans <> 0)
   if .loaded = NO then
    unload_sprite_and_pal .img
+   frame_unload @.original_img
    SpriteSliceUpdate sl
   end if
  end with
@@ -2455,10 +2470,7 @@ end sub
 'Called after .spritetype, .record, .palette or .assetfile is changed.
 'Internal use only - normally you should call ChangeSpriteSlice instead
 Sub SpriteSliceUpdate(sl as Slice ptr)
- if sl = 0 orelse sl->SliceData = 0 orelse sl->SliceType <> slSprite then
-  debug "SpriteSliceUpdate: invalid ptr"
-  exit sub
- end if
+ BUG_IF(sl = 0 orelse sl->SliceType <> slSprite, "invalid ptr")
 
  with *sl->SpriteData
   .paletted = sprite_sizes(.spritetype).paletted   'Note this doesn't apply when using SetSpriteToFrame
@@ -2501,6 +2513,7 @@ Sub ScaleSpriteSlice(sl as Slice ptr, size as XYPair)
  with *sl->SpriteData
   .loaded = NO
   unload_sprite_and_pal .img
+  frame_unload @.original_img
   .scaled = YES
   sl->Size = size
   'Reload so that number of frames is known
@@ -3854,7 +3867,7 @@ end Function
 'If a child is aligned to the left, we only care about it going over the right
 'edge, etc. Children center-aligned on the parent matter for both edges.
 'And the padding acts as a min size.
-Sub UpdateCoverSize(par as Slice ptr)
+Local Sub UpdateCoverSize(par as Slice ptr)
  'Don't bother checking whether we're filling. You shouldn't be able to set a slice
  'to both fill and cover.
 

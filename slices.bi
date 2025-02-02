@@ -526,7 +526,13 @@ Type SpriteSliceData
                     '-2 if using a custom Palette16 ptr (sprTypeFrame only).
  trans as bool      'Draw with color 0 as transparent?
  loaded as bool     'UNSAVED: Set to NO to force a re-load on the next draw
- img as GraphicPair 'UNSAVED: No need to manually populate this, done in draw (.pal = NULL for unpaletted)
+ img_gen as integer        'UNSAVED: Equals .original_img->generation unless the spriteset has changed (e.g. modified
+                           'during live-previewing), indicating LoadSpriteSliceImage needs to update.
+ img as GraphicPair        'UNSAVED: Image and palette, possibly a cached pre-scaled copy (.scaled).
+                           'img.pal = NULL for unpaletted sprites.
+                           'Will be loaded automatically by DrawSpriteSlice calling LoadSpriteSliceImage
+ original_img as Frame ptr 'UNSAVED: The image without any preprocessing. Same as img.sprite unless .scaled
+                           'is used. NULL if and only if .img.sprite is NULL. Also refcounted.
 
  'Transformations
  flipHoriz as bool  'NO normal, YES horizontally flipped
