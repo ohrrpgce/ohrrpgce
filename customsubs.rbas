@@ -874,7 +874,7 @@ FUNCTION format_percent_cond(cond as AttackElementCondition, default as string, 
  IF cond.comp = compNone THEN
   RETURN default
  ELSE
-  RETURN " " + comp_strings(cond.comp) + " " + format_percent(cond.value, decimalplaces)
+  RETURN " " + safe_caption(comp_strings(), cond.comp, "comparetype") + " " + format_percent(cond.value, decimalplaces)
  END IF
 END FUNCTION
 
