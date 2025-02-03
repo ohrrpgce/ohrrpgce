@@ -242,21 +242,28 @@ destructor AnimationSet()
 	animset_unload @global_animations
 end destructor
 
-' WARNING: if this is a SpriteSet, call spriteset_unload instead
+' Increment refcount.
+function AnimationSet.reference() as AnimationSet ptr
+	' The SpriteSet.reference override should get called when refcount = NOREFC
+	BUG_IF(refcount = NOREFC, "Bad AnimationSet.refcount", @this)
+	refcount += 1
+	DEBUG_ANIM_CACHE(? "AnimationSet.reference(" & debugname & "): refc=" & refcount)
+	return @this
+end function
+
+' Recommended to call the animset_unload() wrapper instead
+sub AnimationSet.dereference()
+	refcount -= 1
+	BUG_IF(refcount < 0, "Negative refc")
+	if refcount = 0 then
+		delete @this
+	end if
+end sub
+
+' Decrement refcount and delete on zero. Can be called with a SpriteSet ptr ptr.
 sub animset_unload(pp as AnimationSet ptr ptr)
-	if *pp <> NULL then
-		with **pp
-			if .refcount = NOREFC then  'This is a SpriteSet
-				showbug "animset_unload called on SpriteSet"
-				spriteset_unload cast(SpriteSet ptr ptr, pp)
-			else
-				.refcount -= 1
-				BUG_IF(.refcount < 0, "Negative animset refc")
-				if .refcount = 0 then
-					delete *pp
-				end if
-			end if
-		end with
+	if *pp then
+		(*pp)->dereference()
 		*pp = NULL
 	end if
 end sub

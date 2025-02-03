@@ -762,16 +762,18 @@ Type SpriteSet Extends AnimationSet
 	'This is private! Should be called only by frame_load or spriteset_for_frame
 	declare constructor(frameset as Frame ptr)
 
+	declare virtual function reference() as SpriteSet ptr override
+	'Recommended to call the spriteset_unload() wrapper instead, to zero out the pointer
+	declare virtual sub dereference() override
+
 	declare function num_frames() as integer
 	declare function num_frame_groups() as integer
 	declare function frame_starts_group(frameidx as integer) as bool
-	'The inverse of .reference() is spriteset_unload()
-	declare function reference() as SpriteSet ptr override
 	declare function describe() as string
 End Type
 
 declare function spriteset_load(ptno as SpriteType, record as integer) as SpriteSet ptr
-declare sub spriteset_unload(ss as SpriteSet ptr ptr)
+declare sub spriteset_unload alias "ANIMSET_UNLOAD" (ss as SpriteSet ptr ptr)
 declare function spriteset_for_frame(fr as Frame ptr) as SpriteSet ptr
 declare function spriteset_load_global_animations(sprtype as SpriteType, rgfxdoc as Reload.DocPtr = NULL) as AnimationSet ptr
 

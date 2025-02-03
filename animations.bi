@@ -97,8 +97,9 @@ type AnimationSet extends Object
 	DEBUG_ANIM_CACHE(debugname as string)
 
 	declare destructor()
-	'The inverse of .reference() is animset_unload()
 	declare virtual function reference() as AnimationSet ptr
+	' Recommended to call the animset_unload() wrapper instead, to zero out the pointer
+	declare virtual sub dereference()
 
 	declare function find_animation_idx(variantname as string, exact as bool = NO) as integer
 	'Note find_animation does not increment refcount!
