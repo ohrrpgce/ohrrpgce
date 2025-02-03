@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-01-27)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-02-02)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -6258,9 +6258,15 @@ show value of(coins, hero X(me), hero Y(me))</pre>
 			<a name="about-spellsmenu"></a>
 				<h4>spells menu (who)</h4>
 <p>
-			Takes you directly to a hero's spells menu. Specify the hero using its position in the party 0-3. Use <a href="#about-findhero" class="ref">find hero</a> if you want to specify the hero by name. The <a href="#about-pickhero" class="ref">pick hero</a> command can also be useful.
+			Takes you directly to a hero's spells menu. Specify the hero using its position in the party 0-3. Use <a href="#about-findhero" class="ref">find hero</a> if you want to specify the hero by name. This command does nothing if you specify a hero slot out of range, or if you specify an empty slot.
 			<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">If the player uses a spell which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <a href="#about-wait" class="ref">wait</a>).</div>
+			<pre>
+variable(slot)
+slot := pick hero
+if(slot &gt;= 0) then(spells screen(slot))
+			</pre>
+			
 			
 			
 			
@@ -6275,11 +6281,16 @@ show value of(coins, hero X(me), hero Y(me))</pre>
 				Specify the hero using its position in the party 0-3.
 				Use <a href="#about-findhero" class="ref">find hero</a> if you want to specify the hero by name.
 				The <a href="#about-pickhero" class="ref">pick hero</a> command can also be useful.
-				If you do not specify any hero, the first hero in the party will be used.
+				If you do not specify any hero, or if you specify -1, the first hero in the party will be used.
 				The optional second argument <span class="param">allow switching</span> says whether
 				to allow the player to switch to a different hero by pressing
 				Left and Right keys.
 				It defaults to <span class="code">true</span>.
+			<pre>
+variable(slot)
+slot := pick hero
+if(slot &gt;= 0) then(equip screen(slot))
+			</pre>
 			
 			
 			

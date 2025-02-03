@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-01-27">
+<plotscript version="wip" datecode="2025-02-02">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -3135,8 +3135,14 @@ show value of(coins, hero X(me), hero Y(me))</example>
 		<command id="spellsmenu">
 			<canon>spells menu (who)</canon>
 			<shortname>spells menu</shortname>
-			<description>Takes you directly to a hero&apos;s spells menu. Specify the hero using its position in the party 0-3. Use <ref>findhero</ref> if you want to specify the hero by name. The <ref>pickhero</ref> command can also be useful.
-			<note>If the player uses a spell which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <ref>wait</ref>).</note></description>
+			<description>Takes you directly to a hero&apos;s spells menu. Specify the hero using its position in the party 0-3. Use <ref>findhero</ref> if you want to specify the hero by name. This command does nothing if you specify a hero slot out of range, or if you specify an empty slot.
+			<note>If the player uses a spell which kills all the heroes in the party (outside of battles a hero isn't counted as dead if their maximum HP is zero or negative), a normal game over occurs: the game over script is run if there is one, otherwise the game ends. However the game over won't happen until the next wait command (such as <ref>wait</ref>).</note>
+			<example>
+variable(slot)
+slot := pick hero
+if(slot >= 0) then(spells screen(slot))
+			</example>
+			</description>
 		</command>
 		<command id="equipmenu">
 			<canon>equip menu (who, allow switching)</canon>
@@ -3146,11 +3152,16 @@ show value of(coins, hero X(me), hero Y(me))</example>
 				Specify the hero using its position in the party 0-3.
 				Use <ref>findhero</ref> if you want to specify the hero by name.
 				The <ref>pickhero</ref> command can also be useful.
-				If you do not specify any hero, the first hero in the party will be used.
+				If you do not specify any hero, or if you specify -1, the first hero in the party will be used.
 				The optional second argument <p>allow switching</p> says whether
 				to allow the player to switch to a different hero by pressing
 				Left and Right keys.
 				It defaults to <tt>true</tt>.
+			<example>
+variable(slot)
+slot := pick hero
+if(slot >= 0) then(equip screen(slot))
+			</example>
 			</description>
 		</command>
 		<command id="savemenu">
