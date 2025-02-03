@@ -1027,6 +1027,8 @@ class ReloadBasicFunction(object):
             assert identnode.name == "dottedIdentifier"
             assert isinstance(identnode.what[0], str)
             self.nodeptrs.append(identnode.what[0])
+        # Output a blank line to keep line numbers in sync
+        return ""
 
     def process_readnode_loadarray(self, node, nodespec, readnode, node_path):
         """
@@ -1347,7 +1349,7 @@ class ReloadBasicFunction(object):
             elif nodetype == "dimStatement":
                 lines.append(self.process_dim(node, ""))
             elif nodetype == "declareNodeptr":
-                self.process_declare_nodeptr(node)
+                lines.append(self.process_declare_nodeptr(node))
             elif nodetype == "directive":
                 # warn_func or error_func
                 setattr(self, node[0].lower(), get_ident(node[1]))
@@ -1405,7 +1407,7 @@ class ReloadBasicFunction(object):
             elif nodetype == "dimStatement":
                 self.output(self.process_dim(node))
             elif nodetype == "declareNodeptr":
-                self.process_declare_nodeptr(node)
+                self.output(self.process_declare_nodeptr(node))
             elif nodetype == "directive":
                 # warn_func or error_func
                 setattr(self, node[0].lower(), get_ident(node[1]))
