@@ -1592,7 +1592,7 @@ end Function
 'Index of this node amongst its siblings
 Function NodeIndex(byval nod as NodePtr) as integer
 	if nod = null then return 0
-	if nod->parent then return 0
+	if nod->parent = null then return 0
 	dim index as integer = 0
 	dim ch as NodePtr = nod->parent->children
 	while ch

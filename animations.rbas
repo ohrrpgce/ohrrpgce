@@ -357,20 +357,19 @@ end sub
 '==========================================================================================
 
 
-constructor AnimationState(sprset as SpriteSet ptr)
-	ss = sprset
-	ss->reference()  'Inc refcount, because dec it in destructor
-	frame_num = 0
+constructor AnimationState(rhs as AnimationState)
+	memcpy(@this, @rhs, sizeof(this))
+	if anim then anim->reference()
 end constructor
 
-constructor AnimationState(ptno as SpriteType, record as integer)
-	ss = spriteset_load(ptno, record)
-	frame_num = 0
+constructor AnimationState(sl as Slice ptr)
+	this.sl = sl
+	sl->GetAnimations()  'Ensure nonnull
+	' Maybe we need to keep our own reference to sl->Animations in case it's replaced?
 end constructor
 
 destructor AnimationState()
 	set_anim(NULL)  'Dec refcount
-	spriteset_unload @ss
 end destructor
 
 ' Lookup an animation and start it. See AnimationSet.find_animation() for documentation
@@ -379,7 +378,7 @@ end destructor
 ' to loop forever. loopcount <> 0 overrides this, giving a fixed number of
 ' times to play, or < 0 to repeat forever
 sub AnimationState.start_animation(variantname as string, loopcount as integer = 0)
-	start_animation(ss->find_animation(variantname), loopcount)
+	start_animation(sl->Animations->find_animation(variantname), loopcount)
 end sub
 
 'OK for anim to be NULL
@@ -416,17 +415,15 @@ sub AnimationState.set_anim(newanim as Animation ptr)
 end sub
 
 ' Resets everything that an animation might change, but doesn't stop it
+' TODO: requires keeping an undo log... which could be shared with the slice editor!
 sub AnimationState.reset()
-	frame_num = 0
-	offset.x = 0
-	offset.y = 0
+	/'
+	sl->Pos = 0
+	if sl->SliceType = slSprite then
+		sl->SpriteData->frame = 0
+	end if
+	'/
 end sub
-
-function AnimationState.cur_frame() as Frame ptr
-	if ss = NULL then return NULL
-	if frame_num < 0 or frame_num >= ss->num_frames then return NULL
-	return @ss->frames[frame_num]
-end function
 
 ' Advance time until the next wait, skipping the current one, and returns number of ms that the wait was for.
 ' Returns -1 and does nothing if not waiting, -2 on error.
@@ -472,7 +469,7 @@ function AnimationState.animate_step() as bool
 		curop = FirstChild(anim->opsnode)
 	end if
 
-	declare as nodeptr curop
+	declare as NodePtr curop
 
 	select case curop..int
 		case animOpWait, animOpWaitMS
@@ -485,7 +482,8 @@ function AnimationState.animate_step() as bool
 				return YES
 			end if
 		case animOpFrame
-			frame_num = frameid_to_frame(ss->frames, curop."frame")
+			if sl->SliceType <> slSprite then exit select  'Skip op
+			sl->SpriteData->set_frame(sl, curop."frame")
 		case animOpRepeat
 			' If a loop count was specified when playing the animation,
 			' then only loop that many times, otherwise repeat forever
@@ -500,25 +498,23 @@ function AnimationState.animate_step() as bool
 			'anim_step = 0
 			anim_looplimit -= 1
 			return YES
+/'
 		case animOpSetOffset
 			offset.x = curop."x"
 			offset.y = curop."y"
 		case animOpRelOffset
 			offset.x += curop."x"
 			offset.y += curop."y"
-
+'/
 		case animOpPlayFrameGroup
-			dim frameidx as integer
+			if sl->SliceType <> slSprite then exit select  'Skip op
 
 			if anim_advanced then
 				' Set initial frame
-				frameidx = frameid_to_frame(ss->frames, curop."framegroup" * 100, YES)  'exact=YES
-				'? "animOpPlayFrameGroup: start at frame " & frameidx
-				if frameidx = -1 then
+				if sl->SpriteData->set_frameid(sl, curop."framegroup" * 100, YES) = -1 then
 					'debug "frame group missing"
 					exit select
 				end if
-				frame_num = frameidx
 			end if
 
 			anim_wait += 1
@@ -526,14 +522,14 @@ function AnimationState.animate_step() as bool
 				'? "animOpPlayFrameGroup: wait done"
 
 				' Next frame
-				dim frameid as integer = ss->frames[frame_num].frameid + 1
-				frameidx = frameid_to_frame(ss->frames, frameid, YES)  'exact=YES
+				dim as integer frameid, frameidx
+				frameid = sl->SpriteData->get_frameid(sl) + 1
+				frameidx = sl->SpriteData->set_frameid(sl, frameid, YES)  'exact=YES
 				'? "animOpPlayFrameGroup: advance to id=" & frameid & " idx=" & frameidx
 
 				if frameidx = -1 then
 					anim_wait = 0  'Done
 				else
-					frame_num = frameidx
 					anim_wait = 1  'Start wait
 					anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
 					return YES  'Wait

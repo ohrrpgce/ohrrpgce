@@ -4396,24 +4396,25 @@ DIM SpriteSetBrowser.remem_setnum(sprTypeLastPickable) as integer
 DIM SpriteSetBrowser.remem_framenum(sprTypeLastPickable) as integer
 
 TYPE SpriteSetEditor
+  sprtype as SpriteType
+  setnum as integer
   ss as SpriteSet ptr
-  anim_previews(any) as AnimationState ptr  'First the SpriteSet's animations, then the global animations
-  preview_pos(any) as XYPair
-  preview_anims(any) as Animation ptr    '(references) Keep these separately since anim_previews().anim gets nulled
-  overridden_animations(any) as string   'List of global animations overridden by a local one
+  previews_root as Slice ptr
+  preview_slices(any) as Slice ptr
+  preview_anims(any) as Animation ptr    '(references) Keep these separately since sl.AnimState->anim gets nulled
+  overridden_animations(any) as string   'Names of global animations overridden by a local one
   pal as Palette16 ptr
   tog as integer
   context as AnimationContext
 
+  DECLARE CONSTRUCTOR(sprtype as SpriteType, setnum as integer)
   DECLARE SUB display()
-  DECLARE SUB display_animation(animstate as AnimationState ptr, where as XYPair, anim as Animation ptr)
-  DECLARE SUB run(sprtype as SpriteType, setnum as integer)
+  DECLARE SUB run()
   DECLARE SUB create_preview(anim as Animation ptr, rowidx as integer, colidx as integer)
   DECLARE SUB update_previews()
   DECLARE SUB delete_previews()
   DECLARE SUB export_menu()
 END TYPE
-DECLARE SUB export_gif(ss as SpriteSet ptr, pal as Palette16 ptr, fname as string, anim as string, transparent as bool = NO)
 
 DECLARE SUB spriteset_detail_editor(sprtype as SpriteType, setnum as integer)
 
@@ -5340,38 +5341,48 @@ END SUB
 ' animations, so the spriteset browser can omit or overlap frames.
 
 SUB spriteset_detail_editor(sprtype as SpriteType, setnum as integer)
- DIM editor as SpriteSetEditor
- editor.run sprtype, setnum
+ VAR editor = SpriteSetEditor(sprtype, setnum)
+ editor.run()
 END SUB
 
 SUB SpriteSetEditor.delete_previews()
- FOR idx as integer = 0 TO UBOUND(anim_previews)
-  DELETE anim_previews(idx)
+ FOR idx as integer = 0 TO UBOUND(preview_anims)
   preview_anims(idx)->dereference()
  NEXT
- ERASE anim_previews
- ERASE preview_pos
+ ERASE preview_slices
  ERASE preview_anims
+ DeleteSliceChildren previews_root
 END SUB
 
+CONSTRUCTOR SpriteSetEditor(sprtype as SpriteType, setnum as integer)
+ this.sprtype = sprtype
+ this.setnum = setnum
+END CONSTRUCTOR
+
 SUB SpriteSetEditor.create_preview(anim as Animation ptr, rowidx as integer, colidx as integer)
+
+ DIM contsl as Slice ptr = NewSliceOfType(slContainer, previews_root)
+ DIM sprsl as Slice ptr = NewSliceOfType(slSprite, contsl)
+ ChangeSpriteSlice sprsl, sprtype, setnum
 
  DIM xspacing as integer = large(40, ss->frames[0].w + 6)
  DIM rowspacing as integer = ss->frames[0].h + 70
  DIM stagger as integer = colidx MOD 4
- DIM where as XYPair = XY(10 + xspacing * colidx, 10 * stagger + rowspacing * rowidx)
+ contsl->Pos = XY(10 + xspacing * colidx, 10 * stagger + rowspacing * rowidx)
  'Extra spacing between each stagger group
- where.x += (colidx \ 4) * 40
+ contsl->X += (colidx \ 4) * 40
 
- DIM sprst as AnimationState ptr = NEW AnimationState(ss)
+ DIM namesl as Slice ptr = NewSliceOfType(slText, contsl)
+ DIM name as string = anim->name + " " + anim->variant
+ ChangeTextSlice namesl, name
+ namesl->AnchorVert = alignBottom
+
  ' Play each animation normally: only once if it doesn't end in Repeat
- sprst->start_animation(anim)
- ASSERT(sprst->anim)
- DIM idx as integer = UBOUND(anim_previews) + 1
- REDIM PRESERVE anim_previews(idx)
- anim_previews(idx) = sprst
- REDIM PRESERVE preview_pos(idx)
- preview_pos(idx) = where
+ sprsl->GetAnimState->start_animation(anim)
+ ASSERT(sprsl->AnimState->anim = anim)
+ DIM idx as integer = UBOUND(preview_slices) + 1
+ REDIM PRESERVE preview_slices(idx)
+ preview_slices(idx) = sprsl
  REDIM PRESERVE preview_anims(idx)
  preview_anims(idx) = anim->reference()
 END SUB
@@ -5404,7 +5415,8 @@ SUB SpriteSetEditor.update_previews()
  END IF
 END SUB
 
-SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
+SUB SpriteSetEditor.run()
+ previews_root = NewSlice()
  ss = spriteset_load(sprtype, setnum)
  pal = palette16_load(-1, sprtype, setnum)
  context = acHeroSprite  'FIXME
@@ -5416,22 +5428,26 @@ SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
   setkeys
   tog XOR= 1
 
-  FOR idx as integer = 0 TO UBOUND(anim_previews)
-   anim_previews(idx)->animate()
-  NEXT
-
   IF keyval(ccCancel) > 1 ORELSE (readmouse.release AND mouseRight) THEN EXIT DO
 
   IF keyval(scE) > 1 ORELSE enter_or_space() THEN
-   animations_editor(ss, pal, context, default_export_name(sprtype, setnum))
+   DIM animsl as Slice ptr = NewSliceOfType(slSprite)
+   ChangeSpriteSlice animsl, sprtype, setnum
+   ' animsl->GetAnimations() == ss
+   animations_editor animsl, ss, context, default_export_name(sprtype, setnum)
+   DeleteSlice @animsl
    update_previews()
   ELSEIF keyval(scP) > 1 THEN
-   FOR idx as integer = 0 TO UBOUND(anim_previews)
-    'anim_previews(idx)->reset()
-    anim_previews(idx)->start_animation(preview_anims(idx))
+   FOR idx as integer = 0 TO UBOUND(preview_slices)
+    preview_slices(idx)->GetAnimState->reset()
+    preview_slices(idx)->GetAnimState->start_animation(preview_anims(idx))
    NEXT
   END IF
   'IF keyval(scX) > 1 THEN export_menu()  'Super unfinished
+
+  IF keyval(scF6) > 1 THEN slice_editor previews_root, SL_COLLECT_EDITOR
+
+  AdvanceSlice previews_root
 
   display()
   dowait
@@ -5446,14 +5462,7 @@ SUB SpriteSetEditor.run(sprtype as SpriteType, setnum as integer)
  spriteset_unload @ss
  palette16_unload @pal
  delete_previews()
-END SUB
-
-SUB SpriteSetEditor.display_animation(animstate as AnimationState ptr, where as XYPair, anim as Animation ptr)
- frame_draw animstate->cur_frame(), pal, where.x, where.y, , vpage
-
- ' Show name
- DIM name as string = anim->name + " " + anim->variant
- edgeprint name, where.x, where.y + ancBottom, uilook(uiText), vpage
+ DeleteSlice @previews_root
 END SUB
 
 SUB SpriteSetEditor.display()
@@ -5478,10 +5487,7 @@ SUB SpriteSetEditor.display()
  NEXT
  rectangle x, y, 1, frameh, spacercol, vpage
 
- FOR idx as integer = 0 TO UBOUND(anim_previews)
-  ASSERT(anim_previews(idx))
-  display_animation anim_previews(idx), preview_pos(idx), preview_anims(idx)
- NEXT
+ DrawSlice previews_root, vpage
 
  DIM rowspacing as integer = frameh + 70
  DIM where as XYPair = XY(pMenuX, rowspacing * 1 - 12 + ancBottom)
@@ -5496,7 +5502,6 @@ SUB SpriteSetEditor.display()
   edgeprint overridden_animations(idx), where.x, where.y, uilook(uiMenuItem), vpage
  NEXT
 
- '--screen update
  setvispage vpage
 END SUB
 
@@ -5508,7 +5513,7 @@ SUB SpriteSetEditor.export_menu()
  DIM choice as integer = multichoice("Export what?", choices())
  IF choice = 0 THEN
   'frame_export_gif @ss->frames[0], "hero0.gif", master(), pal  'a single frame
-  'export_gif ...
  ELSEIF choice = 1 THEN
+  'export_gif ...
  END IF
 END SUB

@@ -1375,7 +1375,7 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite, st() as He
    END IF
   END IF
  NEXT i
- '--Then apply movement forces for all things, heroes, enemies, attacks, weapons
+ '--Then apply movement and animation for all things, heroes, enemies, attacks, weapons
  AdvanceSlice bat.root_sl
  '--then, stuff that only attacks can do
  FOR i = 12 TO 23 '--for each attack sprite

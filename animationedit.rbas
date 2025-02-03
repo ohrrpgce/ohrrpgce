@@ -10,13 +10,16 @@
 #include "reload.bi"
 
 ' Export a certain animation as a looping gif
-sub export_gif(ss as SpriteSet ptr, pal as Palette16 ptr, fname as string, anim_name as string, transparent as bool = NO)
+' (Would be nice if this didn't require a slice...)
+sub export_gif(sl as Slice ptr, fname as string, anim_name as string, transparent as bool = NO)
+  BUG_IF(sl->SliceType <> slSprite, "require Sprite")
+  LoadSpriteSliceImage sl
+
   dim writer as GifWriter
   dim gifpal as GifPalette
-  GifPalette_from_pal gifpal, master(), pal
-  dim outsize as XYPair = (ss->frames[0].w, ss->frames[0].h)
+  GifPalette_from_pal gifpal, master(), sl->SpriteData->img.pal
 
-  if GifBegin(@writer, fopen(fname, "wb"), outsize.w, outsize.h, 1, transparent, @gifpal) = NO then
+  if GifBegin(@writer, fopen(fname, "wb"), sl->Size.w, sl->Size.h, 1, transparent, @gifpal) = NO then
     debug "GifWriter(" & fname & ") failed"
     safekill fname
     exit sub
@@ -24,8 +27,7 @@ sub export_gif(ss as SpriteSet ptr, pal as Palette16 ptr, fname as string, anim_
 
   dim ms_remainder as integer = 0  'Left over wait ms due to rounding
 
-  dim sprst as AnimationState ptr
-  sprst = new AnimationState(ss)
+  dim sprst as AnimationState ptr = sl->GetAnimState()
   sprst->start_animation(anim_name, 1)  'Loop once
 
   ' Run until the first wait
@@ -33,10 +35,9 @@ sub export_gif(ss as SpriteSet ptr, pal as Palette16 ptr, fname as string, anim_
 
   ' FIXME: if animations contain loops other than repeating, this could loop forever
   while sprst->anim
-    dim fr as Frame ptr = sprst->cur_frame()
-    dim framenum as integer = sprst->frame_num
+    dim frameidx as integer = sl->SpriteData->frame
     dim waitms as integer = sprst->skip_wait()
-    'print "export op " & sprst->anim_step & " frame " & sprst->frame_num & " wait " & waitms
+    'print "export op " & NodeName(sprst->curop) & " frame " & frameidx & " wait " & waitms
     if waitms < 0 then exit while  'Error
 
     if waitms > 0 then
@@ -44,19 +45,19 @@ sub export_gif(ss as SpriteSet ptr, pal as Palette16 ptr, fname as string, anim_
       waitms += ms_remainder
       frametime = waitms \ 10
       ms_remainder = waitms MOD 10
-      'print "export frame " & framenum
-      if GifWriteFrame8(@writer, fr->image, fr->w, fr->h, frametime, NULL) = NO then
-        debug "GifWriteFrame8 failed"
-        safekill fname
-        delete sprst
-      end if
+      'print "export frame " & frameidx
+      with sl->SpriteData->original_img[frameidx]  'Ignore .scaled
+        if GifWriteFrame8(@writer, .image, .w, .h, frametime, NULL) = NO then
+          debug "GifWriteFrame8 failed"
+          safekill fname
+        end if
+      end with
     end if
   wend
 
   if GifEnd(@writer) = NO then
     debug "GifEnd failed"
   end if
-  delete sprst
 end sub
 
 
@@ -67,13 +68,13 @@ end sub
 ' This is separate from the spriteset editor because it will also be used by slices and even backdrops
 
 type AnimationEditor
-  sprset as SpriteSet ptr
-  animstate as AnimationState ptr
-  pal as Palette16 ptr
-  sprtype_context as AnimationContext
+  animset as AnimationSet ptr
+  sl as Slice ptr
+  animstate as AnimationState ptr  'Always equal to sl->AnimState, just a convenience
+  anim_context as AnimationContext
   default_export_filename as string
 
-  declare constructor(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext)
+  declare constructor(sl as Slice ptr, animset as AnimationSet ptr, anim_context as AnimationContext)
   declare destructor()
 
   ' Top-level menu
@@ -99,28 +100,28 @@ type AnimationEditor
 
 end type
 
-sub animations_editor(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext, default_export_filename as string = "")
-  dim as AnimationEditor editor = AnimationEditor(sprset, pal, sprtype_context)
+sub animations_editor(sl as Slice ptr, animset as AnimationSet ptr, anim_context as AnimationContext, default_export_filename as string = "")
+  dim as AnimationEditor editor = AnimationEditor(sl, animset, anim_context)
   editor.default_export_filename = default_export_filename
   editor.toplevel()
 end sub
 
-constructor AnimationEditor(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext)
-  this.sprset = sprset
-  this.pal = pal
-  this.animstate = new AnimationState(sprset)
-  this.sprtype_context = sprtype_context
+constructor AnimationEditor(sl as Slice ptr, animset as AnimationSet ptr, anim_context as AnimationContext)
+  this.sl = sl
+  this.animstate = sl->GetAnimState()
+  this.animset = animset->reference()
+  this.anim_context = anim_context
 end constructor
 
 destructor AnimationEditor()
-  delete animstate
+  animset_unload @animset
 end destructor
 
 sub AnimationEditor.rebuild_toplevel_menu()
   redim topmenu(-1 to -1) as string
   topmenu(-1) = "Previous Menu"
-  for idx as integer = 0 to v_len(sprset->animations) - 1
-    with *sprset->animations[idx]
+  for idx as integer = 0 to v_len(animset->animations) - 1
+    with *animset->animations[idx]
       a_append topmenu(), RTRIM(.name + " " + .variant)
     end with
   next
@@ -129,7 +130,7 @@ sub AnimationEditor.rebuild_toplevel_menu()
   init_menu_state topstate, topmenu()
 end sub
 
-' Get sprset->animations index of selected animation
+' Get animset->animations index of selected animation, or -1
 function AnimationEditor.cur_anim_idx() as integer
   if topstate.pt >= 0 andalso topstate.pt <> topstate.last then
     return topstate.pt
@@ -206,6 +207,8 @@ sub AnimationEditor.toplevel()
         new_animation()
       else
         edit_animation(cur_anim())
+        animstate->reset()
+        animstate->start_animation(cur_anim())
       end if
 
     elseif keyval(scShift) > 0 andalso cur_anim_idx() >= 0 then
@@ -214,18 +217,19 @@ sub AnimationEditor.toplevel()
       dim shift as integer = 0
       if keyval(ccUp) > 1 and anidx > 0 then
         shift = -1
-      elseif keyval(ccDown) > 1 and anidx < v_len(sprset->animations) - 1 then
+      elseif keyval(ccDown) > 1 and anidx < v_len(animset->animations) - 1 then
         shift = 1
       end if
       if shift then
-        swap sprset->animations[anidx], sprset->animations[anidx + shift]
+        swap animset->animations[anidx], animset->animations[anidx + shift]
         topstate.pt += shift
         rebuild_toplevel_menu
         'animstate->start_animation(cur_anim())
       end if
     end if
 
-    animstate->animate()
+    'animstate->animate()
+    AdvanceSlice sl
 
     clearpage vpage
 
@@ -236,7 +240,7 @@ sub AnimationEditor.toplevel()
     edgeprint "X: Export", pInfoRight, pMenuY + 30, uilook(uiMenuItem), vpage
 
     wrapprint animation_info(cur_anim()), pInfoX, pInfoY, uilook(uiMenuItem), vpage
-    frame_draw animstate->cur_frame(), pal, pCentered, pBottom - 50, , vpage
+    DrawSliceAt sl, pCentered, pBottom - 50, , , vpage
     standardmenu topmenu(), topstate, , , vpage
     setvispage vpage
     dowait
@@ -252,17 +256,19 @@ sub AnimationEditor.export_menu(anim_name as string)
   if choice = -1 then exit sub
   dim filename as string = inputfilename("Filename?", ".gif", "", "", default_export_filename & " " & anim_name)
   if choice = 0 then
-    export_gif sprset, pal, filename & ".gif", anim_name
+    export_gif sl, filename & ".gif", anim_name  'FIXME
   elseif choice = 1 then
-    export_gif sprset, pal, filename & ".gif", anim_name, YES
+    export_gif sl, filename & ".gif", anim_name, YES
   end if
+  ' Restart, since export_gif stops it
+  sl->AnimState->start_animation(cur_anim())
 end sub
 
 sub AnimationEditor.delete_animation()
   if cur_anim_idx() < 0 then exit sub
   if yesno("Really delete animation `" & cur_anim() &"'? No undo!", NO) then
     animstate->stop_animation()
-    sprset->delete_animation(cur_anim())
+    animset->delete_animation(cur_anim())
     rebuild_toplevel_menu  'Updates state.pt
   end if
 end sub
@@ -275,9 +281,9 @@ type AnimationNamePicker extends ModularMenu
   title as string         'At top of menu
   selected_pt as integer  'Selected state.pt or -1 if cancelled
   names_list as AnimVariantInfo ptr
-  sprtype_context as AnimationContext
+  anim_context as AnimationContext
 
-  'declare sub set_names(names_list as AnimVariantInfo ptr, sprtype_context as AnimationContext)
+  'declare sub set_names(names_list as AnimVariantInfo ptr, anim_context as AnimationContext)
   declare function selected_index() as integer
 
   declare sub update()
@@ -286,12 +292,12 @@ type AnimationNamePicker extends ModularMenu
 end type
 
 sub AnimationNamePicker.update()
-  ' set_names this.name_list, this.sprtype_context
+  ' set_names this.name_list, this.anim_context
 'end sub
 
 ' Set up the menu options
 ' (names_list is a static array, so passing it as a dynamic array is far more dangerous than passing by ptr)
-'sub AnimationNamePicker.set_names(names_list as AnimVariantInfo ptr, sprtype_context as AnimationContext)
+'sub AnimationNamePicker.set_names(names_list as AnimVariantInfo ptr, anim_context as AnimationContext)
   redim menu(0)
   redim name_indices(0)
 
@@ -302,7 +308,7 @@ sub AnimationNamePicker.update()
     with names_list[idx]
       if .name = NULL then exit for
       ' This name can be used in this context if the sprite type's context is a subset of the suitable ones
-      if (.context and sprtype_context) <> 0 then
+      if (.context and anim_context) <> 0 then
         a_append menu(), *.name
         a_append name_indices(), idx
       end if
@@ -337,14 +343,14 @@ end sub
 ' Prompt user for animation name and variant to add and add it
 sub AnimationEditor.new_animation()
   dim picker as AnimationNamePicker
-  picker.sprtype_context = sprtype_context
+  picker.anim_context = anim_context
 
   picker.floating = YES
   picker.menuopts.edged = YES
   picker.title = "Animation to define?"
   picker.helpkey = "pick_animation_name"
   picker.names_list = @builtin_animations(0)
-  'picker.set_names(@builtin_animations(0), sprtype_context)
+  'picker.set_names(@builtin_animations(0), anim_context)
   picker.run()
   dim anim_idx as integer = picker.selected_index()
   if anim_idx < 0 then exit sub  'Cancelled
@@ -353,20 +359,20 @@ sub AnimationEditor.new_animation()
   picker.title = "Animation variant to define?"
   picker.helpkey = "pick_variant_name"
   picker.names_list = @builtin_anim_variants(0)
-  'picker.set_names(@builtin_anim_variants(0), sprtype_context)
+  'picker.set_names(@builtin_anim_variants(0), anim_context)
   picker.run()
   dim variant_idx as integer = picker.selected_index()
   if variant_idx < 0 then exit sub  'Cancelled
   dim variant as string
   if variant_idx > 0 then variant = *builtin_anim_variants(variant_idx).name  '0 is none
 
-  if sprset->find_animation(anim & " " & variant, YES) then 'exact=YES
+  if animset->find_animation(anim & " " & variant, YES) then 'exact=YES
     notification "An animation named `" & RTRIM(anim & " " & variant) & "' already exists"
     exit sub
   end if
 
   ' Note: duplicates are currently allowed. Will never be run
-  sprset->new_animation(anim, variant)
+  animset->new_animation(anim, variant)
 
   ' Go to the new animation
   rebuild_toplevel_menu
@@ -445,7 +451,7 @@ end function
 ' Edit a single animation
 sub AnimationEditor.edit_animation(anim_name as string)
 
-  dim byref anim as Animation = *sprset->find_animation(anim_name)
+  dim byref anim as Animation = *animset->find_animation(anim_name)
   if @anim = NULL then
     visible_debug "Animation Editor: animation " & anim_name & " doesn't exist"
     exit sub
@@ -483,6 +489,7 @@ sub AnimationEditor.edit_animation(anim_name as string)
         ' Stay on the last op if we reached the end
         state.pt = last_op_pt
       end if
+      correct_menu_state state
 
       if keyval(scR) > 1 then  'Allow reset too
         animating = NO
@@ -582,6 +589,9 @@ sub AnimationEditor.edit_animation(anim_name as string)
 
       ' Editing op arguments
       if curop then
+        dim sprset as SpriteSet ptr
+        if sl->SliceType = slSprite then sprset = spriteset_for_frame(sl->SpriteData->img.sprite)
+
         select case curop..int
           case animOpWait
             ' Arg is ms, but edit as number of frames
@@ -593,19 +603,21 @@ sub AnimationEditor.edit_animation(anim_name as string)
             SetChildNode(curop, "ms", ms)
             if keyval(scTab) > 1 then anim.mutate_op(curop, animOpWait)
           case animOpFrame
+            if sprset = 0 then exit select
             dim frame as integer = curop."frame"
             intgrabber frame, 0, sprset->num_frames - 1
             SetChildNode(curop, "frame", frame)
-            animstate->frame_num = curop."frame"  ' Update visual
+            sl->SpriteData->set_frame(sl, frame)  'Update visual
           case animOpPlayFrameGroup
+            if sprset = 0 then exit select
+            dim framegroup as integer = curop."framegroup"
             if keyval(scShift) > 0 then
               intgrabber_ms_as_frames GetOrCreateChild(curop, "ms"), 0, 1000000
             else
-              dim framegroup as integer = curop."framegroup"
               intgrabber framegroup, 0, sprset->num_frame_groups - 1
               SetChildNode(curop, "framegroup", framegroup)
             end if
-            animstate->frame_num = frameid_to_frame(sprset->frames, 100 * curop."framegroup")  ' Update visual
+            sl->SpriteData->set_frameid(sl, framegroup * 100)  'Update visual
         end select
       end if
 
@@ -616,7 +628,7 @@ sub AnimationEditor.edit_animation(anim_name as string)
     ' Draw screen
     clearpage vpage
     draw_background vpages(vpage), bgChequer
-    frame_draw animstate->cur_frame(), pal, pCentered, pBottom - 50, , vpage
+    DrawSliceAt sl, pCentered, pBottom - 50, , , vpage
 
     fuzzyrect vpages(vpage), state.rect, uilook(uiBackground)
     edgeprint anim_name, pCentered, mpos.y, uilook(uiText), vpage

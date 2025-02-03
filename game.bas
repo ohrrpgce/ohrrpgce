@@ -946,6 +946,7 @@ DO
  END IF
 
  main_timer.substart TimerIDs.UpdateSlices
+ 'Slice movement and animation
  AdvanceSlice SliceTable.root
  main_timer.substop TimerIDs.UpdateSlices
 

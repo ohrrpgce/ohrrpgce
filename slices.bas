@@ -729,6 +729,8 @@ Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer=0)
 
  delete sl->Context
  v_free sl->ExtraVec
+ delete sl->AnimState
+ animset_unload @sl->Animations
  delete sl
  *s = 0
 End Sub
@@ -4022,12 +4024,15 @@ Sub SetSliceTarg(byval s as Slice ptr, byval x as integer, byval y as integer, b
 end sub
 
 ' Apply slice movement to this slice and descendants
-' TODO: dissolves should also be applied here (but not to hidden slices)
+' TODO: dissolves should also be applied here (but for backcompat, not to hidden slices)
 Sub AdvanceSlice(byval s as Slice ptr)
  if s = 0 then debug "AdvanceSlice null ptr": exit sub
  if s->Paused = NO andalso ShouldSkipSlice(s) = NO then
   SeekSliceTarg s
   ApplySliceVelocity s
+  if s->AnimState then
+   s->AnimState->animate
+  end if
   'advance the slice's children
   dim ch as Slice ptr = s->FirstChild
   do while ch <> 0
@@ -4036,6 +4041,41 @@ Sub AdvanceSlice(byval s as Slice ptr)
   Loop
  end if
 end sub
+
+'Initialise as needed and return Animations
+Function Slice.GetAnimations() as AnimationSet ptr
+ if this.Animations = NULL then
+  if this.SliceType = slSprite then
+   'Animations are loaded from rgfx into a SpriteSet object, but the pointer isn't
+   'copied to this.Animations until requested.
+   '(In future, animations can also be saved to .slice files)
+   if this.SpriteData->loaded = NO then LoadSpriteSliceImage @this
+   'Use original_img since if scaled=YES, animations won't be copied to img.sprite
+   this.Animations = spriteset_for_frame(this.SpriteData->original_img)->reference()
+  end if
+ end if
+
+ if this.Animations = NULL then
+  this.Animations = new AnimationSet
+  this.Animations->reference()
+ end if
+ return this.Animations
+end function
+
+'Initialise as needed and return AnimState
+Function Slice.GetAnimState() as AnimationState ptr
+ if this.AnimState = NULL then
+  this.GetAnimations()
+  this.AnimState = new AnimationState(@this)
+ end if
+ return this.AnimState
+end function
+
+/'
+Sub StartSliceAnimation(byval sl as Slice ptr, name as string, loopcount as integer = 0)
+ sl->GetAnimState()->start_animation name, loopcount
+end sub
+'/
 
 ' Apply slice .Targ movement
 Local Sub SeekSliceTarg(byval s as Slice ptr)
@@ -4614,6 +4654,13 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
   if sl->ExtraVec then
    v_copy .ExtraVec, sl->ExtraVec
   end if
+  if sl->Animations then
+   .Animations = sl->Animations->reference()
+  end if
+  if sl->AnimState then
+   .AnimState = new AnimationState(*sl->AnimState)
+   .AnimState->sl = clone
+  end if
  end with
  '--clone special properties for this slice type
  sl->Clone(sl, clone)
@@ -4748,6 +4795,9 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  sl->Save(sl, node)
  '--Contexts may or may not be savable
  if sl->Context then sl->Context->save(node)
+ 'FIXME: save AnimState
+ if sl->AnimState then
+ end if
  '--Now save all the children
  if sl->NumChildren > 0 then
   '--make a container node for all the child nodes

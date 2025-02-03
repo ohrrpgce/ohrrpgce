@@ -8,6 +8,7 @@
 #include "udts.bi"
 #include "common.bi"
 #include "reload.bi"
+#include "animations.bi"
 
 'Uncomment to enable double-checking of slice creation and deletion.
 'This is mainly only useful to find leaked slices.
@@ -345,16 +346,21 @@ Type Slice
 
   'At most one of Velocity or Targ should be used at one time.
 
-  'moving at a constant pixels-per-tick speed (direct setting should cancel targ)
+  'moving at a constant pixels-per-tick speed
   Velocity as XYPair
   'limit the number of cycles to apply velocity before auto-clearing it (-1 means forever, 0 clears instantly)
-  'FIXME: is -1 allowed by scripts?
   VelTicks as XYPair
 
   'moving to a destination in constant time. (replaces velocity)
   Targ as XYPair
   TargResidue as Float2    'Not saved
   TargTicks as integer
+
+  Animations as AnimationSet ptr   'NULL until GetAnimations() is called. Currently a reference to spriteset
+                                   'animations, in future may be a separate set
+  Declare Function GetAnimations() as AnimationSet ptr
+  AnimState as AnimationState ptr  'NULL until GetAnimState() is called. TODO: Not yet saved, but should be
+  Declare Function GetAnimState() as AnimationState ptr
 
   Context as SliceContext ptr  'NULL if none
   TableSlot as integer 'which slot in plotslices() holds a reference to this slice, or 0 for none

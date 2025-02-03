@@ -2,6 +2,9 @@
 '(C) Copyright 1997-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
+#ifndef ANIMATIONS_BI
+#define ANIMATIONS_BI
+
 #include "config.bi"
 #include "const.bi"
 #include "reload.bi"
@@ -102,20 +105,18 @@ type AnimationSet extends Object
 	declare virtual sub dereference()
 
 	declare function find_animation_idx(variantname as string, exact as bool = NO) as integer
-	'Note find_animation does not increment refcount!
+	' Note find_animation does not increment refcount!
 	declare function find_animation(variantname as string, exact as bool = NO) as Animation ptr
 	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
 	declare sub delete_animation(variantname as string)
 	declare sub delete_all_animations(check_no_references as bool = NO)
 end type
 
-type SpriteSetFwd as SpriteSet
-type FrameFwd as Frame
+type SliceFwd as Slice
 
 ' The animation state of a SpriteSet instance
 type AnimationState
-	ss as SpriteSetFwd ptr
-	frame_num as integer
+	sl as SliceFwd ptr
 	anim as Animation ptr      'The currently playing animation or NULL.
 	                           'anim must be set using set_anim()!
 	curop as Reload.NodePtr    'Current animation op. Child (future: descendent) of anim->ops
@@ -127,8 +128,8 @@ type AnimationState
 	                           'infinite loop protection is triggered.
 	offset as XYPair
 
-	declare constructor(sprset as SpriteSetFwd ptr)
-	declare constructor(ptno as SpriteType, record as integer)
+	declare constructor(sl as SliceFwd ptr)
+	declare constructor(rhs as AnimationState)
 	declare destructor()
 	declare sub set_anim(newanim as Animation ptr)
 
@@ -136,14 +137,13 @@ type AnimationState
 	declare sub start_animation overload(anim as Animation ptr, loopcount as integer = 0)
 	declare sub stop_animation()
 	declare sub reset()
-	declare function cur_frame() as FrameFwd ptr
 
 	' Three ways to advance the animation:
 	' Advance time by one tick
 	declare function animate() as bool
 	' Advance time until the next wait
 	declare function skip_wait() as integer
-	' Advance by one animation op
+	' Advance by one animation op (may wait instead of advancing)
 	declare function animate_step() as bool
 end type
 
@@ -156,3 +156,5 @@ declare sub animset_unload(pp as AnimationSet ptr ptr)
 declare sub split_variantname(variantname as string, byref animname as string, byref variant as string)
 
 declare sub spriteset_default_global_animations(byref animset as AnimationSet, sprtype as SpriteType)
+
+#endif

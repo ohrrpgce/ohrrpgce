@@ -79,7 +79,7 @@ DECLARE SUB resolution_menu ()
 DECLARE SUB translations_menu ()
 DECLARE SUB general_scripts_menu ()
 DECLARE SUB script_error_mode_menu ()
-DECLARE SUB animations_editor(sprset as SpriteSet ptr, pal as Palette16 ptr, sprtype_context as AnimationContext, default_export_filename as string = "")
+DECLARE SUB animations_editor(sl as Slice ptr, animset as AnimationSet ptr, anim_context as AnimationContext, default_export_filename as string = "")
 
 DECLARE FUNCTION export_translations (fname as string) as bool
 DECLARE FUNCTION compile_andor_import_scripts (f as string, quickimport as bool = NO) as bool
@@ -90,6 +90,8 @@ DECLARE SUB common_elementals_editor(elementals() as single, helpfile as string,
 DECLARE SUB tile_anim_draw_range(tanim() as TileAnimPattern, byval taset as integer, byval page as integer)
 
 DECLARE FUNCTION pick_graphics_export_format() as string
+
+DECLARE SUB export_gif(sl as Slice ptr, fname as string, anim_name as string, transparent as bool = NO)
 
 DECLARE SUB frame_draw_with_background (src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, bgcolor as bgType, byref chequer_scroll as integer, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
 DECLARE FUNCTION bgcolor_caption(bgcolor as bgType) as string
