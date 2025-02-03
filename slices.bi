@@ -556,6 +556,12 @@ Type SpriteSliceData
  d_time as integer ' number of ticks that the dissolve should last
  d_tick as integer ' counts which tick the dissolve is in right now
  d_type as integer ' id number of the dissolve animation
+
+ declare function get_numframes(sl as Slice ptr) as integer
+ declare sub set_frame(sl as Slice ptr, frameidx as integer)
+ declare function get_frameid(sl as Slice ptr) as integer
+ declare function find_frameid(sl as Slice ptr, frameidx as integer, exact as bool = NO) as integer
+ declare function set_frameid(sl as Slice ptr, frameidx as integer, exact as bool = NO) as integer
 End Type
 
 'Shows the currently loaded map at the given slice pos
@@ -808,7 +814,6 @@ DECLARE Sub ScaleSpriteSlice(sl as Slice ptr, size as XYPair)
 DECLARE Sub DissolveSpriteSlice(byval sl as slice ptr, byval dissolve_type as integer, byval over_ticks as integer=-1, byval start_tick as integer=0, byval backwards as bool=NO, byval auto_animate as bool=YES)
 DECLARE Sub CancelSpriteSliceDissolve(sl as Slice ptr)
 DECLARE Function SpriteSliceIsDissolving(byval sl as slice ptr, byval only_auto as bool=YES) as bool
-DECLARE Function SpriteSliceNumFrames(sl as Slice ptr) as integer
 
 DECLARE Sub DisposeMapSlice(byval sl as slice ptr)
 DECLARE Sub DrawMapSlice(byval sl as slice ptr, byval page as integer)

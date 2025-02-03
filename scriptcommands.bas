@@ -2425,7 +2425,7 @@ SUB script_commands(byval cmdid as integer)
  CASE 347 '--sprite frame count
   sl = get_arg_spritesl(0)
   IF sl THEN
-   scriptret = SpriteSliceNumFrames(sl)
+   scriptret = sl->SpriteData->get_numframes(sl)
   END IF
  CASE 348 '--slice x
   sl = get_arg_slice(0)
