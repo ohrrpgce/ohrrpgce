@@ -11891,19 +11891,29 @@ end function
 '==========================================================================================
 
 
-'Find a frame in a frameset, returning frame index.
-'If exact = NO, then return the nearest match if the frame doesn't exist. Otherwise return -1.
-'The nearest match is the previous frameid that exists
+'Find a frame in a frameset, returning frame index or -1.
+'If exact = NO, then return the nearest match (the last frame in the same frame group)
+'if the frame doesn't exist. Otherwise return -1.
 'frameset must be the first Frame in the frameset
 function frameid_to_frame(frameset as Frame ptr, frameid as integer, exact as bool = NO) as integer
-	dim nearest as integer = 0
+	dim as integer lastid = -1, lastidx = -1
+	' Can assume arraylen > 0
 	for idx as integer = 0 to frameset->arraylen - 1
 		dim thisid as integer = frameset[idx].frameid
-		if thisid = frameid then return idx
-		if thisid < frameid then nearest = idx
+		if thisid = frameid then
+			return idx
+		end if
+		' Frames are always in increasing order of ID
+		if thisid > frameid then exit for
+		lastid = thisid
+		lastidx = idx
 	next
-	if exact then return -1
-	return nearest
+	if exact = NO then
+		if lastid mod 100 = frameid mod 100 then
+			return lastidx
+		end if
+	end if
+	return -1
 end function
 
 sub FrameGroupInfo.set(frameid as integer, name as string, default_num as integer)
