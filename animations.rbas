@@ -377,12 +377,13 @@ end destructor
 ' Normally an animation specifies how many times it loops (unimplemented), or ends in Repeat
 ' to loop forever. loopcount <> 0 overrides this, giving a fixed number of
 ' times to play, or < 0 to repeat forever
-sub AnimationState.start_animation(animvariant as string, loopcount as integer = 0)
+function AnimationState.start_animation(animvariant as string, loopcount as integer = 0) as Animation ptr
 	start_animation(sl->Animations->find_animation(animvariant), loopcount)
-end sub
+	return anim
+end function
 
 'OK for anim to be NULL
-sub AnimationState.start_animation(anim as Animation ptr, loopcount as integer = 0)
+function AnimationState.start_animation(anim as Animation ptr, loopcount as integer = 0) as Animation ptr
 	anim_wait = 0
 	'anim_step = 0
 	anim_advanced = YES
@@ -394,7 +395,8 @@ sub AnimationState.start_animation(anim as Animation ptr, loopcount as integer =
 	else
 		curop = NULL
 	end if
-end sub
+	return anim
+end function
 
 ' Doesn't reset the sprite.
 sub AnimationState.stop_animation()

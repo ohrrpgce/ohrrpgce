@@ -133,8 +133,8 @@ type AnimationState
 	declare destructor()
 	declare sub set_anim(newanim as Animation ptr)
 
-	declare sub start_animation overload(name as string, loopcount as integer = 0)
-	declare sub start_animation overload(anim as Animation ptr, loopcount as integer = 0)
+	declare function start_animation overload(name as string, loopcount as integer = 0) as Animation ptr
+	declare function start_animation overload(anim as Animation ptr, loopcount as integer = 0) as Animation ptr
 	declare sub stop_animation()
 	declare sub reset()
 

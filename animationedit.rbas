@@ -283,21 +283,25 @@ type AnimationNamePicker extends ModularMenu
   names_list as AnimVariantInfo ptr
   anim_context as AnimationContext
 
-  'declare sub set_names(names_list as AnimVariantInfo ptr, anim_context as AnimationContext)
+  declare constructor(names_list as AnimVariantInfo ptr, anim_context as AnimationContext)
+
   declare function selected_index() as integer
+  declare function selected_name() as string
 
   declare sub update()
   declare function each_tick() as bool
   declare sub draw_underlays()
 end type
 
-sub AnimationNamePicker.update()
-  ' set_names this.name_list, this.anim_context
-'end sub
-
-' Set up the menu options
 ' (names_list is a static array, so passing it as a dynamic array is far more dangerous than passing by ptr)
-'sub AnimationNamePicker.set_names(names_list as AnimVariantInfo ptr, anim_context as AnimationContext)
+constructor AnimationNamePicker(names_list as AnimVariantInfo ptr, anim_context as AnimationContext)
+  this.floating = YES
+  this.menuopts.edged = YES
+  this.names_list = names_list
+  this.anim_context = anim_context
+end constructor
+
+sub AnimationNamePicker.update()
   redim menu(0)
   redim name_indices(0)
 
@@ -325,6 +329,11 @@ function AnimationNamePicker.selected_index() as integer
   return name_indices(selected_pt)
 end function
 
+function AnimationNamePicker.selected_name() as string
+  if selected_pt < 0 then return ""
+  return *names_list[name_indices(selected_pt)].name
+end function
+
 function AnimationNamePicker.each_tick() as bool
   if enter_space_click(state) then
     selected_pt = state.pt
@@ -341,45 +350,48 @@ sub AnimationNamePicker.draw_underlays()
 end sub
 
 ' Prompt user for animation name and variant to add and add it
+function prompt_from_namelist(title as string, names_list as AnimVariantInfo ptr, helpkey as string, anim_context as AnimationContext) as string
+  var picker = AnimationNamePicker(names_list, anim_context)
+  picker.title = title
+  picker.helpkey = helpkey
+
+  'picker.set_names(names_list, anim_context)
+  picker.run()
+  return picker.selected_name()
+end function
+
+function prompt_animation_name(title as string, anim_context as AnimationContext) as string
+  return prompt_from_namelist(title, @builtin_animations(0), "pick_animation_name", anim_context)
+end function
+
+' Returns "" if cancelled, "(none)" for a blank variant
+function prompt_variant_name(title as string, anim_context as AnimationContext) as string
+  return prompt_from_namelist(title, @builtin_anim_variants(0), "pick_variant_name", anim_context)
+end function
+
 sub AnimationEditor.new_animation()
-  dim picker as AnimationNamePicker
-  picker.anim_context = anim_context
+  dim anim as string = prompt_animation_name("Animation to define?", anim_context)
+  if anim = "" then exit sub
 
-  picker.floating = YES
-  picker.menuopts.edged = YES
-  picker.title = "Animation to define?"
-  picker.helpkey = "pick_animation_name"
-  picker.names_list = @builtin_animations(0)
-  'picker.set_names(@builtin_animations(0), anim_context)
-  picker.run()
-  dim anim_idx as integer = picker.selected_index()
-  if anim_idx < 0 then exit sub  'Cancelled
-  dim anim as string = *builtin_animations(anim_idx).name
+  dim variant as string = prompt_variant_name("Animation variant to define?", anim_context)
+  if variant = "" then exit sub
+  if variant = "(none)" then variant = ""
+  dim animvariant as string = rtrim(anim & " " & variant)
 
-  picker.title = "Animation variant to define?"
-  picker.helpkey = "pick_variant_name"
-  picker.names_list = @builtin_anim_variants(0)
-  'picker.set_names(@builtin_anim_variants(0), anim_context)
-  picker.run()
-  dim variant_idx as integer = picker.selected_index()
-  if variant_idx < 0 then exit sub  'Cancelled
-  dim variant as string
-  if variant_idx > 0 then variant = *builtin_anim_variants(variant_idx).name  '0 is none
-
-  if animset->find_animation(anim & " " & variant, YES) then 'exact=YES
-    notification "An animation named `" & RTRIM(anim & " " & variant) & "' already exists"
+  if animset->find_animation(animvariant, YES) then 'exact=YES
+    notification "An animation named `" & animvariant  & "' already exists"
     exit sub
   end if
 
-  ' Note: duplicates are currently allowed. Will never be run
   animset->new_animation(anim, variant)
 
   ' Go to the new animation
   rebuild_toplevel_menu
   topstate.pt = UBOUND(topmenu) - 1
   correct_menu_state topstate
-  animstate->start_animation(anim & " " & variant)
+  animstate->start_animation(animvariant)
 end sub
+
 
 '================================ Editing an Animation ====================================
 
