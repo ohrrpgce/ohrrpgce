@@ -639,7 +639,7 @@ Type PanelSliceData
  vertical as bool 'Defaults to horizontal. Becomes vertical if this is YES
  primary as integer '0 or 1, determines if the first or second child is primary
  pixels as integer 'Fixed-pixel size of the primary. Pixels and percent are combined.
- percent as double 'Percent size of the primary. Pixels and percent are combined
+ percent as double 'Fraction (not percent!) of the primary size. Pixels and percent are combined
                     'stored as a float. 1.0=100% 0.5=50% 0.01=1%
  padding as integer ' pixels of padding between the sub-panels
 End Type

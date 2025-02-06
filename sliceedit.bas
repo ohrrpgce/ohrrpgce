@@ -2597,13 +2597,13 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   a_append menu(), " Height: " & .Height
   sliceed_rule rules(), "size", erIntgrabber, @.Height, minsize, 9999, slgrPICKWH
   IF ses.privileged THEN
-   a_append menu(), " Cover Children: " & CoverModeCaptions(.CoverChildren)
+   a_append menu(), " Cover children: " & CoverModeCaptions(.CoverChildren)
    sliceed_rule_ubyte rules(), "cover", @.CoverChildren, 0, 3
   END IF
-  a_append menu(), " Fill Parent: " & yesorno(.Fill)
+  a_append menu(), " Fill parent: " & yesorno(.Fill)
   sliceed_rule_tog rules(), "fill", @.Fill
   IF .Fill THEN
-   a_append menu(), "  Fill Type: " & FillModeCaptions(.FillMode)
+   a_append menu(), "  Fill type: " & FillModeCaptions(.FillMode)
    sliceed_rule_ubyte rules(), "fill", @.FillMode, 0, 2
   END IF
  END IF
@@ -2630,10 +2630,10 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     a_append menu(), "  Border type: " & IIF(dat->use_raw_box_border, "Spriteset", "Box Style/Line/None")
     sliceed_rule_tog rules(), "rect_use_raw_box_border", @(dat->use_raw_box_border), slgrUPDATERECTCUSTOMSTYLE
     IF dat->use_raw_box_border THEN
-     a_append menu(), "   Raw Spriteset: " & dat->raw_box_border
+     a_append menu(), "   Raw spriteset: " & dat->raw_box_border
      sliceed_rule rules(), "rect_raw_box_border", erIntgrabber, @(dat->raw_box_border), 0, gen(genMaxBoxBorder), slgrBROWSEBOXBORDER
     ELSE
-     a_append menu(), "   Border Style: " & caption_or_int(BorderCaptions(), dat->border)
+     a_append menu(), "   Border style: " & caption_or_int(BorderCaptions(), dat->border)
      sliceed_rule_enum rules(), "rect_border", @(dat->border), -2, 14, slgrUPDATERECTCUSTOMSTYLE
      sliceed_rule_set_default rules(), borderLine
     END IF
@@ -2669,7 +2669,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     a_append menu(), " Color: " & slice_color_caption(dat->col, "Default")
     sliceed_rule rules(), "text_color", erIntgrabber, @(dat->col), LowColorCode(), 255, slgrPICKCOL
     IF dat->outline = NO THEN
-     a_append menu(), " Background Color: " & slice_color_caption(dat->bgcol, "Transparent")
+     a_append menu(), " Background color: " & slice_color_caption(dat->bgcol, "Transparent")
      sliceed_rule rules(), "text_bg", erIntgrabber, @(dat->bgcol), LowColorCode(), 255, slgrPICKCOL
     END IF
     a_append menu(), " Outline: " & yesorno(dat->outline)
@@ -2754,7 +2754,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     IF dat->dissolving THEN
      a_append menu(), "  Type: " & dissolve_type_caption(dat->d_type)
      sliceed_rule rules(), "sprite_d_type", erIntGrabber, @(dat->d_type), 0, dissolveTypeMax
-     a_append menu(), "  Over Num. ticks: " & defaultint(dat->d_time, "Default (W+H)/10=" & (.Width + .Height) / 10)
+     a_append menu(), "  Over num. ticks: " & defaultint(dat->d_time, "Default (W+H)/10=" & (.Width + .Height) / 10)
      sliceed_rule rules(), "sprite_d_time", erIntGrabber, @(dat->d_time), -1, 999999
      a_append menu(), "  Current tick: " & dat->d_tick
      sliceed_rule rules(), "sprite_d_tick", erIntGrabber, @(dat->d_tick), 0, 999999
@@ -2778,15 +2778,15 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     sliceed_rule rules(), "grid_rows", erIntgrabber, @(dat->rows), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
     a_append menu(), " Columns: " & dat->cols
     sliceed_rule rules(), "grid_cols", erIntgrabber, @(dat->cols), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
-    a_append menu(), " Show Grid: " & yesorno(dat->show)
+    a_append menu(), " Show grid: " & yesorno(dat->show)
     sliceed_rule_tog rules(), "grid_show", @(dat->show)
 
    CASE slEllipse
     DIM dat as EllipseSliceData Ptr
     dat = .SliceData
-    a_append menu(), " Border Color: " & slice_color_caption(dat->bordercol, "Transparent")
+    a_append menu(), " Border color: " & slice_color_caption(dat->bordercol, "Transparent")
     sliceed_rule rules(), "bordercol", erIntgrabber, @(dat->bordercol), LowColorCode(), 255, slgrPICKCOL
-    a_append menu(), " Fill Color: " & slice_color_caption(dat->fillcol, "Transparent")
+    a_append menu(), " Fill color: " & slice_color_caption(dat->fillcol, "Transparent")
     sliceed_rule rules(), "fillcol", erIntgrabber, @(dat->fillcol), LowColorCode(), 255, slgrPICKCOL
 
    CASE slScroll
@@ -2794,13 +2794,13 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     dat = .SliceData
     a_append menu(), " Style: " & dat->style
     sliceed_rule rules(), "scroll_style", erIntgrabber, @(dat->style), 0, 14
-    a_append menu(), " Check Depth: " & zero_default(dat->check_depth, "No limit")
+    a_append menu(), " Check depth: " & zero_default(dat->check_depth, "No limit")
     sliceed_rule rules(), "scroll_check_depth", erIntgrabber, @(dat->check_depth), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
 
    CASE slSelect
     DIM dat as SelectSliceData Ptr
     dat = .SliceData
-    a_append menu(), " Selected Child: " & dat->index
+    a_append menu(), " Selected child: " & dat->index
     sliceed_rule rules(), "select_index", erIntgrabber, @(dat->index), 0, 9999999, slgrEDITSWITCHINDEX 'FIXME: this is an arbitrary upper limit
 
    CASE slPanel
@@ -2808,13 +2808,13 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     dat = .SliceData
     a_append menu(), " Orientation: " & IIF(dat->vertical, "Vertical", "Horizontal")
     sliceed_rule_tog rules(), "panel_vertical", @(dat->vertical)
-    a_append menu(), " Primary Child Is: " & dat->primary
+    a_append menu(), " Primary child is: " & dat->primary
     sliceed_rule rules(), "panel_primary", erIntgrabber, @(dat->primary), 0, 1
     a_append menu(), "  " & IIF(dat->vertical, "Height", "Width") & ": " & format_percent(dat->percent) & " of panel"
     sliceed_rule_double rules(), "panel_percent", erPercentgrabber, @(dat->percent)
     a_append menu(), "  ...plus: " & dat->pixels & " pixels"
     sliceed_rule rules(), "panel_pixels", erIntgrabber, @(dat->pixels), 0, 9999 'FIXME: upper limit of 9999 is totally arbitrary
-    a_append menu(), " Padding Between Children: " & dat->padding
+    a_append menu(), " Padding between children: " & dat->padding
     sliceed_rule rules(), "panel_padding", erIntgrabber, @(dat->padding), 0, 9999 'FIXME: upper limit of 9999 is totally arbitrary
 
    CASE slLayout
@@ -2854,7 +2854,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
  IF ses.expand_visible THEN
   a_append menu(), " Visible: " & yesorno(.Visible)
   sliceed_rule_tog rules(), "vis", @.Visible
-  a_append menu(), " Clip Children: " & yesorno(.Clip)
+  a_append menu(), " Clip children: " & yesorno(.Clip)
   sliceed_rule_tog rules(), "clip", @.Clip
   a_append menu(), " Template: " & yesorno(.Template)
   sliceed_rule_tog rules(), "template", @.Template
@@ -2914,12 +2914,12 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
 
  sliceed_header menu(), rules(), "[Sorting]", @ses.expand_sort
  IF ses.expand_sort THEN
-  sliceed_rule_ubyte rules(), "autosort", @.AutoSort, 0, slAutoSortLAST
   a_append menu(), " Auto-sort children: " & AutoSortCaptions(.AutoSort)
-  sliceed_rule rules(), "sortorder", erIntgrabber, @.Sorter, INT_MIN, INT_MAX
+  sliceed_rule_ubyte rules(), "autosort", @.AutoSort, 0, slAutoSortLAST
   DIM sortNA as string
   IF .Parent = NULL ORELSE .Parent->AutoSort <> slAutoSortCustom THEN sortNA = " (N/A)"
   a_append menu(), " Custom sort order" & sortNA & ": " & .Sorter
+  sliceed_rule rules(), "sortorder", erIntgrabber, @.Sorter, INT_MIN, INT_MAX
  END IF
 
  sliceed_header menu(), rules(), "[Movement]", @ses.expand_movement
