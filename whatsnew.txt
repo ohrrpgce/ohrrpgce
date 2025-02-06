@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-February 14 2025 [Jocoserious]
+February 17 2025 [Jocoserious]
 
   *** New Features
     * Shift Tile tileset animation command. Non-animated uses likely! [Ralph]
