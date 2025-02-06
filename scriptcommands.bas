@@ -639,6 +639,9 @@ SUB script_commands(byval cmdid as integer)
     IF doequip(retvals(2), i, bound(retvals(1) - 1, 0, 4)) = NO THEN
      'This could fail because there is no room in the inventory for whatever item
      'is being unequipped
+     scriptret = 0
+    ELSE
+     scriptret = 1
     END IF
    END IF
   END IF

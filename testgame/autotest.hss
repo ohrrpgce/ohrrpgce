@@ -463,10 +463,25 @@ script, inventory tests, begin
   assert(get item(item:spamknif, 99) == true) # yes there is room for 99 of these
   assert(get item(item:spamknif, 3000) == false) # No, there will not be room for these
   assert(inventory(item:spamknif) == 2970)
-  
+  variable(who)
+  who := find hero(hero:Freki)
+  assert(force equip(who, slot:weapon, item:spamknif) == true) # Force Freki to use one of the spamknifes from the inventory
+  assert(inventory(item:spamknif) == 2969)
+  assert(force equip(who, slot:weapon, item:overflow) == true) # The previously equipped spamknife will go back to the inventory
+  assert(inventory(item:spamknif) == 2970)
+  assert(force equip(who, slot:weapon, item:overflow) == false) # There is no free slot for the currently equipped overflow sword that has to be removed to make room for the new overflow sword
   # Delete the items we filled the inventory with (some later tests expect an empty inventory)
   delete item(item:spamknif, inventory(item:spamknif))
   assert(inventory(item:spamknif) == 0)
+  # Force equip should also fail for an invalid item number, but we can't check that without throwing an error
+  #assert(force equip(who, slot:weapon, 99999999) == false)
+  # Force equip should also fail for an invalid hero party slot, but we can't check that without throwing an error
+  #assert(force equip(-5, slot:weapon, item:overflow) == false)
+  # Remove the overflow sword and delete it
+  unequip(who, slot:weapon)
+  assert(inventory(item:overflow) == 1)
+  delete item(item:overflow, 1)
+  assert(inventory(item:overflow) == 0)
   
 end
 

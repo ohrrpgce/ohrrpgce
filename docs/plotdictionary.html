@@ -7015,6 +7015,9 @@ gain hero stat(who, stat:mp, 0)</pre>
 				You can use the item's ID number or the <span class="code">item:name</span> constants from your .hsi file.
 				The item equipped will be deducted from your inventory,
 				but if you <span class="param">force equip</span> an item that you do not already have then a free copy of it will be created.
+				Returns true for success, or false for failure.
+				Can fail if there is no room in the inventory to put the item that has to
+				be unequipped to make room for the one you are force equipping.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					When a hero's equipment changes, their current HP and MP stats aren't updated.
