@@ -1,0 +1,5 @@
+This is the frame ID of the current frame. If the entered frame ID doesn't exist, the ID is displayed in a disabled color.
+
+Frames are arranged in groups, each group starts at an ID that's a multiple of 100.
+
+You should prefer to use frame IDs instead of frame indices because IDs don't change when frames are added or removed from other frame groups. For example, the first walkabout Down frame always has frame ID 200.

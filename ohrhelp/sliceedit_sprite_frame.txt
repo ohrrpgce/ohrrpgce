@@ -1,1 +1,5 @@
-This is the frame number within the current sprite set. Different sprite types have a different numbers of available frames, and some sprite types only allow a single frame.
+This is the frame index within the current sprite set. Different sprite types have a different numbers of available frames, and some sprite types only allow a single frame.
+
+Frames are arranged in groups, each group starts at a multiple of 100.
+
+You should prefer to use frame IDs instead of frame indices because IDs don't change when frames are added or removed from other frame groups. For example, the first walkabout Down frame always has frame ID 200.

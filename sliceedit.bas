@@ -137,6 +137,7 @@ TYPE SliceEditState
  show_positions as bool    'Display screen positions in the slice list?
  show_typenames as bool    'Display type names always
  privileged as bool        'Whether can edit properties that are normally off-limits. Non-user collections only.
+ update_if_cursor_moved as bool  'Detail menu: moving the cursor exits some temp editing state
 
  ' Internal state of lookup_code_grabber
  editing_lookup_name as bool
@@ -206,6 +207,7 @@ TYPE VariantType
  as_any as byte
 END TYPE
 
+'They say the purpose of this is lost on the criss-crossed paths of (git) history
 DIM SHARED dummyvar as VariantType
 
 '==============================================================================
@@ -250,6 +252,7 @@ CONST slgrEXTRA = 32768
 CONST slgrVELOCITY = 1 shl 16
 CONST slgrTARGET = 1 shl 17
 '--This system won't be able to expand forever ... :(
+CONST slgrFRAMEID = 1 shl 31
 
 '==============================================================================
 
@@ -1900,12 +1903,17 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
 
   IF ses.expand_meta AND benchmarking_draw_timer.smooth_updated THEN state.need_update = YES
 
+  usemenu_flag = usemenu(state)
+  IF ses.update_if_cursor_moved THEN
+   state.need_update = YES
+   ses.update_if_cursor_moved = NO
+  END IF
+
   IF state.need_update THEN
    slice_edit_detail_refresh ses, state, menu(), menuopts, sl, rules()
    state.need_update = NO
   END IF
 
-  usemenu_flag = usemenu(state)
   IF state.pt = 0 AND enter_space_click(state) THEN EXIT DO
   slice_edit_detail_keys ses, edslice, state, sl, rules(), usemenu_flag
 
@@ -2285,6 +2293,10 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, b
    SetSliceTarg sl, sl->Targ.X, sl->Targ.Y, sl->TargTicks
   END IF
  END IF
+ IF rule.group AND slgrFRAMEID THEN
+  'dataptr is only a temp var
+  sl->SpriteData->set_frameid(sl, *CAST(integer ptr, rule.dataptr))
+ END IF
 
  ' Special actions to take after some piece of data has been edited
  IF state.need_update THEN
@@ -2640,6 +2652,22 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
      IF nframes > 1 THEN
       a_append menu(), " Frame: " & dat->frame
       sliceed_rule rules(), "sprite_frame", erIntgrabber, @(dat->frame), 0, nframes - 1
+
+      'Edit the frameid temp var so you can select an invalid frameid. slgrFRAMEID sets the actual frameid
+      'if valid.
+      STATIC frameid as integer
+      DIM coltag as string
+      IF state.pt = UBOUND(rules) + 1 THEN
+       'Currently editing frameid as cursor points at the rules() index we're about to add
+       IF dat->find_frameid(sl, frameid, YES) = -1 THEN coltag = fgtag(uilook(uiSelectedDisabled))
+       ses.update_if_cursor_moved = YES
+      ELSE
+       'Reset to actual frameid
+       frameid = dat->get_frameid(sl)
+      END IF
+      a_append menu(), " Frame ID: " & coltag & frameid
+      sliceed_rule rules(), "sprite_frameid", erIntgrabber, @frameid, 0, 9999, slgrFRAMEID
+
      END IF
     END IF
     a_append menu(), " Transparent: " & yesorno(dat->trans)
