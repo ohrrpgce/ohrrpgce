@@ -104,11 +104,11 @@ type AnimationSet extends Object
 	' Recommended to call the animset_unload() wrapper instead, to zero out the pointer
 	declare virtual sub dereference()
 
-	declare function find_animation_idx(variantname as string, exact as bool = NO) as integer
+	declare function find_animation_idx(animvariant as string, exact as bool = NO) as integer
 	' Note find_animation does not increment refcount!
-	declare function find_animation(variantname as string, exact as bool = NO) as Animation ptr
+	declare function find_animation(animvariant as string, exact as bool = NO) as Animation ptr
 	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
-	declare sub delete_animation(variantname as string)
+	declare sub delete_animation(animvariant as string)
 	declare sub delete_all_animations(check_no_references as bool = NO)
 end type
 
@@ -153,7 +153,7 @@ declare function ms_to_frames(ms as integer) as integer
 declare function frames_to_ms(frames as integer) as integer
 
 declare sub animset_unload(pp as AnimationSet ptr ptr)
-declare sub split_variantname(variantname as string, byref animname as string, byref variant as string)
+declare sub split_animvariant(animvariant as string, byref animname as string, byref variant as string)
 
 declare sub spriteset_default_global_animations(byref animset as AnimationSet, sprtype as SpriteType)
 

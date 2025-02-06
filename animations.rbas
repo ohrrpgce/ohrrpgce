@@ -279,28 +279,28 @@ sub AnimationSet.delete_all_animations(check_no_references as bool = NO)
 	v_free animations
 end sub
 
-' variantname can contain a trailing space
-sub split_variantname(variantname as string, byref animname as string, byref variant as string)
-	dim spacepos as integer = instr(variantname, " ")
+' animvariant can contain a trailing space
+sub split_animvariant(animvariant as string, byref animname as string, byref variant as string)
+	dim spacepos as integer = instr(animvariant, " ")
 	if spacepos then
-		animname = left(variantname, spacepos - 1)
-		variant = mid(variantname, spacepos + 1)
+		animname = left(animvariant, spacepos - 1)
+		variant = mid(animvariant, spacepos + 1)
 	else
-		animname = variantname
+		animname = animvariant
 		variant = ""
 	end if
 end sub
 
 ' Searches for an animation with a certain name, or NULL if there's no match.
 ' If exact=YES, the variant must match exactly, otherwise looks for best match.
-' variantname is either just the name of the animation, or the
+' animvariant is either just the name of the animation, or the
 ' name plus an optional variant separated by a space, e.g. "walk upleft", "walk ", "walk".
 ' The nearest match is picked amongst animations which match the name:
 '  - prefer variant as specified
 '  - then prefer an animation with blank variant
 '  - then prefer the first animation (with that name)
-function AnimationSet.find_animation(variantname as string, exact as bool = NO) as Animation ptr
-	dim idx as integer = find_animation_idx(variantname, exact)
+function AnimationSet.find_animation(animvariant as string, exact as bool = NO) as Animation ptr
+	dim idx as integer = find_animation_idx(animvariant, exact)
 	if idx < 0 then
 		return NULL
 	else
@@ -308,9 +308,9 @@ function AnimationSet.find_animation(variantname as string, exact as bool = NO) 
 	end if
 end function
 
-function AnimationSet.find_animation_idx(variantname as string, exact as bool = NO) as integer
+function AnimationSet.find_animation_idx(animvariant as string, exact as bool = NO) as integer
 	dim as string name, variant
-	split_variantname variantname, name, variant
+	split_animvariant animvariant, name, variant
 
 	dim best_match as integer = -1
 	for idx as integer = 0 to v_len(animations) - 1
@@ -343,8 +343,8 @@ function AnimationSet.new_animation(name as string = "", variant as string = "")
 	return ret
 end function
 
-sub AnimationSet.delete_animation(variantname as string)
-	dim idx as integer = find_animation_idx(variantname, YES)  'exact=YES
+sub AnimationSet.delete_animation(animvariant as string)
+	dim idx as integer = find_animation_idx(animvariant, YES)  'exact=YES
 	if idx >= 0 then
 		animations[idx]->dereference()
 		v_delete_slice animations, idx, idx + 1
@@ -373,12 +373,12 @@ destructor AnimationState()
 end destructor
 
 ' Lookup an animation and start it. See AnimationSet.find_animation() for documentation
-' of variantname (animation name plus optional variant).
+' of animvariant (animation name plus optional variant).
 ' Normally an animation specifies how many times it loops (unimplemented), or ends in Repeat
 ' to loop forever. loopcount <> 0 overrides this, giving a fixed number of
 ' times to play, or < 0 to repeat forever
-sub AnimationState.start_animation(variantname as string, loopcount as integer = 0)
-	start_animation(sl->Animations->find_animation(variantname), loopcount)
+sub AnimationState.start_animation(animvariant as string, loopcount as integer = 0)
+	start_animation(sl->Animations->find_animation(animvariant), loopcount)
 end sub
 
 'OK for anim to be NULL

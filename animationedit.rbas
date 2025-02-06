@@ -89,7 +89,7 @@ type AnimationEditor
   declare sub rebuild_toplevel_menu()
   declare function cur_anim() as string
   declare function cur_anim_idx() as integer
-  declare function animation_info(variantname as string) as string
+  declare function animation_info(animvariant as string) as string
   declare sub new_animation()
   declare sub delete_animation()
   declare sub export_menu(anim_name as string)
@@ -146,10 +146,10 @@ function AnimationEditor.cur_anim() as string
   end if
 end function
 
-function AnimationEditor.animation_info(variantname as string) as string
-  if variantname = "" then return ""
+function AnimationEditor.animation_info(animvariant as string) as string
+  if animvariant = "" then return ""
   dim as string anim, variant
-  split_variantname variantname, anim, variant
+  split_animvariant animvariant, anim, variant
 
   dim ret as string
 
