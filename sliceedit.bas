@@ -716,6 +716,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   .highlight_selection = YES
   .no_scrollbar = YES  'We draw it ourselves, on the left
  END WITH
+ ses.picker.state.active = NO
 
  DIM cursor_seek as Slice Ptr = initial_slice
 
