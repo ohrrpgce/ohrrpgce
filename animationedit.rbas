@@ -179,6 +179,11 @@ end function
 sub AnimationEditor.toplevel()
   set_animation_framerate gen(genMillisecPerFrame)
 
+  'Temporarily move the slice
+  '(This is the same as what DrawSliceAt with ignore_offset=YES does, except it does it every frame)
+  DIM remem_pos as XYPair = sl->Pos
+  sl->Pos = 0
+
   rebuild_toplevel_menu
   ' (There may be no animations)
   animstate->start_animation(cur_anim())
@@ -245,6 +250,8 @@ sub AnimationEditor.toplevel()
     setvispage vpage
     dowait
   loop
+
+  sl->Pos = remem_pos
 
   set_animation_framerate 55  'Most of Custom runs at this framerate
 end sub

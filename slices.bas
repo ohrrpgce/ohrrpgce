@@ -4594,10 +4594,10 @@ End Sub
 
 '==Slice cloning===============================================================
 
-Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_special as bool = YES) as Slice ptr
- 'clone a duplicate of a slice and, if recurse=YES, all its children.
- 'copy_special: copy Special slices and lookup codes. .Protect bit not copied.
- 'The resulting clone is parentless
+'Duplicate a slice and, if recurse=YES, the whole tree. The resulting clone is parentless.
+'copy_special: copy Special slices and lookup codes. .Protect bit not copied.
+'find_slice: if find_slice is cloned, this variable is replaced with the new Slice ptr.
+Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_special as bool = YES, byref find_slice as Slice ptr = NULL) as Slice ptr
  if sl = NULL orelse sl->SliceType = slMap then return NULL
  dim clone as Slice Ptr
  '--Create another slice of the same type
@@ -4669,11 +4669,12 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
  dim ch_slice as Slice Ptr = sl->FirstChild
  dim ch_clone as Slice Ptr
  do while ch_slice <> 0
-  ch_clone = CloneSliceTree(ch_slice, YES, copy_special)
+  ch_clone = CloneSliceTree(ch_slice, YES, copy_special, find_slice)
   if ch_clone then SetSliceParent ch_clone, clone
   ch_slice = ch_slice->NextSibling
  loop
  '--return the clone
+ if find_slice andalso sl = find_slice then find_slice = clone
  return clone
 end function
 

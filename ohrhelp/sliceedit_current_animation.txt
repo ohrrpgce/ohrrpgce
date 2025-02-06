@@ -1,0 +1,4 @@
+Displays the name (including specific variant) of the current animation, if any, and lets you start an animation (ENTER/CLICK).
+Animations are paused while inside the slice editor, unless you explicitly preview them.
+
+When you (or the engine) starts an animation, you don't select the variant to play. The appropriate variant is selected based on the variant data for the slice. For example, if "right" = True, then "walk right" will usually be played when you play the "walk" animation, if there is a "walk right" animation.

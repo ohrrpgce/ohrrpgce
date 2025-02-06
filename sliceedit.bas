@@ -253,6 +253,8 @@ CONST slgrEXTRA = 32768
 CONST slgrVELOCITY = 1 shl 16
 CONST slgrTARGET = 1 shl 17
 '--This system won't be able to expand forever ... :(
+CONST slgrPREVIEWANIMATIONS = 1 shl 28
+CONST slgrEDITANIMATIONS = 1 shl 29
 CONST slgrPICKANIMATION = 1 shl 30
 CONST slgrFRAMEID = 1 shl 31
 
@@ -315,6 +317,7 @@ DECLARE SUB slice_editor_settings_menu(byref ses as SliceEditState, byref edslic
 DECLARE SUB slice_editor_save_settings(byref ses as SliceEditState)
 DECLARE SUB slice_editor_load_settings(byref ses as SliceEditState)
 DECLARE FUNCTION collection_context(edslice as Slice ptr) as SliceCollectionContext ptr
+DECLARE SUB slice_editor_preview_animations(byref ses as SliceEditState, slice_to_animate as Slice ptr = NULL)
 
 'Slice EditRule convenience functions
 DECLARE SUB sliceed_rule (rules() as EditRule, helpkey as zstring ptr, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
@@ -2307,6 +2310,20 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, b
    END IF
   END IF
  END IF
+#IFDEF IS_CUSTOM
+ IF rule.group AND slgrEDITANIMATIONS THEN
+  IF enter_space_click(state) THEN
+   animations_editor sl, sl->GetAnimations, acHeroSprite/'FIXME'/
+   state.need_update = YES
+  END IF
+ END IF
+#ENDIF
+ IF rule.group AND slgrPREVIEWANIMATIONS THEN
+  IF enter_space_click(state) THEN
+   ' If Shift is held, animate the whole slice collection, otherwise just that slice
+   slice_editor_preview_animations ses, IIF(keyval(scShift) > 0, NULL, sl)
+  END IF
+ END IF
  IF rule.group AND slgrFRAMEID THEN
   'dataptr is only a temp var
   sl->SpriteData->set_frameid(sl, *CAST(integer ptr, rule.dataptr))
@@ -2340,6 +2357,29 @@ FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
   'Editing an existing or a "<blank>" slice tree. Return ""
  END IF
 END FUNCTION
+
+SUB slice_editor_preview_animations(byref ses as SliceEditState, slice_to_animate as Slice ptr = NULL)
+ set_animation_framerate gen(genMillisecPerFrame)
+ DIM paused as bool
+
+ DIM newroot as Slice ptr = CloneSliceTree(ses.draw_root, , , slice_to_animate)
+ IF slice_to_animate = NULL THEN slice_to_animate = newroot
+ DO
+  setwait gen(genMillisecPerFrame)
+  setkeys
+  IF keyval(scP) > 1 THEN paused XOR= YES
+  IF keyval(ccCancel) > 1 ORELSE readmouse.release ORELSE enter_or_space() THEN EXIT DO
+  IF NOT paused THEN AdvanceSlice slice_to_animate
+  draw_background vpages(vpage), bgChequer
+  DrawSlice newroot, vpage
+  edgeprint "Enter/Esc/Click exit, P pause", pInfoX, pInfoY, uilook(uiMenuItem), vpage
+  setvispage vpage
+  dowait
+ LOOP
+ DeleteSlice @newroot
+
+ set_animation_framerate 55
+END SUB
 
 'Editor to visually edit an x/y position or width/height of some property of focussl
 '(not necessarily .Pos or .Size), or both at once.
@@ -2926,7 +2966,13 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
   ELSE
    a_append menu(), " Current animation: (none)"
   END IF
-  sliceed_rule_none rules(), "animation_name", slgrPICKANIMATION
+  sliceed_rule_none rules(), "current_animation", slgrPICKANIMATION
+  #IFDEF IS_CUSTOM
+   a_append menu(), " Edit animations..."
+   sliceed_rule_none rules(), "edit_animations", slgrEDITANIMATIONS
+  #ENDIF
+  a_append menu(), " Preview animations..."
+  sliceed_rule_none rules(), "preview_animations", slgrPREVIEWANIMATIONS
  END IF
 
  sliceed_header menu(), rules(), "[Metadata]", @ses.expand_meta
