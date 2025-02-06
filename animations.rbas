@@ -304,34 +304,26 @@ end sub
 '  - then prefer an animation with blank variant
 '  - then prefer the first animation (with that name)
 function AnimationSet.find_animation(animvariant as string, exact as bool = NO) as Animation ptr
-	dim idx as integer = find_animation_idx(animvariant, exact)
-	if idx < 0 then
-		return NULL
-	else
-		return animations[idx]
-	end if
-end function
-
-function AnimationSet.find_animation_idx(animvariant as string, exact as bool = NO) as integer
 	dim as string name, variant
 	split_animvariant animvariant, name, variant
 
-	dim best_match as integer = -1
+	dim as Animation ptr best_match, anim
 	for idx as integer = 0 to v_len(animations) - 1
-		if animations[idx]->name = name then
+		anim = animations[idx]
+		if anim->name = name then
 			' Right name, check how good the match is
-			if animations[idx]->variant = variant then
-				return idx        'Exact match
-			elseif len(animations[idx]->variant) = 0 then
-				best_match = idx  'Prefer nonvariant animations
+			if anim->variant = variant then
+				return anim        'Exact match
+			elseif len(anim->variant) = 0 then
+				best_match = anim  'Prefer nonvariant animations
 			elseif best_match = NULL then
-				best_match = idx  'Otherwise, default to the first variant
+				best_match = anim  'Otherwise, default to the first variant
 			end if
 		end if
 	next
 	if exact then
 		'Didn't find exact match
-		return -1
+		return NULL
 	else
 		return best_match
 	end if
@@ -348,10 +340,10 @@ function AnimationSet.new_animation(name as string = "", variant as string = "")
 end function
 
 sub AnimationSet.delete_animation(animvariant as string)
-	dim idx as integer = find_animation_idx(animvariant, YES)  'exact=YES
-	if idx >= 0 then
-		animations[idx]->dereference()
-		v_delete_slice animations, idx, idx + 1
+	dim anim as Animation ptr = find_animation(animvariant, YES)  'exact=YES
+	if anim then
+		anim->dereference()
+		v_remove animations, anim
 	end if
 end sub
 

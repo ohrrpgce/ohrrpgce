@@ -104,7 +104,6 @@ type AnimationSet extends Object
 	' Recommended to call the animset_unload() wrapper instead, to zero out the pointer
 	declare virtual sub dereference()
 
-	declare function find_animation_idx(animvariant as string, exact as bool = NO) as integer
 	' Note find_animation does not increment refcount!
 	declare function find_animation(animvariant as string, exact as bool = NO) as Animation ptr
 	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
