@@ -171,6 +171,10 @@ sub set_animation_framerate(ms as integer)
 	ms_per_frame = bound(ms, 5, 200)
 end sub
 
+function get_animation_framerate() as integer
+	return ms_per_frame
+end function
+
 function ms_to_frames(ms as integer) as integer
 	if ms <= 0 then return 0
 	return large(1, CINT(ms / ms_per_frame))  'Round to nearest

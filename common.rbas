@@ -237,6 +237,7 @@ TYPE SavedGfxIOState
  prev_mouse_vis as CursorVisibility
  vpages_were_32bit as bool
  resolution_was_unlocked as bool
+ anim_framerate as integer  'ms
  use_speed_control as bool
  vpage as integer
  dpage as integer
@@ -346,6 +347,7 @@ SUB push_and_reset_gfxio_state ()
    .resolution_was_unlocked = resolution_unlocked()
    unlock_resolution 320, 200
   #ENDIF
+  .anim_framerate = get_animation_framerate()
   .use_speed_control = use_speed_control
   use_speed_control = YES
   'Save vpage/dpage because some menus use compatpage, drawing to a view of vpage,
@@ -376,6 +378,7 @@ SUB pop_gfxio_state ()
     lock_resolution
    END IF
   #ENDIF
+  set_animation_framerate(.anim_framerate)
   use_speed_control = .use_speed_control
   vpage = .vpage
   dpage = .dpage

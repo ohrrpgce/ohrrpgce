@@ -149,6 +149,7 @@ end type
 
 
 declare sub set_animation_framerate(ms as integer)
+declare function get_animation_framerate() as integer
 declare function ms_to_frames(ms as integer) as integer
 declare function frames_to_ms(frames as integer) as integer
 
