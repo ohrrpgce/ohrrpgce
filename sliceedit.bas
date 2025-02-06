@@ -116,6 +116,7 @@ TYPE SliceEditState
  expand_special as bool
  expand_padding as bool
  expand_movement as bool
+ expand_animation as bool
  expand_extra as bool
  expand_sort as bool
  expand_meta as bool
@@ -252,6 +253,7 @@ CONST slgrEXTRA = 32768
 CONST slgrVELOCITY = 1 shl 16
 CONST slgrTARGET = 1 shl 17
 '--This system won't be able to expand forever ... :(
+CONST slgrPICKANIMATION = 1 shl 30
 CONST slgrFRAMEID = 1 shl 31
 
 '==============================================================================
@@ -1885,7 +1887,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
     DIM expand as bool
     expand = .expand_dimensions OR .expand_visible OR .expand_alignment OR _
              .expand_special OR .expand_padding OR .expand_movement OR .expand_sort OR _
-             .expand_meta OR .expand_extra
+             .expand_animation OR .expand_meta OR .expand_extra
     expand XOR= YES
     .expand_dimensions = expand
     .expand_visible = expand
@@ -1894,6 +1896,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
     .expand_padding = expand
     .expand_sort = expand
     .expand_movement = expand
+    .expand_animation = expand
     .expand_meta = expand
     .expand_extra = expand
    END WITH
@@ -2292,6 +2295,15 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, b
   'At most one of velocity and target can be set
   IF sl->TargTicks <> 0 THEN 'state.need_update THEN
    SetSliceTarg sl, sl->Targ.X, sl->Targ.Y, sl->TargTicks
+  END IF
+ END IF
+ IF rule.group AND slgrPICKANIMATION THEN
+  IF enter_space_click(state) THEN
+   DIM anim as string = prompt_animation_name("Animation to play?", acHeroSprite)
+   IF LEN(anim) THEN
+    sl->GetAnimState->start_animation(anim)
+    state.need_update = YES
+   END IF
   END IF
  END IF
  IF rule.group AND slgrFRAMEID THEN
@@ -2899,6 +2911,21 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
    a_append menu(), "  Target Y: " & .Targ.Y
    sliceed_rule rules(), "target", erIntgrabber, @.Targ.Y, -999999, 999999
   END IF
+ END IF
+
+ sliceed_header menu(), rules(), "[Animation]", @ses.expand_animation
+ IF ses.expand_animation THEN
+  a_append menu(), " EXPERIMENTAL!"
+  sliceed_rule_none rules(), "animations_experimental"
+
+  IF sl->AnimState ANDALSO sl->AnimState->anim THEN
+   WITH *sl->AnimState->anim
+    a_append menu(), " Current animation: " & RTRIM(.name & " " & .variant)
+   END WITH
+  ELSE
+   a_append menu(), " Current animation: (none)"
+  END IF
+  sliceed_rule_none rules(), "animation_name", slgrPICKANIMATION
  END IF
 
  sliceed_header menu(), rules(), "[Metadata]", @ses.expand_meta

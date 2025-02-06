@@ -1,0 +1,3 @@
+Animations are a work in progress.
+
+Any animations you create in the slice editor aren't saved, and neither is the currently playing animation.
