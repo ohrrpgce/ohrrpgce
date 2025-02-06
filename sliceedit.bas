@@ -319,6 +319,8 @@ DECLARE SUB slice_editor_load_settings(byref ses as SliceEditState)
 DECLARE FUNCTION collection_context(edslice as Slice ptr) as SliceCollectionContext ptr
 DECLARE SUB slice_editor_preview_animations(byref ses as SliceEditState, slice_to_animate as Slice ptr = NULL)
 
+DECLARE SUB edkit_slice_detail_menu (sl as Slice ptr, ses_draw_root as Slice ptr)
+
 'Slice EditRule convenience functions
 DECLARE SUB sliceed_rule (rules() as EditRule, helpkey as zstring ptr, mode as EditRuleMode, dataptr as integer ptr, lower as integer=0, upper as integer=0, group as integer = 0)
 'DECLARE SUB sliceed_rule_byte (rules() as EditRule, helpkey as zstring ptr, dataptr as byte ptr, lower as integer=0, upper as integer=127, group as integer = 0)
@@ -1906,6 +1908,14 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
    END WITH
    state.need_update = YES
   END IF
+
+  'Testing
+  #IFDEF IS_CUSTOM
+   IF keyval(scCtrl) ANDALSO keyval(scShift) ANDALSO keyval(scE) > 1 THEN
+    edkit_slice_detail_menu sl, ses.draw_root
+    state.need_update = YES
+   END IF
+  #ENDIF
 
   IF UpdateScreenSlice() THEN state.need_update = YES
 
@@ -3959,3 +3969,10 @@ SUB slice_editor_load_settings(byref ses as SliceEditState)
  'See above
  IF ses.recursive = NO THEN ses.show_root = read_config_bool("sliceedit.show_root2", YES)
 END SUB
+
+
+#IFDEF IS_CUSTOM
+
+#include "sliceedit_edkit.bas"
+
+#ENDIF
