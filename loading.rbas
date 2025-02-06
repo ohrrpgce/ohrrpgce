@@ -3895,7 +3895,9 @@ FUNCTION rgfx_load_global_animations(rgfxdoc as Doc ptr, loadinto as AnimationSe
   IF GetChildByName(root, "_animations") = NULL THEN RETURN NULL 'FIXME: temporary location
   IF loadinto = NULL THEN
     loadinto = NEW AnimationSet()
-    DEBUG_ANIM_CACHE(loadinto->debugname = "rgfxglobalanims")
+    'This name will be overridden by spriteset_load_global_animations_uncached, unless these are the
+    'global animations for some external .rgfx we're reading without caching.
+    loadinto->name = "Global animations for this .rgfx"
     loadinto->reference()
   END IF
   load_animations_node(root, loadinto)
@@ -3985,9 +3987,9 @@ FUNCTION rgfx_load_spriteset(rgfxdoc as DocPtr, sprtype as SpriteType, setnum as
   'Global animations
   IF cache_def_anims THEN
     'Get from/add to cache
-    sprset->global_animations = spriteset_load_global_animations(sprtype, rgfxdoc)
+    sprset->fallback_set = spriteset_load_global_animations(sprtype, rgfxdoc)
   ELSE
-    sprset->global_animations = rgfx_load_global_animations(rgfxdoc)
+    sprset->fallback_set = rgfx_load_global_animations(rgfxdoc)
   END IF
 
   RETURN fr

@@ -243,7 +243,7 @@ destructor AnimationSet()
 	'(The Animations can remain referenced, but the Frames might be gone)
 	delete_all_animations(YES)  'check_no_references = YES
 
-	animset_unload @global_animations
+	animset_unload @fallback_set
 end destructor
 
 ' Increment refcount.
@@ -251,7 +251,7 @@ function AnimationSet.reference() as AnimationSet ptr
 	' The SpriteSet.reference override should get called when refcount = NOREFC
 	BUG_IF(refcount = NOREFC, "Bad AnimationSet.refcount", @this)
 	refcount += 1
-	DEBUG_ANIM_CACHE(? "AnimationSet.reference(" & debugname & "): refc=" & refcount)
+	DEBUG_ANIM_CACHE(? "AnimationSet.reference(" & name & "): refc=" & refcount)
 	return @this
 end function
 

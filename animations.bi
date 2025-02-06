@@ -93,11 +93,13 @@ end type
 DECLARE_VECTOR_OF_TYPE(Animation ptr, Animation_ptr)
 
 type AnimationSet extends Object
-	refcount as integer         'If this is an SpriteSet, is set to NOREFC
+	refcount as integer        'If this is an SpriteSet, is set to NOREFC
 	animations as Animation ptr vector  'Owned reference to each Animation
-	global_animations as AnimationSet ptr  'The default animations for sprites of this type. May be NULL
-	                                       '(This counts as a reference)
-	DEBUG_ANIM_CACHE(debugname as string)
+	fallback_set as AnimationSet ptr  'AnimationSet to search after `animations`. E.g. the global animations
+	                                  'for sprites of this type. May be NULL.
+	                                  '(This counts as a reference)
+	name as string             'Identifies this set in the editor.
+	                           '(Normally blank in SpriteSet, possibly used for debugging)
 
 	declare destructor()
 	declare virtual function reference() as AnimationSet ptr

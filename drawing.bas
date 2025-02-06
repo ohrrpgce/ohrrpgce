@@ -5398,7 +5398,7 @@ SUB SpriteSetEditor.update_previews()
   create_preview ss->animations[idx], 1, idx
  NEXT
 
- DIM global as AnimationSet ptr = ss->global_animations
+ DIM global as AnimationSet ptr = ss->fallback_set
  IF global THEN
   FOR idx = 0 TO v_len(global->animations) - 1
    DIM name as string

@@ -10167,8 +10167,8 @@ function frame_load_uncached(sprtype as SpriteType, record as integer) as Frame 
 			if ret then
 				initialise_backcompat_pt_frameids ret, sprtype
 				sprset = new SpriteSet(ret)  'Attaches to ret
-				DEBUG_ANIM_CACHE(sprset->debugname = "SS" & sprtype & "_" & record)
-				sprset->global_animations = spriteset_load_global_animations(sprtype)
+				DEBUG_ANIM_CACHE(sprset->name = "SpriteSet " & sprtype & "_" & record)
+				sprset->fallback_set = spriteset_load_global_animations(sprtype)
 			end if
 		end if
 	end if
@@ -11949,7 +11949,7 @@ end function
 function spriteset_for_frame(fr as Frame ptr) as SpriteSet ptr
 	if fr->sprset then return fr->sprset
 	var ret = new SpriteSet(fr)
-	DEBUG_ANIM_CACHE(ret->debugname = "ssForFrame")
+	DEBUG_ANIM_CACHE(ret->name = "spriteset_for_frame")
 	return ret
 end function
 
@@ -11972,12 +11972,12 @@ local function spriteset_load_global_animations_uncached(sprtype as SpriteType, 
 			ret = loadinto
 		else
 			ret = new AnimationSet
-			DEBUG_ANIM_CACHE(ret->debugname = "defglobalanims" & sprtype)
 			' Result goes in the cache
 			ret->reference()
 		end if
 		spriteset_default_global_animations(*ret, sprtype)
 	end if
+	ret->name = sprite_sizes(sprtype).name & " global animations"
 	return ret
 end function
 
@@ -12038,7 +12038,7 @@ function SpriteSet.reference() as SpriteSet ptr
 	else
 		showbug "SpriteSet.reference(): no frames!"
 	end if
-	DEBUG_ANIM_CACHE(? "SpriteSet.reference(" & debugname & "): frames.refc=" & frames->refcount)
+	DEBUG_ANIM_CACHE(? "SpriteSet.reference(" & name & "): frames.refc=" & frames->refcount)
 	return @this
 end function
 
