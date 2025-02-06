@@ -411,9 +411,7 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
 
 
 #MACRO DEFINE_TYPE_TABLE(T, TID, CTOR_FUNC, COPYCTOR_FUNC, DTOR_FUNC, COMPARE_FUNC, INEQUAL_FUNC, HASH_FUNC, STR_FUNC, COPY_FUNC, DELETE_FUNC)
-  DIM type_table(TID) as TypeTable
-  'FB doesn't let you use function addresses in initialisers, considered non-constant
-  type_table(TID) = Type( _
+  DIM type_table(TID) as TypeTable = ( _
      sizeof(T),                     /'element_len'/          _
      PASS_BYVAL,                    /'passtype'/             _
      cast(FnCtor, CTOR_FUNC),       /'ctor'/                 _
@@ -475,6 +473,8 @@ DECLARE SUB array_to_vector OVERLOAD (byref vec as string vector, array() as str
 'These require dynamic arrays, of course. If the array is zero length, the array will be -1 TO -1
 DECLARE SUB vector_to_array OVERLOAD (array() as integer, byval vec as integer vector)
 DECLARE SUB vector_to_array OVERLOAD (array() as string, byval vec as string vector)
+
+DECLARE FUNCTION zstring_copy cdecl (byval p as zstring ptr) as zstring ptr
 
 
 #ENDIF

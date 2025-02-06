@@ -4271,6 +4271,144 @@ endTest
 
 #endif
 
+'----------------------------------------------------------------------
+'                         Interned strings
+
+' A HashTable that maps strings to themselves. Keys/values are zstring ptrs to allocated memory.
+dim shared interned_strings as HashTable
+' Identical keys/values as interned_strings, but the zstring ptrs are compared by value rather than content. No copying/freeing of memory
+dim shared interned_fast_lookup as HashTable
+
+init_intern_string()
+
+' Because the order in which module constructors (toplevel code) are called is
+' uncertain, call this from any module that calls intern_string at its toplevel.
+sub init_intern_string()
+  if interned_strings.constructed then exit sub
+
+  interned_strings.construct(509, type_table(zstring), YES, type_table(zstring), NO)
+  ' Prevent the table from calling zstring_copy on insertion because we want to call it ourselves.
+  ' (But we still want the table to clear
+  interned_strings.key_copy = NULL
+
+  ' Maybe safer to not delete the strings even at program exit. But then they appear as leaks.
+  ' Switch to the above construct() if using valgrind.
+  'interned_strings.construct(509, type_table(zstring), NO, type_table(zstring), NO)
+
+  interned_fast_lookup.construct(509)
+end sub
+
+'Convert a zstring ptr to a uinteger which can be used as a hash modulo a prime number
+#define zstr2int(zs) cast(integer, cast(intptr_t, zs))
+
+' Intern a string, that is, convert it to a unique zstring ptr with the
+' same content: returns the same zstring ptr if called twice.
+' Interned strings live forever in the global hash tables.
+' Calling intern_string on an already interned string is very fast (it does no
+' string comparisons or hashing).
+function intern_string(s as zstring ptr) as zstring ptr
+  dim gotfast as zstring ptr = interned_fast_lookup.get(zstr2int(s), NULL, s)
+  if gotfast then
+    assert(gotfast = s)
+    return s
+  end if
+
+  ' Then see whether there is an interned string with the same content.
+  dim ret as zstring ptr = interned_strings.get(s)
+  if ret then return ret
+
+  ret = zstring_copy(s)
+  interned_strings.set(ret, ret)
+  interned_fast_lookup.set(zstr2int(ret), ret, ret)
+
+  assert(interned_strings.get(s) = ret)
+  assert(interned_fast_lookup.get(zstr2int(ret), 0, ret) = ret)
+  'print "intern " & *s & " -> " & hex(ret)
+  return ret
+end function
+
+#ifdef __FB_MAIN__
+startTest(str_intern)
+  dim x as integer = 0
+  dim as zstring ptr a, a2, b, c
+  a = intern_string("a" & x)
+  b = intern_string("B....")
+  c = intern_string(@"c")
+  a2 = intern_string(@"a0")
+  if *a <> "a0" then fail
+  if *b <> "B...." then fail
+  if *c <> "c" then fail
+  if a <> a2 then fail
+  if a <> intern_string(a) then fail
+  if b <> intern_string(b) then fail
+  if c <> intern_string(c) then fail
+  if a = b then fail
+  if b = c then fail
+  if a = c then fail
+  if interned_fast_lookup.get(zstr2int(c), 0, c) <> c then fail
+  if interned_fast_lookup.get(zstr2int(@"c"), 0, @"c") <> NULL then fail
+  if interned_strings.numitems <> 3 then fail
+  if interned_fast_lookup.numitems <> 3 then fail
+endTest
+
+' Check that intern_string is faster than StrHashTable lookups as intended, only
+' (on already interned strings, it's actually only about 3x faster on x86_64, 5x on x86)
+startTest(str_intern_speed)
+  dim strings(999) as string
+  dim zstrings(999) as zstring ptr
+  for i as integer = 0 to 999
+    strings(i) = str(i) & "token"
+    zstrings(i) = strptr(strings(i))
+  next
+  ?""
+
+  dim strtable as StrHashTable
+  strtable.construct(509, type_table(integer), NO)
+
+  dim runtime as double
+
+  runtime = timer
+  for j as integer = 0 to 99
+    for i as integer = 0 to 999
+      dim found as integer = strtable.get_int(strings(i))
+      if found = 0 then
+        strtable.set(strings(i), 1 + i)
+      end if
+    next
+  next
+  runtime = timer - runtime
+  ?"StrHashTable in " & CINT(1e6 * runtime) & "us"
+
+  dim initkeys as integer = interned_strings.numitems
+  runtime = timer
+  dim numfound as integer = 0
+  for j as integer = 0 to 99
+    for i as integer = 0 to 999
+      dim found as zstring ptr = intern_string(zstrings(i))
+    next
+  next
+  runtime = timer - runtime
+  ?"intern_string uninterned in " & CINT(1e6 * runtime) & "us"
+  if interned_fast_lookup.numitems <> initkeys + 1000 then fail
+  if interned_strings.numitems <> initkeys + 1000 then fail
+
+  runtime = timer
+  for j as integer = 0 to 99
+    for i as integer = 0 to 999
+      dim found as zstring ptr = intern_string(zstrings(i))
+      zstrings(i) = found
+    next
+  next
+  runtime = timer - runtime
+  ?"intern_string intern in " & CINT(1e6 * runtime) & "us"
+
+  for i as integer = 0 to 999
+    if *zstrings(i) <> strings(i) then fail
+  next
+endTest
+#endif
+
+
 '------------- Old allmodex stuff -------------
 
 SUB array2str (arr() as integer, byval o as integer, dest as string)

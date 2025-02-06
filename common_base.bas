@@ -49,6 +49,8 @@ END SUB
 SUB showerror_internal (callsite as any ptr, msg as const zstring ptr, isfatal as bool = NO, isbug as bool = NO)
  IF isfatal THEN
   fatalerror msg
+ ELSEIF isbug THEN
+  print "(BUG) ERROR: " & *msg
  ELSE
   print *msg
  END IF
