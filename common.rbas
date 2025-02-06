@@ -6381,7 +6381,7 @@ END FUNCTION
 'sigfigs: the max number of digits for fractional values, not enforced for whole
 '    values (e.g. if sigfigs=2, this acts like intgrabber for values >= 100).
 '    No more than 7.
-'cyclic: wrap from from max straight to min, without. Mainly for angles.
+'cyclic: wrap from from max straight to min, without a hitch. Mainly for angles.
 '    (Even when false, still wraps on a new keypress)
 'Note: min and max are not in percent: max=1 is 100%
 FUNCTION percent_grabber(byref float as double, byref repr as string = "", min as double, max as double, sigfigs as integer = 4, ret_if_repr_changed as bool = YES, is_percent as bool = YES, cyclic as bool = NO) as bool

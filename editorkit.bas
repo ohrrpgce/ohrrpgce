@@ -360,7 +360,12 @@ sub EditorKit.finish_defitem()
 				select case .dtype
 					case dtypeBool:   caption = iif(value, "YES", "NO")
 					case dtypeInt:    caption = str(value)
-					case dtypeFloat:  caption = str(valuefloat)
+					case dtypeFloat:
+						if .is_percent then
+							caption = format_percent(valuefloat)
+						else
+							caption = format_float(valuefloat)
+						end if
 					case dtypeStr:    caption = valuestr
 				end select
 			end if
@@ -445,6 +450,8 @@ sub EditorKit.write_value()
 		select case as const .writer
 			case writerByte
 				*.byte_ptr = outvalue
+			case writerUByte
+				*.ubyte_ptr = outvalue
 			case writerBoolean
 				' FB booleans take value 0/-1 but are stored in
 				' memory as a 0/1 byte (to match a C/C++ bool)
@@ -461,6 +468,8 @@ sub EditorKit.write_value()
 				*.str_ptr = valuestr
 			case writerDouble
 				*.double_ptr = valuefloat
+			case writerSingle
+				*.single_ptr = valuefloat
 			case writerNodeInt
 				SetContent(.node, outvalue)
 			case writerNodeBool
@@ -732,6 +741,11 @@ sub EditorKit.defint(title as zstring ptr, byref datum as integer, min as intege
 	edit_int datum, min, max
 end sub
 
+sub EditorKit.defint(title as zstring ptr, byref datum as ubyte, min as integer = 0, max as integer)
+	defitem title
+	edit_int datum, min, max
+end sub
+
 sub EditorKit.defbool(title as zstring ptr, byref datum as bool)
 	defitem title
 	edit_bool datum
@@ -993,6 +1007,22 @@ function EditorKit.val_int(byref datum as integer) as integer
 	return value
 end function
 
+function EditorKit.val_int(byref datum as ubyte) as ubyte
+	value = datum
+	with cur_item
+		if .dtype = dtypeNone then
+			' Need to make sure we only do this once!
+			value += .offset
+		end if
+		.dtype = dtypeInt
+		if .writer = writerNone then
+			.writer = writerUByte
+			.ubyte_ptr = @datum
+		end if
+	end with
+	return datum 'value
+end function
+
 function EditorKit.val_bool(byref datum as bool) as bool
 	value = (datum <> 0)
 	with cur_item
@@ -1049,6 +1079,32 @@ function EditorKit.val_bitset(bitwords() as integer, wordnum as integer = 0, bit
 	return val_bit(bitwords(wordnum + bitnum \ 16), 1 shl (bitnum mod 16))
 end function
 
+function EditorKit.val_float(byref datum as double, is_percent as bool = YES) as double
+	valuefloat = datum
+	with cur_item
+		.dtype = dtypeFloat
+		if .writer = writerNone then
+			.writer = writerDouble
+			.double_ptr = @datum
+		end if
+		.is_percent = is_percent
+	end with
+	return datum
+end function
+
+function EditorKit.val_float(byref datum as single, is_percent as bool = YES) as single
+	valuefloat = datum
+	with cur_item
+		.dtype = dtypeFloat
+		if .writer = writerNone then
+			.writer = writerSingle
+			.single_ptr = @datum
+		end if
+		.is_percent = is_percent
+	end with
+	return datum
+end function
+
 function EditorKit.val_str(byref datum as string) as string
 	valuestr = datum
 	with cur_item
@@ -1056,18 +1112,6 @@ function EditorKit.val_str(byref datum as string) as string
 		if .writer = writerNone then
 			.writer = writerStr
 			.str_ptr = @datum
-		end if
-	end with
-	return datum
-end function
-
-function EditorKit.val_float(byref datum as double) as double
-	valuefloat = datum
-	with cur_item
-		.dtype = dtypeFloat
-		if .writer = writerNone then
-			.writer = writerDouble
-			.double_ptr = @datum
 		end if
 	end with
 	return datum
@@ -1281,6 +1325,15 @@ function EditorKit.edit_int(byref datum as integer, min as integer, max as integ
 	return edited
 end function
 
+function EditorKit.edit_int(byref datum as ubyte, min as integer, max as integer) as bool
+	val_int datum
+	if process then
+		edited or= intgrabber(value, min, max)
+		if edited then write_value
+	end if
+	return edited
+end function
+
 function EditorKit.edit_bool(byref datum as bool) as bool
 	val_bool datum
 	' Note: boolgrabber checks enter_space_click, and sets state.need_update
@@ -1309,6 +1362,28 @@ function EditorKit.edit_bitset(bitwords() as integer, wordnum as integer = 0, bi
 	val_bitset bitwords(), wordnum, bitnum
 	' It's simpler to reuse edit_bool than to create a method that uses bitsetgrabber
 	return edit_bool(value)
+end function
+
+' min and max are not in percent: max=1 is 100%
+' is_percent: Scale up by 100 for display
+' cyclic: wrap from from max straight to min, without a hitch. Mainly for angles.
+function EditorKit.edit_float(byref datum as double, min as double, max as double, sigfigs as integer = 4, is_percent as bool = YES, cyclic as bool = NO) as bool
+	val_float datum, is_percent
+	if process then
+		' We set edited=YES if the repr string changes but the value doesn't, so the menu gets updated
+		edited or= percent_grabber(valuefloat, "", min, max, sigfigs, YES, is_percent)
+		if edited then write_value
+	end if
+	return edited
+end function
+
+function EditorKit.edit_float(byref datum as single, min as double, max as double, sigfigs as integer = 4, is_percent as bool = YES, cyclic as bool = NO) as bool
+	val_float datum, is_percent
+	if process then
+		edited or= percent_grabber(valuefloat, "", min, max, sigfigs, YES, is_percent)
+		if edited then write_value
+	end if
+	return edited
 end function
 
 ' See also multiline_editable()

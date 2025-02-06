@@ -27,10 +27,12 @@ end enum
 enum EditorKitDataWriter
 	writerNone
 	writerByte
+	writerUByte
 	writerBoolean
 	writerBit
 	writerInt      'Includes bool
 	writerStr
+	writerSingle
 	writerDouble
 	writerNodeInt
 	writerNodeBool
@@ -53,8 +55,10 @@ type EditorKitItem
 	writer as EditorKitDataWriter
 	union
 		byte_ptr as byte ptr
+		ubyte_ptr as byte ptr
 		int_ptr as integer ptr
 		str_ptr as string ptr
+		single_ptr as single ptr
 		double_ptr as double ptr
 		node as Reload.Node ptr       'writerNode* only
 	end union
@@ -62,6 +66,7 @@ type EditorKitItem
 	whichbit as integer    'writerBit only: a bitmask
 	offset as integer      'dtypeInt only: amount to subtract from value before writing
 	inverted_bool as bool  'dtypeBool only: whether to invert value before writing
+	is_percent as bool     'dtypeFloat only: whether use format_percent (*100 with '%' suffix)
 
 	delete_default as bool 'writerNodePath* only: delete node if equal to default
 	' Default value of a missing node
@@ -237,7 +242,8 @@ type EditorKit extends ModularMenu
 	declare function defitem_act(title as zstring ptr) as bool
 	declare sub defunselectable(title as zstring ptr, color as integer = -eduiNote-1)
 	declare sub defdisabled(title as zstring ptr)
-	declare sub defint(title as zstring ptr, byref datum as integer, min as integer = 0, max as integer)
+	declare sub defint overload(title as zstring ptr, byref datum as integer, min as integer = 0, max as integer)
+	declare sub defint overload(title as zstring ptr, byref datum as ubyte, min as integer = 0, max as integer)
 	declare sub defbool overload(title as zstring ptr, byref datum as bool)
 	declare sub defbool overload(title as zstring ptr, byref datum as boolean)
 	declare sub defbitset(title as zstring ptr, bitwords() as integer, wordnum as integer = 0, bitnum as integer)
@@ -295,12 +301,14 @@ type EditorKit extends ModularMenu
 
 	' Primitive types
 	declare function val_int(byref datum as integer) as integer
+	declare function val_int(byref datum as ubyte) as ubyte
 	declare function val_bool overload(byref datum as bool) as bool
 	declare function val_bool overload(byref datum as boolean) as bool
 	declare function val_bit(byref bits as integer, whichbit as integer) as bool
 	declare function val_bitset(bitwords() as integer, wordnum as integer = 0, bitnum as integer) as bool
 	declare function val_str(byref datum as string) as string
-	declare function val_float(byref datum as double) as double
+	declare function val_float(byref datum as double, is_percent as bool = YES) as double
+	declare function val_float(byref datum as single, is_percent as bool = YES) as single
 
 	' Derived types
 	declare function val_str_enum(byref datum as string, options() as StringEnumOption) as string
@@ -322,14 +330,16 @@ type EditorKit extends ModularMenu
 	'---- Basic data editing (edit_*)
 
 	' Primitive types
-	declare function edit_int(byref datum as integer, min as integer, max as integer) as bool
+	declare function edit_int overload(byref datum as integer, min as integer, max as integer) as bool
+	declare function edit_int overload(byref datum as ubyte, min as integer, max as integer) as bool
 	declare function edit_bool overload(byref datum as bool) as bool
 	declare function edit_bool overload(byref datum as boolean) as bool
 	declare function edit_bit(byref bits as integer, whichbit as integer) as bool
 	declare function edit_bitset(bitwords() as integer, wordnum as integer = 0, bitnum as integer) as bool
+	declare function edit_float(byref datum as double, min as double, max as double, sigfigs as integer = 4, is_percent as bool = YES, cyclic as bool = NO) as bool
+	declare function edit_float(byref datum as single, min as double, max as double, sigfigs as integer = 4, is_percent as bool = YES, cyclic as bool = NO) as bool
 	declare function edit_str(byref datum as string, maxlen as integer = 0) as bool
 	' See also multiline_editable()
-	'declare function edit_float(byref datum as double, ...) as bool  'TODO
 
 	' Derived types
 	declare function edit_zint(byref datum as integer, min as integer, max as integer) as bool
