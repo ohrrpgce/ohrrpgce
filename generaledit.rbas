@@ -684,7 +684,7 @@ SUB PlatformOptionsEditor.define_items()
   defitem "Phone/Tablet Virtual Gamepad:"
   invert_bool
   edit_node_exists gen_root, "/mobile_options/disable_virtual_gamepad"
-  captions_bool "Disabled", "Enabled"
+  captions_yesno "Enabled", "Disabled"
 
   IF value THEN  'Virtual Gamepad enabled
     defitem "Hide V.Gamepad when player suspended:"
@@ -1446,7 +1446,7 @@ SUB AchievementsEditor.define_items()
 
     defitem "Achievements are:"
     edit_node_exists root, "/permanent"
-    captions_bool "Per saved-game", "Global and permanent"
+    captions_yesno "Global and permanent", "Per saved-game"
 
     section "Achievements"
     DIM ach as Node ptr = FirstChild(root, "achievement")
@@ -2127,7 +2127,7 @@ SUB GeneralSettingsMenu.define_items()
   END IF
 
   defint "Color depth:", gen(gen32bitMode), 0, 1
-  captions_bool "8-bit (limit to master palette)", "24-bit (true color)"
+  captions_yesno "24-bit (true color)", "8-bit (limit to master palette)"
 
   defint "Walk animation rate:", gen(genTicksPerWalkFrame), 0, 20
   IF refresh THEN
@@ -2194,7 +2194,7 @@ SUB GeneralSettingsMenu.define_items()
   IF defitem_act("Password For Editing...") THEN inputpasw
   defitem "Top-level thingbrowsers:"
   edit_config_bool "thingbrowser.enable_top_level", YES
-  captions_bool "NO (for slow computers)", "YES (recommended)"
+  captions_yesno "YES (recommended)", "NO (for slow computers)"
 
   '-------------------------
   section "Stats"

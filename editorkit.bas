@@ -786,7 +786,7 @@ sub EditorKit.caption_default_or_str(default_caption as zstring ptr = @"[default
 	end if
 end sub
 
-sub EditorKit.captions_bool(nocapt as zstring ptr, yescapt as zstring ptr)
+sub EditorKit.captions_yesno(yescapt as zstring ptr, nocapt as zstring ptr)
 	if refresh then
 		cur_item.caption = *iif(value, yescapt, nocapt)
 	end if

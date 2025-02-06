@@ -1184,7 +1184,7 @@ END SUB
 SUB ChoiceEditor.define_items()
  DIM byref box as TextBox = *boxp
  defbool "Choice:", box.choice_enabled
- captions_bool "Disabled", "Enabled"
+ captions_yesno "Enabled", "Disabled"
  IF value = NO THEN EXIT SUB
  FOR i as integer = 0 TO 1
   defstr "Option " & i & " text:", box.choice(i), 15

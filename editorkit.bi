@@ -249,7 +249,7 @@ type EditorKit extends ModularMenu
 	declare sub set_caption(caption as zstring ptr)
 	declare sub caption_default_or_int(default_value as integer = 0, default_caption as zstring ptr = @"Default")
 	declare sub caption_default_or_str(default_caption as zstring ptr = @"[default]")
-	declare sub captions_bool(nocapt as zstring ptr, yescapt as zstring ptr)
+	declare sub captions_yesno(yescapt as zstring ptr, nocapt as zstring ptr)
 	declare sub captions(captions_array() as string, invalid_thing as zstring ptr = @"value")
 	declare sub captionsz(captions_array() as zstring ptr, invalid_thing as zstring ptr = @"value")
 	declare sub captions_or_int(captions_array() as string)
