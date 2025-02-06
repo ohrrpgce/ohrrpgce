@@ -588,15 +588,6 @@ def indent(text, indentwith):
             lines.extend(item.split("\n"))
     return "\n".join((l if len(l) == 0 or l.startswith("#") else indentwith + l) for l in lines)
 
-def reload_HashZString(string):
-    """Returns the HashZString hash of a string"""
-    ret = 0
-    if len(string) % 2:
-        string += "\0"
-    for i in range(0, len(string), 2):
-        ret += (ret << 15) + ord(string[i]) + (ord(string[i+1]) << 8)
-    return 0xffffffff & ret
-
 
 READNODE_TEMPLATE = """\
 DIM {it} as NodePtr
@@ -1427,8 +1418,8 @@ class ReloadBasicFunction(object):
 
         if len(self.nodenames):
             out = "STATIC _nodenames(...) as RBNodeName => {%s}\n"
-            nodenames = ((self.global_scope.nameindex(name), reload_HashZString(name), name) for name in sorted(self.nodenames))
-            out = out % ", ".join('(%s, %s, @"%s")' % n for n in nodenames)
+            nodenames = ((self.global_scope.nameindex(name), name) for name in sorted(self.nodenames))
+            out = out % ", ".join('(%s, @"%s")' % n for n in nodenames)
             self.start_mark.write(out + "#line %d\n" % (start_lineno - 1))
 
 

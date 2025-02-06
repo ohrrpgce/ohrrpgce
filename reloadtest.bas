@@ -381,6 +381,34 @@ startTest(addNested)
 	if NumChildren(DocumentRoot(doc)) <> 9 then fail
 endTest
 
+startTest(serializeBin)
+	safekill "unittest.rld"
+
+	SerializeBin("unittest.rld", doc)
+
+	if not isfile("unittest.rld") then fail
+endTest
+
+startTest(loadDocument)
+	doc2 = LoadDocument("unittest.rld")
+	if doc2 = null then fail
+
+	dim root2 as NodePtr = DocumentRoot(doc2)
+	'DumpNodeTree DocumentRoot(doc)
+	'DumpNodeTree root2
+	if root2 = null then fail
+	' This tests that node names are interned while loading a doc
+	dim nod as NodePtr = GetChildByName(root2, "nestedTop")
+	if nod = null then fail
+	if CountChildren(nod, "level0") <> 1 then fail
+endTest
+
+startTest(freeDocumentDelay)
+	FreeDocument(doc2)
+	doc2 = 0
+	passed
+endTest
+
 startTest(helperFunctions)
 	dim nod as nodeptr = SetChildNode(DocumentRoot(doc), "helper")
 	SetContent(nod, 1)
@@ -762,17 +790,20 @@ startTest(nodeFindingSpeedTest3)
 	next
 endTest
 
-
-startTest(writeFile)
-	SerializeBin("unittest.rld", doc)
-	
-	if not isfile("unittest.rld") then fail
-endTest
-
 startTest(loadDocumentNoDelay)
+	SerializeBin("unittest.rld", doc)
+
+	if not isfile("unittest.rld") then fail
+
 	doc2 = LoadDocument("unittest.rld", optNoDelay)
-	
 	if doc2 = null then fail
+
+	' More difficult repeat of loadDocument tests:
+	dim root2 as NodePtr = DocumentRoot(doc2)
+	if root2 = null then fail
+	dim nod as NodePtr = GetChildByName(root2, "bigtree")
+	if nod = null then fail
+	if CountChildren(nod, "int") <> 10000 then fail
 endTest
 
 startTest(compareDocumentsNoDelay)
@@ -793,7 +824,7 @@ startTest(loadAndCompareDocumentsDelay)
 	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES, YES) = NO then fail
 endTest
 
-startTest(freeDocumentDelay)
+startTest(freeDocumentDelay2)
 	FreeDocument(doc2)
 	doc2 = 0
 	passed

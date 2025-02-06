@@ -19,23 +19,23 @@
 
 Namespace Reload
 
-Type hashFunction as Function(byval k as zstring ptr) as uinteger
+Declare Function AddStringToTable(name as zstring ptr, byval doc as DocPtr) as integer
+Declare Function FindStringInTable(interned_name as zstring ptr, byval doc as DocPtr) as integer
 
-Declare Function AddStringToTable (st as zstring ptr, byval doc as DocPtr) as integer
-Declare Function FindStringInTable overload(st as zstring ptr, byval doc as DocPtr) as integer
-
-Declare Function CreateHashTable(doc as DocPtr, hashFunc as hashFunction, numbuckets as integer = 65) as HashPtr
+Declare Function CreateHashTable(doc as DocPtr, numbuckets as integer = 61) as HashPtr
 Declare Sub DestroyHashTable(byval h as HashPtr)
-Declare Function FindItem(h as HashPtr, key as zstring ptr, copynumber as integer = 1) as intptr_t
-Declare Sub AddItem(h as HashPtr, key as zstring ptr, item as intptr_t)
-Declare Sub RemoveKey(byval h as HashPtr, byval key as zstring ptr, byval num as integer = 1)
+Declare Function FindItem(h as HashPtr, interned_key as zstring ptr, copynumber as integer = 1) as intptr_t
+Declare Sub AddItem(h as HashPtr, interned_key as zstring ptr, item as intptr_t)
+Declare Sub RemoveKey(byval h as HashPtr, byval interned_key as zstring ptr, byval num as integer = 1)
 
+'Convert a zstring ptr to a uinteger which can be used as a hash modulo a prime number
+#define zstr2int(zs) cast(uinteger, cast(intptr_t, zs))
 
-'I am aware of the hash table implementation in util.bas. However, this is tuned
-'for this purpose. Plus, I want everything contained on the private heap (if applicable)
+'Another hash table implementation... This one stores data in the RHeap private heap (if applicable),
+'except for the keys, which are globally interned strings.
 'NOTE: This is actually a multimap
 Type ReloadHashItem
-	key as zstring ptr 
+	key as zstring ptr  'An intern_string() result: compared by value
 	item as intptr_t  'Fits a pointer or an int
 	nxt as ReloadHashItem ptr
 End Type
@@ -45,7 +45,6 @@ Type ReloadHash
 	numBuckets as uinteger
 	numItems as uinteger
 	doc as DocPtr
-	hashFunc as hashFunction
 end Type
 
 
@@ -110,6 +109,7 @@ Sub RDeallocate(byval p as any ptr, byval doc as DocPtr)
 #endif
 End Sub
 
+/'
 'Fed a list of 132010 english words, this produced 131957 unique hashes.
 'The old hash produced only 1931 unique hashes
 'If this changes, reload_HashZString in reloadbasic.py needs to be updated too
@@ -124,11 +124,16 @@ Function HashZString(byval st as zstring ptr) as uinteger
 	
 	return ret
 end function
+'/
 
 'creates and initializes a blank document
 Function CreateDocument() as DocPtr
 	dim ret as DocPtr
-	
+
+	'CreateDocument gets called at the module level (in common.rbas)
+	'so someone need to call this.
+	init_intern_string
+
 	'Holy crap! allocating memory with malloc (and friends), and freeing it with delete?!
 	'never, ever do that! In this case, it probably didn't hurt anything, since Doc doesn't
 	'have a constructor or destructor. But, if it did... bad things! *shudder*
@@ -148,15 +153,14 @@ Function CreateDocument() as DocPtr
 
 		'The initial string table has one entry: ""
 		ret->strings = RCallocate(sizeof(StringTableEntry), ret)
-		ret->strings[0].str = RCallocate(1, ret)
-		*ret->strings[0].str = "" 'this is technically redundant.
+		ret->strings[0].str = intern_string("")
 		ret->numStrings = 1
 		ret->numAllocStrings = 1
-		ret->stringHash = CreateHashTable(ret, @HashZString)
+		ret->stringHash = CreateHashTable(ret)
 		ret->delayLoading = NO
 		ret->nameIndexTable = NULL
 		ret->nameIndexTableLen = 0
-		
+
 		'add the blank string to the hash
 		AddItem(ret->stringHash, ret->strings[0].str, 0)
 	end if
@@ -172,14 +176,14 @@ Function CreateNode(byval doc as DocPtr, nam as zstring ptr) as NodePtr
 	BUG_IF(doc = null, "no doc", null)
 
 	ret = RCallocate(sizeof(Node), doc)
-	
+
 	ret->doc = doc
-	
-	ret->namenum = AddStringToTable(nam, doc)
-	
+
+	ret->namenum = AddStringToTable(nam, doc)  'Interns nam
+
 	ret->name = doc->strings[ret->namenum].str
 	doc->strings[ret->namenum].uses += 1
-	
+
 	ret->nodeType = rltNull
 	ret->numChildren = 0
 	ret->children = null
@@ -193,10 +197,10 @@ Function CreateNode(byval nod as NodePtr, nam as zstring ptr) as NodePtr
 	return CreateNode(nod->doc, nam)
 end function
 
-'FIXME: the old name is never freed
+'TODO: update old name's .uses
 sub RenameNode(byval nod as NodePtr, newname as zstring ptr)
-	nod->namenum = AddStringToTable(newname, nod->doc)
-	
+	nod->namenum = AddStringToTable(newname, nod->doc)  'Interns newname
+
 	nod->name = nod->doc->strings[nod->namenum].str
 	nod->doc->strings[nod->namenum].uses += 1
 end sub
@@ -285,17 +289,14 @@ sub FreeDocument(byval doc as DocPtr)
 			FreeNode(doc->root)
 			doc->root = null
 		end if
-		
+
 		if doc->strings then
-			for i as integer = 0 to doc->numAllocStrings - 1
-				if doc->strings[i].str then
-					RDeallocate(doc->strings[i].str, doc)
-				end if
-			next
+			'Individual strings are not dealloc'd: they are interned in global memory
+			'and live forever.
 			RDeallocate(doc->strings, doc)
 			doc->strings = null
 		end if
-		
+
 		if doc->stringHash then
 			DestroyHashTable(doc->stringHash)
 			doc->stringHash = null
@@ -437,12 +438,11 @@ Sub LoadStringTable(byval vf as VFile ptr, byval doc as DocPtr)
 	
 	for i as integer = 1 to count
 		size = cint(ReadVLI(vf))
-		doc->strings[i].str = RCallocate(size + 1, doc)
-		dim zs as zstring ptr = doc->strings[i].str
+		dim name as string = space(size)
 		if size > 0 then
-			vfread(zs, 1, size, vf)
+			vfread(strptr(name), 1, size, vf)
 		end if
-		
+		doc->strings[i].str = intern_string(name)
 		AddItem(doc->stringHash, doc->strings[i].str, i)
 	next
 end sub
@@ -533,11 +533,11 @@ Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as 
 End Function
 
 'Internal function
-'Locates a string in the string table. If it's not there, returns -1
-Function FindStringInTable (st as zstring ptr, byval doc as DocPtr) as integer
-	if len(*st) = 0 then return 0
+'Locates a string (which must be interned with intern_string) in the string table. If it's not there, returns -1
+Function FindStringInTable(interned_name as zstring ptr, byval doc as DocPtr) as integer
+	if len(*interned_name) = 0 then return 0
 
-	dim ret as integer = FindItem(doc->stringhash, st)
+	dim ret as integer = FindItem(doc->stringhash, interned_name)
 
 	if ret = 0 then return -1
 	return ret
@@ -547,6 +547,8 @@ end function
 'Adds a string to the string table. If it already exists, return the index
 'If it doesn't already exist, add it, and return the new index
 Function AddStringToTable(name as zstring ptr, byval doc as DocPtr) as integer
+	name = intern_string(name)
+
 	dim ret as integer
 	ret = FindStringInTable(name, doc)
 	if ret <> -1 then
@@ -565,22 +567,23 @@ Function AddStringToTable(name as zstring ptr, byval doc as DocPtr) as integer
 			s[i].str = 0
 			s[i].uses = 0
 		next
-		
+
 		doc->strings = s
 		doc->numAllocStrings = doc->numAllocStrings * 2
 	end if
-	
+
 	ret = doc->numStrings
 	doc->numStrings += 1
-	doc->strings[ret].str = RCallocate(len(*name) + 1, doc)
-	*doc->strings[ret].str = *name
-	
-	AddItem(doc->stringHash, doc->strings[ret].str, ret)
+	doc->strings[ret].str = name
 
+	AddItem(doc->stringHash, name, ret)
 	return ret
 end function
 
 'RELOADBASIC internal function
+'Now that node names are interned strings, this is pretty unnecessary. All it effectively does
+'is map 32-bit constants (interned string pointers) to small known constants (nameindex's) so
+'that reloadbasic can use "select case as const" instead of "select case". Probably not worth it.
 sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval func_num as integer, byval func_bits_size as integer, byval signature as integer, byval total_num_names as integer)
 	'debug "BuildNameIndexTable, func_num = " & func_num & " doc->numStrings = " & doc->numStrings
 	dim allocated_table as bool = NO
@@ -620,10 +623,12 @@ sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval fu
 	for i as integer = 0 to ubound(nodenames)
 		with nodenames(i)
 			'This is most of FindItem
-			dim b as ReloadHashItem ptr = h->bucket[.hash mod h->numBuckets]
+			.name = intern_string(.name)
+
+			dim b as ReloadHashItem ptr = h->bucket[zstr2int(.name) mod h->numBuckets]
 
 			do while b
-				if *b->key = *.name then
+				if b->key = .name then
 					doc->nameIndexTable[cast(integer, b->item)] = .nameindex
 					'debug "RB: mapping string " & *.name & ", namenum=" & b->item & " nameidx=" & .nameindex
 					continue for
@@ -633,7 +638,7 @@ sub BuildNameIndexTable(byval doc as DocPtr, nodenames() as RBNodeName, byval fu
 
 			'The string isn't in the table. Add it so that nameIndexTable doesn't
 			'become invalid if it is added.
-			dim namenum as integer = AddStringToTable(*.name, doc)
+			dim namenum as integer = AddStringToTable(.name, doc)
 			'debug "RB: adding new string " & *.name & ", namenum=" & namenum & " nameidx=" & .nameindex
 			doc->nameIndexTable[namenum] = .nameindex
 		end with
@@ -1177,11 +1182,11 @@ sub DumpNodeTree(byval nod as NodePtr)
 	SerializeXML(nod, 0, YES, YES)
 end sub
 
-Function FindDescendentByName(byval nod as NodePtr, nam as zstring ptr) as NodePtr
+Private Function FindDescendentByInternedName(byval nod as NodePtr, nam as zstring ptr) as NodePtr
 	'recursively searches for a child by name, depth-first
 	'can also find self
 	if nod = null then return null
-	if *nod->name = *nam then return nod
+	if nod->name = nam then return nod
 	
 	if nod->flags AND nfNotLoaded then LoadNode(nod, YES)
 	
@@ -1189,26 +1194,30 @@ Function FindDescendentByName(byval nod as NodePtr, nam as zstring ptr) as NodeP
 	dim ret as NodePtr
 	child = nod->children
 	while child <> null
-		ret = FindDescendentByName(child, nam)
+		ret = FindDescendentByInternedName(child, nam)
 		if ret <> null then return ret
 		child = child->nextSib
 	wend
 	return null
 End function
 
+Function FindDescendentByName(byval nod as NodePtr, nam as zstring ptr) as NodePtr
+	return FindDescendentByInternedName(nod, intern_string(nam))
+end function
+
 Function GetChildByName(byval nod as NodePtr, byval nam as zstring ptr) as NodePtr
 	'Not recursive!
 	'does not find self.
 	if nod = null then return null
-	
+
 	if nod->flags AND nfNotLoaded then LoadNode(nod, NO)
 	dim child as NodePtr = nod->children
 
-	if nod->numChildren >= 10 then  'cutoff chosen with reloadtest speed tests
-		dim namenum as integer = FindItem(nod->doc->stringhash, nam)
+	if nod->numChildren >= 8 then  'I haven't bothered to pick optimal cutoff again
+		nam = intern_string(nam)
 
 		while child <> null
-			if child->namenum = namenum then return child
+			if child->name = nam then return child
 			child = child->nextSib
 		wend
 	else
@@ -1548,11 +1557,12 @@ Function ChildByIndex(byval parent as NodePtr, byval index as integer, byval wit
 	'This could be slow for long child lists, so don't use it unless you really need it
 	if parent = 0 then return 0
 	if parent->flags AND nfNotLoaded then LoadNode(parent, NO)
+	if withname then withname = intern_string(withname)
 	dim i as integer
 	dim ch as Node Ptr
 	ch = parent->children
 	do while ch
-		if withname = NULL orelse *ch->name = *withname then
+		if withname = NULL orelse ch->name = withname then
 			if i = index then return ch
 			i += 1
 		end if
@@ -1580,10 +1590,11 @@ end Function
 Function CountChildren(byval nod as NodePtr, byval withname as zstring ptr) as integer
 	if nod = null then return 0
 	if nod->flags AND nfNotLoaded then LoadNode(nod, NO)
+	withname = intern_string(withname)
 	dim count as integer = 0
 	dim ch as NodePtr = nod->children
 	while ch
-		if *ch->name = *withname then count += 1
+		if ch->name = withname then count += 1
 		ch = ch->nextSib
 	wend
 	return count
@@ -1846,7 +1857,9 @@ end function
 '                                Hash table for node names
 '==========================================================================================
 
-Function CreateHashTable(doc as DocPtr, hashFunc as hashFunction, numbuckets as integer) as ReloadHash ptr
+
+
+Function CreateHashTable(doc as DocPtr, numbuckets as integer) as ReloadHash ptr
 	dim ret as HashPtr = RCallocate(sizeof(ReloadHash), doc)
 	
 	with *ret
@@ -1854,7 +1867,6 @@ Function CreateHashTable(doc as DocPtr, hashFunc as hashFunction, numbuckets as 
 		.numBuckets = numbuckets
 		.numItems = 0
 		.doc = doc
-		.hashFunc = hashFunc
 	end with
 	
 	return ret
@@ -1876,18 +1888,19 @@ Sub DestroyHashTable(byval h as HashPtr)
 	RDeallocate(h, h->doc)
 end sub
 
+'interned_key must be interned with intern_string().
 'copynumber: which copy of the item to return. 1 is first, etc,
-Function FindItem(h as HashPtr, key as zstring ptr, copynumber as integer = 1) as intptr_t
-	if key = NULL then return 0
+Function FindItem(h as HashPtr, interned_key as zstring ptr, copynumber as integer = 1) as intptr_t
+	if interned_key = NULL then return 0
 
 	dim b as ReloadHashItem ptr
-	
-	dim hash as uinteger = h->hashFunc(key)
-	
+
+	dim hash as uinteger = zstr2int(interned_key)
+
 	b = h->bucket[hash mod h->numBuckets]
-	
+
 	do while b
-		if *b->key = *key then
+		if b->key = interned_key then
 			copynumber -= 1
 			if copynumber <= 0 then return b->item
 		end if
@@ -1897,17 +1910,18 @@ Function FindItem(h as HashPtr, key as zstring ptr, copynumber as integer = 1) a
 	return 0
 End Function
 
-Sub AddItem(h as HashPtr, key as zstring ptr, item as intptr_t)
-	dim hash as uinteger = h->hashFunc(key)
-	
+'interned_key must be interned with intern_string().
+Sub AddItem(h as HashPtr, interned_key as zstring ptr, item as intptr_t)
+	dim hash as uinteger = zstr2int(interned_key)
+
 	dim as ReloadHashItem ptr b, newitem = RCallocate(sizeof(ReloadHashItem), h->doc)
-	
-	newitem->key = key
+
+	newitem->key = interned_key
 	newitem->item = item
 	newitem->nxt = 0
-	
+
 	b = h->bucket[hash mod h->numBuckets]
-	
+
 	if b then
 		do while b->nxt
 			b = b->nxt
@@ -1918,16 +1932,18 @@ Sub AddItem(h as HashPtr, key as zstring ptr, item as intptr_t)
 	end if
 end Sub
 
-Sub RemoveKey(byval h as HashPtr, byval key as zstring ptr, byval num as integer)
+'Unused.
+'interned_key must be interned with intern_string().
+Sub RemoveKey(byval h as HashPtr, byval interned_key as zstring ptr, byval num as integer)
 	dim as ReloadHashItem ptr b, prev
-	
-	dim hash as uinteger = h->hashFunc(key)
-	
+
+	dim hash as uinteger = zstr2int(interned_key)
+
 	b = h->bucket[hash mod h->numBuckets]
-	
+
 	prev = 0
 	do while b
-		if *b->key = *key then
+		if b->key = interned_key then
 			if num <> -1 then
 				num -= 1
 				if num = 0 then

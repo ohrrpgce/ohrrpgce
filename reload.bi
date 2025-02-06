@@ -57,7 +57,10 @@ TYPE NodePtr as Node ptr
 	TYPE HashPtr as ReloadHash ptr
 	
 	Type StringTableEntry
-		str as zstring ptr
+		str as zstring ptr  'Interned with intern_string()
+		'TODO: uses is ignored and never decremented, so old node names
+		'are never freed from the string table or hash table, so any
+		'node name ever used gets written out in .reload files
 		uses as integer
 	End Type
 	
@@ -90,8 +93,8 @@ TYPE NodePtr as Node ptr
 	
 	TYPE Node
 		'name as string
-		name as zstring ptr
-		namenum as short   'in the string table, used while loading
+		name as zstring ptr  'Interned with intern_string()
+		namenum as short     'Index in the string table
 		nodeType as ubyte
 		Union 'this saves sizeof(Double) bytes per node!
 			num as longint
@@ -209,7 +212,6 @@ Declare Function DocumentMemoryUsage(byval doc as DocPtr) as longint
 
 	Type RBNodeName
 		nameindex as integer
-		hash as uinteger
 		name as zstring ptr
 	End Type
 
