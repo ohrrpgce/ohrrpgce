@@ -383,7 +383,7 @@ script, inventory tests, begin
 
   # Precondition: empty inventory
 
-  assert(get inventory size == 600)
+  assert(get inventory size == 30)
   variable(slot, lastslot)
   for (slot, 0, get inventory size -- 1) do (
     assert(item in slot(slot) == -1)
@@ -458,6 +458,16 @@ script, inventory tests, begin
   assert(inventory(item:Bulky) == 46)
   assert(item count in slot(2) == 3)
   delete item(item:Bulky, 46)
+
+  # Max out the inventory (was set to 10 rows, 30 slots)
+  assert(get item(item:spamknif, 99) == true) # yes there is room for 99 of these
+  assert(get item(item:spamknif, 3000) == false) # No, there will not be room for these
+  assert(inventory(item:spamknif) == 2970)
+  
+  # Delete the items we filled the inventory with (some later tests expect an empty inventory)
+  delete item(item:spamknif, inventory(item:spamknif))
+  assert(inventory(item:spamknif) == 0)
+  
 end
 
 ########################################################################

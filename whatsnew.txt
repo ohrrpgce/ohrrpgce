@@ -20,6 +20,8 @@ February 17 2025 [Jocoserious]
 
    * Plotscripting Features
     * "running on web" command
+    * "get item" now returns true on success and false if there was not
+      enough room in the inventory
 
   *** Bugfixes
     * It is now possible to re-enable any tag disabled battle menu item,

@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-02-02">
+<plotscript version="wip" datecode="2025-02-05">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -3428,7 +3428,7 @@ end</example>
 		<command id="getitem">
 			<canon>get item (item, number)</canon>
 			<shortname>get item</shortname>
-			<description>Adds the specified number of the specified item to your inventory. If you do not specify a number, only one will be added. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name</description>
+			<description>Adds the specified number of the specified item to your inventory. If you do not specify a number, only one will be added. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name. This command normally returns true, but it will return false if there was not room in the inventory to hold at least one of the items you werte trying to add.</description>
 		</command>
 		<command id="deleteitem">
 			<canon>delete item (item, number)</canon>
