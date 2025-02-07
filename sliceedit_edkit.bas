@@ -119,12 +119,12 @@ SUB SlicePropertiesEditor.define_items()
           defint "Border raw spriteset:", dat->raw_box_border, 0, gen(genMaxBoxBorder)   'slgrBROWSEBOXBORDER
           propkey "raw_box_border", "rect_raw_box_border"
         ELSE
-          defint " Border Style:", dat->border, -2, 14    'Enum
+          defint " Border Style:", CAST(integer, dat->border), -2, 14    'Enum
           captions_or_int BorderCaptions()
           propkey "border", "rect_border"
           'sliceed_rule_set_default  borderLine
         END IF
-        defint "Translucency:", dat->translucent, 0, transLAST
+        defint "Translucency:", CAST(integer, dat->translucent), 0, transLAST
         captions TransCaptions()
         propkey "trans", "rect_trans"
         IF dat->translucent = transFuzzy THEN
@@ -171,7 +171,7 @@ SUB SlicePropertiesEditor.define_items()
         DIM byref sizeinfo as SpriteSize = sprite_sizes(dat->spritetype)
         'DIM mintype as SpriteType = IIF(ses.collection_group_number = SL_COLLECT_EDITOR, sprTypeFrame, 0)
         DIM mintype as SpriteType = 0
-        defint "Sprite type:", dat->spritetype, mintype, sprTypeLastPickable   'slgrUPDATESPRITE
+        defint "Sprite type:", CAST(integer, dat->spritetype), mintype, sprTypeLastPickable   'slgrUPDATESPRITE
         set_caption sprite_sizes(dat->spritetype).name
         propkey "sprtype", "sprite_type"
         defint "Spriteset:", dat->record, 0, sizeinfo.lastrec   'slgrUPDATESPRITE OR slgrBROWSESPRITEID
