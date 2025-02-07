@@ -464,6 +464,8 @@ sub EditorKit.write_value()
 				end if
 			case writerInt  'Includes bool
 				*.int_ptr = outvalue
+			case writerLongint  'Including enums on 64-bit
+				*.longint_ptr = outvalue
 			case writerStr
 				*.str_ptr = valuestr
 			case writerDouble
@@ -741,6 +743,11 @@ sub EditorKit.defint(title as zstring ptr, byref datum as integer, min as intege
 	edit_int datum, min, max
 end sub
 
+sub EditorKit.defint(title as zstring ptr, byref datum as longint, min as integer = 0, max as integer)
+	defitem title
+	edit_int datum, min, max
+end sub
+
 sub EditorKit.defint(title as zstring ptr, byref datum as ubyte, min as integer = 0, max as integer)
 	defitem title
 	edit_int datum, min, max
@@ -1002,6 +1009,27 @@ function EditorKit.val_int(byref datum as integer) as integer
 		if .writer = writerNone then
 			.writer = writerInt
 			.int_ptr = @datum
+		end if
+	end with
+	return value
+end function
+
+' Only supports 32-bit values because 'value' is a 32-bit int, andI see no use for 64-bit ones
+function EditorKit.val_int(byref datum as longint) as integer
+	if value < INT_MIN orelse value > INT_MAX then
+		showerror "Editorkit: encountered unsupported 64-bit (larger than 32-bit) value, " & datum
+		return 0
+	end if
+	value = cast(integer, datum)
+	with cur_item
+		if .dtype = dtypeNone then
+			' Need to make sure we only do this once!
+			value += .offset
+		end if
+		.dtype = dtypeInt
+		if .writer = writerNone then
+			.writer = writerLongint
+			.longint_ptr = @datum
 		end if
 	end with
 	return value
@@ -1317,6 +1345,17 @@ end function
 '------------------------------- Primitive types -------------------------------
 
 function EditorKit.edit_int(byref datum as integer, min as integer, max as integer) as bool
+	val_int datum
+	if process then
+		edited or= intgrabber(value, min, max)
+		if edited then write_value
+	end if
+	return edited
+end function
+
+' datum must be a 32-bit value (even though intgrabber itself supports longints I can't see us
+' actually wanting to use them anywhere)
+function EditorKit.edit_int(byref datum as longint, min as integer, max as integer) as bool
 	val_int datum
 	if process then
 		edited or= intgrabber(value, min, max)

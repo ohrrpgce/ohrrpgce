@@ -31,6 +31,7 @@ enum EditorKitDataWriter
 	writerBoolean
 	writerBit
 	writerInt      'Includes bool
+	writerLongint  'For enums, but 32-bit values only
 	writerStr
 	writerSingle
 	writerDouble
@@ -57,6 +58,7 @@ type EditorKitItem
 		byte_ptr as byte ptr
 		ubyte_ptr as byte ptr
 		int_ptr as integer ptr
+		longint_ptr as longint ptr
 		str_ptr as string ptr
 		single_ptr as single ptr
 		double_ptr as double ptr
@@ -243,6 +245,7 @@ type EditorKit extends ModularMenu
 	declare sub defunselectable(title as zstring ptr, color as integer = -eduiNote-1)
 	declare sub defdisabled(title as zstring ptr)
 	declare sub defint overload(title as zstring ptr, byref datum as integer, min as integer = 0, max as integer)
+	declare sub defint overload(title as zstring ptr, byref datum as longint, min as integer = 0, max as integer)
 	declare sub defint overload(title as zstring ptr, byref datum as ubyte, min as integer = 0, max as integer)
 	declare sub defbool overload(title as zstring ptr, byref datum as bool)
 	declare sub defbool overload(title as zstring ptr, byref datum as boolean)
@@ -301,6 +304,7 @@ type EditorKit extends ModularMenu
 
 	' Primitive types
 	declare function val_int(byref datum as integer) as integer
+	declare function val_int(byref datum as longint) as integer  'Supports 32-bit values only
 	declare function val_int(byref datum as ubyte) as ubyte
 	declare function val_bool overload(byref datum as bool) as bool
 	declare function val_bool overload(byref datum as boolean) as bool
@@ -331,6 +335,7 @@ type EditorKit extends ModularMenu
 
 	' Primitive types
 	declare function edit_int overload(byref datum as integer, min as integer, max as integer) as bool
+	declare function edit_int overload(byref datum as longint, min as integer, max as integer) as bool  '32bit values only
 	declare function edit_int overload(byref datum as ubyte, min as integer, max as integer) as bool
 	declare function edit_bool overload(byref datum as bool) as bool
 	declare function edit_bool overload(byref datum as boolean) as bool
