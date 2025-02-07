@@ -513,8 +513,9 @@ type AnimationNamePicker extends ModularMenu
   selected_pt as integer  'Selected state.pt or -1 if cancelled
   names_list as AnimVariantInfo ptr
   anim_context as AnimationContext
+  add_none as bool
 
-  declare constructor(names_list as AnimVariantInfo ptr, anim_context as AnimationContext)
+  declare constructor(names_list as AnimVariantInfo ptr, anim_context as AnimationContext, add_none as bool = NO)
 
   declare function selected_index() as integer
   declare function selected_name() as string
@@ -525,11 +526,12 @@ type AnimationNamePicker extends ModularMenu
 end type
 
 ' (names_list is a static array, so passing it as a dynamic array is far more dangerous than passing by ptr)
-constructor AnimationNamePicker(names_list as AnimVariantInfo ptr, anim_context as AnimationContext)
+constructor AnimationNamePicker(names_list as AnimVariantInfo ptr, anim_context as AnimationContext, add_none as bool = NO)
   this.floating = YES
   this.menuopts.edged = YES
   this.names_list = names_list
   this.anim_context = anim_context
+  this.add_none = add_none
 end constructor
 
 sub AnimationNamePicker.update()
@@ -539,22 +541,29 @@ sub AnimationNamePicker.update()
   menu(0) = "Cancel"
   name_indices(0) = -1
 
-  for idx as integer = 0 to 9999
+  if add_none then
+   a_append menu(), "None"
+   a_append name_indices(), -2
+  end if
+
+  dim idx as integer = 0
+  do
     with names_list[idx]
-      if .name = NULL then exit for
+      if .name = NULL then exit do
       ' This name can be used in this context if the sprite type's context is a subset of the suitable ones
       if (.context and anim_context) <> 0 then
         a_append menu(), *.name
         a_append name_indices(), idx
       end if
     end with
-  next
+    idx += 1
+  loop
   state.pt = 1
   state.last = UBOUND(menu)
   selected_pt = -1
 end sub
 
-' Returns -1 if none/cancelled
+' Returns -1 if cancelled, -2 for added None option
 function AnimationNamePicker.selected_index() as integer
   if selected_pt < 0 then return -1
   return name_indices(selected_pt)
@@ -562,7 +571,9 @@ end function
 
 function AnimationNamePicker.selected_name() as string
   if selected_pt < 0 then return ""
-  return *names_list[name_indices(selected_pt)].name
+  var idx = name_indices(selected_pt)
+  if idx = -2 then return "(none)"
+  return *names_list[idx].name
 end function
 
 function AnimationNamePicker.each_tick() as bool
@@ -581,8 +592,8 @@ sub AnimationNamePicker.draw_underlays()
 end sub
 
 ' Prompt user for animation name and variant to add and add it
-function prompt_from_namelist(title as string, names_list as AnimVariantInfo ptr, helpkey as string, anim_context as AnimationContext) as string
-  var picker = AnimationNamePicker(names_list, anim_context)
+function prompt_from_namelist(title as string, names_list as AnimVariantInfo ptr, helpkey as string, anim_context as AnimationContext, add_none as bool = NO) as string
+  var picker = AnimationNamePicker(names_list, anim_context, add_none)
   picker.title = title
   picker.helpkey = helpkey
 
@@ -591,8 +602,9 @@ function prompt_from_namelist(title as string, names_list as AnimVariantInfo ptr
   return picker.selected_name()
 end function
 
-function prompt_animation_name(title as string, anim_context as AnimationContext) as string
-  return prompt_from_namelist(title, @builtin_animations(0), "pick_animation_name", anim_context)
+' Returns "" if cancelled, and if add_none, adds None option that returns "(none)"
+function prompt_animation_name(title as string, anim_context as AnimationContext, add_none as bool = NO) as string
+  return prompt_from_namelist(title, @builtin_animations(0), "pick_animation_name", anim_context, add_none)
 end function
 
 ' Returns "" if cancelled, "(none)" for a blank variant

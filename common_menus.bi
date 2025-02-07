@@ -29,7 +29,7 @@ DECLARE SUB edit_backcompat_bitsets()
 DECLARE SUB edit_battle_bitsets()
 DECLARE SUB edit_mouse_options ()
 
-DECLARE FUNCTION prompt_animation_name(title as string, anim_context as AnimationContext) as string
+DECLARE FUNCTION prompt_animation_name(title as string, anim_context as AnimationContext, add_none as bool = NO) as string
 DECLARE FUNCTION prompt_variant_name(title as string, anim_context as AnimationContext) as string
 
 'Globals

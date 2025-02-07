@@ -2312,9 +2312,15 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, b
   END IF
  END IF
  IF rule.group AND slgrPICKANIMATION THEN
-  IF enter_space_click(state) THEN
-   DIM anim as string = prompt_animation_name("Animation to play?", acHeroSprite)
+  IF keyval(scBackspace) > 1 ORELSE keyval(scDelete) > 1 THEN
+   IF sl->AnimState THEN
+    sl->AnimState->start_animation("")
+    state.need_update = YES
+   END IF
+  ELSEIF enter_space_click(state) THEN
+   DIM anim as string = prompt_animation_name("Animation to play?", acHeroSprite, YES)
    IF LEN(anim) THEN
+    'anim may be "(none)" which is not a valid name, and stops any current animation
     sl->GetAnimState->start_animation(anim)
     state.need_update = YES
    END IF
