@@ -297,36 +297,51 @@ end sub
 
 ' Searches for an animation with a certain name, or NULL if there's no match.
 ' If exact=YES, the variant must match exactly, otherwise looks for best match.
+' If recurse=YES, go through the chain of fallback_sets as if they were all concatenated.
 ' animvariant is either just the name of the animation, or the
 ' name plus an optional variant separated by a space, e.g. "walk upleft", "walk ", "walk".
 ' The nearest match is picked amongst animations which match the name:
 '  - prefer variant as specified
 '  - then prefer an animation with blank variant
 '  - then prefer the first animation (with that name)
-function AnimationSet.find_animation(animvariant as string, exact as bool = NO) as Animation ptr
+function AnimationSet.find_animation(animvariant as string, exact as bool = NO, recurse as bool = YES, byref _best_score as integer = 0) as Animation ptr
 	dim as string name, variant
 	split_animvariant animvariant, name, variant
 
-	dim as Animation ptr best_match, anim
+	dim as Animation ptr best_match, anim, best_fallback
 	for idx as integer = 0 to v_len(animations) - 1
 		anim = animations[idx]
 		if anim->name = name then
-			' Right name, check how good the match is
+			' Right name, check how good the match of variants is
+			dim score as integer
 			if anim->variant = variant then
+				_best_score = 1000
 				return anim        'Exact match
 			elseif len(anim->variant) = 0 then
-				best_match = anim  'Prefer nonvariant animations
-			elseif best_match = NULL then
-				best_match = anim  'Otherwise, default to the first variant
+				'Prefer nonvariant animations
+				score = 10
+			else
+				'Otherwise, default to the first variant
+				score = 1
+			end if
+			if exact = NO andalso _best_score < score then
+				best_match = anim
+				_best_score = score
 			end if
 		end if
 	next
-	if exact then
-		'Didn't find exact match
-		return NULL
-	else
-		return best_match
+	if recurse andalso fallback_set then
+		' When called recursively, returns null unless a better match
+		' than _best_score was found, which is updated.
+		best_fallback = fallback_set->find_animation(animvariant, exact, YES, _best_score)
+		if best_fallback then best_match = best_fallback
 	end if
+	return best_match
+end function
+
+' Get exactly this animvariant and do not recurse
+function AnimationSet.get_animation(animvariant as string) as Animation ptr
+	return find_animation(animvariant, YES, NO)
 end function
 
 ' Append a new blank animation and return pointer
@@ -340,7 +355,7 @@ function AnimationSet.new_animation(name as string = "", variant as string = "")
 end function
 
 sub AnimationSet.delete_animation(animvariant as string)
-	dim anim as Animation ptr = find_animation(animvariant, YES)  'exact=YES
+	dim anim as Animation ptr = get_animation(animvariant)
 	if anim then
 		anim->dereference()
 		v_remove animations, anim

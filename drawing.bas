@@ -5405,7 +5405,7 @@ SUB SpriteSetEditor.update_previews()
    WITH *global->animations[idx]
     name = .name & " " & .variant
    END WITH
-   IF ss->find_animation(name, YES) THEN  'exact=YES
+   IF ss->get_animation(name) THEN
     a_append(overridden_animations(), name)
    ELSE
     create_preview global->animations[idx], 2, colidx
