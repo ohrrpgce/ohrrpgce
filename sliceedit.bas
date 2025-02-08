@@ -290,7 +290,6 @@ DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref indent as
 DECLARE SUB slice_editor_invalidate_ptrs (byref ses as SliceEditState)
 DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice Ptr)
-DECLARE SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
 DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
 DECLARE SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Slice ptr, rootsl as Slice ptr, byref show_ants as bool, ctrl_msg as string = "", helpkey as string = "sliceedit_xy")
 DECLARE FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
@@ -1323,8 +1322,8 @@ FUNCTION slicemenu_hit_tester(state as MenuState, index as integer, pos as XYPai
 END FUNCTION
 
 FUNCTION slice_detail_menu_hit_tester(state as MenuState, index as integer, pos as XYPair) as bool
- DIM menu as string ptr = state.hit_test_data
- RETURN menutext_hit_tester(menu[index], state, index, pos)
+ DIM menuitems as BasicMenuItem vector = state.hit_test_data
+ RETURN menutext_hit_tester(menuitems[index].text, state, index, pos)
 END FUNCTION
 
 'Get the SliceCollectionContext in which shared data for this slice collection is stored
@@ -1850,6 +1849,20 @@ SUB slice_editor_paste(byref ses as SliceEditState, byval putbefore as Slice Ptr
  END IF
 END SUB
 
+'===============================================================================
+
+TYPE SliceDetailMenu
+ menuitems as BasicMenuItem vector
+
+ DECLARE CONSTRUCTOR()
+ DECLARE DESTRUCTOR()
+
+ DECLARE SUB convert_to_basicmenuitems(menu() as string)
+ DECLARE SUB sliceed_header(menu() as string, rules() as EditRule, text as string, dataptr as bool ptr = NULL, helpkey as zstring ptr = @"")
+ DECLARE SUB refresh (byref ses as SliceEditState, byref state as MenuState, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
+ DECLARE SUB add_blend_edit_rules(byref ses as SliceEditState, menu() as string, rules() as EditRule, drawopts as DrawOptions ptr)
+END TYPE
+
 'Editor for an individual slice
 SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice Ptr)
 
@@ -1860,7 +1873,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
 
  benchmarking_slice = sl
 
- REDIM menu(0) as string
+ DIM menuobj as SliceDetailMenu
  REDIM rules(0) as EditRule
 
  DIM state as MenuState
@@ -1870,7 +1883,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   .autosize = YES
   'Right-dragging the collection around (and other mouse editing in future) shouldn't select menu items
   .hit_test = @slice_detail_menu_hit_tester
-  .hit_test_data = @menu(0)  'Updated when menu() refreshed
+  .hit_test_data = menuobj.menuitems  'Updated when menu refreshed
  END WITH
  DIM menuopts as MenuOptions
  WITH menuopts
@@ -1928,7 +1941,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   END IF
 
   IF state.need_update THEN
-   slice_edit_detail_refresh ses, state, menu(), menuopts, sl, rules()
+   menuobj.refresh ses, state, menuopts, sl, rules()
    state.need_update = NO
   END IF
 
@@ -1958,7 +1971,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
 
   IF ses.hide_mode <> hideMenu THEN
    menuopts.drawbg = (ses.hide_mode <> hideMenuBG)
-   standardmenu menu(), state, , , dpage, menuopts
+   standardmenu menuobj.menuitems, state, , , dpage, menuopts
   END IF
 
   SWAP vpage, dpage
@@ -2512,8 +2525,28 @@ SUB sliceed_rule_tog(rules() as EditRule, helpkey as zstring ptr, dataptr as boo
  sliceed_rule rules(), helpkey, erToggleBoolean, cast(integer ptr, dataptr), -1, 0, group
 END SUB
 
-SUB sliceed_header(menu() as string, rules() as EditRule, text as string, dataptr as bool ptr = NULL, helpkey as zstring ptr = @"")
- a_append menu(), fgtag(uilook(eduiHeading), text)
+CONSTRUCTOR SliceDetailMenu()
+ v_new menuitems
+END CONSTRUCTOR
+
+DESTRUCTOR SliceDetailMenu()
+ v_free menuitems
+END DESTRUCTOR
+
+'This is called to incrementally convert more items from menu() to menuitems
+'(Similar to standard_to_basic_menu)
+SUB SliceDetailMenu.convert_to_basicmenuitems(menu() as string)
+ DIM start as integer = v_len(menuitems)
+ v_resize menuitems, UBOUND(menu) + 1
+ FOR i as integer = start TO v_len(menuitems) - 1
+  menuitems[i].text = menu(i)
+ NEXT
+END SUB
+
+SUB SliceDetailMenu.sliceed_header(menu() as string, rules() as EditRule, text as string, dataptr as bool ptr = NULL, helpkey as zstring ptr = @"")
+ a_append menu(), text
+ convert_to_basicmenuitems menu()
+ menuitems[UBOUND(menu)].col = findrgb(232,232,232)  'slightly darker than default uilook(eduiHeading)
  IF dataptr THEN
   sliceed_rule_tog rules(), helpkey, dataptr
  ELSE
@@ -2521,7 +2554,7 @@ SUB sliceed_header(menu() as string, rules() as EditRule, text as string, datapt
  END IF
 END SUB
 
-SUB sliceed_add_blend_edit_rules(byref ses as SliceEditState, menu() as string, rules() as EditRule, drawopts as DrawOptions ptr)
+SUB SliceDetailMenu.add_blend_edit_rules(byref ses as SliceEditState, menu() as string, rules() as EditRule, drawopts as DrawOptions ptr)
  WITH *drawopts
   a_append menu(), " Blending: " & iif(.with_blending, "Enabled", "Disabled")
   sliceed_rule_tog rules(), "blending", @(.with_blending)
@@ -2548,14 +2581,16 @@ SUB sliceed_add_blend_edit_rules(byref ses as SliceEditState, menu() as string, 
  END WITH
 END SUB
 
-SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuState, menu() as string, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
+SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuState, menuopts as MenuOptions, sl as Slice Ptr, rules() as EditRule)
  DIM prev_item as string
- IF state.pt <= UBOUND(menu) THEN prev_item = menu(state.pt)
+ IF state.pt < v_len(menuitems) THEN prev_item = menuitems[state.pt].text
 
+ v_resize menuitems, 0
  REDIM menu(0) as string
  REDIM rules(0) as EditRule
  rules(0).helpkey = @"detail"
  menu(0) = "Previous Menu"
+
  WITH *sl
 
  a_append menu(), "Slice type: " & SliceTypeName(sl)
@@ -2669,7 +2704,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
 
    CASE slMap
     DIM dat as MapSliceData ptr = .SliceData
-    sliceed_add_blend_edit_rules ses, menu(), rules(), @dat->drawopts
+    add_blend_edit_rules ses, menu(), rules(), @dat->drawopts
 
    CASE slLine
     DIM dat as LineSliceData ptr = .SliceData
@@ -2743,7 +2778,7 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
     a_append menu(), " Transparent: " & yesorno(dat->trans)
     sliceed_rule_tog rules(), "sprite_trans", @(dat->trans), slgrUPDATESPRITE
 
-    sliceed_add_blend_edit_rules ses, menu(), rules(), @dat->drawopts
+    add_blend_edit_rules ses, menu(), rules(), @dat->drawopts
 
     IF ses.privileged THEN
      'None of these actually need slgrUPDATESPRITE, but it's the right thing to do.
@@ -3024,9 +3059,10 @@ SUB slice_edit_detail_refresh (byref ses as SliceEditState, byref state as MenuS
 
  END WITH
 
- state.hit_test_data = @menu(0)  'Must be before init_menu_state
+ convert_to_basicmenuitems menu()
+ state.hit_test_data = menuitems  'Must be before init_menu_state
 
- init_menu_state state, menu(), menuopts
+ init_menu_state state, menuitems, menuopts
 
  'Try to find the previously selected setting back, since its index might have changed
  prev_item = LEFT(prev_item, INSTR(prev_item, ":"))
