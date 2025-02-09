@@ -354,8 +354,7 @@ function AnimationSet.new_animation(name as string = "", variant as string = "")
 	return ret
 end function
 
-sub AnimationSet.delete_animation(animvariant as string)
-	dim anim as Animation ptr = get_animation(animvariant)
+sub AnimationSet.delete_animation(anim as Animation ptr)
 	if anim then
 		anim->dereference()
 		v_remove animations, anim

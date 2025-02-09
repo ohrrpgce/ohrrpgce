@@ -110,7 +110,7 @@ type AnimationSet extends Object
 	declare function find_animation(animvariant as string, exact as bool = NO, recurse as bool = YES, byref _best_score as integer = 0) as Animation ptr
 	declare function get_animation(animvariant as string) as Animation ptr
 	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
-	declare sub delete_animation(animvariant as string)
+	declare sub delete_animation(anim as Animation ptr)
 	declare sub delete_all_animations(check_no_references as bool = NO)
 end type
 

@@ -3980,6 +3980,7 @@ FUNCTION rgfx_load_spriteset(rgfxdoc as DocPtr, sprtype as SpriteType, setnum as
 
   'Default palette
   fr->defpal = ss_node."defpal".default(-1)
+  sprset->name = sprite_sizes(sprtype).name & " spriteset " & setnum & " animations"
 
   'Animations, if they exist
   load_animations_node(ss_node, sprset)

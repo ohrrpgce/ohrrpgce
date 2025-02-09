@@ -4058,6 +4058,7 @@ Function Slice.GetAnimations() as AnimationSet ptr
  if this.Animations = NULL then
   this.Animations = new AnimationSet
   this.Animations->reference()
+  this.Animations->name = "Animations for this specific slice"
  end if
  return this.Animations
 end function

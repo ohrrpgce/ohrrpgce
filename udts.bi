@@ -212,6 +212,7 @@ END TYPE
 'For when a string array is too crude, but a MenuDef is overkill
 TYPE SimpleMenuItem EXTENDS BasicMenuItem
   dat as integer  'For your own use
+  datptr as any ptr
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(SimpleMenuItem, SimpleMenuItem)

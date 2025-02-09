@@ -11,7 +11,7 @@
 
 ' Export a certain animation as a looping gif
 ' (Would be nice if this didn't require a slice...)
-sub export_gif(sl as Slice ptr, fname as string, anim_name as string, transparent as bool = NO)
+sub export_gif(sl as Slice ptr, fname as string, anim as Animation ptr, transparent as bool = NO)
   BUG_IF(sl->SliceType <> slSprite, "require Sprite")
   LoadSpriteSliceImage sl
 
@@ -28,7 +28,7 @@ sub export_gif(sl as Slice ptr, fname as string, anim_name as string, transparen
   dim ms_remainder as integer = 0  'Left over wait ms due to rounding
 
   dim sprst as AnimationState ptr = sl->GetAnimState()
-  sprst->start_animation(anim_name, 1)  'Loop once
+  sprst->start_animation(anim, 1)  'Loop once
 
   ' Run until the first wait
   sprst->animate()
@@ -68,18 +68,18 @@ end sub
 ' This is separate from the spriteset editor because it will also be used by slices and even backdrops
 
 type AnimationEditor
-  animset as AnimationSet ptr
+  top_animset as AnimationSet ptr
   sl as Slice ptr
   animstate as AnimationState ptr  'Always equal to sl->AnimState, just a convenience
   anim_context as AnimationContext
   default_export_filename as string
 
-  declare constructor(sl as Slice ptr, animset as AnimationSet ptr, anim_context as AnimationContext)
+  declare constructor(sl as Slice ptr, top_animset as AnimationSet ptr, anim_context as AnimationContext)
   declare destructor()
 
   ' Top-level menu
-  topmenu(any) as string
   topstate as MenuState
+  topmenu as SimpleMenuItem vector
 
   ' Animation editing menu
   first_op_pt as integer
@@ -87,83 +87,118 @@ type AnimationEditor
 
   declare sub toplevel()
   declare sub rebuild_toplevel_menu()
-  declare function cur_anim() as string
+  declare function cur_animset() as AnimationSet ptr
+  declare function cur_anim() as Animation ptr
+  declare function cur_animname() as string
   declare function cur_anim_idx() as integer
-  declare function animation_info(animvariant as string) as string
+  declare function animation_info(anim as Animation ptr) as string
   declare sub new_animation()
   declare sub delete_animation()
-  declare sub export_menu(anim_name as string)
+  declare sub export_menu(anim as Animation ptr, anim_name as string)
 
   ' Individual animation editor
-  declare sub edit_animation(anim_name as string)
+  declare sub edit_animation(byref anim as Animation, anim_name as string)
   declare sub rebuild_animation_menu(byref menu as SimpleMenuItem vector, anim as Animation)
 
 end type
 
 sub animations_editor(sl as Slice ptr, animset as AnimationSet ptr, anim_context as AnimationContext, default_export_filename as string = "")
-  dim as AnimationEditor editor = AnimationEditor(sl, animset, anim_context)
+  ' Clone the slice because we're going to be causing changes to it, especially to AnimState
+  dim clone as Slice ptr = CloneSliceTree(sl)
+  dim as AnimationEditor editor = AnimationEditor(clone, animset, anim_context)
   editor.default_export_filename = default_export_filename
   editor.toplevel()
+  DeleteSlice @clone
 end sub
 
-constructor AnimationEditor(sl as Slice ptr, animset as AnimationSet ptr, anim_context as AnimationContext)
+constructor AnimationEditor(sl as Slice ptr, top_animset as AnimationSet ptr, anim_context as AnimationContext)
   this.sl = sl
   this.animstate = sl->GetAnimState()
-  this.animset = animset->reference()
+  this.top_animset = top_animset->reference()
   this.anim_context = anim_context
 end constructor
 
 destructor AnimationEditor()
-  animset_unload @animset
+  animset_unload @top_animset
 end destructor
 
-sub AnimationEditor.rebuild_toplevel_menu()
-  redim topmenu(-1 to -1) as string
-  topmenu(-1) = "Previous Menu"
-  for idx as integer = 0 to v_len(animset->animations) - 1
-    with *animset->animations[idx]
-      a_append topmenu(), RTRIM(.name + " " + .variant)
-    end with
-  next
-  a_append topmenu(), "Add new animation..."
+const mdatExit = 1
+const mdatNewAnim = 2
+const mdatAnim = 3
 
-  init_menu_state topstate, topmenu()
+sub AnimationEditor.rebuild_toplevel_menu()
+  v_new topmenu
+  append_simplemenu_item topmenu, "Previous Menu", , , mdatExit
+  dim animset as AnimationSet ptr = top_animset
+  while animset
+    append_simplemenu_item topmenu, "", YES  'Unselectable
+    append_simplemenu_item topmenu, animset->name, YES, uilook(eduiHeading)  'Unselectable
+
+    for idx as integer = 0 to v_len(animset->animations) - 1
+      with *animset->animations[idx]
+        append_simplemenu_item topmenu, rtrim(.name + " " + .variant), , , mdatAnim
+        v_end(topmenu)[-1].datptr = animset
+      end with
+    next
+    append_simplemenu_item topmenu, "Add new animation...", , , mdatNewAnim
+    v_end(topmenu)[-1].datptr = animset
+
+    animset = animset->fallback_set
+  wend
+
+  init_menu_state topstate, topmenu
 end sub
 
-' Get animset->animations index of selected animation, or -1
-function AnimationEditor.cur_anim_idx() as integer
-  if topstate.pt >= 0 andalso topstate.pt <> topstate.last then
-    return topstate.pt
-  else
-    return -1
-  end if
+' Also returns the AnimationSet on the "Add new animation" line
+function AnimationEditor.cur_animset() as AnimationSet ptr
+  return topmenu[topstate.pt].datptr
 end function
 
 ' Name of selected animation
-function AnimationEditor.cur_anim() as string
-  if topstate.pt >= 0 andalso topstate.pt <> topstate.last then
-    return topmenu(topstate.pt)
+function AnimationEditor.cur_animname() as string
+  if topmenu[topstate.pt].dat = mdatAnim then
+    return topmenu[topstate.pt].text
   end if
 end function
 
-function AnimationEditor.animation_info(animvariant as string) as string
-  if animvariant = "" then return ""
-  dim as string anim, variant
-  split_animvariant animvariant, anim, variant
+function AnimationEditor.cur_anim() as Animation ptr
+  if topmenu[topstate.pt].dat = mdatAnim then
+    return cur_animset->get_animation(topmenu[topstate.pt].text)
+  end if
+end function
+
+' Get animset->animations index of selected animation, or -1
+function AnimationEditor.cur_anim_idx() as integer
+  dim anim as Animation ptr = cur_anim
+  if anim then
+    dim animations as Animation ptr vector = cur_animset->animations
+    for idx as integer = 0 to v_len(animations) - 1
+      if anim = animations[idx] then return idx
+    next
+    showbug("Couldn't find animation from get_animation")
+  end if
+  return -1
+end function
+
+function AnimationEditor.animation_info(anim as Animation ptr) as string
+  if anim = NULL then return ""
 
   dim ret as string
 
   for idx as integer = 0 to 9999
     with builtin_animations(idx)
       if .name = NULL then exit for
-      if *.name = anim then ret &= "Animation " & fgtag(uilook(uiText), anim) & ": " & *.description & !"\n" : exit for
+      if *.name = anim->name then
+        ret &= "Animation " & fgtag(uilook(uiText), anim->name) & ": " & *.description & !"\n"
+        exit for
+      end if
     end with
   next
 
   for idx as integer = 0 to 9999
     with builtin_anim_variants(idx)
       if .name = NULL then exit for
-      if *.name = variant orelse (idx = 0 and variant = "") then
+      if *.name = anim->variant orelse (idx = 0 and anim->variant = "") then
         ret &= "Variant " & fgtag(uilook(uiText), *.name) & ": " & *.description & !"\n"
         exit for
       end if
@@ -192,41 +227,42 @@ sub AnimationEditor.toplevel()
     setwait gen(genMillisecPerFrame)
     setkeys
 
-    if keyval(scShift) = 0 andalso usemenu(topstate) then
+    if keyval(scShift) = 0 andalso usemenu(topstate, topmenu) then
       animstate->start_animation(cur_anim())
     end if
 
     if keyval(ccCancel) > 1 then exit do
     if keyval(scF1) > 1 then show_help "animation_editor"
-    if keyval(scX) > 1 and cur_anim() <> "" then
-      export_menu cur_anim()
+    if keyval(scX) > 1 and cur_animname() <> "" then
+      export_menu cur_anim(), cur_animname()
     elseif keyval(scInsert) > 1 or keyval(scPlus) > 1 or keyval(scNumpadPlus) > 1 then
-      new_animation()
+      if cur_animset then new_animation()
     elseif keyval(scDelete) > 1 then
       delete_animation()
     elseif keyval(scR) > 1 then
       animstate->reset()
     elseif enter_space_click(topstate) then
-      if topstate.pt = -1 then exit do
-      if topstate.pt = topstate.last then
-        new_animation()
-      else
-        edit_animation(cur_anim())
-        animstate->reset()
-        animstate->start_animation(cur_anim())
-      end if
-
+      select case topmenu[topstate.pt].dat
+          case mdatExit
+            exit do
+          case mdatNewAnim
+            new_animation()
+          case mdatAnim
+            edit_animation(*cur_anim(), cur_animname())
+            animstate->reset()
+            animstate->start_animation(cur_anim())
+      end select
     elseif keyval(scShift) > 0 andalso cur_anim_idx() >= 0 then
       ' Reorder animations
       dim anidx as integer = cur_anim_idx()
       dim shift as integer = 0
       if keyval(ccUp) > 1 and anidx > 0 then
         shift = -1
-      elseif keyval(ccDown) > 1 and anidx < v_len(animset->animations) - 1 then
+      elseif keyval(ccDown) > 1 and anidx < v_len(cur_animset->animations) - 1 then
         shift = 1
       end if
       if shift then
-        swap animset->animations[anidx], animset->animations[anidx + shift]
+        swap cur_animset->animations[anidx], cur_animset->animations[anidx + shift]
         topstate.pt += shift
         rebuild_toplevel_menu
         'animstate->start_animation(cur_anim())
@@ -246,10 +282,12 @@ sub AnimationEditor.toplevel()
 
     wrapprint animation_info(cur_anim()), pInfoX, pInfoY, uilook(uiMenuItem), vpage
     DrawSliceAt sl, pCentered, pBottom - 50, , , vpage
-    standardmenu topmenu(), topstate, , , vpage
+    standardmenu topmenu, topstate, , , vpage
     setvispage vpage
     dowait
   loop
+
+  v_free topmenu
 
   sl->Pos = remem_pos
 
@@ -257,25 +295,25 @@ sub AnimationEditor.toplevel()
 end sub
 
 ' For exporting a certain animation as a .gif
-sub AnimationEditor.export_menu(anim_name as string)
+sub AnimationEditor.export_menu(anim as Animation ptr, anim_name as string)
   dim choices(...) as string = { "Animated .gif", "Transparent animated .gif" }
   dim choice as integer = multichoice("Export `" & anim_name & "' animation how?", choices())
   if choice = -1 then exit sub
   dim filename as string = inputfilename("Filename?", ".gif", "", "", default_export_filename & " " & anim_name)
   if choice = 0 then
-    export_gif sl, filename & ".gif", anim_name  'FIXME
+    export_gif sl, filename & ".gif", anim  'FIXME
   elseif choice = 1 then
-    export_gif sl, filename & ".gif", anim_name, YES
+    export_gif sl, filename & ".gif", anim, YES
   end if
   ' Restart, since export_gif stops it
   sl->AnimState->start_animation(cur_anim())
 end sub
 
 sub AnimationEditor.delete_animation()
-  if cur_anim_idx() < 0 then exit sub
-  if yesno("Really delete animation `" & cur_anim() &"'? No undo!", NO) then
+  if cur_anim() = 0 then exit sub
+  if yesno("Really delete animation `" & cur_animname() &"'? No undo!", NO) then
     animstate->stop_animation()
-    animset->delete_animation(cur_anim())
+    cur_animset->delete_animation(cur_anim())
     rebuild_toplevel_menu  'Updates state.pt
   end if
 end sub
@@ -289,18 +327,18 @@ sub AnimationEditor.new_animation()
   if variant = "(none)" then variant = ""
   dim animvariant as string = rtrim(anim & " " & variant)
 
-  if animset->get_animation(animvariant) then
+  if cur_animset->get_animation(animvariant) then
     notification "An animation named `" & animvariant  & "' already exists"
     exit sub
   end if
 
-  animset->new_animation(anim, variant)
+  dim newanim as Animation ptr
+  newanim = cur_animset->new_animation(anim, variant)
 
   ' Go to the new animation
   rebuild_toplevel_menu
-  topstate.pt = UBOUND(topmenu) - 1
   correct_menu_state topstate
-  animstate->start_animation(animvariant)
+  animstate->start_animation(newanim)
 end sub
 
 
@@ -321,7 +359,7 @@ function format_ms(ms as integer) as string
   return ms_to_frames(ms) & " frame(s) (" & FORMAT(0.001 * ms, "0.000") & "sec)"
 end function
 
-sub AnimationEditor.rebuild_animation_menu(byref menu as SimpleMenuItem vector, anim as Animation)
+sub AnimationEditor.rebuild_animation_menu(byref menu as SimpleMenuItem vector, byref anim as Animation)
   v_new menu
   append_simplemenu_item menu, "Previous Menu", , , itemdatExit
   append_simplemenu_item menu, "Ops:", YES, uilook(eduiHeading)  'unselectable
@@ -372,13 +410,7 @@ function intgrabber_ms_as_frames(ms_node as NodePtr, minframes as integer, maxfr
 end function
 
 ' Edit a single animation
-sub AnimationEditor.edit_animation(anim_name as string)
-
-  dim byref anim as Animation = *animset->find_animation(anim_name)
-  if @anim = NULL then
-    visible_debug "Animation Editor: animation " & anim_name & " doesn't exist"
-    exit sub
-  end if
+sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
 
   dim menu as SimpleMenuItem vector
   rebuild_animation_menu menu, anim
@@ -488,11 +520,11 @@ sub AnimationEditor.edit_animation(anim_name as string)
         end if
       elseif play_anim then
         ' Play (may or may not loop)
-        animstate->start_animation(anim_name)
+        animstate->start_animation(@anim)
         animating = YES
       elseif loop_anim then
         ' Loop
-        animstate->start_animation(anim_name, -1)
+        animstate->start_animation(@anim, -1)
         animating = YES
       elseif reset_anim then
         ' Reset sprite
@@ -586,7 +618,7 @@ sub AnimationEditor.edit_animation(anim_name as string)
     init_menu_state cmdstate, cmds()
     dim menuopts as MenuOptions
     menuopts.edged = YES
-    standardmenu cmds(), cmdstate, 500 - 25 * 8 , pMenuY + 12, vpage, menuopts
+    standardmenu cmds(), cmdstate, rRight - 20 * 8 , pMenuY + 12, vpage, menuopts
 
     setvispage vpage
     dowait
