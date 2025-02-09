@@ -1,0 +1,3 @@
+This line shows whether this slice has any animations that are unique to it. A slice can share animations with other slices. For example, a each sprite slice can have its own animations, falling back to the animations from that spriteset, falling back to the animations for all sprites of that type.
+
+Press Enter/Click to edit the animations.

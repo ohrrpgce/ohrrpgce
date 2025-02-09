@@ -510,14 +510,16 @@ function AnimationState.animate_step() as bool
 			'anim_step = 0
 			anim_looplimit -= 1
 			return YES
-/'
 		case animOpSetOffset
+			/'
 			offset.x = curop."x"
 			offset.y = curop."y"
+			'/
 		case animOpRelOffset
+			/'
 			offset.x += curop."x"
 			offset.y += curop."y"
-'/
+			'/
 		case animOpPlayFrameGroup
 			if sl->SliceType <> slSprite then exit select  'Skip op
 

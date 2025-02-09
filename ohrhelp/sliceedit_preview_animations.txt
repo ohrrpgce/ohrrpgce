@@ -1,5 +1,5 @@
-Runs the current animations, if any, unless you press a key to exit the preview.
+Runs the current animations and movements, if any, until you press a key to exit the preview.
 
 Any changes made by the animations are reverted afterwards (in fact, a copy of the whole collection is made and animated).
 
-Only the current slice and all its descendents will be animated... unless you hold SHIFT when selecting it, then the whole collection animates.
+Only the current slice and all its descendents will be animated... unless you hold SHIFT when activating this menu item, then the whole collection animates. Otherwise, you'd need to preview animations on the root slice.

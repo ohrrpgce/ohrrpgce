@@ -2342,7 +2342,8 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, b
 #IFDEF IS_CUSTOM
  IF rule.group AND slgrEDITANIMATIONS THEN
   IF enter_space_click(state) THEN
-   animations_editor sl, sl->GetAnimations, acHeroSprite/'FIXME'/
+   ' Initialise a slice-specific AnimationSet. It won't actually be saved if empty.
+   animations_editor sl, sl->GetAnimations(YES), acHeroSprite/'FIXME'/
    state.need_update = YES
   END IF
  END IF
@@ -3007,7 +3008,7 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
 
  sliceed_header menu(), rules(), "[Animation]", @ses.expand_animation
  IF ses.expand_animation THEN
-  a_append menu(), " EXPERIMENTAL!"
+  a_append menu(), " EXPERIMENTAL! Read F1 help"
   sliceed_rule_none rules(), "animations_experimental"
 
   IF sl->AnimState ANDALSO sl->AnimState->anim THEN
@@ -3018,6 +3019,12 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
    a_append menu(), " Current animation: (none)"
   END IF
   sliceed_rule_none rules(), "current_animation", slgrPICKANIMATION
+  IF sl->Animations ANDALSO sl->Animations->slice_specific THEN
+   a_append menu(), " Has " & v_len(sl->Animations->animations) & " custom animations"
+  ELSE
+   a_append menu(), " Has no custom animations"
+  END IF
+  sliceed_rule_none rules(), "num_custom_animations", slgrEDITANIMATIONS  'slgrEDITANIMATIONS does nothing in Game
   #IFDEF IS_CUSTOM
    a_append menu(), " Edit animations..."
    sliceed_rule_none rules(), "edit_animations", slgrEDITANIMATIONS

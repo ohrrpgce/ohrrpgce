@@ -1,3 +1,9 @@
-Animations are a work in progress.
+Animations are a work in progress for jocoserious.
 
-Any animations you create in the slice editor aren't saved, and neither is the currently playing animation.
+Animations can't be used in-game.
+
+There is no way yet to control which variant of an animation is played (soon you'll be able to define slice "variant data" for that).
+
+Animations you create (in the slice or sprite editors) are now saved, but only to temporary locations, and will all be wiped when animations are finalised. 
+
+The currently playing animation isn't saved.

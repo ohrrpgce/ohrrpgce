@@ -98,6 +98,7 @@ type AnimationSet extends Object
 	fallback_set as AnimationSet ptr  'AnimationSet to search after `animations`. E.g. the global animations
 	                                  'for sprites of this type. May be NULL.
 	                                  '(This counts as a reference)
+	slice_specific as bool     'True if this AnimationSet is for a specific slice rather than some fallback set
 	name as string             'Identifies this set in the editor.
 	                           '(Normally blank in SpriteSet, possibly used for debugging)
 

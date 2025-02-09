@@ -356,9 +356,9 @@ Type Slice
   TargResidue as Float2    'Not saved
   TargTicks as integer
 
-  Animations as AnimationSet ptr   'NULL until GetAnimations() is called. Currently a reference to spriteset
-                                   'animations, in future may be a separate set
-  Declare Function GetAnimations() as AnimationSet ptr
+  Animations as AnimationSet ptr   'NULL until GetAnimations() is called. Can be a reference to either
+                                   'slice_specific or shared (e.g. spriteset) animations.
+  Declare Function GetAnimations(slice_specific as bool = NO) as AnimationSet ptr
   AnimState as AnimationState ptr  'NULL until GetAnimState() is called. TODO: Not yet saved, but should be
   Declare Function GetAnimState() as AnimationState ptr
 
