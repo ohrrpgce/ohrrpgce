@@ -9,7 +9,7 @@ if [ -n "True" ] ; then
   echo "To: cron@rpg.hamsterrepublic.com"
   echo "Subject: OHRRPGCE Mac nightly build ($(uname -n))"
   echo ""
-  # Make sure whave the lates mac distrib script
+  # Make sure whave the latest mac distrib script
   # everything else is done in a different folder
   svn cleanup
   svn update --trust-server-cert-failures=unknown-ca --non-interactive distrib-nightly-mac.sh nightly
