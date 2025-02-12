@@ -288,7 +288,6 @@ DECLARE SUB slice_editor_refresh (byref ses as SliceEditState, edslice as Slice 
 DECLARE SUB slice_editor_refresh_append (byref ses as SliceEditState, id as SliceMenuItemID, caption as string, sl as Slice ptr = 0, indent as integer = 0, icon_group_x as integer = 0)
 DECLARE SUB slice_editor_refresh_recurse (ses as SliceEditState, byref indent as integer, edslice as Slice Ptr, sl as Slice Ptr, hidden_slice as Slice Ptr)
 DECLARE SUB slice_editor_invalidate_ptrs (byref ses as SliceEditState)
-DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
 DECLARE SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as Slice Ptr)
 DECLARE SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, byref state as MenuState, sl as Slice Ptr, rules() as EditRule, usemenu_flag as bool)
 DECLARE SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Slice ptr, rootsl as Slice ptr, byref show_ants as bool, ctrl_msg as string = "", helpkey as string = "sliceedit_xy")
@@ -2070,6 +2069,8 @@ SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
   IF dataptr = @.SliceType THEN
    .CoverChildren AND= SliceLegalCoverModes(sl)
   END IF
+
+  'When adding anything here, may want to call this sub from set_slice_property
 
  END WITH
 END SUB

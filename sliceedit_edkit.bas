@@ -25,7 +25,7 @@ TYPE SlicePropertiesEditor EXTENDS EditorKit
   DECLARE CONSTRUCTOR(sl as Slice ptr, ses_draw_root as Slice ptr)
   DECLARE SUB define_items()
   DECLARE SUB add_blend_items(byref drawopts as DrawOptions)
-  DECLARE SUB propkey(prop as zstring ptr, helpkey as zstring ptr = NULL)
+  DECLARE SUB propkey(prop as zstring ptr, helpkey as zstring ptr = NULL, animkey as zstring ptr = NULL)
   DECLARE SUB caption_slice_color(ifzero as string = "0")
 
   DECLARE SUB draw_underlays()
@@ -37,7 +37,7 @@ END SUB
 
 ' key is the Reload node name used (by SaveProp) to save this slice property to .slices files.
 ' It's very often equal to the help key.
-SUB SlicePropertiesEditor.propkey(prop as zstring ptr, helpkey as zstring ptr = NULL)
+SUB SlicePropertiesEditor.propkey(prop as zstring ptr, helpkey as zstring ptr = NULL, animkey as zstring ptr = NULL)
   set_helpkey "sliceedit_" & *IIF(helpkey, helpkey, prop)
 END SUB
 
@@ -106,10 +106,10 @@ SUB SlicePropertiesEditor.define_items()
         propkey "style", "rect_style"
         defint "Background color:", dat->bgcol, LowColorCode(), 255  'slgrUPDATERECTCUSTOMSTYLE OR slgrPICKCOL
         caption_slice_color
-        propkey "bg", "rect_bg"
+        propkey "bg", "rect_bg", "bgcol"
         defint "Foreground (line) color:", dat->fgcol, LowColorCode(), 255  'slgrUPDATERECTCUSTOMSTYLE OR slgrPICKCOL
         caption_slice_color
-        propkey "fg", "rect_fg"
+        propkey "fg", "rect_fg", "col"
         'TODO: Line and None should be border types, not appear under Box Style
         'defbool "Border type", dat->use_raw_box_border   'slgrUPDATERECTCUSTOMSTYLE
         'captions_yesno "Box Style/Line/None", "Spriteset"
@@ -126,7 +126,7 @@ SUB SlicePropertiesEditor.define_items()
         END IF
         defint "Translucency:", dat->translucent, 0, transLAST
         captions TransCaptions()
-        propkey "trans", "rect_trans"
+        propkey "trans", "rect_trans", "translucent"
         IF dat->translucent = transFuzzy THEN
           defint "Fuzziness%:", dat->fuzzfactor, 0, 99
           propkey "fuzzfactor", "rect_fuzzfact"
@@ -233,10 +233,10 @@ SUB SlicePropertiesEditor.define_items()
         dat = .SliceData
         defint "Border Color:", dat->bordercol, LowColorCode(), 255   'slgrPICKCOL
         caption_slice_color "Transparent"
-        propkey "bordercol"
+        propkey "bordercol", , "col"
         defint "Fill Color:", dat->fillcol, LowColorCode(), 255   'slgrPICKCOL
         caption_slice_color "Transparent"
-        propkey "fillcol"
+        propkey "fillcol", , "bgcol"
 
       CASE slScroll
         DIM dat as ScrollSliceData Ptr
@@ -295,7 +295,7 @@ SUB SlicePropertiesEditor.define_items()
         propkey "cell_align", "layout_cell_alignment"
         'IF dat->justified THEN ... " Minimum within-row padding" & dat->primary_padding
         defint "Within-row padding:", dat->primary_padding, -9999, 9999
-        propkey "padding0", "layout_primary_padding"
+        propkey "padding0", "layout_primary_padding", "padding"
         defint "Between-row padding:", dat->secondary_padding, -9999, 9999
         propkey "padding1", "layout_secondary_padding"
         defint "Min row thickness:", dat->min_row_breadth, 0, 9999

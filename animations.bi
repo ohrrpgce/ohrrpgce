@@ -156,6 +156,8 @@ declare function get_animation_framerate() as integer
 declare function ms_to_frames(ms as integer) as integer
 declare function frames_to_ms(frames as integer) as integer
 
+declare sub set_slice_property(sl as SliceFwd ptr, prop as zstring ptr, datnode as Reload.NodePtr)
+
 declare sub animset_unload(pp as AnimationSet ptr ptr)
 declare sub split_animvariant(animvariant as string, byref animname as string, byref variant as string)
 

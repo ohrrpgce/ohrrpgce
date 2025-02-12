@@ -11,6 +11,8 @@
 #include "reload.bi"
 #include "slices.bi"
 #include "loading.bi"
+#include "sliceedit.bi"
+#include "slice_propnames.bi"
 
 using Reload
 
@@ -20,6 +22,10 @@ dim shared ms_per_frame as integer = 55
 ' A single global document for all Animation.opsnode RELOAD nodes (they are orphaned).
 ' Access via get_anim_doc().
 dim shared _anim_doc as DocPtr
+
+' Map from property names (interned strings: zstring ptr, does not own a copy) to
+' SlicePropertyNumber index.
+dim shared slice_property_numbers as HashTable
 
 ' Number of loops/non-forwards branches that can occur in an animation without a
 ' wait before it's considered to be stuck in an infinite loop.
@@ -183,6 +189,420 @@ end function
 function frames_to_ms(frames as integer) as integer
 	return frames * ms_per_frame
 end function
+
+
+'==========================================================================================
+'                                    Slice properties
+'==========================================================================================
+
+declare sub set_slice_blend_property(sl as Slice ptr, propnum as SlicePropertyNumber, drawopts as DrawOptions, datnode as NodePtr)
+
+local sub setup_slice_property_numbers()
+	slice_property_numbers.construct(31)
+
+	for idx as integer = 0 to ubound(slice_property_names)
+		dim prop as zstring ptr = intern_string(slice_property_names(idx))
+
+		slice_property_numbers.set(prop, idx)
+	next
+end sub
+
+' Sets a property (such as "w") or pseudo-property (such as "screen_x") of a slice to
+' value(s) taken from datnode.
+' Rather than just raw writes to slice data, this should aim to provide a higher-level
+' interface comparable to script commands such as "set opacity" or "move slice to" which
+' modify multiple data at once.
+' There can be multiple properties for the same thing (e.g. "frame" and "frameid").
+' datnode could contain more than one value, but there's no examples of that yet.
+' If a property name isn't matched, we do nothing, and don't detect that case.
+sub set_slice_property(sl as Slice ptr, prop as zstring ptr, datnode as NodePtr)
+	if slice_property_numbers.constructed = NO then
+		setup_slice_property_numbers
+	end if
+	dim propnum as SlicePropertyNumber
+	propnum = slice_property_numbers.get_int(intern_string(prop), _INVALID_PROP)
+
+	dim intval as integer = datnode..int
+	dim boolval as bool = intval <> 0  ' == datnode..bool
+
+	' When possible, if there are slice types with comparable properties,
+	' they should accept the same property names.
+
+	' Animation properties are the same as the node names used in .slices with the following exceptions:
+	' Ellipse: use "col" and "bgcol" instead of "bordercol" and "fillcol", to match Rect, Line and Text slices
+	' Rectangle: use "col" and "bgcol" instead of "fg" and "bg", ditto
+	' Rectangle: use "translucent" instead of "trans" to not match Sprite "trans" transparency setting
+	' Layout: use "padding" instead of "padding0" to match Panel "padding"
+
+	if propnum < _LAST_GENERIC_PROP then
+		' Properties applicable to all slice types
+
+		select case as const propnum
+			case _x
+				sl->X = intval
+			case _y
+				sl->Y = intval
+			case _screen_x
+				RefreshSliceScreenPos sl
+				sl->X += intval - (sl->ScreenX + SliceXAnchor(sl))
+			case _screen_y
+				RefreshSliceScreenPos sl
+				sl->Y += intval - (sl->ScreenY + SliceYAnchor(sl))
+			case _w
+				' "set slice width" allows negative width, so we will too.
+				sl->Width = intval
+				slice_edit_updates sl, @sl->Width
+			case _h
+				sl->Height = intval
+				slice_edit_updates sl, @sl->Height
+			case _cover
+				' Not exposed to users yet
+				if in_bound(intval, 0, 3) then
+					sl->CoverChildren = intval
+					slice_edit_updates sl, @sl->CoverChildren
+				end if
+			case _fill
+				sl->Fill = boolval
+				slice_edit_updates sl, @sl->Fill
+			case _fillmode
+				if in_bound(intval, 0, 2) then
+					sl->FillMode = intval
+					slice_edit_updates sl, @sl->FillMode
+				end if
+			case _vis
+				sl->Visible = boolval
+			case _paused
+				' Doesn't make sense for an animation to pause itself, but
+				' set_slice_property might get called elsewhere.
+				sl->Paused = boolval
+			case _clip
+				sl->Clip = boolval
+			case _alignh
+				if in_bound(intval, alignLeft, alignRight) then
+					sl->AlignHoriz = intval
+				end if
+			case _alignv
+				if in_bound(intval, alignLeft, alignRight) then
+					sl->AlignVert = intval
+				end if
+			case _anchorh
+				if in_bound(intval, alignLeft, alignRight) then
+					sl->AnchorHoriz = intval
+				end if
+			case _anchorv
+				if in_bound(intval, alignLeft, alignRight) then
+					sl->AnchorVert = intval
+				end if
+			case _clamph
+				if in_bound(intval, alignLeft, alignBoth) then
+					sl->ClampHoriz = intval
+				end if
+			case _clampv
+				if in_bound(intval, alignLeft, alignBoth) then
+					sl->ClampVert = intval
+				end if
+			case _clamptoscreen
+				sl->ClampToScreen = boolval
+			case _padt
+				sl->PaddingTop = intval
+			case _padr
+				sl->PaddingRight = intval
+			case _padb
+				sl->PaddingBottom = intval
+			case _padl
+				sl->PaddingLeft = intval
+			case _autosort
+				if in_bound(intval, 0, slAutoSortLAST) then
+					sl->AutoSort = intval
+				end if
+			case _sort
+				sl->Sorter = intval
+			case _lookup
+				' TODO: allow other lookups in some cases
+				if sl->Lookup >= 0 andalso intval >= 0 then
+					sl->Lookup = intval
+				end if
+			case _vtickx
+				sl->VelTicks.X = bound(intval, -1, 999999)
+				sl->TargTicks = 0
+			case _vx
+				sl->Velocity.X = bound(intval, -999999, 999999)
+				if sl->VelTicks.X = 0 then
+					sl->VelTicks.X = -1
+					sl->TargTicks = 0
+				end if
+			case _vticky
+				sl->VelTicks.Y = bound(intval, -1, 999999)
+				sl->TargTicks = 0
+			case _vy
+				sl->Velocity.Y = bound(intval, -999999, 999999)
+				if sl->VelTicks.Y = 0 then
+					sl->VelTicks.Y = -1
+					sl->TargTicks = 0
+				end if
+			case _ttick
+				sl->TargTicks = bound(intval, 0, 999999)
+				sl->VelTicks = 0
+			case _tx
+				sl->Targ.X = intval
+				sl->VelTicks = 0
+			case _ty
+				sl->Targ.Y = intval
+				sl->VelTicks = 0
+		end select
+
+	else
+		' Properties which apply to only some types (usually only one)
+
+		select case sl->SliceType
+
+			case slMap
+				dim dat as MapSliceData ptr = sl->MapData
+				set_slice_blend_property(sl, propnum, dat->drawopts, datnode)
+
+			case slSprite
+				dim dat as SpriteSliceData ptr = sl->SpriteData
+
+				' Various sprite data that's not editable by users is missing
+
+				select case as const propnum
+					case _frame
+						dat->set_frame(sl, intval)
+					case _frameid
+						dat->set_frameid(sl, intval)
+					case _sprtype
+						if in_bound(intval, 0, sprTypeLastPickable) then
+							ChangeSpriteSlice sl, intval
+						end if
+					case _rec
+						'if in_bound(intval, 0, sprite_sizes(dat->spritetype).lastrec) then
+						' Handles bounds checking
+						ChangeSpriteSlice sl, , intval
+					case _pal
+						if in_bound(intval, -1, gen(genMaxPal)) then
+							ChangeSpriteSlice sl, , , intval
+						end if
+					case _trans
+						dat->trans = boolval
+					case _fliph
+						dat->flipHoriz = boolval
+					case _flipv
+						dat->flipVert = boolval
+					case _dissolving
+						dat->dissolving = boolval
+					case _d_type
+						if in_bound(intval, 0, dissolveTypeMax) then
+							dat->d_type = intval
+							dat->dissolving = YES
+						end if
+					case _d_time
+						if in_bound(intval, -1, 999999) then
+							dat->d_time = intval
+						end if
+					case _d_tick
+						if in_bound(intval, 0, 999999) then
+							dat->d_tick = intval
+							dat->dissolving = YES
+						end if
+					case _d_back
+						dat->d_back = boolval
+					case else
+						set_slice_blend_property(sl, propnum, dat->drawopts, datnode)
+				end select
+
+			case slRectangle
+				dim dat as RectangleSliceData ptr = sl->RectData
+				select case as const propnum
+					case _style
+						if in_bound(intval, -1, 14) then
+							ChangeRectangleSlice sl, intval
+						end if
+					case _bgcol  'bg
+						if in_bound(intval, LowColorCode(), 255) then
+							ChangeRectangleSlice sl, , intval
+						end if
+					case _col  'fg
+						if in_bound(intval, LowColorCode(), 255) then
+							ChangeRectangleSlice sl, , , intval
+						end if
+					case _border
+						if in_bound(intval, -2, 14) then
+							ChangeRectangleSlice sl, , , , intval
+						end if
+					case _raw_box_border
+						if in_bound(intval, 0, gen(genMaxBoxBorder)) then
+							ChangeRectangleSlice sl, , , , , , , intval
+						end if
+					case _translucent
+						if in_bound(intval, 0, transLAST) then
+							dat->translucent = intval
+						end if
+					case _fuzzfactor
+						if in_bound(intval, 0, 99) then
+							dat->fuzzfactor = intval
+						end if
+					case _fz_zoom
+						dat->fuzz_zoom = bound(intval, 1, 10000)
+					case _fz_stationary
+						dat->fuzz_stationary = boolval
+				end select
+
+			case slLine
+				dim dat as LineSliceData ptr = sl->LineData
+				select case propnum
+					case _col
+						if in_bound(intval, LowColorCode(), 255) then
+							dat->col = intval
+						end if
+				end select
+
+			case slText
+				dim dat as TextSliceData Ptr = sl->TextData
+				select case propnum
+					case _s
+						ChangeTextSlice sl, datnode..str
+					case _col
+						if in_bound(intval, LowColorCode(), 255) then
+							dat->col = intval
+						end if
+					case _bgcol
+						if in_bound(intval, LowColorCode(), 255) then
+							dat->bgcol = intval
+						end if
+					case _outline
+						'dat->outline = boolval
+						ChangeTextSlice sl, , , boolval
+					case _wrap
+						ChangeTextSlice sl, , , , boolval
+				end select
+
+			case slGrid
+				dim dat as GridSliceData Ptr = sl->GridData
+				select case propnum
+					case _rows
+						if in_bound(intval, 0, 99) then
+							dat->rows = intval
+						end if
+					case _cols
+						if in_bound(intval, 0, 99) then
+							dat->cols = intval
+						end if
+					case _show
+						dat->show = boolval
+				end select
+
+			case slEllipse
+				dim dat as EllipseSliceData Ptr = sl->EllipseData
+				select case propnum
+					case _col  'bordercol
+						if in_bound(intval, LowColorCode(), 255) then
+							dat->bordercol = intval
+						end if
+					case _bgcol  'fillcol
+						if in_bound(intval, LowColorCode(), 255) then
+							dat->fillcol = intval
+						end if
+				end select
+
+			case slScroll
+				dim dat as ScrollSliceData Ptr = sl->ScrollData
+				select case propnum
+					case _style
+						' Note that Rectangle style allows -1 for "None"
+						if in_bound(intval, 0, 14) then
+							dat->style = intval
+						end if
+					case _check_depth
+						dat->check_depth = large(0, intval)
+				end select
+
+			case slSelect
+				dim dat as SelectSliceData Ptr = sl->SelectData
+				select case propnum
+					case _index
+						dat->index = large(0, intval)
+				end select
+
+			case slPanel
+				dim dat as PanelSliceData Ptr = sl->PanelData
+				select case propnum
+					case _vertical
+						dat->vertical = boolval
+					case _primary
+						if in_bound(intval, 0, 1) then
+							dat->primary = intval
+						end if
+					case _percent
+						if in_bound(datnode..float, 0.0, 1.0) then
+							dat->percent = intval
+						end if
+					case _pixels
+						dat->pixels = large(intval, 0)
+					case _padding
+						dat->padding = large(intval, 0)
+				end select
+
+			case slLayout
+				dim dat as LayoutSliceData Ptr = sl->LayoutData
+				select case propnum
+					case _dir0
+						if in_bound(intval, 0, 3) then
+							dat->primary_dir = intval
+						end if
+					case _dir1
+						if in_bound(intval, 0, 3) then
+							dat->secondary_dir = intval
+						end if
+					case _justified
+						dat->justified = boolval
+					case _last_row_justified
+						dat->last_row_justified = boolval
+					case _skip_hidden
+						dat->skip_hidden = boolval
+					case _row_align
+						if in_bound(intval, alignLeft, alignRight) then
+							dat->row_alignment = intval
+						end if
+					case _cell_align
+						if in_bound(intval, alignLeft, alignRight) then
+							dat->cell_alignment = intval
+						end if
+					case _padding  'padding0
+						dat->primary_padding = intval
+					case _padding1
+						dat->secondary_padding = intval
+					case _min_breadth
+						dat->min_row_breadth = large(0, intval)
+				end select
+		end select
+	end if
+end sub
+
+sub set_slice_blend_property(sl as Slice ptr, propnum as SlicePropertyNumber, drawopts as DrawOptions, datnode as NodePtr)
+	dim intval as integer = datnode..int
+
+	select case propnum
+		case _blending
+			drawopts.with_blending = datnode..bool
+		case _opacity
+			drawopts.opacity = bound(datnode..float, 0.0, 1.0)
+			if drawopts.opacity < 1.0 then drawopts.with_blending = YES
+		case _blend_mode
+			if in_bound(intval, 0, blendModeLAST) then
+				drawopts.blend_mode = intval
+				drawopts.with_blending = YES
+			end if
+		case _mod_r
+			drawopts.argbModifier.R = bound(intval, 0, 255)
+			drawopts.with_blending = YES
+		case _mod_g
+			drawopts.argbModifier.G = bound(intval, 0, 255)
+			drawopts.with_blending = YES
+		case _mod_b
+			drawopts.argbModifier.B = bound(intval, 0, 255)
+			drawopts.with_blending = YES
+	end select
+end sub
 
 
 '==========================================================================================
