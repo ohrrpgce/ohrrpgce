@@ -3907,6 +3907,7 @@ FUNCTION menu_attack_targ_picker_make_slices(x_offset as integer) as Slice Ptr
    SetSliceParent walk, plank
    walk->X = 5
    walk->Y = 0
+   walk->Visible = YES
    RealignSlice walk, alignLeft, alignBottom, alignLeft, alignBottom
    DIM spr as Slice Ptr = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walk)
    'Cancel any foot offset copied from the current map
