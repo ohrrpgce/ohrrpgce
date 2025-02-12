@@ -130,10 +130,6 @@ end function
 Function CreateDocument() as DocPtr
 	dim ret as DocPtr
 
-	'CreateDocument gets called at the module level (in common.rbas)
-	'so someone need to call this.
-	init_intern_string
-
 	'Holy crap! allocating memory with malloc (and friends), and freeing it with delete?!
 	'never, ever do that! In this case, it probably didn't hurt anything, since Doc doesn't
 	'have a constructor or destructor. But, if it did... bad things! *shudder*

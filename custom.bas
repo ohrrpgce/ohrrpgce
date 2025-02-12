@@ -102,6 +102,9 @@ DIM cleanup_workingdir_on_exit as bool = YES
 'If not, we should cleanup working.tmp instead of preserving it
 DIM cleanup_workingdir_on_error as bool = YES
 
+setup_global_reload_doc
+
+
 '======================== Setup directories & debug log =======================
 ' This is almost identical to startup code in Game; please don't unnecessarily diverge.
 

@@ -185,6 +185,8 @@ SUB lowlevel_init()
   'Requires exename on Windows.
   setup_exception_handler
 
+  init_intern_string
+
   disable_extended_precision
 
   reseed_prng TIMER * 1e9
@@ -4279,10 +4281,6 @@ dim shared interned_strings as HashTable
 ' Identical keys/values as interned_strings, but the zstring ptrs are compared by value rather than content. No copying/freeing of memory
 dim shared interned_fast_lookup as HashTable
 
-init_intern_string()
-
-' Because the order in which module constructors (toplevel code) are called is
-' uncertain, call this from any module that calls intern_string at its toplevel.
 sub init_intern_string()
   if interned_strings.constructed then exit sub
 

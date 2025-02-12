@@ -198,6 +198,8 @@ scratp = @scrat(0)
 scriptp = @script(0)
 retvalsp = @retvals(0)
 
+setup_global_reload_doc
+
 
 '======================== Setup directories & debug log =======================
 ' This is almost identical to startup code in Custom; please don't unnecessarily diverge.
@@ -1073,10 +1075,11 @@ SUB reset_game_final_cleanup()
  gam.ingame = NO
  save_game_config 'Call before cleaning up everything.
 
-#IFDEF __FB_JS__
-web_unmount_persistent_storage(savedir)
-web_unmount_persistent_storage(prefsdir)
-#ENDIF
+ #IFDEF __FB_JS__
+  'Are there no temp files we should cleanup first?
+  web_unmount_persistent_storage(savedir)
+  web_unmount_persistent_storage(prefsdir)
+ #ENDIF
 
  ' This sticky bit is cleared when returning to the file browser
  IF LEN(gam.want.rungame) = 0 THEN gam.shared_fullscreen_setting = NO

@@ -372,6 +372,7 @@ DECLARE FUNCTION wtog_ticks() as integer
 DECLARE FUNCTION max_wtog() as integer
 DECLARE FUNCTION wtog_to_frame(wtog as integer) as integer
 
+DECLARE SUB setup_global_reload_doc ()
 DECLARE SUB cleanup_global_reload_doc ()
 DECLARE FUNCTION get_reload_copy (byval n as NodePtr) as NodePtr
 DECLARE FUNCTION get_reload_empty (nodename as string = "") as NodePtr
