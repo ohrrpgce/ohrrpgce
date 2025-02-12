@@ -411,7 +411,9 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
 
 
 #MACRO DEFINE_TYPE_TABLE(T, TID, CTOR_FUNC, COPYCTOR_FUNC, DTOR_FUNC, COMPARE_FUNC, INEQUAL_FUNC, HASH_FUNC, STR_FUNC, COPY_FUNC, DELETE_FUNC)
-  DIM type_table(TID) as TypeTable = ( _
+  'FB doesn't let you use function addresses in initialisers, considered non-constant
+  DIM type_table(TID) as TypeTable
+  type_table(TID) = Type( _
      sizeof(T),                     /'element_len'/          _
      PASS_BYVAL,                    /'passtype'/             _
      cast(FnCtor, CTOR_FUNC),       /'ctor'/                 _
