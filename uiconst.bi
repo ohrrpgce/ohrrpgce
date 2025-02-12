@@ -83,6 +83,7 @@ CONST colInvalid = -999
 'TODO: editor UI constants. Not implemented yet, these are just aliases.
 
 CONST eduiHeading = uiText
+CONST eduiTextCursor = uiSelectedDisabled  'Toggles
 CONST eduiNote = uiSelectedDisabled      'Unselectable (not disabled) menu items which show some info, ideally not highlighted
 CONST eduiSpecial = uiSelectedDisabled   'Menu items distinct from normal ones, e.g. "Append <item>"
 
