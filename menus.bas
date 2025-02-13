@@ -1615,7 +1615,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
     IF .visible THEN
      position_menu_item menu, .text, i, where
 
-     IF .t = mtypeSpecial THEN
+     IF menu.game_menu ANDALSO .t = mtypeSpecial THEN
       ' Check for menu items with bars behind. The bar is drawn using the menu's boxstyle and Line border
       DIM bar_width as integer = 0
       DIM metermax as integer
@@ -1772,7 +1772,7 @@ END FUNCTION
 FUNCTION get_menu_item_caption (mi as MenuDefItem, menu as MenuDef) as string
  DIM cap as string
  cap = mi.caption
- IF LEN(cap) = 0 THEN
+ IF menu.game_menu ANDALSO LEN(cap) = 0 THEN
   'No caption, use the default
   SELECT CASE mi.t
    CASE mtypeSpecial
