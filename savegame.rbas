@@ -1159,8 +1159,8 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
    SetChildNode(slot, "exp_next", .exp_next)
    SetChildNode(slot, "exp_mult", .exp_mult)
    SetChildNode(slot, "def_wep", .def_wep)
-   SetChildNode(slot, "auto_battle", IIF(.auto_battle, 1, 0))
-   
+   SetChildNodeBool(slot, "auto_battle", .auto_battle)
+
    IF gam.hero(i).id >= 0 THEN
     IF .hand_pos_overridden THEN
      ch = SetChildNode(slot, "hand")

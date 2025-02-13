@@ -8598,7 +8598,7 @@ SUB set_gen_bool(nodepath as zstring ptr, byval v as bool)
  'This changes the node, but does not call write_general_reld()
  DIM gen_root as NodePtr = get_general_reld()
  DIM node as NodePtr = NodeByPath(gen_root, nodepath, YES)
- SetContent(node, IIF(v, 1, 0))
+ SetContentBool(node, v)
 END SUB
 
 SUB set_gen_int(nodepath as zstring ptr, byval v as integer)

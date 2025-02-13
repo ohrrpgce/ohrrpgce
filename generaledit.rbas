@@ -1804,7 +1804,7 @@ SUB mark_non_elemental_elementals ()
       eid = GetInteger(e)
       IF eid >= 0 ANDALSO eid < maxElements THEN
         non_elemental = GetOrCreateChild(e, "non_elemental")
-        SetContent non_elemental, IIF(xreadbit(bits(), eid), 1, 0)
+        SetContentBool non_elemental, xreadbit(bits(), eid)
         saved(eid) = YES
       END IF
     END WITHNODE
@@ -1814,7 +1814,7 @@ SUB mark_non_elemental_elementals ()
   FOR i as integer = 0 TO maxElements - 1
     IF NOT saved(i) THEN
       e = AppendChildNode(elementals, "element", i)
-      SetChildNode(e, "non_elemental", IIF(xreadbit(bits(), i), 1, 0))
+      SetChildNodeBool(e, "non_elemental", xreadbit(bits(), i))
     END IF
   NEXT i
 

@@ -868,6 +868,11 @@ sub SetContent(byval nod as NodePtr, byval dat as longint)
 	nod->num = dat
 end sub
 
+'By convention, bools are stored as 0/1 (or not-present/present)
+sub SetContentBool(byval nod as NodePtr, byval dat as bool)
+	SetContent nod, iif(dat, 1, 0)
+end sub
+
 'This marks a node as a floating-point number, and sets its data to the provided double
 sub SetContent(byval nod as NodePtr, byval dat as double)
 	if nod = null then exit sub
@@ -1472,6 +1477,11 @@ Function SetChildNodeDate(byval parent as NodePtr, n as zstring ptr, val as doub
 	end if
 
 	return node
+end Function
+
+'By convention bools are stored 0/1 not 0/-1
+Function SetChildNodeBool(byval parent as NodePtr, n as zstring ptr, val as bool) as NodePtr
+	return SetChildNode(parent, n, iif(val, 1, 0))
 end Function
 
 'Toggle a node to a zero/nonzero value (sets it to 0 or 1). Creates the node if it does not exist

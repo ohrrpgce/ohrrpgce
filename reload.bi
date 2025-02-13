@@ -138,6 +138,7 @@ Declare sub SetContent(byval nod as NodePtr, byval zstr as zstring ptr, byval si
 Declare sub SetContent(byval nod as NodePtr, byval dat as longint)
 Declare sub SetContent(byval nod as NodePtr, byval dat as double)
 Declare sub SetContent(byval nod as NodePtr)
+Declare sub SetContentBool(byval nod as NodePtr, byval dat as bool)
 Declare sub SetInternedString(byval nod as NodePtr, byval zstr as zstring ptr)
 Declare sub AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr)
 Declare sub AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr)
@@ -190,6 +191,7 @@ Declare Function SetChildNode Overload (byval parent as NodePtr, n as zstring pt
 Declare Function SetChildNode(byval parent as NodePtr, n as zstring ptr, byval val as longint) as NodePtr
 Declare Function SetChildNode(byval parent as NodePtr, n as zstring ptr, byval val as double) as NodePtr
 Declare Function SetChildNode(byval parent as NodePtr, n as zstring ptr, val as string) as NodePtr
+Declare Function SetChildNodeBool(byval parent as NodePtr, n as zstring ptr, val as bool) as NodePtr
 Declare Function SetChildNodeDate(byval parent as NodePtr, n as zstring ptr, val as double) as NodePtr
 Declare Sub ToggleBoolChildNode(byval parent as NodePtr, n as zstring ptr)
 Declare Sub ToggleChildNode(byval parent as NodePtr, n as zstring ptr)

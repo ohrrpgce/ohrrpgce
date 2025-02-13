@@ -475,7 +475,7 @@ sub EditorKit.write_value()
 			case writerNodeInt
 				SetContent(.node, outvalue)
 			case writerNodeBool
-				SetContent(.node, iif(outvalue, 1, 0))
+				SetContentBool(.node, outvalue)
 			case writerNodeStr
 				SetContent(.node, valuestr)
 			case writerNodeFloat
