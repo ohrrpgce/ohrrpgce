@@ -79,6 +79,12 @@ type EditorKitItem
 	default_value as integer = INT_MIN
 	default_eff_value as integer   'What default_value is effectively equivalent to
 
+	' Preserve min/max passed to edit_*
+	range_min as integer '= INT_MIN
+	range_max as integer '= INT_MAX
+	range_min_float as double
+	range_max_float as double
+
 	' Menu item:
 	id as integer          'Has no purpose yet
 	title as string
