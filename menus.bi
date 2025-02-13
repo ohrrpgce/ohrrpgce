@@ -179,6 +179,34 @@ TYPE ModularMenu EXTENDS Object
  DECLARE SUB update_wrapper()
 END TYPE
 
+' I don't think we'll use this in Game. Reduce executable size.
+#IFDEF IS_CUSTOM
+
+' Displays a stack of dropdown/popup-style MenuDef menus, each one opening next to the previous menu item
+TYPE MenuStack
+  menus(any) as MenuDef
+  states(any) as MenuState
+  helpkey as string
+  open_at_mouse as bool
+
+  DECLARE SUB open()
+  DECLARE SUB open_at(itemrect as RectType)
+  DECLARE FUNCTION add_item(text as string, t as integer = 0, sub_t as integer = 0, dataptr as any ptr = 0) byref as MenuDefItem
+  DECLARE SUB finish_open()
+  DECLARE SUB close()
+
+  DECLARE FUNCTION is_open() as bool
+  DECLARE FUNCTION is_active() as bool
+  DECLARE FUNCTION controls() as bool
+  DECLARE FUNCTION activate() as bool
+  DECLARE FUNCTION cur_menu() as MenuDef ptr
+  DECLARE FUNCTION cur_item() as MenuDefItem ptr
+  DECLARE SUB draw(page as integer)
+END TYPE
+
+#ENDIF
+
+
 '' Global variables
 EXTERN force_use_mouse as integer
 

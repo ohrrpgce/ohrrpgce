@@ -1949,7 +1949,7 @@ END SUB
 
 
 '==========================================================================================
-'                                   Generic menu system
+'                                       ModularMenu
 '==========================================================================================
 
 
@@ -2170,3 +2170,204 @@ SUB ModularMenu.run()
  clear_menu()
  running = NO
 END SUB
+
+
+'==========================================================================================
+'                                         MenuStack
+'==========================================================================================
+
+
+#IFDEF IS_CUSTOM
+
+FUNCTION MenuStack.cur_menu() as MenuDef ptr
+  DIM idx as integer = UBOUND(menus)
+  IF idx < 0 THEN RETURN NULL
+  RETURN @menus(idx)
+END FUNCTION
+
+FUNCTION MenuStack.cur_item() as MenuDefItem ptr
+  DIM idx as integer = UBOUND(menus)
+  IF idx < 0 THEN RETURN NULL
+  DIM byref menu as MenuDef = menus(idx)
+  DIM byref state as MenuState = states(idx)
+  IF state.pt < 0 ORELSE state.pt >= menu.numitems THEN RETURN NULL
+  RETURN menu.items[state.pt]
+END FUNCTION
+
+FUNCTION MenuStack.add_item(text as string, t as integer = 0, sub_t as integer = 0, dataptr as any ptr = 0) byref as MenuDefItem
+  DIM byref menu as MenuDef = menus(UBOUND(menus))
+
+  DIM midx as integer = append_menu_item(menu, text, t, sub_t, dataptr)
+  RETURN *menu.items[midx]
+END FUNCTION
+
+' Opens a new menu at the default position: the mouse position for the first menu,
+' or right of the current active menu item if there is a menu open.
+' Call open(), then add_item() to add to the new menu, then finish with finish_open().
+SUB MenuStack.open()
+  DIM idx as integer = UBOUND(menus)
+
+  IF idx >= 0 THEN
+    DIM byref menu as MenuDef = menus(idx)
+    DIM byref state as MenuState = states(idx)
+    open_at menudef_item_rect(menu, menu.items[state.pt]->text, state.pt)
+    open_at_mouse = NO
+  ELSE
+    open_at(XYWH(0,0,0,0))
+    open_at_mouse = YES
+  END IF
+END SUB
+
+' Open a new menu to the right of some existing menu item/widget at itemrect
+SUB MenuStack.open_at(itemrect as RectType)
+  DIM idx as integer = UBOUND(menus) + 1
+  REDIM PRESERVE menus(idx)
+  REDIM PRESERVE states(idx)
+  DIM byref menu as MenuDef = menus(idx)
+
+  menu.game_menu = NO
+  menu.offset = itemrect.xy + XY(itemrect.w + 3, -1)
+  menu.highlight_selection = YES
+  'Add a little more border in case of a scrollbar
+  menu.bordersize += 3
+  menu.no_box = YES
+  'menu.suppress_borders = YES
+
+  IF idx > 0 THEN
+    states(idx - 1).active = NO
+  END IF
+END SUB
+
+' Must be called after open/open_at and add_item
+SUB MenuStack.finish_open()
+  DIM idx as integer = UBOUND(menus)
+  DIM byref menu as MenuDef = menus(idx)
+  DIM byref state as MenuState = states(idx)
+  init_multichoice_menu menu, state, menu.offset, , YES  'popup_style=YES
+  update_menu_captions menu
+  calc_menu_rect state, menu, vpage  'Get the menu size
+  IF open_at_mouse THEN
+    ' By default the menu's at the mouse pointer and clamped to screen, move it so doesn't overlap the mouse
+    DIM menusize as XYPair = menu.rect.wh + 4   'menu.rect includes the border, state.rect doesn't
+    IF LEN(menu.name) THEN
+      DIM titlesize as XYPair = textsize(menu.name) + XY(4, 4)
+      menusize.w = large(menusize.w, titlesize.w)
+      menusize.h += titlesize.h
+    END IF
+    menu.offset = pick_tooltip_pos(menusize)
+    calc_menu_rect state, menu, vpage  'Get the menu position
+  END IF
+END SUB
+
+' Close the topmost menu
+SUB MenuStack.close()
+  IF UBOUND(menus) < 0 THEN EXIT SUB
+  DIM idx as integer = UBOUND(menus) - 1
+  ClearMenuData menus(idx + 1)
+  IF idx = -1 THEN
+    ERASE menus
+    ERASE states
+  ELSE
+    REDIM PRESERVE menus(idx)
+    REDIM PRESERVE states(idx)
+    states(idx).active = YES
+  END IF
+END SUB
+
+FUNCTION MenuStack.is_open() as bool
+  RETURN UBOUND(menus) >= 0
+END FUNCTION
+
+FUNCTION MenuStack.is_active() as bool
+  IF UBOUND(menus) < 0 THEN RETURN NO
+  DIM byref state as MenuState = states(UBOUND(states))
+  RETURN state.active
+END FUNCTION
+
+' Does not check actually active
+FUNCTION MenuStack.activate() as bool
+  IF UBOUND(menus) < 0 THEN RETURN NO
+  DIM byref state as MenuState = states(UBOUND(states))
+  RETURN enter_space_click(state) ORELSE keyval(ccRight) > 1
+END FUNCTION
+
+' You may have to override this to handle 'activate' properly
+FUNCTION MenuStack.controls() as bool
+  IF UBOUND(menus) < 0 THEN RETURN NO
+
+  DIM byref state as MenuState = states(UBOUND(states))
+  IF state.active = NO THEN RETURN NO
+
+  IF keyval(scF1) > 1 ANDALSO LEN(helpkey) > 0 THEN
+   show_help helpkey
+  END IF
+
+  IF activate THEN
+    RETURN YES
+  ELSE
+    default_menu_controls state
+    IF keyval(ccLeft) > 1 THEN state.active = NO
+    IF state.active = NO THEN  'Set when quitting (or activating)
+      close()
+    END IF
+  END IF
+END FUNCTION
+
+SUB MenuStack.draw(page as integer)
+  FOR midx as integer = 0 TO UBOUND(menus)
+    DIM byref menu as MenuDef = menus(midx)
+    DIM byref state as MenuState = states(midx)
+
+    IF midx < UBOUND(menus) THEN
+      ' Tint background menu items darker
+      WITH master(uilook(uiMenuItem))
+        menu.textcolor = findrgb(.r - 32, .g - 32, .b - 32)
+      END WITH
+    ELSE
+      menu.textcolor = 0  'Reset
+    END IF
+
+    DIM res as XYPair = get_resolution
+
+    ' Display the menu name as a title in a box above
+    ' Maybe this should be a feature of draw_menu, but probably better that people use separate slices for it
+    IF LEN(menu.name) THEN
+      DIM titlesize as XYPair = textsize(menu.name) + XY(4, 4)
+      menu.rect.x = small(menu.rect.x, res.w - titlesize.w)
+      menu.rect.y = large(menu.rect.y, titlesize.h)
+
+      DIM titlerect as RectType = menu.rect
+      titlerect.wh = titlesize
+      titlerect.y -= titlerect.h
+
+      drawbox vpages(page), titlerect.x + 2, titlerect.y + 2, titlerect.w, titlerect.h, findrgb(0, 0, 0), 2
+      rectangle vpages(page), titlerect, findrgb(80, 80, 140)
+
+      DIM uicol as integer = IIF(midx = UBOUND(menus), uiText, uiMenuItem)
+      edgeprint menu.name, titlerect.x + 2, titlerect.y + 2, uilook(uicol), page
+    END IF
+
+    ' Draw a drop shadow
+    drawbox vpages(page), menu.rect.x + 3, menu.rect.y + 3, menu.rect.w, menu.rect.h, findrgb(0, 0, 0), 3
+    rectangle vpages(page), menu.rect, findrgb(40, 40, 70)
+    ' Draw outline
+    drawbox vpages(page), menu.rect.x, menu.rect.y, menu.rect.w, menu.rect.h, findrgb(80, 80, 80), 1
+
+    'menu.max_chars = get_resolution().w \ 8 - 2
+    draw_menu menu, state, page
+
+    IF LEN(helpkey) THEN
+      DIM x as integer
+      ' Don't overlap the menu
+      IF menu.rect.x + menu.rect.w > res.w - 60 ANDALSO menu.rect.y + menu.rect.h > res.h - 15 THEN
+       x = pInfoX
+      ELSE
+       x = pInfoRight
+      END IF
+      edgeprint "F1 Help", x, pBottom, uilook(uiMenuItem), vpage
+    END IF
+    ' wrapprintbg *extra_message, pLeft, pBottom, uilook(uiMenuItem), vpage, , , , fontBuiltinEdged
+  NEXT
+END SUB
+
+#ENDIF  'IS_CUSTOM
