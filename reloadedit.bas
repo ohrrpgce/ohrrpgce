@@ -289,7 +289,7 @@ FUNCTION reload_editor_edit_node_value(byref st as ReloadEditorState, byval node
     RETURN YES
    END IF
   END IF
- ELSEIF nt = Reload.rltString ORELSE nt = Reload.rltNull THEN
+ ELSEIF nt = Reload.rltString ORELSE nt = Reload.rltInternString ORELSE nt = Reload.rltNull THEN
   DIM s as string
   s = Reload.GetString(node)
   IF nt <> Reload.rltNull AND keyval(scENTER) > 1 THEN
@@ -359,7 +359,8 @@ FUNCTION reload_editor_node_string(byref st as ReloadEditorState ,byval node as 
   CASE Reload.rltNull:   s &= "()"
   CASE Reload.rltInt:    s &= "(int) "    & Reload.GetInteger(node)
   CASE Reload.rltFloat:  s &= "(float) "  & Reload.GetFloat(node)
-  CASE Reload.rltString: s &= "(str) " & Reload.GetString(node)
+  CASE Reload.rltString, Reload.rltInternString
+                         s &= "(str) "    & Reload.GetString(node)
  END SELECT
  RETURN s
 END FUNCTION

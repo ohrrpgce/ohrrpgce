@@ -41,7 +41,8 @@ ENUM NodeTypes
 	rltNull
 	rltInt
 	rltFloat
-	rltString
+	rltString        'Allocated string or blob of data, modifiable
+	rltInternString  'Pointer to an interned (read-only) string
 END ENUM
 
 ENUM LoadOptions
@@ -99,7 +100,8 @@ TYPE NodePtr as Node ptr
 		Union 'this saves sizeof(Double) bytes per node!
 			num as longint
 			flo as double
-			str as zstring ptr
+			str as zstring ptr  'rltString: an allocated string which must be freed
+			                    'rltInterdString: an interned string which mustn't be freed
 		end Union
 		strSize as integer
 		numChildren as integer
@@ -136,6 +138,7 @@ Declare sub SetContent(byval nod as NodePtr, byval zstr as zstring ptr, byval si
 Declare sub SetContent(byval nod as NodePtr, byval dat as longint)
 Declare sub SetContent(byval nod as NodePtr, byval dat as double)
 Declare sub SetContent(byval nod as NodePtr)
+Declare sub SetInternedString(byval nod as NodePtr, byval zstr as zstring ptr)
 Declare sub AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr)
 Declare sub AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr)
 Declare sub AddChild(byval par as NodePtr, byval nod as NodePtr)
@@ -156,6 +159,8 @@ Declare Function GetFloat(byval node as nodeptr) as double
 Declare Function GetZString(byval node as nodeptr) as zstring ptr
 Declare Function ResizeZString(byval node as nodeptr, byval newsize as integer) as zstring ptr
 Declare Function GetZStringSize(byval node as nodeptr) as integer
+Declare Function GetInternedString(byval node as NodePtr) as zstring ptr
+
 
 Declare Function GetChildByName(byval nod as NodePtr, byval nam as zstring ptr) as NodePtr 'NOT recursive
 Declare Function FindDescendentByName(byval nod as NodePtr, nam as zstring ptr) as NodePtr 'recursive depth first search

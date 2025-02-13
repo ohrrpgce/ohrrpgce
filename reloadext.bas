@@ -215,7 +215,7 @@ Function CompareNodes(nod1 as NodePtr, nod2 as NodePtr, pedantic as bool = NO, l
 					logdiff("Value of node " & GetNodePath(nod1) & " differ! " & GetFloat(nod1) & " vs " & GetFloat(nod2))
 					return NO
 				end if
-			case rltString
+			case rltString, rltInternString
 				if GetString(nod1) <> GetString(nod2) then
 					logdiff("Value of node " & GetNodePath(nod1) & " differ! """ & GetString(nod1) & """ vs """ & GetString(nod2) & """")
 					return NO

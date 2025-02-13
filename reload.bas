@@ -756,7 +756,7 @@ sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as
 		case rltFloat
 			Buffered_putc(f, rliFloat)
 			Buffered_write(f, @(nod->flo), 8)
-		case rltString
+		case rltString, rltInternString
 			Buffered_putc(f, rliString)
 			WriteVLI(f, nod->strSize)
 			Buffered_write(f, nod->str, nod->strSize)
@@ -841,6 +841,20 @@ sub SetContent(byval nod as NodePtr, byval zstr as zstring ptr, byval size as in
 	nod->str[size] = 0
 	nod->strSize = size
 	if zstr <> NULL andalso size <> 0 then memcpy(nod->str, zstr, size)
+end sub
+
+'This marks a node as a read-only string type and interns its value. This
+'has the benefits of making GetInternedString very fast, and of not allocating any
+'memory for the string data.
+sub SetInternedString(byval nod as NodePtr, byval zstr as zstring ptr)
+	if nod = null then exit sub
+	if nod->nodeType = rltString then
+		if nod->str then RDeallocate(nod->str, nod->doc)
+		nod->str = 0
+	end if
+	nod->nodeType = rltInternString
+	nod->str = intern_string(zstr)
+	nod->strSize = strlen(zstr)
 end sub
 
 'This marks a node as an integer, and sets its data to the provided integer
@@ -1023,11 +1037,11 @@ end function
 local function NodeNeedsEncoding(byval node as NodePtr, byval debugging as bool, byval shortform as bool) as integer
 	if node = null then return 0
 
-	if node->nodeType <> rltString then
+	if node->nodeType <> rltString andalso node->nodeType <> rltInternString then
 		return 0
 	end if
 
-	if shortform and node->nodeType = rltString andalso node->strSize > 300 then
+	if shortform andalso node->strSize > 300 then
 		return 3
 	end if
 
@@ -1270,12 +1284,30 @@ Function GetString(byval node as NodePtr) as string
 			return str(node->flo)
 		case rltNull
 			return ""
-		case rltString
+		case rltString, rltInternString
 			'FB's string assignment will always do a strlen on zstring arguments, so we need to
 			'manually copy the data into a string, in case it is a binary blob containing null bytes
 			return blob_to_string(node->str, node->strSize)
 		case else
 			return "Unknown value: " & node->nodeType
+	end select
+End Function
+
+'Equivalent to intern_string(GetString(node)), if it's a string type, but returns NULL
+'for other types.
+'Interns the contents of the node so it's fast next time, so the string becomes readonly!
+Function GetInternedString(byval node as NodePtr) as zstring ptr
+	if node = null then return NULL
+	select case node->nodeType
+		case rltInternString
+			return node->str
+		case rltString
+			'Lazy code: intern_string gets called twice, because otherwise we'd free
+			'the string before we can intern it.
+			SetInternedString node, intern_string(node->str)
+			return node->str
+		case else
+			return NULL
 	end select
 End Function
 
@@ -1292,7 +1324,7 @@ Function GetInteger(byval node as NodePtr) as longint
 			return clngint(node->flo)
 		case rltNull
 			return 0
-		case rltString
+		case rltString, rltInternString
 			return cint(*node->str)
 		case else
 			return 0
@@ -1312,7 +1344,7 @@ Function GetFloat(byval node as NodePtr) as double
 			return node->flo
 		case rltNull
 			return 0.0
-		case rltString
+		case rltString, rltInternString
 			return cdbl(*node->str)
 		case else
 			return 0.0
@@ -1324,7 +1356,7 @@ End Function
 Function GetZString(byval node as NodePtr) as zstring ptr
 	if node = null then return 0
 	
-	if node->nodeType <> rltString then
+	if node->nodeType <> rltString andalso node->nodeType <> rltInternString then
 		return 0
 	end if
 	
@@ -1334,7 +1366,7 @@ End Function
 Function GetZStringSize(byval node as NodePtr) as integer
 	if node = null then return 0
 	
-	if node->nodeType <> rltString then
+	if node->nodeType <> rltString andalso node->nodeType <> rltInternString then
 		return 0
 	end if
 	
@@ -1351,9 +1383,14 @@ End Function
 'to overwrite it :)
 Function ResizeZString(byval node as NodePtr, byval newsize as integer) as zstring ptr
 	if node = null then return 0
-	
-	if node->nodeType <> rltString then
-		return 0
+
+	if node->nodeType = rltInternString then
+		'Can support this but really shouldn't, because if you didn't
+		'resize then you can't modify the string.
+		'SetContent(node, GetString(node))
+		showbug "ResizeZstring on interned string"
+	elseif node->nodeType <> rltString then
+		showbug "ResizeZstring on non-string"
 	end if
 	
 	dim n as zstring ptr = node->str
@@ -1739,6 +1776,8 @@ Function CloneNodeTree(byval nod as NodePtr, byval doc as DocPtr=0) as NodePtr
 			SetContent(n, GetFloat(nod))
 		case rltString:
 			SetContent(n, GetString(nod))
+		case rltInternString:
+			SetInternedString(n, nod->str)
 	end select
 	dim ch as NodePtr
 	ch = FirstChild(nod)
