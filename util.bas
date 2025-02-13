@@ -3752,10 +3752,12 @@ local function hash_search_bucket(this as HashTable, bucket as HashBucketItem ve
 end function
 
 function HashTable.hash_key(key as any ptr) as integer
-  if this.key_hash then
+  if this.key_is_opaque_ptr then
+    return cintptr32(key)
+  elseif this.key_hash then
     return this.key_hash(key)
   elseif key then
-    if this.key_length = 0 then showbug "HashTable: can't hash ptr; use TypeTable constructor"
+    if this.key_length = 0 then showbug "HashTable: can't hash unknown key type; use TypeTable constructor or set key_is_opaque_ptr"
     return stringhash(key, this.key_length)
   end if
   return 0
@@ -4294,10 +4296,8 @@ sub init_intern_string()
   'interned_strings.construct(509, type_table(zstring), NO, type_table(zstring), NO)
 
   interned_fast_lookup.construct(509)
+  interned_fast_lookup.key_is_opaque_ptr = YES
 end sub
-
-'Convert a zstring ptr to a uinteger which can be used as a hash modulo a prime number
-#define zstr2int(zs) cast(integer, cast(intptr_t, zs))
 
 ' Intern a string, that is, convert it to a unique zstring ptr with the
 ' same content: returns the same zstring ptr if called twice.
@@ -4305,7 +4305,9 @@ end sub
 ' Calling intern_string on an already interned string is very fast (it does no
 ' string comparisons or hashing).
 function intern_string(s as zstring ptr) as zstring ptr
-  dim gotfast as zstring ptr = interned_fast_lookup.get(zstr2int(s), NULL, s)
+  if s = NULL then return intern_string("")
+
+  dim gotfast as zstring ptr = interned_fast_lookup.get(s, NULL)
   if gotfast then
     assert(gotfast = s)
     return s
@@ -4317,10 +4319,10 @@ function intern_string(s as zstring ptr) as zstring ptr
 
   ret = zstring_copy(s)
   interned_strings.set(ret, ret)
-  interned_fast_lookup.set(zstr2int(ret), ret, ret)
+  interned_fast_lookup.set(ret, ret)
 
   assert(interned_strings.get(s) = ret)
-  assert(interned_fast_lookup.get(zstr2int(ret), 0, ret) = ret)
+  assert(interned_fast_lookup.get(ret, 0) = ret)
   'print "intern " & *s & " -> " & hex(ret)
   return ret
 end function
@@ -4343,8 +4345,8 @@ startTest(str_intern)
   if a = b then fail
   if b = c then fail
   if a = c then fail
-  if interned_fast_lookup.get(zstr2int(c), 0, c) <> c then fail
-  if interned_fast_lookup.get(zstr2int(@"c"), 0, @"c") <> NULL then fail
+  if interned_fast_lookup.get(c, 0) <> c then fail
+  if interned_fast_lookup.get(@"c", 0) <> NULL then fail
   if interned_strings.numitems <> 3 then fail
   if interned_fast_lookup.numitems <> 3 then fail
 endTest

@@ -199,6 +199,7 @@ declare sub set_slice_blend_property(sl as Slice ptr, propnum as SlicePropertyNu
 
 local sub setup_slice_property_numbers()
 	slice_property_numbers.construct(31)
+	slice_property_numbers.key_is_opaque_ptr = YES
 
 	for idx as integer = 0 to ubound(slice_property_names)
 		dim prop as zstring ptr = intern_string(slice_property_names(idx))

@@ -29,7 +29,7 @@ Declare Sub AddItem(h as HashPtr, interned_key as zstring ptr, item as intptr_t)
 Declare Sub RemoveKey(byval h as HashPtr, byval interned_key as zstring ptr, byval num as integer = 1)
 
 'Convert a zstring ptr to a uinteger which can be used as a hash modulo a prime number
-#define zstr2int(zs) cast(uinteger, cast(intptr_t, zs))
+#define zstr2int(zs) cast(uinteger, cast(intptr_t, zs))   'cintptr32
 
 'Another hash table implementation... This one stores data in the RHeap private heap (if applicable),
 'except for the keys, which are globally interned strings.
