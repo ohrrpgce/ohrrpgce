@@ -44,6 +44,8 @@ DECLARE FUNCTION menu_item_color(state as MenuState, itemno as integer, disabled
 
 
 '' Mouse support
+DECLARE FUNCTION standardmenu_item_rect OVERLOAD (state as MenuState, menutext as string, index as integer) as RectType
+DECLARE FUNCTION standardmenu_item_rect OVERLOAD (menu as BasicMenuItem vector, state as MenuState) as RectType
 DECLARE FUNCTION find_menu_item_at_point (state as MenuState, pos as XYPair) as integer
 DECLARE FUNCTION mouse_update_hover (state as MenuState) as bool
 DECLARE SUB mouse_update_selection (state as MenuState)
@@ -92,7 +94,7 @@ DECLARE SUB write_menu_item_int (mi as MenuDefItem, byval intoffset as integer, 
 '' Drawing MenuDefs
 DECLARE SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
 DECLARE SUB update_menu_captions (menu as MenuDef)
-DECLARE SUB position_menu_item (menu as MenuDef, cap as string, byval i as integer, byref where as XYPair)
+DECLARE FUNCTION menudef_item_rect (menu as MenuDef, menutext as string, index as integer) as RectType
 DECLARE FUNCTION anchor_point(byval anchor as AlignType, byval size as integer) as integer
 DECLARE FUNCTION count_visible_menu_items (menu as MenuDef) as integer
 

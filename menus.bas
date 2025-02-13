@@ -150,12 +150,22 @@ SUB append_simplemenu_item (byref menu as SimpleMenuItem vector, caption as zstr
  END WITH
 END SUB
 
+' Calculate the on-screen position and size for a menu item in a non-MenuDef menu.
+' (See also menudef_item_rect)
+FUNCTION standardmenu_item_rect(state as MenuState, menutext as string, index as integer) as RectType
+ DIM itempos as XYPair = state.rect.xy
+ itempos.y += state.spacing * (index - state.top)
+ RETURN XY_WH(itempos, textsize(menutext))
+END FUNCTION
+
+FUNCTION standardmenu_item_rect(menu as BasicMenuItem vector, state as MenuState) as RectType
+ RETURN standardmenu_item_rect(state, v_at(menu, state.pt)->text, state.pt)
+END FUNCTION
+
 'Is pos on menutext, which is the 'index'th menu item in the menu with given state?
 FUNCTION menutext_hit_tester(menutext as string, state as MenuState, index as integer, pos as XYPair) as bool
  'IF NOT state.position_known THEN RETURN NO   'Unnecessary?
- DIM itempos as XYPair = state.rect.xy
- itempos.y += state.spacing * (index - state.top)
- RETURN rect_collide_point(XY_WH(itempos, textsize(menutext)), pos)
+ RETURN rect_collide_point(standardmenu_item_rect(state, menutext, index), pos)
 END FUNCTION
 
 'A function usable as MenuState.hit_test if using standardmenu with a string array.
@@ -658,6 +668,7 @@ SUB standardmenu (byval menu as BasicMenuItem vector, state as MenuState, x as R
 
  FOR i as integer = state.top TO state.top + state.size
   IF i < v_len(menu) THEN
+   'NOTE: we use v_at() instead of menu[i] to support derived types of BasicMenuItem!
    WITH *v_at(menu, i)
 
     DIM linewidth as integer = textwidth(.text, IIF(menuopts.edged, fontEdged, fontPlain))
@@ -1613,7 +1624,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
     col = menu_item_color(state, elem, .disabled, .unselectable, .col, .disabled_col, menu.textcolor, menu.disabled_textcolor)
 
     IF .visible THEN
-     position_menu_item menu, .text, i, where
+     DIM itemrect as RectType = menudef_item_rect(menu, .text, elem)
 
      IF menu.game_menu ANDALSO .t = mtypeSpecial THEN
       ' Check for menu items with bars behind. The bar is drawn using the menu's boxstyle and Line border
@@ -1628,11 +1639,11 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
        bar_width = get_safe_zone_margin() * metermax \ 10
       END IF
       IF bar_width THEN
-       edgeboxstyle menu.rect.x + (menu.rect.wide - metermax) \ 2, where.y, bar_width, 10, menu.boxstyle, page, NO, YES
+       edgeboxstyle menu.rect.x + (menu.rect.wide - metermax) \ 2, itemrect.y, bar_width, 10, menu.boxstyle, page, NO, YES
       END IF
      END IF
 
-     edgeprint .text, where.x, where.y, col, page, menu.withtags
+     edgeprint .text, itemrect.x, itemrect.y, col, page, menu.withtags
     END IF
    END WITH
   END IF
@@ -1640,23 +1651,27 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
  
 END SUB
 
-' Calculate top-left corner of the text, placed in 'where'
-SUB position_menu_item (menu as MenuDef, cap as string, byval i as integer, byref where as XYPair)
+' Calculate the on-screen position and size for a menu item (excluding volume bars or anything like that).
+' (See also standardmenu_item_rect)
+FUNCTION menudef_item_rect (menu as MenuDef, menutext as string, index as integer) as RectType
+ DIM ret as RectType
+ ret.wh = textsize(menutext)
  'Adding bord to menu.rect like this should equal state.rect. TODO: use state.rect instead?
  DIM bord as integer
  bord = 8 + menu.bordersize
  WITH menu.rect
   SELECT CASE menu.textalign
    CASE alignLeft
-    where.x = .x + bord
+    ret.x = .x + bord
    CASE alignCenter
-    where.x = .x + (.wide - textwidth(cap)) / 2
+    ret.x = .x + (.wide - ret.w) / 2
    CASE alignRight
-    where.x = .x + .wide - bord - textwidth(cap)
+    ret.x = .x + .wide - bord - ret.w
   END SELECT
-  where.y = .y + bord + (i * (10 + menu.itemspacing))
+  ret.y = .y + bord + (index * (10 + menu.itemspacing))
  END WITH
-END SUB
+ RETURN ret
+END FUNCTION
 
 ' Calculate state.size of a MenuDef menu from menu.maxrows
 ' .maxrows=0 is the MenuDef equivalent of state.autosize (which isn't used for MenuDef)
