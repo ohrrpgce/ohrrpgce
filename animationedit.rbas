@@ -8,6 +8,10 @@
 #include "string.bi"
 #include "allmodex.bi"
 #include "reload.bi"
+#include "sliceedit.bi"
+
+DEFINE_VECTOR_OF_TYPE(SlicePropInfo, SlicePropInfo)
+
 
 ' Export a certain animation as a looping gif
 ' (Would be nice if this didn't require a slice...)

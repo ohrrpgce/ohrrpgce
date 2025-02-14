@@ -917,6 +917,10 @@ FUNCTION titlecase(word as string) as string
  RETURN UCASE(LEFT(word, 1)) & LCASE(MID(word, 2))
 END FUNCTION
 
+FUNCTION untitlecase(word as string) as string
+ RETURN LCASE(LEFT(word, 1)) & MID(word, 2)
+END FUNCTION
+
 FUNCTION escape_string(s as string, chars as string) as string
  DIM i as integer
  DIM c as string

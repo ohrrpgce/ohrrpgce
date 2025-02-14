@@ -11,39 +11,40 @@
 'version.
 'In future it may replace the original. But for now its main purpose is to provide a list
 'of slice properties for the animation editor. What it adds to the detail menu is that
-'each property also specifies the node name used to serialize it in .slices too.
+'each property also specifies the node name used to serialize it in .slices and in
+'animations.
 
 #include "editorkit.bi"
 
-TYPE SlicePropertiesEditor EXTENDS EditorKit
 
-  sl as Slice ptr
-  ses_draw_root as Slice ptr
-  privileged as bool
-  slicelookup(any) as string
-
-  DECLARE CONSTRUCTOR(sl as Slice ptr, ses_draw_root as Slice ptr)
-  DECLARE SUB define_items()
-  DECLARE SUB add_blend_items(byref drawopts as DrawOptions)
-  DECLARE SUB propkey(prop as zstring ptr, helpkey as zstring ptr = NULL, animkey as zstring ptr = NULL)
-  DECLARE SUB caption_slice_color(ifzero as string = "0")
-
-  DECLARE SUB draw_underlays()
-END TYPE
+DESTRUCTOR SlicePropInfo()
+  IF value_node THEN
+    FreeNode value_node
+    value_node = NULL
+  END IF
+END DESTRUCTOR
 
 SUB SlicePropertiesEditor.caption_slice_color(ifzero as string = "0")
   set_caption slice_color_caption(value, ifzero)
 END SUB
 
-' key is the Reload node name used (by SaveProp) to save this slice property to .slices files.
+' prop is the Reload node name used (for SaveProp) to save this slice property to .slices files.
 ' It's very often equal to the help key.
+' animkey is used in animations, if it differs from prop
 SUB SlicePropertiesEditor.propkey(prop as zstring ptr, helpkey as zstring ptr = NULL, animkey as zstring ptr = NULL)
   set_helpkey "sliceedit_" & *IIF(helpkey, helpkey, prop)
+  IF animkey = NULL THEN animkey = prop
+  cur_animkey = *animkey
 END SUB
 
-CONSTRUCTOR SlicePropertiesEditor(sl as Slice ptr, ses_draw_root as Slice ptr)
+SUB SlicePropertiesEditor.set_default(value as integer)
+  'TODO
+  'Don't really need the default in animedit: it defaults to current value
+END SUB
+
+CONSTRUCTOR SlicePropertiesEditor(sl as Slice ptr, ses_draw_root as Slice ptr = NULL)
   this.sl = sl
-  this.ses_draw_root = ses_draw_root
+  this.ses_draw_root = IIF(ses_draw_root, ses_draw_root, sl)
   REDIM slicelookup(10) as string
   load_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
   IF UBOUND(slicelookup) < 1 THEN
@@ -51,23 +52,103 @@ CONSTRUCTOR SlicePropertiesEditor(sl as Slice ptr, ses_draw_root as Slice ptr)
   END IF
 END CONSTRUCTOR
 
+'Collect a list of properties and section headers into_vector, used by the animation editor
+SUB SlicePropertiesEditor.gather_properties(byref into_vector as SlicePropInfo vector)
+  gather_items = @into_vector
+  ' Call define_items
+  update()
+  'run_phase(Phases.querying)
+  gather_items = NULL
+END SUB
+
+'add_to_title: Add the section name (e.g. "Padding") to the display names of contained props (e.g. "Left")
+SUB SlicePropertiesEditor.section(title as zstring ptr, add_to_display as bool = NO)
+  base.section title
+
+  IF gather_items THEN
+    IF add_to_display THEN
+      display_prefix = *title & " "
+    ELSE
+      display_prefix = ""
+    END IF
+    WITH *v_expand(*gather_items)
+      .infotype = SlicePropInfoType.section
+      '.sltype = cur_slicetype
+      .display = *title
+    END WITH
+  END IF
+END SUB
+
+SUB SlicePropertiesEditor.finish_defitem()
+  IF started_item = NO THEN EXIT SUB
+  DIM custom_caption as bool = LEN(cur_item.caption) > 0
+  base.finish_defitem()
+
+  IF gather_items THEN
+    IF cur_item.title = prev_menu_text THEN  'Previous Menu
+      EXIT SUB
+    END IF
+    WITH *v_expand(*gather_items)
+      .infotype = SlicePropInfoType.prop
+      .sltype = cur_slicetype
+      SELECT CASE cur_item.dtype
+        CASE dtypeBool
+          .dtype = pdtypeBool
+        CASE dtypeInt
+          .dtype = pdtypeInt
+          .range_min = cur_item.range_min
+          .range_max = cur_item.range_max
+        CASE dtypeFloat
+          .dtype = pdtypeFloat
+          .range_min_float = cur_item.range_min_float
+          .range_max_float = cur_item.range_max_float
+        CASE dtypeStr
+          .dtype = pdtypeStr
+      END SELECT
+      .value_node = CreateNode(get_anim_doc, "value")
+      SELECT CASE cur_item.writer
+        CASE writerBoolean
+          SetContentBool .value_node, *cur_item.byte_ptr
+        CASE writerUByte
+          SetContent .value_node, *cur_item.ubyte_ptr
+        CASE writerInt  'Includes bools
+          SetContent .value_node, *cur_item.int_ptr
+        CASE writerSingle
+          SetContent .value_node, *cur_item.single_ptr
+        CASE writerDouble
+          SetContent .value_node, *cur_item.double_ptr
+        CASE writerStr
+          SetContent .value_node, *cur_item.str_ptr
+        CASE ELSE
+          debug "SlicePropertiesEditor: Unsupported writer " & cur_item.writer & " for " & cur_item.title
+      END SELECT
+      .propname = intern_string(cur_animkey)
+      .helpkey = cur_item.helpkey
+      .display = rtrim(cur_item.title, ":")
+      IF LEN(display_prefix) THEN
+        .display = display_prefix & untitlecase(.display)
+      END IF
+      .caption = cur_item.caption
+      .custom_caption = custom_caption
+      '? "finishdef", .display, GetString(.value_node)
+    END WITH
+  END IF
+END SUB
+
 SUB SlicePropertiesEditor.define_items()
 
+  'Initially, listing generic slice properties
+  cur_slicetype = slNone
+
+  'TODO: could use edit_zint in a few places
+
   WITH *sl
-
-    'Script handle, Context info, Protected omitted
-
-    'IF lookup_code_forbidden(ses.specialcodes(), .Lookup) = NO THEN
-    IF .Lookup >= 0 THEN
-      defint "Lookup code:", .Lookup, 0, INT_MAX   'slgrPICKLOOKUP
-      propkey "lookup"
-      set_caption slice_lookup_code_caption(.Lookup, slicelookup())
-    END IF
 
     section "Position/Size"
     'IF .FillHoriz = NO THEN
     defint "X:", .X, -9999, 9999
     propkey "x", "pos"
+    'set_tooltip "X offset from parent align point"
     'IF .FillVert = NO THEN
     defint "Y:", .Y, -9999, 9999   'slgrPICKXY
     propkey "y", "pos"
@@ -95,7 +176,10 @@ SUB SlicePropertiesEditor.define_items()
       propkey "fillmode", "fill"
     END IF
 
-    section SliceTypeName(sl) & " settings"
+    IF .SliceType <> slContainer THEN
+      section SliceTypeName(sl) & " settings"
+      cur_slicetype = .SliceType
+    END IF
 
     SELECT CASE .SliceType
       CASE slRectangle
@@ -107,7 +191,7 @@ SUB SlicePropertiesEditor.define_items()
         defint "Background color:", dat->bgcol, LowColorCode(), 255  'slgrUPDATERECTCUSTOMSTYLE OR slgrPICKCOL
         caption_slice_color
         propkey "bg", "rect_bg", "bgcol"
-        defint "Foreground (line) color:", dat->fgcol, LowColorCode(), 255  'slgrUPDATERECTCUSTOMSTYLE OR slgrPICKCOL
+        defint "Border line color:", dat->fgcol, LowColorCode(), 255  'slgrUPDATERECTCUSTOMSTYLE OR slgrPICKCOL
         caption_slice_color
         propkey "fg", "rect_fg", "col"
         'TODO: Line and None should be border types, not appear under Box Style
@@ -119,10 +203,10 @@ SUB SlicePropertiesEditor.define_items()
           defint "Border raw spriteset:", dat->raw_box_border, 0, gen(genMaxBoxBorder)   'slgrBROWSEBOXBORDER
           propkey "raw_box_border", "rect_raw_box_border"
         ELSE
-          defint " Border Style:", dat->border, -2, 14    'Enum
+          defint " Border style:", dat->border, -2, 14    'Enum
           captions_or_int BorderCaptions()
+          set_default borderLine
           propkey "border", "rect_border"
-          'sliceed_rule_set_default  borderLine
         END IF
         defint "Translucency:", dat->translucent, 0, transLAST
         captions TransCaptions()
@@ -185,9 +269,10 @@ SUB SlicePropertiesEditor.define_items()
         IF nframes > 1 THEN
           defint "Frame:", dat->frame, 0, nframes - 1
           propkey "frame", "sprite_frame"
-          defitem "Frame ID:" ', frameid, 0, 9999   'slgrFRAMEID
-          set_caption STR(dat->get_frameid(sl))
-          propkey "frameid",  "sprite_frameid"
+          DIM frameid as integer = dat->get_frameid(sl)  'Make sure not to take address of a stack temporary
+          defint "Frame ID:", frameid, 0, 9999
+          IF edited THEN dat->set_frameid(sl, value)
+          propkey "frameid", "sprite_frameid"
         END IF
         defbool "Transparent:", dat->trans   'slgrUPDATESPRITE
         propkey "trans", "sprite_trans"
@@ -305,6 +390,19 @@ SUB SlicePropertiesEditor.define_items()
 
     END SELECT
 
+    cur_slicetype = slNone
+
+    'Slice type, Script handle, Context info, Protected omitted,
+    'so Lookup by itself, and didn't want it at the top in the anim editor...
+    section "Lookup"
+
+    'IF lookup_code_forbidden(ses.specialcodes(), .Lookup) = NO THEN
+    IF .Lookup >= 0 THEN
+      defint "Lookup code:", .Lookup, 0, INT_MAX   'slgrPICKLOOKUP
+      propkey "lookup"
+      set_caption slice_lookup_code_caption(.Lookup, slicelookup())
+    END IF
+
     section "Visibility"
     defbool "Visible:", .Visible
     propkey "vis"
@@ -338,15 +436,15 @@ SUB SlicePropertiesEditor.define_items()
       IF .FillHoriz() = NO THEN
         defint "Clamp horiz.:", .ClampHoriz, alignLeft, alignBoth   'ubyte
         set_caption clamp_caption(.ClampHoriz, NO)
+        set_default alignNone
         propkey "clamph", "clamp"
-        'sliceed_rule_set_default  alignNone
         clamping OR= (.ClampHoriz <> alignNone)
       END IF
       IF .FillVert() = NO THEN
         defint "Clamp vert.:", .ClampVert, alignLeft, alignBoth   'ubyte
         set_caption clamp_caption(.ClampVert, YES)
+        set_default alignNone
         propkey "clampv", "clamp"
-        'sliceed_rule_set_default  alignNone
         clamping OR= (.ClampVert <> alignNone)
       END IF
       IF clamping THEN
@@ -356,7 +454,7 @@ SUB SlicePropertiesEditor.define_items()
       END IF
     END IF
 
-    section "Padding"
+    section "Padding", YES
     defint "Top:", .PaddingTop, -9999, 9999
     propkey "padt", "padding"
     defint "Right:", .PaddingRight, -9999, 9999
@@ -409,7 +507,7 @@ SUB SlicePropertiesEditor.add_blend_items(byref drawopts as DrawOptions)
     defbool "Blending:", .with_blending
     propkey "blending"
 
-    IF .with_blending THEN
+    IF .with_blending ORELSE gather_items <> NULL THEN
       defitem "Opacity:"
       edit_float .opacity, 0.0, 1.0, 3
       propkey "opacity"
@@ -428,7 +526,6 @@ SUB SlicePropertiesEditor.add_blend_items(byref drawopts as DrawOptions)
     END IF
   END WITH
 END SUB
-
 
 SUB SlicePropertiesEditor.draw_underlays()
   draw_background vpages(vpage), bgChequer

@@ -202,11 +202,13 @@ type EditorKit extends ModularMenu
 	' Inherited from ModularMenu
 	'declare sub run()
 
-  private:
+  protected:
+	declare sub run_phase(which_phase as Phases)
 	declare sub update()
+
+  private:
 	declare function each_tick() as bool
 	declare sub draw_overlays()
-	declare sub run_phase(which_phase as Phases)
 	declare sub write_value()
 	declare function get_submenu_state(name as string) as SubmenuState ptr
 	declare sub apply_enter_submenu(name as string = "")
@@ -258,7 +260,7 @@ type EditorKit extends ModularMenu
 	declare sub defbitset(title as zstring ptr, bitwords() as integer, wordnum as integer = 0, bitnum as integer)
 	declare sub defstr(title as zstring ptr, byref datum as string, maxlen as integer = 0)
 
-	declare sub finish_defitem()
+	declare virtual sub finish_defitem()
 
 	'---- Captions
 	declare sub set_caption(caption as zstring ptr)

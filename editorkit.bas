@@ -875,7 +875,7 @@ end sub
 ' Set which help page is opened by F1 while the current menu item is selected
 ' Also sets a default tooltip "F1 for details" while selected
 sub EditorKit.set_helpkey(key as zstring ptr)
-	if process then
+	if process or refresh then
 		base.helpkey = *key
 		cur_item.helpkey = *key
 	end if

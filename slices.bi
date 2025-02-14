@@ -188,6 +188,7 @@ CONST SL_COLLECT_VIRTUALKEYBOARDSCREEN = 21
 Type SliceTypes as integer
 Enum 'SliceTypes
  slInvalid = -1
+ slNone = -1
  '0 was slRoot
  slSpecial = 1
  slContainer

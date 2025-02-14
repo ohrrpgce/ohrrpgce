@@ -1074,6 +1074,7 @@ declare function split_str_int(z as zstring ptr, byref action as string, byref a
 declare function str2bool(q as string, default as integer = NO) as integer
 declare function rotascii (s as string, o as integer) as string
 declare function titlecase(word as string) as string
+declare function untitlecase(word as string) as string
 
 declare function escape_string(s as string, chars as string) as string
 declare function replacestr overload (byref buffer as string, replacewhat as string, replacefunc as FnReplacement, arg as any ptr, maxtimes as integer = -1, caseinsensitive as bool = NO) as integer
