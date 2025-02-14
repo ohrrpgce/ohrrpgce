@@ -3277,6 +3277,7 @@ SUB init_multichoice_menu(menu as MenuDef, state as MenuState, where as XYPair=X
  menu.suppress_borders = YES
  menu.itemspacing = 1
  IF popup_style THEN
+  'FIXME: if there is a scrollbar, the menu text will overlap it
   menu.bordersize = -6  'Total border (+8) is 2px
   menu.textalign = alignLeft
   state.drag_selecting = readmouse.buttons

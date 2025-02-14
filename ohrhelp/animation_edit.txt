@@ -1,0 +1,7 @@
+Experiment and have fun! You'll figure out the editor.
+
+If you just want to animate a sequence of frames in a spriteset, you should probably use a single Play Frame Group animation op, possible followed by Repeat.
+
+An animation might end in Repeat (e.g. Walk), or not (e.g. Attack).
+
+An "animation" doesn't have to do anything visual or contain any wait commands. It can be used to perform some edits to a slice, e.g. change the color of text when you select it in a menu or change an enemy's palette.

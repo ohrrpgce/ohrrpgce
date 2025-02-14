@@ -50,18 +50,13 @@ enum AnimOpType
 	animOpSetOffset = 4 '(x,y)
 	animOpRelOffset = 5 '(x,y)
 	animOpPlayFrameGroup = 6 '(groupidx,ms)
-	animOpLAST      = 6
+	animOpSetProp   = 7 'key, value
+	animOpLAST      = 7
 end enum
 
 extern anim_op_names() as string      ' Short names used for display and debug
 extern anim_op_node_names() as string ' Short names used for RELOAD serialisation
 extern anim_op_fullnames() as string  ' Descriptive captions used in editor
-
-type AnimationOp
-	type as AnimOpType
-	arg1 as integer
-	arg2 as integer
-end type
 
 #if 0
 	#define  DEBUG_ANIM_CACHE(x) x
@@ -72,7 +67,6 @@ end type
 type Animation
 	name as string
 	variant as string
-	'ops(any) as AnimationOp
 	opsnode as Reload.NodePtr   'RELOAD-based replacement for ops()
 
 	'Animation is refcounted only so that animations can be safely replaced in Test Game while they are playing

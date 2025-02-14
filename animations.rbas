@@ -40,6 +40,7 @@ anim_op_names(animOpRepeat) =    "repeat"
 anim_op_names(animOpSetOffset) = "set offset"
 anim_op_names(animOpRelOffset) = "add offset"
 anim_op_names(animOpPlayFrameGroup) = "frame group"
+anim_op_names(animOpSetProp) =   "set"
 
  ' Short names used for RELOAD serialisation
 redim anim_op_node_names(animOpLAST) as string
@@ -50,6 +51,7 @@ anim_op_node_names(animOpRepeat) =    "repeat"
 anim_op_node_names(animOpSetOffset) = "setoffset"
 anim_op_node_names(animOpRelOffset) = "addoffset"
 anim_op_node_names(animOpPlayFrameGroup) = "framegroup"
+anim_op_node_names(animOpSetProp) =   "setprop"
 
 ' Descriptive captions
 redim anim_op_fullnames(animOpLAST) as string
@@ -60,6 +62,7 @@ anim_op_fullnames(animOpRepeat) =    "Repeat animation"
 anim_op_fullnames(animOpSetOffset) = "Move to offset (unimp)"
 anim_op_fullnames(animOpRelOffset) = "Add to offset (unimp)"
 anim_op_fullnames(animOpPlayFrameGroup) = "Play frame group"
+anim_op_fullnames(animOpSetProp) =   "Set"
 
 ' Built-in variants have names starting with :, which are not allowed for user names
 dim shared builtin_variants_table(4) as IntStrPair
@@ -917,6 +920,10 @@ function AnimationState.animate_step() as bool
 		case animOpFrame
 			if sl->SliceType <> slSprite then exit select  'Skip op
 			sl->SpriteData->set_frame(sl, curop."frame")
+
+		case animOpSetProp
+			set_slice_property sl, curop."key".zstring, curop."value".ptr
+
 		case animOpRepeat
 			' If a loop count was specified when playing the animation,
 			' then only loop that many times, otherwise repeat forever

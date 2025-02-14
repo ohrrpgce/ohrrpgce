@@ -68,12 +68,36 @@ end sub
 '==========================================================================================
 '                                     Animation Editor
 '==========================================================================================
-' Unfinished.
-' This is separate from the spriteset editor because it will also be used by slices and even backdrops
+
+' Popup menus used for picking animation ops and slice properties
+type AnimOpsMenuStack extends MenuStack
+  sl as Slice ptr
+  prop_info_list as SlicePropInfo vector
+
+  ' If the user picks an animation, controls() returns YES and sets these
+  ret_animop as integer
+  ret_prop as SlicePropInfo ptr
+
+  declare function controls() as bool
+  declare sub start(itemrect as RectType, title as string)
+
+ private:
+  declare function cur_prop_info() as SlicePropInfo ptr
+  declare sub open_prop_section_list()
+  declare sub open_prop_section(get_section as string)
+
+  ' MenuDefItem.t values
+  enum
+    tAnimOp = 1
+    tPropSection
+    tProperty
+  end enum
+end type
 
 type AnimationEditor
   top_animset as AnimationSet ptr
   sl as Slice ptr
+  original_sl as Slice ptr         'A copy of sl before we started changing it
   animstate as AnimationState ptr  'Always equal to sl->AnimState, just a convenience
   anim_context as AnimationContext
   default_export_filename as string
@@ -88,7 +112,12 @@ type AnimationEditor
   ' Animation editing menu
   first_op_pt as integer
   last_op_pt as integer
+  prop_info_list as SlicePropInfo vector
+  animops_menus as AnimOpsMenuStack
+  using_strgrabber as bool
+  debug_props as bool       'Show raw slice property keys and values
 
+  declare sub reset_slice()
   declare sub toplevel()
   declare sub rebuild_toplevel_menu()
   declare function cur_animset() as AnimationSet ptr
@@ -102,29 +131,46 @@ type AnimationEditor
 
   ' Individual animation editor
   declare sub edit_animation(byref anim as Animation, anim_name as string)
-  declare sub rebuild_animation_menu(byref menu as SimpleMenuItem vector, anim as Animation)
-
+  declare sub rebuild_animation_menu(byref menu as SimpleMenuItem vector, byref state as MenuState, byref anim as Animation)
+  declare sub update_prop_info_list()
+  declare function prop_info(propname as string) as SlicePropInfo ptr
+  declare sub open_animops_menu(title as string, itemrect as RectType)
+  declare function edit_property(propname as string, value_node as NodePtr, state as MenuState) as bool
+  declare sub edit_animop_args(byref anim as Animation, curop as NodePtr, state as MenuState)
+  declare function create_animop_node(byref anim as Animation, animop as AnimOpType, prop as SlicePropInfo ptr = NULL) as NodePtr
+  declare function get_prop_caption(propname as string, value_node as NodePtr) as string
 end type
 
 sub animations_editor(sl as Slice ptr, animset as AnimationSet ptr, anim_context as AnimationContext, default_export_filename as string = "")
-  ' Clone the slice because we're going to be causing changes to it, especially to AnimState
-  dim clone as Slice ptr = CloneSliceTree(sl)
-  dim as AnimationEditor editor = AnimationEditor(clone, animset, anim_context)
+  var editor = AnimationEditor(sl, animset, anim_context)
   editor.default_export_filename = default_export_filename
   editor.toplevel()
-  DeleteSlice @clone
 end sub
 
 constructor AnimationEditor(sl as Slice ptr, top_animset as AnimationSet ptr, anim_context as AnimationContext)
-  this.sl = sl
-  this.animstate = sl->GetAnimState()
+  ' Clone the slice because we're going to be causing changes to it, especially to AnimState
+  this.original_sl = sl
+  reset_slice
   this.top_animset = top_animset->reference()
   this.anim_context = anim_context
 end constructor
 
 destructor AnimationEditor()
   animset_unload @top_animset
+  DeleteSlice @sl
 end destructor
+
+' We can throw away and recreate the slice because a clone shares its AnimationSet
+sub AnimationEditor.reset_slice()
+  DeleteSlice @sl
+  sl = CloneSliceTree(original_sl)
+  animstate = sl->GetAnimState()
+end sub
+
+
+'==========================================================================================
+'                              Toplevel animation picker menu
+'==========================================================================================
 
 const mdatExit = 1
 const mdatNewAnim = 2
@@ -244,7 +290,8 @@ sub AnimationEditor.toplevel()
     elseif keyval(scDelete) > 1 then
       delete_animation()
     elseif keyval(scR) > 1 then
-      animstate->reset()
+      reset_slice()  'Actually effective
+      'animstate->reset()  'Does nothing
     elseif enter_space_click(topstate) then
       select case topmenu[topstate.pt].dat
           case mdatExit
@@ -281,7 +328,7 @@ sub AnimationEditor.toplevel()
     'Draw command palette
     edgeprint "Del: Delete", pInfoRight, pMenuY + 0, uilook(uiMenuItem), vpage
     edgeprint "Shift-" & CHR(8) & ": Reorder", pInfoRight, pMenuY + 10, uilook(uiMenuItem), vpage
-    edgeprint "R: Reset sprite", pInfoRight, pMenuY + 20, uilook(uiMenuItem), vpage
+    edgeprint "R: Reset slice", pInfoRight, pMenuY + 20, uilook(uiMenuItem), vpage
     edgeprint "X: Export", pInfoRight, pMenuY + 30, uilook(uiMenuItem), vpage
 
     wrapprint animation_info(cur_anim()), pInfoX, pInfoY, uilook(uiMenuItem), vpage
@@ -346,24 +393,185 @@ sub AnimationEditor.new_animation()
 end sub
 
 
+'==========================================================================================
+'                                Animation op menu stack
+'==========================================================================================
+
+
+function AnimOpsMenuStack.cur_prop_info() as SlicePropInfo ptr
+  dim item as MenuDefItem ptr = cur_item
+  if item = NULL then return NULL
+  if item->t = tProperty then
+    return @prop_info_list[item->sub_t]
+  end if
+  return NULL
+end function
+
+' Update cursor/hover, open or close menus.
+' Returns YES and sets ret_animop when a leaf menu item is selected;
+' also sets ret_prop if it's a slice property.
+function AnimOpsMenuStack.controls() as bool
+  if not is_open then return NO
+
+  if activate then
+    select case cur_item->t
+        case tAnimOp
+          ret_animop = cur_item->sub_t
+          if ret_animop = animOpSetProp then
+            open_prop_section_list
+          else
+            while is_open
+              close
+            wend
+            return YES
+          end if
+
+        case tPropSection
+          open_prop_section cur_item->caption
+
+        case tProperty
+          ret_prop = cur_item->dataptr
+          while is_open
+            close
+          wend
+          return YES
+    end select
+  else
+    if cur_prop_info then
+      helpkey = cur_prop_info->helpkey
+    else
+      helpkey = cur_menu->helpkey
+    end if
+    base.controls()
+  end if
+end function
+
+' Open the first menu, to pick an animation op
+' itemrect is for the selected item in the exterior menu, telling where to position the menu
+sub AnimOpsMenuStack.start(itemrect as RectType, title as string)
+  ret_animop = animOpUnknown
+  ret_prop = NULL
+  open_at(itemrect)
+  menus(0).name = title
+  menus(0).helpkey = "animation_op"
+  for idx as integer = 0 to ubound(anim_op_fullnames)
+    add_item(anim_op_fullnames(idx), tAnimOp, idx)
+  next
+  finish_open()
+end sub
+
+' Open menu with list of slice editor sections
+sub AnimOpsMenuStack.open_prop_section_list()
+  open()
+  menus(1).helpkey = "animation_op"
+  for idx as integer = 0 to v_len(prop_info_list) - 1
+    with prop_info_list[idx]
+      if .infotype = SlicePropInfoType.section then
+        add_item(.display, tPropSection)
+      end if
+    end with
+  next
+  finish_open()
+end sub
+
+' Open menu with contents of a slice editor section
+sub AnimOpsMenuStack.open_prop_section(get_section as string)
+  open()
+  dim cur_section as string
+  for idx as integer = 0 to v_len(prop_info_list) - 1
+    with prop_info_list[idx]
+      if .infotype = SlicePropInfoType.section then
+        cur_section = .display
+      elseif .infotype = SlicePropInfoType.prop then
+        if cur_section = get_section then
+          ' Set sub_t = idx, dataptr = prop
+          add_item(.display, tProperty, idx, @prop_info_list[idx])
+        end if
+      end if
+    end with
+  next
+  finish_open()
+end sub
+
+
 '================================ Editing an Animation ====================================
 
-' Temporary; should rewrite the menu using EditorKit instead
 const itemdatExit = -1
 const itemdatAddStep = -2
 const itemdatPlay = -3
 const itemdatLoop = -4
 const itemdatReset = -5
-
-'SUB additem(byref menu as SimpleMenuItem vector, caption as string)
-'append_simplemenu_item
-'END SUB
+const itemdatOp = 1
 
 function format_ms(ms as integer) as string
   return ms_to_frames(ms) & " frame(s) (" & FORMAT(0.001 * ms, "0.000") & "sec)"
 end function
 
-sub AnimationEditor.rebuild_animation_menu(byref menu as SimpleMenuItem vector, byref anim as Animation)
+' prop_info_list will change based on the slice properties that can be edited given the current slice state
+' (e.g., width if not filling parent). That might be confusing...
+sub AnimationEditor.update_prop_info_list()
+  v_new prop_info_list
+  var property_editor = SlicePropertiesEditor(sl)
+  property_editor.gather_properties(prop_info_list)
+end sub
+
+' Lookup info about a slice property.
+' TODO: The info might be missing, because prop_info_list depends on current slice data
+function AnimationEditor.prop_info(propname as string) as SlicePropInfo ptr
+  for idx as integer = 0 to v_len(prop_info_list) - 1
+    ' In one case (Rect/Scroll "style") different slice types have different valid ranges, and
+    ' more often have different names for the same prop. So match on sltype too.
+    dim prop as SlicePropInfo ptr = @prop_info_list[idx]
+    if *prop->propname = propname then
+      if prop->sltype = slNone orelse prop->sltype = sl->SliceType then
+        return prop
+      end if
+    end if
+  next
+  debuginfo "Couldn't find prop " & propname
+  return NULL
+end function
+
+' Get the display string for a slice property value, e.g. "34", or "Left" for an alignment
+' Invalidates previous prop_info_list pointers!
+function AnimationEditor.get_prop_caption(propname as string, value_node as NodePtr) as string
+  dim prop as SlicePropInfo ptr = prop_info(propname)
+  if prop = NULL then return value_node..str
+
+  if prop->custom_caption then
+    ' Get the caption in an inefficient but very general way: by change the value
+    ' of this property on the slice, regenerating the entire slice detail editor menu, extracting
+    ' the caption from it, and then resetting the value!
+    dim old_value_node as NodePtr = prop->value_node
+    prop->value_node = NULL  'Don't delete it
+    set_slice_property sl, propname, value_node
+    update_prop_info_list
+    prop = prop_info(propname)
+    ' Reset the value
+    set_slice_property sl, propname, old_value_node
+    FreeNode old_value_node
+    if prop then
+      return prop->caption
+    else
+      ' Could happen
+      debug propname & " disappeared..."
+      ' prop is now invalid
+      return value_node..str
+    end if
+  end if
+
+  ' Adapted from finish_defitem
+  select case prop->dtype
+    case dtypeBool:          return iif(value_node..int, "YES", "NO")
+    case dtypeInt, dtypeStr: return value_node..str
+    case dtypeFloat:         return format_percent(value_node..float)
+  end select
+
+end function
+
+sub AnimationEditor.rebuild_animation_menu(byref menu as SimpleMenuItem vector, byref state as MenuState, byref anim as Animation)
+  update_prop_info_list
+
   v_new menu
   append_simplemenu_item menu, "Previous Menu", , , itemdatExit
   append_simplemenu_item menu, "Ops:", YES, uilook(eduiHeading)  'unselectable
@@ -385,10 +593,21 @@ sub AnimationEditor.rebuild_animation_menu(byref menu as SimpleMenuItem vector, 
         caption = op."frame".string
       case animOpPlayFrameGroup
         caption = (100 * op."framegroup") & ", " & format_ms(op."ms")
+      case animOpSetProp
+        '?"setop:  key=", op."key".str, "value=", op."value".str
+        dim propname as string = op."key".str
+        dim prop as SlicePropInfo ptr = prop_info(propname)
+        if prop = NULL orelse debug_props then
+          caption = propname & " = " & op."value".str
+        else
+          caption = prop->display & " = "
+          ' Warning: invalidates prop
+          caption &= get_prop_caption(propname, op."value".ptr)
+        end if
       case else
         caption = "???" 'STR(.arg1)   '& " " & .arg2
     end select
-    append_simplemenu_item menu, "- " & anim_op_names(op..int) & " " & caption, , , idx
+    append_simplemenu_item menu, "- " & anim_op_names(op..int) & " " & caption, , , itemdatOp + idx
     idx += 1
     op = NextSibling(op)
   wend
@@ -399,9 +618,11 @@ sub AnimationEditor.rebuild_animation_menu(byref menu as SimpleMenuItem vector, 
   append_simplemenu_item menu, "- Add step (+)", , uilook(eduiSpecial), itemdatAddStep
 
   append_simplemenu_item menu, "", YES, uilook(uiDisabledItem)  'unselectable
-  'append_simplemenu_item menu, "Reset sprite (R)", , , itemdatReset
+  'append_simplemenu_item menu, "Reset slice (R)", , , itemdatReset
   append_simplemenu_item menu, "Play looped (L)", , , itemdatLoop
   append_simplemenu_item menu, "Play (P)", , , itemdatPlay
+
+  state.last = v_len(menu) - 1
 end sub
 
 ' Edit a number of milliseconds as number of frames
@@ -413,29 +634,127 @@ function intgrabber_ms_as_frames(ms_node as NodePtr, minframes as integer, maxfr
   end if
 end function
 
+' Returns true if edited
+function AnimationEditor.edit_property(propname as string, value_node as NodePtr, state as MenuState) as bool
+  dim prop as SlicePropInfo ptr = prop_info(propname)
+  if prop = NULL then return NO
+
+  dim edited as bool
+  '?"Edit prop", propname, "dtype", prop->dtype, "val", value_node..int, "max", prop->range_max
+  select case prop->dtype
+    case pdtypeBool
+      dim value as bool = value_node..bool
+      'FIXME: enter clashes with replacing op
+      edited = boolgrabber(value, state)
+      SetContentBool(value_node, value)
+    case pdtypeInt
+      dim value as integer = value_node..int
+      edited = intgrabber(value, prop->range_min, prop->range_max)
+      SetContent(value_node, value)
+    case pdtypeFloat
+      dim valuefloat as double = value_node..float
+      var sigfigs = 3
+      var is_percent = YES
+      edited = percent_grabber(valuefloat, "", prop->range_min_float, prop->range_max_float, sigfigs, YES, is_percent)
+      SetContent(value_node, valuefloat)
+    case pdtypeStr
+      using_strgrabber = YES
+      dim valuestr as string = value_node..str
+      edited or= strgrabber(valuestr)
+      SetContent(value_node, valuestr)
+
+  end select
+  return edited
+end function
+
+sub AnimationEditor.edit_animop_args(byref anim as Animation, curop as NodePtr, state as MenuState)
+  dim sprset as SpriteSet ptr
+  if sl->SliceType = slSprite then sprset = spriteset_for_frame(sl->SpriteData->img.sprite)
+
+  using_strgrabber = NO
+
+  select case curop..int
+    case animOpWait
+      ' Arg is ms, but edit as number of frames
+      state.need_update or= intgrabber_ms_as_frames(GetOrCreateChild(curop, "ms"), 0, 1000000)
+      if keyval(scTab) > 1 then
+        anim.mutate_op(curop, animOpWaitMS)
+        state.need_update = YES
+      end if
+    case animOpWaitMS
+      dim ms as integer = curop."ms"
+      state.need_update or= intgrabber(ms, 0, 9999, , , , , , , 10, NO)  'moreless_step = 10, wrap = NO
+      SetChildNode(curop, "ms", ms)
+      if keyval(scTab) > 1 then
+        anim.mutate_op(curop, animOpWait)
+        state.need_update = YES
+      end if
+    case animOpFrame
+      if sprset = 0 then exit select
+      dim frame as integer = curop."frame"
+      state.need_update or= intgrabber(frame, 0, sprset->num_frames - 1)
+      SetChildNode(curop, "frame", frame)
+      sl->SpriteData->set_frame(sl, frame)  'Update visual
+    case animOpPlayFrameGroup
+      if sprset = 0 then exit select
+      dim framegroup as integer = curop."framegroup"
+      if keyval(scShift) > 0 then
+        state.need_update or= intgrabber_ms_as_frames(GetOrCreateChild(curop, "ms"), 0, 1000000)
+      else
+        state.need_update or= intgrabber(framegroup, 0, sprset->num_frame_groups - 1)
+        SetChildNode(curop, "framegroup", framegroup)
+      end if
+      sl->SpriteData->set_frameid(sl, framegroup * 100)  'Update visual
+    case animOpSetProp
+      if edit_property(curop."key".str, curop."value".ptr, state) then
+        set_slice_property(sl, curop."key".str, curop."value".ptr)  'Update visual
+        state.need_update = YES
+      end if
+  end select
+end sub
+
+' Append a new animop with the return values from AnimOpsMenuStack
+function AnimationEditor.create_animop_node(byref anim as Animation, animop as AnimOpType, prop as SlicePropInfo ptr = NULL) as NodePtr
+  dim newop as NodePtr = anim.append(animop)
+  if animop = animOpSetProp then
+    SetChildNode newop, "key", *prop->propname
+    AddChild newop, CloneNodeTree(prop->value_node, get_anim_doc)
+  end if
+  return newop
+end function
+
+sub AnimationEditor.open_animops_menu(title as string, itemrect as RectType)
+  animops_menus.sl = sl
+  update_prop_info_list
+  animops_menus.prop_info_list = prop_info_list
+  animops_menus.start(itemrect, title)
+end sub
+
 ' Edit a single animation
 sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
 
-  dim menu as SimpleMenuItem vector
-  rebuild_animation_menu menu, anim
-
   dim state as MenuState
-  state.last = v_len(menu) - 1
+  state.need_update = YES
+  dim menu as SimpleMenuItem vector
+  rebuild_animation_menu menu, state, anim
+
   dim menuopts as MenuOptions
   menuopts.wide = 80  ' Minimum width
   menuopts.calc_size = YES
   dim mpos as XYPair = (pMenuX, pMenuY)
 
-  'Precompute the menu size
+  ' Precompute the menu size
   calc_menu_rect state, menuopts, mpos, vpage, cast(BasicMenuItem vector, menu)
 
-  dim animating as bool = NO  'Current mode: whether playing the animation, or editing it
+  dim animating as bool = NO  'Playing the animation, rather than editing it
+  ' What we're going to do with the op returned from animops_menus
+  dim animops_action as string
+
+  dim curop as Node ptr = NULL
 
   do
     setwait gen(genMillisecPerFrame)
     setkeys
-
-    dim curop as Node ptr = NULL
 
     if animating then
       ' Menu cursor shows the current op
@@ -452,30 +771,81 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
 
       if keyval(scR) > 1 then  'Allow reset too
         animating = NO
-        animstate->reset()
-        animstate->stop_animation()
+        'animstate->reset()
+        'animstate->stop_animation()
+        reset_slice
+        state.need_update = YES
       'elseif keyval(ccCancel) > 1 orelse keyval(scP) > 1
       elseif anykeypressed() then
         animating = NO
         animstate->stop_animation()  'Not necessary, since we don't call animate() anyway
       end if
 
+    elseif animops_menus.is_open then
+
+      with animops_menus
+        if .controls() then
+          ' Picked an anim op from the menu, what do we do with it?
+          if animops_action = "add_op" then
+            dim newop as NodePtr = create_animop_node(anim, .ret_animop, .ret_prop)
+            if curop then
+              AddSiblingBefore curop, newop
+            end if
+            curop = newop
+            state.need_update = YES
+
+          elseif animops_action = "replace_op" then
+            assert(curop)
+            ' Is the new op different from curop? (Using '..int' here hits a PyPEG bug!)
+            if .ret_animop <> GetInteger(curop) orelse (.ret_prop andalso *.ret_prop->propname <> curop."key".str) then
+              ' Maybe use anim.mutate_op instead?
+              dim newop as NodePtr = create_animop_node(anim, .ret_animop, .ret_prop)
+              AddSiblingAfter curop, newop
+              FreeNode curop
+              curop = newop
+              state.need_update = YES
+            end if
+
+          else
+            showbug "Bad action " & animops_action
+          end if
+
+        end if
+      end with
+
     else
-      if keyval(scShift) = 0 then
+
+      if keyval(scShift) = 0 then  'Not reordering
         usemenu state, menu
       end if
+
       dim op_idx as integer = -1
       dim itemdat as integer = menu[state.pt].dat
-      if itemdat >= 0 then op_idx = itemdat
+      if itemdat >= itemdatOp then op_idx = itemdat - itemdatOp
       curop = NULL
       if op_idx > -1 then curop = ChildByIndex(anim.opsnode, op_idx) : assert(curop)
 
-      dim add_step as bool = keyval(scInsert) orelse keyval(scPlus) > 1 orelse keyval(scNumpadPlus) > 1
-      dim delete_step as bool = keyval(scDelete) > 1 orelse keyval(scMinus) > 1 orelse keyval(scNumpadMinus) > 1
-      dim play_anim as bool = keyval(scP) > 1
-      dim loop_anim as bool = keyval(scL) > 1
-      dim reset_anim as bool = keyval(scR) > 1
+      ' Editing op arguments
+      if curop then
+        ' Updates using_strgrabber
+        edit_animop_args anim, curop, state
+      end if
 
+      dim add_step as bool
+      dim delete_step as bool
+      dim play_anim as bool
+      dim loop_anim as bool
+      dim reset_anim as bool
+
+      if using_strgrabber = NO then
+        add_step = keyval(scInsert) orelse keyval(scPlus) > 1 orelse keyval(scNumpadPlus) > 1
+        delete_step = keyval(scDelete) > 1 orelse keyval(scNumpadMinus) > 1
+        play_anim = keyval(scP) > 1
+        loop_anim = keyval(scL) > 1
+        reset_anim = keyval(scR) > 1
+      end if
+
+      if using_strgrabber then clearkey scSpace
       if enter_space_click(state) then
         select case itemdat
           case itemdatExit
@@ -488,39 +858,27 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
             loop_anim = YES
           case itemdatReset
             reset_anim = YES
-          case IS >= 0
+          case IS >= itemdatOp
             ' Replace an op
-            dim newtype as AnimOpType
-            newtype = multichoice("Replace with which operator?", anim_op_fullnames(), , , "animation_ops")
-            if newtype >= 0 andalso newtype <> curop..int then
-              ' Maybe use anim.mutate_op instead?
-              dim newop as NodePtr = anim.append(newtype)
-              AddSiblingAfter(curop, newop)
-              FreeNode curop
-              curop = newop
-            end if
+            animops_action = "replace_op"
+            open_animops_menu("Replace with operator?", standardmenu_item_rect(menu, state))
         end select
       end if
 
       if keyval(ccCancel) > 1 then exit do
       if keyval(scF1) > 1 then show_help "animation_edit"
+      if keyval(scF6) > 1 then debug_props xor= YES
 
       if add_step then
         ' Add op
-        dim newtype as AnimOpType
-        newtype = multichoice("Which operator?", anim_op_fullnames(), , , "animation_ops")
-        if newtype >= 0 then
-          dim newop as NodePtr = anim.append(newtype)
-          if curop then
-            AddSiblingBefore curop, newop
-          end if
-          curop = newop
-        end if
+        animops_action = "add_op"
+        open_animops_menu("Add which operator?", standardmenu_item_rect(menu, state))
       elseif delete_step then
         ' Delete op
         if curop then
           FreeNode curop
           curop = NextSibling(curop)
+          state.need_update = YES
         end if
       elseif play_anim then
         ' Play (may or may not loop)
@@ -531,57 +889,29 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
         animstate->start_animation(@anim, -1)
         animating = YES
       elseif reset_anim then
-        ' Reset sprite
-        animstate->reset()
+        ' Reset slice
+        'animstate->reset()  'Does nothing
+        reset_slice  'Reclones the slice
+        state.need_update = YES
       elseif keyval(scShift) > 0 andalso curop then
         ' Rearranging items
         if keyval(ccUp) > 1 andalso PrevSibling(curop) then
           SwapSiblingNodes curop, PrevSibling(curop)
           op_idx -= 1
+          state.need_update = YES
         elseif keyval(ccDown) > 1 andalso NextSibling(curop) then
           SwapSiblingNodes curop, NextSibling(curop)
           op_idx += 1
+          state.need_update = YES
         end if
         state.pt = first_op_pt + op_idx
         'curop unchanged
       end if
 
-      ' Editing op arguments
-      if curop then
-        dim sprset as SpriteSet ptr
-        if sl->SliceType = slSprite then sprset = spriteset_for_frame(sl->SpriteData->img.sprite)
-
-        select case curop..int
-          case animOpWait
-            ' Arg is ms, but edit as number of frames
-            intgrabber_ms_as_frames GetOrCreateChild(curop, "ms"), 0, 1000000
-            if keyval(scTab) > 1 then anim.mutate_op(curop, animOpWaitMS)
-          case animOpWaitMS
-            dim ms as integer = curop."ms"
-            intgrabber ms, 0, 9999, , , , , , , 10, NO  'moreless_step = 10, wrap = NO
-            SetChildNode(curop, "ms", ms)
-            if keyval(scTab) > 1 then anim.mutate_op(curop, animOpWait)
-          case animOpFrame
-            if sprset = 0 then exit select
-            dim frame as integer = curop."frame"
-            intgrabber frame, 0, sprset->num_frames - 1
-            SetChildNode(curop, "frame", frame)
-            sl->SpriteData->set_frame(sl, frame)  'Update visual
-          case animOpPlayFrameGroup
-            if sprset = 0 then exit select
-            dim framegroup as integer = curop."framegroup"
-            if keyval(scShift) > 0 then
-              intgrabber_ms_as_frames GetOrCreateChild(curop, "ms"), 0, 1000000
-            else
-              intgrabber framegroup, 0, sprset->num_frame_groups - 1
-              SetChildNode(curop, "framegroup", framegroup)
-            end if
-            sl->SpriteData->set_frameid(sl, framegroup * 100)  'Update visual
-        end select
+      if state.need_update then
+        state.need_update = NO
+        rebuild_animation_menu menu, state, anim
       end if
-
-      rebuild_animation_menu menu, anim
-      state.last = v_len(menu) - 1
     end if
 
     ' Draw screen
@@ -609,13 +939,13 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
     ' Draw command palette
     dim cmds() as string
     a_append cmds(), "Ins/+: Insert step"
-    a_append cmds(), "Del/-: Delete step"
+    a_append cmds(), "Del: Delete step"
     a_append cmds(), "Shift-" & CHR(8) & ": Reorder"
     'a_append cmds(), "</>: Change op"
     a_append cmds(), CHR(27) & "/" & CHR(26) & ": Edit arg1"
     a_append cmds(), "Shift-" & CHR(27) & CHR(26) & ": Edit arg2"
     a_append cmds(), "Enter: Replace step"
-    a_append cmds(), "R: Reset sprite"
+    a_append cmds(), "R: Reset slice"
 
     dim cmdstate as MenuState
     cmdstate.active = NO
@@ -623,6 +953,9 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
     dim menuopts as MenuOptions
     menuopts.edged = YES
     standardmenu cmds(), cmdstate, rRight - 20 * 8 , pMenuY + 12, vpage, menuopts
+
+    ' Draw popup menus
+    animops_menus.draw(vpage)
 
     setvispage vpage
     dowait

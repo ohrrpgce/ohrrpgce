@@ -100,6 +100,7 @@ TYPE MenuDef
   record    as integer = -1
   handle    as integer     ' Of type HandleType.Menu
   name      as string
+  helpkey   as string      ' Mostly useful for MenuStack, but has no effect
   boxstyle  as integer
   textcolor as integer  'Default. 0=use uiMenuItem, >0 is color index, <0 is a UI color
   disabled_textcolor as integer  'Default. 0=use uiDisabledItem, >0 is color index, <0 is a UI color

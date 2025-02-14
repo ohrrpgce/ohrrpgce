@@ -2229,7 +2229,7 @@ SUB MenuStack.open_at(itemrect as RectType)
   menu.offset = itemrect.xy + XY(itemrect.w + 3, -1)
   menu.highlight_selection = YES
   'Add a little more border in case of a scrollbar
-  menu.bordersize += 3
+  'menu.bordersize += 4  'Seems to do nothing...
   menu.no_box = YES
   'menu.suppress_borders = YES
 
@@ -2341,7 +2341,7 @@ SUB MenuStack.draw(page as integer)
       titlerect.y -= titlerect.h
 
       drawbox vpages(page), titlerect.x + 2, titlerect.y + 2, titlerect.w, titlerect.h, findrgb(0, 0, 0), 2
-      rectangle vpages(page), titlerect, findrgb(80, 80, 140)
+      rectangle vpages(page), titlerect, findrgb(0, 80, 140)
 
       DIM uicol as integer = IIF(midx = UBOUND(menus), uiText, uiMenuItem)
       edgeprint menu.name, titlerect.x + 2, titlerect.y + 2, uilook(uicol), page
@@ -2364,7 +2364,7 @@ SUB MenuStack.draw(page as integer)
       ELSE
        x = pInfoRight
       END IF
-      edgeprint "F1 Help", x, pBottom, uilook(uiMenuItem), vpage
+      edgeprint "F1 Help", x, pInfoY, uilook(uiMenuItem), vpage
     END IF
     ' wrapprintbg *extra_message, pLeft, pBottom, uilook(uiMenuItem), vpage, , , , fontBuiltinEdged
   NEXT
