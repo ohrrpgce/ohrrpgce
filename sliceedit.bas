@@ -2343,8 +2343,16 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, b
 #IFDEF IS_CUSTOM
  IF rule.group AND slgrEDITANIMATIONS THEN
   IF enter_space_click(state) THEN
-   ' Initialise a slice-specific AnimationSet. It won't actually be saved if empty.
+   ' GetAnimations: Initialise a slice-specific AnimationSet. It won't actually be saved if empty.
    animations_editor sl, sl->GetAnimations(YES), acHeroSprite/'FIXME'/
+   IF sl->SliceType = slSprite THEN
+    WITH *sl->SpriteData
+     IF .loaded ANDALSO in_bound(.spritetype, sprTypeFirstLoadable, sprTypeLastPickable) THEN  'Not sprTypeFrame
+      rgfx_save_spriteset .original_img, .spritetype, .record
+      rgfx_save_global_animations .spritetype
+     END IF
+    END WITH
+   END IF
    state.need_update = YES
   END IF
  END IF
