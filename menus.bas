@@ -2203,23 +2203,23 @@ END FUNCTION
 
 ' Opens a new menu at the default position: the mouse position for the first menu,
 ' or right of the current active menu item if there is a menu open.
-' Call open(), then add_item() to add to the new menu, then finish with finish_open().
-SUB MenuStack.open()
+' Call open_menu(), then add_item() to add to the new menu, then finish with finish_open().
+SUB MenuStack.open_menu()
   DIM idx as integer = UBOUND(menus)
 
   IF idx >= 0 THEN
     DIM byref menu as MenuDef = menus(idx)
     DIM byref state as MenuState = states(idx)
-    open_at menudef_item_rect(menu, menu.items[state.pt]->text, state.pt)
+    open_menu_at menudef_item_rect(menu, menu.items[state.pt]->text, state.pt)
     open_at_mouse = NO
   ELSE
-    open_at(XYWH(0,0,0,0))
+    open_menu_at(XYWH(0,0,0,0))
     open_at_mouse = YES
   END IF
 END SUB
 
 ' Open a new menu to the right of some existing menu item/widget at itemrect
-SUB MenuStack.open_at(itemrect as RectType)
+SUB MenuStack.open_menu_at(itemrect as RectType)
   DIM idx as integer = UBOUND(menus) + 1
   REDIM PRESERVE menus(idx)
   REDIM PRESERVE states(idx)
@@ -2238,7 +2238,7 @@ SUB MenuStack.open_at(itemrect as RectType)
   END IF
 END SUB
 
-' Must be called after open/open_at and add_item
+' Must be called after open_menu[_at] and add_item
 SUB MenuStack.finish_open()
   DIM idx as integer = UBOUND(menus)
   DIM byref menu as MenuDef = menus(idx)
@@ -2260,7 +2260,7 @@ SUB MenuStack.finish_open()
 END SUB
 
 ' Close the topmost menu
-SUB MenuStack.close()
+SUB MenuStack.close_menu()
   IF UBOUND(menus) < 0 THEN EXIT SUB
   DIM idx as integer = UBOUND(menus) - 1
   ClearMenuData menus(idx + 1)
@@ -2308,7 +2308,7 @@ FUNCTION MenuStack.controls() as bool
     default_menu_controls state
     IF keyval(ccLeft) > 1 THEN state.active = NO
     IF state.active = NO THEN  'Set when quitting (or activating)
-      close()
+      close_menu()
     END IF
   END IF
 END FUNCTION

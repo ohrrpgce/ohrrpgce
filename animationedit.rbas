@@ -451,7 +451,7 @@ end function
 sub AnimOpsMenuStack.start(itemrect as RectType, title as string)
   ret_animop = animOpUnknown
   ret_prop = NULL
-  open_at(itemrect)
+  open_menu_at(itemrect)
   menus(0).name = title
   menus(0).helpkey = "animation_op"
   for idx as integer = 0 to ubound(anim_op_fullnames)
@@ -462,7 +462,7 @@ end sub
 
 ' Open menu with list of slice editor sections
 sub AnimOpsMenuStack.open_prop_section_list()
-  open()
+  open_menu()
   menus(1).helpkey = "animation_op"
   for idx as integer = 0 to v_len(prop_info_list) - 1
     with prop_info_list[idx]
@@ -476,7 +476,7 @@ end sub
 
 ' Open menu with contents of a slice editor section
 sub AnimOpsMenuStack.open_prop_section(get_section as string)
-  open()
+  open_menu()
   dim cur_section as string
   for idx as integer = 0 to v_len(prop_info_list) - 1
     with prop_info_list[idx]

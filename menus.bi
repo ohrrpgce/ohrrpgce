@@ -189,11 +189,11 @@ TYPE MenuStack
   helpkey as string
   open_at_mouse as bool
 
-  DECLARE SUB open()
-  DECLARE SUB open_at(itemrect as RectType)
+  DECLARE SUB open_menu()
+  DECLARE SUB open_menu_at(itemrect as RectType)
   DECLARE FUNCTION add_item(text as string, t as integer = 0, sub_t as integer = 0, dataptr as any ptr = 0) byref as MenuDefItem
   DECLARE SUB finish_open()
-  DECLARE SUB close()
+  DECLARE SUB close_menu()
 
   DECLARE FUNCTION is_open() as bool
   DECLARE FUNCTION is_active() as bool
