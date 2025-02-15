@@ -480,7 +480,7 @@ MAKETYPE_DListItem(SpriteCacheEntry)
 type SpriteCacheEntry
 	'cachelist used only if object is a member of sprcacheB
 	cacheB as DListItem(SpriteCacheEntry)
-	hash as integer   'Used as HashTable hash/key
+	key as integer   'Used as HashTable key
 	p as Frame ptr
 	cost as integer
 	Bcached as bool
@@ -9517,7 +9517,7 @@ CONST SPRCACHE_BASE_SZ = 4096  'bytes
         'Set TRACE_SPRITE to the particular spriteset you want to trace
         #define TRACE_SPRITE  SPRITE_CACHE_KEY(sprTypeWalkabout, 1)  'walkabout set 1
         #macro TRACE_CACHE(fr, msg)
-                if fr->cacheentry andalso fr->cacheentry->hash = TRACE_SPRITE then
+                if fr->cacheentry andalso fr->cacheentry->key = TRACE_SPRITE then
                         debug msg ", spr " & TRACE_SPRITE & " refc=" & fr->refcount
                 end if
         #endmacro
@@ -9529,7 +9529,7 @@ CONST SPRCACHE_BASE_SZ = 4096  'bytes
 local sub sprite_remove_cache(entry as SpriteCacheEntry ptr)
 	TRACE_CACHE(entry->p, "freeing from cache")
 	dlist_remove(sprcacheB.generic, entry)
-	sprcache.remove(entry->hash)
+	sprcache.remove(entry->key)
 	#ifdef COMBINED_SPRCACHE_LIMIT
 		sprcacheB_used -= entry->cost
 	#else
@@ -9538,7 +9538,7 @@ local sub sprite_remove_cache(entry as SpriteCacheEntry ptr)
 		end if
 	#endif
 	if entry->p->refcount <> 1 then
-		debugc errBug, "sprite cache leak/invalid sprite_remove_cache(): " & entry->hash & " " & frame_describe(entry->p)
+		debugc errBug, "sprite cache leak/invalid sprite_remove_cache(): " & entry->key & " " & frame_describe(entry->p)
 		'Leak instead of deleting the Frame, to avoid crashes
 	else
 		entry->p->cacheentry = NULL  'help to detect double free
@@ -9571,7 +9571,7 @@ local sub sprite_empty_cache_range(minkey as integer, maxkey as integer)
 	pt = sprcache.iter(iterstate, nextpt)
 	while pt
 		nextpt = sprcache.iter(iterstate, pt)
-		if pt->hash >= minkey andalso pt->hash <= maxkey then
+		if pt->key >= minkey andalso pt->key <= maxkey then
 			sprite_remove_cache(pt)
 		end if
 		pt = nextpt
@@ -9589,15 +9589,15 @@ local sub sprite_update_cache_range(minkey as integer, maxkey as integer)
 	while pt
 		nextpt = sprcache.iter(iterstate, pt)
 
-		if pt->hash < minkey or pt->hash > maxkey then
+		if pt->key < minkey or pt->key > maxkey then
 			pt = nextpt
 			continue while
 		end if
 
 		'recall that the cache counts as a reference
 		if pt->p->refcount <> 1 then
-			dim sprtype as integer = pt->hash \ SPRITE_CACHE_MULT
-			dim record as integer = pt->hash mod SPRITE_CACHE_MULT
+			dim sprtype as integer = pt->key \ SPRITE_CACHE_MULT
+			dim record as integer = pt->key mod SPRITE_CACHE_MULT
 
 			dim newframe as Frame ptr
 			newframe = frame_load_uncached(sprtype, record)
@@ -9608,7 +9608,7 @@ local sub sprite_update_cache_range(minkey as integer, maxkey as integer)
 					'Unfortunately, this error will occur if you change the number
 					'of frames in the spriteset editor. Only thing we can do about it is
 					'try to unload all affected Frames before updating the cache.
-					showbug "sprite_update_cache: number of frames changed for sprite " & pt->hash
+					showbug "sprite_update_cache: number of frames changed for sprite " & pt->key
 					numframes = small(numframes, pt->p->arraylen)
 				end if
 
@@ -9683,13 +9683,13 @@ sub sprite_debug_cache()
 	dim pt as SpriteCacheEntry ptr = NULL
 
 	while sprcache.iter(iterstate, pt)
-		debug pt->hash & " cost=" & pt->cost & " : " & frame_describe(pt->p)
+		debug pt->key & " cost=" & pt->cost & " : " & frame_describe(pt->p)
 	wend
 
 	debug "==sprcacheB== (used units = " & sprcacheB_used & "/" & SPRCACHEB_SZ & ")"
 	pt = sprcacheB.first
 	while pt
-		debug pt->hash & " cost=" & pt->cost & " : " & frame_describe(pt->p)
+		debug pt->key & " cost=" & pt->cost & " : " & frame_describe(pt->p)
 		pt = pt->cacheB.next
 	wend
 end sub
@@ -9751,7 +9751,7 @@ local sub sprite_add_cache(sprtype as SpriteType, record as integer, p as Frame 
 	dim entry as SpriteCacheEntry ptr
 	entry = new SpriteCacheEntry
 
-	entry->hash = SPRITE_CACHE_KEY(sprtype, record)
+	entry->key = SPRITE_CACHE_KEY(sprtype, record)
 	entry->p = p
 	entry->cost = (p->w * p->h * p->arraylen) \ SPRCACHE_BASE_SZ + 1
 	'leave entry->cacheB unlinked
@@ -9761,7 +9761,7 @@ local sub sprite_add_cache(sprtype as SpriteType, record as integer, p as Frame 
 	p->cached = 1
 	p->refcount += 1
 	p->cacheentry = entry
-	sprcache.add(entry->hash, entry)
+	sprcache.add(entry->key, entry)
 
 	#ifdef COMBINED_SPRCACHE_LIMIT
 		sprcacheB_used += entry->cost
