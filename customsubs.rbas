@@ -2285,6 +2285,7 @@ FUNCTION spawn_game(gdb as bool = NO, valgrind as bool = NO) as bool
    RETURN NO
   END IF
 
+  arguments = "--no-pause " & arguments
   Game_process = spawn_console_process(executable, arguments, "valgame.sh")
 
  ELSE

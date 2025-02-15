@@ -9,6 +9,15 @@
 # These appear to be false alarms.
 
 {
+   sigaction uninitialised memory
+   Memcheck:Param
+   rt_sigaction(act->sa_mask)
+   fun:__libc_sigaction
+   fun:setup_exception_handler
+   fun:LOWLEVEL_INIT
+   fun:main
+}
+{
    x11_update start
    Memcheck:Addr1
    fun:x11_update
@@ -216,6 +225,15 @@
    tgetent
    Memcheck:Cond
    obj:/lib/libc-*.so
+}
+
+# File leaks
+{
+   SDL2 dbus and udev sockets
+   CoreError:FdNotClosed
+   fun:socket
+   ...
+   fun:gfx_sdl2_init
 }
 
 
