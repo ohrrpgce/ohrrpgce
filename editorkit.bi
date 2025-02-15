@@ -204,9 +204,9 @@ type EditorKit extends ModularMenu
 
   protected:
 	declare sub run_phase(which_phase as Phases)
-	declare sub update()
 
   private:
+	declare sub update()
 	declare function each_tick() as bool
 	declare sub draw_overlays()
 	declare sub write_value()

@@ -56,8 +56,8 @@ END CONSTRUCTOR
 SUB SlicePropertiesEditor.gather_properties(byref into_vector as SlicePropInfo vector)
   gather_items = @into_vector
   ' Call define_items
-  update()
-  'run_phase(Phases.querying)
+  'update()
+  run_phase(Phases.refreshing)
   gather_items = NULL
 END SUB
 
