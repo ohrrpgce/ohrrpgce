@@ -67,12 +67,13 @@ extern anim_op_fullnames() as string  ' Descriptive captions used in editor
 type Animation
 	name as string
 	variant as string
-	opsnode as Reload.NodePtr   'RELOAD-based replacement for ops()
+	opsnode as Reload.NodePtr   'The parent node to the animation ops nodes. Never NULL
 
 	'Animation is refcounted only so that animations can be safely replaced in Test Game while they are playing
 	refcount as integer
 
 	declare constructor(name as string, variant as string = "")
+	declare destructor()
 	declare sub replace_ops(copy_from as Reload.NodePtr)
 
 	'Inc/dec refcount, and delete self

@@ -17,6 +17,8 @@
 #include "editorkit.bi"
 
 
+DEFINE_VECTOR_OF_CLASS(SlicePropInfo, SlicePropInfo)
+
 DESTRUCTOR SlicePropInfo()
   IF value_node THEN
     FreeNode value_node

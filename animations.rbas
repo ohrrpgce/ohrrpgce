@@ -626,6 +626,10 @@ constructor Animation(name as string, variant as string = "")
 	this.opsnode = CreateNode(get_anim_doc, "ops")
 end constructor
 
+destructor Animation()
+	FreeNode(this.opsnode)
+end destructor
+
 function Animation.reference() as Animation ptr
 	refcount += 1
 	return @this

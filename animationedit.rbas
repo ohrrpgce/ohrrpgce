@@ -10,8 +10,6 @@
 #include "reload.bi"
 #include "sliceedit.bi"
 
-DEFINE_VECTOR_OF_TYPE(SlicePropInfo, SlicePropInfo)
-
 
 ' Export a certain animation as a looping gif
 ' (Would be nice if this didn't require a slice...)
@@ -421,7 +419,7 @@ function AnimOpsMenuStack.controls() as bool
             open_prop_section_list
           else
             while is_open
-              close
+              close_menu
             wend
             return YES
           end if
@@ -432,7 +430,7 @@ function AnimOpsMenuStack.controls() as bool
         case tProperty
           ret_prop = cur_item->dataptr
           while is_open
-            close
+            close_menu
           wend
           return YES
     end select
@@ -759,7 +757,7 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
     if animating then
       ' Menu cursor shows the current op
 
-      animstate->animate()
+      AdvanceSlice sl
       'state.pt = first_op_pt + animstate->anim_step
       state.pt = first_op_pt + NodeIndex(animstate->curop)
       if animstate->anim = NULL then
@@ -876,8 +874,9 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
       elseif delete_step then
         ' Delete op
         if curop then
+          dim nextop as NodePtr = NextSibling(curop)
           FreeNode curop
-          curop = NextSibling(curop)
+          curop = nextop
           state.need_update = YES
         end if
       elseif play_anim then
