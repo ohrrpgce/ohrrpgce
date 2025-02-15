@@ -78,12 +78,13 @@ type Animation
 	'Inc/dec refcount, and delete self
 	declare function reference() as Animation ptr
 	declare sub dereference()
+	declare function duplicate() as Animation ptr
 
 	declare function append(optype as AnimOpType) as Reload.Node ptr
 	declare sub mutate_op(op as Reload.NodePtr, optype as AnimOpType)
 end type
 
-'No automatic deletion
+'No automatic deletion or copying
 DECLARE_VECTOR_OF_TYPE(Animation ptr, Animation_ptr)
 
 type AnimationSet extends Object
@@ -100,6 +101,7 @@ type AnimationSet extends Object
 	declare virtual function reference() as AnimationSet ptr
 	' Recommended to call the animset_unload() wrapper instead, to zero out the pointer
 	declare virtual sub dereference()
+	declare function duplicate() as AnimationSet ptr
 
 	' Note find_animation does not increment refcount!
 	declare function find_animation(animvariant as string, exact as bool = NO, recurse as bool = YES, byref _best_score as integer = 0) as Animation ptr

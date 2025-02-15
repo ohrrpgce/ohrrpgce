@@ -4659,6 +4659,9 @@ SUB script_commands(byval cmdid as integer)
   IF sl THEN
    DIM ret as Slice ptr
    'Not using CloneTemplate here due to lacking args
+   'Note that we don't perform a deep copy of slice-specific animations for efficiency, which
+   'you'll notice if you enter the script debugger and edit them. Doesn't seem very harmful
+   'as long as there are no commands for editing animations.
    IF sl->Parent THEN ret = CloneSliceTree(sl, retvals(1) <> 0, NO)
    IF ret = 0 THEN  'Returned in the following case:
     scripterr "cloneslice: Can't copy a Map layer slice or the Root slice"

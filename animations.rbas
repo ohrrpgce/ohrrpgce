@@ -639,6 +639,14 @@ sub Animation.dereference()
 	end if
 end sub
 
+' Deep copy
+function Animation.duplicate() as Animation ptr
+	dim ret as Animation ptr = new Animation(name, variant)
+	ret->refcount = 1
+	ret->opsnode = CloneNodeTree(opsnode, get_anim_doc)
+	return ret
+end function
+
 sub Animation.replace_ops(copy_from as NodePtr)
 	FreeNode(opsnode)
 	opsnode = CloneNodeTree(copy_from, get_anim_doc)
@@ -661,6 +669,23 @@ end sub
 '                                      AnimationSet
 '==========================================================================================
 
+
+' Create deep copies of animations; fallback_set is shared.
+' The result has refcount 1 (comparable to reference()).
+' When this is called on a SpriteSet you get an AnimationSet. You can't duplicate a SpriteSet
+' (well, it could be implemented with frame_duplicate)
+function AnimationSet.duplicate() as AnimationSet ptr
+	dim ret as AnimationSet ptr = new AnimationSet
+	ret->refcount = 1
+	ret->slice_specific = slice_specific
+	ret->name = name
+	ret->fallback_set = fallback_set->reference()
+	v_new ret->animations
+	for idx as integer = 0 to v_len(animations) - 1
+		v_append ret->animations, animations[idx]->duplicate()
+	next
+	return ret
+end function
 
 destructor AnimationSet()
 	'If deleting an AnimationSet that's a SpriteSet, noone should still be playing its animations!

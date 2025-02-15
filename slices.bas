@@ -4602,7 +4602,9 @@ End Sub
 'Duplicate a slice and, if recurse=YES, the whole tree. The resulting clone is parentless.
 'copy_special: copy Special slices and lookup codes. .Protect bit not copied.
 'find_slice: if find_slice is cloned, this variable is replaced with the new Slice ptr.
-Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_special as bool = YES, byref find_slice as Slice ptr = NULL) as Slice ptr
+'duplicate_animations: perform a deep copy of slice-specific Animations. This is normally
+'  unwanted unless the animations of the clone will be edited independently.
+Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_special as bool = YES, byref find_slice as Slice ptr = NULL, duplicate_animations as bool = NO) as Slice ptr
  if sl = NULL orelse sl->SliceType = slMap then return NULL
  dim clone as Slice Ptr
  '--Create another slice of the same type
@@ -4660,7 +4662,11 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
    v_copy .ExtraVec, sl->ExtraVec
   end if
   if sl->Animations then
-   .Animations = sl->Animations->reference()
+   if duplicate_animations andalso sl->Animations->slice_specific then
+    .Animations = sl->Animations->duplicate()
+   else
+    .Animations = sl->Animations->reference()
+   end if
   end if
   if sl->AnimState then
    .AnimState = new AnimationState(*sl->AnimState)
@@ -4674,7 +4680,7 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
  dim ch_slice as Slice Ptr = sl->FirstChild
  dim ch_clone as Slice Ptr
  do while ch_slice <> 0
-  ch_clone = CloneSliceTree(ch_slice, YES, copy_special, find_slice)
+  ch_clone = CloneSliceTree(ch_slice, YES, copy_special, find_slice, duplicate_animations)
   if ch_clone then SetSliceParent ch_clone, clone
   ch_slice = ch_slice->NextSibling
  loop

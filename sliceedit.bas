@@ -1827,7 +1827,9 @@ SUB slice_editor_paste(byref ses as SliceEditState, byval putbefore as Slice Ptr
   DIM child as Slice Ptr
   child = clipboard->LastChild
   WHILE child
-   DIM copied as Slice Ptr = CloneSliceTree(child)
+   'Perform a deep copy of slice-specific animations, because that will happen anyway when the collection
+   'is saved to file and loaded. To make slices share animations we need an explicit, saveable mechanism.
+   DIM copied as Slice Ptr = CloneSliceTree(child, , , , YES)
    IF ses.privileged = NO THEN
     slice_editor_forbidden_search copied, ses.specialcodes(), forbidden_error, YES  'clean=YES
    END IF
