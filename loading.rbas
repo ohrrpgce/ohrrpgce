@@ -3974,23 +3974,23 @@ FUNCTION rgfx_load_spriteset(rgfxdoc as DocPtr, sprtype as SpriteType, setnum as
   fr = frameset_from_node(frameset_node)
   IF fr = NULL THEN RETURN fr
 
-  'Create SpriteSet
-  DIM sprset as SpriteSet ptr
-  sprset = spriteset_for_frame(fr)
+  'Create SpriteSet & AnimationSet
+  DIM animset as AnimationSet ptr
+  animset = spriteset_for_frame(fr)->get_animset()
 
   'Default palette
   fr->defpal = ss_node."defpal".default(-1)
-  sprset->name = sprite_sizes(sprtype).name & " spriteset " & setnum & " animations"
+  animset->name = sprite_sizes(sprtype).name & " spriteset " & setnum & " animations"
 
   'Animations, if they exist
-  load_animations_node(ss_node, sprset)
+  load_animations_node(ss_node, animset)
 
   'Global animations
   IF cache_def_anims THEN
     'Get from/add to cache
-    sprset->fallback_set = spriteset_load_global_animations(sprtype, rgfxdoc)
+    animset->fallback_set = spriteset_load_global_animations(sprtype, rgfxdoc)
   ELSE
-    sprset->fallback_set = rgfx_load_global_animations(rgfxdoc)
+    animset->fallback_set = rgfx_load_global_animations(rgfxdoc)
   END IF
 
   RETURN fr
@@ -4037,11 +4037,16 @@ SUB rgfx_save_spriteset(rgfxdoc as DocPtr, fr as Frame ptr, sprtype as SpriteTyp
   END IF
 
   'Animations
-  DIM sprset as SpriteSet ptr = fr->sprset
-  IF sprset THEN
-    IF v_len(sprset->animations) > 0 THEN
-      save_animations_node ss_node, sprset
+  IF fr->sprset THEN
+    DIM animset as AnimationSet ptr = fr->sprset->animset
+    IF animset THEN
+      IF v_len(animset->animations) > 0 THEN
+        save_animations_node ss_node, animset
+      END IF
     END IF
+  ELSE
+    'This happens because SpriteSetBrowser needs fixing; it currently wipes animations in some cases
+    debug "suspicious rgfx_save_spriteset with no SpriteSet"
   END IF
 
   'Extra info

@@ -754,18 +754,21 @@ declare function masterpal_to_gfxpal(pal() as RGBcolor) as RGBPalette ptr
 '(by frame_freemem), although a Frame array might not have a SpriteSet until
 'spriteset_for_frame() is called.
 'SpriteSet references need to be managed using ->reference() and spriteset_unload()
-Type SpriteSet Extends AnimationSet
+Type SpriteSet
 	'refcount is set to NOREFC and references are instead tracked with frames->refcount
 
 	frames as Frame ptr    'Never NULL. Does NOT count as a reference
+	animset as AnimationSet ptr  'May be NULL; call get_animset() to initialize
 
-	'This is private! Should be called only by frame_load or spriteset_for_frame
+	'These are private! Constructor should be called only by frame_load or spriteset_for_frame
 	declare constructor(frameset as Frame ptr)
+	declare destructor()
 
-	declare virtual function reference() as SpriteSet ptr override
+	declare function reference() as SpriteSet ptr
 	'Recommended to call the spriteset_unload() wrapper instead, to zero out the pointer
-	declare virtual sub dereference() override
+	declare sub dereference()
 
+	declare function get_animset() as AnimationSet ptr
 	declare function num_frames() as integer
 	declare function num_frame_groups() as integer
 	declare function frame_starts_group(frameidx as integer) as bool
@@ -773,7 +776,7 @@ Type SpriteSet Extends AnimationSet
 End Type
 
 declare function spriteset_load(ptno as SpriteType, record as integer) as SpriteSet ptr
-declare sub spriteset_unload alias "ANIMSET_UNLOAD" (ss as SpriteSet ptr ptr)
+declare sub spriteset_unload(ss as SpriteSet ptr ptr)
 declare function spriteset_for_frame(fr as Frame ptr) as SpriteSet ptr
 declare function spriteset_load_global_animations(sprtype as SpriteType, rgfxdoc as Reload.DocPtr = NULL) as AnimationSet ptr
 

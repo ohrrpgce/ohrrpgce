@@ -88,7 +88,7 @@ end type
 'No automatic deletion or copying
 DECLARE_VECTOR_OF_TYPE(Animation ptr, Animation_ptr)
 
-type AnimationSet extends Object
+type AnimationSet
 	refcount as integer        'If this is an SpriteSet, is set to NOREFC
 	animations as Animation ptr vector  'Owned reference to each Animation
 	fallback_set as AnimationSet ptr  'AnimationSet to search after `animations`. E.g. the global animations
@@ -99,9 +99,9 @@ type AnimationSet extends Object
 	                           '(Normally blank in SpriteSet, possibly used for debugging)
 
 	declare destructor()
-	declare virtual function reference() as AnimationSet ptr
+	declare function reference() as AnimationSet ptr
 	' Recommended to call the animset_unload() wrapper instead, to zero out the pointer
-	declare virtual sub dereference()
+	declare sub dereference()
 	declare function duplicate() as AnimationSet ptr
 
 	' Note find_animation does not increment refcount!

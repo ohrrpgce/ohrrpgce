@@ -4052,7 +4052,7 @@ Function Slice.GetAnimations(slice_specific as bool = NO) as AnimationSet ptr
    '(In future, animations can also be saved to .slice files)
    if this.SpriteData->loaded = NO then LoadSpriteSliceImage @this
    'Use original_img since if scaled=YES, animations won't be copied to img.sprite
-   this.Animations = spriteset_for_frame(this.SpriteData->original_img)->reference()
+   this.Animations = spriteset_for_frame(this.SpriteData->original_img)->get_animset()->reference()
   end if
  end if
 
