@@ -23,6 +23,8 @@ DECLARE SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
 
 DECLARE SUB extra_data_editor(byref extra as integer vector)
 
+DECLARE SUB slice_editor_delete_clipboard()
+
 'Globals
 EXTERN HorizCaptions(3) as string
 EXTERN VertCaptions(3) as string

@@ -2296,7 +2296,7 @@ Sub SetSpriteToFrame(sl as Slice ptr, fr as Frame ptr, pal16 as Palette16 ptr = 
  end with
 End Sub
 
-'Cloning sprTypeFrame sprite slices does not work!
+'Zoom and rotate settings aren't cloned!
 Sub CloneSpriteSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  if sl = 0 or cl = 0 then debug "CloneSpriteSlice null ptr": exit sub
  dim dat as SpriteSliceData Ptr = sl->SpriteData

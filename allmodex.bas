@@ -26,6 +26,7 @@
 #include "loading.bi"
 #include "cmdline.bi"
 #include "steam.bi"
+#include "sliceedit.bi"
 
 using Reload
 
@@ -9695,6 +9696,13 @@ end sub
 'By default, remove everything. With an argument: remove specific sprite type,
 'or with two: remove a specific spriteset
 sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid, setnum as integer = -1)
+	#if defined(IS_GAME) or defined(IS_CUSTOM)
+		'The clipboard may contain Sprite slices with sl->Animation references to SpriteSets,
+		'although they have sl->SpriteData->loaded = NO.
+		'Putting this here is ugly, but better to be sure it's called
+		slice_editor_delete_clipboard
+	#endif
+
 	if sprtype = sprTypeInvalid then
 		sprite_empty_cache_range(INT_MIN, INT_MAX)
 		if sprcacheB_used <> 0 or sprcache.numitems <> 0 then

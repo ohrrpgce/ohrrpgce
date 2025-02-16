@@ -1800,6 +1800,10 @@ FUNCTION slice_editor_save_when_leaving(byref ses as SliceEditState, edslice as 
  RETURN YES
 END FUNCTION
 
+SUB slice_editor_delete_clipboard()
+  IF clipboard THEN DeleteSlice @clipboard
+END SUB
+
 'Copy a slice 'tocopy' to the internal clipboard, or if NULL, the whole tree (edslice)
 SUB slice_editor_copy(byref ses as SliceEditState, byval tocopy as Slice Ptr, byval edslice as Slice Ptr)
  IF clipboard THEN DeleteSlice @clipboard
