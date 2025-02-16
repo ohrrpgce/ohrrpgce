@@ -1624,7 +1624,7 @@ SUB draw_menu (menu as MenuDef, state as MenuState, byval page as integer)
     col = menu_item_color(state, elem, .disabled, .unselectable, .col, .disabled_col, menu.textcolor, menu.disabled_textcolor)
 
     IF .visible THEN
-     DIM itemrect as RectType = menudef_item_rect(menu, .text, elem)
+     DIM itemrect as RectType = menudef_item_rect(menu, state, .text, elem)
 
      IF menu.game_menu ANDALSO .t = mtypeSpecial THEN
       ' Check for menu items with bars behind. The bar is drawn using the menu's boxstyle and Line border
@@ -1653,7 +1653,7 @@ END SUB
 
 ' Calculate the on-screen position and size for a menu item (excluding volume bars or anything like that).
 ' (See also standardmenu_item_rect)
-FUNCTION menudef_item_rect (menu as MenuDef, menutext as string, index as integer) as RectType
+FUNCTION menudef_item_rect (menu as MenuDef, state as MenuState, menutext as string, index as integer) as RectType
  DIM ret as RectType
  ret.wh = textsize(menutext)
  'Adding bord to menu.rect like this should equal state.rect. TODO: use state.rect instead?
@@ -1668,7 +1668,7 @@ FUNCTION menudef_item_rect (menu as MenuDef, menutext as string, index as intege
    CASE alignRight
     ret.x = .x + .wide - bord - ret.w
   END SELECT
-  ret.y = .y + bord + (index * (10 + menu.itemspacing))
+  ret.y = .y + bord + ((index - state.top) * (10 + menu.itemspacing))
  END WITH
  RETURN ret
 END FUNCTION
@@ -2210,7 +2210,7 @@ SUB MenuStack.open_menu()
   IF idx >= 0 THEN
     DIM byref menu as MenuDef = menus(idx)
     DIM byref state as MenuState = states(idx)
-    open_menu_at menudef_item_rect(menu, menu.items[state.pt]->text, state.pt)
+    open_menu_at menudef_item_rect(menu, state, menu.items[state.pt]->text, state.pt)
     open_at_mouse = NO
   ELSE
     open_menu_at(XYWH(0,0,0,0))
