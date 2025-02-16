@@ -1911,16 +1911,6 @@ SUB try_reload_lumps_anywhere ()
  IF entered THEN EXIT SUB
  entered = YES
 
- 'pal handled with special message
- STATIC ignorable_extns_(...) as zstring*4 => {"mn", "tmn", "d", "dor", "pal", "sng", "efs"}
- STATIC ignorable_extns as string vector
- IF ignorable_extns = NULL THEN
-  v_new ignorable_extns
-  FOR i as integer = 0 TO UBOUND(ignorable_extns_)
-   v_append(ignorable_extns, ignorable_extns_(i))
-  NEXT
- END IF
-
  receive_file_updates
 
  DIM i as integer = 0
@@ -1929,7 +1919,8 @@ SUB try_reload_lumps_anywhere ()
   DIM basename as string = trimextension(modified_lumps[i])
   DIM extn as string = justextension(modified_lumps[i])
 
-  IF v_find(ignorable_extns, extn) > -1 THEN
+ 'pal handled with special message
+  IF INSTR(" mn tmn d dor pal sng efs ", " " & extn & " ") THEN
    handled = YES
 
   ELSEIF extn = "gen" THEN                                                '.GEN

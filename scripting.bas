@@ -423,6 +423,8 @@ SUB resetinterpreter
 
   freescripts(0)
  END IF
+
+ v_free mainFibreGroup
 END SUB
 
 ' The current script fibre starts waiting due to the current command, halting execution.
