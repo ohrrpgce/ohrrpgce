@@ -2118,8 +2118,8 @@ Sub DrawSpriteSlice(byval sl as Slice ptr, byval page as integer)
   end if
 
   if .frame >= spr->arraylen or .frame < 0 then
-   'Shouldn't happen, as LoadSpriteSliceImage clamps to spr->arraylen
-   showbug "out of range frame " & .frame & " for slice " & SlicePath(sl)
+   'Shouldn't happen, as LoadSpriteSliceImage, ChangeSpriteSlice, LoadSpriteSlice, set_frame[id] all ensure validity
+   debugc errBug, "out of range frame " & .frame & " for slice " & SlicePath(sl)
    .frame = 0
   end if
   'Only a single frame is scaled and cached
@@ -2387,31 +2387,38 @@ Sub LoadSpriteSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dim dat as SpriteSliceData Ptr
  dat = sl->SliceData
  dat->spritetype = LoadProp(node, "sprtype")
- if dat->spritetype < sprTypeFirst or dat->spritetype > sprTypeLastPickable then
+ if dat->spritetype < sprTypeFirst orelse dat->spritetype > sprTypeLastPickable then
   reporterr "LoadSpriteSlice: Unknown type " & dat->spritetype, serrError
+  dat->spritetype = sprTypeFirst
+ elseif dat->spritetype >= sprTypeFirstLoadable then  'not sprTypeFrame
+  dat->record    = LoadProp(node, "rec")
+  with sprite_sizes(dat->spritetype)
+   if dat->record < 0 orelse dat->record > .lastrec then
+    reporterr "LoadSpriteSlice: Invalid " & .name & " spriteset " & dat->record, serrError
+    dat->record = 0
+   end if
+  end with
  end if
- dat->record     = LoadProp(node, "rec")
  dat->paletted   = sprite_sizes(dat->spritetype).paletted
  dat->pal        = LoadProp(node, "pal", -1)
- dat->frame      = LoadProp(node, "frame")
- dat->flipHoriz  = LoadProp(node, "fliph")
- dat->flipVert   = LoadProp(node, "flipv")
+ dat->flipHoriz  = LoadPropBool(node, "fliph")
+ dat->flipVert   = LoadPropBool(node, "flipv")
  dat->trans      = LoadPropBool(node, "trans", YES)
  dat->scaled     = LoadPropBool(node, "scaled")
  dat->dissolving = LoadPropBool(node, "dissolving")
  dat->d_type     = bound(LoadProp(node, "d_type"), 0, dissolveTypeMax)
- dat->d_time     = LoadProp(node, "d_time")
+ dat->d_time     = large(LoadProp(node, "d_time"), -1)
  dat->d_tick     = bound(LoadProp(node, "d_tick"), -1, large(dat->d_time + 1, 0))
  dat->d_back     = LoadPropBool(node, "d_back")
  dat->d_auto     = LoadPropBool(node, "d_auto")
  LoadDrawOpts dat->drawopts, node
+ dat->set_frame(sl, LoadProp(node, "frame"))
 
  if dat->spritetype = sprTypeFrame then
   dat->load_asset_as_32bit = LoadPropBool(node, "32bit_asset")
   SetSpriteToAsset sl, LoadPropStr(node, "asset")
- else
-  'Load the sprite already in order to ensure the size is correct. This could be
-  'skipped, since the slice was probably saved with the correct size...
+ elseif dat->loaded = NO then  'set_frame[id] already loads it
+  'Load the sprite already in order to ensure the size is correct
   LoadSpriteSliceImage sl
  end if
 End Sub
@@ -2472,7 +2479,12 @@ Sub ChangeSpriteSlice(byval sl as Slice ptr,_
    end if
   end if
   if frame >= 0 andalso .frame <> frame then
-   .frame = frame
+   if .loaded then
+    .set_frame(sl, frame)
+   else
+    'LoadSpriteSliceImage will check it
+    .frame = frame
+   end if
    'Only a single frame is scaled and cached, so need to reload when it changes
    if .scaled then .loaded = NO
   end if
@@ -2513,7 +2525,7 @@ Sub SpriteSliceUpdate(sl as Slice ptr)
     .flipVert = NO
    end if
   else
-   .record = small(.record, sprite_sizes(.spritetype).lastrec)
+   .record = bound(.record, 0, sprite_sizes(.spritetype).lastrec)
 
    'Reload the sprite image (and palette) immediately, so that the size of the slice
    'and number of frames are correct. This will bound .frame
@@ -2589,7 +2601,8 @@ Sub DissolveSpriteSlice(byval sl as Slice ptr, byval dissolve_type as integer, b
   '(Note that the bounds checking here and in LoadSpriteSlice is bypassed by the slice editor)
   .d_type = bound(dissolve_type, 0, dissolveTypeMax)
   .d_time = over_ticks
-  'Allow -1 (when backwards) and length+1 so that can set Vaporise and Phase Out animations to a totally blank state.
+  'Allow -1 (for when backwards) and length+1 so that can you set Vaporize animation to a totally blank state:
+  'it takes one tick longer than the others. (The slice editor allows larger values...)
   .d_tick = bound(start_tick, -1, large(over_ticks + 1, 0))
   .d_back = backwards <> 0
   .d_auto = auto_animate <> 0

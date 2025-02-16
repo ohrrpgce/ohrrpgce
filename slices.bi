@@ -560,9 +560,10 @@ Type SpriteSliceData
  d_back as boolean ' backwards: NO dissolve away, YES dissolve back in
  d_auto as boolean ' YES if the dissolve is animating automatically
                    ' (d_tick advances when drawn) (FIXME: wrong place for that)
- d_time as integer ' number of ticks that the dissolve should last
- d_tick as integer ' counts which tick the dissolve is in right now
- d_type as integer ' id number of the dissolve animation
+ d_time as integer ' number of ticks that the dissolve should last, -1 for size-based default
+ d_tick as integer ' counts which tick the dissolve is in right now, normally =0 is no effect and =d_time
+                   ' is totally blank, except Vapourize which takes 1 tick longer (-1 when backward)
+ d_type as integer ' id number of the dissolve animation, 0 to dissolveTypeMax
 
  declare function get_numframes(sl as Slice ptr) as integer
  declare sub set_frame(sl as Slice ptr, frameidx as integer)

@@ -1546,7 +1546,7 @@ Function GetChildNodeStr(byval parent as NodePtr, n as zstring ptr, d as string)
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
-Function GetChildNodeBool(byval parent as NodePtr, n as zstring ptr, byval d as integer) as integer
+Function GetChildNodeBool(byval parent as NodePtr, n as zstring ptr, byval d as integer) as bool
 	dim nod as NodePtr = GetChildByName(parent, n)
 	if nod = 0 then return d
 	return GetInteger(nod) <> 0

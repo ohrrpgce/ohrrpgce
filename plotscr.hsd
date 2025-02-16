@@ -1743,7 +1743,7 @@ script, get npc sprite, hsd:npc, begin
   if (hsd:sl) then (return (lookup slice(sl:walkabout sprite component, hsd:sl)))
 end
 
-script, get hero sprite, hsd:rank, begin
+script, get hero sprite, hsd:rank = me, begin
   variable (hsd:sl)
   hsd:sl := get hero slice(hsd:rank)
   # If the caterpillar rank is empty we return 0; not an error.

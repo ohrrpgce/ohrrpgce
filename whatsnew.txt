@@ -44,6 +44,7 @@ February 17 2025 [Jocoserious]
       hero sprites [James]
     * Text box portrait boxes now size correctly to the portrait sprite
       instead of always being 50x50 [James]
+    * Out of range "set sprite frame" no longer shows a BUG message [Ralph]
 
 
 October 28 2024 [Ichorescent]
