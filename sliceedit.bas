@@ -314,7 +314,7 @@ DECLARE SUB preview_SelectSlice_parents (byval sl as Slice ptr)
 DECLARE SUB slice_editor_settings_menu(byref ses as SliceEditState, byref edslice as Slice ptr, in_detail_editor as bool)
 DECLARE SUB slice_editor_save_settings(byref ses as SliceEditState)
 DECLARE SUB slice_editor_load_settings(byref ses as SliceEditState)
-DECLARE FUNCTION collection_context(edslice as Slice ptr) as SliceCollectionContext ptr
+DECLARE FUNCTION collection_context(edslice as Slice ptr, expect_exists as bool = NO) as SliceCollectionContext ptr
 DECLARE SUB slice_editor_preview_animations(byref ses as SliceEditState, slice_to_animate as Slice ptr = NULL)
 
 DECLARE SUB edkit_slice_detail_menu (sl as Slice ptr, ses_draw_root as Slice ptr)
@@ -429,7 +429,7 @@ SUB CollectionPickerMenu.update ()
  collectionsl = LoadSliceCollection(SL_COLLECT_USERDEFINED, id)
  IF collectionsl THEN
   SetSliceParent collectionsl, draw_root
-  VAR context = collection_context(collectionsl)
+  VAR context = collection_context(collectionsl, YES)
   IF context THEN name = context->name
  END IF
 
@@ -761,7 +761,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   END IF
 
   IF state.need_update = NO ANDALSO ses.focus = focusMenu ANDALSO ses.slicemenu(state.pt).id = mnidCollectionName THEN
-   VAR context = collection_context(edslice)
+   VAR context = collection_context(edslice, YES)
    IF context ANDALSO strgrabber(context->name) THEN state.need_update = YES
   END IF
 
@@ -1327,7 +1327,7 @@ END FUNCTION
 
 'Get the SliceCollectionContext in which shared data for this slice collection is stored
 '(edslice may be a subtree, so we search up the tree)
-FUNCTION collection_context(edslice as Slice ptr) as SliceCollectionContext ptr
+FUNCTION collection_context(edslice as Slice ptr, expect_exists as bool = NO) as SliceCollectionContext ptr
  DIM sl as Slice ptr = edslice
  WHILE sl
   IF *sl->Context IS SliceCollectionContext THEN
@@ -1335,7 +1335,9 @@ FUNCTION collection_context(edslice as Slice ptr) as SliceCollectionContext ptr
   END IF
   sl = sl->Parent
  WEND
- debug "Can't find a SliceCollectionContext"
+ IF expect_exists THEN
+  debugc errBug, "Can't find a SliceCollectionContext"
+ END IF
  RETURN NULL
 END FUNCTION
 
@@ -1649,7 +1651,7 @@ FUNCTION slice_editor_insert_import(byref ses as SliceEditState, edslice as Slic
     'The SliceCollectionContext marks which the collection it was loaded from,
     'Which is actually probably useful, but also duplicates the collection name,
     'so better not save it, at least for now.
-    VAR collcontext = collection_context(ret)
+    VAR collcontext = collection_context(ret, YES)
     IF collcontext THEN collcontext->dont_save = YES
    END IF
    RETURN ret
