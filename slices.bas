@@ -2358,6 +2358,8 @@ Sub SaveSpriteSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
   if dat->paletted then
    SavePropAlways node, "pal", dat->pal
   end if
+  'We prefer to load frameid, but still save frame for older versions
+  SaveProp node, "frameid", dat->get_frameid(sl)
   SaveProp node, "frame", dat->frame
  end if
  SaveProp node, "fliph", dat->flipHoriz
@@ -2412,7 +2414,14 @@ Sub LoadSpriteSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->d_back     = LoadPropBool(node, "d_back")
  dat->d_auto     = LoadPropBool(node, "d_auto")
  LoadDrawOpts dat->drawopts, node
- dat->set_frame(sl, LoadProp(node, "frame"))
+ 'Load frameid if it exists, or fallback to frame in old files
+ '(If the frameid doesn't exist, we shouldn't fallback to loading "frame")
+ dim frameid as integer = LoadProp(node, "frameid", -1)
+ if frameid <> -1 then
+  dat->set_frameid(sl, frameid)
+ else
+  dat->set_frame(sl, LoadProp(node, "frame"))
+ end if
 
  if dat->spritetype = sprTypeFrame then
   dat->load_asset_as_32bit = LoadPropBool(node, "32bit_asset")
