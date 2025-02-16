@@ -35,7 +35,7 @@ DECLARE SUB print_command_profiling(entiretime as double, timeroverhead as doubl
 
 '------------ Global variables ------------
 
-DEFINE_VECTOR_OF_TYPE(ScriptFibre ptr, ScriptFibre_ptr)
+DEFINE_VECTOR_OF_POD_TYPE(ScriptFibre ptr, ScriptFibre_ptr)
 
 'ID of the command being timed, or 0 if not timing
 DIM profiling_cmdid as integer

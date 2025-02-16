@@ -193,8 +193,8 @@ WITH *ScreenSlice
  .Height = get_resolution().h
 END WITH
 
-DEFINE_VECTOR_OF_TYPE(Slice ptr, Slice_ptr)
-DEFINE_VECTOR_OF_TYPE(SliceContext ptr, SliceContext_ptr)
+DEFINE_VECTOR_OF_POD_TYPE(Slice ptr, Slice_ptr)
+DEFINE_VECTOR_OF_POD_TYPE(SliceContext ptr, SliceContext_ptr)
 
 'Built up while inside DrawSlice, otherwise NULL.
 'A stack of all the non-NULL .Context ptrs for all the ancestors of the current slice.

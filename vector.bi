@@ -16,7 +16,7 @@
 
 'For each type from which you want to be able to form vectors from, add a 
 'DECLARE_VECTOR_OF_TYPE line somewhere (probably a header, make it this one
-'only if the type is a primitive one visible here), and a DEFINE_VECTOR_OF_TYPE
+'only if the type is a primitive one visible here), and a DEFINE_VECTOR_OF_POD_TYPE
 'or DEFINE_VECTOR_OF_CLASS or DEFINE_CUSTOM_VECTOR_TYPE line in some module
 '(vector.bas for anything declared here). If it is a vector of vectors,
 'instead use DEFINE_VECTOR_VECTOR_OF
@@ -339,10 +339,9 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
 
 '''''''''''''''''''''''''''''' Definition macros '''''''''''''''''''''''''''''''
 
-
 'For UDTs not having a [copy] constructor or destructor (which those containing strings have).
 'T is a type, and TID is T with spaces replaced with underscores.
-#MACRO DEFINE_VECTOR_OF_TYPE(T, TID)
+#MACRO DEFINE_VECTOR_OF_POD_TYPE(T, TID)
 
   private sub TID##_copyconstr_func cdecl (byval p1 as T ptr, byval p2 as T ptr)
     '(Only works for simple types not containing strings, because p1 contains garbage)

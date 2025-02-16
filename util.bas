@@ -194,7 +194,7 @@ END SUB
 
 '------------- Basic datatypes -------------
 
-DEFINE_VECTOR_OF_TYPE(XYPair, XYPair)
+DEFINE_VECTOR_OF_POD_TYPE(XYPair, XYPair)
 
 #MACRO XYPAIR_OPERATOR_AND_XY(OP)
   OPERATOR OP (lhs as XYPair, rhs as XYPair) as bool
@@ -3677,7 +3677,7 @@ END SUB
 '------------- Hash Table -------------
 'See util.bi for documentation.
 
-DEFINE_VECTOR_OF_TYPE(HashBucketItem, HashBucketItem)
+DEFINE_VECTOR_OF_POD_TYPE(HashBucketItem, HashBucketItem)
 
 sub HashTable.construct(tablesize as integer = 31)
   this.destruct()

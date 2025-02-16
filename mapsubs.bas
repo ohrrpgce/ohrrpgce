@@ -199,7 +199,7 @@ DECLARE SUB resize_correct_width(st as MapEditState, byref rs as MapResizeState)
 DECLARE SUB resize_correct_height(st as MapEditState, byref rs as MapResizeState)
 
 
-DEFINE_VECTOR_OF_TYPE(MapEditUndoTile, MapEditUndoTile)
+DEFINE_VECTOR_OF_POD_TYPE(MapEditUndoTile, MapEditUndoTile)
 DEFINE_VECTOR_VECTOR_OF(MapEditUndoTile, MapEditUndoTile)
 
 TYPE WallStyle

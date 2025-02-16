@@ -36,7 +36,7 @@ type TypeA
 end type
 
 DECLARE_VECTOR_OF_TYPE(TypeA, TypeA)
-DEFINE_VECTOR_OF_TYPE(TypeA, TypeA)
+DEFINE_VECTOR_OF_POD_TYPE(TypeA, TypeA)
 
 type TypeB
 	int1 as integer

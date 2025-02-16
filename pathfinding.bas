@@ -334,7 +334,7 @@ End Function
 
 '------------------------------------------------------------------------------------------
 
-'DEFINE_VECTOR_OF_TYPE(AStarNode, AStarNode)
+'DEFINE_VECTOR_OF_POD_TYPE(AStarNode, AStarNode)
 'Set compare function
 DEFINE_CUSTOM_VECTOR_TYPE(AStarNode, AStarNode, NULL, NULL, NULL, @AStarPathfinder.open_node_compare, NULL, NULL, NULL)
 

@@ -183,7 +183,7 @@ dim shared numpad2text(...) as zstring*2 => {"7","8","9","","4","5","6","","1","
 
 ' Frame type table
 DEFINE_VECTOR_OF_TYPE_COMMON(Frame ptr, Frame_ptr, @_frame_copyctor, @frame_unload)
-DEFINE_VECTOR_OF_TYPE(Animation ptr, Animation_ptr)
+DEFINE_VECTOR_OF_POD_TYPE(Animation ptr, Animation_ptr)
 
 
 '--------- Module shared variables ---------

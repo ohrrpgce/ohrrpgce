@@ -192,7 +192,7 @@
 
 using Reload.Ext
 
-DEFINE_VECTOR_OF_TYPE(SubmenuState, SubmenuState)
+DEFINE_VECTOR_OF_POD_TYPE(SubmenuState, SubmenuState)
 
 
 '===============================================================================

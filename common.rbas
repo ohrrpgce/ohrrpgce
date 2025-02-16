@@ -61,9 +61,9 @@ DECLARE SUB archive_log_file(logfile as string, archivefile as string)
 #ENDIF
 
 
-DEFINE_VECTOR_OF_TYPE(TagRangeCheck, TagRangeCheck)
-DEFINE_VECTOR_OF_TYPE(TileMap ptr, TileMap_ptr)
-DEFINE_VECTOR_OF_TYPE(TilesetData ptr, TilesetData_ptr)
+DEFINE_VECTOR_OF_POD_TYPE(TagRangeCheck, TagRangeCheck)
+DEFINE_VECTOR_OF_POD_TYPE(TileMap ptr, TileMap_ptr)
+DEFINE_VECTOR_OF_POD_TYPE(TilesetData ptr, TilesetData_ptr)
 
 
 '============================== Global variables ============================='
