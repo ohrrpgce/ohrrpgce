@@ -4774,11 +4774,11 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 
 	'Division rounded to negative infinity
 	if x < 0 then
-		xstart = (x \ 20) - 1
+		xstart = (x - 19) \ 20
 	else
 		xstart = x \ 20
 	end if
-	start_destpos.x = -POSMOD(x, 20)
+	start_destpos.x = -(x - xstart*20)  ' == -POSMOD(x, 20)
 	'We start drawing not at 0,0 but at -maxTileOffset,-maxTileOffset in case
 	'of tiles just out-of-view that are shifted into it by a tile animation
 	while start_destpos.x > -maxTileOffset
@@ -4788,11 +4788,11 @@ sub drawmap (tmap as TileMap, x as integer, y as integer, tilesetsprite as Frame
 	wend
 
 	if y < 0 then
-		ypos = (y \ 20) - 1
+		ypos = (y - 19) \ 20
 	else
 		ypos = y \ 20
 	end if
-	start_destpos.y = -POSMOD(y, 20)
+	start_destpos.y = -(y - ypos*20)  ' == -POSMOD(y, 20)
 	while start_destpos.y > -maxTileOffset
 		start_destpos.y -= 20
 		ypos -= 1
