@@ -33,6 +33,7 @@ February 20 2025 [Jocoserious]
   *** Changes
     * Removed a random delay of up to a few ticks before pacing NPCs bounced
       off the hero [Ralph]
+    * The map editor no longer animates NPCs set to stand still [Ralph]
 
   *** Bugfixes
     * It is now possible to re-enable any tag disabled battle menu item,

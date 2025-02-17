@@ -73,7 +73,7 @@ DECLARE SUB mapedit_update_layer_palettes(st as MapEditState)
 DECLARE SUB load_npc_graphics(npc_def() as NPCType, npc_img() as GraphicPair)
 DECLARE SUB unload_npc_graphics(npc_img() as GraphicPair)
 DECLARE SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, including_conditional as bool, page as integer)
-DECLARE FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, framenum as integer, screenpos as XYPair) as bool
+DECLARE FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, frameid as integer, screenpos as XYPair) as bool
 
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (st as MapEditState, npcdata as NPCType, pool_id as integer)
 DECLARE SUB mapedit_edit_npcdef OVERLOAD (map as MapData, npcdef_filename as string, npc_img() as GraphicPair, npcdata as NPCType)
@@ -170,7 +170,7 @@ DECLARE FUNCTION mapedit_pick_layer(st as MapEditState, message as string, other
 DECLARE SUB mapedit_layers (st as MapEditState)
 DECLARE SUB mapedit_makelayermenu(st as MapEditState, byref menu as LayerMenuItem vector, state as MenuState, byval resetpt as bool, byval selectedlayer as integer = 0, byref layerpreview as Frame ptr)
 
-DECLARE SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, poolid as integer, img as GraphicPair, framenum as integer, mappos as XYPair, drawing_whole_map as bool)
+DECLARE SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, poolid as integer, spr as Frame ptr, frameid as integer, mappos as XYPair, drawing_whole_map as bool)
 
 DECLARE SUB mapedit_copy_layer(st as MapEditState, byval src as integer, byval dest as integer)
 DECLARE SUB mapedit_append_new_layers(st as MapEditState, howmany as integer)
@@ -1412,9 +1412,18 @@ DO
    END IF
 
    IF npc_cursor_dir = -1 THEN
-    loopvar st.npc_cursor_frame, 0, 7
+    'We don't loop through all the walkabout frames. Just loop through the 4 directions.
+    'Temporary. Could add a 'spin' animation and play that.
+    IF tog THEN
+     IF st.npc_cursor_frameid MOD 100 = 1 THEN
+      st.npc_cursor_frameid += 99
+     ELSE
+      st.npc_cursor_frameid += 1
+     END IF
+     IF st.npc_cursor_frameid = 400 THEN st.npc_cursor_frameid = 0
+    END IF
    ELSE
-    st.npc_cursor_frame = npc_cursor_dir * 2
+    st.npc_cursor_frameid = 100 * npc_cursor_dir
    END IF
 
    'Keyboard
@@ -1905,8 +1914,7 @@ DO
  IF st.show_hero ANDALSO gen(genStartMap) = st.map.id THEN
   DIM start_tile_pos as XYPair = XY(gen(genStartX), gen(genStartY))
   DIM screen_pos as XYPair = map_to_screen(st, tilesize * start_tile_pos)
-  ' TODO: hardcoding 4th frame, which is normally Down
-  mapedit_draw_walkabout st, st.hero_gfx, 4, screen_pos
+  mapedit_draw_walkabout st, st.hero_gfx, 100 * dirDown, screen_pos
   edgeprint "Hero", screen_pos.x, screen_pos.y + tileh \ 2, uilook(uiText), dpage
  END IF
 
@@ -2494,7 +2502,7 @@ SUB mapedit_draw_cursor(st as MapEditState)
 
   CASE npc_tool
    'Draw an NPC instead of a square cursor
-   mapedit_draw_walkabout st, st.npc_imgs(st.cur_npc_pool).img(st.cur_npc), st.npc_cursor_frame, tool_rect.topleft
+   mapedit_draw_walkabout st, st.npc_imgs(st.cur_npc_pool).img(st.cur_npc), st.npc_cursor_frameid, tool_rect.topleft
    edgeprint st.cur_npc & IIF(st.cur_npc_pool = 1, "g", ""), tool_rect.x, tool_rect.y + 8, uilook(uiSelectedItem + global_tog), dpage
    EXIT SUB
  END SELECT
@@ -2717,19 +2725,20 @@ END SUB
 'drawing_whole_map is true when exporting a map image, false if drawing to the screen.
 'Skips creating the NPC slice if it's off-screen:
 'until the editor is more completely converted to slices, we are recreating the slice every tick
-SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, poolid as integer, img as GraphicPair, framenum as integer, mappos as XYPair, drawing_whole_map as bool)
+SUB mapedit_create_npc_slice (st as MapEditState, parent as Slice ptr, npcid as integer, poolid as integer, spr as Frame ptr, frameid as integer, mappos as XYPair, drawing_whole_map as bool)
  DIM spritepos as XYPair
  IF drawing_whole_map THEN
   spritepos = mappos
  ELSE
   spritepos = map_to_screen(st, mappos)  'Position in pixels of the tile the NPC is standing on
  END IF
- spritepos.x += tilew \ 2 - img.sprite->w \ 2
- spritepos.y += tileh - img.sprite->h + st.map.gmap(11)
- IF drawing_whole_map ORELSE rect_collide_rect(st.viewport, XY_WH(spritepos, img.sprite->size)) THEN  'Just a speed-up
+ spritepos.x += tilew \ 2 - spr->w \ 2
+ spritepos.y += tileh - spr->h + st.map.gmap(11)
+ IF drawing_whole_map ORELSE rect_collide_rect(st.viewport, XY_WH(spritepos, spr->size)) THEN  'Just a speed-up
   DIM sl as Slice ptr = NewSliceOfType(slSprite)
   WITH npcdef_by_pool(st, poolid, npcid)
-   ChangeSpriteSlice sl, sprTypeWalkabout, .picture, .palette, framenum
+   ChangeSpriteSlice sl, sprTypeWalkabout, .picture, .palette
+   sl->SpriteData->set_frameid(sl, frameid)
   END WITH
   SetSliceParent sl, parent
   sl->Pos = spritepos
@@ -2738,13 +2747,13 @@ END SUB
 
 'Returns true if on screen.
 'screenpos is position in screen pixels of tile the NPC/hero stands on.
-FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, framenum as integer, screenpos as XYPair) as bool
+FUNCTION mapedit_draw_walkabout (st as MapEditState, img as GraphicPair, frameid as integer, screenpos as XYPair) as bool
  DIM spritepos as XYPair = screenpos
  'Align to bottom-center of tile
  spritepos.x += tilew \ 2 - img.sprite->w \ 2
  spritepos.y += tileh - img.sprite->h + st.map.gmap(11)
  IF rect_collide_rect(st.viewport, XY_WH(spritepos, img.sprite->size)) THEN
-  framenum = small(framenum, img.sprite->arraylen - 1)
+  DIM framenum as integer = large(0, frameid_to_frame(img.sprite, frameid))
   frame_draw img.sprite + framenum, img.pal, spritepos.x, spritepos.y, , dpage
   RETURN YES
  END IF
@@ -2754,7 +2763,7 @@ END FUNCTION
 'drawing_whole_map: true when exporting a map image, false if drawing to the screen.
 'including_conditional: whether to draw tag-conditional NPCS
 SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, including_conditional as bool, page as integer)
- 'TODO: this still uses two ticks per frame instead of wtog_to_frames, etc.,
+ 'FIXME: this still uses two ticks per frame instead of wtog_to_frame, etc.,
  'because the map editor runs at 18fps and has a lot of other animations.
  'Using fixed animation speed doesn't seem so bad.
  'Tile animations run at the wrong speed too, that is very bad.
@@ -2764,12 +2773,26 @@ SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, includ
  FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
    IF .id <= 0 THEN CONTINUE FOR
-   WITH npcdef_by_pool(st, .pool, .id - 1)
-    IF including_conditional = NO ANDALSO (.tag1 ORELSE .tag2) THEN CONTINUE FOR
-   END WITH
+   DIM movetype as integer
+   DIM byref npcd as NPCType = npcdef_by_pool(st, .pool, .id - 1)
+   IF including_conditional = NO ANDALSO (npcd.tag1 ORELSE npcd.tag2) THEN CONTINUE FOR
 
-   DIM framenum as integer = (2 * .dir) + st.walk \ 2
-   mapedit_create_npc_slice st, npclayer, .id - 1, .pool, st.npc_imgs(.pool).img(.id - 1), framenum, .pos, drawing_whole_map
+   DIM fr as Frame ptr = st.npc_imgs(.pool).img(.id - 1).sprite
+   DIM frameid as integer
+
+   'NPCs animate (in-game and in the editor) if they're either Walk-in-Place
+   'or not Stand-Still and have nonzero speed
+   IF npcd.movetype = 8 ORELSE (npcd.movetype <> 0 ANDALSO npcd.speed <> 0) THEN
+    'FIXME (see above): what it should be
+    '.wtog = loopvar(.wtog, 0, max_wtog(fr, .dir))
+    'DIM frameid as integer = 100 * .dir + wtog_to_frame(.wtog)
+    'Two ticks/frame for 18fps
+    DIM numframes as integer = walkabout_walk_frames(fr, .dir)
+    loopvar .wtog, 0, large(0, numframes * 2 - 1)
+    frameid = 100 * .dir + .wtog \ 2
+   END IF
+
+   mapedit_create_npc_slice st, npclayer, .id - 1, .pool, fr, frameid, .pos, drawing_whole_map
   END WITH
  NEXT
  IF st.map.gmap(16) = 2 THEN ' Heroes and NPCs Together
@@ -4115,6 +4138,10 @@ SUB mapedit_savemap (st as MapEditState)
  savetilemap st.map.pass, maplumpname(st.map.id, "p")
  savetilemap st.map.foemap, maplumpname(st.map.id, "e")
  SaveZoneMap st.map.zmap, maplumpname(st.map.id, "z")
+ 'Don't save wtogs: we use them for animation but previously they were always zero
+ FOR i as integer = 0 to UBOUND(st.map.npc)
+  st.map.npc(i).wtog = 0
+ NEXT
  SaveNPCL maplumpname(st.map.id, "l"), st.map.npc()
  SaveNPCD maplumpname(st.map.id, "n"), st.map.npc_def()
  serdoors game & ".dox", st.map.door(), st.map.id
