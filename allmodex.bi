@@ -772,7 +772,7 @@ Type SpriteSet
 
 	declare function get_animset() as AnimationSet ptr
 	declare function num_frames() as integer
-	declare function num_frame_groups() as integer
+	declare function last_frame_group() as integer
 	declare function frame_starts_group(frameidx as integer) as bool
 	declare function describe() as string
 End Type

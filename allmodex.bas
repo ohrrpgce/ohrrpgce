@@ -12009,8 +12009,9 @@ function SpriteSet.num_frames() as integer
 	return frames->arraylen
 end function
 
-function SpriteSet.num_frame_groups() as integer
-	return 1 + frames[frames->arraylen - 1].frameid \ 100
+'Note that frame groups can be empty
+function SpriteSet.last_frame_group() as integer
+	return frames[frames->arraylen - 1].frameid \ 100
 end function
 
 function SpriteSet.frame_starts_group(frameidx as integer) as bool

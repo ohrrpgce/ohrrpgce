@@ -185,11 +185,11 @@ sub AnimationEditor.rebuild_toplevel_menu()
     for idx as integer = 0 to v_len(animset->animations) - 1
       with *animset->animations[idx]
         append_simplemenu_item topmenu, rtrim(.name + " " + .variant), , , mdatAnim
-        v_end(topmenu)[-1].datptr = animset
+        v_last(topmenu).datptr = animset
       end with
     next
     append_simplemenu_item topmenu, "Add new animation...", , , mdatNewAnim
-    v_end(topmenu)[-1].datptr = animset
+    v_last(topmenu).datptr = animset
 
     animset = animset->fallback_set
   wend
@@ -699,7 +699,7 @@ sub AnimationEditor.edit_animop_args(byref anim as Animation, curop as NodePtr, 
       if keyval(scShift) > 0 then
         state.need_update or= intgrabber_ms_as_frames(GetOrCreateChild(curop, "ms"), 0, 1000000)
       else
-        state.need_update or= intgrabber(framegroup, 0, sprset->num_frame_groups - 1)
+        state.need_update or= intgrabber(framegroup, 0, sprset->last_frame_group)
         SetChildNode(curop, "framegroup", framegroup)
       end if
       sl->SpriteData->set_frameid(sl, framegroup * 100)  'Update visual
