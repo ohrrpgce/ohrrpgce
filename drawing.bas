@@ -4362,11 +4362,12 @@ TYPE SpriteSetBrowser
   hover as Slice ptr              'Slice hovering over
   highlight_ss_id as bool         'Highlight the spriteset number, while typing
   ps as PlankState
+  need_update as bool             'update_info() will be called
 
   DECLARE SUB build_menu()
   DECLARE SUB rebuild_menu()
   DECLARE SUB delete_menu_items()
-  DECLARE SUB update()
+  DECLARE SUB update_info()
   DECLARE SUB set_focus(setnum as integer, framenum as integer)
   DECLARE SUB replace_spriteset(setnum as integer, ss as Frame ptr = NULL)
   DECLARE SUB run()
@@ -4584,13 +4585,14 @@ SUB SpriteSetBrowser.rebuild_menu()
     ps.cur = top_left_plank(ps)
   END IF
   update_plank_scrolling ps
-  update()
+  need_update = YES
 
   '? "rebuild_menu() in " & (TIMER - starttime)
 END SUB
 
-'Called when the cursor moves, updates info displays
-SUB SpriteSetBrowser.update()
+'Called when the cursor moves to update info displays. Does not update the
+'spriteset slices, which requires a rebuild_menu call.
+SUB SpriteSetBrowser.update_info()
   DIM info_text as Slice ptr = edsl(ssed_info_text, root)
   DIM info_text_right as Slice ptr = edsl(ssed_info_text_right, root)
   IF info_text = NULL ORELSE info_text_right = NULL ORELSE ps.cur = NULL THEN EXIT SUB
@@ -4659,11 +4661,7 @@ SUB SpriteSetBrowser.update()
          CASE 1: caption_str = "Frame B"
         END SELECT
        CASE sprTypeAttack
-        SELECT CASE cur_frameid
-         CASE 0: caption_str = "Frame 0"
-         CASE 1: caption_str = "Frame 1"
-         CASE 2: caption_str = "Frame 2"
-        END SELECT
+        caption_str = "Frame " & cur_frameid
        CASE sprTypeBoxBorder
         SELECT CASE cur_frameid
          CASE 0: caption_str = "Top left corner"
@@ -4742,6 +4740,7 @@ SUB SpriteSetBrowser.set_focus(setnum as integer, framenum as integer)
 
   remem_setnum(sprtype) = setnum
   remem_framenum(sprtype) = framenum
+  need_update = YES
 END SUB
 
 LOCAL FUNCTION create_spriteset(sprtype as SpriteType, framesize as XYPair) as Frame ptr
@@ -5319,9 +5318,13 @@ SUB SpriteSetBrowser.run()
       remem_setnum(sprtype) = cur_setnum
       remem_framenum(sprtype) = cur_framenum
       update_plank_scrolling ps
-      update()
+      need_update = YES
+      cursor_moved = NO
     END IF
-    cursor_moved = NO
+    IF need_update THEN
+      update_info()
+      need_update = NO
+     END IF
 
     clearpage vpage
 
