@@ -4972,6 +4972,22 @@ SUB SpriteSetBrowser.import_any()
   rebuild_menu()
 END SUB
 
+'Renumber any following frames in the same framegroup so frameids are in sequence without dups,
+'starting with ensuring frvec[framenum] = frameid.
+'Assumes that this is called after deleting at most one frame!
+SUB fix_following_frameids(frvec as Frame ptr vector, framenum as integer, frameid as integer)
+  'DIM as integer framenum = 0, frameid = new_id + 1
+  WHILE framenum < v_len(frvec)
+    'If you put 101 frames in a framegroup, we increment all the frameids in the next group.
+    'So effectively groups can have unlimited frames.
+    'That's why we treat a gap of 2 as the end of the group.
+    IF frvec[framenum]->frameid > frameid + 1 THEN EXIT WHILE
+    frvec[framenum]->frameid = frameid
+    frameid += 1
+    framenum += 1
+  WEND
+END SUB
+
 'Delete a frame from a spriteset
 SUB SpriteSetBrowser.delete_frame(setnum as integer, framenum as integer)
   DIM ss as Frame ptr = frame_load(sprtype, setnum)
@@ -4982,11 +4998,15 @@ SUB SpriteSetBrowser.delete_frame(setnum as integer, framenum as integer)
     EXIT SUB
   END IF
 
+  DIM frameid as integer = ss[framenum].frameid
+
   DIM frvec as Frame ptr vector = frame_array_to_vector(ss)
   frame_unload @ss
 
   'Frame ptr vectors autodelete the Frames
   v_delete_slice frvec, framenum, framenum + 1
+
+  fix_following_frameids(frvec, framenum, frameid)
 
   ss = frame_vector_to_array(frvec)
   v_free frvec
@@ -5005,15 +5025,20 @@ SUB SpriteSetBrowser.add_frame(setnum as integer, new_group as bool = NO, framen
   DIM new_id as integer
   DIM insertidx as integer
   IF new_group THEN
-    'framenum ignored
-    insertidx = v_len(frvec)
-    new_id = ((v_last(frvec)->frameid \ 100) + 1) * 100
+    'Insert the first missing group after the current
+    DIM group as integer = 0
+    IF framenum >= 0 THEN group = frvec[framenum]->frameid \ 100
+    WHILE frameid_to_frame(ss, 100 * group, YES) > -1  'Already exists
+     group += 1
+    WEND
+    new_id = 100 * group
+    insertidx = 0
+    WHILE insertidx < v_len(frvec) ANDALSO frvec[insertidx]->frameid < new_id
+     insertidx += 1
+    WEND
   ELSE
-    'Find the next ID that isn't already taken (and its insertidx)
     new_id = frvec[framenum]->frameid + 1
-    FOR insertidx = framenum + 1 TO v_len(frvec) - 1
-      IF frvec[insertidx]->frameid = new_id THEN new_id += 1 ELSE EXIT FOR
-    NEXT
+    insertidx = framenum + 1
   END IF
 
   WITH *frvec[0]
@@ -5022,12 +5047,15 @@ SUB SpriteSetBrowser.add_frame(setnum as integer, new_group as bool = NO, framen
     v_insert frvec, insertidx, fr
   END WITH
 
+  fix_following_frameids frvec, insertidx, new_id
+
   frame_unload @ss
   ss = frame_vector_to_array(frvec)
   v_free frvec
 
   replace_spriteset setnum, ss
   rebuild_menu
+  set_focus setnum, insertidx
 END SUB
 
 'If ss is given: Save ss, empty the cache, and free ss.
@@ -5246,9 +5274,12 @@ SUB SpriteSetBrowser.run()
       IF sprite_sizes(sprtype).fixed_framecount THEN
        notification sprite_sizes(sprtype).name & " sprites currently don't support adding or removing frames."
       ELSEIF cur_framenum = -1 THEN  'Whole spriteset
-        add_frame(cur_setnum, YES)  'New group
+        'New group in first empty slot
+        add_frame(cur_setnum, YES)
       ELSE
-        add_frame(cur_setnum, NO, cur_framenum)  'After existing frame
+        'Shift: add a new frame group in the first empty space after the existing one
+        'W/o shift: add a frame after the current one
+        add_frame(cur_setnum, keyval(scShift) > 0, cur_framenum)
       END IF
     END IF
 
