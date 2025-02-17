@@ -25,3 +25,6 @@ If you copy a whole spriteset and paste it onto another spriteset, it will compl
 
 Press E to export the currently selected frame or spriteset to a BMP file.
 Press I to import a frame or spriteset from a BMP, PNG or JPEG file, overwriting the currently selected one. You can import from an image of any size. It will be cropped/expanded to the expected size.
+
+
+WALKABOUTS ONLY: Press + or Insert to add a new frame for the currently selected direction. Press DEL to delete the currently selected frame.
