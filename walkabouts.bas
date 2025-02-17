@@ -151,7 +151,9 @@ SUB set_walkabout_frame (byval cont as Slice Ptr, byval direction as DirNum, byv
  ELSE
   sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, cont)
   BUG_IF(sprsl = NULL, "missing sprite component")
-  ChangeSpriteSlice sprsl, , , , direction * 2 + frame
+  IF sprsl->SliceType = slSprite THEN
+   sprsl->SpriteData->set_frameid sprsl, direction * 100 + frame
+  END IF
  END IF
 END SUB
 
