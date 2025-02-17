@@ -5,6 +5,10 @@ February 20 2025 [Jocoserious]
   *** New Features
     * Shift Tile tileset animation command. Non-animated uses likely! [Ralph]
     * Add Movement section to the slice editor for Velocity and Target [Ralph]
+    * You can add (and delete) frames to Walkabout and Portrait spritesets!
+      Frames are arranged by ID in frame groups. All frames in a walkabout's
+      first four groups are used for walking animations, and you can add more
+      groups have no builtin use. [Ralph]
 
    * Battle Features
     * Attacks can set a tag if their targetting fails [James]

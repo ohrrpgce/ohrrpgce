@@ -1220,7 +1220,7 @@ DO
  setkeys
  tog = tog XOR 1
  playtimer
- loopvar wtog, 0, max_wtog()
+ loopvar wtog, 0, max_wtog(gam.hero(who).sl, dirDown)
  DIM do_exit as bool = NO
  IF game_check_cancel_key() THEN do_exit = YES
  IF carray(ccLeft) > 1 THEN

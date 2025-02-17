@@ -8000,18 +8000,31 @@ FUNCTION wtog_ticks() as integer
  RETURN ret
 END FUNCTION
 
+'Number of frames a walkabout set has for a direction
+FUNCTION walkabout_walk_frames(fr as Frame ptr, direction as DirNum) as integer
+ RETURN num_frames_in_group(fr, direction)
+END FUNCTION
+
 'Value that wtog (for walking animation) loops up to:
 'ticks to complete a walking animation loop minus 1.
 'This is temporary until walking animations are handled by the animation system.
-FUNCTION max_wtog() as integer
- RETURN WALKFRAMES * wtog_ticks() - 1
+FUNCTION max_wtog(fr as Frame ptr, direction as DirNum) as integer
+ RETURN large(0, walkabout_walk_frames(fr, direction) * wtog_ticks() - 1)
+END FUNCTION
+
+'Wrapper for the walkabout container slice
+FUNCTION max_wtog(walkabout_sl as Slice ptr, direction as DirNum) as integer
+ DIM sprsl as Slice ptr
+ sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_sl, slSprite)
+ IF sprsl ANDALSO sprsl->SpriteData->loaded THEN
+  RETURN max_wtog(sprsl->SpriteData->img.sprite, direction)
+ END IF
 END FUNCTION
 
 FUNCTION wtog_to_frame(wtog as integer) as integer
- 'The reason for this wrapper is to ensure frame numbers don't go out of bounds if
- 'you change genTicksPerWalkFrame while live previewing (or even "write general")
- 'or loading an old save
- RETURN small(wtog \ wtog_ticks(), WALKFRAMES - 1)
+ 'The reason for this wrapper was to ensure frame numbers don't go out of bounds
+ 'but it no longer matters
+ RETURN wtog \ wtog_ticks()
 END FUNCTION
 
 '==========================================================================================

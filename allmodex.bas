@@ -11971,6 +11971,20 @@ function frameid_to_frame(frameset as Frame ptr, frameid as integer, exact as bo
 	return -1
 end function
 
+function num_frames_in_group(frameset as Frame ptr, group as integer) as integer
+	dim ret as integer = 0
+	for idx as integer = 0 to frameset->arraylen - 1
+		dim thisid as integer = frameset[idx].frameid
+		if thisid >= 100 * (group + 1) then
+			exit for
+		end if
+		if thisid >= 100 * group then
+			ret += 1
+		end if
+	next
+	return ret
+end function
+
 sub FrameGroupInfo.set(frameid as integer, name as string, default_num as integer)
 	this.frameid = frameid
 	this.name = name

@@ -81,7 +81,7 @@ DECLARE SUB npcdef_editor (map as MapData, npc_def() as NPCType, npcdef_filename
 DECLARE SUB global_npcdef_editor OVERLOAD ()
 DECLARE SUB global_npcdef_editor OVERLOAD (map as MapData, npc_def() as NPCType)
 DECLARE FUNCTION mapedit_npc_instance_count(st as MapEditState, byval id as integer, byval pool_id as integer) as integer
-DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4, thinggrabber_hint as bool = NO)
+DECLARE SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, direction as DirNum, framenum as integer = 0, thinggrabber_hint as bool = NO)
 DECLARE FUNCTION count_npc_slots_used(npcs() as NPCInst) as integer
 
 DECLARE FUNCTION npcdef_by_pool(st as MapEditState, byval pool_id as integer, byval id as integer) byref as NPCType
@@ -2648,7 +2648,7 @@ SUB mapedit_list_npcs_by_tile (st as MapEditState, pos as XYPair)
   IF npcdef THEN
    edgeprint !"Enter/Space/Click to edit\nDelete to remove", 0, pBottom - 21, uilook(uiSelectedDisabled), dpage, , YES
    'Display a frame in right direction
-   npcdefedit_preview_npc *npcdef, st.npc_imgs(npcinst->pool).img(npcinst->id - 1), boxpreview, npcinst->dir * 2
+   npcdefedit_preview_npc *npcdef, st.npc_imgs(npcinst->pool).img(npcinst->id - 1), boxpreview, npcinst->dir
   END IF
 
   SWAP vpage, dpage
@@ -6465,7 +6465,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   setwait gen(genMillisecPerFrame)
   setkeys YES
   tog = tog XOR 1
-  IF npcdata.movetype > 0 THEN loopvar wtog, 0, max_wtog()
+  IF npcdata.movetype > 0 THEN loopvar wtog, 0, max_wtog(npc_img.sprite, dirDown)
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "edit_npc"
   usemenu ed.state, cast(BasicMenuItem vector, ed.menu)
@@ -6573,7 +6573,7 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
   clearpage dpage
   highlight_menu_typing_selection cast(BasicMenuItem vector, ed.menu), menu_display, selectst, ed.state
   standardmenu menu_display, ed.state, , , dpage, menuopts
-  npcdefedit_preview_npc npcdata, npc_img, ed.boxpreview, 4 + wtog_to_frame(wtog), (itemid = 4)
+  npcdefedit_preview_npc npcdata, npc_img, ed.boxpreview, dirDown, wtog_to_frame(wtog), (itemid = 4)
 
   SWAP vpage, dpage
   setvispage vpage
@@ -6587,10 +6587,12 @@ SUB edit_npc (npcdata as NPCType, gmap() as integer, zmap as ZoneMap)
 END SUB
 
 ' Displays the NPC walkabout, tag conditions and textbox preview at the bottom of the screen
-' (Default to displaying south1 frame)
-SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, framenum as integer = 4, thinggrabber_hint as bool = NO)
+' framenum is the frame in the 'direction' framegroup
+SUB npcdefedit_preview_npc(npcdata as NPCType, npc_img as GraphicPair, boxpreview as string, direction as DirNum, framenum as integer = 0, thinggrabber_hint as bool = NO)
  edgebox pRight - 15, pBottom - 23, npc_img.sprite->w + 2, npc_img.sprite->h + 2, uilook(uiDisabledItem), uilook(uiText), dpage
- frame_draw npc_img.sprite + framenum, npc_img.pal, pRight - 16, pBottom - 24, , dpage
+ DIM frame as integer
+ frame = large(0, frameid_to_frame(npc_img.sprite, 100 * direction + framenum))
+ frame_draw npc_img.sprite + frame, npc_img.pal, pRight - 16, pBottom - 24, , dpage
  textcolor uilook(uiSelectedItem2), uiLook(uiHighlight)
  printstr boxpreview, 0, pBottom - 10, dpage
  textcolor uilook(uiSelectedItem2), 0

@@ -1534,7 +1534,7 @@ SUB picksave_draw(menu() as string, byval loading as bool, byval newgame_opt as 
  STATIC tog as integer
  STATIC wtog as integer
  tog = tog XOR 1
- loopvar wtog, 0, max_wtog()
+ loopvar wtog, 0, 2 * wtog_ticks() - 1  '' These are hero battle sprites. max_wtog() is for walkabouts
 
  DIM last_slot as integer = UBOUND(pv)
  
@@ -3617,7 +3617,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  
  menu_attack_targ_picker = NO
 
- STATIC targ as integer
+ STATIC targ as integer  '0-3 or not used if spread=YES. Can be -1 but that doesn't indicate spread.
  STATIC spread as bool
 
  '--Preserve background for display beneath the targ picker menu
@@ -3627,7 +3627,7 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
  holdscreen = allocatepage
  copypage page, holdscreen
 
- DIM wtog as integer
+ DIM wtog(3) as integer
  DIM tog as integer
  DIM col as integer
  DIM atk as AttackData
@@ -3672,7 +3672,6 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
   setwait speedcontrol
   setkeys
   tog = tog XOR 1
-  loopvar wtog, 0, max_wtog()
 
   playtimer
   do_effect = NO
@@ -3816,12 +3815,16 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
    DIM plank as Slice Ptr = SliceChildByIndex(holder, i)
    IF plank <> NULL THEN
     DIM targetted as bool = (targ = i ORELSE (spread ANDALSO chkOOBtarg(attacker, i, attack_id)))
-    IF targetted THEN ps.cur = holder
+    IF targetted THEN ps.cur = holder  'Dubious
     set_plank_state ps, plank, iif(targetted, plankSEL, plankNORMAL)
-    DIM frame as integer = 0
-    IF targetted THEN frame = wtog_to_frame(wtog)
+
     IF gam.hero(i).id >= 0 THEN
-     set_walkabout_frame plank, dirDown, frame
+     IF targetted THEN
+      loopvar wtog(i), 0, max_wtog(plank, dirDown)
+     ELSE
+      wtog(i) = 0
+     END IF
+     set_walkabout_frame plank, dirDown, wtog_to_frame(wtog(i))
     END IF
 
     caption = ""

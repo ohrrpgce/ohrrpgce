@@ -327,7 +327,6 @@ SUB verify_quit
   setkeys
   tog = tog XOR 1
   playtimer
-  loopvar wtog, 0, max_wtog()
 
   'Keyboard controls
   IF game_check_cancel_key() THEN EXIT DO
@@ -366,6 +365,7 @@ SUB verify_quit
 
   copypage holdscreen, vpage
   centerbox centerx, centery - 5, box.w, box.h, 15, vpage
+  loopvar wtog, 0, max_wtog(herow(0).sl, direction)
   set_walkabout_frame herow(0).sl, direction, wtog_to_frame(wtog)
   DrawSliceAt herow(0).sl, centerx - 10 + ptr2, centery + box.h \ 2 - 21 - 10, 20, 20, vpage, YES
   edgeprint quitprompt, pCentered, centery - box.h \ 2 + 1, uilook(uiText), vpage

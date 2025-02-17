@@ -368,8 +368,10 @@ DECLARE FUNCTION atlevel (byval lev as integer, byval a0 as integer, byval aMax 
 DECLARE FUNCTION atlevel_quadratic (byval lev as double, byval a0 as double, byval aMax as double, byval midpercent as double) as double
 
 DECLARE FUNCTION ideal_ticks_per_second() as double
+DECLARE FUNCTION walkabout_walk_frames(fr as Frame ptr, direction as DirNum) as integer
 DECLARE FUNCTION wtog_ticks() as integer
-DECLARE FUNCTION max_wtog() as integer
+DECLARE FUNCTION max_wtog OVERLOAD (fr as Frame ptr, dir as DirNum) as integer
+DECLARE FUNCTION max_wtog OVERLOAD (walkabout_sl as SliceFwd ptr, dir as DirNum) as integer
 DECLARE FUNCTION wtog_to_frame(wtog as integer) as integer
 
 DECLARE SUB setup_global_reload_doc ()

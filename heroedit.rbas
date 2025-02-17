@@ -1472,7 +1472,7 @@ SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
  DIM battle_wtog_ticks as integer = large(1, 55 * 2 / gen(genMillisecPerFrame))
 
  STATIC as integer wtog, battle_wtog
- loopvar wtog, 0, max_wtog()
+ loopvar wtog, 0, max_wtog(st.walkabout.sprite, st.preview_walk_direction)
  loopvar battle_wtog, 0, 2 * battle_wtog_ticks - 1
 
  STATIC tog as integer
@@ -1486,7 +1486,9 @@ SUB draw_hero_preview(st as HeroEditState, her as HeroDef)
  END IF
  frame_draw st.battle.sprite + frame, st.battle.pal, 250, 25, , dpage
 
- frame = st.preview_walk_direction * WALKFRAMES + wtog_to_frame(wtog)
+ DIM frameid as integer
+ frameid = 100 * st.preview_walk_direction + wtog_to_frame(wtog)
+ frame = large(0, frameid_to_frame(st.walkabout.sprite, frameid))
  frame_draw st.walkabout.sprite + frame, st.walkabout.pal, 230 + st.preview_walk_pos.x, 5 + st.preview_walk_pos.y, , dpage
  DIM col as integer = uilook(uiSelectedItem + tog)
  IF st.previewframe <> -1 THEN
