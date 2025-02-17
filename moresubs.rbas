@@ -1407,6 +1407,10 @@ gam.paused = NO
 '--return gen to defaults
 xbload game + ".gen", gen(), "General data is missing from " + sourcerpg
 
+FOR rank as integer = 0 TO 3
+ cancel_hero_pathfinding rank
+NEXT rank
+
 CleanNPCL npc()
 flusharray tag()
 flusharray onetime()
