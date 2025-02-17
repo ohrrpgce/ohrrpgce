@@ -26,6 +26,10 @@ February 20 2025 [Jocoserious]
       not enough room in the inventory to hold whatever item needed to be
       removed from the slot to make room for the new item
 
+  *** Changes
+    * Removed a random delay of up to a few ticks before pacing NPCs bounced
+      off the hero [Ralph]
+
   *** Bugfixes
     * It is now possible to re-enable any tag disabled battle menu item,
       not just specific attacks [James]

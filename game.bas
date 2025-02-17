@@ -2219,15 +2219,10 @@ FUNCTION perform_npc_move(byval npcnum as NPCIndex, npci as NPCInst, npcdata as 
    npci.xgo = 0
    npci.ygo = 0
    IF collision_type = collideHero THEN
-    '--a random 0 to max_wtog() tick delay before pacing enemies bounce off hero
-    'James: "This delay feels like something I must have done by mistake in the late 90's"
-    'Any delay here will break Follow walls stop for others, so disable the delay.
-    'Yuck, maybe we should just remove this.
-    'TODO: well now with variable walk toggle speed this makes much less sense
-    IF npci.wtog = max_wtog() ORELSE (npcdata.movetype = 13 OR npcdata.movetype = 14) THEN
-     npchitwall(npci, npcdata, collision_type)
-     hit_something = YES
-    END IF
+    'There used to be a random 0-3 tick delay here before pacing NPCs bounce off the hero,
+    'maybe a mistake or an attempt to make NPCs easier to activate. It was too much trouble.
+    npchitwall(npci, npcdata, collision_type)
+    hit_something = YES
    ELSE
     npchitwall(npci, npcdata, collision_type)
     hit_something = YES
