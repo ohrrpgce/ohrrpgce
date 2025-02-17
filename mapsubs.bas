@@ -2788,7 +2788,9 @@ SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, includ
     'DIM frameid as integer = 100 * .dir + wtog_to_frame(.wtog)
     'Two ticks/frame for 18fps
     DIM numframes as integer = walkabout_walk_frames(fr, .dir)
-    loopvar .wtog, 0, large(0, numframes * 2 - 1)
+    DIM wtog_tmp as longint = .wtog
+    loopvar wtog_tmp, 0, large(0, numframes * 2 - 1)
+    .wtog = wtog_tmp
     frameid = 100 * .dir + .wtog \ 2
    END IF
 
