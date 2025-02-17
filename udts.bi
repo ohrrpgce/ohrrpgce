@@ -1192,6 +1192,7 @@ TYPE SpriteSize
  name as string
  size as XYPair            'Default size
  fixed_size as bool        'Sizes other than the default not allowed
+ fixed_framecount as bool  'Frame counts other than the default not allowed
  frames as integer
  directions as integer
  paletted as bool          'Whether it should use a Palette16

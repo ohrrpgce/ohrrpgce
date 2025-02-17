@@ -4629,7 +4629,7 @@ SUB SpriteSetBrowser.update()
       caption_str = "Entire spriteset"
     ELSE
       'info_str &= "  Frame ID " & cur_frameid & "  " & frame_name(cur_setnum, cur_frameid)
-      info_str &= "  Frame " & cur_framenum
+      info_str &= "  Frame " & cur_framenum & " ID " & cur_frameid
       'FIXME: Replace these hard-coded names with frame group names later
       SELECT CASE sprtype
        CASE sprTypeHero
@@ -4644,16 +4644,15 @@ SUB SpriteSetBrowser.update()
          CASE 500: caption_str = "Dead"
         END SELECT
        CASE sprTypeWalkabout
-        SELECT CASE cur_frameid
-         CASE 0: caption_str = "Up 0"
-         CASE 1: caption_str = "Up 1"
-         CASE 100: caption_str = "Right 0"
-         CASE 101: caption_str = "Right 1"
-         CASE 200: caption_str = "Down 0"
-         CASE 201: caption_str = "Down 1"
-         CASE 300: caption_str = "Left 0"
-         CASE 301: caption_str = "Left 1"
+        SELECT CASE cur_frameid \ 100
+         CASE 0: caption_str = "Up "
+         CASE 1: caption_str = "Right "
+         CASE 2: caption_str = "Down "
+         CASE 3: caption_str = "Left "
         END SELECT
+        IF cur_frameid < 400 THEN
+         caption_str &= cur_frameid MOD 100
+        END IF
        CASE sprTypeWeapon
         SELECT CASE cur_frameid
          CASE 0: caption_str = "Frame A"
@@ -5204,7 +5203,8 @@ SUB SpriteSetBrowser.run()
       cursor_moved = plank_menu_home(ps)
     END IF
     plank_menu_mouse_wheel(ps)
-    IF intgrabber(setnum, 0, gen(genmax), scNone, scNone, YES, NO) THEN
+    'Reserve Delete for deleting frames/sets, not digits of setnum
+    IF keyval(scDelete) = 0 ANDALSO intgrabber(setnum, 0, gen(genmax), scNone, scNone, YES, NO) THEN
       set_focus(setnum, cur_framenum)
       cursor_moved = YES
       highlight_ss_id = YES
@@ -5228,25 +5228,29 @@ SUB SpriteSetBrowser.run()
       END IF
     END IF
 
-    /'
     'Delete frames or spritesets
     IF cur_setnum >= 0 THEN
       IF cropafter_keycombo(NO) THEN  'Whole spriteset
         'crop_spriteset()
       ELSEIF cur_framenum >= 0 ANDALSO keyval(scDelete) > 1 THEN  'One frame
-        delete_frame(cur_setnum, cur_framenum)
+        IF sprite_sizes(sprtype).fixed_framecount THEN
+          notification sprite_sizes(sprtype).name & " sprites currently don't support adding or removing frames."
+        ELSEIF yesno("Really delete this frame? There's no undo!", NO) THEN
+          delete_frame(cur_setnum, cur_framenum)
+        END IF
       END IF
     END IF
 
     '+: Add new frame or frame group
     IF keyval(scPlus) > 1 ORELSE keyval(scNumpadPlus) > 1 ORELSE keyval(scInsert) > 1 THEN
-      IF cur_framenum = -1 THEN  'Whole spriteset
+      IF sprite_sizes(sprtype).fixed_framecount THEN
+       notification sprite_sizes(sprtype).name & " sprites currently don't support adding or removing frames."
+      ELSEIF cur_framenum = -1 THEN  'Whole spriteset
         add_frame(cur_setnum, YES)  'New group
       ELSE
         add_frame(cur_setnum, NO, cur_framenum)  'After existing frame
       END IF
     END IF
-    '/
 
     IF enter_or_space() ORELSE ((mouse.release AND mouseLeft) ANDALSO hover = ps.cur) then
       IF cur_setnum = -1 THEN  'Add new

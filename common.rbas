@@ -7076,6 +7076,7 @@ SUB setup_sprite_sizes ()
   .size.x = 32
   .size.y = 40
   .frames = 8
+  .fixed_framecount = YES
   .directions = 4
   .paletted = YES
   .genmax = genMaxHeroPic
@@ -7085,6 +7086,7 @@ SUB setup_sprite_sizes ()
   .size.x = 34
   .size.y = 34
   .frames = 1
+  .fixed_framecount = YES
   .directions = 1
   .paletted = YES
   .genmax = genMaxEnemy1Pic
@@ -7094,6 +7096,7 @@ SUB setup_sprite_sizes ()
   .size.x = 50
   .size.y = 50
   .frames = 1
+  .fixed_framecount = YES
   .directions = 1
   .paletted = YES
   .genmax = genMaxEnemy2Pic
@@ -7103,6 +7106,7 @@ SUB setup_sprite_sizes ()
   .size.x = 80
   .size.y = 80
   .frames = 1
+  .fixed_framecount = YES
   .directions = 1
   .paletted = YES
   .genmax = genMaxEnemy3Pic
@@ -7121,6 +7125,7 @@ SUB setup_sprite_sizes ()
   .size.x = 24
   .size.y = 24
   .frames = 2
+  .fixed_framecount = YES
   .directions = 1
   .paletted = YES
   .genmax = genMaxWeaponPic
@@ -7130,6 +7135,7 @@ SUB setup_sprite_sizes ()
   .size.x = 50
   .size.y = 50
   .frames = 3
+  .fixed_framecount = YES
   .directions = 1
   .paletted = YES
   .genmax = genMaxAttackPic
@@ -7140,6 +7146,7 @@ SUB setup_sprite_sizes ()
   .size.y = 16
   .fixed_size = YES
   .frames = 16
+  .fixed_framecount = YES
   .directions = 1
   .paletted = YES
   .genmax = genMaxBoxBorder
@@ -7158,6 +7165,7 @@ SUB setup_sprite_sizes ()
   .size.x = 320
   .size.y = 200
   .frames = 1
+  .fixed_framecount = YES
   .directions = 1
   .paletted = NO
   .genmax = genNumBackdrops
@@ -7168,6 +7176,7 @@ SUB setup_sprite_sizes ()
   .size.x = 50  'This is the default size when adding a new Enemy
   .size.y = 50
   .frames = 1
+  .fixed_framecount = YES
   .directions = 1
   .paletted = YES
   .genmax = genMaxEnemyPic
@@ -7178,6 +7187,7 @@ SUB setup_sprite_sizes ()
   .size.h = 200
   .fixed_size = YES
   .frames = 1
+  .fixed_framecount = YES
   .directions = 1
   .paletted = NO
   .genmax = genMaxTile
@@ -7188,6 +7198,7 @@ SUB setup_sprite_sizes ()
   .size.h = 160 * 20
   .fixed_size = YES
   .frames = 1
+  .fixed_framecount = YES
   .directions = 1
   .paletted = NO
   .genmax = genMaxTile
