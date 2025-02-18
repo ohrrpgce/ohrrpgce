@@ -677,7 +677,7 @@ end sub
 '==========================================================================================
 
 
-' Create deep copies of animations; fallback_set is shared.
+' Create deep copies of animations; shared_set/fallback_set are shared.
 ' The result has refcount 1 (comparable to reference()).
 ' When this is called on a SpriteSet you get an AnimationSet. You can't duplicate a SpriteSet
 ' (well, it could be implemented with frame_duplicate)
@@ -686,6 +686,7 @@ function AnimationSet.duplicate() as AnimationSet ptr
 	ret->refcount = 1
 	ret->slice_specific = slice_specific
 	ret->name = name
+	ret->shared_set = shared_set->reference()
 	ret->fallback_set = fallback_set->reference()
 	v_new ret->animations
 	for idx as integer = 0 to v_len(animations) - 1
@@ -699,6 +700,7 @@ destructor AnimationSet()
 	'(The Animations can remain referenced, but the Frames might be gone)
 	delete_all_animations(YES)  'check_no_references = YES
 
+	animset_unload @shared_set
 	animset_unload @fallback_set
 end destructor
 
@@ -751,26 +753,34 @@ end sub
 
 ' Searches for an animation with a certain name, or NULL if there's no match.
 ' If exact=YES, the variant must match exactly, otherwise looks for best match.
-' If recurse=YES, go through the chain of fallback_sets as if they were all concatenated.
+' If recurse=YES, go through the chain of shared_sets and then the chain of
+'   fallback_sets as if they were all concatenated.  But we don't recurse from a
+'   shared_set to its fallback_set or vice versa. This is because fallback_set
+'   is intended for spriteset-specific animations and shared_set for looking at
+'   some ancestor slice for shared defaults, but we don't want to use defaults
+'   from ancestor's spriteset.
 ' animvariant is either just the name of the animation, or the
 ' name plus an optional variant separated by a space, e.g. "walk upleft", "walk ", "walk".
 ' The nearest match is picked amongst animations which match the name:
 '  - prefer variant as specified
 '  - then prefer an animation with blank variant
 '  - then prefer the first animation (with that name)
-function AnimationSet.find_animation(animvariant as string, exact as bool = NO, recurse as bool = YES, byref _best_score as integer = 0) as Animation ptr
-	dim as string name, variant
-	split_animvariant animvariant, name, variant
+function AnimationSet.find_animation(animvariant as string, exact as bool = NO, recurse as bool = YES) as Animation ptr
+	dim as string animname, variant
+	split_animvariant animvariant, animname, variant
 
+	return find_animation_recurse(animname, variant, exact, recurse, recurse, 0)
+end function
+
+function AnimationSet.find_animation_recurse(animname as string, variant as string, exact as bool, recurse1 as bool, recurse2 as bool, byref _best_score as integer) as Animation ptr
 	dim as Animation ptr best_match, anim, best_fallback
 	for idx as integer = 0 to v_len(animations) - 1
 		anim = animations[idx]
-		if anim->name = name then
+		if anim->name = animname then
 			' Right name, check how good the match of variants is
 			dim score as integer
 			if anim->variant = variant then
-				_best_score = 1000
-				return anim        'Exact match
+				score = 1000
 			elseif len(anim->variant) = 0 then
 				'Prefer nonvariant animations
 				score = 10
@@ -784,12 +794,17 @@ function AnimationSet.find_animation(animvariant as string, exact as bool = NO, 
 			end if
 		end if
 	next
-	if recurse andalso fallback_set then
+	if recurse1 andalso shared_set then
 		' When called recursively, returns null unless a better match
 		' than _best_score was found, which is updated.
-		best_fallback = fallback_set->find_animation(animvariant, exact, YES, _best_score)
+		best_fallback = shared_set->find_animation_recurse(animname, variant, exact, YES, NO, _best_score)
 		if best_fallback then best_match = best_fallback
 	end if
+	if recurse2 andalso fallback_set then
+		best_fallback = fallback_set->find_animation_recurse(animname, variant, exact, NO, YES, _best_score)
+		if best_fallback then best_match = best_fallback
+	end if
+
 	return best_match
 end function
 
@@ -1029,7 +1044,7 @@ function AnimationState.animate_step() as bool
 				return YES  'Wait
 			end if
 		case animOpSwitchAnim
-			' TODO: should have a way to play an animation in the fallback_set
+			' TODO: should have a way to play an animation in shared_set/fallback_set
 			' switch_animation resets the looplimit, but we instead decrement it
 			dim looplimit as integer = anim_looplimit - 1
 			if switch_animation(curop."anim".str & " " & curop."variant".str) then

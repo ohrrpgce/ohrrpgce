@@ -118,6 +118,7 @@ type AnimationEditor
   declare sub reset_slice()
   declare sub toplevel()
   declare sub rebuild_toplevel_menu()
+  declare sub rebuild_toplevel_menu_recurse(animset as AnimationSet ptr)
   declare function cur_animset() as AnimationSet ptr
   declare function cur_anim() as Animation ptr
   declare function cur_animname() as string
@@ -177,24 +178,27 @@ const mdatAnim = 3
 sub AnimationEditor.rebuild_toplevel_menu()
   v_new topmenu
   append_simplemenu_item topmenu, "Previous Menu", , , mdatExit
-  dim animset as AnimationSet ptr = top_animset
-  while animset
-    append_simplemenu_item topmenu, "", YES  'Unselectable
-    append_simplemenu_item topmenu, animset->name, YES, uilook(eduiHeading)  'Unselectable
-
-    for idx as integer = 0 to v_len(animset->animations) - 1
-      with *animset->animations[idx]
-        append_simplemenu_item topmenu, rtrim(.name + " " + .variant), , , mdatAnim
-        v_last(topmenu).datptr = animset
-      end with
-    next
-    append_simplemenu_item topmenu, "Add new animation...", , , mdatNewAnim
-    v_last(topmenu).datptr = animset
-
-    animset = animset->fallback_set
-  wend
-
+  rebuild_toplevel_menu_recurse top_animset
   init_menu_state topstate, topmenu
+end sub
+
+sub AnimationEditor.rebuild_toplevel_menu_recurse(animset as AnimationSet ptr)
+  if animset = NULL then exit sub
+
+  append_simplemenu_item topmenu, "", YES  'Unselectable
+  append_simplemenu_item topmenu, animset->name, YES, uilook(eduiHeading)  'Unselectable
+
+  for idx as integer = 0 to v_len(animset->animations) - 1
+    with *animset->animations[idx]
+      append_simplemenu_item topmenu, rtrim(.name + " " + .variant), , , mdatAnim
+      v_last(topmenu).datptr = animset
+    end with
+  next
+  append_simplemenu_item topmenu, "Add new animation...", , , mdatNewAnim
+  v_last(topmenu).datptr = animset
+
+  rebuild_toplevel_menu_recurse(animset->shared_set)
+  rebuild_toplevel_menu_recurse(animset->fallback_set)
 end sub
 
 ' Also returns the AnimationSet on the "Add new animation" line

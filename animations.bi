@@ -92,9 +92,13 @@ DECLARE_VECTOR_OF_TYPE(Animation ptr, Animation_ptr)
 type AnimationSet
 	refcount as integer        'If this is an SpriteSet, is set to NOREFC
 	animations as Animation ptr vector  'Owned reference to each Animation
-	fallback_set as AnimationSet ptr  'AnimationSet to search after `animations`. E.g. the global animations
-	                                  'for sprites of this type. May be NULL.
-	                                  '(This counts as a reference)
+	shared_set as AnimationSet ptr   'Optional AnimationSet to search after `animations`. (referenced)
+	                                 'This is used for animations shared within a collection.
+	                                 '(Not implemented yet).
+	                                 'We don't recurse to shared_set->fallback_set!
+	fallback_set as AnimationSet ptr 'Optional, searched after fallback_set. (referenced)
+	                                 'Used for spriteset defaults and global spriteset animations.
+	                                 'We don't recurse to fallback_set->shared_set!
 	slice_specific as bool     'True if this AnimationSet is for a specific slice rather than some fallback set
 	name as string             'Identifies this set in the editor.
 	                           '(Normally blank in SpriteSet, possibly used for debugging)
@@ -106,11 +110,14 @@ type AnimationSet
 	declare function duplicate() as AnimationSet ptr
 
 	' Note find_animation does not increment refcount!
-	declare function find_animation(animvariant as string, exact as bool = NO, recurse as bool = YES, byref _best_score as integer = 0) as Animation ptr
+	declare function find_animation(animvariant as string, exact as bool = NO, recurse as bool = YES) as Animation ptr
 	declare function get_animation(animvariant as string) as Animation ptr
 	declare function new_animation(name as string = "", variant as string = "") as Animation ptr
 	declare sub delete_animation(anim as Animation ptr)
 	declare sub delete_all_animations(check_no_references as bool = NO)
+
+  private:
+	declare function find_animation_recurse(animname as string, variant as string, exact as bool, recurse1 as bool, recurse2 as bool, byref _best_score as integer) as Animation ptr
 end type
 
 type SliceFwd as Slice
