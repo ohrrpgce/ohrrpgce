@@ -51,7 +51,8 @@ enum AnimOpType
 	animOpRelOffset = 5 '(x,y)
 	animOpPlayFrameGroup = 6 '(groupidx,ms)
 	animOpSetProp   = 7 'key, value
-	animOpLAST      = 7
+	animOpSwitchAnim = 8
+	animOpLAST      = 8
 end enum
 
 extern anim_op_names() as string      ' Short names used for display and debug
@@ -135,6 +136,8 @@ type AnimationState
 
 	declare function start_animation overload(name as string, loopcount as integer = 0) as Animation ptr
 	declare function start_animation overload(anim as Animation ptr, loopcount as integer = 0) as Animation ptr
+	declare function switch_animation overload(animvariant as string, loopcount as integer = -1) as bool
+	declare function switch_animation overload(to_anim as Animation ptr, loopcount as integer = -1) as bool
 	declare sub stop_animation()
 	declare sub reset()
 

@@ -602,6 +602,8 @@ sub AnimationEditor.rebuild_animation_menu(byref menu as SimpleMenuItem vector, 
           ' Warning: invalidates prop
           caption &= get_prop_caption(propname, op."value".ptr)
         end if
+      case animOpSwitchAnim
+        caption = op."anim".str & " " & op."variant".str
       case else
         caption = "???" 'STR(.arg1)   '& " " & .arg2
     end select
@@ -708,6 +710,8 @@ sub AnimationEditor.edit_animop_args(byref anim as Animation, curop as NodePtr, 
         set_slice_property(sl, curop."key".str, curop."value".ptr)  'Update visual
         state.need_update = YES
       end if
+    case animOpSwitchAnim
+      'No support yet. Need a tileanim-editor-style popup menu.
   end select
 end sub
 
@@ -717,6 +721,20 @@ function AnimationEditor.create_animop_node(byref anim as Animation, animop as A
   if animop = animOpSetProp then
     SetChildNode newop, "key", *prop->propname
     AddChild newop, CloneNodeTree(prop->value_node, get_anim_doc)
+  elseif animop = animOpSwitchAnim then
+    dim anim as string = prompt_animation_name("Animation to play?", anim_context)
+    dim variant as string
+    if anim <> "" then
+      variant = prompt_variant_name("Variant to play?", anim_context)
+    end if
+    if anim = "" orelse variant = "" then  'Cancelled
+      FreeNode newop
+      return NULL
+    end if
+    SetChildNode newop, "anim", anim
+    if variant <> "(none)" then
+      SetChildNode newop, "variant", variant
+    end if
   end if
   return newop
 end function
@@ -786,22 +804,30 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
           ' Picked an anim op from the menu, what do we do with it?
           if animops_action = "add_op" then
             dim newop as NodePtr = create_animop_node(anim, .ret_animop, .ret_prop)
-            if curop then
-              AddSiblingBefore curop, newop
+            if newop then
+              if curop then
+                AddSiblingBefore curop, newop
+              end if
+              curop = newop
+              state.need_update = YES
             end if
-            curop = newop
-            state.need_update = YES
 
           elseif animops_action = "replace_op" then
             assert(curop)
-            ' Is the new op different from curop? (Using '..int' here hits a PyPEG bug!)
-            if .ret_animop <> GetInteger(curop) orelse (.ret_prop andalso *.ret_prop->propname <> curop."key".str) then
+            ' Is the new op different from curop? (Putting this on one line hits a PyPEG bug!)
+            dim different as bool
+            different = .ret_animop <> curop..int
+            different or= .ret_prop andalso *.ret_prop->propname <> curop."key".str
+            different or= .ret_animop = animOpSwitchAnim
+            if different then
               ' Maybe use anim.mutate_op instead?
               dim newop as NodePtr = create_animop_node(anim, .ret_animop, .ret_prop)
-              AddSiblingAfter curop, newop
-              FreeNode curop
-              curop = newop
-              state.need_update = YES
+              if newop then
+                AddSiblingAfter curop, newop
+                FreeNode curop
+                curop = newop
+                state.need_update = YES
+              end if
             end if
 
           else

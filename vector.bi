@@ -189,6 +189,7 @@ end extern
   'Convention: always mark anything you return from a function as temporary!
   declare function v_ret overload alias "array_temp" (byval this as T vector) as T vector
 
+  'Length. Valid to call v_len on an uninitialised (NULL) vector
   declare function v_len overload alias "array_length" (byval this as T vector) as int32
 
   'Changes the length of a vector. Elements are deleted or constructed as needed

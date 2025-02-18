@@ -41,6 +41,7 @@ anim_op_names(animOpSetOffset) = "set offset"
 anim_op_names(animOpRelOffset) = "add offset"
 anim_op_names(animOpPlayFrameGroup) = "frame group"
 anim_op_names(animOpSetProp) =   "set"
+anim_op_names(animOpSwitchAnim) ="switch to"
 
  ' Short names used for RELOAD serialisation
 redim anim_op_node_names(animOpLAST) as string
@@ -52,6 +53,7 @@ anim_op_node_names(animOpSetOffset) = "setoffset"
 anim_op_node_names(animOpRelOffset) = "addoffset"
 anim_op_node_names(animOpPlayFrameGroup) = "framegroup"
 anim_op_node_names(animOpSetProp) =   "setprop"
+anim_op_node_names(animOpSwitchAnim) ="switchanim"
 
 ' Descriptive captions
 redim anim_op_fullnames(animOpLAST) as string
@@ -63,6 +65,7 @@ anim_op_fullnames(animOpSetOffset) = "Move to offset (unimp)"
 anim_op_fullnames(animOpRelOffset) = "Add to offset (unimp)"
 anim_op_fullnames(animOpPlayFrameGroup) = "Play frame group"
 anim_op_fullnames(animOpSetProp) =   "Set"
+anim_op_fullnames(animOpSwitchAnim) ="Switch to animation"
 
 ' Built-in variants have names starting with :, which are not allowed for user names
 dim shared builtin_variants_table(4) as IntStrPair
@@ -843,7 +846,7 @@ function AnimationState.start_animation(animvariant as string, loopcount as inte
 	return anim
 end function
 
-'OK for anim to be NULL
+' OK for anim to be NULL
 function AnimationState.start_animation(anim as Animation ptr, loopcount as integer = 0) as Animation ptr
 	anim_wait = 0
 	'anim_step = 0
@@ -857,6 +860,23 @@ function AnimationState.start_animation(anim as Animation ptr, loopcount as inte
 		curop = NULL
 	end if
 	return anim
+end function
+
+' Start an animation if it's not already playing. If it is, change the loopcount (if not -1).
+' Stop if the animation doesn't exist.
+function AnimationState.switch_animation(animvariant as string, loopcount as integer = -1) as bool
+	return switch_animation(sl->Animations->find_animation(animvariant), loopcount)
+end function
+
+' OK for anim to be NULL
+function AnimationState.switch_animation(to_anim as Animation ptr, loopcount as integer = -1) as bool
+	if to_anim <> anim then
+		start_animation(to_anim, loopcount)
+		return YES
+	elseif loopcount > -1 then
+		anim_loop = loopcount
+	end if
+	return NO
 end function
 
 ' Doesn't reset the sprite.
@@ -1007,6 +1027,13 @@ function AnimationState.animate_step() as bool
 				'? "animOpPlayFrameGroup: waiting"
 				anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
 				return YES  'Wait
+			end if
+		case animOpSwitchAnim
+			' TODO: should have a way to play an animation in the fallback_set
+			' switch_animation resets the looplimit, but we instead decrement it
+			dim looplimit as integer = anim_looplimit - 1
+			if switch_animation(curop."anim".str & " " & curop."variant".str) then
+				anim_looplimit = looplimit
 			end if
 
 		case animOpUnknown
