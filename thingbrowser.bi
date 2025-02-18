@@ -5,6 +5,8 @@
 #IFNDEF THINGBROWSER_BI
 #DEFINE THINGBROWSER_BI
 
+#include "animations.bi"
+
 ' pass the record number that the editor should edit.
 ' A record number greater than the current max record number will add a new record
 ' The return value is -1 for cancellation, or the last edited record number,
@@ -55,11 +57,10 @@ Type ThingBrowser extends Object
  'This is called once each time the cursor selection moves, such as by keyboard or right-click
  declare virtual sub on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
 
- 'This is called once each tick for each plank, and can be used for animation, and similar
- declare virtual sub each_tick_each_plank(byval plank as Slice Ptr)
+ 'This is called once each tick for each plank aside the selected one, and can be used for animation, and similar
+ declare virtual sub each_tick_each_unselected_plank(byval plank as Slice Ptr)
  
  'This is called once each tick for the currently selected cursor plank
- '(this is called second, after each_tick_each_plank())
  declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
 
  'When a left click happens on a plank, this function must return YES for the plank to be selected 
@@ -224,12 +225,25 @@ End Type
 
 Type SpriteBrowser extends ThingBrowser
  sprtype as SpriteType
+ 'The default constructor doesn't (and shouldn't) exist, but if it's not
+ 'declared there seems to be a FB bug where it demands a copy constructor.
  declare constructor()
  declare constructor(spr_kind as SpriteType)
  declare virtual function thing_kind_name() as string
- declare virtual function sprite_frame() as integer
+ declare virtual function sprite_frameid() as integer
  declare virtual function highest_id() as integer
  declare virtual function create_thing_plank(byval id as integer) as Slice ptr
+End Type
+
+Type AnimatedSpriteBrowser extends SpriteBrowser
+ shared_animset as AnimationSet ptr
+ 'Default constructor doesn't exist; same FB bug as SpriteBrowser
+ declare constructor()
+ declare constructor(spr_kind as SpriteType)
+ declare virtual destructor()
+ declare virtual function create_thing_plank(byval id as integer) as Slice ptr
+ declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
+ declare virtual sub each_tick_each_unselected_plank(byval plank as Slice Ptr)
 End Type
 
 Type HeroSpriteBrowser extends SpriteBrowser
@@ -237,10 +251,9 @@ Type HeroSpriteBrowser extends SpriteBrowser
  declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
 End Type
 
-Type WalkaboutSpriteBrowser extends SpriteBrowser
+Type WalkaboutSpriteBrowser extends AnimatedSpriteBrowser
  declare constructor()
- declare virtual function sprite_frame() as integer
- declare virtual sub each_tick_selected_plank(byval plank as Slice Ptr)
+ declare virtual function sprite_frameid() as integer
 End Type
 
 Type PortraitSpriteBrowser extends SpriteBrowser

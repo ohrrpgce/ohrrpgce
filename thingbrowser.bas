@@ -308,7 +308,9 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   REDIM planks(any) as Slice Ptr
   find_all_planks ps, ps.m, planks()
   for i as integer = 0 to ubound(planks)
-   each_tick_each_plank planks(i)
+   if planks(i) <> ps.cur then
+    each_tick_each_unselected_plank planks(i)
+   end if
   next i
   'Then run the each-tick sub for the selected plank
   if ps.cur then each_tick_selected_plank ps.cur
@@ -350,7 +352,7 @@ Sub ThingBrowser.on_cursor_moved(byval id as integer, byval plank as Slice Ptr)
  'React to selecting a new plank with the keyboard or mouse
 End Sub
 
-Sub ThingBrowser.each_tick_each_plank(byval plank as Slice Ptr)
+Sub ThingBrowser.each_tick_each_unselected_plank(byval plank as Slice Ptr)
  'Nothing needs to happen here, if you don't want continous animation
 End Sub
 
@@ -1197,6 +1199,60 @@ End Function
 
 '-----------------------------------------------------------------------
 
+/'
+'I plan for this to become a default part of plankmenu; could be set directly in set_plank_state
+Sub animated_set_plank_state_callback(sl as Slice Ptr, state as PlankItemState)
+ SELECT CASE state
+  CASE plankNORMAL:          SetSliceVariant sl, , "selected", NO
+  CASE plankSEL:             SetSliceVariant sl, , "selected", YES
+ END SELECT
+End Sub
+'/
+
+Constructor AnimatedSpriteBrowser(sprtype as SpriteType)
+ Base(sprtype)
+ 'ps.state_callback = @animated_set_plank_state_callback
+
+ shared_animset = new AnimationSet
+ shared_animset->reference()
+ 'shared_animset->new_animation("idle")
+ 'shared_animset->new_animation("idle selected")
+ 'Subclasses should define a "selected" animation
+End Constructor
+
+Destructor AnimatedSpriteBrowser()
+ animset_unload @shared_animset
+End Destructor
+
+Function AnimatedSpriteBrowser.create_thing_plank(id as integer) as Slice ptr
+ dim plank as Slice ptr
+ plank = Base.create_thing_plank(id)
+ dim spr as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank, slSprite)
+ if spr then
+  spr->GetAnimations
+  animset_unload @spr->Animations->shared_set  'Shouldn't exist
+  spr->Animations->shared_set = shared_animset->reference()
+  spr->GetAnimState->start_animation("selected")
+ end if
+ return plank
+End Function
+
+Sub AnimatedSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
+ 'If we instead  call AdvanceSlice on the whole collection, as you would for an in-game plankmenu,
+ 'we'd play either "idle" or "idle selected" based on a variant set by the set_plank_state callback
+ AdvanceSlice plank
+End Sub
+
+'Reset unselected sprites
+Sub AnimatedSpriteBrowser.each_tick_each_unselected_plank(byval plank as Slice Ptr)
+ dim spr as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank, slSprite)
+ if spr then
+  spr->SpriteData->set_frameid(spr, sprite_frameid)
+ end if
+End Sub
+
+'-----------------------------------------------------------------------
+
 'HERO
 Constructor HeroSpriteBrowser()
  Base(sprTypeHero)
@@ -1209,15 +1265,27 @@ End Sub
 'WALKABOUT
 Constructor WalkaboutSpriteBrowser()
  Base(sprTypeWalkabout)
+
+ dim n as NodePtr
+ #define op(opname) n = .append(opname)
+ #define arg(argname, argvalue) AppendChildNode(n, argname, argvalue)
+
+ 'We could use the default "selected" animation, but this one more helpfully shows all four directions
+ with *shared_animset->new_animation("selected")
+  for dirloop as integer = 0 to 3
+   for i as integer = 0 to 1
+    op(animOpPlayFrameGroup)
+    arg("framegroup", (dirDown + dirloop) MOD 4)
+    arg("ms", 110)
+   next
+  next
+  op(animOpRepeat)
+ end with
 End Constructor
 
 Function WalkaboutSpriteBrowser.sprite_frameid() as integer
  return 100 * dirDown
 End Function
-
-Sub WalkaboutSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
- loop_sprite_helper plank, 4, 5
-End Sub
 
 'PORTRAIT
 Constructor PortraitSpriteBrowser()

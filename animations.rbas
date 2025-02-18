@@ -99,6 +99,7 @@ dim builtin_animations(...) as AnimVariantInfo => { _
 	/'(@"die",         acBattler,    @"Used instead of `hurt' when dying"), (happens before enemy dissolve) '/ _
 	(@"dead",        acBatHero,    @"Heroes with 0 HP"), _
 	/'(@"revive",      acBatHero,   @"When HP increases above 0") '/ _
+	(@"selected",    acAny,        @"Selected in a menu"), _
 	(NULL, 0, NULL) _
 }
 
@@ -174,6 +175,11 @@ sub spriteset_default_global_animations(byref animset as AnimationSet, sprtype a
 			arg("framegroup", 3)
 			arg("ms", 110)
 			op(animOpRepeat)
+		end with
+		with *animset.new_animation("selected")
+			op(animOpSwitchAnim)
+			arg("anim", "walk")
+			arg("variant", "down")
 		end with
 	end if
 end sub
