@@ -399,11 +399,15 @@ Sub ThingBrowser.loop_sprite_helper(byval plank as Slice Ptr, byval min as integ
  'A crude and simple animation helper for sprites in planks.
  'Uses the Extra(1) slot to manage the animation speed.
  'FIXME: rip this all out and replace it when the new animation system is ready
- dim spr as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank)
+ dim spr as Slice Ptr = LookupSlice(SL_EDITOR_THINGBROWSER_PLANK_SPRITE, plank, slSprite)
  if spr then
-  loopvar spr->Extra(1), 0, delay
-  if spr->Extra(1) = 0 then
-   loopvar spr->SpriteData->frame, min, max
+  dim wait as integer = spr->Extra(1)
+  loopvar wait, 0, delay
+  spr->Extra(1) = wait
+  if wait = 0 then
+   dim frameid as integer = spr->SpriteData->get_frameid(spr)
+   loopvar frameid, min, max
+   spr->SpriteData->set_frameid(spr, frameid)
   end if
  end if
 End Sub
@@ -1159,7 +1163,8 @@ Function SpriteBrowser.highest_id() as integer
  return sprite_sizes(this.sprtype).lastrec()
 End Function
 
-Function SpriteBrowser.sprite_frame() as integer
+'Default frameid to display
+Function SpriteBrowser.sprite_frameid() as integer
  return 0
 End Function
 
@@ -1174,10 +1179,13 @@ Function SpriteBrowser.create_thing_plank(byval id as integer) as Slice ptr
  if id <> none_id then
   dim spr as Slice Ptr
   spr = NewSliceOfType(slSprite, plank, SL_EDITOR_THINGBROWSER_PLANK_SPRITE)
-  ChangeSpriteSlice spr, this.sprtype, id, , sprite_frame()
-  plank->size = spr->size
+  ChangeSpriteSlice spr, this.sprtype, id
+  spr->SpriteData->set_frameid(spr, sprite_frameid())
+  spr->AlignHoriz = alignCenter
+  spr->AnchorHoriz = alignCenter
+  plank->Size = XY(large(spr->Width, 29), spr->Height + 10)
  else
-  plank->size = XY(40, sprite_sizes(this.sprtype).size.h)
+  plank->Size = XY(40, sprite_sizes(this.sprtype).size.h + 10)
  end if
  dim txt as Slice Ptr
  txt = NewSliceOfType(slText, plank, SL_PLANK_MENU_SELECTABLE)
@@ -1203,8 +1211,8 @@ Constructor WalkaboutSpriteBrowser()
  Base(sprTypeWalkabout)
 End Constructor
 
-Function WalkaboutSpriteBrowser.sprite_frame() as integer
- return 4
+Function WalkaboutSpriteBrowser.sprite_frameid() as integer
+ return 100 * dirDown
 End Function
 
 Sub WalkaboutSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
@@ -1227,7 +1235,7 @@ Constructor AttackSpriteBrowser()
 End Constructor
 
 Sub AttackSpriteBrowser.each_tick_selected_plank(byval plank as Slice Ptr)
- loop_sprite_helper plank, 0, 2
+ loop_sprite_helper plank, 0, 2  ' Intentionally play a little slower than actual
 End Sub
 
 'WEAPON
