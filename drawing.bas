@@ -4239,10 +4239,15 @@ TYPE ResizeSpritesetMenu EXTENDS ModularMenu
   pal as integer
   confirmed as bool  'Didn't cancel
 
+  DECLARE DESTRUCTOR ()
   DECLARE SUB update ()
   DECLARE FUNCTION each_tick () as bool
   DECLARE SUB draw_underlays()
 END TYPE
+
+DESTRUCTOR ResizeSpritesetMenu
+  DeleteSlice @root
+END DESTRUCTOR
 
 SUB ResizeSpritesetMenu.update ()
   REDIM menu(5)
