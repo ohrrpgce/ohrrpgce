@@ -5071,6 +5071,14 @@ END SUB
 'Note: rebuild_menu() must be called afterwards!
 SUB SpriteSetBrowser.replace_spriteset(setnum as integer, ss as Frame ptr = NULL)
   IF ss THEN
+    IF ss->sprset = NULL THEN
+      'The animations are missing, so copy them over. Happens whenever created a new
+      'Frame array: add/deleting frames, resizing frames, fullset editing, importing.
+      DIM existing_sprite as Frame ptr = frame_load(sprtype, setnum)
+      copy_spriteset_data ss, existing_sprite
+      frame_unload @existing_sprite
+    END IF
+
     rgfx_save_spriteset ss, sprtype, setnum, defpalettes(setnum)
     frame_unload @ss
   END IF
