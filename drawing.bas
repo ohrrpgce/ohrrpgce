@@ -4897,28 +4897,33 @@ SUB SpriteSetBrowser.edit_any(setnum as integer, framenum as integer)
 END SUB
 
 SUB SpriteSetBrowser.edit_spriteset(setnum as integer)
-  DIM _choices(...) as string = {"Draw spritesheet", "Export spritesheet", "Import spritesheet", "Resize", "Detail/Animations"}
+  DIM _choices(...) as string = { _
+        "Exit menu", _
+        "Draw full spritesheet", "Export spritesheet", _
+        "Import spritesheet", "Resize", "Add frame group" _
+  }
   REDIM choices() as string
   a_copy _choices(), choices()
-  IF keyval(scShift) = 0 THEN a_pop choices()  'Remove Animations
+  IF sprite_sizes(sprtype).fixed_framecount THEN a_pop choices()  'Remove Add frame group
   DIM choice as integer = popup_choice("", choices())
   SELECT CASE choice
    CASE 0
-    edit_any setnum, -1
    CASE 1
-    export_any
+    edit_any setnum, -1
    CASE 2
-    import_any
+    export_any
    CASE 3
+    import_any
+   CASE 4
     DIM resized as Frame ptr
     resized = spriteset_resize_menu(sprtype, setnum, defpalettes(setnum))
     IF resized THEN
       replace_spriteset setnum, resized
       rebuild_menu
     END IF
-   CASE 4
-    spriteset_detail_editor sprtype, setnum
-    rebuild_menu
+   CASE 5
+    ' Add a frame group in the first empty slot
+    add_frame(cur_setnum, YES)
   END SELECT
 END SUB
 
@@ -5289,7 +5294,12 @@ SUB SpriteSetBrowser.run()
       IF cur_setnum = -1 THEN  'Add new
         add_spriteset()
       ELSEIF cur_framenum = -1 THEN  'Whole spriteset: Spriteset menu
-        edit_spriteset(cur_setnum)
+        IF keyval(scShift) > 0 THEN
+          spriteset_detail_editor sprtype, setnum
+          rebuild_menu
+        ELSE
+          edit_spriteset(cur_setnum)
+        END IF
       ELSE  'Single frame
         edit_any(cur_setnum, cur_framenum)
       END IF
