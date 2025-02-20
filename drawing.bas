@@ -4444,8 +4444,58 @@ FUNCTION SpriteSetBrowser.cur_frameid() as integer
   RETURN ps.cur->Extra(2)
 END FUNCTION
 
-FUNCTION frame_name(setnum as integer, frameid as integer) as string
-  RETURN ""
+FUNCTION frame_name(sprtype as SpriteType, frameid as integer) as string
+ DIM name as string
+ SELECT CASE sprtype
+  CASE sprTypeHero
+   SELECT CASE frameid
+    CASE 0: name = "Standing"
+    CASE 1: name = "Stepping"
+    CASE 100: name = "Attack A"
+    CASE 101: name = "Attack B"
+    CASE 200: name = "Casting"
+    CASE 300: name = "Hurt"
+    CASE 400: name = "Weak"
+    CASE 500: name = "Dead"
+   END SELECT
+  CASE sprTypeWalkabout
+   SELECT CASE frameid \ 100
+    CASE 0: name = "Up "
+    CASE 1: name = "Right "
+    CASE 2: name = "Down "
+    CASE 3: name = "Left "
+   END SELECT
+   IF LEN(name) THEN
+    name &= frameid MOD 100
+   END IF
+  CASE sprTypeWeapon
+   SELECT CASE frameid
+    CASE 0: name = "Frame A"
+    CASE 1: name = "Frame B"
+   END SELECT
+  CASE sprTypeAttack
+   name = "Frame " & frameid
+  CASE sprTypeBoxBorder
+   SELECT CASE frameid
+    CASE 0: name = "Top left corner"
+    CASE 1: name = "Top edge left end"
+    CASE 2: name = "Top edge repeat"
+    CASE 3: name = "Top edge right end"
+    CASE 4: name = "Top right corner"
+    CASE 5: name = "Left edge top end"
+    CASE 6: name = "Right edge top end"
+    CASE 7: name = "Left edge repeat"
+    CASE 8: name = "Right edge repeat"
+    CASE 9: name = "Left edge bottom end"
+    CASE 10: name = "Right edge bottom end"
+    CASE 11: name = "Bottom left corner"
+    CASE 12: name = "Bottom edge left end"
+    CASE 13: name = "Bottom edge repeat"
+    CASE 14: name = "Bottom edge right end"
+    CASE 15: name = "Bottom right corner"
+   END SELECT
+ END SELECT
+ RETURN name
 END FUNCTION
 
 SUB SpriteSetBrowser_set_plank_state_callback(sl as Slice Ptr, state as PlankItemState)
@@ -4630,58 +4680,8 @@ SUB SpriteSetBrowser.update_info()
       'info_str &= "  ENTER to edit"
       caption_str = "Entire spriteset"
     ELSE
-      'info_str &= "  Frame ID " & cur_frameid & "  " & frame_name(cur_setnum, cur_frameid)
+      caption_str = frame_name(sprtype, cur_frameid)
       info_str &= "  Frame " & cur_framenum & " ID " & cur_frameid
-      'FIXME: Replace these hard-coded names with frame group names later
-      SELECT CASE sprtype
-       CASE sprTypeHero
-        SELECT CASE cur_frameid
-         CASE 0: caption_str = "Standing"
-         CASE 1: caption_str = "Stepping"
-         CASE 100: caption_str = "Attack A"
-         CASE 101: caption_str = "Attack B"
-         CASE 200: caption_str = "Casting"
-         CASE 300: caption_str = "Hurt"
-         CASE 400: caption_str = "Weak"
-         CASE 500: caption_str = "Dead"
-        END SELECT
-       CASE sprTypeWalkabout
-        SELECT CASE cur_frameid \ 100
-         CASE 0: caption_str = "Up "
-         CASE 1: caption_str = "Right "
-         CASE 2: caption_str = "Down "
-         CASE 3: caption_str = "Left "
-        END SELECT
-        IF cur_frameid < 400 THEN
-         caption_str &= cur_frameid MOD 100
-        END IF
-       CASE sprTypeWeapon
-        SELECT CASE cur_frameid
-         CASE 0: caption_str = "Frame A"
-         CASE 1: caption_str = "Frame B"
-        END SELECT
-       CASE sprTypeAttack
-        caption_str = "Frame " & cur_frameid
-       CASE sprTypeBoxBorder
-        SELECT CASE cur_frameid
-         CASE 0: caption_str = "Top left corner"
-         CASE 1: caption_str = "Top edge left connector"
-         CASE 2: caption_str = "Top edge"
-         CASE 3: caption_str = "Top edge right connector"
-         CASE 4: caption_str = "Top right corner"
-         CASE 5: caption_str = "Left edge top connector"
-         CASE 6: caption_str = "Right edge top connector"
-         CASE 7: caption_str = "Left edge"
-         CASE 8: caption_str = "Right edge"
-         CASE 9: caption_str = "Left edge bottom connector"
-         CASE 10: caption_str = "Right edge bottom connector"
-         CASE 11: caption_str = "Bottom left corner"
-         CASE 12: caption_str = "Bottom edge left connector"
-         CASE 13: caption_str = "Bottom edge"
-         CASE 14: caption_str = "Bottom edge right connector"
-         CASE 15: caption_str = "Bottom right corner"
-        END SELECT
-      END SELECT
     END IF
 
     'DIM fr as Frame ptr = frame_load(sprtype, cur_setnum) 'Check for inconsistent .rgfx and defpal#.bin defpals
@@ -5125,7 +5125,7 @@ SUB SpriteSetBrowser.paste_any(transparent as bool)
   editing_spriteset = frame_load(sprtype, cur_setnum)
 
   IF cur_framenum = -1 THEN  'Whole spriteset
-    'copy_buffer might be either a single frame or a while spriteset.
+    'copy_buffer might be either a single frame or a whole spriteset.
     IF copied_whole_set ANDALSO transparent = NO THEN
       'Overwrite the original spriteset completely, but instead of a simple copy
       'create a new spriteset so that we have the correct number of frames and frame IDs
