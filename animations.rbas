@@ -787,6 +787,8 @@ function AnimationSet.find_animation_recurse(animname as string, variant as stri
 			dim score as integer
 			if anim->variant = variant then
 				score = 1000
+			elseif exact then
+				score = 0
 			elseif len(anim->variant) = 0 then
 				'Prefer nonvariant animations
 				score = 10
@@ -794,7 +796,7 @@ function AnimationSet.find_animation_recurse(animname as string, variant as stri
 				'Otherwise, default to the first variant
 				score = 1
 			end if
-			if exact = NO andalso _best_score < score then
+			if _best_score < score then
 				best_match = anim
 				_best_score = score
 			end if
