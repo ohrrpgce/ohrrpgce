@@ -3488,7 +3488,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   append_simplemenu_item menu, "editor_ssed_set_info", , , -408
   append_simplemenu_item menu, "editor_ssed_set", , , -409
   append_simplemenu_item menu, "editor_ssed_palette_root", , , -410
-  append_simplemenu_item menu, "editor_ssed_info_text_right", , , -411
+  append_simplemenu_item menu, "editor_ssed_tooltip_text", , , -411
   append_simplemenu_item menu, "editor_ssed_caption_text", , , -412
   append_simplemenu_item menu, "editor_enemy_sprite", , , -500
   append_simplemenu_item menu, "root", , , -100000

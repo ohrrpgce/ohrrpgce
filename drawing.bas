@@ -4644,8 +4644,8 @@ END SUB
 'spriteset slices, which requires a rebuild_menu call.
 SUB SpriteSetBrowser.update_info()
   DIM info_text as Slice ptr = edsl(ssed_info_text, root)
-  DIM info_text_right as Slice ptr = edsl(ssed_info_text_right, root)
-  IF info_text = NULL ORELSE info_text_right = NULL ORELSE ps.cur = NULL THEN EXIT SUB
+  DIM tooltip_text as Slice ptr = edsl(ssed_tooltip_text, root)
+  IF info_text = NULL ORELSE tooltip_text = NULL ORELSE ps.cur = NULL THEN EXIT SUB
   DIM as TextSliceData ptr info_text_dat = info_text->SliceData
   DIM caption_text as Slice ptr = edsl(ssed_caption_text, root)
 
@@ -4653,17 +4653,20 @@ SUB SpriteSetBrowser.update_info()
   IF pal_root = NULL THEN EXIT SUB
 
   DIM info_str as string
-  DIM caption_str as string = ""
-  info_text_right->Visible = NO
+  DIM caption_str as string
+  DIM tooltip as string
   IF cur_setnum = -1 THEN  'Add new
-    info_str = "ENTER to add a new spriteset"
     info_text_dat->show_insert = NO
     pal_root->Visible = NO
   ELSE
-    IF cur_framenum = -1 OR get_resolution.x >= 380 THEN  'Only if there's room
-      info_text_right->Visible = YES
-      info_text_right->TextData->use_render_text = YES
-      ChangeTextSlice info_text_right, "SHIFT: move by spriteset"
+    tooltip = "Shift: move by set"
+    IF cur_setnum >= 0 THEN
+      IF cur_framenum = -1 THEN
+        tooltip &= "  Enter: menu"
+      END IF
+      IF sprite_sizes(sprtype).fixed_framecount = NO ANDALSO cur_framenum > -1 THEN
+        tooltip &= "  [Shift-]Insert: add frame"
+      END IF
     END IF
 
     info_str = "Spriteset " & cur_setnum
@@ -4677,8 +4680,7 @@ SUB SpriteSetBrowser.update_info()
 
     IF cur_frameid < 0 THEN
       'Whole spriteset selected rather than a frame
-      'info_str &= "  ENTER to edit"
-      caption_str = "Entire spriteset"
+      'caption_str = "Entire spriteset"
     ELSE
       caption_str = frame_name(sprtype, cur_frameid)
       info_str &= "  Frame " & cur_framenum & " ID " & cur_frameid
@@ -4710,6 +4712,7 @@ SUB SpriteSetBrowser.update_info()
 
   ChangeTextSlice info_text, info_str
   ChangeTextSlice caption_text, caption_str
+  ChangeTextSlice tooltip_text, tooltip
 
   'TODO: This is here to update the positioning of the palette box,
   'and can be removed when CoverChildren is fixed to compute the size
