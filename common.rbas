@@ -8015,7 +8015,9 @@ END FUNCTION
 'Wrapper for the walkabout container slice
 FUNCTION max_wtog(walkabout_sl as Slice ptr, direction as DirNum) as integer
  DIM sprsl as Slice ptr
- sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_sl, slSprite)
+ IF walkabout_sl THEN
+  sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_sl, slSprite)
+ END IF
  IF sprsl ANDALSO sprsl->SpriteData->loaded THEN
   RETURN max_wtog(sprsl->SpriteData->img.sprite, direction)
  END IF
