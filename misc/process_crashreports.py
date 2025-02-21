@@ -188,6 +188,7 @@ def download_and_extract_symbols(syms_fname, args):
             try:
                 urllib.request.urlretrieve(syms_url, syms_7z)
             except:
+                print('', file=sys.stderr)
                 # Interrupted download is likely corrupt
                 if os.path.isfile(syms_7z):
                     os.unlink(syms_7z)
