@@ -1621,7 +1621,15 @@ walk hero(who, hero direction(hero), 0)</example>
 		<command id="setheroframe">
 			<canon>set hero frame (who, frame)</canon>
 			<shortname>set hero frame</shortname>
-			<description>Sets the walking frame of the specified hero to 0 or 1. The hero is specified by their rank in the walkabout party, 0-3</description>
+			<description>
+				Sets the walking frame of the specified hero.
+				<lb/>
+				This is the number of the walkabout frame, starting from 0,
+				in the group of frames for the hero's current facing direction.
+				If the walkabout set has two frames per direction, this should be 0 or 1.
+				<lb/>
+				The hero is specified by their rank in the walkabout party, 0-3.
+			</description>
 			<seealso>
 				<ref>heroframe</ref>
 			</seealso>
@@ -1629,7 +1637,14 @@ walk hero(who, hero direction(hero), 0)</example>
 		<command id="heroframe">
 			<canon>hero frame (who)</canon>
 			<shortname>hero frame</shortname>
-			<description>Returns the walking frame (0 or 1) of the specified hero. The hero is specified by their rank in the walkabout party, 0-3</description>
+			<description>
+				Returns the walking frame of the specified hero; see <ref>setheroframe</ref>.
+				The hero is specified by their rank in the walkabout party, 0-3.
+				<note>
+					The number returned can be higher than the last valid frame,
+					if you call it immediately after changing hero direction or spriteset.
+				</note>
+			</description>
 		</command>
 		<command id="setheroposition">
 			<canon>set hero position (who, x, y)</canon>
@@ -2108,7 +2123,15 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 		<command id="setnpcframe">
 			<canon>set NPC frame (who, frame)</canon>
 			<shortname>set NPC frame</shortname>
-			<description>Sets the walking frame of the specified NPC to 0 or 1. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will change.</description>
+			<description>
+				Sets the walking frame of the specified NPC to 0 or 1.
+				<lb/>
+				This is the number of the walkabout frame, starting from 0,
+				in the group of frames for the NPC's current facing direction.
+				If the walkabout set has two frames per direction, this should be 0 or 1.
+				<lb/>
+				You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will change.
+</description>
 			<seealso>
 				<ref>npcframe</ref>
 			</seealso>
@@ -2116,7 +2139,13 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 		<command id="npcframe">
 			<canon>NPC frame (who)</canon>
 			<shortname>NPC frame</shortname>
-			<description>Returns the walking frame (0 or 1) of the specified NPC.</description>
+			<description>
+				Returns the walking frame of the specified NPC. See <ref>setnpcframe</ref>.
+				<note>
+					The number returned can be higher than the last valid frame,
+					if you call it immediately after changing NPC direction or spriteset.
+				</note>
+			</description>
 		</command>
 		<command id="setnpcposition">
 			<canon>set NPC position (who, X, Y)</canon>

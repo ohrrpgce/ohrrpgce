@@ -411,8 +411,6 @@ CONST frameHURT = 5
 CONST frameWEAK = 6
 CONST frameDEAD = 7
 
-CONST WALKFRAMES = 2  'Number of frames per walkabout direction
-
 '---- Dissolve animations
 CONST dissolveRandomScatter = 0
 CONST dissolveCrossfade = 1

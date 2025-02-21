@@ -1813,6 +1813,7 @@ SUB update_npcs ()
      npc(o).z = heroz(0) 'NPC Z value is matched to the hero in update_vehicle_state for simplicity, but
                          'this is here in case of setheroz or setnpcz or loaded map state or other funkiness happens
      npc(o).dir = herodir(0)
+     'FIXME: this is definitely not going to work properly for more frames
      npc(o).wtog = herow(0).wtog
     END IF
    ELSE

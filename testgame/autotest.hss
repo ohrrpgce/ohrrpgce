@@ -1146,11 +1146,18 @@ script, do hero cater tests, who, begin
   wait for hero(who)
   #FIXME: should probably test misaligned walking too
   # frame
-  variable(fr)
-  for(fr, 1, 8) do(
-    set hero frame(who, (fr ,mod, 2))
-    assert(hero frame(who) == (fr ,mod, 2))
-    w(fr)
+  variable(fr,dir)
+  for(dir, 0, 3) do(
+    for(fr, 0, 1) do(
+      set hero frame(who, fr)
+      set hero direction(who, dir)
+      assert(hero frame(who) == fr)
+      w
+    )
+    set hero frame(who, -1)
+    assert(hero frame(who) == 0)
+    set hero frame(who, 2)
+    assert(hero frame(who) == 1)
   )
   #pixel pos
   variable(px, py)

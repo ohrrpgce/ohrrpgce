@@ -1444,8 +1444,12 @@ SUB script_commands(byval cmdid as integer)
    scriptret = 0
   END IF
  CASE 25'--set hero frame
-  IF valid_hero_caterpillar_rank(retvals(0)) THEN
-   herow(retvals(0)).wtog = bound(retvals(1), 0, WALKFRAMES - 1) * wtog_ticks()
+  DIM rank as integer = retvals(0)
+  IF valid_hero_caterpillar_rank(rank) THEN
+   'It's not important to bound to a currently valid frame (but .wtog should not be < 0),
+   'and you can defeat this bound by changing the direction/spriteset. We bound for an
+   'abundance of backcompat (previously clamped to 0/1), and so that "hero frame" is accurate.
+   herow(rank).wtog = bound(retvals(1), 0, max_wtog(herow(rank).sl, herodir(rank)))
   END IF
  CASE 27'--suspend overlay
   setbit gen(), genSuspendBits, suspendoverlay, 1
@@ -1855,6 +1859,7 @@ SUB script_commands(byval cmdid as integer)
   END IF
  CASE 191'--hero frame
   IF valid_hero_caterpillar_rank(retvals(0)) THEN
+   'Note that this can be beyond the last frame, if the direction or spriteset just changed.
    scriptret = wtog_to_frame(herow(retvals(0)).wtog)
   END IF
  CASE 195'--load sound (BACKWARDS COMPATABILITY HACK )
@@ -3671,7 +3676,12 @@ SUB script_commands(byval cmdid as integer)
 
  CASE 26'--set NPC frame
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN npc(npcref).wtog = bound(retvals(1), 0, WALKFRAMES - 1) * wtog_ticks()
+  IF npcref >= 0 THEN
+   WITH npc(npcref)
+    'See comments on "set hero frame"
+    .wtog = bound(retvals(1), 0, max_wtog(.sl, .dir))
+   END WITH
+  END IF
  CASE 39'--camera follows NPC
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
@@ -3879,6 +3889,7 @@ SUB script_commands(byval cmdid as integer)
   END IF
  CASE 192'--NPC frame
   npcref = getnpcref(retvals(0), 0)
+  'Note that this can be beyond the last frame, if the direction or spriteset just changed.
   IF npcref >= 0 THEN scriptret = wtog_to_frame(npc(npcref).wtog)
  CASE 193'--NPC extra
   npcref = getnpcref(retvals(0), 0)
@@ -6002,12 +6013,12 @@ FUNCTION valid_item(byval itemID as integer) as bool
  RETURN bound_arg(itemID, 0, gen(genMaxItem), "item ID")
 END FUNCTION
 
-'TODO: Only use this where a command should be able to act on empty caterpillar hero slots
+'Only use this where a command should be able to act on empty caterpillar hero slots!
 FUNCTION valid_hero_caterpillar_rank(who as integer) as bool
  RETURN bound_arg(who, 0, 3, "hero caterpillar party rank")
 END FUNCTION
 
-'TODO: Only use this where a command should be able to act on empty hero slots
+'Only use this where a command should be able to act on empty hero slots!
 '(for compatibility, that's most of them!)
 FUNCTION valid_hero_party(byval who as integer, byval minimum as integer=0) as bool
  RETURN bound_arg(who, minimum, 40, "hero party slot")
