@@ -4477,11 +4477,9 @@ FUNCTION frame_name(sprtype as SpriteType, frameid as integer) as string
    END IF
   CASE sprTypeWeapon
    SELECT CASE frameid
-    CASE 0: name = "Frame A"
-    CASE 1: name = "Frame B"
+    CASE 0: name = "A"
+    CASE 1: name = "B"
    END SELECT
-  CASE sprTypeAttack
-   name = "Frame " & frameid
   CASE sprTypeBoxBorder
    SELECT CASE frameid
     CASE 0: name = "Top left corner"
@@ -4864,7 +4862,8 @@ SUB SpriteSetBrowser.setup_editstate(edstate as SpriteEditState, setnum as integ
       .framename = ""
     ELSE
       .save_callback = @SpriteSetBrowser_save_callback
-      .framename = "Frame " & editing_spriteset[framenum].frameid  'info(ss.framenum)
+      DIM frameid as integer = editing_spriteset[framenum].frameid
+      .framename = "Frame " & frameid & " " & frame_name(sprtype, frameid)
     END IF
     .save_callback_context = @this
     .pal_num = defpalettes(setnum)
