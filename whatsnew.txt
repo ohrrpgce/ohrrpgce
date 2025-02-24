@@ -1,6 +1,9 @@
 WHAT IS NEW?
 
 Not Today [Jocoserious+1]
+  *** Plotscripting Features
+    * "set hero frame" and "set npc frame" support more than 2 frames [Ralph]
+
   *** Bugfixes
     * Fix rare crash (since fufluns) when entering the Global Text Strings
       menu [Ralph]
@@ -11,7 +14,8 @@ February 20 2025 [Jocoserious]
 
   *** New Features
     * Shift Tile tileset animation command. Non-animated uses likely! [Ralph]
-    * Add Movement section to the slice editor for Velocity and Target [Ralph]
+    * Add Movement section to the slice editor for Velocity and Target.
+      And you can preview it with a new Preview Animations option. [Ralph]
     * You can add (and delete) frames to Walkabout and Portrait spritesets!
       Frames are arranged by ID in frame groups. All frames in a walkabout's
       first four groups are used for walking animations, and you can add more
@@ -61,6 +65,7 @@ February 20 2025 [Jocoserious]
     * Text box portrait boxes now size correctly to the portrait sprite
       instead of always being 50x50 [James]
     * Out of range "set sprite frame" no longer shows a BUG message [Ralph]
+    * Fix crash when Quicksaving while pathfinding heroes [James]
 
 
 October 28 2024 [Ichorescent]
