@@ -12049,6 +12049,13 @@ sub copy_spriteset_data(to_sprite as Frame ptr, from_sprite as Frame ptr)
 	end if
 end sub
 
+sub copy_spriteset_frameids(to_sprite as Frame ptr, from_sprite as Frame ptr)
+	BUG_IF(to_sprite->arraylen <> from_sprite->arraylen, "mismatched Frame arrays")
+	for idx as integer = 0 to to_sprite->arraylen - 1
+		to_sprite[idx].frameid = from_sprite[idx].frameid
+	next
+end sub
+
 ' Load the global animations for a sprtype from rgfx, or defaults if they don't exist.
 ' If loadinto=NULL, creates a new AnimationSet with .refcount=1, otherwise returns loadinto with its animations replaced.
 local function spriteset_load_global_animations_uncached(sprtype as SpriteType, rgfxdoc as Doc ptr = NULL, loadinto as AnimationSet ptr = NULL) as AnimationSet ptr

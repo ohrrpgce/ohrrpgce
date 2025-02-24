@@ -4667,10 +4667,18 @@ SUB SpriteSetBrowser.update_info()
     tooltip = "Shift: move by set"
     IF cur_setnum >= 0 THEN
       IF cur_framenum = -1 THEN
-        tooltip &= "  Enter: menu"
+        tooltip &= "  Enter: spriteset menu"
       END IF
       IF sprite_sizes(sprtype).fixed_framecount = NO ANDALSO cur_framenum > -1 THEN
         tooltip &= "  [Shift-]Insert: add frame"
+      END IF
+    END IF
+
+    IF v_len(copy_buffer) THEN
+      IF cur_framenum > -1 ANDALSO copied_whole_set THEN  'whole->one
+        tooltip = "Ctrl-V: paste frame 0  Ctrl-T: transparent paste"
+      ELSE
+        tooltip = "Ctrl-V: paste  Ctrl-T: transparent paste"
       END IF
     END IF
 
@@ -5104,7 +5112,7 @@ SUB SpriteSetBrowser.change_def_pal(diff as integer)
   rebuild_menu()
 END SUB
 
-'Save current frame or spriteset
+'Copy current frame or spriteset into copy_buffer. Aniamtions aren't copied.
 SUB SpriteSetBrowser.copy_any()
   IF cur_setnum < 0 THEN EXIT SUB
 
@@ -5145,13 +5153,25 @@ SUB SpriteSetBrowser.paste_any(transparent as bool)
 
   editing_spriteset = frame_load(sprtype, cur_setnum)
 
+  DIM overwrote as bool = NO
+
   IF cur_framenum = -1 THEN  'Whole spriteset
     'copy_buffer might be either a single frame or a whole spriteset.
     IF copied_whole_set ANDALSO transparent = NO THEN
-      'Overwrite the original spriteset completely, but instead of a simple copy
-      'create a new spriteset so that we have the correct number of frames and frame IDs
-      frame_assign @editing_spriteset, create_spriteset(sprtype, copy_buffer[0]->size)
-      'frame_assign @editing_spriteset, frame_vector_to_array(copy_buffer)  'Overwrites
+      'Overwrite the original spriteset completely
+      WITH sprite_sizes(sprtype)
+        '(Currently, fixed_size implies fixed_framecount)
+        IF .fixed_framecount ORELSE .fixed_size THEN
+          'Instead of a simple copy create a new spriteset so that we have the
+          'correct number of frames, size, and frame IDs
+          DIM size as XYPair = IIF(.fixed_size, .size, copy_buffer[0]->size)
+          frame_assign @editing_spriteset, create_spriteset(sprtype, size)
+        ELSE
+          'Overwrite (use frame IDs from copy_buffer)
+          frame_assign @editing_spriteset, frame_vector_to_array(copy_buffer)
+          overwrote = YES
+        END IF
+      END WITH
 
       'Also copy over the default palette
       IF copied_defpal > -1 THEN
@@ -5159,12 +5179,16 @@ SUB SpriteSetBrowser.paste_any(transparent as bool)
         defpalettes(cur_setnum) = copied_defpal
         savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
       END IF
+
+      'FIXME: copy the animations too
     END IF
 
-    'Paste each frame individually, keeping the original frame size and frame IDs
-    FOR idx as integer = 0 TO small(v_len(copy_buffer), editing_spriteset->arraylen) - 1
-      paste_frame(copy_buffer[idx], @editing_spriteset[idx], transparent)
-    NEXT
+    IF overwrote = NO THEN
+      'Paste each frame individually, keeping editing_spriteset's frame size and frame IDs
+      FOR idx as integer = 0 TO small(v_len(copy_buffer), editing_spriteset->arraylen) - 1
+        paste_frame(copy_buffer[idx], @editing_spriteset[idx], transparent)
+      NEXT
+    END IF
   ELSE
     paste_frame(copy_buffer[0], @editing_spriteset[cur_framenum], transparent)
   END IF
@@ -5174,6 +5198,7 @@ SUB SpriteSetBrowser.paste_any(transparent as bool)
 END SUB
 
 SUB SpriteSetBrowser.run()
+  'copy_buffer is never deleted
   IF copy_buffer = NULL THEN v_new copy_buffer
   ps.state_callback = @SpriteSetBrowser_set_plank_state_callback
 
@@ -5327,7 +5352,8 @@ SUB SpriteSetBrowser.run()
       IF keyval(scRightBrace) > 1 THEN change_def_pal(1)
 
       IF copy_keychord() THEN copy_any()
-      IF paste_keychord() THEN paste_any(NO)
+      'Don't use paste_keychord, which includes Shift-Insert
+      IF keyval(scCtrl) > 0 AND keyval(scV) > 1 THEN paste_any(NO)
       IF keyval(scCtrl) > 0 ANDALSO keyval(scT) > 1 THEN paste_any(YES)
 
       IF keyval(scE) > 1 THEN export_any()

@@ -162,7 +162,7 @@ DECLARE FUNCTION rgfx_load_spriteset OVERLOAD (sprtype as SpriteType, setnum as 
 DECLARE SUB rgfx_save_spriteset OVERLOAD (rgfxdoc as DocPtr, fr as Frame ptr, sprtype as SpriteType, setnum as integer, defpal as integer = -1)
 DECLARE SUB rgfx_save_spriteset OVERLOAD (fr as Frame ptr, sprtype as SpriteType, setnum as integer, defpal as integer = -1)
 DECLARE SUB rgfx_save_global_animations OVERLOAD (sprtype as SpriteType)
-DECLARE SUB rgfx_save_global_animations OVERLOAD (rgfxdoc as DocPtr, def_anim as AnimationSet ptr)
+DECLARE SUB rgfx_save_global_animations OVERLOAD (rgfxdoc as DocPtr, animset as AnimationSet ptr)
 DECLARE FUNCTION read_sprite_idx_backcompat_translation (rgfxdoc as DocPtr, sprtype as SpriteType, oldidx as integer) as integer
 DECLARE SUB add_sprite_idx_backcompat_translation (rgfxdoc as DocPtr, sprtype as SpriteType, oldidx as integer, newidx as integer)
 DECLARE FUNCTION rgfx_load_global_animations(rgfxdoc as Doc ptr, loadinto as AnimationSet ptr = NULL) as AnimationSet ptr
