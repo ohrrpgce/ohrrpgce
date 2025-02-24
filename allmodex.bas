@@ -36,6 +36,7 @@ using Reload
 
 #ifdef IS_CUSTOM
 	#include "cglobals.bi"  'For channel_to_Game
+	#include "custom.bi"  'For spriteset_editor_delete_clipboard
 #endif
 
 #ifdef __FB_ANDROID__
@@ -9713,6 +9714,9 @@ sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid, setnum as integer
 		'although they have sl->SpriteData->loaded = NO.
 		'Putting this here is ugly, but better to be sure it's called
 		slice_editor_delete_clipboard
+	#endif
+	#if defined(IS_CUSTOM)
+		spriteset_editor_delete_clipboard
 	#endif
 
 	if sprtype = sprTypeInvalid then

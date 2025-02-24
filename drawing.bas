@@ -4351,6 +4351,7 @@ TYPE SpriteSetBrowser
   STATIC copy_buffer as Frame ptr vector 'One or more copied frames
   STATIC copied_whole_set as bool        'Copied a spriteset rather than a single frame (ignore if nothing copied)
   STATIC copied_defpal as integer        'The default palette of the copied spriteset, or -1 for none
+  STATIC copied_animations as AnimationSet ptr 'If copied_whole_set, a duplicate copy of the sprite's animations
 
   'The following are only set inside and immediately after calling edit_frame() or import_any();
   'they're used for SpriteSetBrowser_save_callback*
@@ -4398,6 +4399,7 @@ END TYPE
 DIM SpriteSetBrowser.copy_buffer as Frame ptr vector
 DIM SpriteSetBrowser.copied_whole_set as bool
 DIM SpriteSetBrowser.copied_defpal as integer = -1
+DIM SpriteSetBrowser.copied_animations as AnimationSet ptr
 DIM SpriteSetBrowser.remem_setnum(sprTypeLastPickable) as integer
 DIM SpriteSetBrowser.remem_framenum(sprTypeLastPickable) as integer
 
@@ -4432,7 +4434,6 @@ SUB spriteset_editor(sprtype as SpriteType)
   editor.genmax = sprite_sizes(sprtype).genmax
   editor.run()
 END SUB
-
 
 FUNCTION SpriteSetBrowser.cur_setnum() as integer
   IF ps.cur = NULL THEN RETURN -1
@@ -5097,6 +5098,7 @@ SUB SpriteSetBrowser.replace_spriteset(setnum as integer, ss as Frame ptr = NULL
   END IF
 
   delete_menu_items()   'Required in order to empty cache
+  'Deletes the clipboard
   sprite_empty_cache sprtype, setnum
 END SUB
 
@@ -5112,11 +5114,13 @@ SUB SpriteSetBrowser.change_def_pal(diff as integer)
   rebuild_menu()
 END SUB
 
-'Copy current frame or spriteset into copy_buffer. Aniamtions aren't copied.
+'Copy current frame or spriteset into copy_buffer.
 SUB SpriteSetBrowser.copy_any()
   IF cur_setnum < 0 THEN EXIT SUB
 
-  v_resize copy_buffer, 0
+  v_new copy_buffer
+  animset_unload @copied_animations
+
   editing_spriteset = frame_load(sprtype, cur_setnum)
 
   DIM fr as Frame ptr
@@ -5135,6 +5139,10 @@ SUB SpriteSetBrowser.copy_any()
     NEXT
     copied_defpal = defpalettes(cur_setnum)
     copied_whole_set = YES
+    'Duplicate rather than reference animations to avoid confusing semantics
+    IF editing_spriteset->sprset THEN
+      copied_animations = editing_spriteset->sprset->get_animset->duplicate()
+    END IF
   END IF
   frame_unload @editing_spriteset
 END SUB
@@ -5180,7 +5188,11 @@ SUB SpriteSetBrowser.paste_any(transparent as bool)
         savedefaultpals sprtype, defpalettes(), UBOUND(defpalettes)
       END IF
 
-      'FIXME: copy the animations too
+      IF copied_animations THEN
+        DIM ss as SpriteSet ptr = spriteset_for_frame(editing_spriteset)
+        animset_unload @ss->animset
+        ss->animset = copied_animations->duplicate()
+      END IF
     END IF
 
     IF overwrote = NO THEN
@@ -5195,6 +5207,11 @@ SUB SpriteSetBrowser.paste_any(transparent as bool)
 
   replace_spriteset cur_setnum, editing_spriteset  'Saves and unloads editing_spriteset
   rebuild_menu()
+END SUB
+
+SUB spriteset_editor_delete_clipboard()
+  v_free SpriteSetBrowser.copy_buffer
+  animset_unload @SpriteSetBrowser.copied_animations
 END SUB
 
 SUB SpriteSetBrowser.run()
