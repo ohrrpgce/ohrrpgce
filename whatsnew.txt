@@ -7,7 +7,8 @@ Not Today [Jocoserious+1]
   *** Bugfixes
     * Fix rare crash (since fufluns) when entering the Global Text Strings
       menu [Ralph]
-    * Update spriteset copy/pasting to support variable frame counts [Ralph]
+    * Update spriteset copy/pasting and full-set drawing to support adding/
+      deleting frames (without shredding the spriteset) [Ralph]
 
 
 February 20 2025 [Jocoserious]

@@ -4823,8 +4823,10 @@ END SUB
 'Callback for sprite_editor, while editing a spriteset in fullset mode
 SUB SpriteSetBrowser_save_callback_fullset(spr as Frame ptr, context as any ptr, defpal as integer)
  DIM byref this as SpriteSetBrowser = *cast(SpriteSetBrowser ptr, context)
- 'TODO: Assigns default frameids to frames, doesn't support variable frame count!
- DIM split_ss as Frame ptr = spriteset_from_basic_spritesheet(spr, this.sprtype, sprite_sizes(this.sprtype).frames)
+
+ DIM split_ss as Frame ptr = spriteset_from_basic_spritesheet(spr, this.sprtype, this.editing_spriteset->arraylen)
+ copy_spriteset_frameids split_ss, this.editing_spriteset
+ copy_spriteset_data split_ss, this.editing_spriteset
 
  'Save default palettes immediately for live previewing
  this.defpalettes(this.editing_setnum) = defpal
