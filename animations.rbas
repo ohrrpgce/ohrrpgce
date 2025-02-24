@@ -692,8 +692,12 @@ function AnimationSet.duplicate() as AnimationSet ptr
 	ret->refcount = 1
 	ret->slice_specific = slice_specific
 	ret->name = name
-	ret->shared_set = shared_set->reference()
-	ret->fallback_set = fallback_set->reference()
+	if shared_set then
+		ret->shared_set = shared_set->reference()
+	end if
+	if fallback_set then
+		ret->fallback_set = fallback_set->reference()
+	end if
 	v_new ret->animations
 	for idx as integer = 0 to v_len(animations) - 1
 		v_append ret->animations, animations[idx]->duplicate()
