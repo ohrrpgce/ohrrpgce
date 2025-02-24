@@ -3683,6 +3683,7 @@ END SUB
 
 'Undoes sprite_editor_initialise()
 SUB sprite_editor_cleanup(byref ss as SpriteEditState)
+ frame_unload @ss.sprite
  palette16_unload @ss.palette
  v_free ss.undo_history
 
@@ -5066,6 +5067,7 @@ SUB SpriteSetBrowser.add_frame(setnum as integer, new_group as bool = NO, framen
     DIM fr as Frame ptr = frame_new(.w, .h, , YES, .mask <> NULL)
     fr->frameid = new_id
     v_insert frvec, insertidx, fr
+    frame_unload @fr
   END WITH
 
   fix_following_frameids frvec, insertidx, new_id
