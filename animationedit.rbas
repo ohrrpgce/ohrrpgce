@@ -155,6 +155,7 @@ constructor AnimationEditor(sl as Slice ptr, top_animset as AnimationSet ptr, an
 end constructor
 
 destructor AnimationEditor()
+  v_free prop_info_list
   animset_unload @top_animset
   DeleteSlice @sl
 end destructor

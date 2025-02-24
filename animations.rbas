@@ -636,16 +636,19 @@ constructor Animation(name as string, variant as string = "")
 end constructor
 
 destructor Animation()
+	'? " Animation.destructor(" & hex(@this) & " " & name & " " & variant & ")"
 	FreeNode(this.opsnode)
 end destructor
 
 function Animation.reference() as Animation ptr
 	refcount += 1
+	'? "Animation.reference(" & hex(@this) & " " & name & " " & variant & "): refc=" & refcount
 	return @this
 end function
 
 sub Animation.dereference()
 	refcount -= 1
+	'? "Animation.dereference(" & hex(@this) & " " & name & " " & variant & "): refc=" & refcount
 	BUG_IF(refcount < 0, "Too many Animation.dereference()")
 	if refcount = 0 then
 		delete @this
@@ -654,8 +657,10 @@ end sub
 
 ' Deep copy
 function Animation.duplicate() as Animation ptr
+	'? "Animation.duplicate(" & hex(@this) & " " & name & " " & variant & "):"
 	dim ret as Animation ptr = new Animation(name, variant)
 	ret->refcount = 1
+	FreeNode ret->opsnode
 	ret->opsnode = CloneNodeTree(opsnode, get_anim_doc)
 	return ret
 end function
@@ -717,13 +722,14 @@ end destructor
 ' Increment refcount.
 function AnimationSet.reference() as AnimationSet ptr
 	refcount += 1
-	DEBUG_ANIM_CACHE(? "AnimationSet.reference(" & name & "): refc=" & refcount)
+	DEBUG_ANIM_CACHE(? "AnimationSet.reference(" & hex(@this) & " " & name & "): refc=" & refcount)
 	return @this
 end function
 
 ' Recommended to call the animset_unload() wrapper instead
 sub AnimationSet.dereference()
 	refcount -= 1
+	DEBUG_ANIM_CACHE(? "AnimationSet.dereference(" & hex(@this) & " " & name & "): refc=" & refcount)
 	BUG_IF(refcount < 0, "Negative refc")
 	if refcount = 0 then
 		delete @this
