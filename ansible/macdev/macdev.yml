@@ -1,0 +1,125 @@
+# Run with: ansible-playbook -i ./inventory.yml ./macdev.yml
+
+########
+# This script does not work yet. It installs the dependencies but you can't compile yet
+# Tracking it with https://github.com/ohrrpgce/ohrrpgce/issues/1281
+########
+
+
+- hosts: ohr_mac_dev_servers
+  gather_facts: yes
+
+########################################################################
+
+  vars:
+    fbc_mac_prebuilt_url: http://tmc.castleparadox.com/temp/fbc-1.06-darwin-wip20160505.tar.bz2
+    fbc_mac_local: fbc-1.06-darwin
+    euphoria_url: https://github.com/OpenEuphoria/euphoria/releases/download/4.1.0/euphoria-4.1.0-OSX-x64-57179171dbed.tar.gz
+    euphoria_local: euphoria-4.1.0-OSX.tar.gz
+
+  environment:
+    # Ansible won't automatically add brew's path, even if it works fine on an ssh session
+    PATH: /usr/local/bin:{{ ansible_env.PATH }}
+    
+########################################################################
+
+  tasks:
+
+  - name: Set up some variables
+    set_fact:
+      TEMP: "{{ ansible_env.HOME }}/src/ohrmac/ansible_temp"
+      FBCDIR: "{{ ansible_env.HOME }}/src/ohrmac/fbcmac"
+      EUDIR: "{{ ansible_env.HOME }}/src/ohrmac/euphoria"
+
+  - name: Make folders we will need later
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - "{{ TEMP }}"
+      - "{{ FBCDIR }}"
+      - "{{ EUDIR }}"
+ 
+  - name: Check if homebrew is available
+    block:
+      - name: try using homebrew in check_mode (no changes)
+        homebrew:
+          update_homebrew: true
+        check_mode: true
+
+      - name: Homebrew available
+        debug:
+          msg: Homebrew is installed
+
+    rescue:
+      - name: No homebrew
+        debug:
+          msg: Homebrew is not installed
+
+  - name: Install packages from brew
+    homebrew:
+      name:
+        - gnu-tar
+        - sdl2
+        - sdl2_mixer
+        - scons
+        - svn
+        - git-svn
+      state: present
+  
+  - name: Download pre-build FreeBasic for Mac
+    get_url:
+      url: "{{ fbc_mac_prebuilt_url }}"
+      dest: "{{ TEMP }}/{{ fbc_mac_local }}.tar.bz2"
+
+  - name: Extract pre-build FreeBasic for Mac
+    unarchive:
+      src: "{{ TEMP }}/{{ fbc_mac_local }}.tar.bz2"
+      dest: "{{ FBCDIR }}"
+      remote_src: yes
+      extra_opts: ['--strip-components=1', '--show-stored-names']
+ 
+  - name: Make sure FreeBasic can run
+    command:
+      argv:
+        - "{{ FBCDIR }}/bin/fbc"
+        - "--version"
+    register: fbc_version
+
+  - name: Download Euphoria for Mac
+    get_url:
+      url: "{{ euphoria_url }}"
+      dest: "{{ TEMP }}/{{ euphoria_local }}.tar.bz2"
+
+  - name: Extract Euphoria for Mac
+    unarchive:
+      src: "{{ TEMP }}/{{ euphoria_local }}.tar.bz2"
+      dest: "{{ EUDIR }}"
+      remote_src: yes
+      extra_opts: ['--strip-components=1', '--show-stored-names']
+
+  - name: Make sure Euphoria can run
+    command:
+      argv:
+        - "{{ EUDIR }}/bin/euc"
+        - "--version"
+    register: euc_version
+
+  - name: Manage path and env vars for added tools
+    blockinfile:
+      path: "{{ ansible_env.HOME }}/{{ item }}"
+      create: yes
+      block: |
+        export PATH={{ FBCDIR }}/bin:{{ EUDIR }}/bin:$PATH
+        export EUDIR={{ EUDIR }}
+    with_items:
+      - .bashrc
+      - .zshrc
+    
+  - name: Show Freebasic version installed
+    debug:
+      msg: "{{ fbc_version.stdout_lines[0] }}"
+
+  - name: Show Euphoria version installed
+    debug:
+      msg: "{{ euc_version.stderr_lines[0] }}"
