@@ -208,9 +208,9 @@ typedef signed char fb_boolean;
 
 // pure function: do not modify global memory, but may read it (including ptr args)
 #if __has_attribute(pure)
-# define pure __attribute__ ((__pure__))
+# define purefunc __attribute__ ((__pure__))
 #else
-# define pure
+# define purefunc
 #endif
 
 // _noreturn: does not return. Not the same as C++11 [[noreturn]], which can't be applied to function pointers.
