@@ -11968,7 +11968,7 @@ function frameid_to_frame(frameset as Frame ptr, frameid as integer, exact as bo
 		lastidx = idx
 	next
 	if exact = NO then
-		if lastid mod 100 = frameid mod 100 then
+		if lastid \ 100 = frameid \ 100 then
 			return lastidx
 		end if
 	end if
