@@ -882,7 +882,6 @@ end function
 ' OK for anim to be NULL
 function AnimationState.start_animation(anim as Animation ptr, loopcount as integer = 0) as Animation ptr
 	anim_wait = 0
-	'anim_step = 0
 	anim_advanced = YES
 	anim_loop = loopcount
 	anim_looplimit = ANIMATION_LOOPLIMIT
@@ -916,7 +915,6 @@ end function
 sub AnimationState.stop_animation()
 	set_anim(NULL)
 	anim_wait = 0
-	'anim_step = 0
 	curop = NULL
 end sub
 
@@ -965,11 +963,11 @@ end function
 ' Returns true on success or finished animation, false on error.
 ' Sets anim = NULL on error or finished animation.
 ' Does not check for infinite loops; caller must do that.
-function AnimationState.animate_step() as bool
+function AnimationState.animate_step() as AnimationState.StepResult
 	declare as NodePtr curop
 	'? "animate_step: curop", curop, curop..name, curop..int
 
-	if anim = NULL then return NO
+	if anim = NULL then return stepError
 
 	' This happens only if the animation doesn't end with Repeat
 	if curop = NULL then
@@ -977,11 +975,9 @@ function AnimationState.animate_step() as bool
 		' anim_loop = 0 means default number of loops
 		' Also refuse to loop if empty.
 		if anim_loop = 0 or anim_loop = 1 orelse NumChildren(anim->opsnode) = 0 then
-			stop_animation()
-			return YES
+			return stepEnd
 		end if
 		if anim_loop > 0 then anim_loop -= 1
-		'anim_step = 0
 		curop = FirstChild(anim->opsnode)
 	end if
 
@@ -994,8 +990,7 @@ function AnimationState.animate_step() as bool
 			if anim_wait > ms_to_frames(curop."ms") then
 				anim_wait = 0
 			else
-				anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
-				return YES
+				return stepWait
 			end if
 		case animOpFrame
 			if sl->SliceType <> slSprite then exit select  'Skip op
@@ -1010,14 +1005,12 @@ function AnimationState.animate_step() as bool
 			if anim_loop > 0 then
 				anim_loop -= 1
 				if anim_loop = 0 then
-					stop_animation()
-					return YES
+					return stepEnd
 				end if
 			end if
 			curop = FirstChild(anim->opsnode)
-			'anim_step = 0
 			anim_looplimit -= 1
-			return YES
+			return stepNext
 		case animOpSetOffset
 			/'
 			offset.x = curop."x"
@@ -1053,13 +1046,11 @@ function AnimationState.animate_step() as bool
 					anim_wait = 0  'Done
 				else
 					anim_wait = 1  'Start wait
-					anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
-					return YES  'Wait
+					return stepWait
 				end if
 			else
 				'? "animOpPlayFrameGroup: waiting"
-				anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
-				return YES  'Wait
+				return stepWait
 			end if
 		case animOpSwitchAnim
 			' TODO: should have a way to play an animation in shared_set/fallback_set
@@ -1075,13 +1066,11 @@ function AnimationState.animate_step() as bool
 		case else
 			' Shouldn't happen
 			showbug "bad animation opcode " & curop..name & " " & curop..int & " in '" & anim->name & "'"
-			stop_animation()
-			return NO
+			return stepError
 	end select
 
 	curop = NextSibling(curop)  'NULL if finished
-	'anim_step += 1
-	return YES
+	return stepNext
 end function
 
 ' Advance time by one tick. True on success or finished (anim is now NULL!), false on an error/infinite loop
@@ -1089,14 +1078,21 @@ function AnimationState.animate() as bool
 	if anim = NULL then return NO
 
 	while anim_looplimit > 0
-		if animate_step() = NO then return NO  'stop on error
-		if anim_wait > 0 then
-			anim_advanced = NO
-			return YES  'stop if waiting
-		else
-			anim_advanced = YES
-		end if
-		if anim = NULL then return YES  'stop if finished animating
+		select case animate_step()
+			case stepError
+				stop_animation()
+				return NO
+			case stepWait
+				anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
+				anim_advanced = NO
+				return YES
+			case stepNext
+				' animate_step advanced curop
+				anim_advanced = YES
+			case stepEnd
+				stop_animation()
+				return YES
+		end select
 	wend
 
 	' Exceeded the loop limit

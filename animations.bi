@@ -128,7 +128,6 @@ type AnimationState
 	anim as Animation ptr      'The currently playing animation or NULL.
 	                           'anim must be set using set_anim()!
 	curop as Reload.NodePtr    'Current animation op. Child (future: descendent) of anim->ops
-	'anim_step as integer      'Child index of curop
 	anim_advanced as bool      'True immediately after anim_step changes, false if waited
 	anim_wait as integer       'Equal to 0 if not waiting otherwise the number of ticks into the wait.
 	anim_loop as integer       '-1:infinite, 0<:number of times to play after current
@@ -148,13 +147,20 @@ type AnimationState
 	declare sub stop_animation()
 	declare sub reset()
 
+	enum StepResult
+		stepError
+		stepWait
+		stepNext
+		stepEnd
+	end enum
+
 	' Three ways to advance the animation:
 	' Advance time by one tick
 	declare function animate() as bool
 	' Advance time until the next wait
 	declare function skip_wait() as integer
 	' Advance by one animation op (may wait instead of advancing)
-	declare function animate_step() as bool
+	declare function animate_step() as StepResult
 end type
 
 declare sub set_animation_framerate(ms as integer)
