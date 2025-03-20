@@ -136,8 +136,10 @@ type AnimationEditor
   declare sub open_animops_menu(title as string, itemrect as RectType)
   declare function edit_property(propname as string, value_node as NodePtr, state as MenuState) as bool
   declare sub edit_animop_head(byref anim as Animation, curop as NodePtr, state as MenuState)
+  declare sub edit_animop_arg(byref anim as Animation, curop as NodePtr, curoparg as NodePtr, state as MenuState)
 
   declare function create_animop_node(byref anim as Animation, animop as AnimOpType, prop as SlicePropInfo ptr = NULL) as NodePtr
+  declare sub add_default_keyframe(to_op as NodePtr, prop as SlicePropInfo ptr)
 end type
 
 sub animations_editor(sl as Slice ptr, animset as AnimationSet ptr, anim_context as AnimationContext, default_export_filename as string = "")
@@ -420,7 +422,7 @@ function AnimOpsMenuStack.controls() as bool
     select case cur_item->t
         case tAnimOp
           ret_animop = cur_item->sub_t
-          if ret_animop = animOpSetProp then
+          if ret_animop = animOpSetProp orelse ret_animop = animOpTween then
             open_prop_section_list
           else
             while is_open
@@ -504,6 +506,7 @@ const itemdatAddStep = -2
 const itemdatPlay = -3
 const itemdatLoop = -4
 const itemdatReset = -5
+const itemdatOpAddArg = -6  'datptr is the NodePtr for the op
 const itemdatOp = 1  'datptr is the NodePtr for the op
 const itemdatOpArg = 2  'datptr is the NodePtr for the op arg
 
@@ -613,11 +616,33 @@ sub AnimationEditor.rebuild_animation_menu(byref menu as SimpleMenuItem vector, 
 
       case animOpSwitchAnim
         caption = op."anim".str & " " & op."variant".str
+
+      case animOpTween
+        dim propname as string = op."key".str
+        caption = prop_display_name(propname) & " between:"
+
       case else
         caption = "???" 'STR(.arg1)   '& " " & .arg2
     end select
     append_simplemenu_item menu, "- " & anim_op_names(op..int) & " " & caption, , , itemdatOp
     v_last(menu).datptr = op
+
+    ' Add menu items for sub items
+    select case op..int
+      case animOpTween
+        readnode op, ignoreall
+          withnode op."keyframe" as keyframe
+            caption = FORMAT(0.001 * keyframe..int, "0.000") & "s: "
+            caption &= prop_display_value(op."key".str, keyframe."value".ptr)
+            append_simplemenu_item menu, "  - " & caption, , , itemdatOpArg
+            v_last(menu).datptr = keyframe
+          end withnode
+        end readnode
+        append_simplemenu_item menu, "  - Add keyframe", , , itemdatOpAddArg
+        v_last(menu).datptr = op
+
+    end select
+
     op = NextSibling(op)
   wend
 
@@ -634,6 +659,8 @@ sub AnimationEditor.rebuild_animation_menu(byref menu as SimpleMenuItem vector, 
     for pt as integer = 0 to state.last
       if menu[pt].datptr = curnode then
         state.pt = pt
+        ' There may be multiple menu items with the same pointer, due to itemdatOpAddArg
+        exit for
       end if
     next
     correct_menu_state state
@@ -729,7 +756,39 @@ sub AnimationEditor.edit_animop_head(byref anim as Animation, curop as NodePtr, 
       set_slice_property(sl, curop."key".str, curop."value".ptr)  'Update visual
     case animOpSwitchAnim
       'No support yet. Need a tileanim-editor-style popup menu.
+    case animOpTween
+      'TODO: pick curve type
+
   end select
+end sub
+
+' Edit an itemdatOpArg menu item
+' Also modifies the slice state by applying this op as appropriate (at this keyframe)
+sub AnimationEditor.edit_animop_arg(byref anim as Animation, curop as NodePtr, curoparg as NodePtr, state as MenuState)
+  ' TAB state. This is temp
+  static whicharg as integer = 0
+
+  select case curop..int
+    case animOpTween
+      if keyval(scTab) > 1 then whicharg xor= 1
+      if whicharg = 0 andalso keyval(scShift) = 0 then
+        if edit_property(curop."key".str, curoparg."value".ptr, state) then
+          state.need_update = YES
+        end if
+      else
+        dim ms as integer = curoparg..int
+        state.need_update or= intgrabber(ms, 0, 9999, , , , , , , 10, NO)  'moreless_step = 10, wrap = NO
+        SetContent(curoparg, ms)
+      end if
+      set_slice_property(sl, curop."key".str, curoparg."value".ptr)  'Update visual
+  end select
+end sub
+
+' Add a keyframe at 0ms which sets the property to its current value
+sub AnimationEditor.add_default_keyframe(to_op as NodePtr, prop as SlicePropInfo ptr)
+  if prop = NULL then exit sub  ' Shouldn't happen
+  dim firstframe as NodePtr = AppendChildNode(to_op, "keyframe", 0)
+  AddChild firstframe, CloneNodeTree(prop->value_node, get_anim_doc)
 end sub
 
 ' Append a new animop with the return values from AnimOpsMenuStack
@@ -738,6 +797,9 @@ function AnimationEditor.create_animop_node(byref anim as Animation, animop as A
   if animop = animOpSetProp then
     SetChildNode newop, "key", *prop->propname
     AddChild newop, CloneNodeTree(prop->value_node, get_anim_doc)
+  elseif animop = animOpTween then
+    SetChildNode newop, "key", *prop->propname
+    add_default_keyframe newop, prop
   elseif animop = animOpSwitchAnim then
     dim anim as string = prompt_animation_name("Animation to play?", anim_context)
     dim variant as string
@@ -865,7 +927,7 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
         itemdat = 0
       else
         itemdat = menu[state.pt].dat
-        if itemdat = itemdatOp then
+        if itemdat = itemdatOp orelse itemdat = itemdatOpAddArg then
           curop = cast(NodePtr, menu[state.pt].datptr)
           assert(curop)
           'curnode = curop
@@ -881,10 +943,11 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
       if itemdat = itemdatOp /'curop'/ then
         edit_animop_head anim, curop, state
       elseif itemdat = itemdatOpArg then
-        'edit_animop_arg anim, curop, curoparg, state
+        edit_animop_arg anim, curop, curoparg, state
       end if
 
       dim add_step as bool
+      dim add_keyframe as bool
       dim delete_step as bool
       dim play_anim as bool
       dim loop_anim as bool
@@ -917,6 +980,8 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
             open_animops_menu("Replace with operator?", standardmenu_item_rect(menu, state))
           case itemdatOpArg
             ' Nothing
+          case itemdatOpAddArg
+            add_keyframe = YES
         end select
       end if
 
@@ -929,7 +994,7 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
         animops_action = "add_op"
         open_animops_menu("Add which operator?", standardmenu_item_rect(menu, state))
       elseif delete_step then
-        ' Delete op or optional arg
+        ' Delete op or keyframe
         if itemdat = itemdatOp then
           dim nextop as NodePtr = NextSibling(curop)
           FreeNode curop
@@ -941,6 +1006,15 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
           curoparg = nextarg
           state.need_update = YES
         end if
+      elseif add_keyframe then
+        ' Duplicate the last keyframe, if it has one, else add a keyframe at 0ms
+        dim lastarg as NodePtr = LastChild(curop, "keyframe")
+        if lastarg then
+          AddChild curop, CloneNodeTree(lastarg)
+        else
+          add_default_keyframe curop, prop_info(curop."key".str)
+        end if
+        state.need_update = YES
       elseif play_anim then
         ' Play (may or may not loop)
         animstate->start_animation(@anim)
@@ -991,6 +1065,8 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
       if itemdat = itemdatOp then
         ' If the op has multiple editable fields
         if curop..int = animOpWait orelse curop..int = animOpWaitMS then message += "  Tab to select arg"
+      elseif itemdat = itemdatOpArg then
+        if curop..int = animOpTween then message += "  Tab to select arg"
       end if
     end if
     edgeprint message, pInfoX, pInfoY, uilook(uiText), vpage

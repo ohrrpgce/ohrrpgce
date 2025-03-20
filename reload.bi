@@ -175,6 +175,7 @@ Declare Function CountChildren(byval nod as NodePtr, byval withname as zstring p
 Declare Function NodeIndex(byval nod as NodePtr) as integer
 Declare Function NodeParent(byval nod as NodePtr) as NodePtr
 Declare Function FirstChild(byval nod as NodePtr, byval name as zstring ptr = null) as NodePtr
+Declare Function LastChild(byval nod as NodePtr, byval name as zstring ptr = null) as NodePtr
 Declare Function NextSibling(byval nod as NodePtr, byval name as zstring ptr = null) as NodePtr
 Declare Function PrevSibling(byval nod as NodePtr, byval name as zstring ptr = null) as NodePtr
 Declare Function NodeType(byval nod as NodePtr) as NodeTypes

@@ -42,6 +42,7 @@ anim_op_names(animOpRelOffset) = "add offset"
 anim_op_names(animOpPlayFrameGroup) = "frame group"
 anim_op_names(animOpSetProp) =   "set"
 anim_op_names(animOpSwitchAnim) ="switch to"
+anim_op_names(animOpTween) =     "tween"
 
  ' Short names used for RELOAD serialisation
 redim anim_op_node_names(animOpLAST) as string
@@ -54,6 +55,7 @@ anim_op_node_names(animOpRelOffset) = "addoffset"
 anim_op_node_names(animOpPlayFrameGroup) = "framegroup"
 anim_op_node_names(animOpSetProp) =   "setprop"
 anim_op_node_names(animOpSwitchAnim) ="switchanim"
+anim_op_node_names(animOpTween) =     "tween"
 
 ' Descriptive captions
 redim anim_op_fullnames(animOpLAST) as string
@@ -66,6 +68,7 @@ anim_op_fullnames(animOpRelOffset) = "Add to offset (unimp)"
 anim_op_fullnames(animOpPlayFrameGroup) = "Play frame group"
 anim_op_fullnames(animOpSetProp) =   "Set"
 anim_op_fullnames(animOpSwitchAnim) ="Switch to animation"
+anim_op_fullnames(animOpTween) =     "Tween (blend keyframes)"
 
 ' Built-in variants have names starting with :, which are not allowed for user names
 dim shared builtin_variants_table(4) as IntStrPair
@@ -617,6 +620,41 @@ sub set_slice_blend_property(sl as Slice ptr, propnum as SlicePropertyNumber, dr
 	end select
 end sub
 
+' Set a slice property as the interpolation of two value nodes.
+' x is a value from 0.0 (to use value0) to 1.0 (to use value1)
+sub interpolate_slice_property(sl as Slice ptr, prop as zstring ptr, x as double, value0 as NodePtr, value1 as NodePtr)
+	dim as NodePtr intervalue = CreateNode(value0, "value")
+	select case NodeType(value0)
+		case rltInt
+			dim vals(1) as integer
+			vals(0) = value0..int
+			vals(1) = value1..int
+			SetContent intervalue, vals(0) + x * (vals(1) - vals(0))
+		case rltFloat
+			dim vals(1) as double
+			vals(0) = value0..float
+			vals(1) = value1..float
+			SetContent intervalue, vals(0) + x * (vals(1) - vals(0))
+		case rltString, rltInternString
+			' Cute text interpolation: first erase the text character by characer
+			' down to the common prefix, then add the value1 suffix.
+			dim vals(1) as string
+			vals(0) = value0..str
+			vals(1) = value1..str
+			dim matchlen as integer = length_matching(vals(0), vals(1))
+			dim edit_dist as integer = len(vals(0)) + len(vals(1)) - 2 * matchlen
+			dim curchar as integer = edit_dist * x
+			dim prefix0len as integer = len(vals(0)) - curchar
+			' TODO: will need reimplementation to support text markup
+			if prefix0len >= matchlen then
+				SetContent intervalue, left(vals(0), prefix0len)
+			else
+				SetContent intervalue, left(vals(1), 2 * matchlen - prefix0len)
+			end if
+	end select
+	set_slice_property sl, prop, intervalue
+	FreeNode intervalue
+end sub
 
 '==========================================================================================
 '                                         Animation
@@ -954,9 +992,56 @@ function AnimationState.skip_wait() as integer
 			anim_wait = ms_to_frames(ret)
 			if animate() = NO then ret = -2  ' Until next wait
 			return ret
+		case animOpTween
+			' TODO: don't know yet how to handle this for gifs
+			'var lastfr = LastChild(curop, "keyframe")
+			'if lastfr = NULL then return -1
 		case else
 			return -1
 	end select
+end function
+
+' Calculate and apply the current state of a tween.
+' curop is a animOpTween node with "key" and "keyframe" children, which are assumed to be sorted by time.
+' curtime is in ms.
+' Returns true if curtime is before the end of the tween.
+function tween_keyframes(sl as Slice ptr, curop as NodePtr, curtime as integer) as bool
+	dim as NodePtr prevframe, nextframe
+	prevframe = FirstChild(curop, "keyframe")
+	nextframe = prevframe
+
+	if prevframe = NULL then return NO
+	nextframe = NextSibling(prevframe, "keyframe")
+
+	if nextframe = NULL orelse curtime < prevframe..int then
+		set_slice_property sl, curop."key".zstring, prevframe."value".ptr
+		return NO
+	end if
+
+	' Find the interval containing curtime
+	dim times(1) as integer
+	while nextframe
+		times(0) = prevframe..int
+		times(1) = nextframe..int
+		if curtime >= times(0) andalso curtime <= times(1) then
+			var diff = times(1) - times(0)
+			dim x as double = 0
+			if diff then
+				x = (curtime - times(0)) / diff
+			end if
+			' The first keyframe might have a time > 0ms. Don't extrapolate
+			if x < 0 then x = 0
+
+			interpolate_slice_property sl, curop."key".zstring, x, prevframe."value".ptr, nextframe."value".ptr
+
+			return YES
+		end if
+
+		prevframe = nextframe
+		nextframe = NextSibling(nextframe, "keyframe")
+	wend
+
+	return NO
 end function
 
 ' Advance the animation by one op.
@@ -1058,6 +1143,14 @@ function AnimationState.animate_step() as AnimationState.StepResult
 			dim looplimit as integer = anim_looplimit - 1
 			if switch_animation(curop."anim".str & " " & curop."variant".str) then
 				anim_looplimit = looplimit
+			end if
+
+		case animOpTween
+			if tween_keyframes(sl, curop, frames_to_ms(anim_wait)) = NO then
+				anim_wait = 0  'Done
+			else
+				anim_wait += 1
+				return stepWait
 			end if
 
 		case animOpUnknown

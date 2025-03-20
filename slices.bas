@@ -4050,11 +4050,11 @@ end sub
 Sub AdvanceSlice(byval s as Slice ptr)
  if s = 0 then debug "AdvanceSlice null ptr": exit sub
  if s->Paused = NO andalso ShouldSkipSlice(s) = NO then
-  SeekSliceTarg s
-  ApplySliceVelocity s
   if s->AnimState then
    s->AnimState->animate
   end if
+  SeekSliceTarg s
+  ApplySliceVelocity s
   'advance the slice's children
   dim ch as Slice ptr = s->FirstChild
   do while ch <> 0

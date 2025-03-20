@@ -52,7 +52,8 @@ enum AnimOpType
 	animOpPlayFrameGroup = 6 '(groupidx,ms)
 	animOpSetProp   = 7 'key, value
 	animOpSwitchAnim = 8
-	animOpLAST      = 8
+	animOpTween     = 9
+	animOpLAST      = 9
 end enum
 
 extern anim_op_names() as string      ' Short names used for display and debug
@@ -171,6 +172,7 @@ declare function frames_to_ms(frames as integer) as integer
 declare function get_anim_doc() as Reload.DocPtr
 
 declare sub set_slice_property(sl as SliceFwd ptr, prop as zstring ptr, datnode as Reload.NodePtr)
+declare sub interpolate_slice_property(sl as SliceFwd ptr, prop as zstring ptr, x as double, value0 as Reload.NodePtr, value1 as Reload.NodePtr)
 
 declare sub animset_unload(pp as AnimationSet ptr ptr)
 declare sub split_animvariant(animvariant as string, byref animname as string, byref variant as string)
