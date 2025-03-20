@@ -4792,6 +4792,8 @@ SUB SpriteSetBrowser.add_spriteset()
   END WITH
 
   DIM newss as Frame ptr = create_spriteset(sprtype, framesize)
+  'Avoid "suspicious rgfx_save_spriteset with no SpriteSet" warning
+  spriteset_for_frame newss
 
   gen(genmax) += 1
   'New default palette == 0
