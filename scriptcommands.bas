@@ -1449,7 +1449,7 @@ SUB script_commands(byval cmdid as integer)
    'It's not important to bound to a currently valid frame (but .wtog should not be < 0),
    'and you can defeat this bound by changing the direction/spriteset. We bound for an
    'abundance of backcompat (previously clamped to 0/1), and so that "hero frame" is accurate.
-   herow(rank).wtog = bound(retvals(1), 0, max_wtog(herow(rank).sl, herodir(rank)))
+   herow(rank).wtog = bound(retvals(1) * wtog_ticks(), 0, max_wtog(herow(rank).sl, herodir(rank)))
   END IF
  CASE 27'--suspend overlay
   setbit gen(), genSuspendBits, suspendoverlay, 1
@@ -3679,7 +3679,7 @@ SUB script_commands(byval cmdid as integer)
   IF npcref >= 0 THEN
    WITH npc(npcref)
     'See comments on "set hero frame"
-    .wtog = bound(retvals(1), 0, max_wtog(.sl, .dir))
+    .wtog = bound(retvals(1) * wtog_ticks(), 0, max_wtog(.sl, .dir))
    END WITH
   END IF
  CASE 39'--camera follows NPC
