@@ -3,6 +3,8 @@ WHAT IS NEW?
 Not Today [Jocoserious+1]
   *** Plotscripting Features
     * "set hero frame" and "set npc frame" support more than 2 frames [Ralph]
+    * "get sprite frameid", "set sprite frameid", "find sprite frameid",
+      "sprite frame group size" [Ralph]
 
   *** Bugfixes
     * Fix rare crash (since fufluns) when entering the Global Text Strings

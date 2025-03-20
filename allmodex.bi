@@ -90,6 +90,7 @@ End Type
 
 'Information for a specific group of frames (frames xx, 1xx, 2xx, etc), typically shared between
 'all spritesets of a certain type
+'(Not used, probably won't be)
 Type FrameGroupInfo
 	frameid as integer
 	name as string

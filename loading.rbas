@@ -3627,6 +3627,7 @@ DIM SHARED box_border_captions(15) as zstring ptr = { _
 }
 
 'Initialises info() with the default names of the different frame groups
+'(Not used)
 SUB default_frame_group_info(sprtype as SpriteType, info() as FrameGroupInfo)
   SELECT CASE sprtype
     CASE sprTypeHero

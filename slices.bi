@@ -565,7 +565,8 @@ Type SpriteSliceData
                    ' is totally blank, except Vapourize which takes 1 tick longer (-1 when backward)
  d_type as integer ' id number of the dissolve animation, 0 to dissolveTypeMax
 
- declare function get_numframes(sl as Slice ptr) as integer
+ declare function get_num_frames(sl as Slice ptr) as integer
+ declare function get_num_frames_in_group(sl as Slice ptr, group as integer = -1) as integer
  declare sub set_frame(sl as Slice ptr, frameidx as integer)
  declare function get_frameid(sl as Slice ptr) as integer
  declare function find_frameid(sl as Slice ptr, frameidx as integer, exact as bool = NO) as integer

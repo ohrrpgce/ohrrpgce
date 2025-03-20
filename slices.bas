@@ -2544,10 +2544,18 @@ Sub SpriteSliceUpdate(sl as Slice ptr)
  end with
 end sub
 
-Function SpriteSliceData.get_numframes(sl as Slice ptr) as integer
+Function SpriteSliceData.get_num_frames(sl as Slice ptr) as integer
  if this.loaded = NO then LoadSpriteSliceImage sl
  'Use original_img because it has the full set of frames, if scaled=YES then .img.sprite is just one frame
  return this.original_img->arraylen
+end function
+
+'If group = -1, returns num frames in current group
+Function SpriteSliceData.get_num_frames_in_group(sl as Slice ptr, group as integer = -1) as integer
+ if this.loaded = NO then LoadSpriteSliceImage sl
+ if group < 0 then group = this.frame \ 100
+ 'Use original_img because it has the full set of frames, if scaled=YES then .img.sprite is just one frame
+ return num_frames_in_group(this.original_img, group)
 end function
 
 'Public. Far more efficient than ChangeSpriteSlice
@@ -2579,6 +2587,7 @@ Function SpriteSliceData.set_frameid(sl as Slice ptr, frameid as integer, exact 
  return frameidx
 end function
 
+'Returns frame index, or -1 if not found
 Function SpriteSliceData.find_frameid(sl as Slice ptr, frameid as integer, exact as bool = NO) as integer
  if this.loaded = NO then LoadSpriteSliceImage sl
  'Use original_img in case scaled=YES, as above

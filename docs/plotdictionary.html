@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-02-05)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-03-20)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -838,6 +838,7 @@ function toggleContent(target) {
 		<a href="#about-findhero" class="ref">find hero (who)</a><br>
 		<a href="#about-findmenuid" class="ref">find menu ID(menu ID)</a><br>
 		<a href="#about-findmenuitemcaption" class="ref">find menu item caption(menu handle, string ID, search after handle, visible only)</a><br>
+		<a href="#about-findspriteframeid" class="ref">find sprite frame id (handle, id)</a><br>
 		<a href="#about-firstchild" class="ref">first child (handle)</a><br>
 		<a href="#about-firstchildoftype" class="ref">first child of type(handle, type)</a><br>
 		<a href="#about-firstcontainerchild" class="ref">first container child (handle)</a><br>
@@ -1020,6 +1021,7 @@ function toggleContent(target) {
 		<a href="#about-getsortorder" class="ref">get sort order (handle)</a><br>
 		<a href="#about-getspritedefaultpal" class="ref">get sprite default pal (handle)</a><br>
 		<a href="#about-getspriteframe" class="ref">get sprite frame (handle)</a><br>
+		<a href="#about-getspriteframeid" class="ref">get sprite frame id (handle)</a><br>
 		<a href="#about-getspritepalette" class="ref">get sprite palette (handle)</a><br>
 		<a href="#about-getspritesetnumber" class="ref">get sprite set number (handle)</a><br>
 		<a href="#about-getspritetrans" class="ref">get sprite trans (handle)</a><br>
@@ -1522,6 +1524,7 @@ function toggleContent(target) {
 		<a href="#about-setslicey" class="ref">set slice y (handle, Y)</a><br>
 		<a href="#about-setsortorder" class="ref">set sort order (handle, order)</a><br>
 		<a href="#about-setspriteframe" class="ref">set sprite frame (handle, num)</a><br>
+		<a href="#about-setspriteframeid" class="ref">set sprite frame id (handle, id, exact)</a><br>
 		<a href="#about-setspritepalette" class="ref">set sprite palette (handle, num)</a><br>
 		<a href="#about-setspritesetnumber" class="ref">set sprite set number (handle, record)</a><br>
 		<a href="#about-setspritetrans" class="ref">set sprite trans (handle, drawtransparent)</a><br>
@@ -1601,6 +1604,7 @@ function toggleContent(target) {
 		<a href="#about-spellslearnt" class="ref">spells learnt (hero, number)</a><br>
 		<a href="#about-spellsmenu" class="ref">spells menu (who)</a><br>
 		<a href="#about-spriteframecount" class="ref">sprite frame count (handle)</a><br>
+		<a href="#about-spriteframegroupsize" class="ref">sprite frame group size (handle, group)</a><br>
 		<a href="#about-spriteisdissolving" class="ref">sprite is dissolving (handle)</a><br>
 		<a href="#about-spriteishorizflipped" class="ref">sprite is horiz flipped (handle)</a><br>
 		<a href="#about-spriteisvertflipped" class="ref">sprite is vert flipped (handle)</a><br>
@@ -3952,7 +3956,15 @@ walk hero(who, hero direction(hero), 0)</pre>
 			<a name="about-setheroframe"></a>
 				<h4>set hero frame (who, frame)</h4>
 <p>
-			Sets the walking frame of the specified hero to 0 or 1. The hero is specified by their rank in the walkabout party, 0-3
+			
+				Sets the walking frame of the specified hero.
+				<br>
+				This is the number of the walkabout frame, starting from 0,
+				in the group of frames for the hero's current facing direction.
+				If the walkabout set has two frames per direction, this should be 0 or 1.
+				<br>
+				The hero is specified by their rank in the walkabout party, 0-3.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-heroframe" class="ref">hero frame</a></li></ul>
@@ -3963,7 +3975,15 @@ walk hero(who, hero direction(hero), 0)</pre>
 			<a name="about-heroframe"></a>
 				<h4>hero frame (who)</h4>
 <p>
-			Returns the walking frame (0 or 1) of the specified hero. The hero is specified by their rank in the walkabout party, 0-3
+			
+				Returns the walking frame of the specified hero; see <a href="#about-setheroframe" class="ref">set hero frame</a>.
+				The hero is specified by their rank in the walkabout party, 0-3.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					The number returned can be higher than the last valid frame,
+					if you call it immediately after changing hero direction or spriteset.
+				</div>
+			
 			
 			
 			
@@ -4974,7 +4994,15 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 			<a name="about-setnpcframe"></a>
 				<h4>set NPC frame (who, frame)</h4>
 <p>
-			Sets the walking frame of the specified NPC to 0 or 1. You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will change.
+			
+				Sets the walking frame of the specified NPC to 0 or 1.
+				<br>
+				This is the number of the walkabout frame, starting from 0,
+				in the group of frames for the NPC's current facing direction.
+				If the walkabout set has two frames per direction, this should be 0 or 1.
+				<br>
+				You can use either an <a href="#about-npcref" class="ref">NPC reference</a> or <a href="#about-npcid" class="ref">NPC ID</a> to specify which NPC will change.
+
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-npcframe" class="ref">NPC frame</a></li></ul>
@@ -4985,7 +5013,14 @@ walk NPC(npc, NPC direction(npc), 0)</pre>
 			<a name="about-npcframe"></a>
 				<h4>NPC frame (who)</h4>
 <p>
-			Returns the walking frame (0 or 1) of the specified NPC.
+			
+				Returns the walking frame of the specified NPC. See <a href="#about-setnpcframe" class="ref">set NPC frame</a>.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					The number returned can be higher than the last valid frame,
+					if you call it immediately after changing NPC direction or spriteset.
+				</div>
+			
 			
 			
 			
@@ -13101,8 +13136,12 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-getspritepalette" class="ref">get sprite palette (handle)</a><br>
 		<a href="#about-getspritedefaultpal" class="ref">get sprite default pal (handle)</a><br>
 		<a href="#about-setspriteframe" class="ref">set sprite frame (handle, num)</a><br>
+		<a href="#about-setspriteframeid" class="ref">set sprite frame id (handle, id, exact)</a><br>
 		<a href="#about-getspriteframe" class="ref">get sprite frame (handle)</a><br>
+		<a href="#about-getspriteframeid" class="ref">get sprite frame id (handle)</a><br>
+		<a href="#about-findspriteframeid" class="ref">find sprite frame id (handle, id)</a><br>
 		<a href="#about-spriteframecount" class="ref">sprite frame count (handle)</a><br>
+		<a href="#about-spriteframegroupsize" class="ref">sprite frame group size (handle, group)</a><br>
 		<a href="#about-horizflipsprite" class="ref">horiz flip sprite (handle, flip)</a><br>
 		<a href="#about-vertflipsprite" class="ref">vert flip sprite (handle, flip)</a><br>
 		<a href="#about-spriteishorizflipped" class="ref">sprite is horiz flipped (handle)</a><br>
@@ -17312,10 +17351,48 @@ set horiz align(sl, edge:right)
 			<a name="about-setspriteframe"></a>
 				<h4>set sprite frame (handle, num)</h4>
 <p>
-			Changes the frame of sprite slice <span class="param">handle</span> to be <span class="param">num</span>.
+			
+				Changes the frame of sprite slice <span class="param">handle</span> to <span class="param">num</span>.
+				If the frame number is out of range, does nothing (and doesn't report an error).
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-getspriteframe" class="ref">get sprite frame</a></li></ul>
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setspriteframeid" class="ref">set sprite frame id</a>, </li>
+<li>
+<a href="#about-getspriteframe" class="ref">get sprite frame</a>, </li>
+<li><a href="#about-spriteframecount" class="ref">sprite frame count</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setspriteframeid"></a>
+				<h4>set sprite frame id (handle, id, exact)</h4>
+<p>
+			
+				Attempts to change the frame of sprite slice <span class="param">handle</span> to the frame with ID <span class="param">id</span>.
+				Returns the frame number (as returned by <a href="#about-getspriteframe" class="ref">get sprite frame</a>) of the frame if
+				it was found, or -1 if not.
+				<br>
+				<span class="param">exact</span> is an optional arg defaulting to <span class="code">false</span>.
+				If it's <span class="code">false</span> and you try to switch to a missing frame ID, then the last
+				frame in the same frame group is used instead, if it exists.
+				For example, if you have a default 8 frame walkabout set
+				with frame IDs 0, 1, 100, 101, 200, 201, 300, 301 and try to switch to ID 103,
+				then ID 101 is used instead as the nearest match, and the return value is 3.
+				But if you try to switch to frame ID 400, nothing happens (returning -1).
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setspriteframe" class="ref">set sprite frame</a>, </li>
+<li>
+<a href="#about-getspriteframeid" class="ref">get sprite frame id</a>, </li>
+<li><a href="#about-spriteframegroupsize" class="ref">sprite frame group size</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -17328,6 +17405,10 @@ set horiz align(sl, edge:right)
 			
 			<div class="seealso">See also: <ul>
 <li>
+<a href="#about-setspriteframe" class="ref">set sprite frame</a>, </li>
+<li>
+<a href="#about-getspriteframeid" class="ref">get sprite frame id</a>, </li>
+<li>
 <a href="#about-getspritetype" class="ref">get sprite type</a>, </li>
 <li>
 <a href="#about-getspritepalette" class="ref">get sprite palette</a>, </li>
@@ -17337,12 +17418,76 @@ set horiz align(sl, edge:right)
 		</p>
 </div>
 		<div class="command">
+			<a name="about-getspriteframeid"></a>
+				<h4>get sprite frame id (handle)</h4>
+<p>
+			Returns the current frame ID of sprite slice <span class="param">handle</span>.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setspriteframeid" class="ref">set sprite frame id</a>, </li>
+<li><a href="#about-getspriteframe" class="ref">get sprite frame</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-findspriteframeid"></a>
+				<h4>find sprite frame id (handle, id)</h4>
+<p>
+			
+				Searches the frames of the spriteset of a given sprite slice <span class="param">handle</span> for a
+				one with ID <span class="param">id</span> and returns its frame number (which can be passed to
+				<a href="#about-setspriteframe" class="ref">set sprite frame</a>), or -1 if no such frame exists.
+				This searches for an exact ID match, like <a href="#about-setspriteframeid" class="ref">set sprite frame id</a> with
+				<span class="code">exact = true</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 			<a name="about-spriteframecount"></a>
 				<h4>sprite frame count (handle)</h4>
 <p>
 			
 				Returns the total number of available frames for a given sprite slice <span class="param">handle</span>.
-				For example a backdrop has just one frame, an attack sprite has three.
+				For example a backdrop has just one frame, a walkabout sprite has eight by default.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-spriteframegroupsize"></a>
+				<h4>sprite frame group size (handle, group)</h4>
+<p>
+			
+				Returns the number of frames in one of the frame groups of a given sprite slice <span class="param">handle</span>.
+				The frame group of each frame is its ID divided by 100.
+				<span class="param">group</span> is an optional argument, a group number from 0 up.
+				If it's missing (or -1), then the current frame group is used (i.e. <span class="code">get
+				sprite frame id (handle) / 100</span>).
+				<br>
+				For example frame IDs 200 and 201 are in group 2,
+				and a walkabout sprite by default has four frame groups for the
+				directions <a href="#about-up" class="ref">up</a>, <a href="#about-right" class="ref">right</a>, <a href="#about-down" class="ref">down</a>, <a href="#about-left" class="ref">left</a>
+				(which are constants with values <span class="code">0, 1, 2, 3</span>),
+				so the number of Left walking frames an NPC has is:
+				<pre>sprite frame group size (get npc sprite (npc), left)</pre>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Frames in the group will always have consecutive IDs, starting at
+					<span class="code">group * 100</span> up to <span class="code">group * 100 + groupsize -- 1</span>.
+				</div>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					A frame group can be empty, e.g. a walkabout can have just a single frame,
+					ID 200 (facing Down).
+				</div>
 			
 			
 			
@@ -23269,7 +23414,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 967 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 971 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

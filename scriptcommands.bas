@@ -2433,7 +2433,7 @@ SUB script_commands(byval cmdid as integer)
  CASE 347 '--sprite frame count
   sl = get_arg_spritesl(0)
   IF sl THEN
-   scriptret = sl->SpriteData->get_numframes(sl)
+   scriptret = sl->SpriteData->get_num_frames(sl)
   END IF
  CASE 348 '--slice x
   sl = get_arg_slice(0)
@@ -5358,6 +5358,33 @@ SUB script_commands(byval cmdid as integer)
   scriptret = IIF(sys = "SWITCH", 1, 0)
 
 
+ CASE 776 '--get sprite frame id
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   scriptret = sl->SpriteData->get_frameid(sl)
+  ELSE
+   scriptret = -1
+  END IF
+ CASE 777 '--set sprite frame id (handle, frameid, exact=false)
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   scriptret = sl->SpriteData->set_frameid(sl, retvals(1), retvals(2))
+  ELSE
+   scriptret = -1
+  END IF
+ CASE 778 '--find sprite frame id (handle, frameid)
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   scriptret = sl->SpriteData->find_frameid(sl, retvals(1), YES)
+  ELSE
+   scriptret = -1
+  END IF
+ CASE 779 '--sprite frame group size (handle, group = -1)
+  sl = get_arg_spritesl(0)
+  IF sl THEN
+   scriptret = sl->SpriteData->get_num_frames_in_group(sl, retvals(1))
+  END IF
+
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
   scripterr "Unsupported script command " & cmdid & " " & commandname(cmdid) & ". " _
@@ -5572,6 +5599,7 @@ END FUNCTION
 'Note this is stricter than getnpcref: invalid npc refs are not alright!
 'References to Hidden/Disabled NPCs are alright.
 FUNCTION get_valid_npc (byval seekid as NPCScriptref, byval errlvl as scriptErrEnum = serrBadOp, byval pool as integer=0) as NPCIndex
+ 'TODO: recognise when seekid has the wrong type, e.g. slice handle
  IF seekid < 0 THEN
   DIM npcidx as NPCIndex = (seekid + 1) * -1
   IF npcidx > UBOUND(npc) THEN
