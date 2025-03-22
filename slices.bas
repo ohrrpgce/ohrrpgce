@@ -461,6 +461,7 @@ FUNCTION SliceLookupCodename (byval code as integer, use_default as bool = YES) 
   CASE SL_EDITOR_SSED_PALETTE_ROOT: RETURN "editor ssed palette root"
   CASE SL_EDITOR_SSED_TOOLTIP_TEXT: RETURN "editor ssed tooltip text"
   CASE SL_EDITOR_SSED_CAPTION_TEXT: RETURN "editor ssed caption text"
+  CASE SL_EDITOR_SSED_FRAME_SEPARATOR_TEMPL: RETURN "editor ssed frame separator templ"
   CASE SL_EDITOR_ENEMY_SPRITE: RETURN "editor enemy sprite"
   CASE SL_ROOT: RETURN "root"
   CASE SL_TEXTBOX_TEXT: RETURN "textbox text"
@@ -4722,13 +4723,20 @@ end function
 
 'A variant on CloneSliceTree which is intended to be used on Template slices already
 'in a slice tree, for instantiating them, but doesn't need to be.
+'The cloned slice is placed before the template and any adjacent template siblings it has,
+'so you can create a set of clones which end up in the order you cloned them.
 Function CloneTemplate(byval templatesl as Slice ptr) as Slice ptr
  dim sl as Slice ptr
  sl = CloneSliceTree(templatesl)
+ BUG_IF(sl = NULL, "unclonable", NULL)
  sl->Template = NO  'Descendents which are Templates stay that way
  if templatesl->Parent then
-  'Keep the position amongst its siblings
-  InsertSliceBefore templatesl, sl
+  'Move before the group of templates
+  var insertbefore = templatesl
+  while insertbefore->PrevSibling <> NULL andalso insertbefore->PrevSibling->Template
+   insertbefore = insertbefore->PrevSibling
+  wend
+  InsertSliceBefore insertbefore, sl
  end if
  return sl
 end function

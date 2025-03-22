@@ -4626,7 +4626,7 @@ SUB SpriteSetBrowser.rebuild_menu()
   'for off-screen slices to speed this up?)
 
   FOR setnum as integer = 0 TO gen(genmax)
-    DIM as Slice ptr ss_sl, fr_templ, fr_sl
+    DIM as Slice ptr ss_sl, fr_templ, fr_sl, separator_templ, sep_sl
 
     ' Load as a Frame, to get info
     DIM sprset as Frame ptr
@@ -4662,27 +4662,42 @@ SUB SpriteSetBrowser.rebuild_menu()
     ChangeTextSlice edsl(ssed_set_info, ss_sl)->LastChild, !"Set\n" & setnum
 
     'Would just use a layout slice set either to Fill or Cover Children, they aren't implemented for Layout slices yet
-    'So this is a grid
     DIM fr_holder as Slice ptr = edsl(ssed_frame_holder, ss_sl)
     IF fr_holder = 0 THEN EXIT SUB
-    fr_holder->Width = (sprset->w + 1) * sprset->arraylen + 1
-    fr_holder->Height = sprset->h + 2
-    ChangeGridSlice fr_holder, 1, sprset->arraylen
 
-    ' Add the frames
+    DIM nextx as integer = 0  'X pos of the next child of fr_holder
+    CONST padding = 1
+
+    'Add the frames, and add a separator between frame groups, including empty groups
     fr_templ = edsl(ssed_frame_templ, ss_sl)
+    separator_templ = edsl(ssed_frame_separator_templ, ss_sl)
+    DIM lastgroup as integer = 0
     FOR framenum as integer = 0 TO sprset->arraylen - 1
       DIM frameid as integer = sprset[framenum].frameid
+      DIM group as integer = frameid \ 100
+      WHILE group > lastgroup
+       IF separator_templ THEN
+        sep_sl = CloneTemplate(separator_templ)
+        sep_sl->X = nextx
+        nextx += sep_sl->Width + padding
+       END IF
+       lastgroup += 1
+      WEND
+
       fr_sl = plank_menu_append( , fr_templ)
       fr_sl->Extra(0) = setnum
       fr_sl->Extra(1) = framenum
       fr_sl->Extra(2) = frameid
       DIM spr_sl as Slice ptr = edsl(ssed_frame_sprite, fr_sl)
       ChangeSpriteSlice spr_sl, sprtype, setnum, , framenum
+      fr_sl->X = nextx
+      nextx += sprset->w /'fr_sl->Width'/ + padding
 
       'Remember previous cursor position, or nearest match
       'IF setnum = editing_setnum AND frameid <= editing_frame->frameid THEN ps.cur = fr_sl
     NEXT
+    fr_holder->Width = nextx  'Includes '+padding' at end
+    fr_holder->Height = sprset->h + 2
 
     frame_unload @sprset
   NEXT setnum
@@ -5652,19 +5667,19 @@ SUB SpriteSetEditor.display()
 
  edgeprint "Frame groups:", pMenuX, pMenuY, uilook(eduiHeading), vpage
 
- DIM as integer x = pMenuX, y = pMenuY + 12, frameh = ss->frames[0].h, spacercol = findrgb(100,100,100), spacing
+ DIM as integer x = pMenuX, y = pMenuY + 24, frameh = ss->frames[0].h, spacercol = findrgb(100,100,100), spacing
  FOR idx as integer = 0 to ss->num_frames - 1
   spacing = 1
   IF ss->frame_starts_group(idx) THEN
-   edgeprint STR(ss->frames[idx].frameid), x + 4, y - 12, uilook(uiMenuItem), vpage
-   spacing += 3
+   edgeprint STR(ss->frames[idx].frameid), x + 3, y - 12, uilook(uiMenuItem), vpage
+   spacing += 2
   END IF
   rectangle x, y, spacing, frameh, spacercol, vpage
   x += spacing
   frame_draw @ss->frames[idx], pal, x, y, , vpage
   x += ss->frames[idx].w
  NEXT
- rectangle x, y, 1, frameh, spacercol, vpage
+ rectangle x, y, 3, frameh, spacercol, vpage
 
  DrawSlice previews_root, vpage
 

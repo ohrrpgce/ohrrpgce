@@ -597,7 +597,7 @@ FUNCTION plank_menu_append (list_parent as Slice ptr = NULL, prototype as Slice 
 
  DIM cl as Slice ptr
  cl = CloneTemplate(prototype)
- BUG_IF(cl = NULL, "unclonable", NULL)
+ IF cl = NULL THEN RETURN NULL
  IF list_parent ANDALSO cl->Parent <> list_parent THEN  'Don't move it if prototype was a child
   SetSliceParent cl, list_parent
  END IF

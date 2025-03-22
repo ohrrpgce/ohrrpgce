@@ -2770,6 +2770,7 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
      IF dat->paletted THEN
       a_append menu(), " Palette: " & defaultint(dat->pal)
       sliceed_rule rules(), "sprite_pal", erIntgrabber, @(dat->pal), -1, gen(genMaxPal), slgrUPDATESPRITE
+      sliceed_rule_set_default rules(), -1
      END IF
      DIM nframes as integer = dat->get_num_frames(sl)
      IF nframes > 1 THEN
@@ -3490,6 +3491,7 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   append_simplemenu_item menu, "editor_ssed_palette_root", , , -410
   append_simplemenu_item menu, "editor_ssed_tooltip_text", , , -411
   append_simplemenu_item menu, "editor_ssed_caption_text", , , -412
+  append_simplemenu_item menu, "editor_ssed_frame_separator_templ", , , -413
   append_simplemenu_item menu, "editor_enemy_sprite", , , -500
   append_simplemenu_item menu, "root", , , -100000
   append_simplemenu_item menu, "textbox_text", , , -100001
