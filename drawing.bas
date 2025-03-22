@@ -62,8 +62,8 @@ DECLARE SUB tile_animation(byval tilesetnum as integer)
 DECLARE SUB tile_edit_mode_picker(byval tilesetnum as integer, mapfile as string, byref bgcolor as bgType)
 
 ' Sprite editor
-DECLARE SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
-DECLARE SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
+DECLARE SUB sprite_editor(ss as SpriteEditState)
+DECLARE SUB sprite_editor_initialise(byref ss as SpriteEditState)
 DECLARE SUB sprite_editor_update_for_sprite_size(byref ss as SpriteEditState, sprite as Frame ptr)
 DECLARE SUB sprite_editor_cleanup(byref ss as SpriteEditState)
 DECLARE SUB init_sprite_zones(area() as MouseArea, ss as SpriteEditState)
@@ -152,7 +152,7 @@ END FUNCTION
 'Pick ss.pal_num with the palette browser, saving/loading before/after
 SUB spriteedit_pal16_browser (ss as SpriteEditState, sprite as Frame ptr)
  '--write changes so far
- ss.save_callback(ss.sprite, ss.save_callback_context, ss.pal_num)
+ ss.save_callback(ss.spriteset, ss.save_callback_context, ss.pal_num)
  '--save current palette
  palette16_save ss.palette, ss.pal_num
  ss.pal_num = pal16browse(ss.pal_num, sprite)  'Can return > genMaxPal
@@ -2569,11 +2569,18 @@ SUB writeundospr (ss as SpriteEditState)
  END WITH
 END SUB
 
+'Unload ss.sprite and replace it. (Doesn't increment refcount)
+SUB spriteedit_replace_frame(ss as SpriteEditState, new_sprite as Frame ptr)
+ frame_assign @ss.spriteset[ss.framenum], new_sprite
+ 'ss.sprite doesn't hold a reference
+ ss.sprite = new_sprite
+END SUB
+
 ' Change the current state of the sprite editor sprite to a new
 ' Frame, saving an undo step.
 SUB spriteedit_edit(ss as SpriteEditState, new_sprite as Frame ptr)
  writeundospr ss
- frame_assign @ss.sprite, new_sprite
+ spriteedit_replace_frame ss, new_sprite
 END SUB
 
 ' Perform undo
@@ -2587,8 +2594,7 @@ SUB readundospr (ss as SpriteEditState)
     frame_unload @spr
    END IF
    .depth -= 1
-   frame_unload @ss.sprite
-   ss.sprite = frame_duplicate(.history[.depth])
+   spriteedit_replace_frame ss, frame_duplicate(.history[.depth])
    ss.didscroll = NO  'save a new undo block upon scrolling
   END IF
  END WITH
@@ -2599,8 +2605,7 @@ SUB readredospr (ss as SpriteEditState)
  WITH ss.undo(ss.framenum)
   IF .depth < v_len(.history) - 1 THEN
    .depth += 1
-   frame_unload @ss.sprite
-   ss.sprite = frame_duplicate(.history[.depth])
+   spriteedit_replace_frame ss, frame_duplicate(.history[.depth])
    ss.didscroll = NO  'save a new undo block upon scrolling
   END IF
  END WITH
@@ -3534,10 +3539,10 @@ END SUB
 ' Once the public members of ss have already been filled with arguments
 ' to sprite_editor, this function initialises the private members.
 ' Should be matched with call to sprite_editor_cleanup.
-SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
+SUB sprite_editor_initialise(byref ss as SpriteEditState)
  WITH ss
   .palette = palette16_load(.pal_num)
-  .sprite = frame_duplicate(sprite)
+  .sprite = .spriteset[.framenum]
   .delay = 10
   .x = ss_save.cursor.x
   .y = ss_save.cursor.y
@@ -3555,8 +3560,7 @@ SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
   .palindex = ss_save.palindex
   .hidemouse = ss_save.hidemouse
 
-  .framenum = 0  'Temporary
-  REDIM .undo(0)  '.spriteset->arraylen - 1)
+  REDIM .undo(v_len(.spriteset) - 1)
   FOR i as integer = 0 TO UBOUND(.undo)
    v_new .undo(i).history
    .undo(i).depth = 0
@@ -3564,7 +3568,7 @@ SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
  END WITH
 
  'Initialises everything in ss that depends on sprite size
- sprite_editor_update_for_sprite_size ss, sprite
+ sprite_editor_update_for_sprite_size ss, ss.sprite
 
  init_sprite_zones ss.area(), ss
 
@@ -3641,11 +3645,12 @@ SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
 END SUB
 
 ' Part of ss should be filled in with the necessary arguments.
-' sprite contains the sprite to be edited, and the result is passed back by calling ss.save_callback()
-' before exiting, or whenever want to immediately save. The original 'sprite' is not modified in-place.
+' The modified ss.spriteset Frame ptr vector is passed back by calling ss.save_callback()
+' before exiting, or whenever want to immediately save. The original .spriteset Frames might be modified in-place,
+' or deleted and replaced.
 ' Also, this expects the caller to save the default palette (ss.pal_num). However, it saves the palette (ss.palette) itself.
-SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
- sprite_editor_initialise ss, sprite
+SUB sprite_editor(ss as SpriteEditState)
+ sprite_editor_initialise ss
 
  hidemousecursor
  setkeys
@@ -3686,15 +3691,17 @@ SUB sprite_editor(ss as SpriteEditState, sprite as Frame ptr)
 
  'Save the sprite before leaving
  spriteedit_clip ss
- ss.save_callback(ss.sprite, ss.save_callback_context, ss.pal_num)
+ ss.save_callback(ss.spriteset, ss.save_callback_context, ss.pal_num)
  palette16_save ss.palette, ss.pal_num
 
  sprite_editor_cleanup ss
 END SUB
 
-'Undoes sprite_editor_initialise()
+'Destructs SpriteEditState, cleaning up after both sprite_editor_initialise() and SpriteSetBrowser.setup_editstate()
 SUB sprite_editor_cleanup(byref ss as SpriteEditState)
- frame_unload @ss.sprite
+ v_free ss.spriteset
+ ss.sprite = NULL  'Element of ss.spriteet. Not a reference
+
  palette16_unload @ss.palette
  FOR i as integer = 0 TO UBOUND(ss.undo)
   v_free ss.undo(i).history
@@ -4086,7 +4093,7 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
  END IF
  IF keyval(scI) > 1 OR (ss.zonenum = 13 AND (ss.mouse.release AND mouseLeft)) THEN
   DIM imported as Frame ptr = spriteedit_import16(ss)
-  IF imported THEN frame_assign @ss.sprite, imported
+  IF imported THEN spriteedit_replace_frame ss, imported
  END IF
  IF keyval(scE) > 1 OR (ss.zonenum = 26 AND (ss.mouse.release AND mouseLeft)) THEN
   palette16_save ss.palette, ss.pal_num  'Save palette in case it has changed
@@ -4158,7 +4165,7 @@ SUB spriteedit_scroll (ss as SpriteEditState, byval shiftx as integer, byval shi
  IF ss.didscroll = NO THEN writeundospr ss
  ss.didscroll = YES
 
- frame_assign @ss.sprite, frame_resized(ss.sprite, ss.wide, ss.high, shiftx, shifty)
+ spriteedit_replace_frame ss, frame_resized(ss.sprite, ss.wide, ss.high, shiftx, shifty)
 END SUB
 
 
@@ -4370,9 +4377,7 @@ TYPE SpriteSetBrowser
   'The following are only set inside and immediately after calling edit_frame() or import_any();
   'they're used for SpriteSetBrowser_save_callback*
   editing_spriteset as Frame ptr  'The whole spriteset (as a single spritesheet in fullset mode)
-  editing_frame as Frame ptr      'The specific frame being edited (whole spritesheet in fullset mode)
   editing_setnum as integer
-  editing_framenum as integer
 
   'The following are for restoring the cursor after rebuild_menu, and saving it when exiting.
   STATIC remem_setnum(sprTypeLastPickable) as integer
@@ -4389,7 +4394,7 @@ TYPE SpriteSetBrowser
   DECLARE SUB delete_menu_items()
   DECLARE SUB update_info()
   DECLARE SUB set_focus(setnum as integer, framenum as integer)
-  DECLARE SUB replace_spriteset(setnum as integer, ss as Frame ptr = NULL)
+  DECLARE SUB replace_spriteset(setnum as integer, byref ss as Frame ptr = NULL)
   DECLARE SUB run()
   DECLARE SUB setup_editstate(edstate as SpriteEditState, setnum as integer, framenum as integer, fullset as bool = NO)
   DECLARE SUB cleanup_editstate(edstate as SpriteEditState, fullset as bool = NO)
@@ -4820,11 +4825,15 @@ SUB SpriteSetBrowser.add_spriteset()
 END SUB
 
 'Callback for sprite_editor
-SUB SpriteSetBrowser_save_callback(spr as Frame ptr, context as any ptr, defpal as integer)
+SUB SpriteSetBrowser_save_callback(sprset as Frame ptr vector, context as any ptr, defpal as integer)
  DIM byref this as SpriteSetBrowser = *cast(SpriteSetBrowser ptr, context)
  'DIM tt as double = TIMER
  'Copy back into editing_spriteset, overwriting existing frame (trans=NO)
- frame_draw spr, NULL, 0, 0, NO, this.editing_frame
+ '(Could call frame_vector_to_array + copy_spriteset_frameids/data instead, see other callback)
+ BUG_IF(this.editing_spriteset->arraylen <> v_len(sprset), "length mismatch")
+ FOR i as integer = 0 TO v_len(sprset) - 1
+  frame_draw sprset[i], NULL, 0, 0, NO, @this.editing_spriteset[i]
+ NEXT
 
  'Save default palettes immediately for live previewing
  this.defpalettes(this.editing_setnum) = defpal
@@ -4836,12 +4845,18 @@ SUB SpriteSetBrowser_save_callback(spr as Frame ptr, context as any ptr, defpal 
 END SUB
 
 'Callback for sprite_editor, while editing a spriteset in fullset mode
-SUB SpriteSetBrowser_save_callback_fullset(spr as Frame ptr, context as any ptr, defpal as integer)
+SUB SpriteSetBrowser_save_callback_fullset(sprset as Frame ptr vector, context as any ptr, defpal as integer)
  DIM byref this as SpriteSetBrowser = *cast(SpriteSetBrowser ptr, context)
+
+ BUG_IF(v_len(sprset) <> 1, "fullset spriteset should have a single frame")
+ DIM spr as Frame ptr = sprset[0]
 
  DIM split_ss as Frame ptr = spriteset_from_basic_spritesheet(spr, this.sprtype, this.editing_spriteset->arraylen)
  copy_spriteset_frameids split_ss, this.editing_spriteset
  copy_spriteset_data split_ss, this.editing_spriteset
+ 'editing_spriteset doesn't need to be replaced, but may as well keep the new rather than old spriteset
+ frame_unload @this.editing_spriteset
+ this.editing_spriteset = split_ss
 
  'Save default palettes immediately for live previewing
  this.defpalettes(this.editing_setnum) = defpal
@@ -4849,10 +4864,7 @@ SUB SpriteSetBrowser_save_callback_fullset(spr as Frame ptr, context as any ptr,
 
  this.editing_spriteset->defpal = defpal
  spr->defpal = defpal
- split_ss->defpal = defpal
- 'TODO: frameids, animations, or other data that were part of the original SpriteSet would be lost!
- rgfx_save_spriteset split_ss, this.sprtype, this.editing_setnum
- frame_unload @split_ss
+ rgfx_save_spriteset this.editing_spriteset, this.sprtype, this.editing_setnum
 END SUB
 
 'Setup public members of SpriteEditState for a call to sprite_editor.
@@ -4862,14 +4874,18 @@ SUB SpriteSetBrowser.setup_editstate(edstate as SpriteEditState, setnum as integ
 
   'Members used by SpriteSetBrowser_save_callback[_fullset]
   editing_setnum = setnum
-  editing_framenum = framenum
-  IF fullset THEN
-   editing_frame = spriteset_to_basic_spritesheet(editing_spriteset)
-  ELSE
-   editing_frame = @editing_spriteset[editing_framenum]
-  END IF
 
   WITH edstate
+    '.spriteset becomes a copy of editing_spriteset in a different form, without shared pixel data
+    IF fullset THEN
+      '...a spriteset with a single frame
+      v_new .spriteset, 1
+      .spriteset[0] = spriteset_to_basic_spritesheet(editing_spriteset)
+      .framenum = 0
+    ELSE
+      .spriteset = frame_array_to_vector(editing_spriteset)
+      .framenum = framenum
+    END IF
     .fileset = sprtype
     .fullset = fullset
     ' sprite_editor uses the callback to save the edited sprite.
@@ -4890,12 +4906,8 @@ SUB SpriteSetBrowser.setup_editstate(edstate as SpriteEditState, setnum as integ
 END SUB
 
 SUB SpriteSetBrowser.cleanup_editstate(edstate as SpriteEditState, fullset as bool = NO)
+  'sprite_editor cleans up edstate.spriteset
   frame_unload @editing_spriteset
-  IF fullset THEN
-    frame_unload @editing_frame  'This is a basic spritesheet (all frames merged)
-  ELSE
-    editing_frame = NULL
-  END IF
 END SUB
 
 SUB SpriteSetBrowser.edit_any(setnum as integer, framenum as integer)
@@ -4906,9 +4918,9 @@ SUB SpriteSetBrowser.edit_any(setnum as integer, framenum as integer)
   DIM edstate as SpriteEditState
   setup_editstate edstate, setnum, framenum, fullset
 
-  sprite_editor edstate, editing_frame
+  sprite_editor edstate
   'sprite_editor calls the save callback on quitting, which writes to rgfx, saves the default palette,
-  'and modifies editing_frame/editing_spriteset unless fullset=YES.
+  'and modifies (unless fullset=YES) editing_spriteset
 
   cleanup_editstate edstate, fullset
 
@@ -4989,7 +5001,7 @@ SUB SpriteSetBrowser.import_any()
   setup_editstate edstate, setnum, framenum, fullset
   'spriteedit_import16 is written to be called from within sprite_editor, so we
   'need to initialise private members of edstate
-  sprite_editor_initialise edstate, editing_frame
+  sprite_editor_initialise edstate
 
   'TODO: This function needs a major update/rewrite to handle variable-framecount spritesets
   DIM imported as Frame ptr = spriteedit_import16(edstate)
@@ -4997,13 +5009,14 @@ SUB SpriteSetBrowser.import_any()
 
   IF imported THEN
    'If fullset, SpriteSetBrowser_save_callback_fullset will cut the spritesheet up again
-   edstate.save_callback(imported, edstate.save_callback_context, edstate.pal_num)
+   spriteedit_replace_frame edstate, imported
+   edstate.save_callback(edstate.spriteset, edstate.save_callback_context, edstate.pal_num)
    palette16_save edstate.palette, edstate.pal_num
   END IF
 
   sprite_editor_cleanup edstate  'Matches sprite_editor_initialise
 
-  cleanup_editstate edstate, fullset
+  cleanup_editstate edstate, fullset  'Delete editing_spriteset
 
   'Even if importing a single frame, the default palette may have changed
   replace_spriteset setnum
@@ -5101,7 +5114,7 @@ END SUB
 'Otherwise, just does cleanup needed when a spriteset needs to be reloaded.
 'This is needed when a sprite set can't be modified in-place, eg because number of frames changed.
 'Note: rebuild_menu() must be called afterwards!
-SUB SpriteSetBrowser.replace_spriteset(setnum as integer, ss as Frame ptr = NULL)
+SUB SpriteSetBrowser.replace_spriteset(setnum as integer, byref ss as Frame ptr = NULL)
   IF ss THEN
     IF ss->sprset = NULL THEN
       'The animations are missing, so copy them over. Happens whenever created a new
