@@ -2549,22 +2549,24 @@ END SUB
 
 ' Save the current edit state as an undo step
 SUB writeundospr (ss as SpriteEditState)
- ' Delete any redo steps. If ss.undodepth points before the end
- ' of history then we just undid a change before the current edit,
- ' and the current state is probably equal to .undo_history[.undodepth],
- ' so we could skip saving, but to be on the safe side save overwrite
- ' the current step.
- v_delete_slice ss.undo_history, ss.undodepth, v_len(ss.undo_history)
- ' Trim history if too long
- IF ss.undodepth >= ss.undomax THEN
-  v_delete_slice ss.undo_history, 0, 1
-  ss.undodepth -= 1
- END IF
- ' Append
- DIM spr as Frame ptr = frame_duplicate(ss.sprite)  'refcount == 1
- v_append ss.undo_history, spr  'Increments refcount
- ss.undodepth = v_len(ss.undo_history)
- frame_unload @spr
+ WITH ss.undo(ss.framenum)
+  ' Delete any redo steps. If undo .depth points before the end
+  ' of history then we just undid a change before the current edit,
+  ' and the current state is probably equal to .history[.depth],
+  ' so we could skip saving, but to be on the safe side save overwrite
+  ' the current step.
+  v_delete_slice .history, .depth, v_len(.history)
+  ' Trim history if too long
+  IF .depth >= ss.undomax THEN
+   v_delete_slice .history, 0, 1
+   .depth -= 1
+  END IF
+  ' Append
+  DIM spr as Frame ptr = frame_duplicate(ss.sprite)  'refcount == 1
+  v_append .history, spr  'Increments refcount
+  .depth = v_len(.history)
+  frame_unload @spr
+ END WITH
 END SUB
 
 ' Change the current state of the sprite editor sprite to a new
@@ -2576,28 +2578,32 @@ END SUB
 
 ' Perform undo
 SUB readundospr (ss as SpriteEditState)
- IF ss.undodepth > 0 THEN
-  ' If there are no existing redo steps, then save current state for redo
-  IF ss.undodepth = v_len(ss.undo_history) THEN
-   DIM spr as Frame ptr = frame_duplicate(ss.sprite)  'refcount == 1
-   v_append ss.undo_history, spr  'Increments refcount
-   frame_unload @spr
+ WITH ss.undo(ss.framenum)
+  IF .depth > 0 THEN
+   ' If there are no existing redo steps, then save current state for redo
+   IF .depth = v_len(.history) THEN
+    DIM spr as Frame ptr = frame_duplicate(ss.sprite)  'refcount == 1
+    v_append .history, spr  'Increments refcount
+    frame_unload @spr
+   END IF
+   .depth -= 1
+   frame_unload @ss.sprite
+   ss.sprite = frame_duplicate(.history[.depth])
+   ss.didscroll = NO  'save a new undo block upon scrolling
   END IF
-  ss.undodepth -= 1
-  frame_unload @ss.sprite
-  ss.sprite = frame_duplicate(ss.undo_history[ss.undodepth])
-  ss.didscroll = NO  'save a new undo block upon scrolling
- END IF
+ END WITH
 END SUB
 
 ' Perform redo
 SUB readredospr (ss as SpriteEditState)
- IF ss.undodepth < v_len(ss.undo_history) - 1 THEN
-  ss.undodepth += 1
-  frame_unload @ss.sprite
-  ss.sprite = frame_duplicate(ss.undo_history[ss.undodepth])
-  ss.didscroll = NO  'save a new undo block upon scrolling
- END IF
+ WITH ss.undo(ss.framenum)
+  IF .depth < v_len(.history) - 1 THEN
+   .depth += 1
+   frame_unload @ss.sprite
+   ss.sprite = frame_duplicate(.history[.depth])
+   ss.didscroll = NO  'save a new undo block upon scrolling
+  END IF
+ END WITH
 END SUB
 
 ' Draw a 16-colour palette onscreen, with surrounding box
@@ -2723,15 +2729,16 @@ SUB spriteedit_display(ss as SpriteEditState)
  spriteedit_draw_icon ss, "I", 12
  spriteedit_draw_icon ss, "E", 25
 
- IF ss.undodepth = 0 THEN
+ DIM byref undo as SpriteEditUndoState = ss.undo(ss.framenum)
+ IF undo.depth = 0 THEN
   textcolor uilook(uiBackground), uilook(uiDisabledItem)
  ELSE
   textcolor_icon ss.zonenum = 20, NO
  END IF
  printstr "UNDO", 130, 182, dpage
- ' Both undodepth = len and undodepth = len-1 are valid and indicate
+ ' Both undo.depth = len and undo.depth = len-1 are valid and indicate
  ' no more redo history (the later means no unsaved changes)
- IF ss.undodepth >= v_len(ss.undo_history) - 1 THEN
+ IF undo.depth >= v_len(undo.history) - 1 THEN
   textcolor uilook(uiBackground), uilook(uiDisabledItem)
  ELSE
   textcolor_icon ss.zonenum = 21, NO
@@ -3511,7 +3518,7 @@ SUB sprite_editor_update_for_sprite_size(byref ss as SpriteEditState, sprite as 
   .fastmovestep = large(4, .wide \ 10)
   .previewpos.x = 319 - .wide
   .previewpos.y = 119
-  .undomax = maxSpriteHistoryMem \ (sizeof(Frame) + .wide * .high)  'Could shorten .undo_history too
+  .undomax = maxSpriteHistoryMem \ (sizeof(Frame) + .wide * .high)  'Could shorten undo .history too
  END WITH
 
  'DRAWING ZONE
@@ -3548,8 +3555,12 @@ SUB sprite_editor_initialise(byref ss as SpriteEditState, sprite as Frame ptr)
   .palindex = ss_save.palindex
   .hidemouse = ss_save.hidemouse
 
-  v_new .undo_history
-  .undodepth = 0
+  .framenum = 0  'Temporary
+  REDIM .undo(0)  '.spriteset->arraylen - 1)
+  FOR i as integer = 0 TO UBOUND(.undo)
+   v_new .undo(i).history
+   .undo(i).depth = 0
+  NEXT
  END WITH
 
  'Initialises everything in ss that depends on sprite size
@@ -3685,7 +3696,9 @@ END SUB
 SUB sprite_editor_cleanup(byref ss as SpriteEditState)
  frame_unload @ss.sprite
  palette16_unload @ss.palette
- v_free ss.undo_history
+ FOR i as integer = 0 TO UBOUND(ss.undo)
+  v_free ss.undo(i).history
+ NEXT
 
  WITH ss_save
   .cursor = XY(ss.x, ss.y)
