@@ -642,7 +642,7 @@ sub interpolate_slice_property(sl as Slice ptr, prop as zstring ptr, x as double
 			vals(0) = value0..str
 			vals(1) = value1..str
 			dim matchlen as integer = length_matching(vals(0), vals(1))
-			dim edit_dist as integer = len(vals(0)) + len(vals(1)) - 2 * matchlen
+			dim edit_dist as integer = len(vals(0)) + len(vals(1)) - 2 * matchlen + 1
 			dim curchar as integer = edit_dist * x
 			dim prefix0len as integer = len(vals(0)) - curchar
 			' TODO: will need reimplementation to support text markup

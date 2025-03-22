@@ -139,7 +139,7 @@ type AnimationEditor
   declare sub edit_animop_arg(byref anim as Animation, curop as NodePtr, curoparg as NodePtr, state as MenuState)
 
   declare function create_animop_node(byref anim as Animation, animop as AnimOpType, prop as SlicePropInfo ptr = NULL) as NodePtr
-  declare sub add_default_keyframe(to_op as NodePtr, prop as SlicePropInfo ptr)
+  declare function add_default_keyframe(to_op as NodePtr, prop as SlicePropInfo ptr) as NodePtr
 end type
 
 sub animations_editor(sl as Slice ptr, animset as AnimationSet ptr, anim_context as AnimationContext, default_export_filename as string = "")
@@ -700,9 +700,14 @@ function AnimationEditor.edit_property(propname as string, value_node as NodePtr
       edited = percent_grabber(valuefloat, "", prop->range_min_float, prop->range_max_float, sigfigs, YES, is_percent)
       SetContent(value_node, valuefloat)
     case pdtypeStr
-      using_strgrabber = YES
       dim valuestr as string = value_node..str
-      edited or= strgrabber(valuestr)
+      if keyval(scAnyEnter) > 1 then
+        valuestr = multiline_string_editor(valuestr, "sliceedit_text_multiline", NO)
+        edited = YES
+      else
+        edited or= strgrabber(valuestr)
+      end if
+      if edited then using_strgrabber = YES
       SetContent(value_node, valuestr)
 
   end select
@@ -771,7 +776,7 @@ sub AnimationEditor.edit_animop_arg(byref anim as Animation, curop as NodePtr, c
   select case curop..int
     case animOpTween
       if keyval(scTab) > 1 then whicharg xor= 1
-      if whicharg = 0 andalso keyval(scShift) = 0 then
+      if whicharg = 0 andalso keyval(scCtrl) = 0 then
         if edit_property(curop."key".str, curoparg."value".ptr, state) then
           state.need_update = YES
         end if
@@ -785,11 +790,13 @@ sub AnimationEditor.edit_animop_arg(byref anim as Animation, curop as NodePtr, c
 end sub
 
 ' Add a keyframe at 0ms which sets the property to its current value
-sub AnimationEditor.add_default_keyframe(to_op as NodePtr, prop as SlicePropInfo ptr)
-  if prop = NULL then exit sub  ' Shouldn't happen
+function AnimationEditor.add_default_keyframe(to_op as NodePtr, prop as SlicePropInfo ptr) as NodePtr
+  if prop = NULL then return NULL  ' Shouldn't happen
   dim firstframe as NodePtr = AppendChildNode(to_op, "keyframe", 0)
-  AddChild firstframe, CloneNodeTree(prop->value_node, get_anim_doc)
-end sub
+  dim newnode as NodePtr = CloneNodeTree(prop->value_node, get_anim_doc)
+  AddChild firstframe, newnode
+  return newnode
+end function
 
 ' Append a new animop with the return values from AnimOpsMenuStack
 function AnimationEditor.create_animop_node(byref anim as Animation, animop as AnimOpType, prop as SlicePropInfo ptr = NULL) as NodePtr
@@ -1010,9 +1017,10 @@ sub AnimationEditor.edit_animation(byref anim as Animation, anim_name as string)
         ' Duplicate the last keyframe, if it has one, else add a keyframe at 0ms
         dim lastarg as NodePtr = LastChild(curop, "keyframe")
         if lastarg then
-          AddChild curop, CloneNodeTree(lastarg)
+          curoparg = CloneNodeTree(lastarg)
+          AddChild curop, curoparg
         else
-          add_default_keyframe curop, prop_info(curop."key".str)
+          curoparg = add_default_keyframe(curop, prop_info(curop."key".str))
         end if
         state.need_update = YES
       elseif play_anim then
