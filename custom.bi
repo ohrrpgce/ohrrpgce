@@ -91,6 +91,8 @@ DECLARE SUB tile_anim_draw_range(tanim() as TileAnimPattern, byval taset as inte
 
 DECLARE FUNCTION pick_graphics_export_format() as string
 
+DECLARE FUNCTION frame_name(sprtype as SpriteType, frameid as integer) as string
+
 DECLARE SUB export_gif(sl as Slice ptr, fname as string, anim as Animation ptr, transparent as bool = NO)
 
 DECLARE SUB spriteset_editor_delete_clipboard()

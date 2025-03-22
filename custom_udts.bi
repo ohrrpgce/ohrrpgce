@@ -85,7 +85,6 @@ TYPE SpriteEditState
   'Members which should be set by the caller to sprite_editor (but doesn't have to destruct after)
   wide as integer
   high as integer
-  framename as string
   spriteset as Frame ptr vector 'Spriteset to which .sprite belongs, converted to a vector
                                 '(Used instead of a Frame array so can do easy frame replacement)
   framenum as integer   'Frame number of .sprite within .spriteset
@@ -99,6 +98,7 @@ TYPE SpriteEditState
 
   'Internal state
   sprite as Frame ptr   'The current edit state. Is a member of .spriteset. Doesn't count as a reference
+  framename as string
   zoom as integer
   x as integer
   y as integer

@@ -2583,6 +2583,32 @@ SUB spriteedit_edit(ss as SpriteEditState, new_sprite as Frame ptr)
  spriteedit_replace_frame ss, new_sprite
 END SUB
 
+SUB spriteedit_change_frame(ss as SpriteEditState, new_framenum as integer)
+ 'Assume all frames are the same size
+ ss.framenum = new_framenum
+ ss.sprite = ss.spriteset[ss.framenum]
+ IF NOT ss.fullset THEN
+  DIM frameid as integer = ss.sprite->frameid
+  ss.framename = "Frame " & frameid & " " & frame_name(ss.fileset, frameid)
+ END IF
+ ss.didscroll = NO
+END SUB
+
+'Find and return the framenum for the frame with id `change_id` (1 or -1) from
+'the current frame, looping within the frame.
+'Unfortunately can't use frameid_to_frame because ss.spriteset is a Frame ptr vector not a Frame array.
+FUNCTION spriteedit_loop_frameid(ss as SpriteEditState, change_id as integer) as integer
+ DIM frameid as integer = ss.sprite->frameid
+ DIM as integer groupfirst = 0, grouplast = 0
+ FOR framenum as integer = v_len(ss.spriteset) - 1 TO 0 STEP -1
+  DIM thisid as integer = ss.spriteset[framenum]->frameid
+  IF thisid = frameid + change_id THEN RETURN framenum
+  IF thisid = frameid - (frameid MOD 100) THEN groupfirst = framenum
+  IF thisid >= frameid - (frameid MOD 100) + 100 THEN grouplast = framenum - 1
+ NEXT
+ RETURN IIF(change_id < 0, grouplast, groupfirst)
+END FUNCTION
+
 ' Perform undo
 SUB readundospr (ss as SpriteEditState)
  WITH ss.undo(ss.framenum)
@@ -3542,7 +3568,8 @@ END SUB
 SUB sprite_editor_initialise(byref ss as SpriteEditState)
  WITH ss
   .palette = palette16_load(.pal_num)
-  .sprite = .spriteset[.framenum]
+  'Set .sprite and .framename
+  spriteedit_change_frame ss, .framenum
   .delay = 10
   .x = ss_save.cursor.x
   .y = ss_save.cursor.y
@@ -3805,6 +3832,23 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
  END IF
  ss.palette->col(ss.palindex) = ss.curcolor
 
+ IF keyval(scCtrl) > 0 THEN
+  ?"cntrl", slowkey(ccLeft, 110)
+  DIM as integer lastframe = v_len(ss.spriteset) - 1, framenum = ss.framenum, change_id = 0
+  'slowkey to animate the frame at the typical speed if you hold it down
+  IF slowkey(ccLeft, 110) THEN loopvar framenum, 0, lastframe, -1
+  IF slowkey(ccRight, 110) THEN loopvar framenum, 0, lastframe, 1
+  IF slowkey(ccUp, 110) THEN change_id = -1
+  IF slowkey(ccDown, 110) THEN change_id = 1
+  IF change_id THEN
+   'Loop within frame group
+   framenum = spriteedit_loop_frameid(ss, change_id)
+  END IF
+  IF framenum <> ss.framenum THEN
+   spriteedit_change_frame ss, framenum
+  END IF
+ END IF
+
  ' Change Shift-move speed
  IF keyval(scShift) > 0 THEN
   IF keyval(scF) > 1 THEN ss.fastmovestep += 1
@@ -3812,7 +3856,7 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
  END IF
 
  ' Change brush position
- IF keyval(scAlt) = 0 THEN
+ IF keyval(scAlt) = 0 ANDALSO keyval(scCtrl) = 0 THEN
   DIM fixmouse as bool = NO
   WITH ss
    fixmouse = NO
@@ -4892,11 +4936,8 @@ SUB SpriteSetBrowser.setup_editstate(edstate as SpriteEditState, setnum as integ
     ' It also saves changes to palettes, but not the default palette selection (ss.pal_num)
     IF fullset THEN
       .save_callback = @SpriteSetBrowser_save_callback_fullset
-      .framename = ""
     ELSE
       .save_callback = @SpriteSetBrowser_save_callback
-      DIM frameid as integer = editing_spriteset[framenum].frameid
-      .framename = "Frame " & frameid & " " & frame_name(sprtype, frameid)
     END IF
     .save_callback_context = @this
     .pal_num = defpalettes(setnum)
