@@ -753,9 +753,10 @@ SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
  clear_fixbits_cache
  game = ""
  sourcerpg = ""
- 'Catch sprite leaks (also deletes the slice editor and spriteset clipboards)
+ 'Catch sprite leaks (also deletes the slice editor clipboard)
  sprite_empty_cache
  palette16_reload_cache   'Read default palettes (now that game="")
+ spriteset_editor_delete_clipboard
 
  IF show_quit_msg ANDALSO read_config_bool("show_quit_msg", YES) ANDALSO getquitflag() = NO THEN
   clearpage vpage

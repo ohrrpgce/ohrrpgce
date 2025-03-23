@@ -3833,7 +3833,6 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
  ss.palette->col(ss.palindex) = ss.curcolor
 
  IF keyval(scCtrl) > 0 THEN
-  ?"cntrl", slowkey(ccLeft, 110)
   DIM as integer lastframe = v_len(ss.spriteset) - 1, framenum = ss.framenum, change_id = 0
   'slowkey to animate the frame at the typical speed if you hold it down
   IF slowkey(ccLeft, 110) THEN loopvar framenum, 0, lastframe, -1
@@ -5185,7 +5184,6 @@ SUB SpriteSetBrowser.replace_spriteset(setnum as integer, byref ss as Frame ptr 
   END IF
 
   delete_menu_items()   'Required in order to empty cache
-  'Deletes the clipboard
   sprite_empty_cache sprtype, setnum
 END SUB
 
@@ -5229,6 +5227,11 @@ SUB SpriteSetBrowser.copy_any()
     'Duplicate rather than reference animations to avoid confusing semantics
     IF editing_spriteset->sprset THEN
       copied_animations = editing_spriteset->sprset->get_animset->duplicate()
+      'Remove the fallback_set (global animations for this sprtype), for two
+      'reasons: sprite_empty_cache would throw an error as the global animations
+      'are in use, and you can paste the spriteset as a different sprite type
+      'with different fallback_set.
+      copied_animations->unload_shared_animsets()
     END IF
   END IF
   frame_unload @editing_spriteset
@@ -5279,6 +5282,10 @@ SUB SpriteSetBrowser.paste_any(transparent as bool)
         DIM ss as SpriteSet ptr = spriteset_for_frame(editing_spriteset)
         animset_unload @ss->animset
         ss->animset = copied_animations->duplicate()
+        'ss->animset is now missing its fallback_set of global animations,
+        'because copied_animations doesn't include it.
+        'That's OK because replace_spriteset saves the sprite and clears the cache
+        'which will cause it to be reloaded with the correct fallback_set.
       END IF
     END IF
 

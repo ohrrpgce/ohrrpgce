@@ -753,9 +753,13 @@ destructor AnimationSet()
 	'(The Animations can remain referenced, but the Frames might be gone)
 	delete_all_animations(YES)  'check_no_references = YES
 
+	unload_shared_animsets
+end destructor
+
+sub AnimationSet.unload_shared_animsets()
 	animset_unload @shared_set
 	animset_unload @fallback_set
-end destructor
+end sub
 
 ' Increment refcount.
 function AnimationSet.reference() as AnimationSet ptr

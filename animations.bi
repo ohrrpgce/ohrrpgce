@@ -109,6 +109,7 @@ type AnimationSet
 	' Recommended to call the animset_unload() wrapper instead, to zero out the pointer
 	declare sub dereference()
 	declare function duplicate() as AnimationSet ptr
+	declare sub unload_shared_animsets()
 
 	' Note find_animation does not increment refcount!
 	declare function find_animation(animvariant as string, exact as bool = NO, recurse as bool = YES) as Animation ptr

@@ -36,7 +36,6 @@ using Reload
 
 #ifdef IS_CUSTOM
 	#include "cglobals.bi"  'For channel_to_Game
-	#include "custom.bi"  'For spriteset_editor_delete_clipboard
 #endif
 
 #ifdef __FB_ANDROID__
@@ -9715,9 +9714,6 @@ sub sprite_empty_cache(sprtype as SpriteType = sprTypeInvalid, setnum as integer
 		'Putting this here is ugly, but better to be sure it's called
 		slice_editor_delete_clipboard
 	#endif
-	#if defined(IS_CUSTOM)
-		spriteset_editor_delete_clipboard
-	#endif
 
 	if sprtype = sprTypeInvalid then
 		sprite_empty_cache_range(INT_MIN, INT_MAX)
@@ -10581,7 +10577,7 @@ end sub
 
 'for a copy you intend to modify. Otherwise use frame_reference
 'clr: if true, return a new blank Frame with the same size.
-'note: does not copy frame arrays, only single frames
+'note: does not copy frame arrays (or SpriteSets or animations), only single frames
 function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO) as Frame ptr
 	dim ret as Frame ptr
 
