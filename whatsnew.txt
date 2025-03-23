@@ -17,6 +17,7 @@ March ?? 2025 [Jocoserious+1]
       menu [Ralph]
     * Update spriteset copy/pasting and full-set drawing to support adding/
       deleting frames (without shredding the spriteset) [Ralph]
+    * The Shop Stuff editor broke if "Toplevel Thingbrowsers" was off [Ralph]
 
 
 February 20 2025 [Jocoserious]

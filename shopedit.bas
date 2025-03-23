@@ -243,7 +243,7 @@ SUB shop_stuff_editor_main (byval shop_id as integer)
   shop_stuff_context_id = shop_id
   b.browse(-1, , @shop_stuff_edit_wrapper)
  ELSE
-  shop_stuff_edit_wrapper 0
+  shop_stuff_edit 0, shop_id
  END IF
 END SUB
 
