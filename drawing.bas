@@ -4671,7 +4671,7 @@ SUB SpriteSetBrowser.rebuild_menu()
     'Add the frames, and add a separator between frame groups, including empty groups
     fr_templ = edsl(ssed_frame_templ, ss_sl)
     separator_templ = edsl(ssed_frame_separator_templ, ss_sl)
-    DIM lastgroup as integer = 0
+    DIM lastgroup as integer = -1
     FOR framenum as integer = 0 TO sprset->arraylen - 1
       DIM frameid as integer = sprset[framenum].frameid
       DIM group as integer = frameid \ 100
