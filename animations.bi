@@ -52,7 +52,8 @@ enum AnimOpType
 	animOpPlayFrameGroup = 6 '(groupidx,ms)
 	animOpSetProp   = 7 'key, value
 	animOpSwitchAnim = 8
-	animOpLAST      = 8
+	animOpTween     = 9
+	animOpLAST      = 9
 end enum
 
 extern anim_op_names() as string      ' Short names used for display and debug
@@ -108,6 +109,7 @@ type AnimationSet
 	' Recommended to call the animset_unload() wrapper instead, to zero out the pointer
 	declare sub dereference()
 	declare function duplicate() as AnimationSet ptr
+	declare sub unload_shared_animsets()
 
 	' Note find_animation does not increment refcount!
 	declare function find_animation(animvariant as string, exact as bool = NO, recurse as bool = YES) as Animation ptr
@@ -128,7 +130,6 @@ type AnimationState
 	anim as Animation ptr      'The currently playing animation or NULL.
 	                           'anim must be set using set_anim()!
 	curop as Reload.NodePtr    'Current animation op. Child (future: descendent) of anim->ops
-	'anim_step as integer      'Child index of curop
 	anim_advanced as bool      'True immediately after anim_step changes, false if waited
 	anim_wait as integer       'Equal to 0 if not waiting otherwise the number of ticks into the wait.
 	anim_loop as integer       '-1:infinite, 0<:number of times to play after current
@@ -148,13 +149,20 @@ type AnimationState
 	declare sub stop_animation()
 	declare sub reset()
 
+	enum StepResult
+		stepError
+		stepWait
+		stepNext
+		stepEnd
+	end enum
+
 	' Three ways to advance the animation:
 	' Advance time by one tick
 	declare function animate() as bool
 	' Advance time until the next wait
 	declare function skip_wait() as integer
 	' Advance by one animation op (may wait instead of advancing)
-	declare function animate_step() as bool
+	declare function animate_step() as StepResult
 end type
 
 declare sub set_animation_framerate(ms as integer)
@@ -165,6 +173,7 @@ declare function frames_to_ms(frames as integer) as integer
 declare function get_anim_doc() as Reload.DocPtr
 
 declare sub set_slice_property(sl as SliceFwd ptr, prop as zstring ptr, datnode as Reload.NodePtr)
+declare sub interpolate_slice_property(sl as SliceFwd ptr, prop as zstring ptr, x as double, value0 as Reload.NodePtr, value1 as Reload.NodePtr)
 
 declare sub animset_unload(pp as AnimationSet ptr ptr)
 declare sub split_animvariant(animvariant as string, byref animname as string, byref variant as string)

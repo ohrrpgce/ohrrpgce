@@ -31,7 +31,7 @@ python ohrpackage.py win full+vikings distrib\ohrrpgce-win-installer-{DATE}-{BRA
 
 ECHO ------------------------------------------
 ECHO Packaging sdl2 debug info archive
-python ohrpackage.py win symbols distrib\ohrrpgce-symbols-win-{BUILDNAME}-{REV}-{DATE}-{BRANCH}.7z || exit /b 1
+python ohrpackage.py win symbols distrib\ohrrpgce-symbols-win-{BUILDNAME}-r{REV}-{DATE}-{BRANCH}.7z || exit /b 1
 
 ECHO ==========================================
 ECHO Building win95 executables...
@@ -50,7 +50,7 @@ python ohrpackage.py win full distrib\ohrrpgce-win-{DATE}-{BRANCH}-win95.zip || 
 
 ECHO ------------------------------------------
 ECHO Packaging win95 debug info archive
-python ohrpackage.py win symbols distrib\ohrrpgce-symbols-win-{BUILDNAME}-{REV}-{DATE}-{BRANCH}.7z || exit /b 1
+python ohrpackage.py win symbols distrib\ohrrpgce-symbols-win-{BUILDNAME}-r{REV}-{DATE}-{BRANCH}.7z || exit /b 1
 
 ECHO ==========================================
 ECHO Packaging source snapshot zip ...

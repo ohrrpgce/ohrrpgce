@@ -91,7 +91,11 @@ DECLARE SUB tile_anim_draw_range(tanim() as TileAnimPattern, byval taset as inte
 
 DECLARE FUNCTION pick_graphics_export_format() as string
 
+DECLARE FUNCTION frame_name(sprtype as SpriteType, frameid as integer) as string
+
 DECLARE SUB export_gif(sl as Slice ptr, fname as string, anim as Animation ptr, transparent as bool = NO)
+
+DECLARE SUB spriteset_editor_delete_clipboard()
 
 DECLARE SUB frame_draw_with_background (src as Frame ptr, pal as Palette16 ptr = NULL, x as integer, y as integer, bgcolor as bgType, byref chequer_scroll as integer, dest as Frame ptr, opts as DrawOptions = def_drawoptions)
 DECLARE FUNCTION bgcolor_caption(bgcolor as bgType) as string

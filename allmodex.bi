@@ -90,6 +90,7 @@ End Type
 
 'Information for a specific group of frames (frames xx, 1xx, 2xx, etc), typically shared between
 'all spritesets of a certain type
+'(Not used, probably won't be)
 Type FrameGroupInfo
 	frameid as integer
 	name as string
@@ -780,6 +781,8 @@ End Type
 declare function spriteset_load(ptno as SpriteType, record as integer) as SpriteSet ptr
 declare sub spriteset_unload(ss as SpriteSet ptr ptr)
 declare function spriteset_for_frame(fr as Frame ptr) as SpriteSet ptr
+declare sub copy_spriteset_data(to_sprite as Frame ptr, from_sprite as Frame ptr)
+declare sub copy_spriteset_frameids(to_sprite as Frame ptr, from_sprite as Frame ptr)
 declare function spriteset_load_global_animations(sprtype as SpriteType, rgfxdoc as Reload.DocPtr = NULL) as AnimationSet ptr
 
 declare function frame_array_to_vector(frames as Frame ptr) as Frame ptr vector

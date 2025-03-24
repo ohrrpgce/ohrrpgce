@@ -55,8 +55,9 @@ CONST SL_EDITOR_SSED_PALETTE_TEXT      = -407
 CONST SL_EDITOR_SSED_SET_INFO          = -408
 CONST SL_EDITOR_SSED_SET               = -409
 CONST SL_EDITOR_SSED_PALETTE_ROOT      = -410
-CONST SL_EDITOR_SSED_INFO_TEXT_RIGHT   = -411
+CONST SL_EDITOR_SSED_TOOLTIP_TEXT      = -411
 CONST SL_EDITOR_SSED_CAPTION_TEXT      = -412
+CONST SL_EDITOR_SSED_FRAME_SEPARATOR_TEMPL = -413
 CONST SL_EDITOR_ENEMY_SPRITE           = -500
 CONST SL_ROOT                 = -100000
 CONST SL_TEXTBOX_TEXT         = -100001
@@ -565,7 +566,8 @@ Type SpriteSliceData
                    ' is totally blank, except Vapourize which takes 1 tick longer (-1 when backward)
  d_type as integer ' id number of the dissolve animation, 0 to dissolveTypeMax
 
- declare function get_numframes(sl as Slice ptr) as integer
+ declare function get_num_frames(sl as Slice ptr) as integer
+ declare function get_num_frames_in_group(sl as Slice ptr, group as integer = -1) as integer
  declare sub set_frame(sl as Slice ptr, frameidx as integer)
  declare function get_frameid(sl as Slice ptr) as integer
  declare function find_frameid(sl as Slice ptr, frameidx as integer, exact as bool = NO) as integer

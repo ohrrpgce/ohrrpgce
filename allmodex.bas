@@ -10577,7 +10577,7 @@ end sub
 
 'for a copy you intend to modify. Otherwise use frame_reference
 'clr: if true, return a new blank Frame with the same size.
-'note: does not copy frame arrays, only single frames
+'note: does not copy frame arrays (or SpriteSets or animations), only single frames
 function frame_duplicate(p as Frame ptr, clr as bool = NO, addmask as bool = NO) as Frame ptr
 	dim ret as Frame ptr
 
@@ -10889,7 +10889,7 @@ end sub
 'Extended portions are filled with bgcol.
 'Can also be used to scroll (does not wrap around)
 'Turns an 8-bit Surface-backed Frame into a regular Frame, and works on 32-bit Surface-backed ones too.
-'Like all functions that return new Frames, the new Frame doesn't have a SpriteSet ptr.
+'Like all functions that return new Frames, the new Frame doesn't have a SpriteSet ptr (see copy_spriteset_data)
 function frame_resized(spr as Frame ptr, wide as integer, high as integer, shiftx as integer = 0, shifty as integer = 0, bgcol as integer = 0) as Frame ptr
 	dim as Frame ptr ret
 	dim with_surface32 as bool = (spr->surf <> NULL andalso spr->surf->format = SF_32bit)
@@ -11964,7 +11964,7 @@ function frameid_to_frame(frameset as Frame ptr, frameid as integer, exact as bo
 		lastidx = idx
 	next
 	if exact = NO then
-		if lastid mod 100 = frameid mod 100 then
+		if lastid \ 100 = frameid \ 100 then
 			return lastidx
 		end if
 	end if
@@ -12002,7 +12002,7 @@ end constructor
 
 ' This destructor isn't responsible for deleting this.frames (see how it's called in sprite_update_cache_range)
 destructor SpriteSet()
-	delete animset
+	animset_unload @animset
 end destructor
 
 function SpriteSet.num_frames() as integer
@@ -12027,13 +12027,34 @@ function SpriteSet.get_animset() as AnimationSet ptr
 	return animset
 end function
 
-'Create a SpriteSet for a Frame if it doesn't have one
+'Create a SpriteSet for a Frame array if it doesn't have one.
 function spriteset_for_frame(fr as Frame ptr) as SpriteSet ptr
 	if fr->sprset then return fr->sprset
 	var ret = new SpriteSet(fr)
 	DEBUG_ANIM_CACHE(ret->name = "spriteset_for_frame")
 	return ret
 end function
+
+'Copy over (actually, share) animations.
+'When modifying a Frame array that has a SpriteSet, most functions,
+'e.g. frame_resized, don't copy the SpriteSet and you need this so the new
+'sprite can be animated or saved to .rgfx.
+'If from_sprite has animset=NULL, to_sprite's animset is not deleted.
+sub copy_spriteset_data(to_sprite as Frame ptr, from_sprite as Frame ptr)
+	dim from_ss as SpriteSet ptr = from_sprite->sprset
+	if from_ss andalso from_ss->animset then
+		dim to_ss as SpriteSet ptr = spriteset_for_frame(to_sprite)
+		animset_unload @to_ss->animset
+		to_ss->animset = from_ss->animset->reference()
+	end if
+end sub
+
+sub copy_spriteset_frameids(to_sprite as Frame ptr, from_sprite as Frame ptr)
+	BUG_IF(to_sprite->arraylen <> from_sprite->arraylen, "mismatched Frame arrays")
+	for idx as integer = 0 to to_sprite->arraylen - 1
+		to_sprite[idx].frameid = from_sprite[idx].frameid
+	next
+end sub
 
 ' Load the global animations for a sprtype from rgfx, or defaults if they don't exist.
 ' If loadinto=NULL, creates a new AnimationSet with .refcount=1, otherwise returns loadinto with its animations replaced.

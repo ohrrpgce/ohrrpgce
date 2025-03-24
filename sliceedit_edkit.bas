@@ -267,7 +267,7 @@ SUB SlicePropertiesEditor.define_items()
           caption_default_or_int -1, "Default"
           propkey "pal", "sprite_pal"
         END IF
-        DIM nframes as integer = dat->get_numframes(sl)
+        DIM nframes as integer = dat->get_num_frames(sl)
         IF nframes > 1 THEN
           defint "Frame:", dat->frame, 0, nframes - 1
           propkey "frame", "sprite_frame"

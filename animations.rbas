@@ -42,6 +42,7 @@ anim_op_names(animOpRelOffset) = "add offset"
 anim_op_names(animOpPlayFrameGroup) = "frame group"
 anim_op_names(animOpSetProp) =   "set"
 anim_op_names(animOpSwitchAnim) ="switch to"
+anim_op_names(animOpTween) =     "tween"
 
  ' Short names used for RELOAD serialisation
 redim anim_op_node_names(animOpLAST) as string
@@ -54,6 +55,7 @@ anim_op_node_names(animOpRelOffset) = "addoffset"
 anim_op_node_names(animOpPlayFrameGroup) = "framegroup"
 anim_op_node_names(animOpSetProp) =   "setprop"
 anim_op_node_names(animOpSwitchAnim) ="switchanim"
+anim_op_node_names(animOpTween) =     "tween"
 
 ' Descriptive captions
 redim anim_op_fullnames(animOpLAST) as string
@@ -66,6 +68,7 @@ anim_op_fullnames(animOpRelOffset) = "Add to offset (unimp)"
 anim_op_fullnames(animOpPlayFrameGroup) = "Play frame group"
 anim_op_fullnames(animOpSetProp) =   "Set"
 anim_op_fullnames(animOpSwitchAnim) ="Switch to animation"
+anim_op_fullnames(animOpTween) =     "Tween (blend keyframes)"
 
 ' Built-in variants have names starting with :, which are not allowed for user names
 dim shared builtin_variants_table(4) as IntStrPair
@@ -617,6 +620,41 @@ sub set_slice_blend_property(sl as Slice ptr, propnum as SlicePropertyNumber, dr
 	end select
 end sub
 
+' Set a slice property as the interpolation of two value nodes.
+' x is a value from 0.0 (to use value0) to 1.0 (to use value1)
+sub interpolate_slice_property(sl as Slice ptr, prop as zstring ptr, x as double, value0 as NodePtr, value1 as NodePtr)
+	dim as NodePtr intervalue = CreateNode(value0, "value")
+	select case NodeType(value0)
+		case rltInt
+			dim vals(1) as integer
+			vals(0) = value0..int
+			vals(1) = value1..int
+			SetContent intervalue, vals(0) + x * (vals(1) - vals(0))
+		case rltFloat
+			dim vals(1) as double
+			vals(0) = value0..float
+			vals(1) = value1..float
+			SetContent intervalue, vals(0) + x * (vals(1) - vals(0))
+		case rltString, rltInternString
+			' Cute text interpolation: first erase the text character by characer
+			' down to the common prefix, then add the value1 suffix.
+			dim vals(1) as string
+			vals(0) = value0..str
+			vals(1) = value1..str
+			dim matchlen as integer = length_matching(vals(0), vals(1))
+			dim edit_dist as integer = len(vals(0)) + len(vals(1)) - 2 * matchlen + 1
+			dim curchar as integer = edit_dist * x
+			dim prefix0len as integer = len(vals(0)) - curchar
+			' TODO: will need reimplementation to support text markup
+			if prefix0len >= matchlen then
+				SetContent intervalue, left(vals(0), prefix0len)
+			else
+				SetContent intervalue, left(vals(1), 2 * matchlen - prefix0len)
+			end if
+	end select
+	set_slice_property sl, prop, intervalue
+	FreeNode intervalue
+end sub
 
 '==========================================================================================
 '                                         Animation
@@ -636,16 +674,19 @@ constructor Animation(name as string, variant as string = "")
 end constructor
 
 destructor Animation()
+	'? " Animation.destructor(" & hex(@this) & " " & name & " " & variant & ")"
 	FreeNode(this.opsnode)
 end destructor
 
 function Animation.reference() as Animation ptr
 	refcount += 1
+	'? "Animation.reference(" & hex(@this) & " " & name & " " & variant & "): refc=" & refcount
 	return @this
 end function
 
 sub Animation.dereference()
 	refcount -= 1
+	'? "Animation.dereference(" & hex(@this) & " " & name & " " & variant & "): refc=" & refcount
 	BUG_IF(refcount < 0, "Too many Animation.dereference()")
 	if refcount = 0 then
 		delete @this
@@ -654,8 +695,10 @@ end sub
 
 ' Deep copy
 function Animation.duplicate() as Animation ptr
+	'? "Animation.duplicate(" & hex(@this) & " " & name & " " & variant & "):"
 	dim ret as Animation ptr = new Animation(name, variant)
 	ret->refcount = 1
+	FreeNode ret->opsnode
 	ret->opsnode = CloneNodeTree(opsnode, get_anim_doc)
 	return ret
 end function
@@ -692,8 +735,12 @@ function AnimationSet.duplicate() as AnimationSet ptr
 	ret->refcount = 1
 	ret->slice_specific = slice_specific
 	ret->name = name
-	ret->shared_set = shared_set->reference()
-	ret->fallback_set = fallback_set->reference()
+	if shared_set then
+		ret->shared_set = shared_set->reference()
+	end if
+	if fallback_set then
+		ret->fallback_set = fallback_set->reference()
+	end if
 	v_new ret->animations
 	for idx as integer = 0 to v_len(animations) - 1
 		v_append ret->animations, animations[idx]->duplicate()
@@ -706,20 +753,25 @@ destructor AnimationSet()
 	'(The Animations can remain referenced, but the Frames might be gone)
 	delete_all_animations(YES)  'check_no_references = YES
 
+	unload_shared_animsets
+end destructor
+
+sub AnimationSet.unload_shared_animsets()
 	animset_unload @shared_set
 	animset_unload @fallback_set
-end destructor
+end sub
 
 ' Increment refcount.
 function AnimationSet.reference() as AnimationSet ptr
 	refcount += 1
-	DEBUG_ANIM_CACHE(? "AnimationSet.reference(" & name & "): refc=" & refcount)
+	DEBUG_ANIM_CACHE(? "AnimationSet.reference(" & hex(@this) & " " & name & "): refc=" & refcount)
 	return @this
 end function
 
 ' Recommended to call the animset_unload() wrapper instead
 sub AnimationSet.dereference()
 	refcount -= 1
+	DEBUG_ANIM_CACHE(? "AnimationSet.dereference(" & hex(@this) & " " & name & "): refc=" & refcount)
 	BUG_IF(refcount < 0, "Negative refc")
 	if refcount = 0 then
 		delete @this
@@ -787,6 +839,8 @@ function AnimationSet.find_animation_recurse(animname as string, variant as stri
 			dim score as integer
 			if anim->variant = variant then
 				score = 1000
+			elseif exact then
+				score = 0
 			elseif len(anim->variant) = 0 then
 				'Prefer nonvariant animations
 				score = 10
@@ -794,7 +848,7 @@ function AnimationSet.find_animation_recurse(animname as string, variant as stri
 				'Otherwise, default to the first variant
 				score = 1
 			end if
-			if exact = NO andalso _best_score < score then
+			if _best_score < score then
 				best_match = anim
 				_best_score = score
 			end if
@@ -870,7 +924,6 @@ end function
 ' OK for anim to be NULL
 function AnimationState.start_animation(anim as Animation ptr, loopcount as integer = 0) as Animation ptr
 	anim_wait = 0
-	'anim_step = 0
 	anim_advanced = YES
 	anim_loop = loopcount
 	anim_looplimit = ANIMATION_LOOPLIMIT
@@ -904,7 +957,6 @@ end function
 sub AnimationState.stop_animation()
 	set_anim(NULL)
 	anim_wait = 0
-	'anim_step = 0
 	curop = NULL
 end sub
 
@@ -944,20 +996,67 @@ function AnimationState.skip_wait() as integer
 			anim_wait = ms_to_frames(ret)
 			if animate() = NO then ret = -2  ' Until next wait
 			return ret
+		case animOpTween
+			' TODO: don't know yet how to handle this for gifs
+			'var lastfr = LastChild(curop, "keyframe")
+			'if lastfr = NULL then return -1
 		case else
 			return -1
 	end select
+end function
+
+' Calculate and apply the current state of a tween.
+' curop is a animOpTween node with "key" and "keyframe" children, which are assumed to be sorted by time.
+' curtime is in ms.
+' Returns true if curtime is before the end of the tween.
+function tween_keyframes(sl as Slice ptr, curop as NodePtr, curtime as integer) as bool
+	dim as NodePtr prevframe, nextframe
+	prevframe = FirstChild(curop, "keyframe")
+	nextframe = prevframe
+
+	if prevframe = NULL then return NO
+	nextframe = NextSibling(prevframe, "keyframe")
+
+	if nextframe = NULL orelse curtime < prevframe..int then
+		set_slice_property sl, curop."key".zstring, prevframe."value".ptr
+		return NO
+	end if
+
+	' Find the interval containing curtime
+	dim times(1) as integer
+	while nextframe
+		times(0) = prevframe..int
+		times(1) = nextframe..int
+		if curtime >= times(0) andalso curtime <= times(1) then
+			var diff = times(1) - times(0)
+			dim x as double = 0
+			if diff then
+				x = (curtime - times(0)) / diff
+			end if
+			' The first keyframe might have a time > 0ms. Don't extrapolate
+			if x < 0 then x = 0
+
+			interpolate_slice_property sl, curop."key".zstring, x, prevframe."value".ptr, nextframe."value".ptr
+
+			return YES
+		end if
+
+		prevframe = nextframe
+		nextframe = NextSibling(nextframe, "keyframe")
+	wend
+
+	return NO
 end function
 
 ' Advance the animation by one op.
 ' Returns true on success or finished animation, false on error.
 ' Sets anim = NULL on error or finished animation.
 ' Does not check for infinite loops; caller must do that.
-function AnimationState.animate_step() as bool
+function AnimationState.animate_step() as AnimationState.StepResult
 	declare as NodePtr curop
 	'? "animate_step: curop", curop, curop..name, curop..int
 
-	if anim = NULL then return NO
+	if anim = NULL then return stepError
 
 	' This happens only if the animation doesn't end with Repeat
 	if curop = NULL then
@@ -965,11 +1064,9 @@ function AnimationState.animate_step() as bool
 		' anim_loop = 0 means default number of loops
 		' Also refuse to loop if empty.
 		if anim_loop = 0 or anim_loop = 1 orelse NumChildren(anim->opsnode) = 0 then
-			stop_animation()
-			return YES
+			return stepEnd
 		end if
 		if anim_loop > 0 then anim_loop -= 1
-		'anim_step = 0
 		curop = FirstChild(anim->opsnode)
 	end if
 
@@ -982,8 +1079,7 @@ function AnimationState.animate_step() as bool
 			if anim_wait > ms_to_frames(curop."ms") then
 				anim_wait = 0
 			else
-				anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
-				return YES
+				return stepWait
 			end if
 		case animOpFrame
 			if sl->SliceType <> slSprite then exit select  'Skip op
@@ -998,14 +1094,12 @@ function AnimationState.animate_step() as bool
 			if anim_loop > 0 then
 				anim_loop -= 1
 				if anim_loop = 0 then
-					stop_animation()
-					return YES
+					return stepEnd
 				end if
 			end if
 			curop = FirstChild(anim->opsnode)
-			'anim_step = 0
 			anim_looplimit -= 1
-			return YES
+			return stepNext
 		case animOpSetOffset
 			/'
 			offset.x = curop."x"
@@ -1041,13 +1135,11 @@ function AnimationState.animate_step() as bool
 					anim_wait = 0  'Done
 				else
 					anim_wait = 1  'Start wait
-					anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
-					return YES  'Wait
+					return stepWait
 				end if
 			else
 				'? "animOpPlayFrameGroup: waiting"
-				anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
-				return YES  'Wait
+				return stepWait
 			end if
 		case animOpSwitchAnim
 			' TODO: should have a way to play an animation in shared_set/fallback_set
@@ -1057,19 +1149,25 @@ function AnimationState.animate_step() as bool
 				anim_looplimit = looplimit
 			end if
 
+		case animOpTween
+			if tween_keyframes(sl, curop, frames_to_ms(anim_wait)) = NO then
+				anim_wait = 0  'Done
+			else
+				anim_wait += 1
+				return stepWait
+			end if
+
 		case animOpUnknown
 			' An opcode from a future version not recognised by load_animation_node,
 			' which already printed an error. Skip it.
 		case else
 			' Shouldn't happen
 			showbug "bad animation opcode " & curop..name & " " & curop..int & " in '" & anim->name & "'"
-			stop_animation()
-			return NO
+			return stepError
 	end select
 
 	curop = NextSibling(curop)  'NULL if finished
-	'anim_step += 1
-	return YES
+	return stepNext
 end function
 
 ' Advance time by one tick. True on success or finished (anim is now NULL!), false on an error/infinite loop
@@ -1077,14 +1175,21 @@ function AnimationState.animate() as bool
 	if anim = NULL then return NO
 
 	while anim_looplimit > 0
-		if animate_step() = NO then return NO  'stop on error
-		if anim_wait > 0 then
-			anim_advanced = NO
-			return YES  'stop if waiting
-		else
-			anim_advanced = YES
-		end if
-		if anim = NULL then return YES  'stop if finished animating
+		select case animate_step()
+			case stepError
+				stop_animation()
+				return NO
+			case stepWait
+				anim_looplimit = ANIMATION_LOOPLIMIT  'Reset
+				anim_advanced = NO
+				return YES
+			case stepNext
+				' animate_step advanced curop
+				anim_advanced = YES
+			case stepEnd
+				stop_animation()
+				return YES
+		end select
 	wend
 
 	' Exceeded the loop limit

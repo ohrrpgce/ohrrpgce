@@ -70,14 +70,24 @@ TYPE SpriteEditStatic
   palindex as integer
 END TYPE
 
-TYPE FnSpriteSaver as SUB(spr as Frame ptr, context as any ptr, defpal as integer)
+TYPE FnSpriteSaver as SUB(sprset as Frame ptr vector, context as any ptr, defpal as integer)
+
+TYPE SpriteEditUndoState
+  depth as integer      'A value in [0, len(undo_history)] (i.e. inclusive). Indicates
+                        'the index in the history equal to the current edit state (with
+                        'indices before being undo steps and after being redo steps); if
+                        'equal to len, indicates the current edits aren't saved in history.
+  history as Frame ptr vector  'A stack of previous states. The most recent is at the end
+END TYPE
 
 'sprite_editor state
 TYPE SpriteEditState
-  'Members which should be set by the caller to sprite_editor
+  'Members which should be set by the caller to sprite_editor (but doesn't have to destruct after)
   wide as integer
   high as integer
-  framename as string
+  spriteset as Frame ptr vector 'Spriteset to which .sprite belongs, converted to a vector
+                                '(Used instead of a Frame array so can do easy frame replacement)
+  framenum as integer   'Frame number of .sprite within .spriteset
   default_export_filename as string
   save_callback as FnSpriteSaver   'Called to save the sprite
   save_callback_context as any ptr 'To be passed to save_callback
@@ -87,7 +97,8 @@ TYPE SpriteEditState
   fullset as bool       'Whether editing full spritesets rather than frames (Used only by import menu)
 
   'Internal state
-  sprite as Frame ptr   'The current edit state
+  sprite as Frame ptr   'The current edit state. Is a member of .spriteset. Doesn't count as a reference
+  framename as string
   zoom as integer
   x as integer
   y as integer
@@ -112,16 +123,12 @@ TYPE SpriteEditState
   hold as integer
   tick as integer
   tog as integer        '0/1
-  holdpos as XYPair
+  holdpos as XYPair     'Opposite corner of a line/box, center of an ellipse, Clone brush offset
   radius as double
   ellip_minoraxis as double '--For non-circular elipses. Not implemented yet
   ellip_angle as double
-  undodepth as integer  'A value in [0, len(undo_history)] (i.e. inclusive). Indicates
-                        'the index in the history equal to the current edit state (with
-                        'indices before being undo steps and after being redo steps); if
-                        'equal to len, indicates the current edits aren't saved in history.
+  undo(any) as SpriteEditUndoState  'Undo state for each frame in the spriteset
   undomax as integer    'Max allowable length of undo_history
-  undo_history as Frame ptr vector  'A stack of previous states. The most recent is at the end
   didscroll as bool     'have scrolled since selecting the scroll tool
   delay as integer
   movespeed as integer

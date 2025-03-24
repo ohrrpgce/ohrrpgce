@@ -1677,6 +1677,21 @@ Function FirstChild(byval nod as NodePtr, byval withname as zstring ptr = null) 
 	return ret
 end Function
 
+Function LastChild(byval nod as NodePtr, byval withname as zstring ptr = null) as NodePtr
+	if nod = null then return null
+	if nod->flags AND nfNotLoaded then LoadNode(nod, NO)
+	dim ret as NodePtr = nod->lastchild
+	if ret = null then return null
+	if withname then
+		'Could search in the string table for withname first, but you normally
+		'expect ret already has the right name
+		while ret andalso *ret->name <> *withname
+			ret = ret->prevSib
+		wend
+	end if
+	return ret
+end Function
+
 Function NextSibling(byval nod as NodePtr, byval withname as zstring ptr = null) as NodePtr
 	if nod = null then return null
 	dim ret as NodePtr = nod->nextSib

@@ -24,7 +24,8 @@ Nodespecs on a 'LoadArray' line can also contain an index, see the LoadArray sec
 .name           : The NodeName
 .integer        : (Default)
 .int            : Alias
-.double
+.float
+.double         : Alias to float
 .string
 .str            : Alias
 .zstring

@@ -772,6 +772,7 @@ END FUNCTION
 'Returns the number of characters at the start of two strings that are equal
 FUNCTION length_matching(s1 as string, s2 as string) as integer
  DIM as byte ptr p1 = @s1[0], p2 = @s2[0]
+ IF p1 = NULL ORELSE p2 = NULL THEN RETURN 0
  DIM as integer ret = 0
  WHILE *p1 AND *p2
   IF *p1 <> *p2 THEN RETURN ret

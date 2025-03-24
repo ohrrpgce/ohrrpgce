@@ -350,7 +350,7 @@ CONST scriptTableSize = 512  'hash table size, power of 2 please
 CONST scriptCheckDelay = 1.1     'How long, in seconds, before the script interpreter becomes interruptable
 CONST scriptCheckInterval = 0.1  'How often, in seconds, that the script interpreter should perform checks
 
-CONST maxScriptCmdID = 775  'Max ID number of any supported script command (checked when saving or loading game)
+CONST maxScriptCmdID = 779  'Max ID number of any supported script command (checked when saving or loading game)
 
 '--- Binary files in BINSIZE.BIN for getbinsize()
 CONST binATTACK = 0
@@ -410,8 +410,6 @@ CONST frameJUMP = 4
 CONST frameHURT = 5
 CONST frameWEAK = 6
 CONST frameDEAD = 7
-
-CONST WALKFRAMES = 2  'Number of frames per walkabout direction
 
 '---- Dissolve animations
 CONST dissolveRandomScatter = 0

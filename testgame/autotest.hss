@@ -1145,12 +1145,27 @@ script, do hero cater tests, who, begin
   walk hero(who, west, 3)
   wait for hero(who)
   #FIXME: should probably test misaligned walking too
-  # frame
-  variable(fr)
-  for(fr, 1, 8) do(
-    set hero frame(who, (fr ,mod, 2))
-    assert(hero frame(who) == (fr ,mod, 2))
-    w(fr)
+
+  # frame (mirrored for NPCs in "npc slice tests"
+  variable(fr,dir,numframes)
+  for(dir, 0, 3) do(
+    numframes := sprite frame group size(get hero sprite(who), dir)
+    if (dir == right && hero by rank(who) == hero:frumpy) then (
+      assert(numframes == 4)
+    ) else (
+      assert(numframes == 2)
+    )
+
+    for(fr, 0, numframes -- 1) do(
+      set hero direction(who, dir)
+      set hero frame(who, fr)
+      assert(hero frame(who) == fr)
+      w
+    )
+    set hero frame(who, -1)
+    assert(hero frame(who) == 0)
+    set hero frame(who, numframes)
+    assert(hero frame(who) == numframes -- 1)  # Not too important
   )
   #pixel pos
   variable(px, py)
@@ -1987,8 +2002,8 @@ script, npc tests, begin
   npc extra tests
   npc tag and onetime tests
   use npc script tests
-  npc slice tests
   alter npc tests
+  npc slice tests
 end
 
 script, npc movement tests, n, begin
@@ -2170,11 +2185,11 @@ end
 
 script, npc slice tests, begin
   $0="npc slice tests"
-  # Test positioning of NPC slices.
+  # Test updating of NPC slices: position and dir/frame (including walk in place animation)
   # Note that there's lots of tests for npc slices elsewhere too,
   # in particular sprite slice spritesets are tested in "global npc tests".
 
-  variable(n1, sl1)
+  variable(n1, sl1, spr1)
   n1 := create npc(9, 10, 8, west)
 
   # Check that walkabout slice positions are set immediately
@@ -2184,6 +2199,84 @@ script, npc slice tests, begin
   assert(slice x(sl1) == 3 * 20 && slice y(sl1) == 4 * 20)
   put NPC(n1, 31, 41)
   assert(slice x(sl1) == 31 && slice y(sl1) == 41)
+
+  spr1 := get npc sprite(n1)
+
+  # Testing variable sprite frames. Change to a set with frame group sizes: 0, 1, 2, 3, 0, 6, 1
+
+  alter npc(n1, npcstat:picture, 18)
+  assert(read npc(n1, npcstat:picture) == 18)
+  # Changes immediately, doesn't recreate the slice
+  assert(spr1 == get npc sprite(n1))
+  assert(get spriteset number(spr1) == 18)
+
+  # Change directions and check setting/getting frame
+  set npc direction(n1, down)
+  w
+  set npc direction(n1, up)
+  w
+  # Doesn't have any up frames, so down still displayed
+  assert(get sprite frameid(spr1) == 200)  # down 0
+  variable(dir, fr, numframes)
+  for (dir, 0, 3) do (
+    set npc direction(n1, dir)
+    numframes := sprite frame group size(spr1, dir)
+    assert(numframes == dir)
+
+    # Doesn't have any up frames, but still should be able to set the direction and set frame to 0
+    if (numframes == 0) then (numframes := 1)
+    for(fr, 0, numframes -- 1) do(
+      set npc direction(n1, dir)
+      assert(npc direction(n1) == dir)
+      set npc frame(n1, fr)
+      assert(npc frame(n1) == fr)
+      # slice frame is not yet changed immediately (TODO), so wait
+      w
+      if (dir <> up) then (
+        assert(get sprite frameid(spr1) == 100 * dir + fr)
+      )
+    )
+    set npc frame(n1, -1)
+    assert(npc frame(n1) == 0)
+    set npc frame(n1, numframes)
+    assert(npc frame(n1) == numframes -- 1)  # Not too important
+
+    w
+  )
+
+  # NPC 9 is Walk in Place. Check the animation cycles through the sprite frames, for each of the 4 directions
+  variable(firstframe, expected, expectedid, wtog, tick, ticks per frame)
+  ticks per frame := 2  # 18fps
+  set sprite frameid(spr1, 500)  # initial
+  for (dir, 0, 3) do (
+    numframes := sprite frame group size(spr1, dir)
+    firstframe := 1  # "set npc frame" frame number to start on
+    if (numframes == 0) then (firstframe := 0)
+    elseif (firstframe >= numframes) then (firstframe := numframes -- 1)
+
+    set npc direction(n1, dir)
+    set npc frame(n1, firstframe)
+    assert(npc frame(n1) == firstframe)
+    # setnpcframe sets wtog = 2*firstframe
+    wtog := ticks per frame * firstframe
+
+    for (tick, 1, 2*(numframes + 1)) do (
+      # Again, need to wait before the sprite frame updates
+      w(1)
+      wtog += 1
+      # Expected frame and frameid
+      if (dir == 0) then (
+        expected := 0
+        expectedid := 500  # Has no up frames, so should preserve frameid from "initial"
+      ) else (
+        expected := (wtog / ticks per frame), mod, numframes
+        expectedid := 100 * dir + expected
+      )
+      #tracevalue(dir, expected, expectedid, npc frame(n1), get sprite frameid(spr1))
+      assert (npc frame(n1) == expected)
+      assert (get sprite frameid(spr1) == expectedid)
+    )
+  )
 
   delete npc(n1)
 end
@@ -4895,6 +4988,7 @@ script, slice tests, begin
   slice clone tests
   slice handle tests
 
+  sprite slice tests
   rect slice tests
   text slice tests
   panel slice tests
@@ -4928,6 +5022,86 @@ script, slice handle tests, begin
     assert(sl2 <> sl)
     free slice(sl2)
   )
+end
+
+########################################################################
+
+script, sprite frameid tests, begin
+  $0="sprite frameid tests"
+
+  variable(spr)
+  # A set with frame group sizes: 0, 1, 2, 3, 0, 6, 1
+  spr := load walkabout sprite(18)
+
+  # Check frame counts
+  assert(sprite frame count(spr) == 13)
+  assert(sprite frame group size(spr, -1) == 0)
+  assert(sprite frame group size(spr, 0) == 0)
+  assert(sprite frame group size(spr, 1) == 1)
+  assert(sprite frame group size(spr, 2) == 2)
+  assert(sprite frame group size(spr, 3) == 3)
+  assert(sprite frame group size(spr, 4) == 0)
+  assert(sprite frame group size(spr, 5) == 6)
+  assert(sprite frame group size(spr, 6) == 1)
+  assert(sprite frame group size(spr, 7) == 0)
+
+  # frame id 0 doesn't exist, so preserves 100
+  assert(get sprite frame(spr) == 0)
+  assert(get sprite frameid(spr) == 100)
+
+  # frame and frameid should indicate the same frame
+  subscript, set and check frame, frame, frameid, begin
+    set sprite frame(spr, frame)
+    assert (get sprite frame(spr) == frame)
+    assert (get sprite frameid(spr) == frameid)
+    set sprite frame(spr, 0)
+    assert (find sprite frameid(spr, frameid) == frame)
+    assert (set sprite frameid(spr, frameid) == frame)
+    assert (get sprite frameid(spr) == frameid)
+    assert (get sprite frame(spr) == frame)
+  end
+
+  # set a frameid which doesn't exist
+  subscript, set and check missing frame, frameid, numframes, begin
+    variable(group)
+    group := frameid / 100
+    set sprite frame(spr, 0)
+    assert (find sprite frameid(spr, frameid) == -1)
+    assert (set sprite frameid(spr, frameid, true) == -1)  # exact=true: shouldn't be found
+    assert (get sprite frame(spr) == 0)
+    variable(frame)
+    frame := set sprite frameid(spr, frameid)  # exact=false
+    if (numframes > 0) then (
+      # Should have switched to last frame in group
+      assert (frame == get sprite frame(spr))
+      assert (get sprite frameid(spr) == group * 100 + numframes -- 1)
+    ) else (
+      # Should have done nothing
+      assert (frame == -1)
+      assert (get sprite frameid(spr) == 100)  # ID of frame 0
+    )
+  end
+
+  variable(group, numframes, fr, fridx)
+  # fridx is the frame index in the spriteset
+
+  for (group, 0, 7) do (
+    numframes := sprite frame group size(spr, group)
+    for (fr, 0, numframes -- 1) do (
+      set and check frame(fridx, group * 100 + fr)
+      fridx += 1
+    )
+    # Missing frameids
+    for (fr, numframes, 99) do (
+      set and check missing frame(group * 100 + fr, numframes)
+    )
+  )
+
+  free slice(spr)
+end
+
+script, sprite slice tests, begin
+  sprite frameid tests
 end
 
 ########################################################################

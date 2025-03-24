@@ -41,7 +41,7 @@ SUB GlobalTextStringsMenu.add_item (item_index as integer, description as zstrin
  a_append shaded(),       item_shaded
  a_append index(),        item_index
  a_append descriptions(), *description
- a_append text(),         readglobalstring(item_index, *default, maxlen)
+ a_append text(),         IIF(item_index >= 0, readglobalstring(item_index, *default, maxlen), *default)
  a_append defaults(),     *default
  a_append maxlens(),      maxlen
  a_append help(),         IIF(LEN(*helpfile), "globalstring_" + *helpfile, "")

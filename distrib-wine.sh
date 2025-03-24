@@ -65,7 +65,7 @@ echo Packaging ohrrpgce-win-installer-*.exe ...
 
 echo ------------------------------------------
 echo Packaging sdl2 debug info archive
-./ohrpackage.py win symbols distrib/ohrrpgce-symbols-win-{BUILDNAME}-{REV}-{TODAY}-{BRANCH}.7z
+./ohrpackage.py win symbols distrib/ohrrpgce-symbols-win-{BUILDNAME}-r{REV}-{TODAY}-{BRANCH}.7z
 
 echo ==========================================
 echo Building win95 executables...
@@ -84,7 +84,7 @@ echo Packaging full ohrrpgce-win-*-win95.zip ...
 
 echo ------------------------------------------
 echo Packaging win95 debug info archive
-./ohrpackage.py win symbols distrib/ohrrpgce-symbols-win-{BUILDNAME}-{REV}-{TODAY}-{BRANCH}.7z
+./ohrpackage.py win symbols distrib/ohrrpgce-symbols-win-{BUILDNAME}-r{REV}-{TODAY}-{BRANCH}.7z
 
 echo ==========================================
 echo Packaging source snapshot zip ...

@@ -809,6 +809,10 @@ define function, begin
 773,playstationcontroller,1,0 # The specified controller is a playstation-style one
 774,xboxcontroller,1,0        # The specified controller is an xbox-style one
 775,nintendocontroller,1,0    # The specified controller is a nintendo-style one
+776,getspriteframeid,1,0      # The frame ID of the current frame of a sprite (handle)
+777,setspriteframeid,3,0,0,0  # Set frame ID and return frame number, -1 on failure (handle, frameid, exact)
+778,findspriteframeid,2,0,0   # Search for frame ID, exact match. Returns frame number or -1 (handle, frameid)
+779,spriteframegroupsize,2,0,-1 # The number of frames in a frame group (default current frame) (handle, group)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

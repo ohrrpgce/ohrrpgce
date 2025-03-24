@@ -1,0 +1,10 @@
+# Make a copy of this and customize it for your own values
+ohr_mac_dev_servers:
+  hosts:
+    # One or more IP addresses of the target Macs.
+    127.0.0.1:
+  vars:
+    # This is the user you created on the target macs
+    # You should set up an SSH key for this user so you
+    # can connect via ssh without a password
+    ansible_user: ohrmacdev

@@ -435,7 +435,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
     RefreshSliceScreenPos buyst.price_sl
     'Enable wrapping, which calculates the price_sl height
     ChangeTextSlice buyst.price_sl, , , , YES
-    buyst.price_box->Height = 8 + buyst.price_sl->Height
+    buyst.price_box->Height = 6 + buyst.price_sl->Height
    END IF
   ELSE
    buyst.price_box->Visible = NO
@@ -683,7 +683,7 @@ SUB buystuff_refresh_menu (buyst as ShopBuyState, menu as MenuDef, st as MenuSta
   .anchorhoriz = alignLeft
   .anchorvert = alignTop
   .offset.x = -155
-  .offset.y = -95
+  .offset.y = -96
   .bordersize = -2
   .min_chars = 16
   .max_chars = 16

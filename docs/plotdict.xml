@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="jocoserious" datecode="2025-02-20">
+<plotscript version="wip" datecode="2025-03-20">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -1621,7 +1621,15 @@ walk hero(who, hero direction(hero), 0)</example>
 		<command id="setheroframe">
 			<canon>set hero frame (who, frame)</canon>
 			<shortname>set hero frame</shortname>
-			<description>Sets the walking frame of the specified hero to 0 or 1. The hero is specified by their rank in the walkabout party, 0-3</description>
+			<description>
+				Sets the walking frame of the specified hero.
+				<lb/>
+				This is the number of the walkabout frame, starting from 0,
+				in the group of frames for the hero's current facing direction.
+				If the walkabout set has two frames per direction, this should be 0 or 1.
+				<lb/>
+				The hero is specified by their rank in the walkabout party, 0-3.
+			</description>
 			<seealso>
 				<ref>heroframe</ref>
 			</seealso>
@@ -1629,7 +1637,14 @@ walk hero(who, hero direction(hero), 0)</example>
 		<command id="heroframe">
 			<canon>hero frame (who)</canon>
 			<shortname>hero frame</shortname>
-			<description>Returns the walking frame (0 or 1) of the specified hero. The hero is specified by their rank in the walkabout party, 0-3</description>
+			<description>
+				Returns the walking frame of the specified hero; see <ref>setheroframe</ref>.
+				The hero is specified by their rank in the walkabout party, 0-3.
+				<note>
+					The number returned can be higher than the last valid frame,
+					if you call it immediately after changing hero direction or spriteset.
+				</note>
+			</description>
 		</command>
 		<command id="setheroposition">
 			<canon>set hero position (who, x, y)</canon>
@@ -2108,7 +2123,15 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 		<command id="setnpcframe">
 			<canon>set NPC frame (who, frame)</canon>
 			<shortname>set NPC frame</shortname>
-			<description>Sets the walking frame of the specified NPC to 0 or 1. You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will change.</description>
+			<description>
+				Sets the walking frame of the specified NPC to 0 or 1.
+				<lb/>
+				This is the number of the walkabout frame, starting from 0,
+				in the group of frames for the NPC's current facing direction.
+				If the walkabout set has two frames per direction, this should be 0 or 1.
+				<lb/>
+				You can use either an <ref>npcref</ref> or <ref>npcid</ref> to specify which NPC will change.
+</description>
 			<seealso>
 				<ref>npcframe</ref>
 			</seealso>
@@ -2116,7 +2139,13 @@ walk NPC(npc, NPC direction(npc), 0)</example>
 		<command id="npcframe">
 			<canon>NPC frame (who)</canon>
 			<shortname>NPC frame</shortname>
-			<description>Returns the walking frame (0 or 1) of the specified NPC.</description>
+			<description>
+				Returns the walking frame of the specified NPC. See <ref>setnpcframe</ref>.
+				<note>
+					The number returned can be higher than the last valid frame,
+					if you call it immediately after changing NPC direction or spriteset.
+				</note>
+			</description>
 		</command>
 		<command id="setnpcposition">
 			<canon>set NPC position (who, X, Y)</canon>
@@ -9953,29 +9982,107 @@ set horiz align(sl, edge:right)
 		<command id="setspriteframe">
 			<canon>set sprite frame (handle, num)</canon>
 			<shortname>set sprite frame</shortname>
-			<description>Changes the frame of sprite slice <p>handle</p> to be <p>num</p>.</description>
+			<description>
+				Changes the frame of sprite slice <p>handle</p> to <p>num</p>.
+				If the frame number is out of range, does nothing (and doesn't report an error).
+			</description>
 			<seealso>
+				<ref>setspriteframeid</ref>
 				<ref>getspriteframe</ref>
+				<ref>spriteframecount</ref>
 			</seealso>
 		</command>
+		<command id="setspriteframeid">
+			<canon>set sprite frame id (handle, id, exact)</canon>
+			<shortname>set sprite frame id</shortname>
+			<description>
+				Attempts to change the frame of sprite slice <p>handle</p> to the frame with ID <p>id</p>.
+				Returns the frame number (as returned by <ref>getspriteframe</ref>) of the frame if
+				it was found, or -1 if not.
+				<lb/>
+				<p>exact</p> is an optional arg defaulting to <tt>false</tt>.
+				If it's <tt>false</tt> and you try to switch to a missing frame ID, then the last
+				frame in the same frame group is used instead, if it exists.
+				For example, if you have a default 8 frame walkabout set
+				with frame IDs 0, 1, 100, 101, 200, 201, 300, 301 and try to switch to ID 103,
+				then ID 101 is used instead as the nearest match, and the return value is 3.
+				But if you try to switch to frame ID 400, nothing happens (returning -1).
+			</description>
+			<seealso>
+				<ref>setspriteframe</ref>
+				<ref>getspriteframeid</ref>
+				<ref>spriteframegroupsize</ref>
+			</seealso>
+		</command>
+
 		<command id="getspriteframe">
 			<canon>get sprite frame (handle)</canon>
 			<shortname>get sprite frame</shortname>
 			<description>Returns the current frame number of sprite slice <p>handle</p>.</description>
 			<seealso>
+				<ref>setspriteframe</ref>
+				<ref>getspriteframeid</ref>
 				<ref>getspritetype</ref>
 				<ref>getspritepalette</ref>
 				<ref>getspritesetnumber</ref>
 			</seealso>
 		</command>
+		<command id="getspriteframeid">
+			<canon>get sprite frame id (handle)</canon>
+			<shortname>get sprite frame id</shortname>
+			<description>Returns the current frame ID of sprite slice <p>handle</p>.</description>
+			<seealso>
+				<ref>setspriteframeid</ref>
+				<ref>getspriteframe</ref>
+			</seealso>
+		</command>
+		<command id="findspriteframeid">
+			<canon>find sprite frame id (handle, id)</canon>
+			<shortname>find sprite frame id</shortname>
+			<description>
+				Searches the frames of the spriteset of a given sprite slice <p>handle</p> for a
+				one with ID <p>id</p> and returns its frame number (which can be passed to
+				<ref>setspriteframe</ref>), or -1 if no such frame exists.
+				This searches for an exact ID match, like <ref>setspriteframeid</ref> with
+				<tt>exact = true</tt>.
+			</description>
+		</command>
+
 		<command id="spriteframecount">
 			<canon>sprite frame count (handle)</canon>
 			<shortname>sprite frame count</shortname>
 			<description>
 				Returns the total number of available frames for a given sprite slice <p>handle</p>.
-				For example a backdrop has just one frame, an attack sprite has three.
+				For example a backdrop has just one frame, a walkabout sprite has eight by default.
 			</description>
 		</command>
+		<command id="spriteframegroupsize">
+			<canon>sprite frame group size (handle, group)</canon>
+			<shortname>sprite frame group size</shortname>
+			<description>
+				Returns the number of frames in one of the frame groups of a given sprite slice <p>handle</p>.
+				The frame group of each frame is its ID divided by 100.
+				<p>group</p> is an optional argument, a group number from 0 up.
+				If it's missing (or -1), then the current frame group is used (i.e. <tt>get
+				sprite frame id (handle) / 100</tt>).
+				<lb/>
+				For example frame IDs 200 and 201 are in group 2,
+				and a walkabout sprite by default has four frame groups for the
+				directions <ref>up</ref>, <ref>right</ref>, <ref>down</ref>, <ref>left</ref>
+				(which are constants with values <tt>0, 1, 2, 3</tt>),
+				so the number of Left walking frames an NPC has is:
+				<example>sprite frame group size (get npc sprite (npc), left)</example>
+				<note>
+					Frames in the group will always have consecutive IDs, starting at
+					<tt>group * 100</tt> up to <tt>group * 100 + groupsize -- 1</tt>.
+				</note>
+				<note>
+					A frame group can be empty, e.g. a walkabout can have just a single frame,
+					ID 200 (facing Down).
+				</note>
+			</description>
+		</command>
+
 		<command id="horizflipsprite">
 			<canon>horiz flip sprite (handle, flip)</canon>
 			<shortname>horiz flip sprite</shortname>

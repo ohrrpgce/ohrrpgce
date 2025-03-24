@@ -1486,6 +1486,9 @@ class ReloadBasicTranslator(object):
                     e.message += "\n" + pyPEG.pointToError(iterator.line, e.node.start, e.node.end)
                 print("On line %d of %s:\n%s" % (iterator.lineno, filename, e))
                 sys.exit(1)
+            except:
+                print("\nInternal error on line %d of %s:" % (iterator.lineno, filename))
+                raise
 
         #header_mark.write("#define NUM_RB_FUNCS %s\n" % self.num_functions)
         header_mark.write("#define RB_FUNC_BITS_ARRAY_SZ %s\n" % ((self.num_functions // 32 + 1) * 4))

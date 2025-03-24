@@ -1,4 +1,5 @@
 Welcome to the 16-color sprite editor!
+(Yes, still only 16 colors, but change is near!)
 
 The box on the left is the drawing area. You can click here with the mouse, or use the arrow keys to move the cursor.  In the drawing area, press SPACE or left-click to draw.  Press ENTER or right-click or G (grab) to select the color under the cursor.
 
@@ -72,6 +73,11 @@ C Clone tool. This tool paints using
 
 Press backspace to horizontally flip the sprite. You can vertically flip a sprite if you rotate it, then flip it, then rotate it back, but that is kind of a pain, isn't it?
 
+Press CTRL+Left/Right to switch to the prev/next frame.
+Press CTRL+Up/Down to switch to the prev/next frame in the same
+frame group, looping around (e.g. all Right-facing walkabout frames). This is useful for drawing animations.
+NOTE: each frame has its own Undo history.
+
 Press `/~ (backtick/tilde) to toggle whether the cursor displays normally or as a single pixel.
 
 Press I to import from an external image file, overwriting the current frame.
@@ -79,6 +85,7 @@ Press I to import from an external image file, overwriting the current frame.
 Press E to export the sprite to a 16-color BMP image.
 
 CTRL+Z or clicking the UNDO button reverts an unwanted change.
+NOTE: exiting the editor throws away the undo history!
 
 CTRL+Y of clicking REDO reverses the last UNDO.
 
@@ -90,5 +97,4 @@ CTRL+T Pastes a sprite, treating color 0 as transparent.
 
 ALT+C Copies the 16-color palette.
 
-ALT+V Pastes a copy of the 16-color
-      palette.
+ALT+V Pastes a copy of the 16-color palette.

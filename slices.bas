@@ -459,8 +459,9 @@ FUNCTION SliceLookupCodename (byval code as integer, use_default as bool = YES) 
   CASE SL_EDITOR_SSED_SET_INFO: RETURN "editor ssed set info"
   CASE SL_EDITOR_SSED_SET: RETURN "editor ssed set"
   CASE SL_EDITOR_SSED_PALETTE_ROOT: RETURN "editor ssed palette root"
-  CASE SL_EDITOR_SSED_INFO_TEXT_RIGHT: RETURN "editor ssed info text right"
+  CASE SL_EDITOR_SSED_TOOLTIP_TEXT: RETURN "editor ssed tooltip text"
   CASE SL_EDITOR_SSED_CAPTION_TEXT: RETURN "editor ssed caption text"
+  CASE SL_EDITOR_SSED_FRAME_SEPARATOR_TEMPL: RETURN "editor ssed frame separator templ"
   CASE SL_EDITOR_ENEMY_SPRITE: RETURN "editor enemy sprite"
   CASE SL_ROOT: RETURN "root"
   CASE SL_TEXTBOX_TEXT: RETURN "textbox text"
@@ -2544,10 +2545,18 @@ Sub SpriteSliceUpdate(sl as Slice ptr)
  end with
 end sub
 
-Function SpriteSliceData.get_numframes(sl as Slice ptr) as integer
+Function SpriteSliceData.get_num_frames(sl as Slice ptr) as integer
  if this.loaded = NO then LoadSpriteSliceImage sl
  'Use original_img because it has the full set of frames, if scaled=YES then .img.sprite is just one frame
  return this.original_img->arraylen
+end function
+
+'If group = -1, returns num frames in current group
+Function SpriteSliceData.get_num_frames_in_group(sl as Slice ptr, group as integer = -1) as integer
+ if this.loaded = NO then LoadSpriteSliceImage sl
+ if group < 0 then group = this.frame \ 100
+ 'Use original_img because it has the full set of frames, if scaled=YES then .img.sprite is just one frame
+ return num_frames_in_group(this.original_img, group)
 end function
 
 'Public. Far more efficient than ChangeSpriteSlice
@@ -2579,6 +2588,7 @@ Function SpriteSliceData.set_frameid(sl as Slice ptr, frameid as integer, exact 
  return frameidx
 end function
 
+'Returns frame index, or -1 if not found
 Function SpriteSliceData.find_frameid(sl as Slice ptr, frameid as integer, exact as bool = NO) as integer
  if this.loaded = NO then LoadSpriteSliceImage sl
  'Use original_img in case scaled=YES, as above
@@ -4050,11 +4060,11 @@ end sub
 Sub AdvanceSlice(byval s as Slice ptr)
  if s = 0 then debug "AdvanceSlice null ptr": exit sub
  if s->Paused = NO andalso ShouldSkipSlice(s) = NO then
-  SeekSliceTarg s
-  ApplySliceVelocity s
   if s->AnimState then
    s->AnimState->animate
   end if
+  SeekSliceTarg s
+  ApplySliceVelocity s
   'advance the slice's children
   dim ch as Slice ptr = s->FirstChild
   do while ch <> 0
@@ -4713,13 +4723,20 @@ end function
 
 'A variant on CloneSliceTree which is intended to be used on Template slices already
 'in a slice tree, for instantiating them, but doesn't need to be.
+'The cloned slice is placed before the template and any adjacent template siblings it has,
+'so you can create a set of clones which end up in the order you cloned them.
 Function CloneTemplate(byval templatesl as Slice ptr) as Slice ptr
  dim sl as Slice ptr
  sl = CloneSliceTree(templatesl)
+ BUG_IF(sl = NULL, "unclonable", NULL)
  sl->Template = NO  'Descendents which are Templates stay that way
  if templatesl->Parent then
-  'Keep the position amongst its siblings
-  InsertSliceBefore templatesl, sl
+  'Move before the group of templates
+  var insertbefore = templatesl
+  while insertbefore->PrevSibling <> NULL andalso insertbefore->PrevSibling->Template
+   insertbefore = insertbefore->PrevSibling
+  wend
+  InsertSliceBefore insertbefore, sl
  end if
  return sl
 end function
