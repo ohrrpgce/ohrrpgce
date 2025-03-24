@@ -152,7 +152,20 @@ SUB set_walkabout_frame (byval cont as Slice Ptr, byval direction as DirNum, byv
   sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, cont)
   BUG_IF(sprsl = NULL, "missing sprite component")
   IF sprsl->SliceType = slSprite THEN
-   sprsl->SpriteData->set_frameid sprsl, direction * 100 + frame
+   DIM frame_id as integer = direction * 100 + frame ' Normal case for walkabouts
+   WITH *sprsl->SpriteData
+    IF prefbit(61) = NO ANDALSO .spritetype = sprTypeHero THEN
+     'Walktall backcompat special case, convert walkabout dir and frame into battle hero id
+     SELECT CASE direction
+      'No special case for up and right, those will map correctly by default
+      CASE dirDown
+       frame_id = IIF(frame = 0, 200, 300) 'casting/hurt
+      CASE dirLeft
+       frame_id = IIF(frame = 0, 400, 500) 'weak/dead
+     END SELECT
+    END IF
+   END WITH
+   sprsl->SpriteData->set_frameid sprsl, frame_id
   END IF
  END IF
 END SUB

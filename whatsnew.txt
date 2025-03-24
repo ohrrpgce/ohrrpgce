@@ -18,6 +18,8 @@ March ?? 2025 [Jocoserious+1]
     * Update spriteset copy/pasting and full-set drawing to support adding/
       deleting frames (without shredding the spriteset) [Ralph]
     * The Shop Stuff editor broke if "Toplevel Thingbrowsers" was off [Ralph]
+    * Fix walking animations for old games that used the "walktall" scripts
+      Also added a backcompat bit to turn of this special case [James]
 
 
 February 20 2025 [Jocoserious]

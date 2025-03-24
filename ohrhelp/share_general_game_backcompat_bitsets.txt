@@ -40,3 +40,4 @@ In newly created games you normally wouldn't change any of these bitsets. When s
 
 "Use old direction key tiebreaking" is turned on automatically to keep the "fake parallax" script, and other uses of the "hero will move" script working in existing games by disabling the improved handling in Ichorescent when you press multiple direction keys at once. It's turned on automatically if you have a script called "trying to move direction".
 
+"Maintain backcompat for old walktall script" This means that when hero battle sprites are loaded to replace walkabout battle sprites by a script, the sprites will animate as if they are simple walkabouts, ignoring newer animation features. This is needed for compatibility with older games that used "walktall" scripts. Newer games can resize the real walkabout sprites to any size they want, so this is not needed for them.
