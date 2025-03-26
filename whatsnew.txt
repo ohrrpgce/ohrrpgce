@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-March ?? 2025 [Jocoserious+1]
+March 29 2025 [Jocoserious+1]
 
   *** New Features
     * Ctrl+Left/Right/Up/Down in the sprite editor switches between frames

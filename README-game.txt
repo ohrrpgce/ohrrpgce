@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Game Player (2025-02-20 jocoserious version)
+ O.H.R.RPG.C.E Game Player (2025-03-29 jocoserious+1 version)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
