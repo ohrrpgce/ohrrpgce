@@ -2711,15 +2711,18 @@ FUNCTION should_victory_advance(byref bat as BattleState) as bool
  RETURN NO
 END FUNCTION
 
+SUB draw_victory_box(numlines as integer = 4, page as integer)
+ centerfuz 160, 10 + 5 * numlines, 280, 10 + 10 * numlines, 1, page
+END SUB
+
 SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as integer)
  DIM tempstr as string
  WITH bat.vic
-  IF .box THEN centerfuz 160, 30, 280, 50, 1, page
   .display_ticks += 1
   SELECT CASE .state
    CASE vicGOLDEXP
     '--print acquired gold and experience
-    IF bat.rew.plunder > 0 OR bat.rew.exper > 0 THEN .box = YES: centerfuz 160, 30, 280, 50, 1, page
+    IF bat.rew.plunder > 0 OR bat.rew.exper > 0 THEN draw_victory_box 4, page
     IF bat.rew.plunder > 0 THEN
      tempstr = .gold_caption & " " & price_string(bat.rew.plunder) & "!"
      edgeprint tempstr, pCentered, 16, uilook(uiText), page
@@ -2739,9 +2742,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
      IF gam.hero(i).lev_gain <> 0 THEN numlevelled += 1
     NEXT
     IF numlevelled THEN
-     numlevelled = large(numlevelled, 4)
-     centerfuz 160, 10 + 5 * numlevelled, 280, 10 + 10 * numlevelled, 1, page
-     .box = NO
+     draw_victory_box large(numlevelled, 4), page
     END IF
     FOR i as integer = 0 TO UBOUND(gam.hero)
      SELECT CASE gam.hero(i).lev_gain
@@ -2774,7 +2775,6 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
        .display_ticks = 0
        .item_name = ""
        .found_index = 0
-       .box = NO
        EXIT DO
       END IF
       IF readbit(gam.hero(.learnwho).learnmask(), 0, .learnlist * 24 + .learnslot) THEN
@@ -2783,7 +2783,6 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
        loadattackdata learn_attack, gam.hero(.learnwho).spells(.learnlist, .learnslot) - 1
        .item_name = gam.hero(.learnwho).name + .learned_caption + learn_attack.name
        .showlearn = YES
-       .box = YES
        IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1
        EXIT DO
       END IF
@@ -2792,6 +2791,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
      IF should_victory_advance(bat) THEN
       .showlearn = NO ' hide the display (which causes us to search for the next learned spell)
      END IF
+     draw_victory_box 4, page
      edgeprint .item_name, pCenteredLeft, 22, uilook(uiText), page
     END IF
    CASE vicITEMS
@@ -2817,7 +2817,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
     ELSE
      tempstr = .plural_item_caption & " " & pickedup.num & " " & .item_name
     END IF
-    IF LEN(tempstr) THEN centerfuz 160, 30, 280, 50, 1, page
+    draw_victory_box 4, page
     edgeprint tempstr, pCenteredLeft, 22, uilook(uiText), page
     '--check for a keypress
     IF should_victory_advance(bat) THEN
@@ -2920,7 +2920,6 @@ SUB reset_victory_state (byref vic as VictoryState)
  'This could become a constructor for VictoryState when we support the -lang fb dialect
  WITH vic
   .state = 0
-  .box = NO
   .showlearn = NO
   .learnwho = 0
   .learnlist = 0

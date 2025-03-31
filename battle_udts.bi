@@ -234,7 +234,6 @@ END ENUM
 'This type stores the visual state of the victory display
 TYPE VictoryState
  state as VictoryStateEnum
- box as integer   'NO when not displaying a box, YES when displaying a box
  showlearn as integer 'NO when not showing spell learning, YES when already showing a learned spell
  learnwho as integer 'battle slot of hero currently displaying learned spells
  learnlist as integer 'spell list of hero currently displaying learned spells
