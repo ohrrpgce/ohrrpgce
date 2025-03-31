@@ -2741,7 +2741,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
     IF numlevelled THEN
      numlevelled = large(numlevelled, 4)
      centerfuz 160, 10 + 5 * numlevelled, 280, 10 + 10 * numlevelled, 1, page
-     .box = YES
+     .box = NO
     END IF
     FOR i as integer = 0 TO UBOUND(gam.hero)
      SELECT CASE gam.hero(i).lev_gain
