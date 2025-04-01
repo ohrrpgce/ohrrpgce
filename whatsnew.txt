@@ -1,5 +1,19 @@
 WHAT IS NEW?
 
+??? ?? 2025 [Kaleidophone]
+
+  *** New Features
+
+   * Plotscripting Features
+    * "hero is locked" [Ralph]
+
+  *** Changes
+
+  *** Bugfixes
+
+  *** Stuff Only Developers Will Notice
+
+
 March ?? 2025 [Jocoserious+1]
 
   *** New Features
@@ -7,7 +21,7 @@ March ?? 2025 [Jocoserious+1]
       (in the whole spriteset or frame group), without losing undo [Ralph]
     * The Spriteset browser actually shows frame groups [Ralph]
 
-  ** Plotscripting Features
+   * Plotscripting Features
     * "set hero frame" and "set npc frame" support more than 2 frames [Ralph]
     * "get sprite frameid", "set sprite frameid", "find sprite frameid",
       "sprite frame group size" [Ralph]

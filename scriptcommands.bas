@@ -5384,6 +5384,9 @@ SUB script_commands(byval cmdid as integer)
   IF sl THEN
    scriptret = sl->SpriteData->get_num_frames_in_group(sl, retvals(1))
   END IF
+ CASE 780 '--hero is locked
+  DIM hero_slot as integer = findhero(retvals(0), , serrWarn)
+  IF hero_slot > -1 THEN scriptret = IIF(gam.hero(hero_slot).locked, 1, 0)
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

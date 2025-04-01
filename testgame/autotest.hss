@@ -661,6 +661,16 @@ script, hero party management tests, begin
   assert(find hero(hero:Kitt) >= 4)
   swap out hero(hero by slot(0)) # swap out frumpy
   assert(hero by slot(0) == -1)
+  # Locking
+  lock hero(hero:Frumpy)
+  assert(hero is locked(hero:Frumpy) == true)
+  # ...check locking doesn't prevent scripted swapping
+  swap in hero(hero:Frumpy)
+  assert(find hero(hero:Frumpy) < 4)
+  swap out hero(hero:Frumpy)
+  assert(find hero(hero:Frumpy) >= 4)
+  unlock hero(hero:Frumpy)
+  assert(hero is locked(hero:Frumpy) == false)
   # restore numeric order
   add hero(hero:Freki) # Freki
   assert(hero by slot(0) == hero:Freki)
@@ -971,6 +981,7 @@ end
 ## Party management
 #lock hero (who)
 #unlock hero (who)
+#hero is locked (who)
 
 script, hero caterpillar tests, begin
   variable(i)

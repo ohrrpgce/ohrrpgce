@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-03-20">
+<plotscript version="wip" datecode="2025-04-01">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -237,30 +237,32 @@ same level.)
 				</note>
 			</description>
 			<example># example of a simple script
-plotscript,my first script,begin
+plotscript, my first script, begin
 	# commands go here
 end</example>
-			<example># example of a script with arguments
-# (It can called with between 1 and 3 arguments.)
-plotscript,my fancy script,fe,fi=0,fo=0,begin
-	# commands go here,
-	# and they can use the aruments fe, fi, and fo
-	# that where passed to the script
+			<example># Example of a plotscript with arguments.
+# Attach this to an NPC script to run when the player activates the NPC
+plotscript, walk npc north, npc, scriptarg, begin
+	# Commands go here, and they can use the arguments npc (an NPC
+	# reference) and scriptarg (set in the NPC editor).
+
+	# E.g. walk north by "scriptarg" tiles.
+	walk npc (npc, north, scriptarg)
 end</example>
 		</command>
 		<command id="script">
-			<canon>script, name, argumentnames (statements)</canon>
+			<canon>script, name, arguments (statements)</canon>
 			<shortname>script</shortname>
 			<description>The script command contains a list of commands. Script starts with the keyword script, a comma, and then the name of the script. If there are any arguments to the script, you list their names separated by commas after the name of the script with optional default values. Then comes the text of the script. It is enclosed in <ref>begin</ref> and <ref>end</ref> statements. Scripts that are defined as script cannot be called directly from events in your game. They can only be called by name within other scripts. To make a script that can be run directly from your game, use <ref>plotscript</ref>.</description>
 			<example># example of a simple script
-script,my first script,begin
+script, my first script, begin
 	# commands go here
 end</example>
-			<example># Example of a script with arguments
-# (It can called with between 1 and 3 arguments.)
-script,my fancy script,fe,fi=0,fo=0,begin
+			<example># Example of a script with arguments: one required and two with defaults.
+# It can called with 1, 2, or 3 arguments (just fe, fe and fi, or all three).
+script, my fancy script, fe, fi=0, fo=0, begin
 	# Commands go here,
-	# and they can use the aruments fe, fi, and fo
+	# and they can use the arguments fe, fi, and fo
 	# that where passed to the script.
 end</example>
 		</command>
@@ -3326,11 +3328,25 @@ if (slot > 0) then (load from slot (slot))</example>
 			<canon>delete hero (who)</canon>
 			<shortname>delete hero</shortname>
 			<description>
-				Removes the named hero from your party. If you have more
+				Permanently deletes the named hero from your party. If you have more
 				than one copy of the hero in your party, only the first
-				one will be deleted. Use the constants defined in your
-				HSI file. They are in the form of hero:name
-				</description>
+				one will be deleted.
+				<lb/>
+				<p>who</p> is a hero ID: use a constant of form <tt>hero:name</tt>.
+				<note>
+					Deleting a hero causes the "Remove hero" global script to immediately be called, if it's set.
+					<lb/>
+					Any equipment held by the hero is lost, so use <ref>unequip</ref> first
+					if you want to keep it.
+					<lb/>
+					However, for backcompat reasons, for now, some script commands can continue
+					to be used on a party slot that contained a deleted hero and will still
+					read the old data.  It's strongly recommended you don't rely on this. You
+					should instead use <ref>swapouthero</ref> and <ref>lockhero</ref> to remove
+					a hero from the active party and hide them from the player
+					(and make sure "Swapped out and locked heroes" receive no experience from battles).
+				</note>
+			</description>
 			<seealso>
 				<ref>deleteherobyslot</ref>
 			</seealso>
@@ -3339,9 +3355,10 @@ if (slot > 0) then (load from slot (slot))</example>
 			<canon>delete hero by slot (slot)</canon>
 			<shortname>delete hero by slot</shortname>
 			<description>
-				Removes a hero from the given slot in your party.
-				Returns -1 if no hero was removed because the slot was
+				Permanently deletes the hero in the given slot in your party.
+				Returns 0 if a hero was removed, or -1 if no hero was removed because the slot was
 				already empty.
+				See <ref>deletehero</ref> for some notes about what happens.
 			</description>
 			<seealso>
 				<ref>deletehero</ref>
@@ -3350,7 +3367,13 @@ if (slot > 0) then (load from slot (slot))</example>
 		<command id="swapinhero">
 			<canon>swap in hero (who)</canon>
 			<shortname>swap in hero</shortname>
-			<description>Moves the named hero in your from your reserves to your active party. If there is no room in your active party, the hero will not be moved. Use the constants defined in your HSI file. They are in the form of hero:name</description>
+			<description>
+				Moves the named hero in your from your reserves to your active party.
+				If there is no room in your active party, the hero will not be moved.
+				This command works even if the hero is locked (see <ref>lockhero</ref>).
+				<lb/>
+				<p>who</p> is a hero ID: use a constant of form <tt>hero:name</tt>.
+			</description>
 		</command>
 		<command id="swapouthero">
 			<canon>swap out hero (who)</canon>
@@ -3360,13 +3383,37 @@ if (slot > 0) then (load from slot (slot))</example>
 		<command id="lockhero">
 			<canon>lock hero (who)</canon>
 			<shortname>lock hero</shortname>
-			<description>Locking a hero prevents the player from moving the hero on the party menu. Locked heroes in the active party cannot be moved into the reserve, and locked heroes in the reserve are completely hidden. Also prevents a hero from being moved by <ref>swapinhero</ref> or <ref>swapouthero</ref>. Use the constants defined in your HSI file. They are in the form of hero:name</description>
+			<description>
+				Locking a hero prevents the player from moving the hero to a different slot in the party ("Team"/"Order") menu.
+				Locked heroes in the active party cannot be moved into the reserve,
+				and locked heroes in the reserve are hidden in the Team menu.
+				<lb/>
+				<p>who</p> is a hero ID: use a constant of form <tt>hero:name</tt>.
+				<note>
+					Does NOT prevent a hero from being moved by <ref>swapinhero</ref> or <ref>swapouthero</ref>.
+					(Previously it was incorrectly documented that <tt>lock hero</tt> did prevent scripted swapping.)
+				</note>
+			</description>
 		</command>
 		<command id="unlockhero">
 			<canon>unlock hero (who)</canon>
 			<shortname>unlock hero</shortname>
-			<description>Reverses <ref>lockhero</ref>, and makes it possible to move a hero in and out of the active party again. Use the constants defined in your HSI file. They are in the form of hero:name</description>
+			<description>
+				Undoes <ref>lockhero</ref>, and makes it possible to move a hero in and out of the active party again or change their slot.
+				<lb/>
+				<p>who</p> is a hero ID: use a constant of form <tt>hero:name</tt>.
+			</description>
 		</command>
+		<command id="heroislocked">
+			<canon>hero is locked (who)</canon>
+			<shortname>hero is locked</shortname>
+			<description>
+				Returns <tt>true</tt> if the hero is locked out of the active party (see <ref>lockhero</ref>).
+				<lb/>
+				<p>who</p> is a hero ID: use a constant of form <tt>hero:name</tt>.
+			</description>
+		</command>
+
 		<command id="swapbyname">
 			<canon>swap by name (name,name)</canon>
 			<shortname>swap by name</shortname>

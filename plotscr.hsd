@@ -813,6 +813,7 @@ define function, begin
 777,setspriteframeid,3,0,0,0  # Set frame ID and return frame number, -1 on failure (handle, frameid, exact)
 778,findspriteframeid,2,0,0   # Search for frame ID, exact match. Returns frame number or -1 (handle, frameid)
 779,spriteframegroupsize,2,0,-1 # The number of frames in a frame group (default current frame) (handle, group)
+780,heroislocked,1,0          # Whether hero locked from being swapped out
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

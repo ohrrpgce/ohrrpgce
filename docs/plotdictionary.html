@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-03-20)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-04-01)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1059,6 +1059,7 @@ function toggleContent(target) {
 		<a href="#about-herodirection" class="ref">hero direction (who)</a><br>
 		<a href="#about-heroframe" class="ref">hero frame (who)</a><br>
 		<a href="#about-heroischasing" class="ref">hero is chasing (who)</a><br>
+		<a href="#about-heroislocked" class="ref">hero is locked (who)</a><br>
 		<a href="#about-heroiswalking" class="ref">hero is walking (who)</a><br>
 		<a href="#about-herolevelled" class="ref">hero levelled (who)</a><br>
 		<a href="#about-heropixelx" class="ref">hero pixel X (who)</a><br>
@@ -1360,7 +1361,7 @@ function toggleContent(target) {
 		<a href="#about-savescreenshot" class="ref">save screenshot</a><br>
 		<a href="#about-saveslotused" class="ref">save slot used (slot)</a><br>
 		<a href="#about-scancode" class="ref">Scancodes</a><br>
-		<a href="#about-script" class="ref">script, name, argumentnames (statements)</a><br>
+		<a href="#about-script" class="ref">script, name, arguments (statements)</a><br>
 		<a href="#about-scripterror" class="ref">script error (string id)</a><br>
 		<a href="#about-scriptid" class="ref">Script IDs</a><br>
 		<a href="#about-scriptlayer" class="ref">script layer</a><br>
@@ -1744,7 +1745,7 @@ function toggleContent(target) {
 <div class="select-content-shown" id="Declarations-index">
 <button onclick="toggleContent(this);"><span class="content-shown">Hide index</span><span class="content-hidden">Show index</span></button><ul><div class="content-shown">
 		<a href="#about-plotscript" class="ref">plotscript, name, argumentnames (statements)</a><br>
-		<a href="#about-script" class="ref">script, name, argumentnames (statements)</a><br>
+		<a href="#about-script" class="ref">script, name, arguments (statements)</a><br>
 		<a href="#about-subscript" class="ref">subscript, name, argumentnames (statements)</a><br>
 		<a href="#about-globalvariable" class="ref">global variable (id,name)</a><br>
 		<a href="#about-variable" class="ref">variable (name)</a><br>
@@ -1781,32 +1782,34 @@ function toggleContent(target) {
 			
 			
 			<pre># example of a simple script
-plotscript,my first script,begin
+plotscript, my first script, begin
 	# commands go here
-end</pre><pre># example of a script with arguments
-# (It can called with between 1 and 3 arguments.)
-plotscript,my fancy script,fe,fi=0,fo=0,begin
-	# commands go here,
-	# and they can use the aruments fe, fi, and fo
-	# that where passed to the script
+end</pre><pre># Example of a plotscript with arguments.
+# Attach this to an NPC script to run when the player activates the NPC
+plotscript, walk npc north, npc, scriptarg, begin
+	# Commands go here, and they can use the arguments npc (an NPC
+	# reference) and scriptarg (set in the NPC editor).
+
+	# E.g. walk north by "scriptarg" tiles.
+	walk npc (npc, north, scriptarg)
 end</pre>
 			
 		</p>
 </div>
 		<div class="command">
 			<a name="about-script"></a>
-				<h4>script, name, argumentnames (statements)</h4>
+				<h4>script, name, arguments (statements)</h4>
 <p>
 			The script command contains a list of commands. Script starts with the keyword script, a comma, and then the name of the script. If there are any arguments to the script, you list their names separated by commas after the name of the script with optional default values. Then comes the text of the script. It is enclosed in <a href="#about-begin" class="ref">begin</a> and <a href="#about-end" class="ref">end</a> statements. Scripts that are defined as script cannot be called directly from events in your game. They can only be called by name within other scripts. To make a script that can be run directly from your game, use <a href="#about-plotscript" class="ref">plotscript</a>.
 			
 			<pre># example of a simple script
-script,my first script,begin
+script, my first script, begin
 	# commands go here
-end</pre><pre># Example of a script with arguments
-# (It can called with between 1 and 3 arguments.)
-script,my fancy script,fe,fi=0,fo=0,begin
+end</pre><pre># Example of a script with arguments: one required and two with defaults.
+# It can called with 1, 2, or 3 arguments (just fe, fe and fi, or all three).
+script, my fancy script, fe, fi=0, fo=0, begin
 	# Commands go here,
-	# and they can use the aruments fe, fi, and fo
+	# and they can use the arguments fe, fi, and fo
 	# that where passed to the script.
 end</pre>
 			
@@ -6469,6 +6472,7 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 		<a href="#about-swapouthero" class="ref">swap out hero (who)</a><br>
 		<a href="#about-lockhero" class="ref">lock hero (who)</a><br>
 		<a href="#about-unlockhero" class="ref">unlock hero (who)</a><br>
+		<a href="#about-heroislocked" class="ref">hero is locked (who)</a><br>
 		<a href="#about-swapbyname" class="ref">swap by name (name,name)</a><br>
 		<a href="#about-swapbyposition" class="ref">swap by position (slot1, slot2)</a><br>
 </ul>
@@ -6571,11 +6575,26 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 				<h4>delete hero (who)</h4>
 <p>
 			
-				Removes the named hero from your party. If you have more
+				Permanently deletes the named hero from your party. If you have more
 				than one copy of the hero in your party, only the first
-				one will be deleted. Use the constants defined in your
-				HSI file. They are in the form of hero:name
-				
+				one will be deleted.
+				<br>
+				<span class="param">who</span> is a hero ID: use a constant of form <span class="code">hero:name</span>.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Deleting a hero causes the "Remove hero" global script to immediately be called, if it's set.
+					<br>
+					Any equipment held by the hero is lost, so use <a href="#about-unequip" class="ref">unequip</a> first
+					if you want to keep it.
+					<br>
+					However, for backcompat reasons, for now, some script commands can continue
+					to be used on a party slot that contained a deleted hero and will still
+					read the old data.  It's strongly recommended you don't rely on this. You
+					should instead use <a href="#about-swapouthero" class="ref">swap out hero</a> and <a href="#about-lockhero" class="ref">lock hero</a> to remove
+					a hero from the active party and hide them from the player
+					(and make sure "Swapped out and locked heroes" receive no experience from battles).
+				</div>
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-deleteherobyslot" class="ref">delete hero by slot</a></li></ul>
@@ -6587,9 +6606,10 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 				<h4>delete hero by slot (slot)</h4>
 <p>
 			
-				Removes a hero from the given slot in your party.
-				Returns -1 if no hero was removed because the slot was
+				Permanently deletes the hero in the given slot in your party.
+				Returns 0 if a hero was removed, or -1 if no hero was removed because the slot was
 				already empty.
+				See <a href="#about-deletehero" class="ref">delete hero</a> for some notes about what happens.
 			
 			
 			
@@ -6601,7 +6621,13 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 			<a name="about-swapinhero"></a>
 				<h4>swap in hero (who)</h4>
 <p>
-			Moves the named hero in your from your reserves to your active party. If there is no room in your active party, the hero will not be moved. Use the constants defined in your HSI file. They are in the form of hero:name
+			
+				Moves the named hero in your from your reserves to your active party.
+				If there is no room in your active party, the hero will not be moved.
+				This command works even if the hero is locked (see <a href="#about-lockhero" class="ref">lock hero</a>).
+				<br>
+				<span class="param">who</span> is a hero ID: use a constant of form <span class="code">hero:name</span>.
+			
 			
 			
 			
@@ -6621,7 +6647,18 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 			<a name="about-lockhero"></a>
 				<h4>lock hero (who)</h4>
 <p>
-			Locking a hero prevents the player from moving the hero on the party menu. Locked heroes in the active party cannot be moved into the reserve, and locked heroes in the reserve are completely hidden. Also prevents a hero from being moved by <a href="#about-swapinhero" class="ref">swap in hero</a> or <a href="#about-swapouthero" class="ref">swap out hero</a>. Use the constants defined in your HSI file. They are in the form of hero:name
+			
+				Locking a hero prevents the player from moving the hero to a different slot in the party ("Team"/"Order") menu.
+				Locked heroes in the active party cannot be moved into the reserve,
+				and locked heroes in the reserve are hidden in the Team menu.
+				<br>
+				<span class="param">who</span> is a hero ID: use a constant of form <span class="code">hero:name</span>.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Does NOT prevent a hero from being moved by <a href="#about-swapinhero" class="ref">swap in hero</a> or <a href="#about-swapouthero" class="ref">swap out hero</a>.
+					(Previously it was incorrectly documented that <span class="code">lock hero</span> did prevent scripted swapping.)
+				</div>
+			
 			
 			
 			
@@ -6631,7 +6668,25 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 			<a name="about-unlockhero"></a>
 				<h4>unlock hero (who)</h4>
 <p>
-			Reverses <a href="#about-lockhero" class="ref">lock hero</a>, and makes it possible to move a hero in and out of the active party again. Use the constants defined in your HSI file. They are in the form of hero:name
+			
+				Undoes <a href="#about-lockhero" class="ref">lock hero</a>, and makes it possible to move a hero in and out of the active party again or change their slot.
+				<br>
+				<span class="param">who</span> is a hero ID: use a constant of form <span class="code">hero:name</span>.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-heroislocked"></a>
+				<h4>hero is locked (who)</h4>
+<p>
+			
+				Returns <span class="code">true</span> if the hero is locked out of the active party (see <a href="#about-lockhero" class="ref">lock hero</a>).
+				<br>
+				<span class="param">who</span> is a hero ID: use a constant of form <span class="code">hero:name</span>.
+			
 			
 			
 			
@@ -23414,7 +23469,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 971 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 972 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
