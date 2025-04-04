@@ -16,6 +16,10 @@
     fbc_mac_local: fbc-1.06-darwin
     euphoria_url: https://github.com/OpenEuphoria/euphoria/releases/download/4.1.0/euphoria-4.1.0-OSX-x64-57179171dbed.tar.gz
     euphoria_local: euphoria-4.1.0-OSX.tar.gz
+    sdl2_framework_url: https://github.com/libsdl-org/SDL/releases/download/release-2.32.2/SDL2-2.32.2.dmg
+    sdl2_framework_local: SDL2.dmg
+    sdl2_mixer_framework_url: https://github.com/libsdl-org/SDL_mixer/releases/download/release-2.8.1/SDL2_mixer-2.8.1.dmg
+    sdl2_mixer_framework_local: SDL2_mixer.dmg
 
   environment:
     # Ansible won't automatically add brew's path, even if it works fine on an ssh session
@@ -30,6 +34,7 @@
       TEMP: "{{ ansible_env.HOME }}/src/ohrmac/ansible_temp"
       FBCDIR: "{{ ansible_env.HOME }}/src/ohrmac/fbcmac"
       EUDIR: "{{ ansible_env.HOME }}/src/ohrmac/euphoria"
+      FRAMEWORKSDIR: "{{ ansible_env.HOME }}/Library/Frameworks"
 
   - name: Make folders we will need later
     file:
@@ -39,7 +44,11 @@
       - "{{ TEMP }}"
       - "{{ FBCDIR }}"
       - "{{ EUDIR }}"
- 
+      - "{{ FRAMEWORKSDIR }}"
+
+  #
+  # Homebrew
+  #
   - name: Check if homebrew is available
     block:
       - name: try using homebrew in check_mode (no changes)
@@ -60,13 +69,80 @@
     homebrew:
       name:
         - gnu-tar
-        - sdl2
-        - sdl2_mixer
         - scons
         - svn
         - git-svn
       state: present
+
+  #
+  # SDL2
+  #
+  - name: Download SDL2 Framework for Mac
+    get_url:
+      url: "{{ sdl2_framework_url }}"
+      dest: "{{ TEMP }}/{{ sdl2_framework_local }}"
+
+  - name: Mount SDL2 Framework dmg file
+    command:
+      argv:
+        - "hdiutil"
+        - "attach"
+        - "{{ TEMP }}/{{ sdl2_framework_local }}"
+    register: sdl2_mount_output
   
+  - name: Extract SDL2 mount point from hdiutil output
+    # Mount point is the last whitespace separated part of the last line of output
+    set_fact:
+      SDL2_MOUNT: "{{ sdl2_mount_output.stdout_lines[-1].split()[-1] }}"
+
+  - name: Copy SDL2 framework
+    copy:
+      src: "{{ SDL2_MOUNT }}/SDL2.framework"
+      dest: "{{ FRAMEWORKSDIR }}/"
+      remote_src: yes
+
+  - name: Unmount SDL2 dmg volume
+    command:
+      argv:
+        - "umount"
+        - "{{ SDL2_MOUNT }}"
+
+  #
+  # SDL2_mixer
+  #
+  - name: Download SDL2_mixer Framework for Mac
+    get_url:
+      url: "{{ sdl2_mixer_framework_url }}"
+      dest: "{{ TEMP }}/{{ sdl2_mixer_framework_local }}"
+
+  - name: Mount SDL2_mixer Framework dmg file
+    command:
+      argv:
+        - "hdiutil"
+        - "attach"
+        - "{{ TEMP }}/{{ sdl2_mixer_framework_local }}"
+    register: sdl2_mixer_mount_output
+  
+  - name: Extract SDL2_mixer mount point from hdiutil output
+    # Mount point is the last whitespace separated part of the last line of output
+    set_fact:
+      SDL2_MIXER_MOUNT: "{{ sdl2_mixer_mount_output.stdout_lines[-1].split()[-1] }}"
+
+  - name: Copy SDL2_mixer framework
+    copy:
+      src: "{{ SDL2_MIXER_MOUNT }}/SDL2_mixer.framework"
+      dest: "{{ FRAMEWORKSDIR }}/"
+      remote_src: yes
+
+  - name: Unmount SDL2_mixer dmg volume
+    command:
+      argv:
+        - "umount"
+        - "{{ SDL2_MIXER_MOUNT }}"
+
+  #
+  # FreeBasic
+  #
   - name: Download pre-build FreeBasic for Mac
     get_url:
       url: "{{ fbc_mac_prebuilt_url }}"
