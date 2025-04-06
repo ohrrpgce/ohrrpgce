@@ -135,6 +135,8 @@ TYPE SpriteEditState
   readjust as bool
   adjustpos as XYPair
   showcolnum as integer 'Ticks remaining to show the number of selected master palette color
+  onion_enabled as bool
+  onionnum as integer
 
   'Fixed members
   previewpos as XYPair

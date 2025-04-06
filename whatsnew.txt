@@ -3,6 +3,8 @@ WHAT IS NEW?
 ??? ?? 2025 [Kaleidophone]
 
   *** New Features
+    * Press T in the sprite editor to toggle onionskin overlay. Press
+      Shift+T to change which frame. Use together with CTRL+Arrow keys [James]
 
    * Plotscripting Features
     * "hero is locked" [Ralph]
@@ -14,7 +16,7 @@ WHAT IS NEW?
   *** Stuff Only Developers Will Notice
 
 
-March ?? 2025 [Jocoserious+1]
+March 29 2025 [Jocoserious+1]
 
   *** New Features
     * Ctrl+Left/Right/Up/Down in the sprite editor switches between frames

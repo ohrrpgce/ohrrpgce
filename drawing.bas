@@ -2649,6 +2649,24 @@ END SUB
 SUB spriteedit_draw_sprite_area(ss as SpriteEditState, sprite as Frame ptr, pal as Palette16 ptr, page as integer)
  drawbox ss.area(0).x - 1, ss.area(0).y - 1, ss.area(0).w + 2, ss.area(0).h + 2, uilook(uiText), 1, page
  frame_draw sprite, pal, 4, 1, NO, page, DrawOptions(ss.zoom)
+ IF ss.onion_enabled ANDALSO ss.onionnum >= 0 ANDALSO ss.onionnum < v_len(ss.spriteset) THEN
+  '-- Draw the onion layer in two steps because we can't scale and draw transparently at once
+  DIM onion_overlay as Frame Ptr
+  DIM onion_opts as DrawOptions
+  WITH onion_opts
+   .scale = ss.zoom
+  END WITH
+  onion_overlay = frame_new(sprite->w * ss.zoom, sprite->h * ss.zoom, , YES)
+  frame_draw ss.spriteset[ss.onionnum], pal, 0, 0, YES, onion_overlay, onion_opts
+  WITH onion_opts
+   .scale = 1
+   .with_blending = YES
+   .blend_mode = blendModeAdd
+   .opacity = 0.5
+  END WITH
+  frame_draw onion_overlay, , 4, 1, YES, page, onion_opts
+  frame_unload @onion_overlay
+ END IF
  drawbox ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, uilook(uiText), 1, page
  frame_draw sprite, pal, ss.previewpos.x, ss.previewpos.y, NO, page
 END SUB
@@ -2752,7 +2770,15 @@ SUB spriteedit_display(ss as SpriteEditState)
  textcolor uilook(uiMenuItem), 0
  printstr strprintf("x=%2d y=%2d", ss.x, ss.y), 0, 190, dpage
  printstr "Tool:" & ss.toolinfo(ss.tool).name, 0, 182, dpage
- printstr ss.framename, 0, 174, dpage
+ DIM caption_line as string = ss.framename
+ IF ss.onion_enabled THEN
+  DIM onionid as integer = ss.spriteset[ss.onionnum]->frameid
+  caption_line &= " (Onionskin:" & onionid
+  DIM onionname as string = frame_name(ss.fileset, onionid)
+  IF LEN(onionname) > 0 THEN caption_line &= " " & onionname
+  caption_line &= ")"
+ END IF
+ printstr caption_line , 0, 174, dpage
  FOR i = 0 TO UBOUND(ss.toolinfo)
   spriteedit_draw_icon ss, ss.toolinfo(i).icon, ss.toolinfo(i).areanum, (ss.tool = i)
  NEXT i
@@ -3586,6 +3612,7 @@ SUB sprite_editor_initialise(byref ss as SpriteEditState)
   .mist = ss_save.mist
   .palindex = ss_save.palindex
   .hidemouse = ss_save.hidemouse
+  .onionnum = -1
 
   REDIM .undo(v_len(.spriteset) - 1)
   FOR i as integer = 0 TO UBOUND(.undo)
@@ -3831,6 +3858,17 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
   ss.showcolnum = COLORNUM_SHOW_TICKS
  END IF
  ss.palette->col(ss.palindex) = ss.curcolor
+
+ ' Transparent onionskin
+ IF keyval(scT) > 1 THEN
+  IF keyval(scShift) > 0 ORELSE keyval(scCtrl) > 0 THEN
+   ss.onion_enabled = YES
+   ss.onionnum = ss.framenum
+  ELSE
+   IF ss.onionnum = -1 THEN ss.onionnum = ss.framenum
+   ss.onion_enabled = NOT ss.onion_enabled
+  END IF
+ END IF
 
  IF keyval(scCtrl) > 0 THEN
   DIM as integer lastframe = v_len(ss.spriteset) - 1, framenum = ss.framenum, change_id = 0
