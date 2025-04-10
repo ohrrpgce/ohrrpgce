@@ -12,6 +12,7 @@ WHAT IS NEW?
   *** Changes
 
   *** Bugfixes
+    * Walkabout sets with 4 or fewer frames crashed the NPC editor [Ralph]
 
   *** Stuff Only Developers Will Notice
 

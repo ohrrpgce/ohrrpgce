@@ -11947,8 +11947,9 @@ end function
 
 
 'Find a frame in a frameset, returning frame index or -1.
-'If exact = NO, then return the nearest match (the last frame in the same frame group)
-'if the frame doesn't exist. Otherwise return -1.
+'If the frame doesn't exist:
+' exact = YES: return -1
+' exact = NO: return the nearest match: the last frame in the same frame group, or -1 if an empty group
 'frameset must be the first Frame in the frameset
 function frameid_to_frame(frameset as Frame ptr, frameid as integer, exact as bool = NO) as integer
 	dim as integer lastid = -1, lastidx = -1
