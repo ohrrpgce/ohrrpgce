@@ -1412,8 +1412,9 @@ DO
    END IF
 
    IF npc_cursor_dir = -1 THEN
-    'We don't loop through all the walkabout frames. Just loop through the 4 directions.
-    'Temporary. Could add a 'spin' animation and play that.
+    'We don't loop through all the walkabout frames. Just loop through first two frames of
+    'each of the 4 directions.
+    'Temporary kludge. Could add a 'spin' animation and play that.
     IF tog THEN
      IF st.npc_cursor_frameid MOD 100 = 1 THEN
       st.npc_cursor_frameid += 99
@@ -2772,7 +2773,7 @@ SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, includ
  npclayer = NewSliceOfType(slContainer)
  FOR i as integer = 0 TO UBOUND(st.map.npc)
   WITH st.map.npc(i)
-   IF .id <= 0 THEN CONTINUE FOR
+   IF .id <= 0 THEN CONTINUE FOR  'Shouldn't ever be negative
    DIM movetype as integer
    DIM byref npcd as NPCType = npcdef_by_pool(st, .pool, .id - 1)
    IF including_conditional = NO ANDALSO (npcd.tag1 ORELSE npcd.tag2) THEN CONTINUE FOR
@@ -2789,8 +2790,12 @@ SUB mapedit_draw_npcs(st as MapEditState, drawing_whole_map as bool = NO, includ
     'Two ticks/frame for 18fps
     DIM numframes as integer = walkabout_walk_frames(fr, .dir)
     loopvar .wtog, 0, CINT(large(0, numframes * 2 - 1))
-    frameid = 100 * .dir + .wtog \ 2
+   ELSE
+    '(.wtog is junk; it's zeroed before saving in mapedit_savemap anyway. You can't set the frame.)
+    .wtog = 0
    END IF
+
+   frameid = 100 * .dir + .wtog \ 2
 
    mapedit_create_npc_slice st, npclayer, .id - 1, .pool, fr, frameid, .pos, drawing_whole_map
   END WITH
