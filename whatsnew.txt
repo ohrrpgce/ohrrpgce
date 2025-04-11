@@ -5,6 +5,8 @@ WHAT IS NEW?
   *** New Features
     * Press T in the sprite editor to toggle onionskin overlay. Press
       Shift+T to change which frame. Use together with CTRL+Arrow keys [James]
+    * It's now possible to import spritesets with a non-default number of frames.
+      [Ralph]
 
    * Plotscripting Features
     * "hero is locked" [Ralph]

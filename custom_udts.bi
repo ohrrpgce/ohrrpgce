@@ -87,6 +87,8 @@ TYPE SpriteEditState
   high as integer
   spriteset as Frame ptr vector 'Spriteset to which .sprite belongs, converted to a vector
                                 '(Used instead of a Frame array so can do easy frame replacement)
+                                'If fullset = YES, then v_len(.spriteset) = 1
+  true_numframes as integer     'Number of frames of the actual spriteset even in fullset mode
   framenum as integer   'Frame number of .sprite within .spriteset
   default_export_filename as string
   save_callback as FnSpriteSaver   'Called to save the sprite

@@ -3578,9 +3578,11 @@ FUNCTION split_spritesheet(sheet as Frame ptr, framesize as XYPair, numframes as
 END FUNCTION
 
 'Split up a spriteset in the original import/export format.
+'Does NOT set the frameids, the caller should.
 FUNCTION spriteset_from_basic_spritesheet(sheet as Frame ptr, sprtype as SpriteType, numframes as integer) as Frame ptr
   DIM ss as Frame ptr = split_spritesheet(sheet, XY(large(1, sheet->w \ numframes), sheet->h), numframes)
-  initialise_backcompat_pt_frameids ss, sprtype
+  'Used to call this, but it doesn't support variable frame counts.
+  'initialise_backcompat_pt_frameids ss, sprtype
   RETURN ss
 END FUNCTION
 
@@ -3603,10 +3605,12 @@ END FUNCTION
 
 'fr must have a number of frames equal to the sprite_sizes(sprtype).frames default
 SUB initialise_backcompat_pt_frameids(fr as Frame ptr, sprtype as SpriteType)
-' For heroes
+  ' For heroes
   STATIC default_pt0_frameids(7) as integer = {0, 1, 100, 101, 200, 300, 400, 500}
   ' For walkabouts
   STATIC default_pt4_frameids(7) as integer = {0, 1, 100, 101, 200, 201, 300, 301}
+
+  BUG_IF(fr->arraylen <> sprite_sizes(sprtype).frames, "shouldn't have been called")
 
   IF sprtype = sprTypeHero THEN
     FOR i as integer = 0 TO 7
@@ -3617,6 +3621,7 @@ SUB initialise_backcompat_pt_frameids(fr as Frame ptr, sprtype as SpriteType)
       fr[i].frameid = default_pt4_frameids(i)
     NEXT
   END IF
+  ' Everything else has one frame group
 END SUB
 
 DIM SHARED box_border_captions(15) as zstring ptr = { _
