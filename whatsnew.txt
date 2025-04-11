@@ -17,6 +17,8 @@ WHAT IS NEW?
     * Walkabout sets with 4 or fewer frames crashed the NPC editor [Ralph]
     * NPCs set to Stand Still or speed 0 were drawn always facing Up in the
       map editor [Ralph]
+    * Importing a spriteset "from custom layout" cut out frames using the
+      default frame size rather than the specified one [Ralph]
 
   *** Stuff Only Developers Will Notice
 
