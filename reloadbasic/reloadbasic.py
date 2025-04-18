@@ -62,16 +62,16 @@ def genericToken():         return re.compile(r"[a-zA-Z0-9._]+|[-+=<>\\@&#$^*+[\
 def nodeIndex():            return "[", CHECKPNT, "$", identifier, "]" 
 
 # Optimisation: check for occurrence of ." before attempting to match
-def nodeSpec():             return (AND(re.compile('.*\.\s*"')),
+def nodeSpec():             return (AND(re.compile(r'.*\.\s*"')),
                                     dottedIdentifier, PLUS, (".", string, QUES, nodeIndex),
 #                                    STAR, (".", CHECKPNT, re.compile('|'.join(attributes)),
-                                    STAR, (".", CHECKPNT, re.compile('\w+'),
+                                    STAR, (".", CHECKPNT, re.compile(r'\w+'),
                                            QUES, ("(", CHECKPNT, expression, ")")))
 
 # Does not support nodeIndex, otherwise similar to nodeSpec. Parse ..attr as . followed by .attr
-def nodeZeroSpec():         return (AND(re.compile('.*\.\.')),
+def nodeZeroSpec():         return (AND(re.compile(r'.*\.\.')),
                                     dottedIdentifier, AND(".."), ".",
-                                    PLUS, (".", CHECKPNT, re.compile('\w+'),
+                                    PLUS, (".", CHECKPNT, re.compile(r'\w+'),
                                            QUES, ("(", CHECKPNT, expression, ")")))
 
 #def simpleNodeSpec():      return [nodeSpec, identifier]
@@ -81,7 +81,7 @@ def nodeZeroSpec():         return (AND(re.compile('.*\.\.')),
 # Strings are still parsed, to make sure they don't confuse the parser.
 # Optimisation: check for occurrence of ." or .. or READNODE before doing (very!) expensive splitting into tokens,
 # otherwise gulp the whole line.
-def tokenList():            return [(AND(re.compile('.*(\.\.|\.\s*"|readnode)', re.I)),
+def tokenList():            return [(AND(re.compile(r'.*(\.\.|\.\s*"|readnode)', re.I)),
                                        [nodeSpecAssignment,
                                         (STAR, [string, nodeSpec, nodeZeroSpec, readNodeExit, readNodeContinue,
                                                 IGNORE('identifier', r'[a-zA-Z0-9._]+|[^\s"]')])]),
@@ -152,7 +152,7 @@ def declareNodeptr():       return "declare", "as", CHECKPNT, ["nodeptr", ("node
 # Grammar for any line of RB source. Matches empty lines too (including those with comments)
 # The AND element requires the regex to match before most patterns are checked.
 # Ignore DIM lines which definitely don't declare Node ptrs
-def lineGrammar():          return [(AND(re.compile('(end\s+)?(dim.*node|declare +as|readnode|withnode|loadarray|private|local|static|sub|function|constructor|destructor|property|operator|starttest|endtest|#)', re.I)),
+def lineGrammar():          return [(AND(re.compile(r'(end\s+)?(dim.*node|declare +as|readnode|withnode|loadarray|private|local|static|sub|function|constructor|destructor|property|operator|starttest|endtest|#)', re.I)),
                                      [dimStatement, readNode, readNodeEnd, withNode, withNodeEnd,
                                       functionStart, functionEnd, subStart, subEnd, loadArray, directive, declareNodeptr]),
                                     tokenList]
@@ -180,7 +180,7 @@ def source_lines_iter(lines):
     # BUG: this is a kludge, will erroneously match characters inside
     # strings or comments like  print "_'"  or  'comment_
     # So it would be better to implement this in pyPEG's whitespace stripping code.
-    continuation = re.compile("(?<=\W)_\s*(('.*)|/'.*'/\s*)?$")
+    continuation = re.compile(r"(?<=\W)_\s*(('.*)|/'.*'/\s*)?$")
     for i, line in enumerate(lines):
         if lineno == None:
             lineno = i + 1   # Lines counted from 1
@@ -573,7 +573,7 @@ class NodeSpec(object):
 ########################### RB to FB translation ###############################
 
 
-whitespace = re.compile("\s*")
+whitespace = re.compile(r"\s*")
 
 def indent(text, indentwith):
     """
