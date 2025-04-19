@@ -377,7 +377,7 @@ class DelayedFileWriter(FileMarker):
             self.file.write(line)
         # For no reason I can comprehend, this .tell() call fixes a bug where
         # reloadbasic fails to write output for just the file achievements.bas
-        # under python 3.12.2 on MacOS Sequoia (~Eerie theremin music~)
+        # under python 3.13.2 on MacOS Sequoia (~Eerie theremin music~)
         dummy = self.file.tell()
 
 
