@@ -1299,13 +1299,13 @@ elif mac:
         if env.WhereIs('sdl-config'):
             commonenv.ParseConfig('sdl-config --cflags')
         else:
-            commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL.framework/Headers"]
+            commonenv['CFLAGS'] += ["-I/Library/Frameworks/SDL.framework/Headers", "-I" + FRAMEWORKS_PATH + "/SDL.framework/Headers"]
     if 'sdl2' in gfx:
         # SDL2 does not have SDLmain
         if env.WhereIs('sdl2-config'):
             commonenv.ParseConfig('sdl2-config --cflags')
         else:
-            commonenv['CFLAGS'] += ["-I", "/Library/Frameworks/SDL2.framework/Headers", "-I", FRAMEWORKS_PATH + "/SDL2.framework/Headers"]
+            commonenv['CFLAGS'] += ["-I/Library/Frameworks/SDL2.framework/Headers", "-I" + FRAMEWORKS_PATH + "/SDL2.framework/Headers"]
     # if 'sdl' in music:
     #     # libvorbisfile is linked into SDL_mixer.framework which has been compiled to export its symbols
     #     commonenv['FBFLAGS'] += ['-d', 'HAVE_VORBISFILE']
