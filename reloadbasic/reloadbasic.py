@@ -362,7 +362,7 @@ class FileMarker(object):
 class DelayedFileWriter(FileMarker):
     """
     A wrapper around a file, allowing inserting lines later between already written lines.
-    flush() must be called to actually write.
+    close() must be called to actually write.
     """
 
     def __init__(self, file):
@@ -371,14 +371,11 @@ class DelayedFileWriter(FileMarker):
         self.parent = self
         self.mark = [0]
 
-    def flush(self):
+    def close(self):
         self.lines.sort()
         for index, line in self.lines:
             self.file.write(line)
-        # For no reason I can comprehend, this .tell() call fixes a bug where
-        # reloadbasic fails to write output for just the file achievements.bas
-        # under python 3.13.2 on MacOS Sequoia (~Eerie theremin music~)
-        dummy = self.file.tell()
+        self.file.close()
 
 
 ################################# NodeSpecs ####################################
@@ -1498,7 +1495,7 @@ class ReloadBasicTranslator(object):
         header_mark.write("#define RB_FUNC_BITS_ARRAY_SZ %s\n" % ((self.num_functions // 32 + 1) * 4))
         header_mark.write("#define RB_NUM_NAMES %s\n" % (len(self.nodenames)))
         header_mark.write("#define INVALID_INDEX %s\n" % (len(self.nodenames) + 1))
-        outfile.flush()
+        outfile.close()
 
 
 ################################################################################
