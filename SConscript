@@ -1423,7 +1423,7 @@ base_modules +=   ['util.bas',
                    'miscc.c',
                    'fb/error.c',
                    'lib/sha1.c',
-                   'lib/lodepng.c',  # Only for lodepng_gzip.c
+                   'lib/lodepng.c',
                    'lib/lodepng_gzip.c',  # Only for filetest
                    'filelayer.cpp',
                    'globals.bas',
