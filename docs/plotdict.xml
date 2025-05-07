@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-04-01">
+<plotscript version="wip" datecode="2025-05-08">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -3589,6 +3589,16 @@ end</example>
 				<ref>getinventorysize</ref>
 			</seealso>
 		</command>
+		<command id="sortinventory">
+			<canon>sort inventory</canon>
+			<shortname>sort inventory</shortname>
+			<description>
+				Sorts all inventory items, like the SORT menu item in the Inventory menu.
+				Moves all items to the top of the inventory and reorders them according to the
+				"Inventory autosort" setting in General Game Settings.
+			</description>
+		</command>
+
 		</section>		<!--Inventory-->
 
 		<section title="Equipment">

@@ -44,7 +44,7 @@
 	<!ELEMENT b            (#PCDATA)>
 ]>
 
-<plotscript version="wip" datecode="2025-04-01">
+<plotscript version="wip" datecode="2025-05-08">
 	<title>
 		Additional Platform Script Commands
 	</title>

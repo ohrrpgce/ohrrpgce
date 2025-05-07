@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-04-01)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-05-08)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1597,6 +1597,7 @@ function toggleContent(target) {
 		<a href="#about-song:sameasmap" class="ref">song: same as map</a><br>
 		<a href="#about-song:silence" class="ref">song: silence</a><br>
 		<a href="#about-sortchildren" class="ref">sort children (handle, wipe)</a><br>
+		<a href="#about-sortinventory" class="ref">sort inventory</a><br>
 		<a href="#about-soundisplaying" class="ref">sound is playing (num)</a><br>
 		<a href="#about-south" class="ref">south</a><br>
 		<a href="#about-southwall" class="ref">south wall</a><br>
@@ -6817,6 +6818,7 @@ end</pre>
 		<a href="#about-inventory" class="ref">inventory (item)</a><br>
 		<a href="#about-getinventorysize" class="ref">get inventory size</a><br>
 		<a href="#about-setinventorysize" class="ref">set inventory size (new size)</a><br>
+		<a href="#about-sortinventory" class="ref">sort inventory</a><br>
 </ul>
 <ul></ul>
 </li>
@@ -7044,6 +7046,20 @@ end</pre>
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getinventorysize" class="ref">get inventory size</a></li></ul>
 </div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-sortinventory"></a>
+				<h4>sort inventory</h4>
+<p>
+			
+				Sorts all inventory items, like the SORT menu item in the Inventory menu.
+				Moves all items to the top of the inventory and reorders them according to the
+				"Inventory autosort" setting in General Game Settings.
+			
+			
+			
+			
 		</p>
 </div>
 		<hr>
@@ -23469,7 +23485,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 972 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 973 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

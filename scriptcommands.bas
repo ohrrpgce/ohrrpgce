@@ -5387,6 +5387,8 @@ SUB script_commands(byval cmdid as integer)
  CASE 780 '--hero is locked
   DIM hero_slot as integer = findhero(retvals(0), , serrWarn)
   IF hero_slot > -1 THEN scriptret = IIF(gam.hero(hero_slot).locked, 1, 0)
+ CASE 781 '--sort inventory
+  inventory_autosort
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

@@ -10,6 +10,7 @@ WHAT IS NEW?
 
    * Plotscripting Features
     * "hero is locked" [Ralph]
+    * "sort inventory" [Ralph]
 
   *** Changes
 
