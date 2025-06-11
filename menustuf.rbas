@@ -3841,7 +3841,8 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
      caption = gam.hero(i).name
     END IF
     DIM txt as Slice Ptr = LookupSlice(SL_PLANK_MENU_SELECTABLE, plank, slText)
-    ChangeTextSlice txt, caption
+    'It is normal for this to be null of the part isn't full
+    IF txt THEN ChangeTextSlice txt, caption
    END IF
   NEXT i
   DIM txt as Slice Ptr = LookupSlice(SL_SINGLE_CAPTION_TEXT, ps.m, slText)
