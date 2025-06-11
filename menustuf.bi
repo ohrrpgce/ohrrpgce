@@ -16,7 +16,7 @@ DECLARE FUNCTION item_screen () as integer
 DECLARE FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, name_override as string="") as bool
 DECLARE FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, byref consumed as bool=NO) as bool
 DECLARE SUB update_inventory_caption (byval i as integer)
-DECLARE SUB oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval target_count as integer)
+DECLARE FUNCTION oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval target_count as integer) as bool
 DECLARE SUB patcharray (array() as integer, n as string)
 DECLARE FUNCTION picksave () as integer
 DECLARE FUNCTION pickload (newgame_opt as bool = YES, beep_if_no_saves as bool = NO) as integer

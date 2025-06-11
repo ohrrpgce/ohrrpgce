@@ -271,6 +271,7 @@ SUB edit_general_bitsets()
  a_append bits(), 46, "!Negative-damage harmtiles can cure above max HP"
  a_append bits(), 29, "Ignore extra Hits stat"
  a_append bits(), 52, "Ignore MP~ stat"
+ a_append bits(), 62, "!Allow wasting out-of-battle cures"
 
  a_append bits(), -1, ""
  a_append bits(), -1, " Hero Party"

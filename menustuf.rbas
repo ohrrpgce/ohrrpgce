@@ -1064,9 +1064,11 @@ SUB update_inventory_caption (byval i as integer)
  END WITH
 END SUB
 
-SUB oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval target_count as integer)
+FUNCTION oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval target_count as integer) as bool
  '--outside-of-battle cure
  ' attacker and target are hero slots; attacker may be -1
+ ' Returns YES if the attack happened.
+ ' Returns NO if the attack failed (for example, target stat was already full, and general preference bits plus attack bits dictate that it should fail)
 
  WITH gam.hero(target).stat
   DIM as BattleSprite attacker_obj, target_obj
@@ -1109,6 +1111,16 @@ SUB oobcure (byval attacker as integer, byval target as integer, byval atk as in
   '--always affect the max stat, so force exceed_maximum on
   IF attack.targ_stat > 1 THEN
    attack.allow_cure_to_exceed_maximum = YES
+  END IF
+
+  '-- For cure attacks that target HP and MP, we have special handling to prevent out-of-battle spells/items from being wasted on full targets
+  IF attack.targ_stat <= 1 ANDALSO attack.allow_cure_to_exceed_maximum = NO ANDALSO attack.cure_instead_of_harm = YES THEN
+   IF target_obj.stat.cur.sta(attack.targ_stat) >= target_obj.stat.max.sta(attack.targ_stat) THEN
+    IF prefbit(62) THEN ' Don't allow wasting out-of-battle cures
+     MenuSound gen(genCancelSFX)
+     RETURN NO
+    END IF
+   END IF
   END IF
 
   '--out of battle attacks aren't allowed to miss.
@@ -1160,7 +1172,9 @@ SUB oobcure (byval attacker as integer, byval target as integer, byval atk as in
 
   '--TODO: Must add the attack-tag conditional stuff.
  END WITH
-END SUB
+ 
+ RETURN YES
+END FUNCTION
 
 SUB patcharray (array() as integer, n as string)
 
@@ -3018,8 +3032,7 @@ FUNCTION outside_battle_cure (byval atk as integer, byval target as integer, byv
 
  IF spread = NO THEN
   IF chkOOBtarg(attacker, target, atk) THEN
-   oobcure attacker, target, atk, 1
-   didcure = YES
+   didcure = oobcure(attacker, target, atk, 1)
   END IF
  ELSE
   DIM target_count as integer = 0
@@ -3029,8 +3042,7 @@ FUNCTION outside_battle_cure (byval atk as integer, byval target as integer, byv
 
   FOR i = 0 TO 3
    IF chkOOBtarg(attacker, i, atk) THEN
-    oobcure attacker, i, atk, target_count
-    didcure = YES
+    didcure = oobcure(attacker, i, atk, target_count)
    END IF 
   NEXT i
  END IF
