@@ -1064,11 +1064,12 @@ SUB update_inventory_caption (byval i as integer)
  END WITH
 END SUB
 
-FUNCTION oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval target_count as integer) as bool
+FUNCTION oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval target_count as integer, byref was_full as bool=NO) as bool
  '--outside-of-battle cure
  ' attacker and target are hero slots; attacker may be -1
  ' Returns YES if the attack happened.
- ' Returns NO if the attack failed (for example, target stat was already full, and general preference bits plus attack bits dictate that it should fail)
+ ' Returns NO if the attack failed
+ ' Sets was_full=YES if the target stat was already full, and general preference bits plus attack bits dictate that it should fail
 
  WITH gam.hero(target).stat
   DIM as BattleSprite attacker_obj, target_obj
@@ -1118,6 +1119,7 @@ FUNCTION oobcure (byval attacker as integer, byval target as integer, byval atk 
    IF target_obj.stat.cur.sta(attack.targ_stat) >= target_obj.stat.max.sta(attack.targ_stat) THEN
     IF prefbit(62) THEN ' Don't allow wasting out-of-battle cures
      MenuSound gen(genCancelSFX)
+     was_full = YES
      RETURN NO
     END IF
    END IF
@@ -3026,13 +3028,14 @@ FUNCTION count_available_spells(byval who as integer, byval list as integer) as 
  RETURN n
 END FUNCTION
 
-FUNCTION outside_battle_cure (byval atk as integer, byval target as integer, byval attacker as integer, byval spread as bool) as bool
+FUNCTION outside_battle_cure (byval atk as integer, byval target as integer, byval attacker as integer, byval spread as bool, byref was_full as bool=NO) as bool
  DIM i as integer
  DIM didcure as bool = NO
 
  IF spread = NO THEN
   IF chkOOBtarg(attacker, target, atk) THEN
-   didcure = oobcure(attacker, target, atk, 1)
+   oobcure attacker, target, atk, 1, was_full
+   didcure = YES
   END IF
  ELSE
   DIM target_count as integer = 0
@@ -3042,7 +3045,8 @@ FUNCTION outside_battle_cure (byval atk as integer, byval target as integer, byv
 
   FOR i = 0 TO 3
    IF chkOOBtarg(attacker, i, atk) THEN
-    didcure = oobcure(attacker, i, atk, target_count)
+     oobcure attacker, i, atk, target_count, was_full
+     didcure = YES
    END IF 
   NEXT i
  END IF
@@ -3806,18 +3810,21 @@ FUNCTION menu_attack_targ_picker(byval attack_id as integer, byval learn_id as i
    END IF
    
    '--do attack outside of battle (cure)
+   DIM should_exit as bool = YES
    IF attack_id >= 0 ANDALSO really_use_attack THEN
-    IF outside_battle_cure(attack_id, targ, attacker, spread) THEN
+    DIM was_full as bool = NO
+    IF outside_battle_cure(attack_id, targ, attacker, spread, was_full) THEN
+     IF was_full THEN should_exit = NO
      'Re-check validity of target
      IF chkOOBtarg(attacker, targ, attack_id) = NO THEN
       getOOBtarg 1, attacker, targ, attack_id
      END IF
      'We will return success, but don't leave menu yet; you might be able to use the attack again
-     menu_attack_targ_picker = YES
+     menu_attack_targ_picker = NOT was_full
     END IF
    END IF
   
-   EXIT DO
+   IF should_exit THEN EXIT DO
   END IF '--done using attack
 
   '--draw the targ picker menu

@@ -16,7 +16,7 @@ DECLARE FUNCTION item_screen () as integer
 DECLARE FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, name_override as string="") as bool
 DECLARE FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, byref consumed as bool=NO) as bool
 DECLARE SUB update_inventory_caption (byval i as integer)
-DECLARE FUNCTION oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval target_count as integer) as bool
+DECLARE FUNCTION oobcure (byval attacker as integer, byval target as integer, byval atk as integer, byval target_count as integer, byref was_full as bool=NO) as bool
 DECLARE SUB patcharray (array() as integer, n as string)
 DECLARE FUNCTION picksave () as integer
 DECLARE FUNCTION pickload (newgame_opt as bool = YES, beep_if_no_saves as bool = NO) as integer
@@ -27,7 +27,7 @@ DECLARE SUB spell_screen (byval slot as integer)
 DECLARE FUNCTION trylearn (byval who as integer, byval atk as integer) as bool
 DECLARE SUB loadshopstuf (array() as integer, byval id as integer)
 DECLARE FUNCTION count_available_spells(byval who as integer, byval list as integer) as integer
-DECLARE FUNCTION outside_battle_cure (byval atk as integer, byval target as integer, byval attacker as integer, byval spread as bool) as bool
+DECLARE FUNCTION outside_battle_cure (byval atk as integer, byval target as integer, byval attacker as integer, byval spread as bool, byref was_full as bool=NO) as bool
 DECLARE FUNCTION item_can_be_discarded (byval item_id as integer) as bool
 DECLARE FUNCTION item_can_be_used_bits (byval item_id as integer) as integer
 DECLARE SUB inventory_autosort()
