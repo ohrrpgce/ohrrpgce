@@ -144,7 +144,7 @@ def query_revision (rootdir, revision_regex, date_regex, ignore_error, *command)
 def query_svn (rootdir, command):
     """Call with either 'svn info' or 'git svn info'
     Returns a (rev,date) pair, or (0, '') if not an svn working copy"""
-    return query_revision (rootdir, 'Revision: (\d+)', 'Last Changed Date: (\d+)-(\d+)-(\d+)', True, *command.split())
+    return query_revision (rootdir, r'Revision: (\d+)', r'Last Changed Date: (\d+)-(\d+)-(\d+)', True, *command.split())
 
 def query_git (rootdir):
     """Figure out last svn commit revision and date from a git repo
@@ -159,7 +159,7 @@ def query_git (rootdir):
         else:
             # Try to determine SVN revision ourselves, otherwise doing
             # a plain git clone won't have the SVN revision info
-            date, rev = query_revision (rootdir, 'git-svn-id.*@(\d+)', 'Date:\s*(\d+)-(\d+)-(\d+)', False,
+            date, rev = query_revision (rootdir, r'git-svn-id.*@(\d+)', r'Date:\s*(\d+)-(\d+)-(\d+)', False,
                                         *'git log --grep git-svn-id --date short -n 1'.split())
     else:
         date, rev = '', 0
@@ -272,8 +272,8 @@ def get_cc_info(CC):
     # Used to call -dumpfullversion, -dumpversion, -dumpmachine instead
     ret = ToolInfo()
     stdout,stderr = get_command_outputs(CC, ["-v"])  # shell=True just to get "command not found" error
-    match = re.search("(\S+) version ([0-9.]+)", stderr)
-    match2 = re.search("Target: (\S+)", stderr)
+    match = re.search(r"(\S+) version ([0-9.]+)", stderr)
+    match2 = re.search(r"Target: (\S+)", stderr)
     if not match or not match2:
         exit("Couldn't understand output of %s:\n%s\n%s\n" % (CC, stdout, stderr))
     ret.fullversion = match.group(1) + " " + match.group(2)
