@@ -16,7 +16,7 @@
     fbc_mac_local: fbc-1.06-darwin
     euphoria_url: https://github.com/OpenEuphoria/euphoria/releases/download/4.1.0/euphoria-4.1.0-OSX-x64-57179171dbed.tar.gz
     euphoria_local: euphoria-4.1.0-OSX.tar.gz
-    sdl2_framework_url: https://github.com/libsdl-org/SDL/releases/download/release-2.32.2/SDL2-2.32.2.dmg
+    sdl2_framework_url: https://github.com/libsdl-org/SDL/releases/download/release-2.26.4/SDL2-2.26.4.dmg
     sdl2_framework_local: SDL2.dmg
     sdl2_mixer_framework_url: https://github.com/libsdl-org/SDL_mixer/releases/download/release-2.8.1/SDL2_mixer-2.8.1.dmg
     sdl2_mixer_framework_local: SDL2_mixer.dmg
