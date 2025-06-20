@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-05-08">
+<plotscript version="wip" datecode="2025-06-20">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -3502,8 +3502,38 @@ end</example>
 			<canon>get item value (item)</canon>
 			<shortname>get item value</shortname>
 			<description>Returns the value of an item. This is the default price for shops that don't override it.
-			.The <p>item</p> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			The <p>item</p> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
 			</description>
+		</command>
+		<command id="getitemteachspell">
+			<canon>get item teach spell (item)</canon>
+			<shortname>get item teach spell</shortname>
+			<description>If this item teaches a spell, return the attack id+1 or none if it does not.
+			The <p>item</p> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			</description>
+			<seealso>
+				<ref>teachspell</ref>
+			</seealso>
+		</command>
+		<command id="getitemattackoutsidebattle">
+			<canon>get item attack outside battle (item)</canon>
+			<shortname>get item attack outside battle</shortname>
+			<description>If this item does an attack when used outside of battle, return the attack id+1 or none if it does not.
+			The <p>item</p> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			</description>
+			<seealso>
+				<ref>mapcure</ref>
+			</seealso>
+		</command>
+		<command id="getitemtextbox">
+			<canon>get item text box (item)</canon>
+			<shortname>get item text box</shortname>
+			<description>If this item shows a text box, return the text box id or -1 if it does not.
+			The <p>item</p> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			</description>
+			<seealso>
+				<ref>showtextbox</ref>
+			</seealso>
 		</command>
 
 

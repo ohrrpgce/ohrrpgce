@@ -498,6 +498,16 @@ script, items tests, begin
   get item description(1, item:Boots)
   assert(string equal(1, $2="For foots"))
   assert(get item value(item:boots) == 10)
+  assert(get item teach spell(item:boots) == none)
+  assert(get item teach spell(item:larnspel) == atk:ice attack)
+  assert(get item attack outside battle(item:boots) == none)
+  assert(get item attack outside battle(item:potion) == atk:potionatk)
+  variable(box, line)
+  box := get item text box(item:boots)
+  assert(box == -1)
+  box := get item text box(item:boxitem)
+  text box line(1, box, 0)
+  assert(string equal(1, $2="Nobody expects the textbox inquisition"))
 
 end
 

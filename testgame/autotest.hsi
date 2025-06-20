@@ -89,6 +89,9 @@ define constant, begin
 7,item:Lump
 8,item:spamknif
 9,item:Overflow
+10,item:LarnSpel
+11,item:Potion
+12,item:BoxItem
 0,stat:HP
 1,stat:MP
 2,stat:Atk
@@ -145,6 +148,7 @@ define constant, begin
 9,atk:Suicide
 10,atk:Ice Attack
 11,atk:Self3End
+12,atk:PotionAtk
 1,shop:Boring Shop
 2,shop:Empty Shop
 2,menu:Menu from menu

@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-05-08)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-06-20)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -933,9 +933,13 @@ function toggleContent(target) {
 		<a href="#about-getinsteadofbattlescript" class="ref">get instead of battle script</a><br>
 		<a href="#about-getinventorysize" class="ref">get inventory size</a><br>
 		<a href="#about-getitem" class="ref">get item (item, number)</a><br>
+		<a href="#about-getitemattackoutsidebattle" class="ref">get item attack outside battle (item)</a><br>
 		<a href="#about-getitemdescription" class="ref">get item description (ID, item)</a><br>
 		<a href="#about-getitemmaximumstacksize" class="ref">get item maximum stack size (item)</a><br>
 		<a href="#about-getitemname" class="ref">get item name (ID, item)</a><br>
+		<a href="#about-getitemteachspell" class="ref">get item teach spell (item)</a><br>
+		<a href="#about-getitemtextbox" class="ref">get item text box (item)</a><br>
+		<a href="#about-getitemvalue" class="ref">get item value (item)</a><br>
 		<a href="#about-getleftpadding" class="ref">get left padding (handle)</a><br>
 		<a href="#about-getlevelcap" class="ref">get level cap</a><br>
 		<a href="#about-getlevelmp" class="ref">get level MP (who, mp level slot, type)</a><br>
@@ -6804,6 +6808,10 @@ end</pre>
 		<a href="#about-getitemname" class="ref">get item name (ID, item)</a><br>
 		<a href="#about-getitemdescription" class="ref">get item description (ID, item)</a><br>
 		<a href="#about-getitemmaximumstacksize" class="ref">get item maximum stack size (item)</a><br>
+		<a href="#about-getitemvalue" class="ref">get item value (item)</a><br>
+		<a href="#about-getitemteachspell" class="ref">get item teach spell (item)</a><br>
+		<a href="#about-getitemattackoutsidebattle" class="ref">get item attack outside battle (item)</a><br>
+		<a href="#about-getitemtextbox" class="ref">get item text box (item)</a><br>
 </div>
 		<li>
 <a href="#Inventory">Inventory</a><br>
@@ -6888,6 +6896,57 @@ end</pre>
 		<h4>equip where (hero, item)</h4>
 		<p><a href="#about-equipwhere">Documented in the Equipment section.</a></p>
 		</div>
+		<div class="command">
+			<a name="about-getitemvalue"></a>
+				<h4>get item value (item)</h4>
+<p>
+			Returns the value of an item. This is the default price for shops that don't override it.
+			The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getitemteachspell"></a>
+				<h4>get item teach spell (item)</h4>
+<p>
+			If this item teaches a spell, return the attack id+1 or none if it does not.
+			The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-teachspell" class="ref">teach spell</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getitemattackoutsidebattle"></a>
+				<h4>get item attack outside battle (item)</h4>
+<p>
+			If this item does an attack when used outside of battle, return the attack id+1 or none if it does not.
+			The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-mapcure" class="ref">map cure</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getitemtextbox"></a>
+				<h4>get item text box (item)</h4>
+<p>
+			If this item shows a text box, return the text box id or -1 if it does not.
+			The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-showtextbox" class="ref">show text box</a></li></ul>
+</div>
+		</p>
+</div>
 		<hr>
 		</div>
 		<div class="subsection">
@@ -23485,7 +23544,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 973 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 977 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

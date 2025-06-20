@@ -4154,10 +4154,10 @@ SUB loaditemdata (item as ItemDef, item_id as integer)
   NEXT i
   .buy_price = itembuf(46)
   .teach_spell = itembuf(50) - 1
-  .attack = -1
+  .oob_attack = -1
   .text_box = -1
   IF itembuf(51) > 0 THEN
-   .attack = itembuf(51) - 1
+   .oob_attack = itembuf(51) - 1
   ELSEIF itembuf(51) < 0 THEN
    .text_box = ABS(itembuf(51))
   END IF

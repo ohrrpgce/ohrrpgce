@@ -816,6 +816,9 @@ define function, begin
 780,heroislocked,1,0          # Whether hero locked from being swapped out
 781,sortinventory,0           # Sort the inventory items like SORT in the Inventory
 782,getitemvalue,1,0          # Return the default value of an item
+783,getitemteachspell,1,0     # Return the attack id+1 this item teaches as a spell
+784,getitemattackoutsidebattle,1,0 # Return the attack id+1 this item does outside of battle
+785,getitemtextbox,1,0        # Return the text box id this attack shows outside of battle
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

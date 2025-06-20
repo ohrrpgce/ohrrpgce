@@ -5394,7 +5394,25 @@ SUB script_commands(byval cmdid as integer)
    DIM item as ItemDef
    loaditemdata item, retvals(0)
    scriptret = item.buy_price
-  END IF  
+  END IF
+ CASE 783 '--get item teach spell
+  IF valid_item(retvals(0)) THEN
+   DIM item as ItemDef
+   loaditemdata item, retvals(0)
+   scriptret = item.teach_spell + 1
+  END IF
+ CASE 784 '--get item attack outside battle
+  IF valid_item(retvals(0)) THEN
+   DIM item as ItemDef
+   loaditemdata item, retvals(0)
+   scriptret = item.oob_attack + 1
+  END IF
+ CASE 785 '--get item text box
+  IF valid_item(retvals(0)) THEN
+   DIM item as ItemDef
+   loaditemdata item, retvals(0)
+   scriptret = item.text_box
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
