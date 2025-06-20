@@ -5421,6 +5421,14 @@ SUB script_commands(byval cmdid as integer)
     scriptret = item.stat_bonuses(retvals(1))
    END IF
   END IF
+ CASE 787 '--equippable in slot
+  IF valid_item(retvals(0)) THEN
+   IF bound_arg(retvals(1), 1, 5, "Equipment slot") THEN
+    DIM item as ItemDef
+    loaditemdata item, retvals(0)
+    scriptret = IIF(item.eqslots(retvals(1) - 1), 1, 0)
+   END IF
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

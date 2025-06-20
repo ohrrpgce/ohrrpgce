@@ -3498,6 +3498,23 @@ end</example>
 			</seealso>
 		</command>
 		<reference ref="equipwhere" />
+		<command id="equippableinslot">
+			<canon>equippable in slot (item, slot)</canon>
+			<shortname>equippable in slot</shortname>
+			<description>
+				Returns true if the item can be equipped in the specified slot.
+				(a constant of the form slot:weapon, etc, in your .hsi file),
+				or <ref>false</ref> if it cann't be equipped in that slot.
+				The <p>item</p> argument is the item to check the equipability of.
+				You can use the item's number or the item:name constants from your .hsi file.
+				<lb/>
+				If you need to know if the item is equippable by a specific hero, see <ref>equipwhere</ref> instead.
+			</description>
+			<seealso>
+				<ref>checkequipment</ref>
+				<ref>equipwhere</ref>
+			</seealso>
+		</command>
 		<command id="getitemvalue">
 			<canon>get item value (item)</canon>
 			<shortname>get item value</shortname>
@@ -3544,6 +3561,7 @@ end</example>
 			</description>
 			<seealso>
 				<ref>equipwhere</ref>
+				<ref>equippableinslot</ref>
 			</seealso>
 		</command>
 
@@ -3719,7 +3737,7 @@ gain hero stat(who, stat:mp, 0)</example>
 				The second argument is the item to check the equipability of.
 				You can use the item's number or the item:name constants from your .hsi file.
 				<lb/>
-				If the item can be equipped in more than one different slot, this command only returns the first valid slot.
+				If the item can be equipped in more than one different slot, this command only returns the first valid slot. Use the <ref>equippableinslot</ref> command if you need to check multiple slots.
 				<note>
 					When a hero's equipment changes, their current HP and MP stats aren't updated.
 					See the Note at <ref>unequip</ref> for more information.
@@ -3728,6 +3746,7 @@ gain hero stat(who, stat:mp, 0)</example>
 			<seealso>
 				<ref>unequip</ref>
 				<ref>checkequipment</ref>
+				<ref>equippableinslot</ref>
 			</seealso>
 		</command>
 		<command id="checkequipment">

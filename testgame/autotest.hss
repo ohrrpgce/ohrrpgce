@@ -511,6 +511,11 @@ script, items tests, begin
   assert(get item equip stat bonus(item:skort, stat:atk) == 0)
   assert(get item equip stat bonus(item:skort, stat:def) == 2)
   assert(get item equip stat bonus(item:skort, stat:dog) == -1)
+  assert(equippable in slot(item:skort,slot:weapon) == false)
+  assert(equippable in slot(item:skort,slot:legs) == true)
+  assert(equippable in slot(item:skort,slot:head) == true)
+  assert(equippable in slot(item:skort,slot:body) == false)
+  assert(equippable in slot(item:skort,slot:arms) == false)
 end
 
 ########################################################################

@@ -4150,7 +4150,7 @@ SUB loaditemdata (item as ItemDef, item_id as integer)
   NEXT
   item_tags_from_buf .tags, itembuf()
   FOR i as integer = 0 TO 4
-   .eqslots(i) = xreadbit(itembuf(), 239, i)
+   .eqslots(i) = xreadbit(itembuf(), i, 239)
   NEXT i
   .buy_price = itembuf(46)
   .teach_spell = itembuf(50) - 1

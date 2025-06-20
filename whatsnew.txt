@@ -14,7 +14,7 @@ July ?? 2025 [Kaleidophone]
     * "sort inventory" [Ralph]
     * Commands for reading item data "get item value", "get item teach spell",
       "get item attack outside battle", "get item text box",
-      "get item equip stat bonus" [James]
+      "get item equip stat bonus", "equippable in slot" [James]
 
   *** Changes
 

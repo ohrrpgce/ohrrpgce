@@ -811,6 +811,7 @@ function toggleContent(target) {
 		<a href="#about-enemyelementalresistasint" class="ref">enemy elemental resist as int (enemy, element)</a><br>
 		<a href="#about-equal" class="ref">number == number</a><br>
 		<a href="#about-equipmenu" class="ref">equip menu (who, allow switching)</a><br>
+		<a href="#about-equippableinslot" class="ref">equippable in slot (item, slot)</a><br>
 		<a href="#about-equipwhere" class="ref">equip where (hero, item)</a><br>
 		<a href="#about-exit" class="ref">exit</a><br>
 		<a href="#about-exitreturning" class="ref">exit returning(value)</a><br>
@@ -6809,6 +6810,7 @@ end</pre>
 		<a href="#about-getitemname" class="ref">get item name (ID, item)</a><br>
 		<a href="#about-getitemdescription" class="ref">get item description (ID, item)</a><br>
 		<a href="#about-getitemmaximumstacksize" class="ref">get item maximum stack size (item)</a><br>
+		<a href="#about-equippableinslot" class="ref">equippable in slot (item, slot)</a><br>
 		<a href="#about-getitemvalue" class="ref">get item value (item)</a><br>
 		<a href="#about-getitemteachspell" class="ref">get item teach spell (item)</a><br>
 		<a href="#about-getitemattackoutsidebattle" class="ref">get item attack outside battle (item)</a><br>
@@ -6899,6 +6901,29 @@ end</pre>
 		<p><a href="#about-equipwhere">Documented in the Equipment section.</a></p>
 		</div>
 		<div class="command">
+			<a name="about-equippableinslot"></a>
+				<h4>equippable in slot (item, slot)</h4>
+<p>
+			
+				Returns true if the item can be equipped in the specified slot.
+				(a constant of the form slot:weapon, etc, in your .hsi file),
+				or <a href="#about-false" class="ref">false</a> if it cann't be equipped in that slot.
+				The <span class="param">item</span> argument is the item to check the equipability of.
+				You can use the item's number or the item:name constants from your .hsi file.
+				<br>
+				If you need to know if the item is equippable by a specific hero, see <a href="#about-equipwhere" class="ref">equip where</a> instead.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-checkequipment" class="ref">check equipment</a>, </li>
+<li><a href="#about-equipwhere" class="ref">equip where</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
 			<a name="about-getitemvalue"></a>
 				<h4>get item value (item)</h4>
 <p>
@@ -6959,7 +6984,11 @@ end</pre>
 			
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-equipwhere" class="ref">equip where</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-equipwhere" class="ref">equip where</a>, </li>
+<li><a href="#about-equippableinslot" class="ref">equippable in slot</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -7231,7 +7260,7 @@ gain hero stat(who, stat:mp, 0)</pre>
 				The second argument is the item to check the equipability of.
 				You can use the item's number or the item:name constants from your .hsi file.
 				<br>
-				If the item can be equipped in more than one different slot, this command only returns the first valid slot.
+				If the item can be equipped in more than one different slot, this command only returns the first valid slot. Use the <a href="#about-equippableinslot" class="ref">equippable in slot</a> command if you need to check multiple slots.
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">
 					When a hero's equipment changes, their current HP and MP stats aren't updated.
@@ -7243,7 +7272,9 @@ gain hero stat(who, stat:mp, 0)</pre>
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-unequip" class="ref">unequip</a>, </li>
-<li><a href="#about-checkequipment" class="ref">check equipment</a></li>
+<li>
+<a href="#about-checkequipment" class="ref">check equipment</a>, </li>
+<li><a href="#about-equippableinslot" class="ref">equippable in slot</a></li>
 </ul>
 </div>
 		</p>
@@ -23560,7 +23591,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 978 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 979 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
