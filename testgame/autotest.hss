@@ -135,6 +135,7 @@ script, run tests 1, begin
   zone tests
   map state tests
   inventory tests
+  items tests
   hero tests
   death tests
   trigger tests
@@ -483,6 +484,21 @@ script, inventory tests, begin
   delete item(item:overflow, 1)
   assert(inventory(item:overflow) == 0)
   
+end
+
+########################################################################
+
+script, items tests, begin
+  $0="Items tests"
+  # These tests concern the definitions of items.
+  # For items actually in your inventory, see "inventory tests"
+
+  get item name(1, item:Boots)
+  assert(string equal(1, $2="Boots"))
+  get item description(1, item:Boots)
+  assert(string equal(1, $2="For foots"))
+  assert(get item value(item:boots) == 10)
+
 end
 
 ########################################################################
@@ -7387,7 +7403,6 @@ end
 #get grid columns (handle)
 #get grid rows (handle)
 #get instead of battle script
-#get item name (ID, item)
 #get load script
 #get map edge mode
 #get map name (ID, map)

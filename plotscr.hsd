@@ -815,6 +815,7 @@ define function, begin
 779,spriteframegroupsize,2,0,-1 # The number of frames in a frame group (default current frame) (handle, group)
 780,heroislocked,1,0          # Whether hero locked from being swapped out
 781,sortinventory,0           # Sort the inventory items like SORT in the Inventory
+782,getitemvalue,1,0          # Return the default value of an item
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

@@ -12,6 +12,7 @@ July ?? 2025 [Kaleidophone]
    * Plotscripting Features
     * "hero is locked" [Ralph]
     * "sort inventory" [Ralph]
+    * Commands for reading item data "get item value" [James]
 
   *** Changes
 
