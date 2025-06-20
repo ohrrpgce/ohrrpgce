@@ -975,6 +975,18 @@ TYPE ItemDef
 	wep_pal as integer
 	tags as ItemDefTags
 	eqslots(4) as bool
+	buy_price as integer
+
+	'Use actions -- technically these are mutually excluse in the item menu
+	'attack and text_box are mutually exclusive in the ITM file format  
+	teach_spell as integer   ' attack ID, or -1 for none
+	attack as integer        ' attack ID or -1 for none
+	text_box as integer      ' text box id or -1 for none (box 0 not allowed in ITM file format)
+
+	stat_bonuses(11) as integer '0 for no bonus, negative bonuses allowed
+	consumed_by_use as bool
+	no_discard as bool
+	no_sell as bool
 	'TODO: all other data is missing
 END TYPE
 
