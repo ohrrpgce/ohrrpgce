@@ -819,6 +819,7 @@ define function, begin
 783,getitemteachspell,1,0     # Return the attack id+1 this item teaches as a spell
 784,getitemattackoutsidebattle,1,0 # Return the attack id+1 this item does outside of battle
 785,getitemtextbox,1,0        # Return the text box id this attack shows outside of battle
+786,getitemequipstatbonus,2,0,0 # Return the stat bonus for equipping an item
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

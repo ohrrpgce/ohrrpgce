@@ -92,6 +92,7 @@ define constant, begin
 10,item:LarnSpel
 11,item:Potion
 12,item:BoxItem
+13,item:Skort
 0,stat:HP
 1,stat:MP
 2,stat:Atk

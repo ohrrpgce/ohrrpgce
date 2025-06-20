@@ -508,7 +508,9 @@ script, items tests, begin
   box := get item text box(item:boxitem)
   text box line(1, box, 0)
   assert(string equal(1, $2="Nobody expects the textbox inquisition"))
-
+  assert(get item equip stat bonus(item:skort, stat:atk) == 0)
+  assert(get item equip stat bonus(item:skort, stat:def) == 2)
+  assert(get item equip stat bonus(item:skort, stat:dog) == -1)
 end
 
 ########################################################################

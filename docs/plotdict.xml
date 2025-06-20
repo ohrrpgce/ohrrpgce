@@ -3535,6 +3535,17 @@ end</example>
 				<ref>showtextbox</ref>
 			</seealso>
 		</command>
+		<command id="getitemequipstatbonus">
+			<canon>get item equip stat bonus (item, stat)</canon>
+			<shortname>get item equip stat bonus</shortname>
+			<description>Return the stat bonus that you would get if you equipped this item.
+			The <p>item</p> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			The <p>stat</p> argument is the stat name constant in the form stat:name (example, stat:hp or stat:attack).
+			</description>
+			<seealso>
+				<ref>equipwhere</ref>
+			</seealso>
+		</command>
 
 
 		<section title="Inventory">

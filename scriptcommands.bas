@@ -5413,6 +5413,14 @@ SUB script_commands(byval cmdid as integer)
    loaditemdata item, retvals(0)
    scriptret = item.text_box
   END IF
+ CASE 786 '--get item equip stat bonus
+  IF valid_item(retvals(0)) THEN
+   IF valid_stat(retvals(1)) THEN
+    DIM item as ItemDef
+    loaditemdata item, retvals(0)
+    scriptret = item.stat_bonuses(retvals(1))
+   END IF
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
