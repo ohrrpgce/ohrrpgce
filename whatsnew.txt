@@ -13,7 +13,8 @@ July ?? 2025 [Kaleidophone]
     * "hero is locked" [Ralph]
     * "sort inventory" [Ralph]
     * Commands for reading item data "get item value", "get item teach spell",
-      "get item attack outside battle", "get item text box",
+      "get item attack outside battle", "get item attack in battle",
+      "get item attack as weapon", "get item text box",
       "get item equip stat bonus", "equippable in slot" [James]
 
   *** Changes

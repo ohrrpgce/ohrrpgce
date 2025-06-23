@@ -821,6 +821,8 @@ define function, begin
 785,getitemtextbox,1,0        # Return the text box id this attack shows outside of battle
 786,getitemequipstatbonus,2,0,0 # Return the stat bonus for equipping an item
 787,equippableinslot,2,0,0    # Check whether an item can be equipped in a slot
+788,getitemattackinbattle,1,0 # Return the attack id+1 of the attack when used as an item
+789,getitemattackasweapon,1,0 # Return the attack id+1 of the attack when equipped as a weapon
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

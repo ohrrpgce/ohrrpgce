@@ -5429,6 +5429,18 @@ SUB script_commands(byval cmdid as integer)
     scriptret = IIF(item.eqslots(retvals(1) - 1), 1, 0)
    END IF
   END IF
+ CASE 788 '--get item attack in battle
+  IF valid_item(retvals(0)) THEN
+   DIM item as ItemDef
+   loaditemdata item, retvals(0)
+   scriptret = item.battle_items_menu_attack + 1
+  END IF
+ CASE 789 '--get item attack as weapon
+  IF valid_item(retvals(0)) THEN
+   DIM item as ItemDef
+   loaditemdata item, retvals(0)
+   scriptret = item.battle_weapon_attack + 1
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

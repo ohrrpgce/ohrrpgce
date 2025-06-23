@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-06-20">
+<plotscript version="wip" datecode="2025-06-22">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -3540,6 +3540,33 @@ end</example>
 			</description>
 			<seealso>
 				<ref>mapcure</ref>
+				<ref>useitem</ref>
+				<ref>getitemattackinbattle</ref>
+				<ref>getitemattackasweapon</ref>
+			</seealso>
+		</command>
+		<command id="getitemattackinbattle">
+			<canon>get item attack in battle (item)</canon>
+			<shortname>get item attack in battle</shortname>
+			<description>If this item does an attack when used from the item menu in battle, return the attack id+1 or none if it does not.
+			The <p>item</p> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			</description>
+			<seealso>
+				<ref>getitemattackoutsidebattle</ref>
+				<ref>getitemattackasweapon</ref>
+			</seealso>
+		</command>
+		<command id="getitemattackasweapon">
+			<canon>get item attack as weapon (item)</canon>
+			<shortname>get item attack as weapon</shortname>
+			<description>Return the attack id+1 of the attack that this item will do if it is equipped as a weapon. For non-weapons it will return attack id 0(+1).
+			The <p>item</p> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			If you wish to check whether or not an item is equippable as a wepon, use <ref>equippableinslot</ref> instead.
+			</description>
+			<seealso>
+				<ref>getitemattackoutsidebattle</ref>
+				<ref>getitemattackinbattle</ref>
+				<ref>equippableinslot</ref>
 			</seealso>
 		</command>
 		<command id="getitemtextbox">

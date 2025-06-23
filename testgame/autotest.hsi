@@ -93,6 +93,7 @@ define constant, begin
 11,item:Potion
 12,item:BoxItem
 13,item:Skort
+14,item:dulsword
 0,stat:HP
 1,stat:MP
 2,stat:Atk
@@ -150,6 +151,7 @@ define constant, begin
 10,atk:Ice Attack
 11,atk:Self3End
 12,atk:PotionAtk
+13,atk:DullSword
 1,shop:Boring Shop
 2,shop:Empty Shop
 2,menu:Menu from menu
