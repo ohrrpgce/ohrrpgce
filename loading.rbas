@@ -4244,6 +4244,10 @@ FUNCTION item_read_equipbit(itembuf() as integer, hero_id as integer) as bool
  END IF
 END FUNCTION
 
+FUNCTION item_read_equipbit(item as ItemDef, hero_id as integer) as bool
+ RETURN xreadbit(item.equip_by_bits(), hero_id)
+END FUNCTION
+
 ' Write one of the 'Equippable by' bits
 SUB item_write_equipbit(itembuf() as integer, hero_id as integer, value as bool)
  IF hero_id < 64 THEN
