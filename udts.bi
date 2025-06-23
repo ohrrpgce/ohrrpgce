@@ -975,6 +975,7 @@ TYPE ItemDef
 	wep_pal as integer
 	tags as ItemDefTags
 	eqslots(4) as bool
+	equip_by_bits(31) as bool '512 bits for xreadbit indexed by hero id
 	buy_price as integer
 
 	'Use actions -- technically these are mutually excluse in the item menu
@@ -984,10 +985,13 @@ TYPE ItemDef
 	text_box as integer      ' text box id or -1 for none (box 0 not allowed in ITM file format)
 
 	stat_bonuses(11) as integer '0 for no bonus, negative bonuses allowed
+	elemental_resist(any) as double '1.0 is default
 	consumed_by_use as bool
 	no_discard as bool
 	no_sell as bool
-	'TODO: all other data is missing
+
+	battle_items_menu_attack as integer 'attack ID or -1 for none
+	battle_weapon_attack as integer 'attack ID or -1 for none
 END TYPE
 
 'This is a common base class only so Enemy{Steal,Reward}Def can be passed to describe_item_chance

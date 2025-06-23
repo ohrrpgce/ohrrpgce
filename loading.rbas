@@ -4161,13 +4161,32 @@ SUB loaditemdata (item as ItemDef, item_id as integer)
   ELSEIF itembuf(51) < 0 THEN
    .text_box = ABS(itembuf(51))
   END IF
+  .battle_items_menu_attack = itembuf(47) - 1
+  .battle_weapon_attack = itembuf(48) - 1
   FOR i as integer = 0 to 11
    .stat_bonuses(i) = itembuf(54 + i)
+  NEXT i
+  FOR i as integer = 0 to 3
+   .equip_by_bits(i) = itembuf(66 + i)
+  NEXT i
+  FOR i as integer = 0 to 27
+   .equip_by_bits(4 + i) = itembuf(211 + i)
   NEXT i
   .consumed_by_use = (itembuf(73) = 0)
   .no_discard = (itembuf(73) = 1)
   .no_sell = (itembuf(73) = 2)
-  'TODO: very incomplete!
+
+  REDIM .elemental_resist(gen(genNumElements) - 1)
+  IF getfixbit(fixItemElementals) THEN
+   FOR i as integer = 0 TO gen(genNumElements) - 1
+    .elemental_resist(i) = DeSerSingle(itembuf(), 82 + i * 2)
+   NEXT
+  ELSE
+   FOR i as integer = 0 TO gen(genNumElements) - 1
+    .elemental_resist(i) = LoadOldItemElemental(itembuf(), i)
+   NEXT
+  END IF
+
  END WITH
 END SUB
 
