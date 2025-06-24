@@ -987,8 +987,7 @@ TYPE ItemDef
 	stat_bonuses(11) as integer '0 for no bonus, negative bonuses allowed
 	elemental_resist(any) as double '1.0 is default
 	consumed_by_use as bool
-	no_discard as bool
-	no_sell as bool
+	cannot_be_sold_or_dropped as bool
 
 	battle_items_menu_attack as integer 'attack ID or -1 for none
 	battle_weapon_attack as integer 'attack ID or -1 for none

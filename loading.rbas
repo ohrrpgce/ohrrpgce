@@ -4172,9 +4172,8 @@ SUB loaditemdata (item as ItemDef, item_id as integer)
   FOR i as integer = 0 to 27
    .equip_by_bits(4 + i) = itembuf(211 + i)
   NEXT i
-  .consumed_by_use = (itembuf(73) = 0)
-  .no_discard = (itembuf(73) = 1)
-  .no_sell = (itembuf(73) = 2)
+  .consumed_by_use = (itembuf(73) = 1)
+  .cannot_be_sold_or_dropped = (itembuf(73) = 2)
 
   REDIM .elemental_resist(gen(genNumElements) - 1)
   IF getfixbit(fixItemElementals) THEN

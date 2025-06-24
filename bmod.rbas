@@ -2375,7 +2375,7 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
  DIM wep_id as integer
  DIM atk_id as integer
  DIM spells_id as integer
- DIM itembuf(dimbinsize(binITM)) as integer
+ DIM item as ItemDef
 
  init_battle_menu menu, gen(genDefaultBattleMenu) - 1
  
@@ -2385,8 +2385,8 @@ SUB populate_battle_menu_menudef (byval hero_id as integer, menu as MenuDef, her
    k = m."kind".ptr
    IF k."weapon".exists THEN
     wep_id = gam.hero(hero_id).equip(0).id
-    loaditemdata itembuf(), wep_id
-    atk_id = itembuf(48) - 1
+    loaditemdata item, wep_id
+    atk_id = item.battle_weapon_attack
     IF atk_id < 0 THEN atk_id = 0
     caption = readattackname(atk_id)
     mitem = append_menu_item(menu, caption, batmenu_ATTACK, atk_id, m)
@@ -2941,15 +2941,15 @@ END SUB
 SUB checkitemusability(iuse() as integer, bslot() as BattleSprite, byval who as integer)
  'Iterate through the iuse() bitfield and mark any items that are usable
  DIM i as integer
- DIM itembuf(dimbinsize(binITM)) as integer
+ DIM item as ItemDef
  DIM attack as AttackData
 
  FOR i = 0 TO inventoryMax
   setbit iuse(), 0, i, 0 ' Default each slot to unusable
   IF inventory(i).used THEN
-   loaditemdata itembuf(), inventory(i).id
-   IF itembuf(47) > 0 THEN ' This item is usable in battle
-    loadattackdata attack, itembuf(47) - 1
+   loaditemdata item, inventory(i).id
+   IF item.battle_items_menu_attack >= 0 THEN ' This item is usable in battle
+    loadattackdata attack, item.battle_items_menu_attack
     IF attack.check_costs_as_item THEN
      '--This attack has the bitset that requires cost checking when used from an item
      IF atkallowed(attack, who, 0, 0, bslot(who)) THEN
@@ -3841,14 +3841,14 @@ END SUB
 FUNCTION items_menu_is_usable(bspr as BattleSprite) as bool
  'Returns YES if at least one item in the items menu is usable
  'Iterate through the iuse() bitfield and mark any items that are usable
- DIM itembuf(dimbinsize(binITM)) as integer
+ DIM item as ItemDef
  DIM attack as AttackData
 
  FOR i as integer = 0 TO inventoryMax
   IF inventory(i).used THEN
-   loaditemdata itembuf(), inventory(i).id
-   IF itembuf(47) > 0 THEN ' This item is usable in battle
-    loadattackdata attack, itembuf(47) - 1
+   loaditemdata item, inventory(i).id
+   IF item.battle_items_menu_attack >= 0 THEN ' This item is usable in battle
+    loadattackdata attack, item.battle_items_menu_attack
     IF attack.check_costs_as_item THEN
      '--This attack has the bitset that requires cost checking when used from an item
      IF atkallowed(attack, bspr.index, 0, 0, bspr) THEN
@@ -4178,10 +4178,10 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
   IF readbit(bat.iuse(), 0, bat.item.pt) = 1 THEN
    menusound gen(genAcceptSFX)
 
-   DIM itembuf(dimbinsize(binITM)) as integer
-   loaditemdata itembuf(), inventory(bat.item.pt).id
-   bslot(bat.player_turn).consume_item = IIF(itembuf(73) = 1, bat.item.pt, -1)
-   bslot(bat.player_turn).attack = itembuf(47)
+   DIM item as ItemDef
+   loaditemdata item, inventory(bat.item.pt).id
+   bslot(bat.player_turn).consume_item = IIF(item.consumed_by_use, bat.item.pt, -1)
+   bslot(bat.player_turn).attack = item.battle_items_menu_attack + 1
    bat.targ.mode = targSETUP
    bat.menu_mode = batMENUHERO
    clearkeys
