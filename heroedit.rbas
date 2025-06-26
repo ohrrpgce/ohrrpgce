@@ -830,7 +830,7 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
  DIM hero_node as NodePtr = her.reld
  DIM edit_node as NodePtr
 
- DIM itembuf(dimbinsize(binITM)) as integer
+ DIM item as ItemDef
  
  setkeys YES
  DO
@@ -852,8 +852,8 @@ SUB hero_editor_battle_menu (hero_id as integer, her as HeroDef)
      IF k."weapon".exists THEN
       append_menu_item menu, "Weapon"
       menu.last->dataptr = bmenu
-      loaditemdata itembuf(), her.def_weapon
-      DIM atk_id as integer = itembuf(48) - 1
+      loaditemdata item, her.def_weapon
+      DIM atk_id as integer = item.battle_weapon_attack
       IF atk_id < 0 THEN atk_id = 0
       append_menu_item preview, readattackname(atk_id)
      ELSEIF k."items".exists THEN
@@ -1706,24 +1706,24 @@ SUB hero_editor_equipbits (byval hero_id as integer, byval equip_type as integer
  DIM tempbits(gen(genMaxItem) \ 16 + 1) as integer 
  DIM itemname(gen(genMaxItem)) as string
  DIM item_id(gen(genMaxItem)) as integer
- DIM itembuf(dimbinsize(binITM)) as integer
+ DIM item as ItemDef
  DIM nextbit as integer = 0
  FOR i as integer = 0 TO gen(genMaxItem)
-  loaditemdata itembuf(), i
-  IF item_is_equippable_in_slot(itembuf(), equip_type - 1) THEN
+  loaditemdata item, i
+  IF item.eqslots(equip_type - 1) THEN
    itemname(nextbit) = readitemname(i)
    'Blank menu items would be hidden in editbitset
    IF LEN(itemname(nextbit)) = 0 THEN itemname(nextbit) = "Item " & i
    item_id(nextbit) = i
-   setbit tempbits(), 0, nextbit, item_read_equipbit(itembuf(), hero_id)
+   setbit tempbits(), 0, nextbit, item_read_equipbit(item, hero_id)
    nextbit += 1
   END IF
  NEXT i
  editbitset tempbits(), 0, itemname(), , , , title
  FOR i as integer = 0 TO nextbit-1
-  loaditemdata itembuf(), item_id(i)
-  item_write_equipbit itembuf(), hero_id, readbit(tempbits(), 0, i)
-  saveitemdata itembuf(), item_id(i)
+  loaditemdata item, item_id(i)
+  item_write_equipbit item, hero_id, readbit(tempbits(), 0, i)
+  saveitemdata item, item_id(i)
  NEXT i
 END SUB
 

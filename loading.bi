@@ -184,7 +184,8 @@ DECLARE SUB LoadItemElementals (byval index as integer, itemresists() as single)
 DECLARE FUNCTION get_item_stack_size (byval item_id as integer) as integer
 DECLARE FUNCTION item_read_equipbit OVERLOAD (itembuf() as integer, hero_id as integer) as bool
 DECLARE FUNCTION item_read_equipbit OVERLOAD (item as ItemDef, hero_id as integer) as bool
-DECLARE SUB item_write_equipbit(itembuf() as integer, hero_id as integer, value as bool)
+DECLARE SUB item_write_equipbit OVERLOAD (itembuf() as integer, hero_id as integer, value as bool)
+DECLARE SUB item_write_equipbit OVERLOAD (item as ItemDef, hero_id as integer, value as bool)
 DECLARE FUNCTION item_is_equippable(itembuf() as integer) as bool
 DECLARE FUNCTION item_is_equippable_in_slot(itembuf() as integer, byval slot as integer) as bool
 

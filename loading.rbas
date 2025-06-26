@@ -4315,6 +4315,10 @@ SUB item_write_equipbit(itembuf() as integer, hero_id as integer, value as bool)
  END IF
 END SUB
 
+SUB item_write_equipbit(item as ItemDef, hero_id as integer, value as bool)
+ setbit item.equip_by_bits(), 0, hero_id, value
+END SUB
+
 
 '==========================================================================================
 '                                         Enemies
