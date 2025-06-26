@@ -4205,6 +4205,65 @@ SUB saveitemdata (array() as integer, byval index as integer)
  storerecord array(), game & ".itm", getbinsize(binITM) \ 2, index
 END SUB
 
+SUB saveitemdata (item as ItemDef, byval index as integer)
+ '-- Convert ItemDef back into ITM buffer format
+ 'When we switch to items.reld we can keep this around to reduce the damage from a downgrade
+ 'But there is no way to add support for any future additions to the item data
+ '(Has the side effect of zeroing out all the obsolete garbage data)
+ DIM itembuf(dimbinsize(binITM)) as integer
+ WITH item
+  writebadbinstring .name, itembuf(), 0, 8
+  writebadbinstring .info, itembuf(), 9, 36
+  itembuf(210) = .stacksize
+  itembuf(52) = .wep_pic
+  itembuf(53) = .wep_pal
+  FOR i as integer = 0 TO 1
+   'Second handle point is before the first one!
+   itembuf(80 - i * 2) = .wep_handle(i).x
+   itembuf(81 - i * 2) = .wep_handle(i).y
+  NEXT
+  itembuf(74) = .tags.have_tag
+  itembuf(75) = .tags.in_inventory_tag
+  itembuf(76) = .tags.is_equipped_tag
+  itembuf(77) = .tags.is_actively_equipped_tag
+
+  FOR i as integer = 0 TO 4
+   setbit itembuf(), 239, i, .eqslots(i)
+  NEXT i
+  itembuf(46) = .buy_price
+  itembuf(50) = .teach_spell + 1
+
+  IF .oob_attack >= 0 THEN
+   itembuf(51) = .oob_attack + 1
+  ELSEIF .text_box > 0 THEN
+   itembuf(51) = .text_box * -1
+  END IF
+
+  itembuf(47) = .battle_items_menu_attack + 1
+  itembuf(48) = .battle_weapon_attack + 1
+  FOR i as integer = 0 to 11
+   itembuf(54 + i) = .stat_bonuses(i)
+  NEXT i
+  FOR i as integer = 0 to 3
+   itembuf(66 + i) = .equip_by_bits(i)
+  NEXT i
+  FOR i as integer = 0 to 27
+   itembuf(211 + i) = .equip_by_bits(4 + i)
+  NEXT i
+  IF .consumed_by_use THEN
+   itembuf(73) = 1
+  ELSEIF .cannot_be_sold_or_dropped THEN
+   itembuf(73) = 2
+  END IF
+
+  FOR i as integer = 0 TO gen(genNumElements) - 1
+   SerSingle(itembuf(), 82 + i * 2, .elemental_resist(i))
+  NEXT
+
+ END WITH
+ saveitemdata itembuf(), index
+END SUB
+
 FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as single
  IF element < 8 THEN
   RETURN backcompat_element_dmg(readbit(itembuf(), 70, element), readbit(itembuf(), 70, 8 + element), readbit(itembuf(), 70, 16 + element))

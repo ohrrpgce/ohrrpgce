@@ -176,7 +176,8 @@ DECLARE FUNCTION load_spriteset_from_file(file as string, framesize as XYPair, n
 
 DECLARE SUB loaditemdata OVERLOAD (array() as integer, byval index as integer)
 DECLARE SUB loaditemdata OVERLOAD (item as ItemDef, index as integer)
-DECLARE SUB saveitemdata (array() as integer, byval index as integer)
+DECLARE SUB saveitemdata OVERLOAD (array() as integer, byval index as integer)
+DECLARE SUB saveitemdata OVERLOAD (item as ItemDef, byval index as integer)
 DECLARE SUB item_tags_from_buf(tags as ItemDefTags, itembuf() as integer)
 DECLARE FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as single
 DECLARE SUB LoadItemElementals (byval index as integer, itemresists() as single)
