@@ -1156,11 +1156,11 @@ SUB guessdefaultpals(byval fileset as SpriteType, poffset() as integer)
    NEXT j
   NEXT mapi
  CASE 5 'Weapons
-  REDIM buf(dimbinsize(binITM)) as integer
+  DIM item as ItemDef
   FOR j as integer = 0 TO gen(genMaxItem)
-   loaditemdata buf(), j
-   IF item_is_equippable_in_slot(buf(), 0) THEN
-    IF buf(52) >= 0 AND buf(52) <= UBOUND(poffset) THEN poffset(buf(52)) = buf(53)
+   loaditemdata item, j
+   IF item.eqslots(0) THEN
+    IF item.wep_pic >= 0 AND item.wep_pic <= UBOUND(poffset) THEN poffset(item.wep_pic) = item.wep_pal
    END IF
   NEXT
  CASE 6 'Attacks
@@ -5369,7 +5369,7 @@ END IF
 IF full_upgrade ANDALSO getfixbit(fixItemElementals) = 0 THEN
  upgrade_message "Initialising equipment elemental resists..."
  setfixbit(fixItemElementals, 1)
- REDIM dat(dimbinsize(binITM)) as integer
+ DIM dat(dimbinsize(binITM)) as integer
  FOR i as integer = 0 TO gen(genMaxItem)
   loaditemdata dat(), i
   FOR j as integer = 0 TO 63 'maxElements - 1
@@ -6200,11 +6200,11 @@ SUB load_special_tag_caches()
    NEXT j
   END WITH
  NEXT i
- REDIM item_data(dimbinsize(binITM)) as integer
+ DIM item as ItemDef
  REDIM itemtags(gen(genMaxItem))
  FOR i as integer = 0 TO gen(genMaxItem)
-  loaditemdata item_data(), i
-  item_tags_from_buf itemtags(i), item_data()
+  loaditemdata item, i
+  itemtags(i) = item.tags
  NEXT i
 END SUB
 
