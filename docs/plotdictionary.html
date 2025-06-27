@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-06-22)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-06-27)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -6909,13 +6909,13 @@ end</pre>
 				<h4>equippable in slot (item, slot)</h4>
 <p>
 			
-				Returns true if the item can be equipped in the specified slot.
-				(a constant of the form slot:weapon, etc, in your .hsi file),
-				or <a href="#about-false" class="ref">false</a> if it cann't be equipped in that slot.
-				The <span class="param">item</span> argument is the item to check the equipability of.
-				You can use the item's number or the item:name constants from your .hsi file.
-				<br>
+				Returns true if the item can be equipped in the specified slot
+				(a constant of the form <span class="code">slot:weapon</span>, etc, in your .hsi file),
+				or false if it can't be equipped in that slot.
 				If you need to know if the item is equippable by a specific hero, see <a href="#about-equipwhere" class="ref">equip where</a> instead.
+				<br>
+				The <span class="param">item</span> argument is the item to check the equipability of.
+				You can use the item's ID number or a constant of the form <span class="code">item:name</span>.
 			
 			
 			
@@ -6931,8 +6931,10 @@ end</pre>
 			<a name="about-getitemvalue"></a>
 				<h4>get item value (item)</h4>
 <p>
-			Returns the value of an item. This is the default price for shops that don't override it.
-			The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			
+				Returns the value of an item. This is the default price for shops that don't override it.
+				<br>
+				The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of <span class="code">item:name</span>.
 			
 			
 			
@@ -6943,8 +6945,11 @@ end</pre>
 			<a name="about-getitemteachspell"></a>
 				<h4>get item teach spell (item)</h4>
 <p>
-			If this item teaches a spell, return the attack id+1 or none if it does not.
-			The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			
+				If this item teaches a spell, return the attack ID+1 or <span class="code">none</span> (0) if it does not.
+				<br>
+				The <span class="param">item</span> argument is an item ID; you can refer to the item by number,
+				or you can use the constants in the form of <span class="code">item:name</span>.
 			
 			
 			
@@ -6956,8 +6961,10 @@ end</pre>
 			<a name="about-getitemattackoutsidebattle"></a>
 				<h4>get item attack outside battle (item)</h4>
 <p>
-			If this item does an attack when used outside of battle, return the attack id+1 or none if it does not.
-			The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			
+				If this item does an attack when used outside of battle, return the attack ID + 1 or <span class="code">none</span> (0) if it does not.
+				<br>
+				The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of <span class="code">item:name</span>.
 			
 			
 			
@@ -6977,8 +6984,10 @@ end</pre>
 			<a name="about-getitemattackinbattle"></a>
 				<h4>get item attack in battle (item)</h4>
 <p>
-			If this item does an attack when used from the item menu in battle, return the attack id+1 or none if it does not.
-			The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			
+				If this item does an attack when used from the item menu in battle, return the attack ID + 1 or <span class="code">none</span> (0) if it does not.
+				<br>
+				The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of <span class="code">item:name</span>.
 			
 			
 			
@@ -6994,9 +7003,13 @@ end</pre>
 			<a name="about-getitemattackasweapon"></a>
 				<h4>get item attack as weapon (item)</h4>
 <p>
-			Return the attack id+1 of the attack that this item will do if it is equipped as a weapon. For non-weapons it will return attack id 0(+1).
-			The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
-			If you wish to check whether or not an item is equippable as a wepon, use <a href="#about-equippableinslot" class="ref">equippable in slot</a> instead.
+			
+				Returns the attack ID+1 of the attack that this item will do if it is equipped as a weapon.
+				For non-weapons it will return 1 meaning attack ID 0.
+				If you wish to check whether or not an item is equippable as a wepon,
+				use <a href="#about-equippableinslot" class="ref">equippable in slot</a> instead.
+				<br>
+				The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of <span class="code">item:name</span>.
 			
 			
 			
@@ -7014,8 +7027,10 @@ end</pre>
 			<a name="about-getitemtextbox"></a>
 				<h4>get item text box (item)</h4>
 <p>
-			If this item shows a text box, return the text box id or -1 if it does not.
-			The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
+			
+				If this item shows a text box, return the text box ID or -1 if it does not.
+				<br>
+				The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of <span class="code">item:name</span>.
 			
 			
 			
@@ -7027,9 +7042,13 @@ end</pre>
 			<a name="about-getitemequipstatbonus"></a>
 				<h4>get item equip stat bonus (item, stat)</h4>
 <p>
-			Return the stat bonus that you would get if you equipped this item.
-			The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of item:name.
-			The <span class="param">stat</span> argument is the stat name constant in the form stat:name (example, stat:hp or stat:attack).
+			
+				Return the stat bonus that you would get if you equipped this item.
+				<br>
+				The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of <span class="code">item:name</span>.
+				<br>
+				The <span class="param">stat</span> argument is the stat name constant in the form <span class="code">stat:name</span>
+				(for example, <span class="code">stat:hp</span> or <span class="code">stat:attack</span>).
 			
 			
 			

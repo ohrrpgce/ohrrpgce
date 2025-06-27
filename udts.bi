@@ -978,10 +978,10 @@ TYPE ItemDef
 	equip_by_bits(31) as bool '512 bits for xreadbit indexed by hero id
 	buy_price as integer
 
-	'Use actions -- technically these are mutually excluse in the item menu
-	'attack and text_box are mutually exclusive in the ITM file format  
+	'Use actions -- technically these are mutually exclusive in the item menu
+	'attack and text_box are mutually exclusive in the ITM file format
 	teach_spell as integer   ' attack ID, or -1 for none
-	oob_attack as integer        ' attack ID or -1 for none
+	oob_attack as integer    ' attack ID, or -1 for none
 	text_box as integer      ' text box id or -1 for none (box 0 not allowed in ITM file format)
 
 	stat_bonuses(11) as integer '0 for no bonus, negative bonuses allowed
