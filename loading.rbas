@@ -4130,6 +4130,13 @@ FUNCTION item_is_equippable(itembuf() as integer) as bool
  RETURN NO
 END FUNCTION
 
+FUNCTION item_is_equippable(item as ItemDef) as bool
+ FOR i as integer = 0 TO 4
+  IF item.eqslots(i) THEN RETURN YES
+ NEXT i
+ RETURN NO
+END FUNCTION
+
 FUNCTION item_is_equippable_in_slot(itembuf() as integer, byval slot as integer) as bool
  RETURN xreadbit(itembuf(), slot, 239)
 END FUNCTION

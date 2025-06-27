@@ -293,7 +293,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
  DIM thing_id as integer = GetInteger(thing)
  DIM buy as NodePtr
  DIM info as string
- DIM itembuf(dimbinsize(binITM)) as integer
+ DIM item as ItemDef
  DIM trade_str as string
  
  buystuff_init_info_menu buyst
@@ -312,8 +312,8 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
    hire_level = her.def_level
    IF hire_level < 0 THEN hire_level = averagelev()
   END IF
-  loaditemdata itembuf(), her.def_weapon
-  append_menu_item buyst.info, (atlevel(hire_level, her.lev0.hp, her.levMax.hp) + itembuf(54 + 0)) & " " & statnames(statHP)
+  loaditemdata item, her.def_weapon
+  append_menu_item buyst.info, (atlevel(hire_level, her.lev0.hp, her.levMax.hp) + item.stat_bonuses(0)) & " " & statnames(statHP)
   buyst.info.last->disabled = YES
   buyst.hero_box->Visible = NO
   buyst.hire_box->Visible = YES
@@ -340,18 +340,18 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
   
   buyst.hire_box->Visible = NO
   buyst.portrait_box->Visible = NO
-  loaditemdata itembuf(), thing_id
-  IF item_is_equippable(itembuf()) THEN
+  loaditemdata item, thing_id
+  IF item_is_equippable(item) THEN
    'This item is equippable
    buyst.hero_box->Visible = YES
    DIM eqprefix as string = readglobalstring(99, "Equip:", 10)
-   IF item_is_equippable_in_slot(itembuf(), 0) THEN append_menu_item buyst.info, eqprefix & " " & readglobalstring(38, "Weapon", 10)
+   IF item.eqslots(0) THEN append_menu_item buyst.info, eqprefix & " " & readglobalstring(38, "Weapon", 10)
    FOR i as integer = 1 to 4
-    IF item_is_equippable_in_slot(itembuf(), i) THEN append_menu_item buyst.info, eqprefix & " " & readglobalstring(24 + i, "Armor" & i)
+    IF item.eqslots(i) THEN append_menu_item buyst.info, eqprefix & " " & readglobalstring(24 + i, "Armor" & i)
    NEXT i 
    DIM bonus as integer
    FOR i as integer = 0 to 11
-    bonus = itembuf(54 + i)
+    bonus = item.stat_bonuses(i)
     IF bonus <> 0 THEN
      IF bonus > 0 THEN
       append_menu_item buyst.info, "+" & bonus & " " & statnames(i)
@@ -369,7 +369,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
     ChangeRectangleSlice buyst.party_box(i), 0, , , , transOpaque
     hero_id = gam.hero(i).id
     IF hero_id >= 0 THEN
-     IF item_read_equipbit(itembuf(), hero_id) THEN
+     IF item_read_equipbit(item, hero_id) THEN
       buyst.party_sl(i)->Extra(0) = YES
       ChangeRectangleSlice buyst.party_box(i), 3, , , , transOpaque
      END IF
@@ -445,7 +445,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
  init_menu_state buyst.info_st, buyst.info
  buyst.info_st.active = NO
  
-END SUB
+END SUB ' itemdef
 
 SUB buystuff_refresh_empty (buyst as ShopBuyState)
  ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & price_string(gold)
@@ -1918,7 +1918,7 @@ SUB sellstuff_infostr(byval ic as integer, info as string, b() as integer, perma
 END SUB
 
 SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, permask() as integer, price() as integer, stuffdata() as integer)
- DIM itemdata(dimbinsize(binITM)) as integer
+ DIM item as ItemDef
  DIM thing_type as integer
  DIM num as integer
  DIM sell_req_tag as integer
@@ -1926,9 +1926,9 @@ SUB sellstuff_refresh(byval last_stuff as integer, byval recordsize as integer, 
  DIM sell_mode as integer
  FOR i as integer = 0 TO last_inv_slot()
   IF inventory(i).used THEN
-   loaditemdata itemdata(), inventory(i).id
-   IF itemdata(73) = 2 THEN setbit permask(), 0, i, 1
-   price(i) = INT(itemdata(46) * .5)
+   loaditemdata item, inventory(i).id
+   IF item.cannot_be_sold_or_dropped THEN setbit permask(), 0, i, 1
+   price(i) = INT(item.buy_price * .5)
    FOR o as integer = 0 TO last_stuff
     thing_type   = stuffdata(o * recordsize + 17)
     num          = stuffdata(o * recordsize + 18)
@@ -2394,13 +2394,13 @@ SUB update_item_plank (byval pl as Slice Ptr, byref st as ItemScreenState)
   usable = YES
  ELSEIF slot <= UBOUND(inventory) THEN
   IF inventory(slot).used THEN
-   DIM itemtemp(dimbinsize(binITM)) as integer
-   loaditemdata itemtemp(), inventory(slot).id
-   IF itemtemp(73) = 2 THEN special = YES 'Cannot be sold/dropped
+   DIM item as ItemDef
+   loaditemdata item, inventory(slot).id
+   IF item.cannot_be_sold_or_dropped THEN special = YES 'Cannot be sold/dropped
    'TODO: call item_can_be_used_bits instead
-   IF itemtemp(50) > 0 THEN usable = YES 'Teaches a spell
-   IF itemtemp(51) > 0 THEN usable = YES 'Triggers an attack (cure)
-   IF itemtemp(51) < 0 THEN usable = YES 'Triggers a text box
+   IF item.teach_spell >= 0 THEN usable = YES 'Teaches a spell
+   IF item.oob_attack >= 0 THEN usable = YES 'Triggers an attack (cure)
+   IF item.text_box >= 0 THEN usable = YES 'Triggers a text box
   END IF
  ELSE
   debug "update_item_plank: out of bounds slot " & slot
@@ -2476,9 +2476,9 @@ FUNCTION is_item_plank(byval sl as Slice Ptr) as bool
 END FUNCTION
 
 FUNCTION item_can_be_discarded (byval item_id as integer) as bool
- DIM itemtemp(dimbinsize(binITM)) as integer
- loaditemdata itemtemp(), item_id
- IF itemtemp(73) = 2 THEN RETURN NO 'Cannot be sold/dropped
+ DIM item as ItemDef
+ loaditemdata item, item_id
+ IF item.cannot_be_sold_or_dropped THEN RETURN NO 'Cannot be sold/dropped
  RETURN YES
 END FUNCTION
 
@@ -2486,13 +2486,13 @@ END FUNCTION
 '1: can be used in-battle
 '2: can be used out of battle
 FUNCTION item_can_be_used_bits (byval item_id as integer) as integer
- DIM itemtemp(dimbinsize(binITM)) as integer
- loaditemdata itemtemp(), item_id
+ DIM item as ItemDef
+ loaditemdata item, item_id
  DIM ret as integer
- IF itemtemp(50) > 0 THEN ret OR= 2 'Teaches a spell
- IF itemtemp(51) > 0 THEN ret OR= 2 'Triggers an attack (cure) out-of-battle
- IF itemtemp(51) < 0 THEN ret OR= 2 'Triggers a text box out-of-battle
- IF itemtemp(47) > 0 THEN ret OR= 1 'Triggers an attack in battle
+ IF item.teach_spell >= 0 THEN ret OR= 2 'Teaches a spell
+ IF item.oob_attack >= 0 THEN ret OR= 2 'Triggers an attack (cure) out-of-battle
+ IF item.text_box >= 0 THEN ret OR= 2 'Triggers a text box out-of-battle
+ IF item.battle_items_menu_attack >= 0 THEN ret OR= 1 'Triggers an attack in battle
  RETURN ret
 END FUNCTION
 
@@ -2750,21 +2750,21 @@ SUB inventory_autosort()
  IF gen(genAutosortScheme) = 0 THEN
   'Sorting by type: cache the sort order of the items, or the cost of repeatedly loading
   'item data might go out of control
-  DIM itemdata(dimbinsize(binITM)) as integer
+  DIM item as ItemDef
   FOR slot as integer = 0 TO numitems - 1
-   loaditemdata itemdata(), inventory(slot).id
+   loaditemdata item, inventory(slot).id
 
-   IF itemdata(47) THEN  'Usable in-battle
+   IF item.battle_items_menu_attack >= 0 THEN  'Usable in-battle
     inventory(slot).sortorder = 0
-   ELSEIF itemdata(51) > 0 THEN  'Usable out-of-battle (attack)
+   ELSEIF item.oob_attack >= 0 THEN  'Usable out-of-battle (attack)
     inventory(slot).sortorder = 10
-   ELSEIF itemdata(51) < 0 THEN  'Usable out-of-battle (textbox)
+   ELSEIF item.text_box >= 0 THEN  'Usable out-of-battle (textbox)
     inventory(slot).sortorder = 20
-   ELSEIF itemdata(50) THEN  'Teach spell
+   ELSEIF item.teach_spell >= 0 THEN  'Teach spell
     inventory(slot).sortorder = 30
-   ELSEIF item_is_equippable(itemdata()) THEN  'Equippable
+   ELSEIF item_is_equippable(item) THEN  'Equippable
     FOR i as integer = 0 to 4
-     IF item_is_equippable_in_slot(itemdata(), i) THEN
+     IF item.eqslots(i) THEN
       inventory(slot).sortorder = 40 + i
       EXIT FOR
      END IF
@@ -2772,12 +2772,12 @@ SUB inventory_autosort()
    ELSE
     inventory(slot).sortorder = 50
    END IF
-   IF itemdata(73) = 2 THEN
+   IF item.cannot_be_sold_or_dropped THEN
     inventory(slot).sortorder += 0  'Can not be sold/dropped
-   ELSEIF itemdata(73) = 1 THEN
-    inventory(slot).sortorder += 1  'Unlimited use
+   ELSEIF item.consumed_by_use THEN
+    inventory(slot).sortorder += 1  'Consumed by use
    ELSE
-    inventory(slot).sortorder += 2  'Consumed by use
+    inventory(slot).sortorder += 2  'Unlimited use
    END IF
   NEXT
  ELSEIF gen(genAutosortScheme) = 1 THEN
@@ -3457,15 +3457,15 @@ SUB equip_menu_setup (byref st as EquipMenuState)
   st.eq(i).count = 0
  NEXT i
  
- DIM itembuf(dimbinsize(binITM)) as integer
+ DIM item as ItemDef
  FOR i as integer = 0 TO last_inv_slot()
   IF inventory(i).used THEN
    '--load item data
-   loaditemdata itembuf(), inventory(i).id
+   loaditemdata item, inventory(i).id
    FOR eq_slot as integer = 0 to 4
-    IF item_is_equippable_in_slot(itembuf(), eq_slot) THEN
+    IF item.eqslots(eq_slot) THEN
      '--if this item is equipable in this slot
-     IF item_read_equipbit(itembuf(), herost.id) THEN
+     IF item_read_equipbit(item, herost.id) THEN
       '--if this item is equipable by this hero
       WITH st.eq(eq_slot)
        .offset(.count) = i
@@ -3497,26 +3497,26 @@ SUB equip_menu_stat_bonus(byref st as EquipMenuState)
  '(that is, bonuses of hovered item minus bonuses of equipped item)
  'as well as the resultant total stat bonuses
 
- DIM item as integer = equip_menu_available_item_id(st)
+ DIM item_id as integer = equip_menu_available_item_id(st)
 
  'Add new item bonuses
- DIM itembuf(dimbinsize(binITM)) as integer
- IF item = -1 THEN
+ DIM item as ItemDef
+ IF item_id = -1 THEN
   '--nothing to load!
   flusharray st.stat_bonus()
  ELSE
-  loaditemdata itembuf(), item
+  loaditemdata item, item_id
   FOR i as integer = 0 TO statLast
-   st.stat_bonus(i) = itembuf(54 + i)
+   st.stat_bonus(i) = item.stat_bonuses(i)
   NEXT i
  END IF
 
  'Subtract old item bonuses
  DIM equipped as integer = gam.hero(st.who).equip(st.slot).id
  IF equipped >= 0 THEN
-  loaditemdata itembuf(), equipped
+  loaditemdata item, equipped
   FOR i as integer = 0 TO statLast
-   st.stat_bonus(i) -= itembuf(54 + i)
+   st.stat_bonus(i) -= item.stat_bonuses(i)
   NEXT i
  END IF
 
@@ -3541,12 +3541,12 @@ FUNCTION use_item_in_slot(byval slot as integer, byref trigger_box as integer, b
  consumed = NO
  IF inventory(slot).used = NO THEN RETURN NO
 
- DIM itemdata(dimbinsize(binITM)) as integer
- loaditemdata itemdata(), inventory(slot).id
- DIM attack_name as string = readbadbinstring(itemdata(), 0, 8, 0)
- DIM should_consume as integer = (itemdata(73) = 1)
- DIM attack_id as integer = itemdata(51) - 1
- DIM is_attack_item as integer = ( itemdata(51) > 0 ANDALSO NOT itemdata(50) > 0 )
+ DIM item as ItemDef
+ loaditemdata item, inventory(slot).id
+ DIM attack_name as string = item.name
+ DIM should_consume as integer = item.consumed_by_use
+ DIM attack_id as integer = item.oob_attack
+ DIM is_attack_item as integer = ( item.oob_attack >= 0 ANDALSO NOT item.teach_spell >= 0 )
 
  IF use_item_by_id(inventory(slot).id, trigger_box, inventory(slot).text) THEN
   IF should_consume THEN
@@ -3585,35 +3585,35 @@ FUNCTION use_item_by_id(byval item_id as integer, byref trigger_box as integer, 
 
  '--Does not update autoset tags!
 
- DIM itemdata(dimbinsize(binITM)) as integer
- loaditemdata itemdata(), item_id
+ DIM item as ItemDef
+ loaditemdata item, item_id
 
  DIM caption as string
  IF name_override <> "" THEN
   caption = name_override
  ELSE
-  caption = readbadbinstring(itemdata(), 0, 8, 0)
+  caption = item.name
  END IF
 
- IF itemdata(50) > 0 THEN '--learn a spell
+ IF item.teach_spell >= 0 THEN '--learn a spell
   MenuSound gen(genAcceptSFX)
-  IF menu_attack_targ_picker(-1, itemdata(50)-1, -1, caption) THEN
+  IF menu_attack_targ_picker(-1, item.teach_spell, -1, caption) THEN
    '--successfully learned
    RETURN YES
   END IF
   RETURN NO
  END IF
  
- IF itemdata(51) > 0 THEN '--attack/oobcure
+ IF item.oob_attack >= 0 THEN '--attack/oobcure
   MenuSound gen(genAcceptSFX)
-  IF menu_attack_targ_picker(itemdata(51)-1, -1, -1, caption) THEN
+  IF menu_attack_targ_picker(item.oob_attack, -1, -1, caption) THEN
    RETURN YES
   END IF
   RETURN NO
  END IF
  
- IF itemdata(51) < 0 THEN '--trigger a text box
-  trigger_box = itemdata(51) * -1
+ IF item.text_box >= 0 THEN '--trigger a text box
+  trigger_box = item.text_box
   RETURN YES
  END IF
  
