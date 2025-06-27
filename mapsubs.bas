@@ -4343,7 +4343,7 @@ SUB mapedit_delete_menu(st as MapEditState)
  options(2) = "Erase tile data + doors + NPC instances"
  options(3) = "Erase NPC instances"
  options(4) = "Erase NPC instances + definitions"
- options(5) = "Erase doors"
+ options(5) = "Erase door positions"
  options(6) = "Erase doorlinks"
  IF st.map.id = gen(genMaxMap) AND st.map.id >= 1 THEN
   '--if this is the last map, then we can actually remove it entirely, rather than just blanking it
@@ -4363,6 +4363,7 @@ SUB mapedit_delete_menu(st as MapEditState)
    CleanZoneMap st.map.zmap, st.map.wide, st.map.high
    CleanNPCL st.map.npc()
    CleanDoors st.map.door()
+   CleanDoorlinks st.map.doorlink()
    st.map.gmap(31) = 1 'Walkabout layer above map layer 0
    mapedit_throw_away_history st
   ELSEIF choice = 3 THEN
