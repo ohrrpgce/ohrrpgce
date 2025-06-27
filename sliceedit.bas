@@ -3492,7 +3492,6 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   append_simplemenu_item menu, "editor_ssed_tooltip_text", , , -411
   append_simplemenu_item menu, "editor_ssed_caption_text", , , -412
   append_simplemenu_item menu, "editor_ssed_frame_separator_templ", , , -413
-  append_simplemenu_item menu, "editor_enemy_sprite", , , -500
   append_simplemenu_item menu, "root", , , -100000
   append_simplemenu_item menu, "textbox_text", , , -100001
   append_simplemenu_item menu, "textbox_portrait", , , -100002
@@ -3512,8 +3511,8 @@ FUNCTION edit_slice_lookup_codes(byref ses as SliceEditState, byval sl as Slice 
   append_simplemenu_item menu, "walkabout_layer", , , -100010
   append_simplemenu_item menu, "hero_layer", , , -100011
   append_simplemenu_item menu, "npc_layer", , , -100012
-  append_simplemenu_item menu, "walkabout_sprite", , , -100013
-  append_simplemenu_item menu, "walkabout_shadow", , , -100014
+  append_simplemenu_item menu, "sprite", , , -100013
+  append_simplemenu_item menu, "shadow", , , -100014
   append_simplemenu_item menu, "backdrop", , , -100015
   append_simplemenu_item menu, "map_layer0", , , -101000
   append_simplemenu_item menu, "map_layer1", , , -101001

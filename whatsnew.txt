@@ -16,6 +16,8 @@ July ?? 2025 [Kaleidophone]
       "get item attack outside battle", "get item attack in battle",
       "get item attack as weapon", "get item text box",
       "get item equip stat bonus", "equippable in slot" [James]
+    * "sl:sprite" alias to "sl:walkabout sprite" and "sl:shadow" for
+      "sl:walkabout shadow"
 
   *** Changes
 

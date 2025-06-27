@@ -2477,8 +2477,10 @@ define constant, begin
 -100010, sl:walkabout layer
 -100011, sl:hero layer
 -100012, sl:npc layer
+-100013, sl:sprite
 -100013, sl:walkabout sprite
 -100013, sl:walkabout sprite component
+-100014, sl:shadow
 -100014, sl:walkabout shadow
 -100014, sl:walkabout shadow component
 -100015, sl:backdrop
