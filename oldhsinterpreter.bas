@@ -631,8 +631,12 @@ scriptret = 0'--default returnvalue is zero
 si.state = stnext
 si.stackbase = stackposition(scrst)
 
+'For efficiency only check to expand the stack once, when starting a script. Need an upper
+'bound on the stack space needed, doesn't matter that it's excessive. Worst case is a single
+'do() containing n copies of the same node: one additional word per argument, each pushes
+'one value on the stack.
 '+5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
-checkoverflow(scrst, curcmd->argc + 5)
+checkoverflow(scrst, si.scr->size + 5)
 
 IF curcmd->kind <> tyflow THEN
  scripterr "Root script command not flow, but " & curcmd->kind, serrError
@@ -672,8 +676,6 @@ SELECT CASE cmdptr->kind
   pushstack(scrst, global(cmdptr->value))
  CASE IS >= tymath, tyflow
   si.depth += 1
-  '2 for state + args + 5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
-  checkoverflow(scrst, 7 + cmdptr->argc)
   pushstack(scrst, si.ptr)
   pushstack(scrst, si.curargn)
   curcmd = cmdptr
@@ -686,7 +688,6 @@ SELECT CASE cmdptr->kind
   'edit: it's moved about even more now. needs rewriting
   'IF gam.debug_scripts AND breakststart THEN breakpoint gam.debug_scripts, 3
   'scriptdump "subdoarg"
-
 
   'Even for flow, first arg always needs evaluation, so don't leave yet!
   'If there are no args, then time to stop and evaluate it (this is not a math command)

@@ -6,8 +6,6 @@
 ' any FreeBasic program. Nothing in here can depend on Allmodex, nor on any
 ' gfx or music backend, nor on any other part of the OHR
 
-CONST STACK_SIZE_INC = 512 ' in integers
-
 #include "config.bi"
 #include "datetime.bi" 'FB header
 #include "string.bi"  'FB header
@@ -1019,8 +1017,8 @@ END FUNCTION
 
 SUB createstack (st as Stack)
   WITH st
-    .size = STACK_SIZE_INC - 4
-    .bottom = allocate(STACK_SIZE_INC * sizeof(integer))
+    .size = 1000
+    .bottom = allocate(.size * sizeof(integer))
     IF .bottom = 0 THEN
       'oh dear
       'debug "Not enough memory for stack"
@@ -1037,11 +1035,11 @@ SUB destroystack (st as Stack)
   END IF
 END SUB
 
+'Ensure can push at least 'amount' integers without overflow.
 SUB checkoverflow (st as Stack, byval amount as integer = 1)
   WITH st
     IF .pos - .bottom + amount >= .size THEN
-      .size += STACK_SIZE_INC
-      IF .size > STACK_SIZE_INC * 4 THEN .size += STACK_SIZE_INC
+      .size += .size \ 2 + amount
       'debug "new stack size = " & .size & " * 4  pos = " & (.pos - .bottom) & " amount = " & amount
       'debug "nowscript = " & nowscript & " " & scrat(nowscript).id & " " & scriptname(scrat(nowscript).id) 
 
