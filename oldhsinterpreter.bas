@@ -165,15 +165,9 @@ DO
     '--scriptret would be set here, pushed at return
     SELECT CASE curcmd->kind
      CASE tymath, tyfunct
-      IF curcmd->argc > maxScriptArgs THEN
-       scripterr "More command arguments than supported", serrError
-       killallscripts
-       EXIT DO
-      END IF
-      '--complete math and functions, nice and easy.
-      FOR i as integer = curcmd->argc - 1 TO 0 STEP -1
-       popstack(scrst, retvals(i))
-      NEXT i
+      'Setup retvals()
+      scrst.pos -= curcmd->argc
+      retvalsbase = scrst.pos
       IF curcmd->kind = tymath THEN
        'Note, most of the time scriptmath will be called from subdoarg instead
        scriptmath
@@ -721,8 +715,8 @@ IF si.curargn >= curcmd->argc THEN
   si.curargn = 0
   scriptret = 0'--default returnvalue is zero
 '/
-  IF curcmd->argc = 2 THEN popstack(scrst, retvals(1))
-  popstack(scrst, retvals(0))
+  scrst.pos -= curcmd->argc
+  retvalsbase = scrst.pos
   scriptmath
   si.depth -= 1
   popstack(scrst, si.curargn)

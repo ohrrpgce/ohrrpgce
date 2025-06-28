@@ -69,7 +69,7 @@ EXTERN global() as integer
 EXTERN heap() as integer
 EXTERN scrat() as OldScriptState
 EXTERN scriptinsts() as ScriptInst
-EXTERN retvals() as integer
+EXTERN retvalsbase as integer ptr
 EXTERN wantimmediate as integer
 EXTERN scriptprofiling as bool
 EXTERN commandprofiling as bool
@@ -96,7 +96,6 @@ EXTERN globalp as integer ptr
 EXTERN heapp as integer ptr
 EXTERN scratp as OldScriptState ptr
 EXTERN scriptp as ScriptData ptr ptr
-EXTERN retvalsp as integer ptr
 EXTERN plotslicesp as SliceHandleSlot ptr
 
 EXTERN timers() as PlotTimer

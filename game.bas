@@ -166,7 +166,7 @@ REDIM remembered_menu_pts(0) as integer  'True slot number of the selected menu 
 'Script interpreter
 DIM nowscript as integer = -1
 DIM scriptret as integer
-REDIM retvals(maxScriptArgs - 1) as integer
+DIM retvalsbase as integer ptr
 DIM scriptctr as uinteger
 DIM numloadedscr as integer    'Number of loaded script headers in script cache (some may not have data loaded)
 DIM totalscrmem as integer     'Total memory used by all loaded scripts, in int32s
@@ -190,13 +190,11 @@ DIM globalp as integer ptr
 DIM heapp as integer ptr
 DIM scratp as OldScriptState ptr
 DIM scriptp as ScriptData ptr ptr
-DIM retvalsp as integer ptr
 DIM plotslicesp as SliceHandleSlot ptr
 globalp = @global(0)
 heapp = @heap(0)
 scratp = @scrat(0)
 scriptp = @script(0)
-retvalsp = @retvals(0)
 
 setup_global_reload_doc
 

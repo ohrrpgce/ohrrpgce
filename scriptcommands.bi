@@ -8,6 +8,10 @@
 #include "slices.bi"
 #include "udts.bi"
 
+'retvals(i) is the ith argument to the current command, starting with i=0.
+'It reads the stack directly so shouldn't be used after runscript, which might reallocate the stack.
+#define retvals(idx)  retvalsbase[idx]
+
 '''' Script handles
 
 ' Handles are 32-bit ints where the top 5 bits are the HandleType, the rest is
