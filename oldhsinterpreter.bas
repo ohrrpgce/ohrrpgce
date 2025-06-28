@@ -52,9 +52,9 @@ DIM curcmd as ScriptCommand ptr
 
 
 #MACRO dumpandreturn()
- scrst.pos -= scrat(nowscript).curargn
+ scrst.pos -= .curargn
  scriptret = 0
- scrat(nowscript).state = streturn
+ subreturn
 #ENDMACRO
 
 'Returns error string on failure, NULL on success
@@ -164,10 +164,6 @@ DO
     '--evaluate function, math, script, whatever
     '--scriptret would be set here, pushed at return
     SELECT CASE curcmd->kind
-     CASE tystop
-      scripterr "stnext encountered noop " & curcmd->value & " at " & .ptr & " in " & nowscript, serrError
-      killallscripts
-      EXIT DO
      CASE tymath, tyfunct
       IF curcmd->argc > maxScriptArgs THEN
        scripterr "More command arguments than supported", serrError
@@ -297,6 +293,10 @@ DO
        .state = streturn
       END IF
       GOTO interpretloop 'new WITH pointer
+     CASE tystop
+      scripterr "stnext encountered noop " & curcmd->value & " at " & .ptr & " in " & nowscript, serrError
+      killallscripts
+      EXIT DO
      CASE ELSE
       scripterr "illegal kind " & curcmd->kind & " " & curcmd->value & " in stnext", serrError
       killallscripts
@@ -368,7 +368,7 @@ DO
            IF gam.debug_scripts AND breakloopbrch THEN breakpoint gam.debug_scripts, 5
            tmpstep = readstack(scrst, 0)
            tmpend = readstack(scrst, -1)
-           tmpstart = readstack(scrst, -2)
+           'tmpstart = readstack(scrst, -2)
            tmpvar = readstack(scrst, -3)
            tmpnow = readscriptvar(tmpvar)
            IF (tmpnow > tmpend ANDALSO tmpstep > 0) ORELSE (tmpnow < tmpend ANDALSO tmpstep < 0) THEN
@@ -664,6 +664,11 @@ DIM as ScriptCommand ptr cmdptr = cast(ScriptCommand ptr, dataptr + *(@curcmd->a
 SELECT CASE cmdptr->kind
  CASE tynumber
   pushstack(scrst, cmdptr->value)
+ CASE tylocal
+  pushstack(scrst, heap(si.frames(0).heap + cmdptr->value))
+ CASE tynonlocal
+  DIM id as integer = cmdptr->value
+  pushstack(scrst, heap(si.frames(id SHR 8).heap + (id AND 255)))
  CASE tyglobal
   IF cmdptr->value < 0 ORELSE cmdptr->value > maxScriptGlobals THEN
    showbug "Illegal global variable id " & cmdptr->value
@@ -671,11 +676,6 @@ SELECT CASE cmdptr->kind
    EXIT SUB
   END IF
   pushstack(scrst, global(cmdptr->value))
- CASE tylocal
-  pushstack(scrst, heap(si.frames(0).heap + cmdptr->value))
- CASE tynonlocal
-  DIM id as integer = cmdptr->value
-  pushstack(scrst, heap(si.frames(id SHR 8).heap + (id AND 255)))
  CASE IS >= tymath, tyflow
   si.depth += 1
   '2 for state + args + 5 just-in-case for extra state stuff pushed to stack (atm just switch, +1 ought to be sufficient)
