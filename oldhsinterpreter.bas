@@ -1,5 +1,5 @@
 'OHRRPGCE GAME - Old HamsterSpeak Interpreter
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2023 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 'This file holds everything specific to the old, original HS interpreter
@@ -297,12 +297,8 @@ DO
        .state = streturn
       END IF
       GOTO interpretloop 'new WITH pointer
-     CASE tystop
-      scripterr "stnext encountered noop " & curcmd->value & " at " & .ptr & " in " & nowscript, serrError
-      killallscripts
-      EXIT DO
      CASE ELSE
-      scripterr "illegal kind " & curcmd->kind & " " & curcmd->value & " in stnext", serrError
+      scripterr "Script data or script interpreter state is corrupt: illegal kind " & curcmd->kind & " " & curcmd->value & " at " & .ptr & " in " & scriptname(.id), serrError
       killallscripts
       EXIT DO
     END SELECT
@@ -692,7 +688,7 @@ SELECT CASE cmdptr->kind
   IF cmdptr->value < 0 ORELSE cmdptr->value > maxScriptGlobals THEN
    scrst.pos = stkpos
    si.curargn = argn
-   showbug "Illegal global variable id " & cmdptr->value
+   scripterr "Illegal global variable id " & cmdptr->value, serrError
    si.state = sterror
    EXIT SUB
   END IF

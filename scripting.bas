@@ -1821,8 +1821,6 @@ FUNCTION scriptcmdname (kind as integer, id as integer, scrdat as ScriptData) as
  }
 
  SELECT CASE kind
-  CASE tystop
-   RETURN "KIND=STOP"  'Doesn't ever occur in scripts
   CASE tynumber
    RETURN STR(id)
   CASE tyflow

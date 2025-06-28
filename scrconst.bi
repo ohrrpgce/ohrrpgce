@@ -12,13 +12,12 @@ CONST stwait = 1
 CONST ststart = 2
 CONST streturn = 3
 CONST stnext = 4
-CONST stdoarg = 5
+CONST stdoarg = 5     'No longer used
 CONST stdone = 6
 CONST sttriggered = 7
 CONST sterror = 8
 CONST stexit = 9
 '--SCRIPT STATEMENT TYPES---
-CONST tystop = 0      'terminate script (not really legal)
 CONST tynumber = 1    'literal number
 CONST tyflow = 2      'flow control
 CONST tyglobal = 3    'global variable
