@@ -467,10 +467,10 @@ DO
   CASE streturn'---after evaluating a node return to its parent.
    '--sets stdone if done with entire script, otherwise calls subdoarg, which normally sets stnext
    subreturn
-  CASE stdoarg'---do argument
+  'CASE stdoarg'---do argument
    '--evaluate an arg, either directly or by changing state. stnext will be next
    'Note subdoarg will keep evaluating arguments and math operators until hitting something difficult
-   subdoarg
+   'subdoarg
   CASE ststart'---read statement
    '--FIRST STATE
    '--just load the first command
@@ -757,17 +757,17 @@ ELSE
  IF si.curargn >= curcmd->argc THEN EXIT SUB
  IF curcmd->kind = tyflow THEN IF curcmd->value = flowif OR curcmd->value >= flowfor THEN EXIT SUB
  IF curcmd->kind = tymath THEN IF curcmd->value >= 20 THEN EXIT SUB
- si.state = stdoarg
+ subdoarg
 END IF
 END SUB
 
 SUB unwindtodo (byref si as OldScriptState, byval levels as integer)
-'unwinds the stack until the specified number of dos have been stripped
-'leaves the interpreter as if the last do block had successfully finished
-'this means repeat in the case of for and while loops
-'note: we assume the calling command has popped its args
+'Unwinds the stack until the specified number of do's have been stripped and
+'leaves the interpreter as if the last do block had successfully finished.
+'This means if the do belongs to for/while it will loop, or exit the script if the toplevel do.
+'Can only be called with levels > 0, and after the calling command has popped its args.
 
-WHILE levels > 0
+DO
  si.depth -= 1
  IF si.depth < 0 THEN
   si.state = stdone
@@ -777,6 +777,13 @@ WHILE levels > 0
  popstack(scrst, si.curargn)
  popstack(scrst, si.ptr)
  curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
+
+ IF levels = 0 THEN
+  pushstack(scrst, 0)  'Dummy return value from the do
+  si.curargn += 1
+  si.state = stnext
+  EXIT SUB
+ END IF
 
  IF curcmd->kind = tyflow AND curcmd->value = flowdo THEN
   levels -= 1
@@ -790,9 +797,7 @@ WHILE levels > 0
  ELSE
   scrst.pos -= si.curargn
  END IF
-WEND
-'return to normality
-subreturn
+LOOP
 
 END SUB
 
@@ -1746,7 +1751,7 @@ FUNCTION scriptstate (byval targetscript as integer, byval recurse as integer = 
  'debug "argn = " & state.curargn
  'debug "argc = " & node.argc
 
- IF state.state = stdoarg THEN GOTO jmpdoarg
+ IF state.state = stdoarg THEN GOTO jmpdoarg  'Note: stdoarg no longer used
  IF state.state = stnext OR state.state = streturn OR state.state = stwait THEN
  'IF recurse <> 3 THEN  'huh?
 
