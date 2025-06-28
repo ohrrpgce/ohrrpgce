@@ -663,12 +663,21 @@ DIM byref si as OldScriptState = scrat(nowscript)
 '-certain flow & math commands need special logic after every evaluated arg, stnext to handle
 si.state = stnext
 
+'We can only evaluate a single arg to most flow (except do/then/else) and logand/logor
+'before having to go back to the main loop. Only check that condition after evaluating one arg.
+DIM checked_slow as bool = NO
+
+'Cache these values in locals, because the compiler doesn't know it can due to all the
+'writes through the stkpos pointer (which it assumes could point anywhere).
+'Always set si.curargn = argn and scrst.pos = stkpos when exiting.
+DIM argc as integer = curcmd->argc
+DIM argn as integer = si.curargn
 DIM stkpos as integer ptr = scrst.pos
 
 DIM as integer ptr dataptr = si.scrdata
 
 quickrepeat:
-DIM as ScriptCommand ptr cmdptr = cast(ScriptCommand ptr, dataptr + *(@curcmd->args(0) + si.curargn))
+DIM as ScriptCommand ptr cmdptr = cast(ScriptCommand ptr, dataptr + *(@curcmd->args(0) + argn))
 
 ' Process an arg here if possible, otherwise stop
 SELECT CASE cmdptr->kind
@@ -682,6 +691,7 @@ SELECT CASE cmdptr->kind
  CASE tyglobal
   IF cmdptr->value < 0 ORELSE cmdptr->value > maxScriptGlobals THEN
    scrst.pos = stkpos
+   si.curargn = argn
    showbug "Illegal global variable id " & cmdptr->value
    si.state = sterror
    EXIT SUB
@@ -690,11 +700,13 @@ SELECT CASE cmdptr->kind
  CASE IS >= tymath, tyflow
   si.depth += 1
   pushstackptr(stkpos, si.ptr)
-  pushstackptr(stkpos, si.curargn)
+  pushstackptr(stkpos, argn)
   curcmd = cmdptr
+  argc = curcmd->argc
   si.ptr = (cast(intptr_t, cmdptr) - cast(intptr_t, dataptr)) shr 2  ' \ sizeof(int32)
-  si.curargn = 0
+  argn = 0
   scriptret = 0'--default returnvalue is zero
+  checked_slow = NO
 
   'this breakpoint is a perfect duplicate of breakstnext, but originally it also caught
   'streturn on evaluating numbers, locals and globals
@@ -705,10 +717,15 @@ SELECT CASE cmdptr->kind
   'Even for flow, first arg always needs evaluation, so don't leave yet!
   'If there are no args, then time to stop and evaluate it (this is not a math command)
   'EXIT SUB
-  IF curcmd->argc = 0 THEN scrst.pos = stkpos : EXIT SUB
+  IF argc = 0 THEN
+   scrst.pos = stkpos
+   si.curargn = argn
+   EXIT SUB
+  END IF
   GOTO quickrepeat
  CASE ELSE
   scrst.pos = stkpos
+  si.curargn = argn
   scripterr "Illegal statement type " & cmdptr->kind, serrError
   si.state = sterror
   EXIT SUB
@@ -718,10 +735,12 @@ END SELECT
 finishedarg:
 ' Move on the the next arg and decide whether to fast track its execution
 
-si.curargn += 1
-IF si.curargn >= curcmd->argc THEN
+argn += 1
+IF argn >= argc THEN
  IF curcmd->kind = tymath THEN
-  'Optimisation
+  'Optimisation: inline scriptmath -> subreturn -> subdoarg calls here, so we
+  'can resume evaluating the parent node's args.
+  'Doing the same for script_commands would be a mess because nowscript and si.state can change.
 /'  Here's the prologue (from a *previous* iteration through the above SELECT)
   si.depth += 1
   pushstack(scrst, si.ptr)
@@ -731,27 +750,41 @@ IF si.curargn >= curcmd->argc THEN
   si.curargn = 0
   scriptret = 0'--default returnvalue is zero
 '/
-  stkpos -= curcmd->argc
+  stkpos -= argc
   retvalsbase = stkpos
-  scrst.pos = stkpos  'Not used by scriptmath, but in case debugger entered after an error
+
+  'Not used by scriptmath, but in case debugger entered after an error
+  scrst.pos = stkpos
+  si.curargn = argn
+
   scriptmath
   si.depth -= 1
   
-  popstackptr(stkpos, si.curargn)
+  popstackptr(stkpos, argn)
   popstackptr(stkpos, si.ptr)
-  curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
+  curcmd = cast(ScriptCommand ptr, dataptr + si.ptr)
   '--push return value
   pushstackptr(stkpos, scriptret)
+  argc = curcmd->argc
+  checked_slow = NO  'New curcmd
 
   GOTO finishedarg
  END IF
  scrst.pos = stkpos
+ si.curargn = argn
  EXIT SUB
 END IF
 
-IF curcmd->kind = tyflow THEN IF curcmd->value = flowif ORELSE curcmd->value >= flowfor THEN scrst.pos = stkpos : EXIT SUB
-'logand, logor need special handing
-IF curcmd->kind = tymath THEN IF curcmd->value = 20 ORELSE curcmd->value = 21 THEN scrst.pos = stkpos : EXIT SUB
+IF checked_slow = NO THEN
+ 'Check duplicated from subreturn
+ IF (curcmd->kind = tyflow ANDALSO (curcmd->value = flowif ORELSE curcmd->value >= flowfor)) ORELSE _
+    (curcmd->kind = tymath ANDALSO (curcmd->value = 20 ORELSE curcmd->value = 21)) THEN
+  scrst.pos = stkpos
+  si.curargn = argn
+  EXIT SUB
+ END IF
+ checked_slow = YES
+END IF
 
 GOTO quickrepeat
 END SUB
@@ -764,19 +797,23 @@ IF si.depth < 0 THEN
  si.state = stdone
 ELSE
  DIM stkpos as integer ptr = scrst.pos
- popstackptr(stkpos, si.curargn)
+ DIM argn as integer
+ popstackptr(stkpos, argn)
  popstackptr(stkpos, si.ptr)
  curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
  '--push return value
  pushstackptr(stkpos, scriptret)
  scrst.pos = stkpos
- si.curargn += 1
- si.state = stnext'---try next arg
- IF si.curargn >= curcmd->argc THEN EXIT SUB
- IF curcmd->kind = tyflow THEN IF curcmd->value = flowif ORELSE curcmd->value >= flowfor THEN EXIT SUB
- 'logand, logor
- IF curcmd->kind = tymath THEN IF curcmd->value = 20 ORELSE curcmd->value = 21 THEN EXIT SUB
- subdoarg
+ argn += 1
+ si.curargn = argn
+ 'Some flow (if/for/while/switch, make sure not to include do/then/else), logand & logor need handling by stnext
+ IF argn >= curcmd->argc ORELSE _
+    (curcmd->kind = tyflow ANDALSO (curcmd->value = flowif ORELSE curcmd->value >= flowfor)) ORELSE _
+    (curcmd->kind = tymath ANDALSO (curcmd->value = 20 ORELSE curcmd->value = 21)) THEN
+  si.state = stnext
+ ELSE
+  subdoarg
+ END IF
 END IF
 END SUB
 
