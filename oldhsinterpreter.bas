@@ -275,11 +275,21 @@ DO
       IF rsr = rsSuccess THEN
        'On success runscript calls oldscriptstate_init which will
        'set scrat(nowscript).state = ststart
-       '--fill heap with arguments
-       FOR i as integer = argc - 1 TO 0 STEP -1
-        popstack(scrst, temp)
-        setScriptArg i, temp
-       NEXT i
+       '--fill heap with arguments (this is an inlined version of:)
+       'FOR i as integer = argc - 1 TO 0 STEP -1
+       ' popstack(scrst, temp)
+       ' setScriptArg i, temp
+       'NEXT i
+       WITH scrat(nowscript)
+        DIM stkpos as integer ptr = scrst.pos - argc
+        DIM localvars as integer ptr = @heap(.frames(0).heap)
+        'Any additional arguments silently dropped, missing args remain (but neither should ever happen)
+        FOR i as integer = 0 TO small(.scr->args, argc) - 1
+         localvars[i] = stkpos[i]
+        NEXT
+        scrst.pos = stkpos
+       END WITH
+
       END IF
       IF rsr = rsFail THEN
        'runscript may have shown an error, which might change the old scrat(nowscript).state to streturn (in killscriptthread)
