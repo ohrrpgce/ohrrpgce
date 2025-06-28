@@ -140,7 +140,7 @@ DIM i as integer
 DIM temp as integer
 DIM tmpstate as integer
 DIM tmpcase as integer
-DIM tmpstart as integer
+'DIM tmpstart as integer
 DIM tmpend as integer
 DIM tmpstep as integer
 DIM tmpnow as integer
@@ -302,7 +302,10 @@ DO
       killallscripts
       EXIT DO
     END SELECT
+
    ELSE
+    'stnext: haven't evaluated all args yet. Special arg handling for flow and logand/logor.
+
     IF .curargn = 0 THEN
      '--always need to execute the first argument
      subdoarg
@@ -313,8 +316,8 @@ DO
        SELECT CASE curcmd->value
         CASE flowif'--we got an if!
          SELECT CASE .curargn
-          CASE 0
-           subdoarg '--run condition
+          'CASE 0
+          ' subdoarg '--run condition
           CASE 1
            IF readstack(scrst, 0) THEN
             'scrst.pos -= 1
@@ -333,8 +336,8 @@ DO
          END SELECT
         CASE flowwhile'--we got a while!
          SELECT CASE .curargn
-          CASE 0
-           subdoarg '--run condition
+          'CASE 0
+          ' subdoarg '--run condition
           CASE 1
            IF readstack(scrst, 0) THEN
             subdoarg '--run do block
@@ -356,7 +359,7 @@ DO
           '--argn 3 is step
           '--argn 4 is do block
           '--argn 5 is repeat (normal termination)
-          CASE 0, 1, 3
+          CASE 1, 3 ',0
            '--get var, start, and later step
            subdoarg
           CASE 2
@@ -383,10 +386,10 @@ DO
            showbug "for statement is being difficult"
          END SELECT
         CASE flowswitch
-         IF .curargn = 0 THEN
-          '--get expression to match
-          subdoarg
-         ELSEIF .curargn = 1 THEN
+         'IF .curargn = 0 THEN
+         ' '--get expression to match
+         ' subdoarg
+         IF .curargn = 1 THEN
           '--set up state - push a 0: not fallen in
           '--assume first statement is a case, run it
           pushstack(scrst, 0)
