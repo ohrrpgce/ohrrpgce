@@ -653,6 +653,8 @@ DIM byref si as OldScriptState = scrat(nowscript)
 '-certain flow & math commands need special logic after every evaluated arg, stnext to handle
 si.state = stnext
 
+DIM stkpos as integer ptr = scrst.pos
+
 DIM as integer ptr dataptr = si.scrdata
 
 quickrepeat:
@@ -661,23 +663,24 @@ DIM as ScriptCommand ptr cmdptr = cast(ScriptCommand ptr, dataptr + *(@curcmd->a
 ' Process an arg here if possible, otherwise stop
 SELECT CASE cmdptr->kind
  CASE tynumber
-  pushstack(scrst, cmdptr->value)
+  pushstackptr(stkpos, cmdptr->value)
  CASE tylocal
-  pushstack(scrst, heap(si.frames(0).heap + cmdptr->value))
+  pushstackptr(stkpos, heap(si.frames(0).heap + cmdptr->value))
  CASE tynonlocal
   DIM id as integer = cmdptr->value
-  pushstack(scrst, heap(si.frames(id SHR 8).heap + (id AND 255)))
+  pushstackptr(stkpos, heap(si.frames(id SHR 8).heap + (id AND 255)))
  CASE tyglobal
   IF cmdptr->value < 0 ORELSE cmdptr->value > maxScriptGlobals THEN
+   scrst.pos = stkpos
    showbug "Illegal global variable id " & cmdptr->value
    si.state = sterror
    EXIT SUB
   END IF
-  pushstack(scrst, global(cmdptr->value))
+  pushstackptr(stkpos, global(cmdptr->value))
  CASE IS >= tymath, tyflow
   si.depth += 1
-  pushstack(scrst, si.ptr)
-  pushstack(scrst, si.curargn)
+  pushstackptr(stkpos, si.ptr)
+  pushstackptr(stkpos, si.curargn)
   curcmd = cmdptr
   si.ptr = (cast(intptr_t, cmdptr) - cast(intptr_t, dataptr)) shr 2  ' \ sizeof(int32)
   si.curargn = 0
@@ -692,13 +695,15 @@ SELECT CASE cmdptr->kind
   'Even for flow, first arg always needs evaluation, so don't leave yet!
   'If there are no args, then time to stop and evaluate it (this is not a math command)
   'EXIT SUB
-  IF curcmd->argc = 0 THEN EXIT SUB
+  IF curcmd->argc = 0 THEN scrst.pos = stkpos : EXIT SUB
   GOTO quickrepeat
  CASE ELSE
+  scrst.pos = stkpos
   scripterr "Illegal statement type " & cmdptr->kind, serrError
   si.state = sterror
   EXIT SUB
 END SELECT
+
 
 finishedarg:
 ' Move on the the next arg and decide whether to fast track its execution
@@ -716,22 +721,28 @@ IF si.curargn >= curcmd->argc THEN
   si.curargn = 0
   scriptret = 0'--default returnvalue is zero
 '/
-  scrst.pos -= curcmd->argc
-  retvalsbase = scrst.pos
+  stkpos -= curcmd->argc
+  retvalsbase = stkpos
+  scrst.pos = stkpos  'Not used by scriptmath, but in case debugger entered after an error
   scriptmath
   si.depth -= 1
-  popstack(scrst, si.curargn)
-  popstack(scrst, si.ptr)
+  
+  popstackptr(stkpos, si.curargn)
+  popstackptr(stkpos, si.ptr)
   curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
   '--push return value
-  pushstack(scrst, scriptret)
+  pushstackptr(stkpos, scriptret)
+
   GOTO finishedarg
  END IF
+ scrst.pos = stkpos
  EXIT SUB
 END IF
-IF curcmd->kind = tyflow THEN IF curcmd->value = flowif ORELSE curcmd->value >= flowfor THEN EXIT SUB
+
+IF curcmd->kind = tyflow THEN IF curcmd->value = flowif ORELSE curcmd->value >= flowfor THEN scrst.pos = stkpos : EXIT SUB
 'logand, logor need special handing
-IF curcmd->kind = tymath THEN IF curcmd->value = 20 ORELSE curcmd->value = 21 THEN EXIT SUB
+IF curcmd->kind = tymath THEN IF curcmd->value = 20 ORELSE curcmd->value = 21 THEN scrst.pos = stkpos : EXIT SUB
+
 GOTO quickrepeat
 END SUB
 
@@ -742,11 +753,13 @@ si.depth -= 1
 IF si.depth < 0 THEN
  si.state = stdone
 ELSE
- popstack(scrst, si.curargn)
- popstack(scrst, si.ptr)
+ DIM stkpos as integer ptr = scrst.pos
+ popstackptr(stkpos, si.curargn)
+ popstackptr(stkpos, si.ptr)
  curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
  '--push return value
- pushstack(scrst, scriptret)
+ pushstackptr(stkpos, scriptret)
+ scrst.pos = stkpos
  si.curargn += 1
  si.state = stnext'---try next arg
  IF si.curargn >= curcmd->argc THEN EXIT SUB
@@ -763,19 +776,23 @@ SUB unwindtodo (byref si as OldScriptState, byval levels as integer)
 'This means if the do belongs to for/while it will loop, or exit the script if the toplevel do.
 'Can only be called with levels > 0, and after the calling command has popped its args.
 
+DIM stkpos as integer ptr = scrst.pos
+
 DO
  si.depth -= 1
  IF si.depth < 0 THEN
+  scrst.pos = stkpos
   si.state = stdone
   EXIT SUB
  END IF
 
- popstack(scrst, si.curargn)
- popstack(scrst, si.ptr)
+ popstackptr(stkpos, si.curargn)
+ popstackptr(stkpos, si.ptr)
  curcmd = cast(ScriptCommand ptr, si.scrdata + si.ptr)
 
  IF levels = 0 THEN
-  pushstack(scrst, 0)  'Dummy return value from the do
+  pushstackptr(stkpos, 0)  'Dummy return value from the do
+  scrst.pos = stkpos
   si.curargn += 1
   si.state = stnext
   EXIT SUB
@@ -789,9 +806,9 @@ DO
  'pop arguments
  IF curcmd->kind = tyflow ANDALSO curcmd->value = flowswitch THEN
   'unlike all other flow, switch stack usage != argn
-  scrst.pos -= 2 'state, matching value
+  stkpos -= 2 'state, matching value
  ELSE
-  scrst.pos -= si.curargn
+  stkpos -= si.curargn
  END IF
 LOOP
 
