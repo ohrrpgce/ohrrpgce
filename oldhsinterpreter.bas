@@ -234,7 +234,7 @@ DO
         ELSE
          unwindtodo(scrat(nowscript), temp)
          '--for and while need to be broken
-         IF curcmd->kind = tyflow AND (curcmd->value = flowfor OR curcmd->value = flowwhile) THEN
+         IF curcmd->kind = tyflow ANDALSO (curcmd->value = flowfor ORELSE curcmd->value = flowwhile) THEN
           dumpandreturn()
          END IF
         END IF
@@ -250,14 +250,14 @@ DO
         ELSE
          unwindtodo(scrat(nowscript), temp)
         END IF
-        IF curcmd->kind = tyflow AND curcmd->value = flowswitch THEN
+        IF curcmd->kind = tyflow ANDALSO curcmd->value = flowswitch THEN
          '--set state to 2
          scrst.pos -= 2
          pushstack(scrst, 2)
          pushstack(scrst, 0) '-- dummy value
         ELSEIF .depth < 0 THEN
          scripterr "continue used outside of a do(), script will be exited", serrBadOp
-        ELSEIF NOT (curcmd->kind = tyflow AND (curcmd->value = flowfor OR curcmd->value = flowwhile)) THEN
+        ELSEIF NOT (curcmd->kind = tyflow ANDALSO (curcmd->value = flowfor ORELSE curcmd->value = flowwhile)) THEN
          '--if this do isn't a for's or while's, then just repeat it, discarding the returned value
          scrst.pos -= 1
          .curargn -= 1
@@ -371,7 +371,7 @@ DO
            tmpstart = readstack(scrst, -2)
            tmpvar = readstack(scrst, -3)
            tmpnow = readscriptvar(tmpvar)
-           IF (tmpnow > tmpend AND tmpstep > 0) OR (tmpnow < tmpend AND tmpstep < 0) THEN
+           IF (tmpnow > tmpend ANDALSO tmpstep > 0) ORELSE (tmpnow < tmpend ANDALSO tmpstep < 0) THEN
             '--breakout
             scrst.pos -= 4
             scriptret = 0
@@ -665,7 +665,7 @@ SELECT CASE cmdptr->kind
  CASE tynumber
   pushstack(scrst, cmdptr->value)
  CASE tyglobal
-  IF cmdptr->value < 0 OR cmdptr->value > maxScriptGlobals THEN
+  IF cmdptr->value < 0 ORELSE cmdptr->value > maxScriptGlobals THEN
    showbug "Illegal global variable id " & cmdptr->value
    si.state = sterror
    EXIT SUB
@@ -734,9 +734,9 @@ IF si.curargn >= curcmd->argc THEN
  END IF
  EXIT SUB
 END IF
-IF curcmd->kind = tyflow THEN IF curcmd->value = flowif OR curcmd->value >= flowfor THEN EXIT SUB
+IF curcmd->kind = tyflow THEN IF curcmd->value = flowif ORELSE curcmd->value >= flowfor THEN EXIT SUB
 'logand, logor, lognot need special handing
-IF curcmd->kind = tymath THEN IF curcmd->value >= 20 AND curcmd->value <= 22 THEN EXIT SUB
+IF curcmd->kind = tymath THEN IF curcmd->value >= 20 ANDALSO curcmd->value <= 22 THEN EXIT SUB
 GOTO quickrepeat
 END SUB
 
@@ -755,7 +755,7 @@ ELSE
  si.curargn += 1
  si.state = stnext'---try next arg
  IF si.curargn >= curcmd->argc THEN EXIT SUB
- IF curcmd->kind = tyflow THEN IF curcmd->value = flowif OR curcmd->value >= flowfor THEN EXIT SUB
+ IF curcmd->kind = tyflow THEN IF curcmd->value = flowif ORELSE curcmd->value >= flowfor THEN EXIT SUB
  IF curcmd->kind = tymath THEN IF curcmd->value >= 20 THEN EXIT SUB
  subdoarg
 END IF
@@ -785,13 +785,13 @@ DO
   EXIT SUB
  END IF
 
- IF curcmd->kind = tyflow AND curcmd->value = flowdo THEN
+ IF curcmd->kind = tyflow ANDALSO curcmd->value = flowdo THEN
   levels -= 1
   'first pop do's evaluated arguments before stopping
  END IF
 
  'pop arguments
- IF curcmd->kind = tyflow AND curcmd->value = flowswitch THEN
+ IF curcmd->kind = tyflow ANDALSO curcmd->value = flowswitch THEN
   'unlike all other flow, switch stack usage != argn
   scrst.pos -= 2 'state, matching value
  ELSE
