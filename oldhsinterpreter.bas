@@ -735,8 +735,8 @@ IF si.curargn >= curcmd->argc THEN
  EXIT SUB
 END IF
 IF curcmd->kind = tyflow THEN IF curcmd->value = flowif ORELSE curcmd->value >= flowfor THEN EXIT SUB
-'logand, logor, lognot need special handing
-IF curcmd->kind = tymath THEN IF curcmd->value >= 20 ANDALSO curcmd->value <= 22 THEN EXIT SUB
+'logand, logor need special handing
+IF curcmd->kind = tymath THEN IF curcmd->value = 20 ORELSE curcmd->value = 21 THEN EXIT SUB
 GOTO quickrepeat
 END SUB
 
@@ -756,7 +756,8 @@ ELSE
  si.state = stnext'---try next arg
  IF si.curargn >= curcmd->argc THEN EXIT SUB
  IF curcmd->kind = tyflow THEN IF curcmd->value = flowif ORELSE curcmd->value >= flowfor THEN EXIT SUB
- IF curcmd->kind = tymath THEN IF curcmd->value >= 20 THEN EXIT SUB
+ 'logand, logor
+ IF curcmd->kind = tymath THEN IF curcmd->value = 20 ORELSE curcmd->value = 21 THEN EXIT SUB
  subdoarg
 END IF
 END SUB
