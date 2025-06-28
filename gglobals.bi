@@ -76,6 +76,7 @@ EXTERN commandprofiling as bool
 EXTERN timing_fibre as bool
 EXTERN insideinterpreter as bool
 EXTERN nowscript as integer
+EXTERN nowscript_locals as integer ptr
 EXTERN scriptret as integer
 EXTERN numloadedscr as integer
 EXTERN totalscrmem as integer

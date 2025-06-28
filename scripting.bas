@@ -405,6 +405,7 @@ SUB killallscripts
   IF scrat(i).scr <> NULL THEN deref_script(scrat(i).scr)
  NEXT
  nowscript = -1
+ nowscript_locals = NULL
  gam.script_log.last_logged = -1
 
  setstackposition(scrst, 0)
@@ -557,6 +558,8 @@ WITH scriptinsts(index)
 
  '--we are successful, so now its safe to increment these
  nowscript = index
+ nowscript_locals = @heap(scrat(nowscript).frames(0).heap)  'Should really be in oldscriptstate_init
+
  .scr->refcount += 1
  IF .scr->refcount = 1 THEN
   'Removed from unused scripts cache

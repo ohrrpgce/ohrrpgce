@@ -165,6 +165,7 @@ REDIM remembered_menu_pts(0) as integer  'True slot number of the selected menu 
 
 'Script interpreter
 DIM nowscript as integer = -1
+DIM nowscript_locals as integer ptr
 DIM scriptret as integer
 DIM retvalsbase as integer ptr
 DIM scriptctr as uinteger
@@ -642,6 +643,7 @@ read_srcfiles_txt
 'Default to showing all errors. genErrorLevel is no longer used (but might be again in future)
 IF err_suppress_lvl = 0 THEN err_suppress_lvl = serrIgnore
 nowscript = -1
+nowscript_locals = NULL
 numloadedscr = 0
 totalscrmem = 0
 resetinterpreter

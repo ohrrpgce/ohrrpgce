@@ -615,6 +615,7 @@ IF nowscript < 0 THEN
 ELSE
  DIM state as OldScriptState ptr = @scrat(nowscript)
 
+ nowscript_locals = @heap(state->frames(0).heap)
  curcmd = cast(ScriptCommand ptr, state->scrdata + state->ptr)
  IF state->state < 0 THEN
   '--suspended fibre is resumed
@@ -683,7 +684,8 @@ SELECT CASE cmdptr->kind
  CASE tynumber
   pushstackptr(stkpos, cmdptr->value)
  CASE tylocal
-  pushstackptr(stkpos, heap(si.frames(0).heap + cmdptr->value))
+  'pushstackptr(stkpos, heap(si.frames(0).heap + cmdptr->value))  'Slower alternative
+  pushstackptr(stkpos, nowscript_locals[cmdptr->value])
  CASE tynonlocal
   DIM id as integer = cmdptr->value
   pushstackptr(stkpos, heap(si.frames(id SHR 8).heap + (id AND 255)))
@@ -862,7 +864,10 @@ END SUB
 
 FUNCTION readscriptvar (byval id as integer) as integer
  SELECT CASE id
-  CASE IS < 0 'local/nonlocal variable
+  CASE -256 TO -1  'local variable (fast path)
+   id = -id - 1
+   RETURN nowscript_locals[id]
+  CASE IS < 0 'local or nonlocal variable
    id = -id - 1
    RETURN heap(scrat(nowscript).frames(id SHR 8).heap + (id AND 255))
   CASE 0 TO maxScriptGlobals 'global variable
@@ -874,6 +879,9 @@ END FUNCTION
 
 SUB writescriptvar (byval id as integer, byval newval as integer)
  SELECT CASE id
+  CASE -256 TO -1  'local (fast path)
+   id = -id - 1
+   nowscript_locals[id] = newval
   CASE IS < 0 'local/nonlocal variable
    id = -id - 1
    heap(scrat(nowscript).frames(id SHR 8).heap + (id AND 255)) = newval

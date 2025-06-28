@@ -18,6 +18,7 @@ July ?? 2025 [Kaleidophone]
       "get item equip stat bonus", "equippable in slot" [James]
     * "sl:sprite" alias to "sl:walkabout sprite" and "sl:shadow" for
       "sl:walkabout shadow"
+    * Squeezed 25-30% more speed out of the script interpreter [Ralph]
 
   *** Changes
 
