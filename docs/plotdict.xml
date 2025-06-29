@@ -6031,6 +6031,16 @@ show string(0)</example>
 			</altcommand>
 			<description>Returns true if the two strings #<p>ID1</p> and #<p>ID2</p> are identical, case insensitive.</description>
 		</command>
+		<command id="stringtolower">
+			<canon>string to lower (ID)</canon>
+			<shortname>string to lower</shortname>
+			<description>Converts the string at <p>ID</p> to lower-case. Returns the same string <p>ID</p>.</description>
+		</command>
+		<command id="stringtoupper">
+			<canon>string to upper (ID)</canon>
+			<shortname>string to upper</shortname>
+			<description>Converts the string at <p>ID</p> to upper-case. Returns the same string <p>ID</p>.</description>
+		</command>
 		<command id="searchstring">
 			<canon>search string (ID1, ID2, start)</canon>
 			<shortname>search string</shortname>
