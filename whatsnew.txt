@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-July ?? 2025 [Kaleidophone]
+Aug 04 2025 [Kaleidophone]
 
   *** New Features
     * Press T in the sprite editor to toggle onionskin overlay. Press
