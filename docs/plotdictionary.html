@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-06-28)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-06-29)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1637,6 +1637,8 @@ function toggleContent(target) {
 		<a href="#about-stringsprintf" class="ref">string sprintf (dest string ID, format string ID, arguments...)</a><br>
 		<a href="#about-stringstyle" class="ref">string style (ID, style)</a><br>
 		<a href="#about-stringtoglobals" class="ref">string to globals (ID, starting global, length)</a><br>
+		<a href="#about-stringtolower" class="ref">string to lower (ID)</a><br>
+		<a href="#about-stringtoupper" class="ref">string to upper (ID)</a><br>
 		<a href="#about-stringx" class="ref">string X (ID)</a><br>
 		<a href="#about-stringy" class="ref">string Y (ID)</a><br>
 		<a href="#about-subscript" class="ref">subscript, name, argumentnames (statements)</a><br>
@@ -10635,6 +10637,8 @@ There is no limit on string length.<br>
 		<a href="#about-stringcompare" class="ref">string compare (ID1, ID2)</a><br>
 		<a href="#about-insensitivestringequal" class="ref">insensitive string equal (ID1, ID2)</a><br>
 		<a href="#about-insensitivestringcompare" class="ref">insensitive string compare (ID1, ID2)</a><br>
+		<a href="#about-stringtolower" class="ref">string to lower (ID)</a><br>
+		<a href="#about-stringtoupper" class="ref">string to upper (ID)</a><br>
 		<a href="#about-searchstring" class="ref">search string (ID1, ID2, start)</a><br>
 		<a href="#about-trimstring" class="ref">trim string (ID, start, length)</a><br>
 		<a href="#about-replacesubstring" class="ref">replace substring (in string, replace what, with what, max replacements, case insensitive)</a><br>
@@ -10918,6 +10922,26 @@ show string(0)</pre>
 			<h4>insensitive string compare (ID1, ID2)</h4>
 <p>
 			Returns true if the two strings #<span class="param">ID1</span> and #<span class="param">ID2</span> are identical, case insensitive.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-stringtolower"></a>
+				<h4>string to lower (ID)</h4>
+<p>
+			Converts the string at <span class="param">ID</span> to lower-case. Returns the same string <span class="param">ID</span>.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-stringtoupper"></a>
+				<h4>string to upper (ID)</h4>
+<p>
+			Converts the string at <span class="param">ID</span> to upper-case. Returns the same string <span class="param">ID</span>.
 			
 			
 			
@@ -23678,7 +23702,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 982 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 984 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
