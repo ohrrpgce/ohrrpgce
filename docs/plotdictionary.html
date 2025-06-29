@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-06-27)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-06-28)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1095,6 +1095,8 @@ function toggleContent(target) {
 		<a href="#about-inputstring" class="ref">input string (ID, maxlength, use current, center, position x, position y)</a><br>
 		<a href="#about-inputstringwithmousekeyboard" class="ref">input string with mouse keyboard (ID, maxlength)</a><br>
 		<a href="#about-inputstringwithvirtualkeyboard" class="ref">input string with virtual keyboard (ID, maxlength, onlyplayer)</a><br>
+		<a href="#about-insensitivestringcompare" class="ref">insensitive string compare (ID1, ID2)</a><br>
+		<a href="#about-insensitivestringequal" class="ref">insensitive string equal (ID1, ID2)</a><br>
 		<a href="#about-insertextra" class="ref">insert extra (handle, index, value)</a><br>
 		<a href="#about-insidebattle" class="ref">inside battle</a><br>
 		<a href="#about-inventory" class="ref">inventory (item)</a><br>
@@ -10631,6 +10633,8 @@ There is no limit on string length.<br>
 		<a href="#about-stringlength" class="ref">string length (ID)</a><br>
 		<a href="#about-stringequal" class="ref">string equal (ID1, ID2)</a><br>
 		<a href="#about-stringcompare" class="ref">string compare (ID1, ID2)</a><br>
+		<a href="#about-insensitivestringequal" class="ref">insensitive string equal (ID1, ID2)</a><br>
+		<a href="#about-insensitivestringcompare" class="ref">insensitive string compare (ID1, ID2)</a><br>
 		<a href="#about-searchstring" class="ref">search string (ID1, ID2, start)</a><br>
 		<a href="#about-trimstring" class="ref">trim string (ID, start, length)</a><br>
 		<a href="#about-replacesubstring" class="ref">replace substring (in string, replace what, with what, max replacements, case insensitive)</a><br>
@@ -10901,6 +10905,19 @@ show string(0)</pre>
 			<h4>string compare (ID1, ID2)</h4>
 <p>
 			Returns true if the two strings #<span class="param">ID1</span> and #<span class="param">ID2</span> are identical, case sensitive.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-insensitivestringequal"></a>
+			<a name="about-insensitivestringcompare"></a>
+				<h4>insensitive string equal (ID1, ID2)</h4>
+			<div class="notetext">Alias:</div>
+			<h4>insensitive string compare (ID1, ID2)</h4>
+<p>
+			Returns true if the two strings #<span class="param">ID1</span> and #<span class="param">ID2</span> are identical, case insensitive.
 			
 			
 			
@@ -23661,7 +23678,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 981 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 982 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

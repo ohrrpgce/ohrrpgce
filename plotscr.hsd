@@ -823,6 +823,8 @@ define function, begin
 787,equippableinslot,2,0,0    # Check whether an item can be equipped in a slot
 788,getitemattackinbattle,1,0 # Return the attack id+1 of the attack when used as an item
 789,getitemattackasweapon,1,0 # Return the attack id+1 of the attack when equipped as a weapon
+790,insensitivestringequal,2,0,0  #returns whether two strings are the same(stringID1, stringID2) case insensitive
+790,insensitivestringcompare,2,0,0  #returns whether two strings are the same(stringID1, stringID2) case insensitive
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

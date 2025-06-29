@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-06-27">
+<plotscript version="wip" datecode="2025-06-28">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -6021,6 +6021,15 @@ show string(0)</example>
 				<shortname>string compare</shortname>
 			</altcommand>
 			<description>Returns true if the two strings #<p>ID1</p> and #<p>ID2</p> are identical, case sensitive.</description>
+		</command>
+		<command id="insensitivestringequal">
+			<canon>insensitive string equal (ID1, ID2)</canon>
+			<shortname>insensitive string equal</shortname>
+			<altcommand id="insensitivestringcompare">
+				<canon>insensitive string compare (ID1, ID2)</canon>
+				<shortname>insensitive string compare</shortname>
+			</altcommand>
+			<description>Returns true if the two strings #<p>ID1</p> and #<p>ID2</p> are identical, case insensitive.</description>
 		</command>
 		<command id="searchstring">
 			<canon>search string (ID1, ID2, start)</canon>

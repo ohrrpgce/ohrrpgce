@@ -5443,6 +5443,11 @@ SUB script_commands(byval cmdid as integer)
    loaditemdata item, retvals(0)
    scriptret = item.battle_weapon_attack + 1
   END IF
+ CASE 790 '--insensitive string equal '--insensitive string compare
+  IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN
+   scriptret = IIF(LCASE(plotstr(retvals(0)).s) = LCASE(plotstr(retvals(1)).s), 1, 0)
+  END IF
+ 
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

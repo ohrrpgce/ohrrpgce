@@ -734,6 +734,13 @@ script, string tests, begin
   $1=" .~fooy"
   $2=" .~fooY"
   assert(string compare(1,2) == false)
+  
+  $1="DOG"
+  $2="dog"
+  assert(string compare(1,2) == false)
+  assert(insensitive string compare(1,2) == true)
+  $2="cat"
+  assert(insensitive string compare(1,2) == false)
 
   # Check HSpeak encodes Unicode correctly, replacing unrepresentable characters with '?'
   $1="	 ¡éÖœ£"  # tab, space, exclamation
