@@ -5447,6 +5447,16 @@ SUB script_commands(byval cmdid as integer)
   IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN
    scriptret = IIF(LCASE(plotstr(retvals(0)).s) = LCASE(plotstr(retvals(1)).s), 1, 0)
   END IF
+ CASE 791 '--string to lower
+  IF valid_plotstr(retvals(0)) THEN
+   plotstr(retvals(0)).s = LCASE(plotstr(retvals(0)).s)
+   scriptret = retvals(0)
+  END IF
+ CASE 792 '--string to upper
+  IF valid_plotstr(retvals(0)) THEN
+   plotstr(retvals(0)).s = UCASE(plotstr(retvals(0)).s)
+   scriptret = retvals(0)
+  END IF
  
 
  CASE ELSE

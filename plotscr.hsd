@@ -825,6 +825,8 @@ define function, begin
 789,getitemattackasweapon,1,0 # Return the attack id+1 of the attack when equipped as a weapon
 790,insensitivestringequal,2,0,0  #returns whether two strings are the same(stringID1, stringID2) case insensitive
 790,insensitivestringcompare,2,0,0  #returns whether two strings are the same(stringID1, stringID2) case insensitive
+791,stringtolower,1,0         # Convert a string to lower-case
+792,stringtoupper,1,0         # Convert a string to lower-case
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
