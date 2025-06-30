@@ -450,9 +450,9 @@ SUB update_shop_stuff_type(byref stuf as ShopStuffState, stufbuf() as integer, b
  '--also reloads all limits
  SELECT CASE stufbuf(17)
   CASE 0' This is an item
-   DIM item_tmp(dimbinsize(binITM)) as integer
-   loaditemdata item_tmp(), stufbuf(18)
-   stuf.item_value = item_tmp(46)
+   DIM item as ItemDef
+   loaditemdata item, stufbuf(18)
+   stuf.item_value = item.buy_price
    IF reset_name_and_price THEN
     stuf.thingname = load_item_name(stufbuf(18),1,1)
     stufbuf(24) = stuf.item_value ' default buy price
