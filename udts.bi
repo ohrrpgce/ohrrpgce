@@ -488,6 +488,7 @@ TYPE OldScriptState
   curargn as integer    'current arg number for current statement
   depth as integer      'stack depth of current script
   id as integer         'id number of current script (duplicated from ScriptInst)
+  saved_scriptret as integer 'used when a script executing a command is interrupted by a triggered script
 END TYPE
 
 ENUM WaitTypeEnum

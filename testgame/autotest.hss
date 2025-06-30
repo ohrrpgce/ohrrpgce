@@ -602,9 +602,9 @@ script, hero party management tests, begin
   h0d := hero direction(0)
 
   assert(observed hero count == 1)
-  add hero(hero:Helga)
-  add hero(hero:Olaf)
-  add hero(hero:Frumpy)
+  assert(add hero(hero:Helga) == 1)
+  assert(add hero(hero:Olaf) == 2)
+  assert(add hero(hero:Frumpy) == 3)
   assert(room in active party == 0)
   assert(observed hero count == 4)
   assert(hero by rank(0) == hero:Freki)

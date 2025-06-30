@@ -31,6 +31,7 @@ Aug 04 2025 [Kaleidophone]
       map editor [Ralph]
     * Importing a spriteset "from custom layout" cut out frames using the
       default frame size rather than the specified one [Ralph]
+    * Bug #1186 Add hero hook script breaks "add hero" return value [Ralph]
 
   *** Stuff Only Developers Will Notice
 

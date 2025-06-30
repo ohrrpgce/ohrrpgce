@@ -488,8 +488,9 @@ END SUB
 
 
 FUNCTION runscript (id as integer, newcall as bool, double_trigger_check as bool, scripttype as zstring ptr) as RunScriptResult
-'newcall: whether his script is triggered (start a new fibre) rather than called from a script
+'newcall: whether this script is triggered (start a new fibre) rather than called from a script as a call
 'double_trigger_check: whether "no double-triggering" should take effect
+'scripttype: type of the script (used for debugging/tracing), eg "autorun"
 
 DIM n as integer = decodetrigger(id)
 IF n = 0 THEN RETURN rsQuietFail  '(though decodetrigger might have shown a scripterr)
@@ -550,10 +551,10 @@ WITH scriptinsts(index)
   RETURN rsFail
  END IF
 
- IF newcall ANDALSO index > 0 THEN
+ IF newcall ANDALSO nowscript >= 0 THEN
   '--suspend the previous fibre
   IF scriptprofiling THEN stop_fibre_timing  'Must call before suspending
-  scrat(index - 1).state *= -1
+  scrat(nowscript).state *= -1
  END IF
 
  '--we are successful, so now its safe to increment these

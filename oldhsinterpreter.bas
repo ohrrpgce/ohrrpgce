@@ -44,7 +44,7 @@ DIM SHARED lastscriptnum as integer
 
 '''' Global variables
 REDIM heap(maxScriptHeap) as integer
-REDIM scrat(maxScriptRunning) as OldScriptState
+REDIM scrat(maxScriptRunning) as OldScriptState  'Can't resize due to 'hacks' in interpreterloop!
 REDIM scriptinsts(maxScriptRunning) as ScriptInst
 REDIM script(scriptTableSize - 1) as ScriptData Ptr
 DIM scrst as Stack
@@ -179,9 +179,11 @@ DO
        ELSE
         script_commands(curcmd->value)
        END IF
-       '--nowscript might be changed
-       '--unless you have switched to wait mode, return
-       'IF scrat(nowscript).state = stnext THEN scrat(nowscript).state = streturn
+       'nowscript might have changed (e.g. "run script by id", or a new script fiber
+       'triggered, or an error occurred and the script was stopped).
+       'If a new script fiber triggered then subreturn will be delayed, and scriptret
+       'needs to preserved in the meantime.
+       .saved_scriptret = scriptret  'hack: writing to old scrat(nowscript)
        GOTO interpretloop 'new WITH pointer
       END IF
      CASE tyflow
@@ -469,10 +471,12 @@ DO
    END IF
   CASE streturn'---after evaluating a node return to its parent.
    '--sets stdone if done with entire script, otherwise calls subdoarg, which normally sets stnext
+   'subdoarg has a fast path that inlines subreturn, so subreturn isn't called after every ScriptCommand node.
    subreturn
   'CASE stdoarg'---do argument
    '--evaluate an arg, either directly or by changing state. stnext will be next
-   'Note subdoarg will keep evaluating arguments and math operators until hitting something difficult
+   'stdoarg no longer exists, because subdoarg is always called directly without going through this SELECT.
+   'It will keep evaluating arguments and math operators until hitting something difficult.
    'subdoarg
   CASE ststart'---read statement
    '--FIRST STATE
@@ -493,7 +497,8 @@ DO
      '--if no scripts left, break the loop
      EXIT DO
     CASE 2
-     '--if resuming a supended script, restore its state (normally stwait)
+     '--if resuming a supended script, restore its state, which might include
+     '--ststart, stwait, streturn (called a command that triggered a script), or more
      IF scrat(nowscript).state <> stwait THEN
 '      debug "WANTIMMEDIATE BUG"
 '      debug scriptname(scrat(nowscript + 1).id) & " terminated, setting wantimmediate on " & scriptname(scrat(nowscript).id)
@@ -529,10 +534,10 @@ END SUB
 FUNCTION interpreter_occasional_checks () as integer
  STATIC calls_since_check as integer
  calls_since_check += 1
- 'Cost for calling TIMER is for me roughly 2us = 10 empty for loop iterations so needs to be avoided.
+ 'Cost for calling TIMER under Linux is on order 2us (~30 empty for loop iterations), worse on Windows, so needs to be avoided.
  'This may still lead to delays, as certain script commands might take a long time, and even
  'get called an unlimited number of times between calls to this function.
- 'FIXME: use a thread to set a flag every scriptCheckInterval milliseconds instead.
+ 'TODO: use a thread to set a flag every scriptCheckInterval milliseconds instead.
  IF calls_since_check < 250 THEN RETURN NO
  calls_since_check = 0
  IF TIMER > next_interpreter_check_time THEN
@@ -621,6 +626,14 @@ ELSE
   '--suspended fibre is resumed
   'debug "  resuming fibre in slot " & nowscript
   state->state = ABS(state->state)
+  IF state->state = streturn THEN
+   'streturn means a script command was interrupted by a triggered
+   'script. Restore the scriptret that the command was about to return
+   '(otherwise it would replaced by the triggered script's return value)
+   '(May wish to do this on other states too?)
+   '? "state " & state->state & " RESTORE scriptret " & state->saved_scriptret & ", overwriting " & scriptret
+   scriptret = state->saved_scriptret
+  END IF
   IF scriptinsts(nowscript).watched THEN watched_script_resumed
   functiondone = 2'--reactivating a supended fibre
   IF scriptprofiling THEN start_fibre_timing
@@ -1551,6 +1564,7 @@ IF mode > 1 AND (viewmode = 0 OR viewmode = 1 OR viewmode = 5) THEN
     statemsg = commandname(scriptinsts(i).curvalue)
     SELECT CASE scriptinsts(i).curvalue
      CASE 1, 3, 4, 9, 244, 508, 575
+      '--All wait commands with one arg:
       '--wait, wait for hero, wait for NPC, wait for key, wait for scancode, wait for slice, wait for dissolve
       statemsg += "(" & scriptinsts(i).waitarg & ")"
     END SELECT
