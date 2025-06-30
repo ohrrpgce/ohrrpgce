@@ -10,8 +10,10 @@ Aug 04 2025 [Kaleidophone]
     * New pref bit "Allow wasting out-of-battle cures" defaults to on [James]
 
    * Plotscripting Features
-    * "hero is locked" [Ralph]
-    * "swap by slot" alias to "swap by position"
+    * "swap in hero by slot", "swap out hero by slot", "lock hero by slot",
+      "unlock hero by slot", "hero is locked", plus "swap by slot" alias to
+      "swap by position". And all the swap in/out commands now return the new
+      party slot. [Ralph]
     * "sort inventory" [Ralph]
     * Commands for reading item data "get item value", "get item teach spell",
       "get item attack outside battle", "get item attack in battle",

@@ -824,10 +824,14 @@ define function, begin
 787,equippableinslot,2,0,0    # Check whether an item can be equipped in a slot
 788,getitemattackinbattle,1,0 # Return the attack id+1 of the attack when used as an item
 789,getitemattackasweapon,1,0 # Return the attack id+1 of the attack when equipped as a weapon
-790,insensitivestringequal,2,0,0  #returns whether two strings are the same(stringID1, stringID2) case insensitive
-790,insensitivestringcompare,2,0,0  #returns whether two strings are the same(stringID1, stringID2) case insensitive
+790,insensitivestringequal,2,0,0  #returns whether two strings are case-insenstive equal (stringID1, stringID2)
+790,insensitivestringcompare,2,0,0  #returns whether two strings are case-insenstive equal (stringID1, stringID2)
 791,stringtolower,1,0         # Convert a string to lower-case
 792,stringtoupper,1,0         # Convert a string to lower-case
+793,swapinherobyslot,1,-1     # Return first free party slot in the active party, or -1 if none
+794,swapoutherobyslot,1,-1    # Return first free party slot in the reserve party, or -1 if none
+795,lockherobyslot,1,-1       # Prevent swapping of a hero (party slot)
+796,unlockherobyslot,1,-1     # Undo lockhero (party slot)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

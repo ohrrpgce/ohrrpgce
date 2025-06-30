@@ -681,10 +681,10 @@ script, hero party management tests, begin
   get hero name(2, find hero(hero:Kitt))
   assert(string compare(1, 2))
   # Swapping
-  swap out hero(hero:Helga)
+  assert(swap out hero(hero:Helga) >= 4)
   assert(hero by slot(1) == -1)
   assert(find hero(hero:Helga) >= 4)
-  swap in hero(hero:Kitt)
+  assert(swap in hero(hero:Kitt) == 1)
   assert(hero by slot(1) == hero:Kitt)
   assert(find hero(hero:Kitt) >> 0 && find hero(hero:Kitt) <= 3)
   swap by position(0, 3) # swap Styrge and Frumpy
@@ -698,6 +698,14 @@ script, hero party management tests, begin
   assert(find hero(hero:Kitt) >= 4)
   swap out hero(hero by slot(0)) # swap out frumpy
   assert(hero by slot(0) == -1)
+  # # Invalid swaps of empty slots (these throw errors)
+  # assert(hero by slot(20) == -1)  # Precondition
+  # assert(swap out hero by slot(20) == -1)
+  # assert(swap in hero by slot(20) == -1)
+  # assert(swap in hero by slot(9999) == -1)
+  # assert(swap out hero by slot(9999) == -1)
+  # assert(swap in hero by slot(-1) == -1)
+  # assert(swap out hero by slot(-1) == -1)
   # Locking
   lock hero(hero:Frumpy)
   assert(hero is locked(hero:Frumpy) == true)
@@ -708,6 +716,7 @@ script, hero party management tests, begin
   assert(find hero(hero:Frumpy) >= 4)
   unlock hero(hero:Frumpy)
   assert(hero is locked(hero:Frumpy) == false)
+
   # restore numeric order
   add hero(hero:Freki) # Freki
   assert(hero by slot(0) == hero:Freki)
@@ -715,20 +724,35 @@ script, hero party management tests, begin
   assert(hero by slot(1) == hero:Helga)
   swap by position(2, find hero(hero:Olaf))
   assert(hero by slot(2) == hero:Olaf)
-  swap by position(3, find hero(hero:Frumpy))
+  #swap by position(3, find hero(hero:Frumpy))
+  swap by slot(3, find hero(hero:Frumpy))  # Test alias
   assert(hero by slot(3) == hero:Frumpy)
 
-  # add another copy of Freki, should go to reserve
+  # add another copy of Freki, should go to first free reserve slot
   add hero(hero:Freki)
   slot := find hero(hero:Freki)
   assert(slot == 0)
   delete hero by slot(slot)
   slot := find hero(hero:Freki)
-  assert(slot >= 4)
+  #assert(slot >= 4)
+  assert(slot == 4)
   # add back leader Freki
   assert(hero by slot(0) == -1)
   add hero(hero:Freki)
   assert(hero by slot(0) == hero:Freki)
+  # Check 'by slot' locking and swapping
+  lock hero by slot(0)
+  assert(hero is locked(hero:Freki) == true)
+  variable(newslot)
+  newslot := swap out hero by slot(0)
+  assert(newslot > 4)
+  # The Freki in slot 4 now is the first
+  assert(hero is locked(hero:Freki) == false)
+  unlock hero by slot(newslot)
+  assert(hero is locked(hero:Freki) == false)  # slot 4
+  lock hero by slot(newslot)
+  assert(swap in hero by slot(newslot) == 0)
+  assert(hero is locked(hero:Freki) == true)  # slot 0
   # Delete the reserve Freki
   assert(slot >= 4)
   assert(hero by slot(slot) == hero:Freki)
@@ -1014,11 +1038,6 @@ script, show box names, begin
   show text box(11)
   w(10)
 end
-
-## Party management
-#lock hero (who)
-#unlock hero (who)
-#hero is locked (who)
 
 script, hero caterpillar tests, begin
   variable(i)

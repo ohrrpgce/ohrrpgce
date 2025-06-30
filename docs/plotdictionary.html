@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-06-29)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-06-30)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1146,6 +1146,7 @@ function toggleContent(target) {
 		<a href="#about-loadwalkaboutsprite" class="ref">load walkabout sprite (num, palette)</a><br>
 		<a href="#about-loadweaponsprite" class="ref">load weapon sprite (num, palette)</a><br>
 		<a href="#about-lockhero" class="ref">lock hero (who)</a><br>
+		<a href="#about-lockherobyslot" class="ref">lock hero by slot (slot)</a><br>
 		<a href="#about-logicaland" class="ref">value &amp;&amp; value</a><br>
 		<a href="#about-logicalor" class="ref">value || value</a><br>
 		<a href="#about-logicalxor" class="ref">value ^^ value</a><br>
@@ -1662,9 +1663,12 @@ function toggleContent(target) {
 		<a href="#about-suspendwalkabouts" class="ref">suspend walkabouts</a><br>
 		<a href="#about-swapbyname" class="ref">swap by name (name,name)</a><br>
 		<a href="#about-swapbyposition" class="ref">swap by position (slot1, slot2)</a><br>
+		<a href="#about-swapbyslot" class="ref">swap by slot (slot1, slot2)</a><br>
 		<a href="#about-swapinhero" class="ref">swap in hero (who)</a><br>
+		<a href="#about-swapinherobyslot" class="ref">swap in hero by slot (slot)</a><br>
 		<a href="#about-swapmenuitems" class="ref">swap menu items(handle1, handle2)</a><br>
 		<a href="#about-swapouthero" class="ref">swap out hero (who)</a><br>
+		<a href="#about-swapoutherobyslot" class="ref">swap out hero by slot (slot)</a><br>
 		<a href="#about-switch" class="ref">switch(expression)</a><br>
 		<a href="#about-systemday" class="ref">system day</a><br>
 		<a href="#about-systemhour" class="ref">system hour</a><br>
@@ -1695,6 +1699,7 @@ function toggleContent(target) {
 		<a href="#about-unequip" class="ref">unequip (hero, slot)</a><br>
 		<a href="#about-unhidemousecursor" class="ref">unhide mouse cursor</a><br>
 		<a href="#about-unlockhero" class="ref">unlock hero (who)</a><br>
+		<a href="#about-unlockherobyslot" class="ref">unlock hero by slot (slot)</a><br>
 		<a href="#about-up" class="ref">up</a><br>
 		<a href="#about-updateleveluplearning" class="ref">update level up learning(who, allowforget)</a><br>
 		<a href="#about-updatepalette" class="ref">update palette</a><br>
@@ -6483,11 +6488,16 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 		<a href="#about-deleteherobyslot" class="ref">delete hero by slot (slot)</a><br>
 		<a href="#about-swapinhero" class="ref">swap in hero (who)</a><br>
 		<a href="#about-swapouthero" class="ref">swap out hero (who)</a><br>
+		<a href="#about-swapinherobyslot" class="ref">swap in hero by slot (slot)</a><br>
+		<a href="#about-swapoutherobyslot" class="ref">swap out hero by slot (slot)</a><br>
 		<a href="#about-lockhero" class="ref">lock hero (who)</a><br>
 		<a href="#about-unlockhero" class="ref">unlock hero (who)</a><br>
+		<a href="#about-lockherobyslot" class="ref">lock hero by slot (slot)</a><br>
+		<a href="#about-unlockherobyslot" class="ref">unlock hero by slot (slot)</a><br>
 		<a href="#about-heroislocked" class="ref">hero is locked (who)</a><br>
 		<a href="#about-swapbyname" class="ref">swap by name (name,name)</a><br>
 		<a href="#about-swapbyposition" class="ref">swap by position (slot1, slot2)</a><br>
+		<a href="#about-swapbyslot" class="ref">swap by slot (slot1, slot2)</a><br>
 </ul>
 <ul></ul>
 </li>
@@ -6605,7 +6615,7 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 					read the old data.  It's strongly recommended you don't rely on this. You
 					should instead use <a href="#about-swapouthero" class="ref">swap out hero</a> and <a href="#about-lockhero" class="ref">lock hero</a> to remove
 					a hero from the active party and hide them from the player
-					(and make sure "Swapped out and locked heroes" receive no experience from battles).
+					(and make sure "Swapped out and locked heroes" receive no experience from battles, in Battle Settings).
 				</div>
 			
 			
@@ -6639,7 +6649,47 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 				If there is no room in your active party, the hero will not be moved.
 				This command works even if the hero is locked (see <a href="#about-lockhero" class="ref">lock hero</a>).
 				<br>
+				The return value is the new party slot, or -1 on failure.
+				<br>
 				<span class="param">who</span> is a hero ID: use a constant of form <span class="code">hero:name</span>.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-swapinherobyslot" class="ref">swap in hero by slot</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-swapouthero"></a>
+				<h4>swap out hero (who)</h4>
+<p>
+			
+				Moves the named hero from your active party into your reserve. Use the constants defined in your HSI file. They are in the form of <span class="code">hero:name</span>.
+				If there is more than one copy of the hero in the party, then the first
+				<br>
+				This command works even if the hero is locked (see <a href="#about-lockhero" class="ref">lock hero</a>).
+				<br>
+				The return value is the new party slot, or -1 on failure.
+				<div class="notice danger" title="Danger">
+<img src="Plotdanger.png" alt="[Danger]" class="icon">
+					If the active party contains no heroes after swapping out the hero,
+					then some hero will be swapped back into the active party, possibly
+					the same one, and they might go into a different slot than they were!
+					You should really avoid doing that.
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-swapoutherobyslot" class="ref">swap out hero by slot</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-swapinherobyslot"></a>
+				<h4>swap in hero by slot (slot)</h4>
+<p>
+			
+				Identical to <a href="#about-swapinhero" class="ref">swap in hero</a> except it takes a hero by their party <span class="param">slot</span> instead their ID.
 			
 			
 			
@@ -6647,10 +6697,12 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 		</p>
 </div>
 		<div class="command">
-			<a name="about-swapouthero"></a>
-				<h4>swap out hero (who)</h4>
+			<a name="about-swapoutherobyslot"></a>
+				<h4>swap out hero by slot (slot)</h4>
 <p>
-			Moves the named hero from your active party into your reserve. Use the constants defined in your HSI file. They are in the form of hero:name
+			
+				Identical to <a href="#about-swapouthero" class="ref">swap out hero</a> except it takes a hero by their party <span class="param">slot</span> instead their ID.
+			
 			
 			
 			
@@ -6692,6 +6744,30 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 		</p>
 </div>
 		<div class="command">
+			<a name="about-lockherobyslot"></a>
+				<h4>lock hero by slot (slot)</h4>
+<p>
+			
+				Identical to <a href="#about-lockhero" class="ref">lock hero</a> except it takes a hero by their party <span class="param">slot</span> instead their ID.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-unlockherobyslot"></a>
+				<h4>unlock hero by slot (slot)</h4>
+<p>
+			
+				Identical to <a href="#about-unlockhero" class="ref">unlock hero</a> except it takes a hero by their party <span class="param">slot</span> instead their ID.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 			<a name="about-heroislocked"></a>
 				<h4>hero is locked (who)</h4>
 <p>
@@ -6717,10 +6793,15 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 </div>
 		<div class="command">
 			<a name="about-swapbyposition"></a>
+			<a name="about-swapbyslot"></a>
 				<h4>swap by position (slot1, slot2)</h4>
+			<div class="notetext">Alias:</div>
+			<h4>swap by slot (slot1, slot2)</h4>
 <p>
 			
-				Swaps two heroes in your party by their positions in the party (ie, by party slot).
+				Swaps the heroes in two slots in your party by their positions (ie, by party slot).
+				You can also swap slots which don't contain a hero, for example
+				to swap a hero in or out of the active party.
 			
 			
 			
@@ -23702,7 +23783,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 984 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 988 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

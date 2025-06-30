@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-06-29">
+<plotscript version="wip" datecode="2025-06-30">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -3344,7 +3344,7 @@ if (slot > 0) then (load from slot (slot))</example>
 					read the old data.  It's strongly recommended you don't rely on this. You
 					should instead use <ref>swapouthero</ref> and <ref>lockhero</ref> to remove
 					a hero from the active party and hide them from the player
-					(and make sure "Swapped out and locked heroes" receive no experience from battles).
+					(and make sure "Swapped out and locked heroes" receive no experience from battles, in Battle Settings).
 				</note>
 			</description>
 			<seealso>
@@ -3364,6 +3364,7 @@ if (slot > 0) then (load from slot (slot))</example>
 				<ref>deletehero</ref>
 			</seealso>
 		</command>
+
 		<command id="swapinhero">
 			<canon>swap in hero (who)</canon>
 			<shortname>swap in hero</shortname>
@@ -3372,14 +3373,50 @@ if (slot > 0) then (load from slot (slot))</example>
 				If there is no room in your active party, the hero will not be moved.
 				This command works even if the hero is locked (see <ref>lockhero</ref>).
 				<lb/>
+				The return value is the new party slot, or -1 on failure.
+				<lb/>
 				<p>who</p> is a hero ID: use a constant of form <tt>hero:name</tt>.
 			</description>
+			<seealso>
+				<ref>swapinherobyslot</ref>
+			</seealso>
 		</command>
 		<command id="swapouthero">
 			<canon>swap out hero (who)</canon>
 			<shortname>swap out hero</shortname>
-			<description>Moves the named hero from your active party into your reserve. Use the constants defined in your HSI file. They are in the form of hero:name</description>
+			<description>
+				Moves the named hero from your active party into your reserve. Use the constants defined in your HSI file. They are in the form of <tt>hero:name</tt>.
+				If there is more than one copy of the hero in the party, then the first
+				<lb/>
+				This command works even if the hero is locked (see <ref>lockhero</ref>).
+				<lb/>
+				The return value is the new party slot, or -1 on failure.
+				<danger>
+					If the active party contains no heroes after swapping out the hero,
+					then some hero will be swapped back into the active party, possibly
+					the same one, and they might go into a different slot than they were!
+					You should really avoid doing that.
+				</danger>
+			</description>
+			<seealso>
+				<ref>swapoutherobyslot</ref>
+			</seealso>
 		</command>
+		<command id="swapinherobyslot">
+			<canon>swap in hero by slot (slot)</canon>
+			<shortname>swap in hero by slot</shortname>
+			<description>
+				Identical to <ref>swapinhero</ref> except it takes a hero by their party <p>slot</p> instead their ID.
+			</description>
+		</command>
+		<command id="swapoutherobyslot">
+			<canon>swap out hero by slot (slot)</canon>
+			<shortname>swap out hero by slot</shortname>
+			<description>
+				Identical to <ref>swapouthero</ref> except it takes a hero by their party <p>slot</p> instead their ID.
+			</description>
+		</command>
+
 		<command id="lockhero">
 			<canon>lock hero (who)</canon>
 			<shortname>lock hero</shortname>
@@ -3402,6 +3439,20 @@ if (slot > 0) then (load from slot (slot))</example>
 				Undoes <ref>lockhero</ref>, and makes it possible to move a hero in and out of the active party again or change their slot.
 				<lb/>
 				<p>who</p> is a hero ID: use a constant of form <tt>hero:name</tt>.
+			</description>
+		</command>
+		<command id="lockherobyslot">
+			<canon>lock hero by slot (slot)</canon>
+			<shortname>lock hero by slot</shortname>
+			<description>
+				Identical to <ref>lockhero</ref> except it takes a hero by their party <p>slot</p> instead their ID.
+			</description>
+		</command>
+		<command id="unlockherobyslot">
+			<canon>unlock hero by slot (slot)</canon>
+			<shortname>unlock hero by slot</shortname>
+			<description>
+				Identical to <ref>unlockhero</ref> except it takes a hero by their party <p>slot</p> instead their ID.
 			</description>
 		</command>
 		<command id="heroislocked">

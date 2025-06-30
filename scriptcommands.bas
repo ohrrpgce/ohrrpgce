@@ -4147,10 +4147,12 @@ SUB script_commands(byval cmdid as integer)
   END IF
  CASE 68'--swap out hero
   DIM i as integer = findhero(retvals(0), , serrWarn)
-  IF i > -1 THEN swap_out_hero i
+  scriptret = -1
+  IF i > -1 THEN scriptret = swap_out_hero(i)
  CASE 69'--swap in hero
   DIM i as integer = findhero(retvals(0), -1, serrWarn)
-  IF i > -1 THEN swap_in_hero i
+  scriptret = -1
+  IF i > -1 THEN scriptret = swap_in_hero(i)
  CASE 83'--set hero stat (hero, stat, value, type)
   'TODO: this command can also set hero level (without updating stats)
   ' which sucks for when we want to add more stats. Need backcompat bit.
@@ -5428,7 +5430,7 @@ SUB script_commands(byval cmdid as integer)
    loaditemdata item, retvals(0)
    scriptret = item.battle_weapon_attack + 1
   END IF
- CASE 790 '--insensitive string equal '--insensitive string compare
+ CASE 790 '--insensitive string equal, aka insensitive string compare
   IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN
    scriptret = IIF(LCASE(plotstr(retvals(0)).s) = LCASE(plotstr(retvals(1)).s), 1, 0)
   END IF
@@ -5442,7 +5444,29 @@ SUB script_commands(byval cmdid as integer)
    plotstr(retvals(0)).s = UCASE(plotstr(retvals(0)).s)
    scriptret = retvals(0)
   END IF
- 
+ ' Not useful enough to bother?
+ ' CASE '--free slot in active party
+ '  scriptret = first_free_slot_in_active_party()
+ ' CASE '--free slot in reserve party
+ '  scriptret = first_free_slot_in_reserve_party()
+ CASE 793'--swap in hero by slot
+  scriptret = -1
+  IF really_valid_hero_party(retvals(0)) THEN
+   scriptret = swap_in_hero(retvals(0))
+  END IF
+ CASE 794'--swap out hero by slot
+  scriptret = -1
+  IF really_valid_hero_party(retvals(0)) THEN
+   scriptret = swap_out_hero(retvals(0))
+  END IF
+ CASE 795 '--lock hero by slot
+  IF really_valid_hero_party(retvals(0)) THEN
+   gam.hero(retvals(0)).locked = YES
+  END IF
+ CASE 796 '--unlock hero by slot
+  IF really_valid_hero_party(retvals(0)) THEN
+   gam.hero(retvals(0)).locked = NO
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
