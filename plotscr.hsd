@@ -113,6 +113,7 @@ define function, begin
 87,setheroposition,3,0,0,0  # arbitrarily set x,y
 88,setNPCposition,3,0,0,0   # arbitrarily set x,y
 89,swapbyposition,2,0,0     # swap two hero slots
+89,swapbyslot,2,0,0         # Alias
 90,findhero,1,0             # locate hero slot by hero name
 91,checkequipment,2,0,1     # what is a hero equipped with? (who,where)
 #92,daysofplay,0             # returns the days, these opcodes remain for compatability

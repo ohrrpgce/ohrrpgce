@@ -11,6 +11,7 @@ Aug 04 2025 [Kaleidophone]
 
    * Plotscripting Features
     * "hero is locked" [Ralph]
+    * "swap by slot" alias to "swap by position"
     * "sort inventory" [Ralph]
     * Commands for reading item data "get item value", "get item teach spell",
       "get item attack outside battle", "get item attack in battle",

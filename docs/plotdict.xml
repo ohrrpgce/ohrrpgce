@@ -81,7 +81,7 @@ Case 1: Full command definition
   <altcommand>* - This defines an alias to the command which is documented
                   together with it, but which appears separately in command
 		  indexes (if it contains a <canon>) and can be linked to
-		  separately. Must have an id="" attribute and <shortname>
+		  separately. Must have an id="..." attribute and <shortname>
 		  subelement, and usually has one or more <canon>s. If there's no
 		  canon then <shortname> is used for links but no 'canon' line
 		  appears in the command definition.
@@ -3422,8 +3422,14 @@ if (slot > 0) then (load from slot (slot))</example>
 		<command id="swapbyposition">
 			<canon>swap by position (slot1, slot2)</canon>
 			<shortname>swap by position</shortname>
+			<altcommand id="swapbyslot">
+				<canon>swap by slot (slot1, slot2)</canon>
+				<shortname>swap by slot</shortname>
+			</altcommand>
 			<description>
-				Swaps two heroes in your party by their positions in the party (ie, by party slot).
+				Swaps the heroes in two slots in your party by their positions (ie, by party slot).
+				You can also swap slots which don't contain a hero, for example
+				to swap a hero in or out of the active party.
 			</description>
 		</command>
 
