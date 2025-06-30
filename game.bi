@@ -77,12 +77,13 @@ DECLARE FUNCTION exit_from_game_is_allowed() as bool
 
 DECLARE FUNCTION usenpc(byval cause as integer, byval npcnum as NPCIndex) as bool
 
-DECLARE SUB forceparty ()
+DECLARE SUB forceparty (byref track_slot as integer = 0)
 DECLARE FUNCTION findhero (byval id as integer, byval direction as integer = 1, errlvl as scriptErrEnum = serrIgnore) as integer
 DECLARE FUNCTION first_used_slot_in_party() as integer
 DECLARE FUNCTION first_free_slot_in_party() as integer
 DECLARE FUNCTION first_free_slot_in_active_party() as integer
 DECLARE FUNCTION first_free_slot_in_reserve_party() as integer
+DECLARE FUNCTION last_free_slot_in_reserve_party() as integer
 DECLARE FUNCTION free_slots_in_party() as integer
 DECLARE FUNCTION party_size () as integer
 DECLARE FUNCTION active_party_size () as integer

@@ -323,6 +323,7 @@ LOCAL SUB update_HeroSliceContext(byval party_slot as integer)
 END SUB
 
 'Swap two party slots, occupied or not. There's no significance to the order of the args.
+'Locked state is ignored
 SUB doswap (byval s as integer, byval d as integer)
  IF s = d THEN EXIT SUB
 
@@ -361,6 +362,25 @@ SUB doswap (byval s as integer, byval d as integer)
   NEXT i
  END IF
 END SUB
+
+'Returns the new slot, or -1 on failure
+FUNCTION swap_in_hero (slot as integer) as integer
+ DIM freeslot as integer = first_free_slot_in_active_party()
+ IF freeslot > -1 THEN
+  doswap slot, freeslot
+ END IF
+ RETURN freeslot
+END FUNCTION
+
+'Returns the new slot, or -1 on failure
+FUNCTION swap_out_hero (slot as integer) as integer
+ DIM freeslot as integer = last_free_slot_in_reserve_party()  'For backcompat
+ IF freeslot > -1 THEN
+  doswap slot, freeslot
+  IF active_party_size() = 0 THEN forceparty freeslot
+ END IF
+ RETURN freeslot
+END FUNCTION
 
 SUB update_textbox ()
 STATIC tog as integer

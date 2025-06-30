@@ -4147,25 +4147,10 @@ SUB script_commands(byval cmdid as integer)
   END IF
  CASE 68'--swap out hero
   DIM i as integer = findhero(retvals(0), , serrWarn)
-  IF i > -1 THEN
-   FOR o as integer = 40 TO 4 STEP -1
-    IF gam.hero(o).id = -1 THEN
-     doswap i, o
-     IF active_party_size() = 0 THEN forceparty
-     EXIT FOR
-    END IF
-   NEXT o
-  END IF
+  IF i > -1 THEN swap_out_hero i
  CASE 69'--swap in hero
   DIM i as integer = findhero(retvals(0), -1, serrWarn)
-  IF i > -1 THEN
-   FOR o as integer = 0 TO 3
-    IF gam.hero(o).id = -1 THEN
-     doswap i, o
-     EXIT FOR
-    END IF
-   NEXT o
-  END IF
+  IF i > -1 THEN swap_in_hero i
  CASE 83'--set hero stat (hero, stat, value, type)
   'TODO: this command can also set hero level (without updating stats)
   ' which sucks for when we want to add more stats. Need backcompat bit.

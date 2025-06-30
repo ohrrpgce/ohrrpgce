@@ -3827,27 +3827,12 @@ SUB add_rem_swap_lock_hero (byref box as TextBox)
  '---SWAP-IN---
  IF box.hero_swap > 0 THEN
   i = findhero(box.hero_swap - 1, -1, serrWarn)
-  IF i > -1 THEN
-   FOR o as integer = 0 TO 3
-    IF gam.hero(o).id = -1 THEN
-     doswap i, o
-     EXIT FOR
-    END IF
-   NEXT o
-  END IF
+  IF i > -1 THEN swap_in_hero i
  END IF '---end if > 0
  '---SWAP-OUT---
  IF box.hero_swap < 0 THEN
   i = findhero(-box.hero_swap - 1, , serrWarn)
-  IF i > -1 THEN
-   FOR o as integer = 40 TO 4 STEP -1
-    IF gam.hero(o).id = -1 THEN
-     doswap i, o
-     IF active_party_size() = 0 THEN forceparty
-     EXIT FOR
-    END IF
-   NEXT o
-  END IF
+  IF i > -1 THEN swap_out_hero i
  END IF '---end if < 0
  '---UNLOCK HERO---
  IF box.hero_lock > 0 THEN
@@ -4316,12 +4301,17 @@ END FUNCTION
 '                                      Party slots
 '==========================================================================================
 
-SUB forceparty ()
- '---MAKE SURE YOU HAVE AN ACTIVE PARTY---
+'Make sure you have an active party: swaps some hero back into the active party.
+'You must only call this if active_party_size() = 0!
+'If track_slot is the hero that gets swapped in, it's modified in-place.
+'FIXME: We should prefer to swap in an unlocked hero if there is one, so locked heroes remain
+'hidden. But that needs a backcompat bit. Which noone will ever bother to turn off...
+SUB forceparty (byref track_slot as integer = 0)
  DIM fpi as integer = first_used_slot_in_party()
  DIM fpo as integer = first_free_slot_in_active_party()
  IF fpi > -1 ANDALSO fpo > -1 THEN
   doswap fpi, fpo
+  IF fpi = track_slot THEN track_slot = fpo
  END IF
 END SUB
 
@@ -4370,6 +4360,17 @@ FUNCTION first_free_slot_in_reserve_party() as integer
  '--returns the first free slot, or -1 if all slots are full
  IF free_slots_in_party() > 0 THEN
   FOR i as integer = 4 TO 40
+   IF gam.hero(i).id = -1 THEN RETURN i
+  NEXT i
+ END IF
+ RETURN -1
+END FUNCTION
+
+FUNCTION last_free_slot_in_reserve_party() as integer
+ 'Returns the last free slot, or -1 if all slots are full;
+ 'used by "swap out hero" command and text box conditional for backcompat (ugh!)
+ IF free_slots_in_party() > 0 THEN
+  FOR i as integer = 40 TO 4 STEP -1
    IF gam.hero(i).id = -1 THEN RETURN i
   NEXT i
  END IF

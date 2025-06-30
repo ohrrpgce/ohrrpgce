@@ -11,6 +11,8 @@
 DECLARE SUB addhero (who as integer, slot as integer, forcelevel as integer = -1, allow_rename as bool = YES, loading as bool = NO)
 DECLARE SUB deletehero (slot as integer, resetting_game as bool = NO)
 DECLARE SUB doswap (byval s as integer, byval d as integer)
+DECLARE FUNCTION swap_in_hero (slot as integer) as integer
+DECLARE FUNCTION swap_out_hero (slot as integer) as integer
 DECLARE SUB party_change_updates ()
 DECLARE SUB evalherotags ()
 DECLARE SUB evalitemtags ()
