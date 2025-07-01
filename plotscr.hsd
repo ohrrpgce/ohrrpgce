@@ -1400,8 +1400,8 @@ script,cancel map name display,begin
   write gmap(4,0)
 end
 
-script,set map edge mode,mode=0,hsd:tile=0,begin
-  write gmap(5,mode)
+script,set map edge mode,hsd:mode=0,hsd:tile=0,begin
+  write gmap(5,hsd:mode)
   write gmap(6,hsd:tile)
 end
 
