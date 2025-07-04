@@ -12,6 +12,7 @@
 #include "customsubs.bi"
 #include "thingbrowser.bi"
 #include "cglobals.bi"
+#include "editorkit.bi"
 
 
 '--Local SUBs
@@ -39,17 +40,107 @@ FUNCTION item_picker_or_none (recindex as integer = -1) as integer
  RETURN itemb.browse(recindex - 1, YES , @individual_item_editor, NO) + 1
 END FUNCTION
 
+'ITEMFIXME remove this
 LOCAL SUB read_item_strings(itembuf() as integer, byref item_name as string, byref info as string)
  item_name = readbadbinstring(itembuf(), 0, 8)
  info = readbadbinstring(itembuf(), 9, 36)
 END SUB
 
+'ITEMFIXME remove this
 LOCAL SUB write_item_strings(itembuf() as integer, item_name as string, info as string)
  writebadbinstring item_name, itembuf(), 0, 8
  writebadbinstring info, itembuf(), 9, 36
 END SUB
 
+SUB populate_eq_slot_names(eq_slot_names() as string)
+ eq_slot_names(0) = readglobalstring(38, "Weapon", 10)
+ FOR i as integer = 0 TO 3
+  eq_slot_names(i + 1) = readglobalstring(25 + i, "Armor" & i+1)
+ NEXT i
+ FOR i as integer = 0 TO UBOUND(eq_slot_names)
+  IF LEN(eq_slot_names(i)) = 0 THEN eq_slot_names(i) = "Equip slot " & i
+ NEXT
+END SUB
+
+FUNCTION summarize_item_equipability(item as ItemDef) as string
+ DIM eq_slot_names(4) as string
+ populate_eq_slot_names eq_slot_names()
+ DIM summary as string
+ DIM is_equippable as bool = NO
+ DIM sep as string = ""
+ FOR i as integer = 0 TO 4
+  IF item.eqslots(i) THEN
+   summary &= sep & eq_slot_names(i)
+   sep = "/"
+   is_equippable = YES
+  END IF
+ NEXT i
+ IF NOT is_equippable THEN summary = "NEVER EQUIPPED"
+ RETURN summary
+END FUNCTION
+
+'-----------------------------------------------------------------------
+
+TYPE ItemEditor EXTENDS EditorKit
+ DECLARE CONSTRUCTOR(item_id as integer)
+ DECLARE SUB define_items()
+ DECLARE SUB load()
+ DECLARE SUB save()
+ 'DECLARE SUB draw_underlays()
+ id as integer
+ item as ItemDef
+ eq_slot_names(4) as string
+END TYPE
+
+CONSTRUCTOR ItemEditor(item_id as integer)
+ id = item_id
+ prev_menu_text = "Back to Item Menu"
+ helpkey = "item_editor"
+
+ populate_eq_slot_names eq_slot_names()
+
+END CONSTRUCTOR
+
+SUB ItemEditor.load()
+ loaditemdata item, id
+END SUB
+
+SUB ItemEditor.save()
+ saveitemdata item, id
+END SUB
+
+SUB ItemEditor.define_items()
+ defstr "Name:", item.name, 8
+ defstr "Info:", item.info, 36
+ defint "Value:", item.buy_price, 0, 32767
+
+ defint "Maximum stack size:", item.stacksize, 0, 99
+ caption_default_or_int 0, "Default (99)"
+
+ IF defitem_act("Equippable as...:") THEN
+  editbools item.eqslots(), eq_slot_names()
+ END IF
+ IF refresh THEN set_caption summarize_item_equipability(item)
+ 
+ 'defattack "When used in battle:", item.battle_items_menu_attack
+END SUB
+
+'-----------------------------------------------------------------------
+
 FUNCTION individual_item_editor(item_id as integer) as integer
+ IF keyval(scShift) = 0 THEN
+  RETURN old_individual_item_editor(item_id)
+ END IF
+
+ DIM editor as ItemEditor = ItemEditor(item_id)
+ editor.run()
+ 
+ RETURN editor.id
+END FUNCTION
+
+'-----------------------------------------------------------------------
+
+FUNCTION old_individual_item_editor(item_id as integer) as integer
 'Return value is the item_id (for thingbrowser)
 
  STATIC clipboard_used as bool  'There's something in clipboard_buf
@@ -569,3 +660,5 @@ SUB item_editor_stat_bonuses(itembuf() as integer)
   dowait
  LOOP
 END SUB
+
+'-----------------------------------------------------------------------
