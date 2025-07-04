@@ -183,7 +183,7 @@ SUB ItemEditor.define_items()
  
  spacer
  
- 'We can split these apart after the switch from ITM to items.reld
+ 'We can split these apart after the switch from ITM to items.reld (if we wish)
  DIM consumability as integer = 0
  IF item.consumed_by_use THEN consumability = 1
  IF item.cannot_be_sold_or_dropped THEN consumability = 2
@@ -197,6 +197,23 @@ SUB ItemEditor.define_items()
  item.consumed_by_use = (consumability = 1)
  item.cannot_be_sold_or_dropped = (consumability = 2)
 
+ section "Automatically set tags"
+
+ defitem "Own item:"
+ edit_as_tag_id item.tags.have_tag
+ IF edited THEN itemtags(id) = item.tags
+
+ defitem "Is in inventory:"
+ edit_as_tag_id item.tags.in_inventory_tag
+ IF edited THEN itemtags(id) = item.tags
+
+ defitem "Equipped by any hero:"
+ edit_as_tag_id item.tags.is_equipped_tag
+ IF edited THEN itemtags(id) = item.tags
+
+ defitem "Equipped by hero in active party:"
+ edit_as_tag_id item.tags.is_actively_equipped_tag
+ IF edited THEN itemtags(id) = item.tags 
 
 END SUB
 
