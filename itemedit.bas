@@ -90,6 +90,7 @@ TYPE ItemEditor EXTENDS EditorKit
  id as integer
  item as ItemDef
  eq_slot_names(4) as string
+ usability_captions(2) as string
 END TYPE
 
 CONSTRUCTOR ItemEditor(item_id as integer)
@@ -98,6 +99,9 @@ CONSTRUCTOR ItemEditor(item_id as integer)
  helpkey = "item_editor"
 
  populate_eq_slot_names eq_slot_names()
+ usability_captions(0) = "Unlimited Use"
+ usability_captions(1) = "Consumed By Use"
+ usability_captions(2) = "Cannot be Sold/Dropped"
 
 END CONSTRUCTOR
 
@@ -131,7 +135,7 @@ SUB ItemEditor.define_items()
  edit_as_attack item.battle_weapon_attack, Or_None
  IF value = -1 THEN set_caption "NOTHING"
 
- section "When used out of battle" 
+ section "When used out of battle"
  defitem "Cure Attack:"
  IF item.text_box >= 0 ORELSE item.teach_spell >= 0 THEN
   set_disabled()
@@ -176,6 +180,23 @@ SUB ItemEditor.define_items()
    edited = YES
   END IF
  END IF
+ 
+ spacer
+ 
+ 'We can split these apart after the switch from ITM to items.reld
+ DIM consumability as integer = 0
+ IF item.consumed_by_use THEN consumability = 1
+ IF item.cannot_be_sold_or_dropped THEN consumability = 2
+ defint "Consumability:", consumability, 0, 2
+ captions usability_captions()
+ IF activate THEN
+  DIM b as ArrayBrowser = ArrayBrowser(usability_captions(), "Consumability")
+  consumability = b.browse(consumability)
+  edited = YES
+ END IF
+ item.consumed_by_use = (consumability = 1)
+ item.cannot_be_sold_or_dropped = (consumability = 2)
+
 
 END SUB
 
