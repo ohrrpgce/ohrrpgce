@@ -121,20 +121,35 @@ SUB ItemEditor.define_items()
  defint "Maximum stack size:", item.stacksize, 0, 99
  caption_default_or_int 0, "Default (99)"
 
+ 'We can split these apart after the switch from ITM to items.reld (if we wish)
+ DIM consumability as integer = 0
+ IF item.consumed_by_use THEN consumability = 1
+ IF item.cannot_be_sold_or_dropped THEN consumability = 2
+ defint "Consumability:", consumability, 0, 2
+ captions usability_captions()
+ IF activate THEN
+  DIM b as ArrayBrowser = ArrayBrowser(usability_captions(), "Consumability")
+  consumability = b.browse(consumability)
+  edited = YES
+ END IF
+ item.consumed_by_use = (consumability = 1)
+ item.cannot_be_sold_or_dropped = (consumability = 2)
+
  IF defitem_act("Equippable as...:") THEN
   editbools item.eqslots(), eq_slot_names()
  END IF
  IF refresh THEN set_caption summarize_item_equipability(item)
+
+ IF item.eqslots(0) THEN
+  defitem "When used as a Weapon:"
+  edit_as_attack item.battle_weapon_attack, Or_None
+  IF value = -1 THEN set_caption "NOTHING"
+ END IF
  
  defitem "When used in battle:"
  edit_as_attack item.battle_items_menu_attack, Or_None
  IF value = -1 THEN set_caption "NOTHING"
-
- defitem "When used as a Weapon:"
- IF NOT item.eqslots(0) THEN set_disabled()
- edit_as_attack item.battle_weapon_attack, Or_None
- IF value = -1 THEN set_caption "NOTHING"
-
+ 
  section "When used out of battle"
  defitem "Cure Attack:"
  IF item.text_box >= 0 ORELSE item.teach_spell >= 0 THEN
@@ -180,22 +195,6 @@ SUB ItemEditor.define_items()
    edited = YES
   END IF
  END IF
- 
- spacer
- 
- 'We can split these apart after the switch from ITM to items.reld (if we wish)
- DIM consumability as integer = 0
- IF item.consumed_by_use THEN consumability = 1
- IF item.cannot_be_sold_or_dropped THEN consumability = 2
- defint "Consumability:", consumability, 0, 2
- captions usability_captions()
- IF activate THEN
-  DIM b as ArrayBrowser = ArrayBrowser(usability_captions(), "Consumability")
-  consumability = b.browse(consumability)
-  edited = YES
- END IF
- item.consumed_by_use = (consumability = 1)
- item.cannot_be_sold_or_dropped = (consumability = 2)
 
  section "Automatically set tags"
 
@@ -207,13 +206,15 @@ SUB ItemEditor.define_items()
  edit_as_tag_id item.tags.in_inventory_tag
  IF edited THEN itemtags(id) = item.tags
 
- defitem "Equipped by any hero:"
- edit_as_tag_id item.tags.is_equipped_tag
- IF edited THEN itemtags(id) = item.tags
-
- defitem "Equipped by hero in active party:"
- edit_as_tag_id item.tags.is_actively_equipped_tag
- IF edited THEN itemtags(id) = item.tags 
+ IF item_is_equippable(item) THEN
+  defitem "Equipped by any hero:"
+  edit_as_tag_id item.tags.is_equipped_tag
+  IF edited THEN itemtags(id) = item.tags
+  
+  defitem "Equipped by hero in active party:"
+  edit_as_tag_id item.tags.is_actively_equipped_tag
+  IF edited THEN itemtags(id) = item.tags
+ END IF
 
 END SUB
 
