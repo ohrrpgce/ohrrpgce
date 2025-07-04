@@ -5425,9 +5425,11 @@ SUB SpriteSetBrowser.run()
       END IF
     END IF
 
-    '+: Add new frame or frame group
+    '+: Add new frame or frame group, or even a new spriteset
     IF keyval(scPlus) > 1 ORELSE keyval(scNumpadPlus) > 1 ORELSE keyval(scInsert) > 1 THEN
-      IF sprite_sizes(sprtype).fixed_framecount THEN
+      IF cur_setnum = -1 THEN  'Add new
+       add_spriteset()
+      ELSEIF sprite_sizes(sprtype).fixed_framecount THEN
        notification sprite_sizes(sprtype).name & " sprites currently don't support adding or removing frames."
       ELSEIF cur_framenum = -1 THEN  'Whole spriteset
         'New group in first empty slot
