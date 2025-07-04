@@ -3,10 +3,6 @@ WHAT IS NEW?
 Aug 04 2025 [Kaleidophone]
 
   *** New Features
-    * Press T in the sprite editor to toggle onionskin overlay. Press
-      Shift+T to change which frame. Use together with CTRL+Arrow keys [James]
-    * It's now possible to import spritesets with a non-default number of frames.
-      [Ralph]
     * New pref bit "Allow wasting out-of-battle cures" defaults to on [James]
 
    * Plotscripting Features
@@ -28,15 +24,24 @@ Aug 04 2025 [Kaleidophone]
   *** Changes
 
   *** Bugfixes
+    * Bug #1186 Add hero hook script breaks "add hero" return value [Ralph]
+
+  *** Stuff Only Developers Will Notice
+
+July 4 2025 [Jocoserious+2]
+
+  *** New Features
+    * Press T in the sprite editor to toggle onionskin overlay. Press
+      Shift+T to change which frame. Use together with CTRL+Arrow keys [James]
+    * It's now possible to import spritesets with a non-default number of frames.
+      [Ralph]
+
+  *** Bugfixes
     * Walkabout sets with 4 or fewer frames crashed the NPC editor [Ralph]
     * NPCs set to Stand Still or speed 0 were drawn always facing Up in the
       map editor [Ralph]
     * Importing a spriteset "from custom layout" cut out frames using the
       default frame size rather than the specified one [Ralph]
-    * Bug #1186 Add hero hook script breaks "add hero" return value [Ralph]
-
-  *** Stuff Only Developers Will Notice
-
 
 March 29 2025 [Jocoserious+1]
 
