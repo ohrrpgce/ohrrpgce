@@ -122,7 +122,9 @@ SUB ItemEditor.define_items()
  END IF
  IF refresh THEN set_caption summarize_item_equipability(item)
  
- 'defattack "When used in battle:", item.battle_items_menu_attack
+ defitem "When used in battle:"
+ edit_as_attack item.battle_items_menu_attack, Or_None
+ IF value = -1 THEN set_caption "NOTHING"
 END SUB
 
 '-----------------------------------------------------------------------

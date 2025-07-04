@@ -1818,8 +1818,35 @@ end sub
 function EditorKit.edit_as_enemy(byref datum as integer, or_none_flag as EKFlags = 0) as bool
 	as_enemy datum, or_none_flag
 	if process then
-		' TODO: offset and min args probably wrong
-		edited or= enemygrabber(value, state, iif(or_none_flag = Or_None, 1, 0), 0)
+		edited or= enemygrabber(value, state, 0, iif(or_none_flag = Or_None, -1, 0))
+		if edited then write_value
+	end if
+	return edited
+end function
+
+'----------------------------------- Attacks -----------------------------------
+
+' Or_None: -1 is None
+sub EditorKit.as_attack(byref datum as integer, or_none_flag as EKFlags = 0)
+	val_int datum
+	if refresh andalso len(cur_item.caption) = 0 then
+		var id = eff_value
+		if id = -1 andalso (or_none_flag = Or_None) then
+			wrap_caption "None"
+		elseif id < 0 then
+			wrap_caption "Invalid attack " & id
+		else
+			dim attack as AttackData
+			loadattackdata attack, id
+			wrap_caption id & " " & attack.name
+		end if
+	end if
+end sub
+
+function EditorKit.edit_as_attack(byref datum as integer, or_none_flag as EKFlags = 0) as bool
+	as_attack datum, or_none_flag
+	if process then
+		edited or= attackgrabber(value, state, 0, iif(or_none_flag = Or_None, -1, 0))
 		if edited then write_value
 	end if
 	return edited
