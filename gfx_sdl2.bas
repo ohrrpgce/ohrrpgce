@@ -1048,7 +1048,7 @@ END FUNCTION
 
 'The next time zoom or resolution changes recenter the window. Afterwards the flag is removed.
 SUB gfx_sdl2_recenter_window_hint()
-  debuginfo "recenter_window_hint()"
+  IF debugging_io THEN debuginfo "recenter_window_hint()"
   'IF running_under_Custom = NO THEN   'Don't display the window straight on top of Custom's
     'No, DO recenter the window, because it's really bad if a large window goes over the screen edges
     'because we didn't recenter it. (Some OSes/WMs may do so automatically.)

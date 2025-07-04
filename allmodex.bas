@@ -1076,7 +1076,9 @@ function unlock_resolution (min_w as integer, min_h as integer) as bool
 		resizing_enabled = NO
 		return NO
 	end if
-	debuginfo "unlock_resolution(" & minwinsize & ")"
+	if debugging_io then
+		debuginfo "unlock_resolution(" & minwinsize & ")"
+	end if
 	resizing_enabled = gfx_set_resizable(YES, minwinsize.w, minwinsize.h)
 	windowsize.w = large(windowsize.w, minwinsize.w)
 	windowsize.h = large(windowsize.h, minwinsize.h)
@@ -1086,7 +1088,9 @@ end function
 
 'Disable window resizing.
 sub lock_resolution ()
-	debuginfo "lock_resolution()"
+	if debugging_io then
+		debuginfo "lock_resolution()"
+	end if
 	resizing_requested = NO
 	resizing_enabled = gfx_set_resizable(NO, 0, 0)  'Hard to imagine this could return YES
 	minwinsize = XY(0, 0)
@@ -1104,7 +1108,9 @@ sub set_resolution (w as integer, h as integer)
 	if gfx_supports_variable_resolution andalso gfx_supports_variable_resolution() = NO then
 		exit sub
 	end if
-	debuginfo "set_resolution " & w & "*" & h
+	if debugging_io then
+		debuginfo "set_resolution " & w & "*" & h
+	end if
 	windowsize.w = large(w, minwinsize.w)
 	windowsize.h = large(h, minwinsize.h)
 	if modex_initialised = NO then
