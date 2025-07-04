@@ -1633,6 +1633,7 @@ FUNCTION highlighted_script_line(posdata as ScriptTokenPos, maxchars as integer,
  DIM highlightcol as integer
  DIM linepiece as string
 
+ /'
  WITH posdata
   debug "posdata.linenum = " & posdata.linenum
   debug "posdata.col = " & posdata.col
@@ -1640,6 +1641,7 @@ FUNCTION highlighted_script_line(posdata as ScriptTokenPos, maxchars as integer,
   debug "posdata.linetext = " & posdata.linetext
   debug "posdata.filename = " & posdata.filename
  END WITH
+ '/
 
  'highlightcol = IIF(posdata.isvirtual, uilook(uiSelectedDisabled + tog), uilook(uiSelectedItem + tog))
  highlightcol = IIF(posdata.isvirtual, findrgb(128, 0, 200), findrgb(0, 0, 240))
@@ -1912,7 +1914,10 @@ FUNCTION should_display_error_to_user(byval errorlevel as scriptErrEnum) as bool
  IF gen(genCurrentDebugMode) = 0 THEN 'Release mode, suppress most error display
   RETURN NO
  END IF
- RETURN YES
+ ' By default Info messages are printed to g_debug.txt but not shown,
+ ' since if they are so annoying then we wouldn't want to add more of them
+ ' (in future we should have a dedicated script log for info and warning messages)
+ RETURN errorlevel > serrInfo
 END FUNCTION
 
 DIM SHARED as integer error_ignorelist()
@@ -2103,6 +2108,7 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
   ELSEIF errorlevel >= serrWarn THEN
    header = IIF(insideinterpreter, "Script Warning", "Warning")
   ELSEIF errorlevel = serrInfo THEN
+   'Never actually shown
    header = IIF(insideinterpreter, "Script Diagnostic", "Diagnostic")
   END IF
   IF LEN(header) THEN
