@@ -125,6 +125,17 @@ SUB ItemEditor.define_items()
  defitem "When used in battle:"
  edit_as_attack item.battle_items_menu_attack, Or_None
  IF value = -1 THEN set_caption "NOTHING"
+
+ defitem "When used as a Weapon:"
+ edit_as_attack item.battle_weapon_attack, Or_None
+ IF value = -1 THEN set_caption "NOTHING"
+ IF NOT item.eqslots(0) THEN set_disabled()
+
+ defitem "Teach Spell:"
+ edit_as_attack item.teach_spell, Or_None
+ IF value = -1 THEN set_caption "NOTHING"
+
+
 END SUB
 
 '-----------------------------------------------------------------------
