@@ -6855,8 +6855,9 @@ DO
    '--An NPC
    printstr STR(i), x, y + 4, dpage
    WITH npc_img(i)
-    '--Down A frame
-    frame_draw .sprite + 4, .pal, x + 32, (i - state.top) * 25, , dpage
+    '--Draw first Down frame
+    DIM frame as integer = large(0, frameid_to_frame(.sprite, 100 * dirDown))
+    frame_draw .sprite + frame, .pal, x + 32, (i - state.top) * 25, , dpage
    END WITH
    textcol = uilook(uiMenuItem)
    textbg = uilook(uiHighlight)

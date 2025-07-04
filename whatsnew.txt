@@ -7,6 +7,7 @@ WHAT IS NEW?
       Shift+T to change which frame. Use together with CTRL+Arrow keys [James]
 
   *** Bugfixes
+    * Walkabout sets with 4 or fewer frames crashed the NPC editor [Ralph]
 
 
 March 29 2025 [Jocoserious+1]
