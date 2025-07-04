@@ -8,6 +8,8 @@ WHAT IS NEW?
 
   *** Bugfixes
     * Walkabout sets with 4 or fewer frames crashed the NPC editor [Ralph]
+    * NPCs set to Stand Still or speed 0 were drawn always facing Up in the
+      map editor [Ralph]
 
 
 March 29 2025 [Jocoserious+1]
