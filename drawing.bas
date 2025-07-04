@@ -3203,7 +3203,9 @@ FUNCTION spriteedit_import16_cut_custom_frames(byref ss as SpriteEditState, imps
   LOOP
 
   ' Cut out the frames and place in a new one
-  flattened_set = frame_new(ss.wide, ss.high)
+  ' FIXME: this allows changing the size of box borders, althhough that's meant to be disallowed (but not
+  ' atually harmful)
+  flattened_set = frame_new(frame_size.w * frames_per_dir * .directions, frame_size.h)
   frame_clear flattened_set, 0
 
   DIM framenum as integer = 0
@@ -3213,7 +3215,7 @@ FUNCTION spriteedit_import16_cut_custom_frames(byref ss as SpriteEditState, imps
     x = first_offset.x + direction * direction_offset.x + dirframe * frame_offset.x
     y = first_offset.y + direction * direction_offset.y + dirframe * frame_offset.y
     DIM impview as Frame ptr = frame_new_view(impsprite, x, y, frame_size.w, frame_size.h)
-    frame_draw impview, , (.size.w - frame_size.w) \ 2 + framenum * .size.w, .size.h - frame_size.h, NO, flattened_set
+    frame_draw impview, , framenum * frame_size.w, 0, NO, flattened_set
     frame_unload @impview
     framenum += 1
    NEXT
