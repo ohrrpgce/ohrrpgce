@@ -1088,10 +1088,10 @@ FUNCTION describe_item_chance(chance as ItemChance) as string
   IF .item_rate > 0 THEN
    ret &= strprintf(" %3d   %%: %d ", .item_rate, .item) & readitemname(.item) & !"\n"
   END IF
-  IF rare_percent > 0. THEN
+  IF rare_percent > 0.001 THEN
    ret &= strprintf(" %6.2f%%: %d ", rare_percent, .rare_item) & readitemname(.rare_item) & !"\n"
   END IF
-  IF nothing_percent THEN
+  IF nothing_percent > 0.001 THEN
    ret &= strprintf(!" %6.2f%%: nothing\n", nothing_percent)
   END IF
   RETURN ret
