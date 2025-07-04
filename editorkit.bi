@@ -403,6 +403,10 @@ type EditorKit extends ModularMenu
 	declare sub as_attack(byref id as integer, or_none_flag as EKFlags = 0)
 	declare function edit_as_attack(byref id as integer, or_none_flag as EKFlags = 0) as bool
 
+	' Text Boxes
+	declare sub as_textbox(byref id as integer, or_none_flag as EKFlags = 0)
+	declare function edit_as_textbox(byref id as integer, or_none_flag as EKFlags = 0) as bool
+
 	' Extra data vectors
 	declare sub edit_extra_data_vector(byref extravec as integer vector)
 

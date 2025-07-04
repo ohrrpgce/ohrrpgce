@@ -1852,6 +1852,33 @@ function EditorKit.edit_as_attack(byref datum as integer, or_none_flag as EKFlag
 	return edited
 end function
 
+'----------------------------------- Text Boxes -----------------------------------
+
+' Or_None: -1 is None
+sub EditorKit.as_textbox(byref datum as integer, or_none_flag as EKFlags = 0)
+	val_int datum
+	if refresh andalso len(cur_item.caption) = 0 then
+		var id = eff_value
+		if id = -1 andalso (or_none_flag = Or_None) then
+			wrap_caption "None"
+		elseif id < 0 then
+			wrap_caption "Invalid Text Box " & id
+		else
+			DIM preview_width as integer = vpages(dpage)->w - textsize(cur_item.title & " " & id & " ").w
+			set_caption id & " " & textbox_preview_line(id, preview_width)
+		end if
+	end if
+end sub
+
+function EditorKit.edit_as_textbox(byref datum as integer, or_none_flag as EKFlags = 0) as bool
+	as_textbox datum, or_none_flag
+	if process then
+		edited or= textboxgrabber(value, state, 0, iif(or_none_flag = Or_None, -1, 0))
+		if edited then write_value
+	end if
+	return edited
+end function
+
 '------------------------------ Extra data vectors -----------------------------
 
 'Adds a set of menu items for editing an extra data vector
