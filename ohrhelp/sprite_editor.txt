@@ -78,6 +78,9 @@ Press CTRL+Up/Down to switch to the prev/next frame in the same
 frame group, looping around (e.g. all Right-facing walkabout frames). This is useful for drawing animations.
 NOTE: each frame has its own Undo history.
 
+Press T to toggle a transparent onion-skin overlay.
+Press SHIFT+T to change the onionskin to the current frame.
+
 Press `/~ (backtick/tilde) to toggle whether the cursor displays normally or as a single pixel.
 
 Press I to import from an external image file, overwriting the current frame.
