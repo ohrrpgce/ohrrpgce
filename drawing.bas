@@ -3073,12 +3073,13 @@ SUB spriteedit_import16_loadimage(srcfile as string, byref impsprite as Frame pt
 END SUB
 
 'Returns a new Frame (NULL if cancelled). Delete the input one if didn't cancel.
-'TODO: This function needs a major update/rewrite to handle variable-framecount and -size spritesets.
-FUNCTION spriteedit_import16_cut_custom_frames(byref ss as SpriteEditState, impsprite as Frame ptr, pal16 as Palette16 ptr) as Frame ptr
+'numframes is the number of frames of the existing spriteset we're replacing (in future: will be used only as a default).
+FUNCTION spriteedit_import16_cut_custom_frames(byref ss as SpriteEditState, impsprite as Frame ptr, pal16 as Palette16 ptr, numframes as integer) as Frame ptr
  DIM image_pos as XYPair = (1, 1)  'Screen position at which to draw impsprite
 
  'This staticness is a bit hacky
- STATIC last_fileset as integer = -1
+ 'Used to reset to the default frame size if the fileset differed from last time
+ 'The when-to-reset logic is not good.
  STATIC frame_size as XYPair
  STATIC first_offset as XYPair     'Position of first frame
  STATIC direction_offset as XYPair 'Offset between direction groups
@@ -3087,18 +3088,36 @@ FUNCTION spriteedit_import16_cut_custom_frames(byref ss as SpriteEditState, imps
  DIM flattened_set as Frame ptr
 
  WITH sprite_sizes(ss.fileset)
-  DIM frames_per_dir as integer = .frames \ .directions
+  DIM frames_per_dir as integer
 
-  IF last_fileset <> ss.fileset THEN
-   frame_size = .size
-   first_offset = XY(0, 0)
-   frame_offset = XY(.size.w, 0)
-   direction_offset = XY(.size.w * frames_per_dir, 0)
+  'Note that sprTypeHero has .directions = 4
+  'TODO: Would like to allow changing frames_per_dir
+
+  IF .fixed_framecount ANDALSO numframes <> .frames THEN
+   showerror "The existing number of frames should be " & .frames & " but is " & numframes & ". Unless this is a future .rpg, this is a bug"
   END IF
-  last_fileset = ss.fileset
+  'IF .fixed_framecount THEN numframes = .frames
+
+  frames_per_dir = large(1, numframes \ .directions)
+
+  IF frames_per_dir * .directions <> numframes THEN
+   notification "The existing number of frames, " & numframes & ", doesn't divide evenly into " & .directions & _
+                " directions, and this importer doesn't support changing the frame count. Change the number " _
+                "of frames (with correct frameids) in the existing spriteset to a multiple of " & .directions
+   RETURN NULL
+  END IF
+
+  DIM old_frame_size as XYPair = ss.sprite->size
+  old_frame_size.x \= ss.true_numframes
+  IF frame_size <> old_frame_size THEN
+   frame_size = old_frame_size
+   first_offset = XY(0, 0)
+   frame_offset = XY(frame_size.wide, 0)
+   direction_offset = XY(frame_size.wide * frames_per_dir, 0)
+  END IF
 
   DIM tog as integer
-  DIM menu(7) as string
+  DIM menu(8) as string
   DIM st as MenuState
   DIM menuopts as MenuOptions
   menuopts.edged = YES
@@ -3141,6 +3160,7 @@ FUNCTION spriteedit_import16_cut_custom_frames(byref ss as SpriteEditState, imps
     CASE 5: intgrabber frame_offset.y, -impsprite->h, impsprite->h
     CASE 6: intgrabber frame_size.w, 0, .size.w
     CASE 7: intgrabber frame_size.h, 0, .size.h
+    'CASE 8: intgrabber frames_per_dir, 1, 99
    END SELECT
 
    menu(0) = "First frame x: " & first_offset.x
@@ -3155,6 +3175,7 @@ FUNCTION spriteedit_import16_cut_custom_frames(byref ss as SpriteEditState, imps
    menu(temp + 1) = "Each-frame offset y: " & frame_offset.y
    menu(temp + 2) = "Frame width: " & frame_size.w
    menu(temp + 3) = "Frame height: " & frame_size.h
+   'menu(temp + 4) = "Frames per direction: " & frames_per_dir
 
    '--Draw screen
    clearpage dpage
@@ -3435,14 +3456,17 @@ FUNCTION spriteedit_import16_remap_menu(byref ss as SpriteEditState, byref impsp
  RETURN ret
 END FUNCTION
 
-'Input is an imported image (single Frame array) and output is a spriteset as a basic spritesheet
-'(ie all frames concatenated into one).
-'Frees (decrements refcount of) impsprite and passes back ownership of a Frame (which might be the same Frame),
+'Used to import a full spriteset. Called from the editor in fullset mode.
+'TODO: Therefore it's not currently possible for sprite import to change the number of frames.
+'Input is an imported image (a single Frame) and output is a spriteset as a basic spritesheet
+'(ie all frames concatenated into one Frame -- but after cutting up and putting back together).
+'The result might be a different size.
+'Unloads (decrements refcount of) impsprite. Passes back ownership of a Frame (which might be the same Frame),
 'or returns NULL if cancelled.
 FUNCTION spriteedit_import16_split_spriteset(ss as SpriteEditState, impsprite as Frame ptr, pal as Palette16 ptr) as Frame ptr
  'Note that XY(ss.wide, ss.high) == ss.sprite->size
  IF impsprite->size <> ss.sprite->size THEN
-  DIM numframes as integer = sprite_sizes(ss.fileset).frames
+  DIM numframes as integer = ss.true_numframes
   DIM size0 as XYPair = XY(large(1, impsprite->w \ numframes), impsprite->h)
   DIM choices(...) as string = { _
     strprintf("Import as %d frames of %dx%d", numframes, size0.w, size0.h), _
@@ -3452,7 +3476,9 @@ FUNCTION spriteedit_import16_split_spriteset(ss as SpriteEditState, impsprite as
   DIM choice as integer
   DO
    choice = multichoice(strprintf("This image is %dx%d pixels, different from the %dx%d export image " _
-                        "size of the current spriteset.", impsprite->w, impsprite->h, ss.sprite->w, ss.sprite->h), choices())
+                        "size of the current spriteset. (If you want to change the number of frames, you " _
+                        "need to do so before import.)", _
+                        impsprite->w, impsprite->h, ss.sprite->w, ss.sprite->h), choices())
    IF choice = -1 THEN
     frame_unload @impsprite
     RETURN NULL
@@ -3460,7 +3486,9 @@ FUNCTION spriteedit_import16_split_spriteset(ss as SpriteEditState, impsprite as
     DIM resized as Frame ptr
     'The following looks like a noop, but what it accomplishes is rounding up/down
     'the frame size if numframes doesn't divide evenly into impsprite->w
-    resized = spriteset_from_basic_spritesheet(impsprite, ss.fileset, numframes)
+    'resized = spriteset_from_basic_spritesheet(impsprite, ss.fileset, sprite_sizes(ss.fileset).frames)
+    resized = split_spritesheet(impsprite, size0, numframes)
+    'copy_spriteset_frameids resized, ...   'Pointless, frameids won't be used
     frame_assign @impsprite, spriteset_to_basic_spritesheet(resized)
     frame_unload @resized
    ELSEIF choice = 1 THEN
@@ -3468,7 +3496,7 @@ FUNCTION spriteedit_import16_split_spriteset(ss as SpriteEditState, impsprite as
     frame_assign @impsprite, frame_resized(impsprite, ss.sprite->w, ss.sprite->h)
    ELSEIF choice = 2 THEN
     DIM adjusted as Frame ptr
-    adjusted = spriteedit_import16_cut_custom_frames(ss, impsprite, pal)
+    adjusted = spriteedit_import16_cut_custom_frames(ss, impsprite, pal, numframes)
     IF adjusted = NULL THEN CONTINUE DO  'Cancelled, go back to the menu
     frame_assign @impsprite, adjusted
    END IF
@@ -4982,6 +5010,7 @@ SUB SpriteSetBrowser.setup_editstate(edstate as SpriteEditState, setnum as integ
       .spriteset = frame_array_to_vector(editing_spriteset)
       .framenum = framenum
     END IF
+    .true_numframes = editing_spriteset->arraylen
     .fileset = sprtype
     .fullset = fullset
     ' sprite_editor uses the callback to save the edited sprite.

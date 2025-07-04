@@ -7077,7 +7077,7 @@ SUB setup_sprite_sizes ()
   .size.y = 40
   .frames = 8
   .fixed_framecount = YES
-  .directions = 4
+  .directions = 4  'FIXME: should be changed. 4 because of walktall: useful when importing spritesets
   .paletted = YES
   .genmax = genMaxHeroPic
  END WITH
