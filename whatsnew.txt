@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-??? ?? 2025 [Jocoserious+2]
+July 4 2025 [Jocoserious+2]
 
   *** New Features
     * Press T in the sprite editor to toggle onionskin overlay. Press

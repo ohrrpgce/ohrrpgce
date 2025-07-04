@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E           (2025-03-29 jocoserious+1 version)
+ O.H.R.RPG.C.E           (2025-07-04 jocoserious+2 version)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 for Mac OS X
