@@ -9,15 +9,186 @@ meaning you may use and redistribute it under the terms of either license.
 This distribution may include binary code which can't be distributed under
 the GPL, and the GPL does not automatically apply to it.
 
-(C) Copyright 1997-2024 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+(C) Copyright 1997-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 For a list of developers see:
  https://rpg.hamsterrepublic.com/ohrrpgce/Contributors
 To obtain the source code, visit:
  https://rpg.hamsterrepublic.com/ohrrpgce/Source
 
+The following summarises the third-party software which may be included in
+source code or some official binary distributions of the OHRRPGCE (inclusion is
+as source code if not specified). Where required, complete licenses and notices
+appear further below:
+
+
+libfb - FreeBASIC's runtime library
+Copyright (C) 2004-2024 The FreeBASIC development team.
+License: LGPL v2.1+ with classpath exception (binaries distributed under MIT)
+Credits: https://github.com/freebasic/fbc/blob/master/readme.txt
+Inclusion: Source and in binaries
+
+libgfx2 - FreeBASIC's alternative gfx library
+Copyright (C) 2005 Angelo Mottola (a.mottola@libero.it)
+Copyright (C) 2005-2024 The FreeBASIC development team.
+License: LGPL v2.1+ with classpath exception (binaries distributed under MIT)
+Inclusion: Some binaries
+
+SDL - The Simple DirectMedia Layer
+Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+License: zlib
+Credits: https://github.com/libsdl-org/SDL/blob/main/CREDITS.md
+Inclusion: Source and as dynamic library
+
+SDL_mixer
+Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+License: zlib
+Inclusion: As dynamic library
+
+libmad - MPEG audio decoder library
+Copyright (C) 2000-2004 Underbit Technologies, Inc.
+License: GNU GPL version 2 or later
+Credits: https://github.com/markjeee/libmad/blob/master/CREDITS
+Inclusion: In SDL_mixer v1.2 libraries
+
+mpg123
+Copyright (c) 1995-2020 by Michael Hipp and others
+License: LGPL v2.1 (binaries distributed under the GNU GPL v2)
+Credits: https://www.mpg123.de/trunk/AUTHORS
+Inclusion: In some SDL_mixer v2 libraries
+
+smpeg - Loki Software's MPEG decoding library
+Written by Karl Robillard and Sam Lantinga, Loki Software, Inc.
+Credits: https://github.com/icculus/smpeg
+Inclusion: In some SDL_mixer v1.2 libraries
+
+libogg
+Copyright (c) 2002, Xiph.org Foundation
+License: BSD 3-clause
+Credits: https://gitlab.xiph.org/xiph/ogg/-/blob/master/AUTHORS
+Inclusion: In SDL_mixer libraries
+
+libvorbis
+Copyright (c) 2002-2020, Xiph.org Foundation
+License: BSD 3-clause
+Credits: Monty <monty@xiph.org> and the rest of the Xiph.org Foundation.
+Inclusion: In SDL_mixer libraries
+
+libmodplug
+Based on the ModPlug sound engine by Olivier Lapicque <olivierl@jps.net>
+XMMS plugin by Kenton Varda <temporal@gauge3d.org> (~2002)
+Maintainer is now Konstanty Bialkowski <konstanty@ieee.org> (~2006)
+License: Public Domain
+Credits: https://github.com/Konstanty/libmodplug/blob/master/AUTHORS
+Inclusion: In some SDL_mixer libraries
+
+libmikmod
+License: GNU LGPL v2 or later
+Credits: https://sourceforge.net/p/mikmod/mikmod/ci/master/tree/libmikmod/AUTHORS
+Inclusion: In some SDL_mixer libraries
+
+Audiere - A High-Level Sound Playback System
+Audiere (c) Chad Austin 2001-2003
+License: GNU LGPL v2 or later
+Credits: https://sourceforge.net/p/audiere/code/HEAD/tree/trunk/audiere/doc/authors.txt
+Inclusion: Source and as dynamic library (with music_native/native2 builds)
+
+CrashRpt
+License: BSD 3-clause
+Credits: https://github.com/CrashRpt/crashrpt2/blob/master/Authors.txt
+Inclusion: Source and as dynamic library (with some Windows builds)
+
+libxml2
+Copyright (C) 1998-2012 Daniel Veillard.  All Rights Reserved.
+Copyright (C) The Libxml2 Contributors.
+License: MIT
+Credits: https://gitlab.gnome.org/GNOME/libxml2/-/blob/master/README.md
+Inclusion: In xml2reload binaries
+
+opusfile - Stand-alone decoder library for .opus streams
+Copyright (c) 1994-2013 Xiph.Org Foundation and contributors
+License: BSD 3-clause
+Credits: https://gitlab.xiph.org/xiph/opusfile/-/blob/main/AUTHORS
+Inclusion: In some SDL_mixer v2 libraries
+
+libopus - Opus low-latency codec
+Copyright 2001-2023 Xiph.Org, Skype Limited, Octasic, Jean-Marc Valin,
+Timothy B. Terriberry, CSIRO, Gregory Maxwell, Mark Borgerding,
+Erik de Castro Lopo, Mozilla, Amazon
+License: BSD 3-clause
+Credits: https://gitlab.xiph.org/xiph/opus/-/blob/main/AUTHORS
+Inclusion: In some SDL_mixer v2 libraries
+
+libFLAC - Free Lossless Audio Codec
+Copyright (C) 2000-2009 Josh Coalson
+Copyright (C) 2011-2025 Xiph.Org Foundation
+License: BSD 3-clause
+Credits: https://gitlab.xiph.org/xiph/flac/-/blob/master/AUTHORS
+Inclusion: In some SDL_mixer v2 libraries
+
+freebasic-base64-codec
+Copyright (c) 2021 Joe King
+License: MIT
+
+utf-8 - Flexible and Economical UTF-8 Decoder
+Copyright (c) 2008-2009 Bjoern Hoehrmann <bjoern@hoehrmann.de>
+License: MIT
+
+cutef8
+cutef8 by Jeff Bezanson, placed in the public domain Fall 2005
+License: Public domain
+
+gif.h
+gif.h by Charlie Tangora
+License: Unlicense/Public domain
+
+jo_jpeg - JPEG Writer
+By Jon Olick, Modifications by Jonathan Young https://github.com/jpcy/jo_jpeg
+License: Public domain
+
+MicroJPEG - KeyJ's Small Baseline JPEG Decoder
+Copyright (c) 2009-2016 Martin J. Fiedler <martin.fiedler@gmx.net>
+License: MIT
+
+LodePNG
+Copyright (c) 2005-2019 Lode Vandevenne
+License: zlib
+Credits: https://github.com/lvandeve/lodepng
+
+SHA-1 in C
+By Steve Reid <steve@edmweb.com>
+License: Public domain
+
+stdc++compat.cpp
+By Mozilla
+License: Mozilla Public License Version 2.0  http://mozilla.org/MPL/2.0/
+
+x11_printerror.c adapted from Xlib
+Copyright 2018  Ralph Versteegen
+Copyright 1985, 1986, 1987, 1998  The Open Group
+License: The Open Group license (similar to the X86Free license)
+
+rotozoom.c adapted from sdl2_gfx
+Copyright (c) 2012-2014  Andreas Schiffler
+License: zlib
+
+
 ------------------------------------------------------------------------------
 
                            MIT License
+
+Official Hamster Republic RPG Construction Engine (OHRRPGCE)
+ (C) Copyright 1997-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+freebasic-base64-codec
+ Copyright (c) 2021 Joe King
+utf-8
+ Copyright (c) 2008-2009 Bjoern Hoehrmann <bjoern@hoehrmann.de>
+ See http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details.
+ Copyright (c) 2012,2016-2018 Ralph Versteegen
+MicroJPEG - KeyJ's Small Baseline JPEG Decoder
+ Copyright (c) 2009-2016 Martin J. Fiedler <martin.fiedler@gmx.net>
+libxml2
+ Copyright (C) 1998-2012 Daniel Veillard.  All Rights Reserved.
+ Copyright (C) The Libxml2 Contributors.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -319,3 +490,146 @@ PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
+
+------------------------------------------------------------------------------
+
+                          zlib License
+
+Simple DirectMedia Layer
+ Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+SDL_mixer
+ Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
+sdl2_gfx
+ Copyright (c) 2012-2014 Andreas Schiffler
+LodePNG
+ Copyright (c) 2005-2019 Lode Vandevenne
+
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+
+------------------------------------------------------------------------------
+
+                  LGPL with Classpath exception
+
+libfb - FreeBASIC's runtime library
+ Copyright (C) 2004-2024 The FreeBASIC development team.
+libgfx2 - FreeBASIC's alternative gfx library
+ Copyright (C) 2005 Angelo Mottola (a.mottola@libero.it)
+ Copyright (C) 2005-2024 The FreeBASIC development team.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+As a special exception, the copyright holders of this library give
+you permission to link this library with independent modules to
+produce an executable, regardless of the license terms of these
+independent modules, and to copy and distribute the resulting
+executable under terms of your choice, provided that you also meet,
+for each linked independent module, the terms and conditions of the
+license of that module. An independent module is a module which is
+not derived from or based on this library. If you modify this library,
+you may extend this exception to your version of the library, but
+you are not obligated to do so. If you do not wish to do so, delete
+this exception statement from your version.
+
+------------------------------------------------------------------------------
+
+                       BSD 3-clause License
+
+libogg
+ Copyright (c) 2002 Xiph.org Foundation
+libvorbis
+ Copyright (c) 2002-2020 Xiph.org Foundation
+opusfile
+ Copyright (c) 1994-2013 Xiph.Org Foundation and contributors
+libopus
+ Copyright 2001-2023 Xiph.Org, Skype Limited, Octasic,
+ Jean-Marc Valin, Timothy B. Terriberry, CSIRO, Gregory Maxwell,
+ Mark Borgerding, Erik de Castro Lopo, Mozilla, Amazon
+libFLAC
+ Copyright (C) 2000-2009 Josh Coalson
+ Copyright (C) 2011-2016 Xiph.Org Foundation
+CrashRpt
+ Copyright (c) 2003, The CrashRpt Project Authors.
+ All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+- Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+- Neither the names of the authors nor the names of its contributors
+may be used to endorse or promote products derived from this software
+without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION
+OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+------------------------------------------------------------------------------
+
+                      The Open Group License
+
+x11_printerror.c is adapted from part of:
+XlibInt.c - Internal support routines for the C subroutine
+interface library (Xlib) to the X Window System Protocol V11.0.
+
+Copyright 2018  Ralph Versteegen
+Copyright 1985, 1986, 1987, 1998  The Open Group
+
+Permission to use, copy, modify, distribute, and sell this software and its
+documentation for any purpose is hereby granted without fee, provided that
+the above copyright notice appear in all copies and that both that
+copyright notice and this permission notice appear in supporting
+documentation.
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE OPEN GROUP BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+Except as contained in this notice, the name of The Open Group shall
+not be used in advertising or otherwise to promote the sale, use or
+other dealings in this Software without prior written authorization
+from The Open Group.
