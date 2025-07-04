@@ -1163,7 +1163,11 @@ resume NPCs</example>
 				where <tt>menu handle</tt> might for example be <ref>topmenu</ref>.)
 			</description>
 			<example>suspend player
-# do stuff
+# Script a small cutscene...
+walk hero (me, right, 10)
+wait for hero (me)
+wait (20)
+set hero direction (me, left)
 resume player</example>
 		</command>
 		<command id="resumeplayer">
@@ -1434,7 +1438,7 @@ resume random enemies # back to normal</example>
 				Note that the player can still move the cursor in choiceboxes while this
 				is active, use <ref>suspendtextboxcontrols</ref> to disable that.
 				<warn>
-					<ref>waitfortextbox</ref> does't wait while <tt>suspend box advance</tt> is active!
+					<ref>waitfortextbox</ref> does't wait while <ref>suspendboxadvance</ref> is active!
 				</warn>
 			</description>
 

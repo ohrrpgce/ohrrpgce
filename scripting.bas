@@ -506,7 +506,7 @@ END IF
 
 IF double_trigger_check ANDALSO index > 0 THEN
  IF n = scriptinsts(index - 1).id ANDALSO prefbit(10) = NO THEN  '"Permit double-triggering of scripts" off
-  '--scripterr "script " & n & " is already running", serrInfo
+  scripterr "Not double-triggering script " & scriptname(n), serrInfo
   RETURN rsQuietFail
  END IF
 END IF

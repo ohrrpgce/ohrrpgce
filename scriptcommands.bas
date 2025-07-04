@@ -555,7 +555,10 @@ SUB process_wait_conditions()
      IF gen(genCameraMode) <> pancam ANDALSO gen(genCameraMode) <> focuscam THEN script_stop_waiting()
 
     CASE 59'--wait for text box
-     IF txt.showing = NO OR readbit(gen(), genSuspendBits, suspendboxadvance) = 1 THEN
+     IF txt.showing = NO THEN
+      script_stop_waiting()
+     ELSEIF readbit(gen(), genSuspendBits, suspendboxadvance) = 1 THEN
+      scripterr "waitfortextbox skipped because suspendboxadvance was used", serrInfo
       script_stop_waiting()
      END IF
 
@@ -1050,7 +1053,7 @@ SUB script_commands(byval cmdid as integer)
    'Note: you can select hidden items!
    'After a tick, the selection should get moved to a valid item.
    IF mi->unselectable THEN
-    'scripterr "Can't select unselectable menu item", serrInfo
+    scripterr "Can't select unselectable menu item", serrInfo
    ELSE
     mstates(menuslot).pt = mislot
     mstates(menuslot).need_update = YES
@@ -1337,7 +1340,7 @@ SUB script_commands(byval cmdid as integer)
 'old scriptmisc
 
  CASE 0'--noop
-  scripterr "encountered clean noop", serrInfo
+  'scripterr "encountered clean noop", serrInfo
  CASE 1'--Wait (cycles)
   IF retvals(0) > 0 THEN
    script_start_waiting(retvals(0))
@@ -1515,6 +1518,8 @@ SUB script_commands(byval cmdid as integer)
  CASE 59'--wait for text box
   IF readbit(gen(), genSuspendBits, suspendboxadvance) = 0 THEN
    script_start_waiting(retvals(0))
+  ELSE
+   scripterr "waitfortextbox skipped because suspendboxadvance is active", serrInfo
   END IF
  CASE 60'--equip where
   scriptret = 0
