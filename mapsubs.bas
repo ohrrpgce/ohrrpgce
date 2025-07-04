@@ -1446,29 +1446,27 @@ DO
 
    'Place or delete an NPC
    IF tool_actkeypress OR npc_d > -1 THEN
-    DIM npc_slot as integer = 0
+    DIM npci as NPCIndex = -1
     IF npc_d = -1 THEN
-     DIM npci as NPCIndex = mapedit_npc_at_spot(st, st.pos)
+     'Unless using Ctrl+dir, delete a NPC if any
+     npci = mapedit_npc_at_spot(st, st.pos)
      IF npci > -1 THEN
-      'Delete
-      WITH st.map.npc(npci)
-       .id = 0
-       .x = 0
-       .y = 0
-       .dir = dirUp
-       npc_slot = 1
-      END WITH
+      CleanNPCInst st.map.npc(npci)  'Delete
      END IF
+     npc_d = dirDown
     END IF
-    IF npc_d = -1 THEN npc_d = dirDown
-    IF npc_slot = 0 THEN
-     npc_slot = -1
-     FOR i as integer = UBOUND(st.map.npc) TO 0 STEP -1
-      IF st.map.npc(i).id = 0 THEN npc_slot = i
+
+    IF npci = -1 THEN
+     'Place NPC
+     FOR i as NPCIndex = 0 TO UBOUND(st.map.npc)
+      IF st.map.npc(i).id = 0 THEN
+       npci = i
+       EXIT FOR
+      END IF
      NEXT i
-     IF npc_slot >= 0 THEN
-      WITH st.map.npc(npc_slot)
-       .pos = st.pos * 20
+     IF npci > -1 THEN
+      WITH st.map.npc(npci)
+       .pos = st.pos * tilesize
        .id = st.cur_npc + 1
        .pool = st.cur_npc_pool
        .dir = npc_d
