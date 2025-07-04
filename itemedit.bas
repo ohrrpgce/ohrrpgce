@@ -127,14 +127,44 @@ SUB ItemEditor.define_items()
  IF value = -1 THEN set_caption "NOTHING"
 
  defitem "When used as a Weapon:"
+ IF NOT item.eqslots(0) THEN set_disabled()
  edit_as_attack item.battle_weapon_attack, Or_None
  IF value = -1 THEN set_caption "NOTHING"
- IF NOT item.eqslots(0) THEN set_disabled()
 
  defitem "Teach Spell:"
  edit_as_attack item.teach_spell, Or_None
  IF value = -1 THEN set_caption "NOTHING"
 
+ section "When used out of battle" 
+ defitem "Cure Attack:"
+ IF item.text_box >= 0 THEN
+  set_disabled()
+ END IF
+ edit_as_attack item.oob_attack, Or_None
+ IF value = -1 THEN set_caption "NOTHING"
+ IF item.text_box >= 0 THEN
+  set_caption "N/A (does text box instead)"
+  IF value >= 0 THEN
+   value = -1
+   edited = YES
+  END IF
+ END IF
+
+ defitem "Text Box:"
+ IF item.oob_attack >= 0 THEN
+  set_disabled()
+ END IF
+ edit_as_textbox item.text_box, Or_None
+ IF value = -1 THEN set_caption "NOTHING"
+ IF value = 0 THEN set_caption "(Box 0 not supported here)"
+ IF item.oob_attack >= 0 THEN
+  set_disabled()
+  set_caption "N/A (does cure attack instead)"
+  IF value >= 0 THEN
+   value = -1
+   edited = YES
+  END IF
+ END IF
 
 END SUB
 
