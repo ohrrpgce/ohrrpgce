@@ -1915,6 +1915,26 @@ FUNCTION should_display_error_to_user(byval errorlevel as scriptErrEnum) as bool
  RETURN YES
 END FUNCTION
 
+DIM SHARED as integer error_ignorelist()
+
+FUNCTION scriptcmdhash() as integer
+ IF nowscript >= 0 THEN RETURN scrat(nowscript).id * 100000 + scrat(nowscript).ptr
+END FUNCTION
+
+FUNCTION error_ignorelist_contains(errmsg as zstring ptr) as bool
+ 'Match errors in two different ways (throw location, error message) to improve odds of the match working.
+ IF nowscript >= 0 THEN
+  IF a_find(error_ignorelist(), scriptcmdhash) <> -1 THEN RETURN YES
+ END IF
+ IF a_find(error_ignorelist(), strhash(*errmsg)) <> -1 THEN RETURN YES
+ RETURN NO
+END FUNCTION
+
+SUB error_ignorelist_add(errmsg as zstring ptr)
+ a_append error_ignorelist(), scriptcmdhash  'May be zero
+ a_append error_ignorelist(), strhash(*errmsg)
+END SUB
+
 'For errorlevel scheme, see scriptErrEnum in const.bi
 'NOTE: this function can get called with errors which aren't caused by scripts,
 'for example findhero() called from a textbox conditional.
@@ -1923,36 +1943,50 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
  'mechanism to handle scriptwatch throwing errors
  STATIC as integer recursivecall
 
- STATIC as integer ignorelist()
-
- DIM as integer scriptcmdhash, errmsghash
-
  'err_suppress_lvl is always at least serrIgnore
  IF errorlevel <= err_suppress_lvl THEN EXIT SUB
 
+ 'Is the error ignored? Don't even log it, it could repeat thousands of times.
+ STATIC logged_ignore as bool = NO
+ IF error_ignorelist_contains(errmsg) THEN
+  IF logged_ignore = NO THEN
+   debug "(One or more ignored script error/warning...)"
+   logged_ignore = YES
+  END IF
+  EXIT SUB
+ END IF
+
  DIM display as bool = should_display_error_to_user(errorlevel)
 
+ 'Otherwise, log the error even if it isn't displayed, up to a point.
  'Logging is very slow, so we shouldn't if there are repeated errors (especially in release mode)
  STATIC error_count as integer = 0
- IF display = YES ORELSE error_count < 50 THEN
+ CONST error_count_limit = 200
+ IF display = YES ORELSE error_count < error_count_limit THEN
   DIM as string call_chain
   IF insideinterpreter THEN call_chain = script_call_chain(NO)
-  debug "Scripterr(" & errorlevel & "): " + call_chain + ": " + errmsg
- ELSEIF error_count = 50 THEN
+  DIM logmsg as string = call_chain + ": " + errmsg
+  STATIC lasterror as string
+  STATIC logged_repeat as bool = NO  'Logged a 'repeats' line for the last error
+  IF display = YES ORELSE logmsg <> lasterror THEN
+   lasterror = logmsg
+   logged_repeat = NO
+  ELSEIF logged_repeat THEN
+   'Once only
+   EXIT SUB
+  ELSE
+   debug "(One or more repeats of last script error/warning...)"
+   logged_repeat = YES
+   EXIT SUB
+  END IF
+  debug "Scripterr(" & errorlevel & " " & *scripterr_names(errorlevel) & "): " + logmsg
+  logged_ignore = NO  'Indicate when there are hidden script errors between the logged ones
+ ELSEIF error_count = error_count_limit THEN
   debug "Ignoring further script errors"
  END IF
  error_count += 1
 
  IF display = NO THEN EXIT SUB
-
- 'Is the error ignored? Match errors in two different ways (throw location,
- 'error message) to improve odds of the match working.
- IF nowscript >= 0 THEN
-  scriptcmdhash = scrat(nowscript).id * 100000 + scrat(nowscript).ptr
-  IF a_find(ignorelist(), scriptcmdhash) <> -1 THEN EXIT SUB
- END IF
- errmsghash = strhash(errmsg)
- IF a_find(ignorelist(), errmsghash) <> -1 THEN EXIT SUB
 
  ' OK, decided to show the error
  stop_fibre_timing
@@ -1994,7 +2028,7 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
   'Outside the interpreter there's no active fiber, can't call killscriptthread
   append_menu_item menu, "Stop this script", 2
  END IF
- append_menu_item menu, "Exit game", 4
+ 'append_menu_item menu, "Exit game", 4
  IF context_slice THEN
   append_menu_item menu, "Show this slice in the slice editor", 5
  ELSE
@@ -2037,8 +2071,7 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
      killscriptthread
      EXIT DO
     CASE 3 'ignore permanently
-     a_append(ignorelist(), scriptcmdhash)
-     a_append(ignorelist(), errmsghash)
+     error_ignorelist_add errmsg
      EXIT DO
     CASE 4
      debuginfo "scripterr: User opted to quit"
