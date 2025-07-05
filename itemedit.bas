@@ -148,50 +148,33 @@ SUB ItemEditor.define_items()
  END IF
  
  section "When used out of battle"
- 
+
  defitem "Cure Attack:"
  IF item.text_box >= 0 ORELSE item.teach_spell >= 0 THEN
-  set_disabled()
- END IF
- edit_as_attack item.oob_attack, Or_None
- IF value = -1 THEN set_caption "NOTHING"
- IF item.text_box >= 0 ORELSE item.teach_spell >= 0 THEN
-  set_caption "N/A"
-  IF value >= 0 THEN
-   value = -1
-   edited = YES
-  END IF
+  item.oob_attack = -1
+  set_disabled
+ ELSE
+  edit_as_attack item.oob_attack, Or_None
+  IF value = -1 THEN set_caption "NOTHING"
  END IF
 
  defitem "Text Box:"
  IF item.oob_attack >= 0 ORELSE item.teach_spell >= 0 THEN
-  set_disabled()
- END IF
- edit_as_textbox item.text_box, Or_None
- IF value = -1 THEN set_caption "NOTHING"
- IF value = 0 THEN set_caption "(Box 0 not supported here)"
- IF item.oob_attack >= 0 ORELSE item.teach_spell >= 0 THEN
-  set_disabled()
-  set_caption "N/A"
-  IF value >= 0 THEN
-   value = -1
-   edited = YES
-  END IF
+  item.text_box = -1
+  set_disabled
+ ELSE
+  edit_as_textbox item.text_box, Or_None
+  IF value = -1 THEN set_caption "NOTHING"
+  IF value = 0 THEN set_caption "(Box 0 not supported here)"
  END IF
 
  defitem "Teach Spell:"
  IF item.oob_attack >= 0 ORELSE item.text_box >= 0 THEN
-  set_disabled()
- END IF
- edit_as_attack item.teach_spell, Or_None
- IF value = -1 THEN set_caption "NOTHING"
- IF item.oob_attack >= 0 ORELSE item.text_box >= 0 THEN
-  set_disabled()
-  set_caption "N/A"
-  IF value >= 0 THEN
-   value = -1
-   edited = YES
-  END IF
+  item.teach_spell = -1
+  set_disabled
+ ELSE
+  edit_as_attack item.teach_spell, Or_None
+  IF value = -1 THEN set_caption "NOTHING"
  END IF
 
  section "Automatically set tags"
