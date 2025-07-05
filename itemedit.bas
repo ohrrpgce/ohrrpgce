@@ -1,5 +1,5 @@
 'OHRRPGCE CUSTOM - Item Editor
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 '
 #include "config.bi"
@@ -66,16 +66,14 @@ FUNCTION summarize_item_equipability(item as ItemDef) as string
  DIM eq_slot_names(4) as string
  populate_eq_slot_names eq_slot_names()
  DIM summary as string
- DIM is_equippable as bool = NO
  DIM sep as string = ""
  FOR i as integer = 0 TO 4
   IF item.eqslots(i) THEN
    summary &= sep & eq_slot_names(i)
    sep = "/"
-   is_equippable = YES
   END IF
  NEXT i
- IF NOT is_equippable THEN summary = "NEVER EQUIPPED"
+ IF summary = "" THEN summary = "NEVER EQUIPPED"
  RETURN summary
 END FUNCTION
 
@@ -90,7 +88,6 @@ TYPE ItemEditor EXTENDS EditorKit
  id as integer
  item as ItemDef
  eq_slot_names(4) as string
- usability_captions(2) as string
 END TYPE
 
 CONSTRUCTOR ItemEditor(item_id as integer)
@@ -99,10 +96,6 @@ CONSTRUCTOR ItemEditor(item_id as integer)
  helpkey = "item_editor"
 
  populate_eq_slot_names eq_slot_names()
- usability_captions(0) = "Unlimited Use"
- usability_captions(1) = "Consumed By Use"
- usability_captions(2) = "Cannot be Sold/Dropped"
-
 END CONSTRUCTOR
 
 SUB ItemEditor.load()
@@ -122,16 +115,12 @@ SUB ItemEditor.define_items()
  caption_default_or_int 0, "Default (99)"
 
  'We can split these apart after the switch from ITM to items.reld (if we wish)
+ defitem "Consumability:"
  DIM consumability as integer = 0
  IF item.consumed_by_use THEN consumability = 1
- IF item.cannot_be_sold_or_dropped THEN consumability = 2
- defint "Consumability:", consumability, 0, 2
- captions usability_captions()
- IF activate THEN
-  DIM b as ArrayBrowser = ArrayBrowser(usability_captions(), "Consumability")
-  consumability = b.browse(consumability)
-  edited = YES
- END IF
+ IF item.cannot_be_sold_or_dropped THEN consumability = -2
+ DIM usability_captions(...) as string = {"Unlimited Use", "Consumed By Use", "Cannot be Sold/Dropped"}
+ edit_int_enum consumability, usability_captions()
  item.consumed_by_use = (consumability = 1)
  item.cannot_be_sold_or_dropped = (consumability = 2)
 
