@@ -118,7 +118,7 @@ SUB ItemEditor.define_items()
  defitem "Consumability:"
  DIM consumability as integer = 0
  IF item.consumed_by_use THEN consumability = 1
- IF item.cannot_be_sold_or_dropped THEN consumability = -2
+ IF item.cannot_be_sold_or_dropped THEN consumability = 2
  DIM usability_captions(...) as string = {"Unlimited Use", "Consumed By Use", "Cannot be Sold/Dropped"}
  edit_int_enum consumability, usability_captions()
  item.consumed_by_use = (consumability = 1)
