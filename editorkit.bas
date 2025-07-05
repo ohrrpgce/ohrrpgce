@@ -391,6 +391,7 @@ sub EditorKit.finish_defitem()
 							caption = format_float(valuefloat)
 						end if
 					case dtypeStr:    caption = valuestr
+					case dtypeNone:   caption = "N/A"
 				end select
 			end if
 
