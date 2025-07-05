@@ -139,18 +139,27 @@ SUB ItemEditor.define_items()
   editbools item.eqslots(), eq_slot_names()
  END IF
  IF refresh THEN set_caption summarize_item_equipability(item)
+ 
+ defitem "When used as an item in battle:"
+ edit_as_attack item.battle_items_menu_attack, Or_None
+ IF value = -1 THEN set_caption "NOTHING"
 
  IF item.eqslots(0) THEN
+  section "As a weapon"
+  
   defitem "When used as a Weapon:"
   edit_as_attack item.battle_weapon_attack, Or_None
   IF value = -1 THEN set_caption "NOTHING"
+  
+  defitem "Weapon Picture:"
+  edit_as_spriteset item.wep_pic, sprTypeWeapon
+
+  defitem "Weapon Palette:"
+  edit_as_palette item.wep_pal, sprTypeWeapon, item.wep_pic
  END IF
  
- defitem "When used in battle:"
- edit_as_attack item.battle_items_menu_attack, Or_None
- IF value = -1 THEN set_caption "NOTHING"
- 
  section "When used out of battle"
+ 
  defitem "Cure Attack:"
  IF item.text_box >= 0 ORELSE item.teach_spell >= 0 THEN
   set_disabled()
