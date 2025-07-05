@@ -3,6 +3,7 @@
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 ' ==== EditorKit classes ====
+'
 ' To create an editor with EditorKit, create a UDT Extending EditorKit, and
 ' implement sub define_items(). This will be called repeatedly for:
 ' processing: it's called every tick to handle editing of data fields
@@ -12,23 +13,27 @@
 '   whenever state.need_update is true (which define_items sets during processing)
 '
 ' Then call .run(). But you probably want to load data or do other initialisation
-' first, such as setting .helpkey.
+' first, such as setting .helpkey. Putting that in a constructor is optional.
 '
 ' ==== Submenus ====
+'
 ' Define submenus by branching on the value of `submenu` inside .define_items()
 ' and enter one by calling .enter_submenu() (which nests) or .switch_submenu().
-' For a submenu-specific help page set helpkey in define_items (not set_helpkey()!)
+' For a submenu-specific help page set helpkey in define_items (not set_helpkey(),
+' which is for the current menu item!)
 '
 ' ==== Saving, loading, and multiple records ====
+'
 ' If you overload the load() and save() methods they will be called when
 ' run() begins and right before it ends.
 ' To switch between multiple records you need to call setup_record_switching before
-' .run() to define what the variable is that holds the current record number.
+' run() to define the variable that holds the current record number.
 ' load() and save() are assumed to access this variable (hence they take no args),
 ' and they are both called when switching records.
 ' Then call def_record_switcher in define_items() to add a <-Foo #-> line.
 '
 ' ==== Adding menu items ====
+'
 ' "Previous Menu" (customisable with prev_menu_text) is added automatically.
 '
 ' To add a menu item, call from define_items():
@@ -37,32 +42,34 @@
 '  sections will be collapsible
 ' -defitem, or other def* function (which are convenience wrappers around defitem)
 '
-' Each defitem menu item is split into a "title" and a "caption" (either of
+' A menu item definition starts with at one of the function calls above and ends
+' at the next one (or the end of define_items).
+' defitem by itself just creates a menu item that does nothing.
+'
+' Each defitem menu item's text is split into a "title" and a "caption" (either of
 ' which may be blank).  The title is the field description and should usually
 ' end in ':'; the caption presents the value. The title is set only by defitem/def*.
 ' The caption is set automatically to the value but you can replace it with
 ' set_caption or tell how to generate it with caption* functions.
 '
 ' ==== State variables ====
-' A menu item definition starting with defitem ends at the next defitem/spacer/etc
-' call. defitem by itself just creates a menu item that does nothing.
 '
 ' Inside the definition you can query some bool members:
 ' -selected: this menu item is the selected item
-' -refresh: refreshing the menu
-' -process: selected and should do per-tick logic, such as calling intgrabber
+' -refresh:  regenerating the menu items and captions
+' -process:  selected and should do per-tick logic, such as calling intgrabber
 ' -process_text: should be checked instead of process to decide whether to read text
-'          input. (True even if Alt is held, but not when selecting-by-typing)
-'          (Be sure to set using_strgrabber if you do.)
+'            input. (True even if Alt is held, but not when selecting-by-typing)
+'            (Be sure to set `using_strgrabber = YES` if you read text input.)
 ' -activate: selected and should be activated (if possible), e.g. enter a submenu.
-' -delete_action: the user tried to delete this (Delete or possibly Backspace)
-' -hover: mouse over this item
-' -left_click: beginning of a left click/drag on this item. Use activate instead,
-'          if you can which checks for button release.
+' -delete_action: the user tried to delete this item (Delete or possibly Backspace)
+' -hover:    mouse over this item
+' -left_click: beginning of a left click/drag on this item. Use `activate` instead
+'            if you can, which checks for button release.
 ' -right_click: beginning of a right click/drag.
 ' And a couple you can read/write:
-' -edited: an edit_* call changed the item's value. You should set this manually if
-'          you modify `value` manually.
+' -edited:   an edit_* call changed the item's value. You should set this manually
+'            if you modify `value` manually.
 ' -state.needs_update: can also be set to indicate the menu needs refreshing
 '
 ' So if you want to enter a submenu:
@@ -73,21 +80,24 @@
 ' Or if the submenu is defined within the same class:
 '     if defitem_act("Edit details...") then enter_submenu "details"
 '
-' ==== Data ====
+' ==== Showing and editing data ====
+'
 ' Items can display and (optionally) edit a field of data, which could be an
 ' integer/string/etc passed byref, a RELOAD Node, ohrrpgce_config.ini setting,
 ' or general.reld setting. It works like so:
 '
 ' -The datum is read into `value` (ints and bools), `valuestr` or `valuefloat`
-'  by calling val_*, as_*, edit_*, edit_as_* or def*, and its source (eg. a 
+'  by calling val_*, as_*, edit_*, edit_as_* or def*, and its source (eg. a
 '  Node) is recorded.
 ' -The value can be shifted with `offset_int`, or a bool inverted with
 '  `invert_bool` or by prefixing the title with '!' (just like editbitset). Must
 '  happen before editing or setting the caption.
 ' -edit_* methods will, `if process`, call intgrabber/etc to modify `value`/etc
-'  and set `edited`. They also immediately call write_value for safety.
-' -If `edited` is true, the value is written back; if you have custom editing
-'  code (e.g. a *grabber call) that modifies value/etc you should set `edited`.
+'  and set `edited`. They also immediately call write_value for safety so the new
+'  value can be seen without using `value`/etc.
+' -At the end of the item definition if `edited` is true, the value is written back
+'  (so it's typically written twice); if you have custom editing code (e.g. you
+'  directly call intgrabber/etc) that modifies `value`/etc you should set `edited`.
 '  (This happens even during refresh, so it's OK to modify the value then.)
 '
 ' You don't need to set the value with val_*/etc if you write custom editing code
@@ -103,23 +113,24 @@
 '     val_bitset bits(), 0, 35  'Starting from word 0, bit 35
 '
 ' -as_* to tell what the value means, e.g. a tag check, enemy ID, or script
-'  trigger - you won't use this for raw data. This just changes the default
-'  caption (normally you use edit_as_* instead). Pass value/etc as the first
-'  arg, e.g.
+'  trigger. You won't use this for raw numbers. This only changes the default
+'  caption; normally you use edit_as_* instead to add type-specific editing.
+'  You can pass `value`/etc as the first arg, e.g.
 '     val_int rec(42)
 '     as_enemy value
-'  Which can also be written
+'  (Which could also be written as:)
 '     as_enemy val_int(rec(42))
-'  As a shortcut for byref data (val_int/bool/str/float) you can skip the val_*:
+'  As a shortcut for byref data (val_int/bool/str/float as opposed to more
+'  complex data fields such as Nodes) you can skip the val_*:
 '     as_enemy rec(42)
 '
-' -edit_* to tell how to edit a value (if processing), e.g.:
+' -edit_* to tell how to edit a value (happens if `processing`), e.g.:
 '     val_node_int boxstyle_node
 '     edit_int value, 0, 14   'Range 0 to 14
 '  ...but as a shortcut you can skip the val_* (there are edit_X functions for
 '  most val_X):
 '     edit_node_int boxstyle_node, 0, 14
-'  If you use an explicit val_* then he first arg to edit_* will be value/etc.
+'  If you use an explicit val_* then the first arg to edit_* must be `value`/etc.
 '
 ' -def*: As a further shortcut for simple values, you can use a def* method
 '  which combines defitem and edit_*:
@@ -127,10 +138,11 @@
 '     edit_int gen(genItemStackSize), 1, 99
 '  can become:
 '     defint "Default maximum item stack size:", gen(genItemStackSize), 1, 99
-'  which is complete!
+'  which is a complete menu item!
 '
 '  You can NOT write something like "defint "...", val_node_int(...), 0, 10"
-'  because the menu item doesn't start until defitem is called.
+'  because the menu item doesn't start until defitem is called, after its args
+'  are evaluated.
 '
 ' -edit_as_* for game data like tags or enemies, extends as_* with editing,
 '  including bounds, entering browsers/submenus, etc. There's an edit_as_X for
@@ -138,30 +150,40 @@
 '     edit_as_enemy rec(42)
 '
 ' ==== "None" options and offset values ====
+'
 ' Many edit_as_* methods take an Or_None flag to indicate -1 means None:
 '     edit_as_enemy rec(42), Or_None
 '
-'  If you want 0 on-disk to be None and N > 0 to be record N-1 then use
+'  If you want the on-disk value 0 to be None and N > 0 to be record N-1 then use
 '  offset_int to shift `value` from the on-disk value:
 '     offset_int -1   'Can be called either before or after val_*
 '     edit_as_enemy rec(42), Or_None
 '  Alternatively:
 '     edit_as_enemy offset_int(-1, rec(42)), Or_None
-'  You can write it this equivalent way:
+'  You can write it this equivalent way because `value` gets written back at the
+'  end of the item definition:
 '     val_int rec(42)
 '     value -= 1
 '     edit_as_enemy value, Or_None
 '     value += 1
 '
 ' ==== Captions ====
+'
 ' The caption defaults to the item's value if the title ends in ':'.  It can be
 ' set it with set_caption, or a caption* function such as `captions` for enum
-' strings.  caption* methods (other than set_caption) must be called after
+' strings. caption* methods (other than set_caption) must be called after
 ' value/valuestr/valuefloat is set!
 '
 ' Example:
 '     defint "Display '" & CHR(1) & "1' in inventory:", gen(genInventSlotx1Display), 0, 2
 '     captions_list("always", "never", "only if stackable")
+'
+' Methods such as as_enemy or edit_as_enemy set the caption automatically.
+'
+' ==== Attributes ====
+'
+' There are also many menu item attributes that can be set, such as set_tooltip.
+' See editorkit.bi.
 '
 ' ==== More examples ====
 '
@@ -947,7 +969,7 @@ end sub
 
 '------------------------------ Value modifiers --------------------------------
 
-' Value modifiers can be called either before or after val_*, but must be called
+' Value modifiers can be called either before or after val_*, but MUST be called
 ' before edit_* or as_* or setting the caption!
 
 ' Cause `value` to be offset from the underlying data field.
@@ -962,7 +984,7 @@ end sub
 
 ' Convenience wrapper for one-line definitions like:
 '   edit_as_enemy offset_int(1, rec(42)), Or_None
-' But note you MUST NOT use this with defint!!
+' But note you MUST NOT use this (or any other method) as an argument to defint!!
 function EditorKit.offset_int(offset as integer, byref datum as integer) as integer
 	offset_int offset
 	return val_int(datum)
@@ -983,7 +1005,7 @@ end sub
 ' Convenience wrapper for one-line definitions like:
 '   defitem "Translucent:"
 '   edit_bool invert_bool(box.opaque)
-' But note you MUST NOT use this with defbool!!
+' But note you MUST NOT use this (or any other method) as an argument to defbool!!
 function EditorKit.invert_bool(byref datum as bool) as bool
 	invert_bool
 	return val_bool(datum)
@@ -1611,8 +1633,9 @@ end function
 ' If you need more control over the captions, you can call tag_*_caption directly.
 ' allowspecial: if true, don't warn about picking autoset tags.
 
-' Caption: "<prefix> #=ON/OFF (<tagname>)" where <tagname> is <zerocap> or
-' "Never"/"Always" for tags 0/1.  You may want to pass zerocap="Always".
+' A positive tag number checks tag=ON, a negative tag number checks tag=OFF.
+' Caption: "<prefix> #=ON/OFF (<tagname>)" where <tagname> is <zerocap> for tag 0,
+' "Never"/"Always" for tag 1.  You may want to pass zerocap="Always".
 sub EditorKit.as_check_tag(byref datum as integer, prefix as zstring ptr = @"Tag", zerocap as zstring ptr = @"None")
 	val_int datum
 	if refresh andalso len(cur_item.caption) = 0 then
@@ -1630,8 +1653,9 @@ function EditorKit.edit_as_check_tag(byref datum as integer, prefix as zstring p
 	return edited
 end function
 
+' A positive tag number sets tag=ON, a negative tag number sets tag=OFF.
 ' Caption: "<prefix> #=ON/OFF [AUTOSET] (<tagname>)" where <tagname> is
-' "No tag set" or "Unchangeable" for tags 0/1.
+' "No tag set" for tag 0 or "Unchangeable" for tag 1.
 sub EditorKit.as_set_tag(byref datum as integer, prefix as zstring ptr = @"Set tag", allowspecial as bool = NO)
 	val_int datum
 	if refresh andalso len(cur_item.caption) = 0 then
@@ -1650,8 +1674,8 @@ function EditorKit.edit_as_set_tag(byref datum as integer, prefix as zstring ptr
 	return edited
 end function
 
-' Caption: "<prefix> # [AUTOSET] (<tagname>)" where <tagname> is "None" or
-' "Unchangeable" for tags 0/1.
+' Caption: "<prefix> # [AUTOSET] (<tagname>)" where <tagname> is "None" for tag 0 or
+' "Unchangeable" for tag 1.
 sub EditorKit.as_tag_id(byref datum as integer, prefix as zstring ptr = @"Tag", allowspecial as bool = NO)
 	val_int datum
 	if refresh andalso len(cur_item.caption) = 0 then
@@ -1864,7 +1888,7 @@ sub EditorKit.as_textbox(byref datum as integer, or_none_flag as EKFlags = 0)
 		elseif id < 0 then
 			wrap_caption "Invalid Text Box " & id
 		else
-			DIM preview_width as integer = vpages(dpage)->w - textsize(cur_item.title & " " & id & " ").w
+			dim preview_width as integer = vpages(dpage)->w - textsize(cur_item.title & " " & id & " ").w
 			set_caption id & " " & textbox_preview_line(id, preview_width)
 		end if
 	end if

@@ -418,7 +418,7 @@ type EditorKit extends ModularMenu
 	declare sub header()
 	' Call spacer() instead of add_spacer()
 	declare sub add_spacer()
-	' Call defitem() or defunselectable() or subsection() instead of add_item()
+	' Call defitem() or defunselectable() or subsection() instead of add_item() for a do-nothing item.
 	declare sub add_item()
 end type
 
