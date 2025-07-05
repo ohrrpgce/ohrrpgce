@@ -3288,8 +3288,10 @@ SUB init_multichoice_menu(menu as MenuDef, state as MenuState, where as XYPair=X
  init_menu_state state, menu
 END SUB
 
-'Show a message box and a multichoice menu below it, return option number.
+'Show a message box and a multichoice menu below it, return choices() index.
+'LBOUND(choices) doesn't have to be 0.
 'Preserves the contents of the screen.
+'defaultval: the index in choices() to start on (hence, the default return value on Enter)
 'extra_message: shown at the bottom of the screen.
 'popup_style: make the menu look and behave like a popup menu
 FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as integer=0, escval as integer=-1, helpkey as zstring ptr=@"", extra_message as zstring ptr=@"", where as XYPair=XY(0,0), popup_style as bool=NO) as integer
@@ -3297,13 +3299,13 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
  DIM menu as MenuDef
  DIM result as integer
 
- FOR i as integer = 0 TO UBOUND(choices)
+ FOR i as integer = LBOUND(choices) TO UBOUND(choices)
   append_menu_item menu, choices(i)
  NEXT
 
  init_multichoice_menu menu, state, where, LEN(*capt) <> 0, popup_style
 
- state.pt = defaultval
+ state.pt = defaultval - LBOUND(choices)
 
  'Keep a copy of vpage at its original bitdepth, so we can restore it afterwards. We don't draw it
  'since if it's 8-bit it would be drawn with the wrong master palette.
@@ -3335,7 +3337,7 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
    ELSE
     'Draw the caption far enough above the center to leave room for the menu,
     'then put directly below where the caption box actually ends
-    menu.offset.y = 2 + basic_textbox(capt, , vpage, pCentered - 10 - UBOUND(choices) * 5 + showTop)
+    menu.offset.y = 2 + basic_textbox(capt, , vpage, pCentered - 5 - menu.numitems * 5 + showTop)
    END IF
   END IF
   menu.max_chars = get_resolution().w \ 8 - 2
@@ -3352,7 +3354,7 @@ FUNCTION multichoice(capt as zstring ptr, choices() as string, defaultval as int
  freepage oldscreen
  freepage holdscreen
 
- RETURN result
+ RETURN result + LBOUND(choices)
 END FUNCTION
 
 FUNCTION twochoice(capt as zstring ptr, strA as zstring ptr=@"Yes", strB as zstring ptr=@"No", byval defaultval as integer=0, byval escval as integer=-1, helpkey as zstring ptr=@"") as integer
