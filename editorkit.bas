@@ -173,6 +173,8 @@
 ' set it with set_caption, or a caption* function such as `captions` for enum
 ' strings. caption* methods (other than set_caption) must be called after
 ' value/valuestr/valuefloat is set!
+' Usually if you have an array of all possible values you should use edit_int_enum
+' instead, which adds a picker menu on Click/Enter.
 '
 ' Example:
 '     defint "Display '" & CHR(1) & "1' in inventory:", gen(genInventSlotx1Display), 0, 2
@@ -835,6 +837,7 @@ sub EditorKit.captions_yesno(yescapt as zstring ptr, nocapt as zstring ptr)
 	end if
 end sub
 
+' Typically you should use val_int_enum or edit_int_enum instead.
 ' Shows "Invalid <thing> ##" if the value is out of bounds
 sub EditorKit.captions(captions_array() as string, invalid_thing as zstring ptr = @"value")
 	if refresh then
@@ -842,6 +845,7 @@ sub EditorKit.captions(captions_array() as string, invalid_thing as zstring ptr 
 	end if
 end sub
 
+' Typically you should use val_int_enum or edit_int_enum instead.
 ' Due to FB bug sf#666 (fixed in 1.09) it's not possible to define an overload of
 ' captions() which takes a zstring ptr array.
 sub EditorKit.captionsz(captions_array() as zstring ptr, invalid_thing as zstring ptr = @"value")
@@ -850,7 +854,7 @@ sub EditorKit.captionsz(captions_array() as zstring ptr, invalid_thing as zstrin
 	end if
 end sub
 
-' Shows value as an int if it's out of bounds
+' Shows value as an int if it's out of bounds, not invalid
 sub EditorKit.captions_or_int(captions_array() as string)
 	if refresh then
 		cur_item.caption = caption_or_int(captions_array(), value)
@@ -1169,6 +1173,14 @@ end function
 
 '-------------------------------- Derived types --------------------------------
 
+function EditorKit.val_int_enum(byref datum as integer, options() as string, invalid_thing as zstring ptr = @"value") as integer
+	val_int datum
+	if refresh then
+		captions options(), invalid_thing
+	end if
+	return value
+end function
+
 /'
 ' WARNING: options() will point to keys() strings! This is pretty dangerous so I'll comment it.
 sub make_stringenum_array(options() as StringEnumOption, keys() as string)
@@ -1366,6 +1378,7 @@ end function
 
 '------------------------------- Primitive types -------------------------------
 
+' If the value is out of bounds it will be clamped when the menu item is selected.
 function EditorKit.edit_int(byref datum as integer, min as integer, max as integer) as bool
 	val_int datum
 	cur_item.range_min = min
@@ -1487,6 +1500,25 @@ function EditorKit.edit_zint(byref datum as integer, min as integer, max as inte
 		value -= 1
 		if edited then write_value
 	end if
+	return edited
+end function
+
+' Int enumerations: select an index between lbound(options) and ubound(options), which is the caption,
+' press enter to browse options.
+' Clamps to a valid value when the menu item is selected, until then would show "Invalid ${invalid_thing} #".
+function EditorKit.edit_int_enum(byref datum as integer, options() as string, invalid_thing as zstring ptr = @"value") as bool
+	val_int_enum datum, options(), invalid_thing
+	if activate then
+		dim choice as integer
+		choice = popup_choice("", options(), value, value, cur_item.helpkey)
+		'dim b as ArrayBrowser = ArrayBrowser(options(), cur_item.title)
+		'choice = b.browse(value)
+		edited or= choice <> value
+		value = choice
+	elseif process then
+		edited or= intgrabber(value, lbound(options), ubound(options))
+	end if
+	if edited then write_value
 	return edited
 end function
 

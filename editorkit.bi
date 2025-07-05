@@ -323,6 +323,7 @@ type EditorKit extends ModularMenu
 	declare function val_float(byref datum as single, is_percent as bool = YES) as single
 
 	' Derived types
+	declare function val_int_enum(byref datum as integer, options() as string, invalid_thing as zstring ptr = @"value") as integer
 	declare function val_str_enum(byref datum as string, options() as StringEnumOption) as string
 
 	' RELOAD Nodes
@@ -356,6 +357,7 @@ type EditorKit extends ModularMenu
 
 	' Derived types
 	declare function edit_zint(byref datum as integer, min as integer, max as integer) as bool
+	declare function edit_int_enum(byref datum as integer, options() as string, invalid_thing as zstring ptr = @"value") as bool
 	declare function edit_str_enum(byref datum as string, options() as StringEnumOption) as bool
 
 	' RELOAD Nodes
