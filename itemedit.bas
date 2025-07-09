@@ -22,7 +22,8 @@ DECLARE SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf
 DECLARE SUB item_editor_equipbits(itembuf() as integer, itemname as string)
 DECLARE SUB item_editor_elementals(itembuf() as integer)
 DECLARE SUB item_editor_init_new(itembuf() as integer)
-DECLARE SUB item_editor_stat_bonuses(itembuf() as integer)
+DECLARE SUB item_editor_stat_bonuses(item as ItemDef)
+DECLARE SUB old_item_editor_stat_bonuses(itembuf() as integer)
 
 SUB item_editor ()
  DIM itemb as ItemBrowser
@@ -188,6 +189,18 @@ SUB ItemEditor.define_items()
   END IF
   IF selected THEN preview_wep_frame = 1
   
+  IF defitem_act("Stat Bonuses...") THEN
+   item_editor_stat_bonuses item
+  END IF
+
+  'IF defitem_act("Elemental Resists...") THEN
+  ' 'item_editor_elementals item
+  'END IF
+  '
+  'IF defitem_act("Who Can Equip?...") THEN
+  ' 'item_editor_equipbits item
+  'END IF
+
   reload_sprite
  END IF
  
@@ -252,6 +265,36 @@ END SUB
 
 SUB ItemEditor.draw_underlays ()
  DrawSlice underlay, vpage
+END SUB
+
+'-----------------------------------------------------------------------
+
+TYPE ItemEditorStatBonuses EXTENDS EditorKit
+ DECLARE CONSTRUCTOR(item as ItemDef)
+ DECLARE SUB define_items()
+ item as ItemDef
+END TYPE
+
+CONSTRUCTOR ItemEditorStatBonuses(itemdata as ItemDef)
+ item = itemdata
+ prev_menu_text = "Back to Item Editor"
+ helpkey = "equipment_stat_bonuses"
+END CONSTRUCTOR
+
+SUB ItemEditorStatBonuses.define_items()
+ FOR i as integer = 0 TO statLast
+  defint statnames(i) + " Bonus:", item.stat_bonuses(i), -32768, 32767
+  DIM cap as integer = gen(genStatCap + i)
+  IF cap > 0 ANDALSO item.stat_bonuses(i) > cap THEN
+   set_caption item.stat_bonuses(i) & " [stat capped to " & cap & "]"
+  END IF
+ NEXT 
+END SUB
+
+SUB item_editor_stat_bonuses(item as ItemDef)
+ DIM editor as ItemEditorStatBonuses = ItemEditorStatBonuses(item)
+ editor.run()
+ item = editor.item
 END SUB
 
 '-----------------------------------------------------------------------
@@ -423,7 +466,7 @@ FUNCTION old_individual_item_editor(item_id as integer) as integer
    END IF
    IF item_is_equippable(itembuf()) THEN
     IF state.pt = 19 THEN
-     item_editor_stat_bonuses itembuf()
+     old_item_editor_stat_bonuses itembuf()
      state.need_update = YES
     END IF
     IF state.pt = 20 THEN
@@ -739,7 +782,7 @@ SUB item_editor_init_new(itembuf() as integer)
  NEXT i
 END SUB
 
-SUB item_editor_stat_bonuses(itembuf() as integer)
+SUB old_item_editor_stat_bonuses(itembuf() as integer)
  DIM menu(-1 TO statLast) as string
  DIM menu_display(-1 TO statLast) as string
  menu(-1) = "Previous Menu"
