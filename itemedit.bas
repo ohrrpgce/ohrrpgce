@@ -81,25 +81,40 @@ END FUNCTION
 
 TYPE ItemEditor EXTENDS EditorKit
  DECLARE CONSTRUCTOR(item_id as integer)
+ DECLARE DESTRUCTOR
  DECLARE SUB define_items()
  DECLARE SUB load()
  DECLARE SUB save()
- 'DECLARE SUB draw_underlays()
+ DECLARE SUB draw_underlays()
+ DECLARE SUB reload_sprite()
  id as integer
  item as ItemDef
  eq_slot_names(4) as string
+ underlay as Slice Ptr
+ wep_sl as Slice Ptr
 END TYPE
 
 CONSTRUCTOR ItemEditor(item_id as integer)
  id = item_id
  prev_menu_text = "Back to Item Menu"
  helpkey = "item_editor"
-
  populate_eq_slot_names eq_slot_names()
+ 'Set up the weapon preview underlay
+ underlay = NewSliceOfType(slContainer)
+ underlay->Fill = YES
+ wep_sl = NewSliceOfType(slSprite)
+ SetSliceParent wep_sl, underlay
+ ReAlignSlice wep_sl, alignRight, alignCenter, alignRight, alignCenter
+ wep_sl->X = -20
 END CONSTRUCTOR
+
+DESTRUCTOR ItemEditor()
+ DeleteSlice @underlay
+END DESTRUCTOR
 
 SUB ItemEditor.load()
  loaditemdata item, id
+ reload_sprite
 END SUB
 
 SUB ItemEditor.save()
@@ -107,6 +122,7 @@ SUB ItemEditor.save()
 END SUB
 
 SUB ItemEditor.define_items()
+
  defstr "Name:", item.name, 8
  defstr "Info:", item.info, 36
  defint "Value:", item.buy_price, 0, 32767
@@ -141,10 +157,20 @@ SUB ItemEditor.define_items()
   IF value = -1 THEN set_caption "NOTHING"
   
   defitem "Weapon Picture:"
-  edit_as_spriteset item.wep_pic, sprTypeWeapon
+  IF edit_as_spriteset(item.wep_pic, sprTypeWeapon) THEN
+   reload_sprite
+  END IF
 
   defitem "Weapon Palette:"
-  edit_as_palette item.wep_pal, sprTypeWeapon, item.wep_pic
+  IF edit_as_palette(item.wep_pal, sprTypeWeapon, item.wep_pic) THEN
+   reload_sprite
+  END IF
+ 
+  'IF defitem_act "Handle position (A)..." THEN
+  ' 
+  ' xy_position_on_sprite wep_img, item.wep_handle(0).x, item.wep_handle(0).y, 0, "Weapon handle position", "xy_weapon_handle"
+  'END IF
+  
  END IF
  
  section "When used out of battle"
@@ -197,6 +223,14 @@ SUB ItemEditor.define_items()
   IF edited THEN itemtags(id) = item.tags
  END IF
 
+END SUB
+
+SUB ItemEditor.reload_sprite()
+ ChangeSpriteSlice wep_sl, sprTypeWeapon, item.wep_pic, item.wep_pal
+END SUB
+
+SUB ItemEditor.draw_underlays ()
+ DrawSlice underlay, vpage
 END SUB
 
 '-----------------------------------------------------------------------
