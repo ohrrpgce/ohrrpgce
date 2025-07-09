@@ -92,6 +92,8 @@ TYPE ItemEditor EXTENDS EditorKit
  eq_slot_names(4) as string
  underlay as Slice Ptr
  wep_sl as Slice Ptr
+ handle_pos_sl as Slice ptr
+ preview_wep_frame as integer
 END TYPE
 
 CONSTRUCTOR ItemEditor(item_id as integer)
@@ -106,6 +108,15 @@ CONSTRUCTOR ItemEditor(item_id as integer)
  SetSliceParent wep_sl, underlay
  ReAlignSlice wep_sl, alignRight, alignCenter, alignRight, alignCenter
  wep_sl->X = -20
+ preview_wep_frame = 0
+ handle_pos_sl = NewSliceOfType(slRectangle)
+ SetSliceParent handle_pos_sl, wep_sl
+ handle_pos_sl->x = -1
+ handle_pos_sl->y = -1
+ handle_pos_sl->Width = 3
+ handle_pos_sl->Height = 3
+ ReAlignSlice handle_pos_sl, alignLeft, alignLeft, alignCenter, alignCenter
+ ChangeRectangleSlice handle_pos_sl, , , uiSelectedItem2 * -1 - 1, borderLine, transHollow
 END CONSTRUCTOR
 
 DESTRUCTOR ItemEditor()
@@ -142,6 +153,7 @@ SUB ItemEditor.define_items()
 
  IF defitem_act("Equippable as...:") THEN
   editbools item.eqslots(), eq_slot_names()
+  reload_sprite
  END IF
  IF refresh THEN set_caption summarize_item_equipability(item)
  
@@ -151,6 +163,7 @@ SUB ItemEditor.define_items()
 
  IF item.eqslots(0) THEN
   section "As a weapon"
+  preview_wep_frame = 0
   
   defitem "When used as a Weapon:"
   edit_as_attack item.battle_weapon_attack, Or_None
@@ -158,19 +171,24 @@ SUB ItemEditor.define_items()
   
   defitem "Weapon Picture:"
   IF edit_as_spriteset(item.wep_pic, sprTypeWeapon) THEN
-   reload_sprite
   END IF
 
   defitem "Weapon Palette:"
   IF edit_as_palette(item.wep_pal, sprTypeWeapon, item.wep_pic) THEN
-   reload_sprite
   END IF
  
-  'IF defitem_act "Handle position (A)..." THEN
-  ' 
-  ' xy_position_on_sprite wep_img, item.wep_handle(0).x, item.wep_handle(0).y, 0, "Weapon handle position", "xy_weapon_handle"
-  'END IF
+  IF defitem_act("Handle position (A)...") THEN
+   ChangeSpriteSlice wep_sl, , , , 0
+   xy_position_on_sprite_slice wep_sl, item.wep_handle(0).x, item.wep_handle(0).y, "Weapon handle position", "xy_weapon_handle"
+  END IF
+
+  IF defitem_act("Handle position (B)...") THEN
+   ChangeSpriteSlice wep_sl, , , , 1
+   xy_position_on_sprite_slice wep_sl, item.wep_handle(1).x, item.wep_handle(1).y, "Weapon handle position", "xy_weapon_handle"
+  END IF
+  IF selected THEN preview_wep_frame = 1
   
+  reload_sprite
  END IF
  
  section "When used out of battle"
@@ -226,7 +244,10 @@ SUB ItemEditor.define_items()
 END SUB
 
 SUB ItemEditor.reload_sprite()
- ChangeSpriteSlice wep_sl, sprTypeWeapon, item.wep_pic, item.wep_pal
+ ChangeSpriteSlice wep_sl, sprTypeWeapon, item.wep_pic, item.wep_pal, preview_wep_frame
+ handle_pos_sl->x = item.wep_handle(preview_wep_frame).x
+ handle_pos_sl->y = item.wep_handle(preview_wep_frame).y
+ wep_sl->Visible = IIF(item.eqslots(0), YES, NO)
 END SUB
 
 SUB ItemEditor.draw_underlays ()
