@@ -5053,7 +5053,10 @@ end
 
 script, another eachstep script, begin
   eachstep triggered += 1
-  wait for hero
+  if (hero is walking) then (
+    # Note: always waits at least one tick!
+    wait for hero
+  )
 end
 
 script, yet another eachstep script, begin
@@ -5068,48 +5071,132 @@ end
 script, permit double triggering tests, begin
   $0="permit double triggering tests"
 
-  # precondition
-  assert(hero x == 6 && hero y == 6)
-
   #### "permit double-triggering of scripts" is off
   variable (oldval)
   oldval := read general(101)  # genBits
   assert((oldval, and, 2^10) == 0)
 
-  set eachstep script(@another eachstep script)
-  eachstep triggered := 0
-  walk hero(me, left, 3)
-  wait for hero
-  # eachstep should only trigger once
-  assert(eachstep triggered == 1)
+  test double triggering (off)
 
   #### Turn on "permit double-triggering of scripts"
   write general(101, oldval + 2^10)
 
-  eachstep triggered := 0
-  walk hero(me, right, 3)
-  wait for hero
-  assert(eachstep triggered == 3)
-
-  set eachstep script(@yet another eachstep script)
-
-  eachstep triggered := 0
-  walk hero(me, left, 3)
-  wait for hero
-  assert(eachstep triggered == 3)
+  test double triggering (on)
 
   #### Turn off "permit double-triggering of scripts"
   write general(101, oldval)
+end
 
+
+script, waitless script, begin
+  ticker 1 += 1
+end
+
+script, blocker script 3, begin
+  wait
+  ticker 1 += 1
+end
+
+# Run twice, with permitted = true/false
+script, test double triggering, permitted, begin
+  $0="test double triggering"
+  tracevalue(permitted)
+
+  # precondition
+  assert(hero x == 6 && hero y == 6)
+  assert(get hero speed == 4)
+  #set hero position(me, 6, 6)
+
+  # 1. Basic case: eachstep script that's already running
+  set eachstep script(@another eachstep script)
+  eachstep triggered := 0
+  walk hero(me, left, 3)
+  wait for hero
+  if (permitted) then (
+    assert(eachstep triggered == 3)
+  ) else (
+    # eachstep should only trigger once
+    assert(eachstep triggered == 1)
+  )
+
+  # 2. A plotscript that was triggered and started running, hasn't called any other script, but has
+  # been buried another plotscript defeats the double trigger check.
+  # 2.1 ...buried under a script that doesn't wait.
+
+  # Repeat with varying timing. Only when delay=10 is the timer script triggered on the same
+  # tick as the hero's second step and possibly defeats the double-trigger check.
+
+  subscript, walk and trigger, begin
+    # Setup
+    set hero position(0, 3, 6)
+    eachstep triggered := 0
+    ticker 1 := 0
+    start tick := ticknumber
+
+    walk hero(me, right, 2)
+    wait for hero(me)
+    assert(hero x == 5)
+    wait(1)  # needed for delay=11
+    assert(ticker 1 == 1)
+  end
+
+  variable(delay)
+  for (delay, 9, 11) do (
+    set timer(1, 0, delay, @waitless script)
+    walk and trigger
+
+    if (permitted || delay == 10) then (
+      assert(eachstep triggered == 2)
+    ) else (
+      assert(eachstep triggered == 1)  # Didn't double trigger
+    )
+    assert(ticknumber == start tick + 11)
+  )
+
+  # 2.2 ...buried under a script that's waiting
+  for (delay, 8, 11) do (
+    # When delay=9, triggered on the tick before the second step, and has a wait(1) so still there the next tick
+    # When delay=10, triggered on same tick. (Not waiting, so not what we're trying to test)
+
+    set timer(1, 0, delay, @blocker script 3)
+    walk and trigger
+
+    if (permitted || delay == 9 || delay == 10) then (
+      assert(eachstep triggered == 2)
+    ) else (
+      assert(eachstep triggered == 1)  # Didn't double trigger
+    )
+    if (delay >= 10) then (
+      assert(ticknumber == start tick + 12)
+    ) else (
+      assert(ticknumber == start tick + 11)
+    )
+  )
+
+  # 3. eachstep script that's the current active script fibre, but has called another script
+  # also defeats the double trigger check
+  set hero position(0, 3, 6)
+  set eachstep script(@yet another eachstep script)
   eachstep triggered := 0
   walk hero(me, right, 3)
   wait for hero
-  # eachstep should trigger three times because the "waiting"
-  # subscript foils the double trigger check
+  # Regardless of permitted, eachstep should trigger three times because the "waiting"
+  # subscript is topmost
   assert(eachstep triggered == 3)
 
   set eachstep script(0)
   assert(hero x == 6 && hero y == 6)
+
+  # 4. Not all script triggers check for double triggering. Check timers don't.
+  # Trigger same script twice at once.
+  ticker 1 := 0
+  start tick := ticknumber
+  # Each script is "wait, ticker 1 += 1"
+  set timer(1, 0, 1, @blocker script 3)
+  set timer(2, 0, 1, @blocker script 3)  # Runs first
+  wait
+  assert(ticker 1 == 2)
+  assert(ticknumber == start tick + 3)
 end
 
 ########################################################################
