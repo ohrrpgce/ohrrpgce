@@ -55,6 +55,8 @@ global variable(125, timer expect arg 2)
 global variable(126, autorun counter)
 global variable(127, start tick)   # Often needed by different scripts, initialise to ticknumber
 global variable(128, textbox20 instead triggered)
+global variable(129, timer script triggered)
+global variable(130, move hero script triggered)
 global variable(50000, the global with the biggest id)
 
 # 200-500 used in hstests.hss
@@ -575,6 +577,10 @@ plotscript, move hero hook, slot, old slot, loading, begin
     assert(loading == false)
   )
   if (testing script triggers == 1) then (
+    # Used inside "concurrent script trigger tests"
+    called from move hero hook
+  )
+  if (testing script triggers == 3) then (
     # Swapping slots 2 and 3, both occupied
     assert(slot == 2 || slot == 3)
     assert(slot + old slot == 5)
@@ -761,7 +767,7 @@ script, hero party management tests, begin
   w
 
   # Test "move hero hook"
-  testing script triggers := 1  # Tell the hook script to pay attention
+  testing script triggers := 3  # Tell the hook script to pay attention
   assert(move hero count == 0)
   # Swapping two occupied slots
   swap by position (2, 3)
@@ -3488,6 +3494,7 @@ end
 # Run by text box 20
 plotscript, textbox20 instead script, begin
   assert(current textbox == -1)
+  # Check the set tag condition skipped
   assert(checktag(tag:textbox 20 settag) == false)
   textbox20 instead triggered += 1
 end
@@ -3511,7 +3518,7 @@ script, textbox tests, begin
 
   ###### "showtextbox happens immediately" is ON
   variable (oldval)
-  oldval := read general(178)  # genBits2
+  oldval := read general(178)  # genBits2 + 1
   assert((oldval, and, 2^2) == 2^2)
 
   # check showtextbox isn't delayed
@@ -4890,16 +4897,19 @@ plotscript, npc triggered script, arg, npc, begin
   # Second to run
   assert(eachstep triggered == 1)
   assert(map autorun triggered == 0)
+  assert(move hero script triggered == 0)
   npc script triggered += 1
 
   # Should happen immediately (also tested in textbox tests)
   # and trigger two scripts
   advance textbox
 
-  # Fifth to run
+  # Sixth to run
   assert(current textbox == -1)
   assert(textbox script triggered == 1)
   assert(map autorun triggered == 1)
+  assert(move hero script triggered >= 1)
+  assert(timer script triggered == 0)
   npc script triggered += 1
 end
 
@@ -4917,6 +4927,7 @@ plotscript, textbox advance script, begin
   assert(npc script triggered == 1)
   assert(eachstep triggered == 1)
   assert(map autorun triggered == 0)
+  assert(move hero script triggered == 0)
   textbox script triggered += 1
 end
 
@@ -4930,7 +4941,29 @@ plotscript, map 4 autorun, arg, begin
 
   # Fourth to run
   assert(textbox script triggered == 1)
+  assert(move hero script triggered == 0)
   map autorun triggered += 1   # also set in "map autorun"
+end
+
+script, called from move hero hook, begin
+  $0="from move hero hook", trace
+  # Fifth to run
+  assert(current textbox == -1)
+  assert(npc script triggered == 1)
+  assert(eachstep triggered == 1)
+  assert(textbox script triggered == 1)
+  assert(map autorun triggered == 1)
+  move hero script triggered += 1
+  # Note: since Freki is the only hero, swapping them out swaps them
+  # back in, and this hook is called twice. I think that's a bug.
+end
+
+# Seventh to run
+plotscript, timer triggered script, begin
+  $0="timer triggered script", trace
+  assert(move hero script triggered >= 1)
+  assert(npc script triggered == 2)
+  timer script triggered += 1
 end
 
 
@@ -4941,14 +4974,17 @@ script, concurrent script trigger tests, begin
   # This tests both scripts triggered inside and outside the interpreter
 
   # Take a step, triggering each-step script and stepping on an NPC, which runs a script,
-  # and opens a textbox, which is advanced, running a script and activating a door which
-  # goes to a map with an autorun script
+  # and opens a textbox, which is advanced, which swaps out a hero (calling move hero hook),
+  # runs a script and activates a door (which goes to a map with an autorun script)
 
   # Preconditions
   assert(current map == 0)
+  assert(hero by slot(0) == hero:Freki)
   set hero position(0, 6, 6)
   npc script triggered := 0
+  move hero script triggered := 0
   map autorun triggered := 0
+  timer script triggered := 0
 
   set eachstep script (@each-step script)
   testing script triggers := true
@@ -4956,42 +4992,59 @@ script, concurrent script trigger tests, begin
   start tick := ticknumber
   assert(get hero speed(me) == 4)
 
+  set timer(1, 0, 5, @timer triggered script)  # Triggered on the same tick as second step
+
   create npc(6, hero x -- 1, hero y)
   walk hero(me, left, 1)
   wait for hero
 
-  #Events happen in this order, and scripts should run in reverse
-  #order of triggering:
-  #  (step completes)
-  #  (npc triggered, opens textbox)
-  #  npc script triggered
-  #  each step triggered
+  # Events happen and scripts trigger in this order, and run in reverse order of triggering:
+  # (timers are updated)
+  #  timer triggered script
+  # (hero move logic, step finished)
+  #  (npc 6 triggered, opens textbox 16)
+  #    npc triggered script
+  #   each-step script
+  # (builtin logic finishes, the frame is drawn, start of next main loop tick)
   # (interpreter entered)
-  #  (npc script calls advancetextbox)
-  #  (textbox loaded)
-  #  (preparemap called)
-  #  autorun triggered
-  #  after textbox script triggered
+  #  (npc script calls advancetextbox:)
+  #   (hero is swapped out)
+  #    move hero hook
+  #   (door is forced)
+  #    (preparemap called)
+  #     map 4 autorun
+  #   textbox advance script (After text box trigger)
   # (this script resumes, waitfornpc finishing)
 
-  #So scripts run in order (all in the same tick):
+  # So scripts run in order (all in the same tick):
   # | each step
   # | npc
-  # | | autorun
   # | | textbox
-  # | npc finishes
+  # | | autorun
+  # | | move hero hook
+  # | (npc finishes)
+  # | timer
   # this script
 
-  # Sixth to run
+  # FIXME: add/remove/move hero hooks have a higher priority than other triggers (affects
+  # fibres triggered on the same tick only), but currently that has no effect if triggered
+  # while inside interpreter. It should, so the move hero hook should run earlier.
+
+  # Eighth to run
   assert(npc script triggered == 2)
   assert(textbox script triggered == 1)
   assert(map autorun triggered == 1)
+  assert(move hero script triggered >= 1)
+  assert(timer script triggered == 1)
   assert(ticknumber == start tick + 5)
 
   # reset
   testing script triggers := false
   teleport to map (0, 6, 6)
   assert(current map == 0)
+  # Freki is only hero in the party, so they wouldn't have actually been swapped out
+  assert(hero by slot(0) == hero:Freki)
+  move hero count -= move hero script triggered
   # Incremented by the other map autorun script
   assert(map autorun triggered == 2)
 end
