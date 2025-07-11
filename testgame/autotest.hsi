@@ -13,6 +13,7 @@ define constant, begin
 11,tag:Freki level 0
 12,tag:Freki level teens
 13,tag:boat tag
+14,tag:textbox 20 settag
 1,song:tinglazedandnoncommutative
 0,hero:UNUSED
 1,hero:Helga

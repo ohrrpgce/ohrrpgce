@@ -54,6 +54,7 @@ global variable(124, timer expect arg 1)
 global variable(125, timer expect arg 2)
 global variable(126, autorun counter)
 global variable(127, start tick)   # Often needed by different scripts, initialise to ticknumber
+global variable(128, textbox20 instead triggered)
 global variable(50000, the global with the biggest id)
 
 # 200-500 used in hstests.hss
@@ -3496,6 +3497,13 @@ end
 
 ########################################################################
 
+# Run by text box 20
+plotscript, textbox20 instead script, begin
+  assert(current textbox == -1)
+  assert(checktag(tag:textbox 20 settag) == false)
+  textbox20 instead triggered += 1
+end
+
 script, textbox tests, begin
   $0="textbox tests"
   show text box(2), w
@@ -3513,17 +3521,21 @@ script, textbox tests, begin
   show text box(12), w, advance text box, w
   show text box(13), w, advance text box, w
 
+  ###### "showtextbox happens immediately" is ON
   variable (oldval)
   oldval := read general(178)  # genBits2
-  assert((oldval, and, 2^2) == 2^2)  # "showtextbox happens immediately" is on
+  assert((oldval, and, 2^2) == 2^2)
 
   # check showtextbox isn't delayed
+  start tick := ticknumber
   show text box(14)
+  assert(ticknumber == start tick)
   assert(checktag(tag:textbox 14 happened) == true)
   # no wait required before advance
   advance textbox
   wait
   assert(current textbox == -1)
+  assert(ticknumber == start tick + 1)
   settag(tag:textbox 14 happened, false)
 
   # check both showtextboxes work
@@ -3534,8 +3546,18 @@ script, textbox tests, begin
   advance textbox
   settag(tag:textbox 14 happened, false)
   settag(tag:textbox 15 happened, false)
+  assert(current textbox == -1)
+  assert(ticknumber == start tick + 1)  # No ticks happened
 
-  write general(178, oldval -- 2^2) # "showtextbox happens immediately" OFF
+  # check Instead scripts happen immediately, and Instead skips Set Tag conditions
+  show text box(20)
+  assert(ticknumber == start tick + 1)
+  assert(current textbox == -1)
+  assert(checktag(tag:textbox 20 settag) == false)
+  assert(textbox20 instead triggered == 1)
+
+  ###### "showtextbox happens immediately" OFF
+  write general(178, oldval -- 2^2)
 
   # Check currenttextbox still updates immediately
   show text box(2)
@@ -3553,6 +3575,16 @@ script, textbox tests, begin
   advance textbox
   settag(tag:textbox 14 happened, false)
 
+  # check Instead scripts happen, and Instead script skips Set Tag conditions
+  textbox20 instead triggered := 0
+  start tick := ticknumber
+  show text box(20)
+  wait
+  assert(current textbox == -1)
+  assert(checktag(tag:textbox 20 settag) == false)
+  assert(textbox20 instead triggered == 1)
+  assert(ticknumber == start tick + 1)
+
   # check only last showtextbox works
   show text box(14)
   show text box(15)
@@ -3560,7 +3592,15 @@ script, textbox tests, begin
   assert(checktag(tag:textbox 14 happened) == false)
   assert(checktag(tag:textbox 15 happened) == true)
   advance textbox
+  assert(current textbox == -1)
 
+  # check only last showtextbox works, using Instead script triggers
+  show text box(20)
+  show text box(20)
+  wait
+  assert(textbox20 instead triggered == 2)
+
+  ###### Back to "showtextbox happens immediately" ON
   write general(178, oldval)
 end
 
