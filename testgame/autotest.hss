@@ -53,6 +53,7 @@ global variable(123, move hero count)
 global variable(124, timer expect arg 1)
 global variable(125, timer expect arg 2)
 global variable(126, autorun counter)
+global variable(127, start tick)   # Often needed by different scripts, initialise to ticknumber
 global variable(50000, the global with the biggest id)
 
 # 200-500 used in hstests.hss
@@ -103,7 +104,7 @@ end
 
 plotscript, load game, slot, arg1, arg2, arg3, begin
   trace($1="loadgame script")
-  tracevalue(slot, arg1, arg2, arg3, hook loadgame)
+  tracevalue(slot, arg1, arg2, arg3, hook loadgame, start tick, ticknumber)
   suspend player
   seed random(4444)
 
@@ -120,6 +121,7 @@ end
 # testing starts here
 script, run tests 1, begin
   assert(map autorun triggered == 1)
+  start tick counter
   interpreter tests
   extra array tests
   global npc tests
@@ -154,7 +156,8 @@ script, run tests 1, begin
   vehicle tests
   obsolete map data tests
   run game tests
-  resetgame tests   # Resets the game
+  reset game tests   # Resets the game
+  # Shouldn't get here
   crash
 end
 
@@ -172,9 +175,10 @@ script, stop checkpoint timer, begin
   stop timer(timer:checkpoint)
 end
 
-# follows "resetgame tests"
+# follows "reset game tests"
 script, run tests 2, begin
   savegame tests  # Saves and loads the game
+  # Shouldn't get here
   crash
 end
 
@@ -187,6 +191,7 @@ end
 script, passed tests, begin
   $0="TESTS SUCCEEDED"
   trace(0)
+  trace value(ticknumber)
   gameover
 end
 
@@ -254,9 +259,6 @@ end
 script, scheduling tests, begin
   $0="scheduling tests"
 
-  tick counter slice := create container
-  set slice velocity x(tick counter slice, 1, 1000)
-
   blocking tests
   assert(check bug 430 enabled == false)
   variable (oldval)
@@ -264,8 +266,12 @@ script, scheduling tests, begin
   write general(178, oldval, or, (2 ^ 1)) # Enable bug 430
   assert(check bug 430 enabled == true)
   write general(178, oldval)
+end
 
-  free slice(tick counter slice)
+script, start tick counter, tick = 0, begin
+  tick counter slice := create container
+  set slice x(tick counter slice, tick)
+  set slice velocity x(tick counter slice, 1, 100000)
 end
 
 script, ticknumber, begin
@@ -297,13 +303,12 @@ end
 script, blocking tests, begin
   $0="blocking tests"
 
-  variable (start tick)
   start tick := ticknumber
   ticker 0 := 0
   ticker 1 := 0  # globals
   ticker 2 := 0
 
-  # Start an each-tick script on a timer that should not interfer with anything else
+  # Start an each-tick script on a timer that should not interfere with anything else
   # (since it has a higher timer ID)
   set timer(3, 0, 1, @eachtick script)
 
@@ -340,10 +345,10 @@ end
 ########################################################################
 
 script, bug 430 tester, begin
-  variable (start tick)
-  start tick := ticknumber
+  variable(tick)
+  tick := ticknumber
   wait  # should be skipped
-  if (ticknumber == start tick) then (
+  if (ticknumber == tick) then (
     # was skipped
     ticker 1 += 1
   )
@@ -353,7 +358,6 @@ end
 # Returns whether bug 430 is enabled
 script, check bug 430 enabled, begin
   $0="check bug 430 enabled"
-  variable (start tick)
   start tick := ticknumber
   ticker 1 := 0  # globals
   ticker 2 := 0
@@ -2222,7 +2226,7 @@ script, npc tag and onetime tests, begin
 end
 
 plotscript, another npc script, begin
-  assert(ticknumber == 2)
+  assert(ticknumber == start tick + 2)
   npc script triggered := 1
 end
 
@@ -2230,24 +2234,20 @@ script, use npc script tests, begin
   $0="use npc script tests"
   # Tests the implicit wait behaviour of usenpc
 
-  tick counter slice := create container
-  set slice velocity x(tick counter slice, 1, 1000)
-  assert(ticknumber == 0)
+  start tick := ticknumber
 
   create npc(8)  # Does nothing
   use npc(8)
-  assert(ticknumber == 1)
+  assert(ticknumber == start tick + 1)
   delete npc(8)
 
-  # Both this script and anothernpcscript should wait
-  create npc(7)  # Calls anothernpcscript
+  # Both this script and "another npc script" should wait
+  create npc(7)  # Calls "another npc script"
   npc script triggered := 0
   use npc(7)
   assert(npc script triggered == 1)
-  assert(ticknumber == 2)
+  assert(ticknumber == start tick + 2)
   delete npc(7)
-
-  free slice(tick counter slice)
 end
 
 script, npc slice tests, begin
@@ -4925,9 +4925,7 @@ script, concurrent script trigger tests, begin
   set eachstep script (@each-step script)
   testing script triggers := true
 
-  tick counter slice := create container
-  set slice velocity x(tick counter slice, 1, 1000)
-  assert(ticknumber == 0)
+  start tick := ticknumber
   assert(get hero speed(me) == 4)
 
   create npc(6, hero x -- 1, hero y)
@@ -4960,11 +4958,10 @@ script, concurrent script trigger tests, begin
   assert(npc script triggered == 2)
   assert(textbox script triggered == 1)
   assert(map autorun triggered == 1)
-  assert(ticknumber == 5)
+  assert(ticknumber == start tick + 5)
 
   # reset
   testing script triggers := false
-  free slice(tick counter slice)
   teleport to map (0, 6, 6)
   assert(current map == 0)
   # Incremented by the other map autorun script
@@ -7201,6 +7198,9 @@ script, savegame tests, begin
   show string at(7, 100, 120)
   w
 
+  start tick := ticknumber  # Checked on loading
+  trace(string sprintf(99, $99="before save in slot(1), ticknumber = %d", ticknumber))
+
   hook loadgame := 1
   save in slot(1)
   hook loadgame := 0
@@ -7228,6 +7228,9 @@ script, savegame tests, begin
 end
 
 script, after loadgame, arg1, arg2, arg3, begin
+  # "tick counter slice" is loaded so ticknumber should keep working uninterrupted
+  assert(ticknumber == start tick)
+
   if (hook loadgame == 1) then (
     assert(arg1 == 0)
     assert(arg2 == 0)
@@ -7251,6 +7254,7 @@ script, savegame tests 2, begin
   # Check globals, map number, slices loaded (game is set to save slices)
   assert(savegame map == current map)
   assert(slicewidth(savegame slice) == 15)
+  assert(ticknumber == start tick)  # Reads a slice's X
 
   # Check NPCs were NOT saved
   assert(get npc id(savegame npc) == -1)  # doesn't exist
@@ -7271,6 +7275,9 @@ script, savegame tests 2, begin
   hide string(6)
   hide string(7)
   free slice(savegame slice)
+
+  start tick := ticknumber
+  trace(string sprintf(99, $99="before save in slot(1), ticknumber = %d", ticknumber))
 
   # Now try passing args to the loadgame script
   hook loadgame := 2
@@ -7293,6 +7300,8 @@ script, reset game tests, begin
   # Test with no args
   called resetgame := true
   export globals(save slot: persistent, @called resetgame, @called resetgame)
+  start tick := ticknumber
+  export globals(save slot: persistent, @start tick, @start tick)
   reset game
   $0="resetgame didn't happen!"
   crash
@@ -7302,6 +7311,11 @@ end
 plotscript, after resetgame, arg1, arg2, arg3, begin
   $0="reset game tests"
   trace(0)
+
+  # Lets say that one tick has passed
+  import globals(save slot: persistent, @start tick, @start tick)
+  assert(tick counter slice == 0)
+  start tick counter(start tick + 1)
 
   called resetgame := false
   export globals(save slot: persistent, @called resetgame, @called resetgame)
