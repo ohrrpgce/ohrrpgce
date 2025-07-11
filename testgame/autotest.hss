@@ -126,7 +126,7 @@ script, run tests 1, begin
   interpreter tests
   extra array tests
   global npc tests
-  scheduling tests
+  script trigger interference tests
   plotstr tests
   string load tests
   platform tests
@@ -141,14 +141,13 @@ script, run tests 1, begin
   items tests
   hero tests
   death tests
-  trigger tests
+  harm tile tests
   door tests
   map autorun tests
   npc tests
   menu tests
   textbox tests
   shop tests
-  script trigger tests
   attack tests
   enemy tests
   battle tests
@@ -251,24 +250,6 @@ end
 
 ########################################################################
 
-# Test the interaction of different script fibres, including pausing,
-# waiting, and back-compat blocking.
-# This makes use of timers, but the real timer tests are elsewhere.
-# (Timer tests happen after these tests!)
-# Triggering scripts is also tested in "script trigger tests" and
-# a number of other tests for npcs, menus, battles, etc.
-script, scheduling tests, begin
-  $0="scheduling tests"
-
-  blocking tests
-  assert(check bug 430 enabled == false)
-  variable (oldval)
-  oldval := read general(178)  # genBits2
-  write general(178, oldval, or, (2 ^ 1)) # Enable bug 430
-  assert(check bug 430 enabled == true)
-  write general(178, oldval)
-end
-
 script, start tick counter, tick = 0, begin
   tick counter slice := create container
   set slice x(tick counter slice, tick)
@@ -298,11 +279,13 @@ end
 
 script, eachtick script, begin
   ticker 0 += 1
+  assert(ticknumber == ticker 0 + start tick)
   set timer(3, 0, 1, @eachtick script)
 end
 
-script, blocking tests, begin
-  $0="blocking tests"
+# Test plotscripts blocking each other from running
+script, plotscript blocking tests, begin
+  $0="plotscript blocking tests"
 
   start tick := ticknumber
   ticker 0 := 0
@@ -317,7 +300,7 @@ script, blocking tests, begin
   assert(ticknumber == start tick + 2)
 
   # Trigger another script and check that this one is blocked
-  # (This is also a test for bug 430, because of eachtick script)
+  # (This is also a regression test for bug 430, because of eachtick script)
   expected ticker 0 := 0
   set timer(1, 0, 1, @blocker script)
   assert(ticknumber == start tick + 2)
@@ -327,7 +310,7 @@ script, blocking tests, begin
   assert(ticker 1 == 2)
   assert(ticknumber == start tick + 4)
 
-  # Trigger two scripts to run at once; one blocks the other (test for bug 430)
+  # Trigger two scripts to run at once; one blocks the other (additional test for bug 430)
   expected ticker 1 := 2
   set timer(1, 0, 1, @blocker script)
   set timer(2, 0, 1, @blocker script 2)  # Runs first
@@ -339,7 +322,7 @@ script, blocking tests, begin
 
   # Check eachtick ran every tick
   #trace value(ticknumber, start tick, ticker 0, ticker 1, ticker 2)
-  assert(ticker 0 == ticknumber -- start tick)
+  assert(ticknumber == start tick + ticker 0)
   stop timer(3)
 end
 
@@ -355,7 +338,7 @@ script, bug 430 tester, begin
   )
 end
 
-# blocking tests is completely broken if bug 430 is enabled, so here is a separate test,
+# "plotscript blocking tests" is completely broken if bug 430 is enabled, so here is a separate test.
 # Returns whether bug 430 is enabled
 script, check bug 430 enabled, begin
   $0="check bug 430 enabled"
@@ -378,6 +361,15 @@ script, check bug 430 enabled, begin
     # Other combinations should be impossible
     crash
   )
+end
+
+script, bug 430 emulation tests, begin
+  assert(check bug 430 enabled == false)
+  variable(oldval)
+  oldval := read general(178)  # genBits2 + 1
+  write general(178, oldval, or, (2 ^ 1)) # Enable bug 430 (prefbit 33)
+  assert(check bug 430 enabled == true)
+  write general(178, oldval)
 end
 
 ########################################################################
@@ -2798,10 +2790,6 @@ end
 
 ########################################################################
 
-script, trigger tests, begin
-  harm tile tests
-end
-
 script, assert hurt pattern, test no, start hp, h0, h1, h2, h3, begin
   # h# is the amount of damage by which hero # in the walkabout party should be hurt
   # h# is ignored if # > number of heroes in walkabout party
@@ -5023,26 +5011,27 @@ script, yet another eachstep script, begin
   waiting
 end
 
-script, script double trigger tests, begin
-  $0="script trigger tests"
+# Test "permit double triggering of scripts"
+script, permit double triggering tests, begin
+  $0="permit double triggering tests"
 
   # precondition
   assert(hero x == 6 && hero y == 6)
 
-  # Test double triggering of scripts
-  set eachstep script(@another eachstep script)
-
+  #### "permit double-triggering of scripts" is off
   variable (oldval)
   oldval := read general(101)  # genBits
-  assert((oldval, and, 2^10) == 0)  # "permit double triggering scripts" is off
+  assert((oldval, and, 2^10) == 0)
 
+  set eachstep script(@another eachstep script)
   eachstep triggered := 0
   walk hero(me, left, 3)
   wait for hero
   # eachstep should only trigger once
   assert(eachstep triggered == 1)
 
-  write general(101, oldval + 2^10)  # turn on "permit double triggering scripts"
+  #### Turn on "permit double-triggering of scripts"
+  write general(101, oldval + 2^10)
 
   eachstep triggered := 0
   walk hero(me, right, 3)
@@ -5056,12 +5045,13 @@ script, script double trigger tests, begin
   wait for hero
   assert(eachstep triggered == 3)
 
-  write general(101, oldval)  # turn off "permit double triggering scripts"
+  #### Turn off "permit double-triggering of scripts"
+  write general(101, oldval)
 
   eachstep triggered := 0
   walk hero(me, right, 3)
   wait for hero
-  # eachstep should should trigger three times because the "waiting"
+  # eachstep should trigger three times because the "waiting"
   # subscript foils the double trigger check
   assert(eachstep triggered == 3)
 
@@ -5069,9 +5059,24 @@ script, script double trigger tests, begin
   assert(hero x == 6 && hero y == 6)
 end
 
-script, script trigger tests, begin
+########################################################################
+
+# Test the interaction of triggered script fibres, including ordering,
+# blocking, double-triggering, and two back-compat bits.
+# This makes use of timers, but the real timer tests are elsewhere.
+# (Timer tests happen after these tests!)
+# Triggering of each specific script trigger type is mostly in
+# test suites for npcs, menus, battles, etc.
+script, script trigger interference tests, begin
+  plotscript blocking tests
+
+  # The following three all check scripts triggered on the same tick:
+  # -whether the scripts are triggered in the right order
   concurrent script trigger tests
-  script double trigger tests
+  # -whether the scripts are triggered at all
+  permit double triggering tests
+  # -whether that causes waits to be skipped
+  bug 430 emulation tests
 end
 
 ########################################################################
