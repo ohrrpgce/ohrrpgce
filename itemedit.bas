@@ -20,7 +20,8 @@ DECLARE FUNCTION item_attack_name(n as integer) as string
 DECLARE SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
 
 DECLARE SUB item_editor_equipbits(itembuf() as integer, itemname as string)
-DECLARE SUB item_editor_elementals(itembuf() as integer)
+DECLARE SUB item_editor_elementals(item as ItemDef)
+DECLARE SUB old_item_editor_elementals(itembuf() as integer)
 DECLARE SUB item_editor_init_new(itembuf() as integer)
 DECLARE SUB item_editor_stat_bonuses(item as ItemDef)
 DECLARE SUB old_item_editor_stat_bonuses(itembuf() as integer)
@@ -189,19 +190,21 @@ SUB ItemEditor.define_items()
   END IF
   IF selected THEN preview_wep_frame = 1
   
+  reload_sprite
+ END IF
+
+ IF item_is_equippable(item) THEN
   IF defitem_act("Stat Bonuses...") THEN
    item_editor_stat_bonuses item
   END IF
 
-  'IF defitem_act("Elemental Resists...") THEN
-  ' 'item_editor_elementals item
-  'END IF
-  '
+  IF defitem_act("Elemental Resists...") THEN
+   item_editor_elementals item
+  END IF
+  
   'IF defitem_act("Who Can Equip?...") THEN
   ' 'item_editor_equipbits item
   'END IF
-
-  reload_sprite
  END IF
  
  section "When used out of battle"
@@ -298,6 +301,26 @@ SUB item_editor_stat_bonuses(item as ItemDef)
 END SUB
 
 '-----------------------------------------------------------------------
+
+SUB item_editor_elementals(item as ItemDef)
+ DIM elementals(gen(genNumElements) - 1) as single
+ FOR i as integer = 0 TO gen(genNumElements) - 1
+  elementals(i) = item.elemental_resist(i)
+  IF gen(genEquipMergeFormula) = 2 THEN  'additive merging
+   elementals(i) -= 1.0
+  END IF
+ NEXT
+ common_elementals_editor elementals(), "item_elementals", (gen(genEquipMergeFormula) = 2)
+ FOR i as integer = 0 TO gen(genNumElements) - 1
+  IF gen(genEquipMergeFormula) = 2 THEN  'additive merging
+   elementals(i) += 1.0
+  END IF
+  item.elemental_resist(i) = elementals(i)
+ NEXT
+END SUB
+
+'-----------------------------------------------------------------------
+
 
 FUNCTION individual_item_editor(item_id as integer) as integer
  IF keyval(scShift) = 0 THEN
@@ -470,7 +493,7 @@ FUNCTION old_individual_item_editor(item_id as integer) as integer
      state.need_update = YES
     END IF
     IF state.pt = 20 THEN
-     item_editor_elementals itembuf()
+     old_item_editor_elementals itembuf()
     END IF
     IF state.pt = 21 THEN
      item_editor_equipbits itembuf(), item_name
@@ -758,7 +781,7 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
  setkeys
 END SUB
 
-SUB item_editor_elementals(itembuf() as integer)
+SUB old_item_editor_elementals(itembuf() as integer)
  DIM elementals(gen(genNumElements) - 1) as single
  FOR i as integer = 0 TO gen(genNumElements) - 1
   elementals(i) = DeSerSingle(itembuf(), 82 + i * 2)
