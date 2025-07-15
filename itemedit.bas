@@ -101,7 +101,6 @@ END TYPE
 CONSTRUCTOR ItemEditor(item_id as integer)
  id = item_id
  prev_menu_text = "Back to Item Menu"
- helpkey = "item_editor"
  populate_eq_slot_names eq_slot_names()
  'Set up the weapon preview underlay
  underlay = NewSliceOfType(slContainer)
@@ -136,6 +135,22 @@ END SUB
 
 SUB ItemEditor.define_items()
 
+ '----------------------------
+ IF submenu = "statbonus" THEN
+ 
+ helpkey = "equipment_stat_bonuses"
+ FOR i as integer = 0 TO statLast
+  defint statnames(i) + " Bonus:", item.stat_bonuses(i), -32768, 32767
+  DIM cap as integer = gen(genStatCap + i)
+  IF cap > 0 ANDALSO item.stat_bonuses(i) > cap THEN
+   set_caption item.stat_bonuses(i) & " [stat capped to " & cap & "]"
+  END IF
+ NEXT 
+
+ '----------------------------
+ ELSE '--main menu
+ helpkey = "item_editor"
+ 
  defstr "Name:", item.name, 8
  defstr "Info:", item.info, 36
  defint "Value:", item.buy_price, 0, 32767
@@ -194,8 +209,8 @@ SUB ItemEditor.define_items()
  END IF
 
  IF item_is_equippable(item) THEN
-  IF defitem_act("Stat Bonuses...") THEN
-   item_editor_stat_bonuses item
+  IF defitem_act("Stat Bonuses...") THEN 
+   enter_submenu "statbonus"
   END IF
 
   IF defitem_act("Elemental Resists...") THEN
@@ -256,6 +271,9 @@ SUB ItemEditor.define_items()
   edit_as_tag_id item.tags.is_actively_equipped_tag
   IF edited THEN itemtags(id) = item.tags
  END IF
+ 
+ END IF '--End of main menu
+ '----------------------------
 
 END SUB
 
@@ -268,36 +286,6 @@ END SUB
 
 SUB ItemEditor.draw_underlays ()
  DrawSlice underlay, vpage
-END SUB
-
-'-----------------------------------------------------------------------
-
-TYPE ItemEditorStatBonuses EXTENDS EditorKit
- DECLARE CONSTRUCTOR(item as ItemDef)
- DECLARE SUB define_items()
- item as ItemDef
-END TYPE
-
-CONSTRUCTOR ItemEditorStatBonuses(itemdata as ItemDef)
- item = itemdata
- prev_menu_text = "Back to Item Editor"
- helpkey = "equipment_stat_bonuses"
-END CONSTRUCTOR
-
-SUB ItemEditorStatBonuses.define_items()
- FOR i as integer = 0 TO statLast
-  defint statnames(i) + " Bonus:", item.stat_bonuses(i), -32768, 32767
-  DIM cap as integer = gen(genStatCap + i)
-  IF cap > 0 ANDALSO item.stat_bonuses(i) > cap THEN
-   set_caption item.stat_bonuses(i) & " [stat capped to " & cap & "]"
-  END IF
- NEXT 
-END SUB
-
-SUB item_editor_stat_bonuses(item as ItemDef)
- DIM editor as ItemEditorStatBonuses = ItemEditorStatBonuses(item)
- editor.run()
- item = editor.item
 END SUB
 
 '-----------------------------------------------------------------------
