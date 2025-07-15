@@ -19,7 +19,8 @@
 DECLARE FUNCTION item_attack_name(n as integer) as string
 DECLARE SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
 
-DECLARE SUB item_editor_equipbits(itembuf() as integer, itemname as string)
+DECLARE SUB item_editor_equipbits(item as ItemDef)
+DECLARE SUB old_item_editor_equipbits(itembuf() as integer, itemname as string)
 DECLARE SUB item_editor_elementals(item as ItemDef)
 DECLARE SUB old_item_editor_elementals(itembuf() as integer)
 DECLARE SUB item_editor_init_new(itembuf() as integer)
@@ -217,9 +218,9 @@ SUB ItemEditor.define_items()
    item_editor_elementals item
   END IF
   
-  'IF defitem_act("Who Can Equip?...") THEN
-  ' 'item_editor_equipbits item
-  'END IF
+  IF defitem_act("Who Can Equip?...") THEN
+   item_editor_equipbits item
+  END IF
  END IF
  
  section "When used out of battle"
@@ -305,6 +306,17 @@ SUB item_editor_elementals(item as ItemDef)
   END IF
   item.elemental_resist(i) = elementals(i)
  NEXT
+END SUB
+
+' Who Can Equip? menu
+SUB item_editor_equipbits(item as ItemDef)
+ DIM hero_id as integer
+ DIM bitnames(-1 TO maxMaxHero) as string
+ FOR hero_id = 0 TO gen(genMaxHero)
+  bitnames(hero_id) = getheroname(hero_id)
+  IF LEN(bitnames(hero_id)) = 0 THEN bitnames(hero_id) = "Hero " & hero_id
+ NEXT
+ editbitset item.equip_by_bits(), 0, bitnames(), , , , item.name & " is equippable by..."
 END SUB
 
 '-----------------------------------------------------------------------
@@ -484,7 +496,7 @@ FUNCTION old_individual_item_editor(item_id as integer) as integer
      old_item_editor_elementals itembuf()
     END IF
     IF state.pt = 21 THEN
-     item_editor_equipbits itembuf(), item_name
+     old_item_editor_equipbits itembuf(), item_name
      state.need_update = YES
     END IF
    END IF
@@ -698,7 +710,7 @@ FUNCTION item_attack_name(n as integer) as string
 END FUNCTION
 
 ' Who Can Equip? menu
-SUB item_editor_equipbits(itembuf() as integer, itemname as string)
+SUB old_item_editor_equipbits(itembuf() as integer, itemname as string)
  DIM hero_id as integer
  ' The equippable bits are discontinuous
  DIM combined_bits(maxMaxHero \ 16) as integer
