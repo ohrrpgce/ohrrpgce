@@ -97,6 +97,8 @@ TYPE ItemEditor EXTENDS EditorKit
  wep_sl as Slice Ptr
  handle_pos_sl as Slice ptr
  preview_wep_frame as integer
+ tooltip_sl as Slice Ptr
+ tooltip as string
 END TYPE
 
 CONSTRUCTOR ItemEditor(item_id as integer)
@@ -119,6 +121,13 @@ CONSTRUCTOR ItemEditor(item_id as integer)
  handle_pos_sl->Height = 3
  ReAlignSlice handle_pos_sl, alignLeft, alignLeft, alignCenter, alignCenter
  ChangeRectangleSlice handle_pos_sl, , , uiSelectedItem2 * -1 - 1, borderLine, transHollow
+ tooltip_sl = NewSliceOfType(slText)
+ SetSliceParent tooltip_sl, underlay
+ tooltip_sl->Fill = YES
+ tooltip_sl->FillMode = sliceFillHoriz
+ tooltip_sl->AlignVert = alignBottom
+ tooltip_sl->AnchorVert = alignBottom
+ ChangeTextSlice tooltip_sl, "Hint Text Goes Here", uiText * -1 - 1, NO, YES, uiHighlight * -1 - 1
 END CONSTRUCTOR
 
 DESTRUCTOR ItemEditor()
@@ -136,6 +145,8 @@ END SUB
 
 SUB ItemEditor.define_items()
 
+ tooltip = ""
+
  '----------------------------
  IF submenu = "statbonus" THEN
  
@@ -146,7 +157,7 @@ SUB ItemEditor.define_items()
   IF cap > 0 ANDALSO item.stat_bonuses(i) > cap THEN
    set_caption item.stat_bonuses(i) & " [stat capped to " & cap & "]"
   END IF
- NEXT 
+ NEXT
 
  '----------------------------
  ELSE '--main menu
@@ -178,6 +189,7 @@ SUB ItemEditor.define_items()
  defitem "When used as an item in battle:"
  edit_as_attack item.battle_items_menu_attack, Or_None
  IF value = -1 THEN set_caption "NOTHING"
+ IF selected THEN tooltip = THINGGRABBER_TOOLTIP
 
  IF item.eqslots(0) THEN
   section "As a weapon"
@@ -186,6 +198,7 @@ SUB ItemEditor.define_items()
   defitem "When used as a Weapon:"
   edit_as_attack item.battle_weapon_attack, Or_None
   IF value = -1 THEN set_caption "NOTHING"
+  IF selected THEN tooltip = THINGGRABBER_TOOLTIP
   
   defitem "Weapon Picture:"
   IF edit_as_spriteset(item.wep_pic, sprTypeWeapon) THEN
@@ -233,6 +246,7 @@ SUB ItemEditor.define_items()
   edit_as_attack item.oob_attack, Or_None
   IF value = -1 THEN set_caption "NOTHING"
  END IF
+ IF selected THEN tooltip = THINGGRABBER_TOOLTIP
 
  defitem "Text Box:"
  IF item.oob_attack >= 0 ORELSE item.teach_spell >= 0 THEN
@@ -243,6 +257,7 @@ SUB ItemEditor.define_items()
   IF value = -1 THEN set_caption "NOTHING"
   IF value = 0 THEN set_caption "(Box 0 not supported here)"
  END IF
+ IF selected THEN tooltip = THINGGRABBER_TOOLTIP
 
  defitem "Teach Spell:"
  IF item.oob_attack >= 0 ORELSE item.text_box >= 0 THEN
@@ -252,6 +267,7 @@ SUB ItemEditor.define_items()
   edit_as_attack item.teach_spell, Or_None
   IF value = -1 THEN set_caption "NOTHING"
  END IF
+ IF selected THEN tooltip = THINGGRABBER_TOOLTIP
 
  section "Automatically set tags"
 
@@ -272,7 +288,7 @@ SUB ItemEditor.define_items()
   edit_as_tag_id item.tags.is_actively_equipped_tag
   IF edited THEN itemtags(id) = item.tags
  END IF
- 
+
  END IF '--End of main menu
  '----------------------------
 
@@ -286,6 +302,7 @@ SUB ItemEditor.reload_sprite()
 END SUB
 
 SUB ItemEditor.draw_underlays ()
+ ChangeTextSlice tooltip_sl, tooltip
  DrawSlice underlay, vpage
 END SUB
 
