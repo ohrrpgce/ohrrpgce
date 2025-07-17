@@ -23,7 +23,8 @@ DECLARE SUB item_editor_equipbits(item as ItemDef)
 DECLARE SUB old_item_editor_equipbits(itembuf() as integer, itemname as string)
 DECLARE SUB item_editor_elementals(item as ItemDef)
 DECLARE SUB old_item_editor_elementals(itembuf() as integer)
-DECLARE SUB item_editor_init_new(itembuf() as integer)
+DECLARE SUB old_item_editor_init_new(itembuf() as integer)
+DECLARE SUB item_editor_init_new(item as ItemDef)
 DECLARE SUB item_editor_stat_bonuses(item as ItemDef)
 DECLARE SUB old_item_editor_stat_bonuses(itembuf() as integer)
 
@@ -112,6 +113,20 @@ CONSTRUCTOR ItemEditor(item_id as integer)
  id = item_id
  prev_menu_text = "Back to Item Menu"
  populate_eq_slot_names eq_slot_names()
+
+ 'Add a new item if and out-of-range item_id was requested
+ IF item_id > gen(genMaxItem) THEN
+  gen(genMaxItem) += 1
+  item_id = gen(genMaxItem)
+  DIM new_item as ItemDef
+  item_editor_init_new new_item
+  saveitemdata new_item, item_id
+ END IF
+ IF item_id > UBOUND(itemtags) THEN
+  'REDIMs itemtags
+  load_special_tag_caches
+ END IF
+
  'Set up the weapon preview underlay
  underlay = NewSliceOfType(slContainer)
  underlay->Fill = YES
@@ -381,12 +396,32 @@ SUB item_editor_equipbits(item as ItemDef)
  editbitset item.equip_by_bits(), 0, bitnames(), , , , item.name & " is equippable by..."
 END SUB
 
+SUB item_editor_init_new(item as ItemDef)
+ WITH item
+  .wep_pal = -1
+  .battle_items_menu_attack = -1
+  .battle_weapon_attack = -1
+  .oob_attack = -1
+  .teach_spell = -1
+  .text_box = -1
+  REDIM .elemental_resist(gen(genNumElements) - 1)
+  FOR i as integer = 0 to UBOUND(.elemental_resist)
+   .elemental_resist(i) = 1.0
+  NEXT i
+ END WITH
+END SUB
+
 '-----------------------------------------------------------------------
 
 
 FUNCTION individual_item_editor(item_id as integer) as integer
  IF keyval(scShift) > 0 THEN
   RETURN old_individual_item_editor(item_id)
+ END IF
+
+ IF item_id > maxMaxItems THEN
+  visible_debug "Can't edit item id > " & maxMaxItems
+  RETURN -1
  END IF
 
  DIM editor as ItemEditor = ItemEditor(item_id)
@@ -415,7 +450,7 @@ FUNCTION old_individual_item_editor(item_id as integer) as integer
  IF item_id > gen(genMaxItem) THEN
   gen(genMaxItem) += 1
   item_id = gen(genMaxItem)
-  item_editor_init_new itembuf()
+  old_item_editor_init_new itembuf()
   saveitemdata itembuf(), item_id
  END IF
  IF item_id > UBOUND(itemtags) THEN
@@ -860,7 +895,7 @@ SUB old_item_editor_elementals(itembuf() as integer)
  NEXT
 END SUB
 
-SUB item_editor_init_new(itembuf() as integer)
+SUB old_item_editor_init_new(itembuf() as integer)
  flusharray itembuf(), dimbinsize(binITM), 0
  FOR i as integer = 0 TO 63
   SerSingle itembuf(), 82 + i * 2, 1.0

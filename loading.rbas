@@ -4263,7 +4263,8 @@ SUB saveitemdata (item as ItemDef, byval index as integer)
    itembuf(73) = 2
   END IF
 
-  FOR i as integer = 0 TO gen(genNumElements) - 1
+  'If we ever raise the max elements in the future, ITM format can't save more than 64
+  FOR i as integer = 0 TO small(63, gen(genNumElements) - 1)
    SerSingle(itembuf(), 82 + i * 2, .elemental_resist(i))
   NEXT
 
