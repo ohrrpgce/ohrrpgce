@@ -968,6 +968,7 @@ END TYPE
 
 'An item definition
 TYPE ItemDef
+  DECLARE CONSTRUCTOR() ' Defined in loading.rbas
 	name as string
 	info as string
 	stacksize as integer      'Max per inventory slot. 0 means default, genItemStackSize

@@ -24,7 +24,6 @@ DECLARE SUB old_item_editor_equipbits(itembuf() as integer, itemname as string)
 DECLARE SUB item_editor_elementals(item as ItemDef)
 DECLARE SUB old_item_editor_elementals(itembuf() as integer)
 DECLARE SUB old_item_editor_init_new(itembuf() as integer)
-DECLARE SUB item_editor_init_new(item as ItemDef)
 DECLARE SUB item_editor_stat_bonuses(item as ItemDef)
 DECLARE SUB old_item_editor_stat_bonuses(itembuf() as integer)
 
@@ -118,8 +117,7 @@ CONSTRUCTOR ItemEditor(item_id as integer)
  IF item_id > gen(genMaxItem) THEN
   gen(genMaxItem) += 1
   item_id = gen(genMaxItem)
-  DIM new_item as ItemDef
-  item_editor_init_new new_item
+  DIM new_item as ItemDef = ItemDef()
   saveitemdata new_item, item_id
  END IF
  IF item_id > UBOUND(itemtags) THEN
@@ -394,21 +392,6 @@ SUB item_editor_equipbits(item as ItemDef)
   IF LEN(bitnames(hero_id)) = 0 THEN bitnames(hero_id) = "Hero " & hero_id
  NEXT
  editbitset item.equip_by_bits(), 0, bitnames(), , , , item.name & " is equippable by..."
-END SUB
-
-SUB item_editor_init_new(item as ItemDef)
- WITH item
-  .wep_pal = -1
-  .battle_items_menu_attack = -1
-  .battle_weapon_attack = -1
-  .oob_attack = -1
-  .teach_spell = -1
-  .text_box = -1
-  REDIM .elemental_resist(gen(genNumElements) - 1)
-  FOR i as integer = 0 to UBOUND(.elemental_resist)
-   .elemental_resist(i) = 1.0
-  NEXT i
- END WITH
 END SUB
 
 '-----------------------------------------------------------------------

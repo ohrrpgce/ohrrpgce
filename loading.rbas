@@ -4097,6 +4097,18 @@ END SUB
 '                                          Items
 '==========================================================================================
 
+CONSTRUCTOR ItemDef()
+ wep_pal = -1
+ battle_items_menu_attack = -1
+ battle_weapon_attack = -1
+ oob_attack = -1
+ teach_spell = -1
+ text_box = -1
+ REDIM elemental_resist(gen(genNumElements) - 1)
+ FOR i as integer = 0 to UBOUND(elemental_resist)
+  elemental_resist(i) = 1.0
+ NEXT i
+END CONSTRUCTOR
 
 SUB loaditemdata (array() as integer, byval index as integer)
  flusharray array(), dimbinsize(binITM), 0
