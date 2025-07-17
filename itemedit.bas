@@ -119,7 +119,7 @@ CONSTRUCTOR ItemEditor(item_id as integer)
  SetSliceParent wep_sl, underlay
  ReAlignSlice wep_sl, alignRight, alignCenter, alignRight, alignCenter
  wep_sl->X = -20
- preview_wep_frame = 0
+ preview_wep_frame = 1
  handle_pos_sl = NewSliceOfType(slRectangle)
  SetSliceParent handle_pos_sl, wep_sl
  handle_pos_sl->x = -1
@@ -214,7 +214,7 @@ SUB ItemEditor.define_items()
 
  IF item.eqslots(0) THEN
   section "As a weapon"
-  preview_wep_frame = 0
+  preview_wep_frame = 1
   
   defitem "When used as a Weapon:"
   edit_as_attack item.battle_weapon_attack, Or_None
@@ -233,12 +233,12 @@ SUB ItemEditor.define_items()
    ChangeSpriteSlice wep_sl, , , , 0
    xy_position_on_sprite_slice wep_sl, item.wep_handle(0).x, item.wep_handle(0).y, "Weapon handle position", "xy_weapon_handle"
   END IF
+  IF selected THEN preview_wep_frame = 0
 
   IF defitem_act("Handle position (B)...") THEN
    ChangeSpriteSlice wep_sl, , , , 1
    xy_position_on_sprite_slice wep_sl, item.wep_handle(1).x, item.wep_handle(1).y, "Weapon handle position", "xy_weapon_handle"
   END IF
-  IF selected THEN preview_wep_frame = 1
   
   reload_sprite
  END IF
