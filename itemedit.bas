@@ -385,7 +385,7 @@ END SUB
 
 
 FUNCTION individual_item_editor(item_id as integer) as integer
- IF keyval(scShift) = 0 THEN
+ IF keyval(scShift) > 0 THEN
   RETURN old_individual_item_editor(item_id)
  END IF
 

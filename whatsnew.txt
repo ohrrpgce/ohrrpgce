@@ -4,6 +4,7 @@ Aug 04 2025 [Kaleidophone]
 
   *** New Features
     * New pref bit "Allow wasting out-of-battle cures" defaults to on [James]
+    * New Item Editor
 
    * Plotscripting Features
     * "swap in hero by slot", "swap out hero by slot", "lock hero by slot",
