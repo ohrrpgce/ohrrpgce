@@ -99,7 +99,14 @@ TYPE ItemEditor EXTENDS EditorKit
  preview_wep_frame as integer
  tooltip_sl as Slice Ptr
  tooltip as string
+ STATIC clipboard_used as bool
+ STATIC clipboard_item as ItemDef  'For copy/pasting
+ undo_available as bool
+ undo_item as ItemDef  'Just to undo pasting
+ can_copy_and_paste as bool
 END TYPE
+DIM ItemEditor.clipboard_used as bool = NO
+DIM ItemEditor.clipboard_item as ItemDef
 
 CONSTRUCTOR ItemEditor(item_id as integer)
  id = item_id
@@ -162,9 +169,23 @@ SUB ItemEditor.define_items()
  '----------------------------
  ELSE '--main menu
  helpkey = "item_editor"
- 
+
+ 'Only do copy-pasting on the main menu. Not in sub-menus
+ '(We don't want to create the false impression that only the contents of the sub-menu would be pasted)
+ 'The copy-paste is implemented at the end of the main menu definition
+ IF state.pt = state.top THEN
+  IF clipboard_used THEN
+   tooltip = "Alt-C/V to copy/paste item definition"
+  ELSE
+   tooltip = "Alt-C to copy item definition"
+  END IF
+ END IF
+ can_copy_and_paste = YES
+
  defstr "Name:", item.name, 8
+ IF selected THEN can_copy_and_paste = NO
  defstr "Info:", item.info, 36
+ IF selected THEN can_copy_and_paste = NO
  defint "Value:", item.buy_price, 0, 32767
 
  defint "Maximum stack size:", item.stacksize, 0, 99
@@ -287,6 +308,30 @@ SUB ItemEditor.define_items()
   defitem "Equipped by hero in active party:"
   edit_as_tag_id item.tags.is_actively_equipped_tag
   IF edited THEN itemtags(id) = item.tags
+ END IF
+
+ IF phase = processing THEN
+  IF can_copy_and_paste THEN
+   IF keyval(scAlt) > 0 ANDALSO keyval(scC) > 1 THEN
+    clipboard_item = item
+    clipboard_used = YES
+    show_overlay_message "Copied item", 0.75
+   END IF
+   IF clipboard_used ANDALSO keyval(scAlt) > 0 ANDALSO keyval(scV) > 1 THEN
+    undo_item = item
+    undo_available = YES
+    item = clipboard_item
+    state.need_update = YES
+    show_overlay_message "Pasted item (Ctrl-Z to undo)", 1.1
+   END IF
+  END IF
+  
+  IF undo_available ANDALSO keyval(scCtrl) > 0 ANDALSO keyval(scZ) > 1 THEN
+   item = undo_item
+   'undo_available = NO
+   state.need_update = YES
+   show_overlay_message "Undid paste", 0.75
+  END IF
  END IF
 
  END IF '--End of main menu
