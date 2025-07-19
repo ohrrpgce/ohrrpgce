@@ -125,6 +125,8 @@ CONSTRUCTOR ItemEditor(item_id as integer)
   load_special_tag_caches
  END IF
 
+ setup_record_switching id, 0, gen(genMaxItem), , "Item"
+ 
  'Set up the weapon preview underlay
  underlay = NewSliceOfType(slContainer)
  underlay->Fill = YES
@@ -195,6 +197,8 @@ SUB ItemEditor.define_items()
  END IF
  can_copy_and_paste = YES
 
+ def_record_switcher
+ 
  defstr "Name:", item.name, 8
  IF selected THEN can_copy_and_paste = NO
  defstr "Info:", item.info, 36
