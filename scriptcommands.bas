@@ -5472,6 +5472,18 @@ SUB script_commands(byval cmdid as integer)
   IF really_valid_hero_party(retvals(0)) THEN
    gam.hero(retvals(0)).locked = NO
   END IF
+ CASE 797 '--get weapon item pic
+  IF valid_item(retvals(0)) THEN
+   DIM item as ItemDef
+   loaditemdata item, retvals(0)
+   scriptret = item.wep_pic
+  END IF
+ CASE 798 '--get weapon item ppal
+  IF valid_item(retvals(0)) THEN
+   DIM item as ItemDef
+   loaditemdata item, retvals(0)
+   scriptret = item.wep_pal
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

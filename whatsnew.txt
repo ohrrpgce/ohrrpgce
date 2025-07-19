@@ -15,7 +15,8 @@ Aug 04 2025 [Kaleidophone]
     * Commands for reading item data "get item value", "get item teach spell",
       "get item attack outside battle", "get item attack in battle",
       "get item attack as weapon", "get item text box",
-      "get item equip stat bonus", "equippable in slot" [James]
+      "get item equip stat bonus", "equippable in slot",
+      "get item weapon pic", "get item weapon pal" [James]
     * "insensitive string equal" [James]
     * "string to lower" and "string to upper" [James]
     * "sl:sprite" alias to "sl:walkabout sprite" and "sl:shadow" for

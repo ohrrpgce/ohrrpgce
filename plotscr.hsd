@@ -832,6 +832,8 @@ define function, begin
 794,swapoutherobyslot,1,-1    # Return first free party slot in the reserve party, or -1 if none
 795,lockherobyslot,1,-1       # Prevent swapping of a hero (party slot)
 796,unlockherobyslot,1,-1     # Undo lockhero (party slot)
+797,getitemweaponpic,1,0      # get the weapon sprite number of an item
+798,getitemweaponpal,1,0      # get the weapon sprite palette number of an item or -1 for default
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

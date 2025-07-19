@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-06-30">
+<plotscript version="wip" datecode="2025-07-18">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -3668,6 +3668,36 @@ end</example>
 			</description>
 			<seealso>
 				<ref>equipwhere</ref>
+				<ref>equippableinslot</ref>
+			</seealso>
+		</command>
+		<command id="getitemweaponpic">
+			<canon>get item weapon pic (item)</canon>
+			<shortname>get item weapon pic</shortname>
+			<description>
+				Returns the sprite id of the weapon picture used for this sprite.
+				If you wish to check whether or not an item is equippable as a wepon,
+				use <ref>equippableinslot</ref> instead.
+				<lb/>
+				The <p>item</p> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of <tt>item:name</tt>.
+			</description>
+			<seealso>
+				<ref>getitemweaponpal</ref>
+				<ref>equippableinslot</ref>
+			</seealso>
+		</command>
+		<command id="getitemweaponpal">
+			<canon>get item weapon pal (item)</canon>
+			<shortname>get item weapon pal</shortname>
+			<description>
+				Returns the palette id of the weapon picture used for this sprite. If the weapon sprite uses the default palette, returns -1.
+				If you wish to check whether or not an item is equippable as a wepon,
+				use <ref>equippableinslot</ref> instead.
+				<lb/>
+				The <p>item</p> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of <tt>item:name</tt>.
+			</description>
+			<seealso>
+				<ref>getitemweaponpic</ref>
 				<ref>equippableinslot</ref>
 			</seealso>
 		</command>

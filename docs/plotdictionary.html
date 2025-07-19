@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-06-30)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-07-18)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -944,6 +944,8 @@ function toggleContent(target) {
 		<a href="#about-getitemteachspell" class="ref">get item teach spell (item)</a><br>
 		<a href="#about-getitemtextbox" class="ref">get item text box (item)</a><br>
 		<a href="#about-getitemvalue" class="ref">get item value (item)</a><br>
+		<a href="#about-getitemweaponpal" class="ref">get item weapon pal (item)</a><br>
+		<a href="#about-getitemweaponpic" class="ref">get item weapon pic (item)</a><br>
 		<a href="#about-getleftpadding" class="ref">get left padding (handle)</a><br>
 		<a href="#about-getlevelcap" class="ref">get level cap</a><br>
 		<a href="#about-getlevelmp" class="ref">get level MP (who, mp level slot, type)</a><br>
@@ -3223,7 +3225,11 @@ resume NPCs</pre>
 			
 			
 			<pre>suspend player
-# do stuff
+# Script a small cutscene...
+walk hero (me, right, 10)
+wait for hero (me)
+wait (20)
+set hero direction (me, left)
 resume player</pre>
 			
 		</p>
@@ -3235,7 +3241,11 @@ resume player</pre>
 			Restores normal control after a <a href="#about-suspendplayer" class="ref">suspend player</a> command. This is very important. If you use <a href="#about-suspendplayer" class="ref">suspend player</a>, but forget resume player, the game will be stuck after the script ends.
 			
 			<pre>suspend player
-# do stuff
+# Script a small cutscene...
+walk hero (me, right, 10)
+wait for hero (me)
+wait (20)
+set hero direction (me, left)
 resume player</pre>
 			
 		</p>
@@ -3635,7 +3645,7 @@ resume random enemies # back to normal</pre>
 				is active, use <a href="#about-suspendtextboxcontrols" class="ref">suspend text box controls</a> to disable that.
 				<div class="notice warn">
 <img src="Plotwarn.png" alt="[Warning]" class="icon">
-					<a href="#about-waitfortextbox" class="ref">wait for text box</a> does't wait while <span class="code">suspend box advance</span> is active!
+					<a href="#about-waitfortextbox" class="ref">wait for text box</a> does't wait while <a href="#about-suspendboxadvance" class="ref">suspend box advance</a> is active!
 				</div>
 			
 			
@@ -6905,6 +6915,8 @@ end</pre>
 		<a href="#about-getitemattackasweapon" class="ref">get item attack as weapon (item)</a><br>
 		<a href="#about-getitemtextbox" class="ref">get item text box (item)</a><br>
 		<a href="#about-getitemequipstatbonus" class="ref">get item equip stat bonus (item, stat)</a><br>
+		<a href="#about-getitemweaponpic" class="ref">get item weapon pic (item)</a><br>
+		<a href="#about-getitemweaponpal" class="ref">get item weapon pal (item)</a><br>
 </div>
 		<li>
 <a href="#Inventory">Inventory</a><br>
@@ -7140,6 +7152,48 @@ end</pre>
 			<div class="seealso">See also: <ul>
 <li>
 <a href="#about-equipwhere" class="ref">equip where</a>, </li>
+<li><a href="#about-equippableinslot" class="ref">equippable in slot</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getitemweaponpic"></a>
+				<h4>get item weapon pic (item)</h4>
+<p>
+			
+				Returns the sprite id of the weapon picture used for this sprite.
+				If you wish to check whether or not an item is equippable as a wepon,
+				use <a href="#about-equippableinslot" class="ref">equippable in slot</a> instead.
+				<br>
+				The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of <span class="code">item:name</span>.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getitemweaponpal" class="ref">get item weapon pal</a>, </li>
+<li><a href="#about-equippableinslot" class="ref">equippable in slot</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getitemweaponpal"></a>
+				<h4>get item weapon pal (item)</h4>
+<p>
+			
+				Returns the palette id of the weapon picture used for this sprite. If the weapon sprite uses the default palette, returns -1.
+				If you wish to check whether or not an item is equippable as a wepon,
+				use <a href="#about-equippableinslot" class="ref">equippable in slot</a> instead.
+				<br>
+				The <span class="param">item</span> argument is an item ID; you can refer to the item by number, or you can use the constants in the form of <span class="code">item:name</span>.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getitemweaponpic" class="ref">get item weapon pic</a>, </li>
 <li><a href="#about-equippableinslot" class="ref">equippable in slot</a></li>
 </ul>
 </div>
@@ -23783,7 +23837,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 988 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 990 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

@@ -95,6 +95,8 @@ define constant, begin
 12,item:BoxItem
 13,item:Skort
 14,item:dulsword
+15,item:SordPic
+16,item:AcksPic
 0,stat:HP
 1,stat:MP
 2,stat:Atk

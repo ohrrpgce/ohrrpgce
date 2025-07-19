@@ -519,6 +519,10 @@ script, items tests, begin
   assert(equippable in slot(item:skort,slot:head) == true)
   assert(equippable in slot(item:skort,slot:body) == false)
   assert(equippable in slot(item:skort,slot:arms) == false)
+  assert(get item weapon pic(item:sordpic) == 1)
+  assert(get item weapon pal(item:sordpic) == -1)
+  assert(get item weapon pic(item:ackspic) == 2)
+  assert(get item weapon pal(item:ackspic) == 36)
 end
 
 ########################################################################
