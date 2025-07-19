@@ -4104,7 +4104,8 @@ CONSTRUCTOR ItemDef()
  oob_attack = -1
  teach_spell = -1
  text_box = -1
- REDIM elemental_resist(gen(genNumElements) - 1)
+ debug "gen(genNumElements)=" & gen(genNumElements)
+ REDIM elemental_resist(large(gen(genNumElements) - 1, 0))
  FOR i as integer = 0 to UBOUND(elemental_resist)
   elemental_resist(i) = 1.0
  NEXT i
