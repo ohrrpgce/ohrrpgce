@@ -125,7 +125,7 @@ CONSTRUCTOR ItemEditor(item_id as integer)
   load_special_tag_caches
  END IF
 
- setup_record_switching id, 0, gen(genMaxItem), , "Item", 32767
+ setup_record_switching id, 0, gen(genMaxItem), , "Item", maxMaxItems
  
  'Set up the weapon preview underlay
  underlay = NewSliceOfType(slContainer)
