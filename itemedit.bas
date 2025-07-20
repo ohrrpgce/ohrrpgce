@@ -99,14 +99,12 @@ TYPE ItemEditor EXTENDS EditorKit
  preview_wep_frame as integer
  tooltip_sl as Slice Ptr
  tooltip as string
- STATIC clipboard_used as bool
- STATIC clipboard_item as ItemDef  'For copy/pasting
+ STATIC clipboard_item as ItemDef ptr  'For copy/pasting, NULL if nothing copied
  undo_available as bool
  undo_item as ItemDef  'Just to undo pasting
  can_copy_and_paste as bool
 END TYPE
-DIM ItemEditor.clipboard_used as bool = NO
-DIM ItemEditor.clipboard_item as ItemDef
+DIM ItemEditor.clipboard_item as ItemDef ptr
 
 CONSTRUCTOR ItemEditor(item_id as integer)
  id = item_id
@@ -189,7 +187,7 @@ SUB ItemEditor.define_items()
  '(We don't want to create the false impression that only the contents of the sub-menu would be pasted)
  'The copy-paste is implemented at the end of the main menu definition
  IF state.pt = state.top THEN
-  IF clipboard_used THEN
+  IF clipboard_item THEN
    tooltip = "Alt-C/V to copy/paste item definition"
   ELSE
    tooltip = "Alt-C to copy item definition"
@@ -330,14 +328,14 @@ SUB ItemEditor.define_items()
  IF phase = processing THEN
   IF can_copy_and_paste THEN
    IF keyval(scAlt) > 0 ANDALSO keyval(scC) > 1 THEN
-    clipboard_item = item
-    clipboard_used = YES
+    IF clipboard_item THEN DELETE clipboard_item
+    clipboard_item = NEW ItemDef(item)
     show_overlay_message "Copied item", 0.75
    END IF
-   IF clipboard_used ANDALSO keyval(scAlt) > 0 ANDALSO keyval(scV) > 1 THEN
+   IF clipboard_item ANDALSO keyval(scAlt) > 0 ANDALSO keyval(scV) > 1 THEN
     undo_item = item
     undo_available = YES
-    item = clipboard_item
+    item = *clipboard_item
     state.need_update = YES
     show_overlay_message "Pasted item (Ctrl-Z to undo)", 1.1
    END IF
