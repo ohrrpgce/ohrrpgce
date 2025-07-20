@@ -968,7 +968,9 @@ END TYPE
 
 'An item definition
 TYPE ItemDef
-  DECLARE CONSTRUCTOR() ' Defined in loading.rbas
+	DECLARE CONSTRUCTOR() ' Defined in loading.rbas
+	DECLARE SUB resize_elementals()
+
 	name as string
 	info as string
 	stacksize as integer      'Max per inventory slot. 0 means default, genItemStackSize

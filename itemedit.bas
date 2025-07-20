@@ -346,6 +346,7 @@ SUB ItemEditor.define_items()
    item = *undo_item
    'DELETE undo_item
    'undo_item = NULL
+   item.resize_elementals()
    state.need_update = YES
    show_overlay_message "Undid paste", 0.75
   END IF

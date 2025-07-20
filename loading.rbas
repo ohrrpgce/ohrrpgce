@@ -4105,12 +4105,20 @@ CONSTRUCTOR ItemDef()
  teach_spell = -1
  text_box = -1
  IF UBOUND(gen) >= genNumElements THEN  'In case constructing a global and gen() is uninitialised
-  REDIM elemental_resist(large(gen(genNumElements) - 1, 0))
-  FOR i as integer = 0 to UBOUND(elemental_resist)
-   elemental_resist(i) = 1.0
-  NEXT i
+  resize_elementals()
  END IF
 END CONSTRUCTOR
+
+'Resize elements to genNumElements.
+'Note, this deletes surplus elements resists, while itembuf() items preserve them, allowing undo of
+'decreases in element count
+SUB ItemDef.resize_elementals()
+ DIM old_ubound as integer = UBOUND(elemental_resist)  '-1 inside ctor
+ REDIM PRESERVE elemental_resist(large(gen(genNumElements) - 1, 0))
+ FOR i as integer = old_ubound + 1 TO UBOUND(elemental_resist)
+  elemental_resist(i) = 1.0
+ NEXT i
+END SUB
 
 SUB loaditemdata (array() as integer, byval index as integer)
  flusharray array(), dimbinsize(binITM), 0
