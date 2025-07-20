@@ -100,8 +100,7 @@ TYPE ItemEditor EXTENDS EditorKit
  tooltip_sl as Slice Ptr
  tooltip as string
  STATIC clipboard_item as ItemDef ptr  'For copy/pasting, NULL if nothing copied
- undo_available as bool
- undo_item as ItemDef  'Just to undo pasting
+ undo_item as ItemDef ptr  'Just to undo pasting. NULL if nothing
  can_copy_and_paste as bool
 END TYPE
 DIM ItemEditor.clipboard_item as ItemDef ptr
@@ -152,6 +151,7 @@ END CONSTRUCTOR
 
 DESTRUCTOR ItemEditor()
  DeleteSlice @underlay
+ IF undo_item THEN DELETE undo_item
 END DESTRUCTOR
 
 SUB ItemEditor.load()
@@ -333,17 +333,19 @@ SUB ItemEditor.define_items()
     show_overlay_message "Copied item", 0.75
    END IF
    IF clipboard_item ANDALSO keyval(scAlt) > 0 ANDALSO keyval(scV) > 1 THEN
-    undo_item = item
-    undo_available = YES
+    IF undo_item THEN DELETE undo_item
+    undo_item = NEW ItemDef(item)
     item = *clipboard_item
+    item.resize_elementals()
     state.need_update = YES
     show_overlay_message "Pasted item (Ctrl-Z to undo)", 1.1
    END IF
   END IF
-  
-  IF undo_available ANDALSO keyval(scCtrl) > 0 ANDALSO keyval(scZ) > 1 THEN
-   item = undo_item
-   'undo_available = NO
+
+  IF undo_item ANDALSO keyval(scCtrl) > 0 ANDALSO keyval(scZ) > 1 THEN
+   item = *undo_item
+   'DELETE undo_item
+   'undo_item = NULL
    state.need_update = YES
    show_overlay_message "Undid paste", 0.75
   END IF
