@@ -122,6 +122,7 @@ function global_setoption(opt as string, arg as string) as integer
 	elseif opt = "list-embeds" then
 		'Prints to both stdout and *debug.txt so that you can see it on Windows
 		list_embedded_files
+		display_help_string "Wrote to g/c_debug.txt"
 		terminate_program
 		return 1
 	elseif opt = "log" then
