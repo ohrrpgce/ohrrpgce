@@ -4104,21 +4104,10 @@ CONSTRUCTOR ItemDef()
  oob_attack = -1
  teach_spell = -1
  text_box = -1
- IF UBOUND(gen) >= genNumElements THEN  'In case constructing a global and gen() is uninitialised
-  resize_elementals()
- END IF
-END CONSTRUCTOR
-
-'Resize elements to genNumElements.
-'Note, this deletes surplus elements resists, while itembuf() items preserve them, allowing undo of
-'decreases in element count
-SUB ItemDef.resize_elementals()
- DIM old_ubound as integer = UBOUND(elemental_resist)  '-1 inside ctor
- REDIM PRESERVE elemental_resist(large(gen(genNumElements) - 1, 0))
- FOR i as integer = old_ubound + 1 TO UBOUND(elemental_resist)
+ FOR i as integer = 0 to maxElements - 1
   elemental_resist(i) = 1.0
  NEXT i
-END SUB
+END CONSTRUCTOR
 
 SUB loaditemdata (array() as integer, byval index as integer)
  flusharray array(), dimbinsize(binITM), 0
@@ -4204,13 +4193,12 @@ SUB loaditemdata (item as ItemDef, item_id as integer)
   .consumed_by_use = (itembuf(73) = 1)
   .cannot_be_sold_or_dropped = (itembuf(73) = 2)
 
-  REDIM .elemental_resist(gen(genNumElements) - 1)
   IF getfixbit(fixItemElementals) THEN
-   FOR i as integer = 0 TO gen(genNumElements) - 1
+   FOR i as integer = 0 TO small(maxElements - 1, 63)
     .elemental_resist(i) = DeSerSingle(itembuf(), 82 + i * 2)
    NEXT
   ELSE
-   FOR i as integer = 0 TO gen(genNumElements) - 1
+   FOR i as integer = 0 TO small(maxElements - 1, 63)
     .elemental_resist(i) = LoadOldItemElemental(itembuf(), i)
    NEXT
   END IF
@@ -4286,7 +4274,7 @@ SUB saveitemdata (item as ItemDef, byval index as integer)
   END IF
 
   'If we ever raise the max elements in the future, ITM format can't save more than 64
-  FOR i as integer = 0 TO small(63, gen(genNumElements) - 1)
+  FOR i as integer = 0 TO small(63, maxElements - 1)
    SerSingle(itembuf(), 82 + i * 2, .elemental_resist(i))
   NEXT
 

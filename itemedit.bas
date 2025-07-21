@@ -343,7 +343,6 @@ SUB ItemEditor.define_items()
     IF undo_item THEN DELETE undo_item
     undo_item = NEW ItemDef(item)
     item = *clipboard_item
-    item.resize_elementals()
     state.need_update = YES
     show_overlay_message "Pasted item (Ctrl-Z to undo)", 1.1
    END IF
@@ -353,7 +352,6 @@ SUB ItemEditor.define_items()
    item = *undo_item
    'DELETE undo_item
    'undo_item = NULL
-   item.resize_elementals()
    state.need_update = YES
    show_overlay_message "Undid paste", 0.75
   END IF
