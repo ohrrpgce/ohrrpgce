@@ -24,12 +24,16 @@
 '
 ' ==== Saving, loading, and multiple records ====
 '
-' If you overload the load() and save() methods they will be called when
-' run() begins and right before it ends.
+' If you overload the load() and save() methods load() will be called when
+' run() begins and save() right before it ends.
 ' To switch between multiple records you need to call setup_record_switching before
 ' run() to define the variable that holds the current record number.
 ' load() and save() are assumed to access this variable (hence they take no args),
 ' and they are both called when switching records.
+' setup_record_switching takes an arg to allow adding new records. load()
+' can check the current record id against the max record to see whether it should
+' load a new blank record.
+'
 ' Then call def_record_switcher in define_items() to add a <-Foo #-> line.
 '
 ' ==== Adding menu items ====
@@ -224,14 +228,14 @@ DEFINE_VECTOR_OF_POD_TYPE(SubmenuState, SubmenuState)
 
 ' define_items is abstract, must be overridden. Others are optional.
 
-' Called when entering the menu and after switching records (the record id passed to
-' setup_record_switching is modified before calling this).
-' NOTE: you should set state.need_update = YES, as it possibly won't be automatically.
+' Called when entering the menu and after switching records. The record_id passed to
+' setup_record_switching is modified before calling this. record_id will be > max_record
+' if loading a new blank record; the max_record variable will be increased afterwards.
 sub Editorkit.load()
 end sub
 
-' Called when exiting the menu and before switching records (the record id passed to
-' setup_record_switching is modified after calling this).
+' Called when exiting the menu and before switching records. The record_id passed to
+' setup_record_switching is modified after calling this.
 sub EditorKit.save()
 end sub
 
@@ -609,13 +613,14 @@ sub EditorKit.switch_submenu(name as string = "")
 	want_submenu = name
 end sub
 
+' Does not increase max_record
 sub EditorKit.switch_record(newid as integer)
 	BUG_IF(record_id_ptr = 0, "Missing setup_record_switching")
 	dim byref id as integer = *record_id_ptr
 	save()
 	id = newid
 	load()
-	state.need_update = YES  'load() is also meant to do this
+	state.need_update = YES
 end sub
 
 /'
@@ -638,13 +643,16 @@ function EditorKit.record_id_grabber() as bool
 	dim newid as integer = id
 	if max_record_max > 0 then
 		intgrabber_with_addset(newid, 0, maxid, max_record_max, record_type_name)
-		if newid > maxid then
-			maxvar = newid - max_record_offset
-		end if
 	else
 		intgrabber(newid, 0, maxid)
 	end if
-	if newid <> id then switch_record newid
+	if newid <> id then
+		switch_record newid
+		if max_record_max > 0 andalso newid > maxid then
+			'load() likely already does this
+			maxvar = newid - max_record_offset
+		end if
+	end if
 	return newid <> id
 end function
 

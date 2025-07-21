@@ -88,6 +88,7 @@ TYPE ItemEditor EXTENDS EditorKit
  DECLARE SUB define_items()
  DECLARE SUB load()
  DECLARE SUB save()
+ DECLARE SUB save_new()
  DECLARE SUB draw_underlays()
  DECLARE SUB reload_sprite()
  id as integer
@@ -106,21 +107,14 @@ END TYPE
 DIM ItemEditor.clipboard_item as ItemDef ptr
 
 CONSTRUCTOR ItemEditor(item_id as integer)
- id = item_id
- prev_menu_text = "Back to Item Menu"
  populate_eq_slot_names eq_slot_names()
 
- 'Add a new item if and out-of-range item_id was requested
+ 'Add a new item if an out-of-range item_id was requested
  IF item_id > gen(genMaxItem) THEN
-  gen(genMaxItem) += 1
-  item_id = gen(genMaxItem)
-  DIM new_item as ItemDef = ItemDef()
-  saveitemdata new_item, item_id
- END IF
- IF item_id > UBOUND(itemtags) THEN
-  'REDIMs itemtags
-  load_special_tag_caches
- END IF
+  id = gen(genMaxItem) + 1
+ ELSE
+  id = item_id
+ ENd IF
 
  setup_record_switching id, 0, gen(genMaxItem), , "Item", maxMaxItems
  
@@ -155,8 +149,17 @@ DESTRUCTOR ItemEditor()
 END DESTRUCTOR
 
 SUB ItemEditor.load()
+ IF id > gen(genMaxItem) THEN save_new
  loaditemdata item, id
  reload_sprite
+END SUB
+
+SUB ItemEditor.save_new()
+ DIM new_item as ItemDef = ItemDef()
+ saveitemdata new_item, id
+ gen(genMaxItem) = id
+ 'REDIMs itemtags
+ load_special_tag_caches
 END SUB
 
 SUB ItemEditor.save()
@@ -171,6 +174,8 @@ SUB ItemEditor.define_items()
  IF submenu = "statbonus" THEN
  
  helpkey = "equipment_stat_bonuses"
+ prev_menu_text = "Previous Menu"
+
  FOR i as integer = 0 TO statLast
   defint statnames(i) + " Bonus:", item.stat_bonuses(i), -32768, 32767
   DIM cap as integer = gen(genStatCap + i)
@@ -181,7 +186,9 @@ SUB ItemEditor.define_items()
 
  '----------------------------
  ELSE '--main menu
+
  helpkey = "item_editor"
+ prev_menu_text = "Back to Item Menu"
 
  'Only do copy-pasting on the main menu. Not in sub-menus
  '(We don't want to create the false impression that only the contents of the sub-menu would be pasted)
