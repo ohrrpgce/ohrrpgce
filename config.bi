@@ -80,9 +80,9 @@ CONST build_info as string = _GSTR _ESTR " FB_ERR=" STRINGIFY(__FB_ERR__) _GENST
 
 '==================================== OS-specific defines =================================
 
-#IFDEF __FB_ANDROID__
- #DEFINE LOWMEM
-#ENDIF
+#if defined(__FB_ANDROID__) or defined(__FB_JS__)
+ #define LOWMEM
+#endif
 
 ' FB's headers check for __FB_LINUX__ but are missing headers for other unices
 ' as only GNU/Linux is fully supported (although I created some of the more
