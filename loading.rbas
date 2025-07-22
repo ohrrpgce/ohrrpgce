@@ -4291,18 +4291,12 @@ FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) a
 END FUNCTION
 
 SUB LoadItemElementals (byval index as integer, itemresists() as single)
- DIM itembuf(dimbinsize(binITM)) as integer
- loaditemdata itembuf(), index
+ DIM item as ItemDef
+ loaditemdata item, index
  REDIM itemresists(gen(genNumElements) - 1)
- IF getfixbit(fixItemElementals) THEN
-  FOR i as integer = 0 TO gen(genNumElements) - 1
-   itemresists(i) = DeSerSingle(itembuf(), 82 + i * 2)
-  NEXT
- ELSE
-  FOR i as integer = 0 TO gen(genNumElements) - 1
-   itemresists(i) = LoadOldItemElemental(itembuf(), i)
-  NEXT
- END IF
+ FOR i as integer = 0 TO gen(genNumElements) - 1
+  itemresists(i) = item.elemental_resist(i)
+ NEXT
 END SUB
 
 FUNCTION get_item_stack_size (byval item_id as integer) as integer
