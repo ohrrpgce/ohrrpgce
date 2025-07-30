@@ -45,7 +45,7 @@ DECLARE SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
 DECLARE FUNCTION perform_npc_move(byval npcnum as NPCIndex, npci as NPCInst, npcdata as NPCType) as bool
 DECLARE SUB npchitwall (npci as NPCInst, npcdata as NPCType, collision_type as WalkaboutCollisionType)
 DECLARE FUNCTION find_useable_npc () as NPCIndex
-DECLARE SUB interpret_scripts ()
+DECLARE SUB interpret_scripts(fibregroup as ScriptFibre ptr vector)
 DECLARE SUB update_heroes(force_step_check as bool=NO)
 DECLARE SUB doloadgame(byval load_slot as integer, prefix as string="")
 DECLARE SUB reset_game_final_cleanup()
@@ -803,7 +803,7 @@ DO
   IF running_under_Custom THEN try_to_reload_lumps_onmap
  #ENDIF
 
- 'DEBUG debug "increment play timers"
+ 'DEBUG debug "increment play time"
  IF gam.paused = NO THEN playtimer
 
  'DEBUG debug "read controls"
@@ -830,7 +830,7 @@ DO
 
  IF menus_allow_gameplay() THEN
  'DEBUG debug "enter script interpreter"
- interpret_scripts
+ interpret_scripts mainFibreGroup
 
  'DEBUG debug "increment script timers"
  dotimer(TIMER_NORMAL)
@@ -2529,7 +2529,7 @@ END FUNCTION
 '==========================================================================================
 
 
-SUB execute_script_fibres
+SUB execute_script_fibres(fibregroup as ScriptFibre ptr vector)
  DIM wantimmediate_bug_emu as bool
 
  WHILE nowscript >= 0
@@ -2578,15 +2578,15 @@ SUB execute_script_fibres
  WEND
 END SUB
 
-SUB interpret_scripts()
+SUB interpret_scripts(fibregroup as ScriptFibre ptr vector)
  IF gam.debug_timings THEN main_timer.substart TimerIDs.Scripts
 
  'It seems like it would be good to call this immediately before scriptinterpreter so that
  'the return values of fightformation and waitforkey are correct, however doing so might
  'break something?
- run_queued_scripts
+ run_queued_scripts fibregroup
 
- execute_script_fibres
+ execute_script_fibres fibregroup
 
  script_log_tick
  gam.script_log.tick += 1

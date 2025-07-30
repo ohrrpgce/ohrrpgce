@@ -10,8 +10,7 @@
 DECLARE SUB trigger_script (id as integer, numargs as integer, double_trigger_check as bool, scripttype as string, trigger_loc as string, byref fibregroup as ScriptFibre ptr vector, priority as integer = 0)
 
 DECLARE SUB trigger_script_arg (byval argno as integer, byval value as integer, byval argname as zstring ptr = NULL)
-DECLARE SUB dequeue_scripts ()
-DECLARE SUB run_queued_scripts ()
+DECLARE SUB run_queued_scripts (group as ScriptFibre ptr vector)
 
 DECLARE SUB start_script_trigger_log ()
 DECLARE SUB script_log_tick ()

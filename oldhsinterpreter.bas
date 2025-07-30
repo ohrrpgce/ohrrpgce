@@ -503,8 +503,15 @@ DO
    IF gam.debug_scripts AND breakstnext THEN breakpoint gam.debug_scripts, 2
    GOTO interpretloop 'new WITH pointer
   CASE sttriggered'---special initial state used just for script trigger logging
-   IF gam.script_log.enabled THEN watched_script_triggered *last_queued_script
-   scriptinsts(nowscript).started = YES
+   DIM byref inst as ScriptInst = scriptinsts(nowscript)
+   IF gam.script_log.enabled THEN
+    IF inst.fibre = NULL THEN
+     showbug "sttriggered missing fibre ptr"
+    ELSE
+     watched_script_triggered *inst.fibre
+    END IF
+   END IF
+   inst.started = YES
    .state = ststart
   CASE sterror'---some error has occurred, crash and burn
    '--note that there's no thought out plan for handling errors
