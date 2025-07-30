@@ -27,6 +27,8 @@ Aug 04 2025 [Kaleidophone]
 
   *** Bugfixes
     * Bug #1186 Add hero hook script breaks "add hero" return value [Ralph]
+    * Bug #550 "Simulate Bug #430 wait skips" backcompat is finally auto-enabled
+      in ubersetzung and older games, which oft relied on it [Ralph]
 
   *** Stuff Only Developers Will Notice
 
@@ -2647,6 +2649,8 @@ August 16 2008 [werewaffle]
     * Fixed Bug 626 Bitsets altered (memory corruption) after reaching
       maximum number of Menu Items [James]
     * Preferred target weak/strong stat setting now works [Ralph]
+    * Bug 430: When 2 scripts were triggered at once, wait commands would
+      break or an illegal wait substate error occurred [Ralph, Yuriy]
 
   * New Plotscripting Stuff
     * You can now have up to 4096 global variables (global ID numbers

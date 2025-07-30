@@ -4484,7 +4484,8 @@ sprite_empty_cache
 DIM has_sfx as bool = isfile(workingdir & SLASH & "sfxdata.bin")
 
 '----------------------------------------
-'Update record-count for all fixed-length lumps.
+'Update record-count for all fixed-length lumps, and expand the lumps if they have partial final records.
+'Doesn't otherwise modify or create lumps.
 'WARNING: we haven't done fixWipeGEN yet, so don't initialise anything in gen(199) and up!
 
 IF time_rpg_upgrade THEN upgrade_message "Updating record counts"
@@ -4746,6 +4747,7 @@ IF gen(genVersion) = 4 THEN
  'esperable (2003) introduced the bug where harm tiles no longer damage the
  'whole active party if the caterpillar is disabled. Fixed for alectormancy.
  'The best we can do is not emulating the bug for versions before March 2001 :(
+ upgrade_message "Enabling 'Harm tiles harm non-caterpillar heroes' bit"
  setprefbit 28  'Harm tiles harm non-caterpillar heroes
 END IF
 '--VERSION 6--
@@ -4911,8 +4913,10 @@ updaterecordlength game + ".tap", binTAP
 updaterecordlength game + ".map", binMAP
 updaterecordlength workingdir + SLASH + "menus.bin", binMENUS
 updaterecordlength workingdir + SLASH + "menuitem.bin", binMENUITEM
+DIM was_missing_menus as bool = NO
 IF NOT isfile(workingdir + SLASH + "menuitem.bin") THEN
  upgrade_message "Creating default menu file..."
+ was_missing_menus = YES
  DIM def_menu_set as MenuSet
  def_menu_set.menufile = workingdir + SLASH + "menus.bin"
  def_menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
@@ -5015,6 +5019,7 @@ END IF
 'Workaround bug #2013: Backdrops were drawn immediately above (instead of) spritelayer until
 'r5437, which swapped the order. genVersion was increased to 18 in r5477
 IF original_genVersion <= 17 THEN
+ upgrade_message "Enabling 'Draw Backdrop slice above Script layer' bit"
  setprefbit 39  'Draw Backdrop slice above Script layer
 END IF
 
@@ -5175,7 +5180,7 @@ END IF
 '-------------------------------------------------------------------------------
 
 IF getfixbit(fixPushNPCBugCompat) = 0 THEN
- upgrade_message "Enabling 'Simulate pushable NPC bug' bitset..."
+ upgrade_message "Enabling 'Simulate pushable NPC bug' bit"
  setfixbit(fixPushNPCBugCompat, 1)
  setprefbit 16  '"Simulate Pushable NPC obstruction bug"
 END IF
@@ -5332,6 +5337,19 @@ IF getfixbit(fixUNUSED23) = 1 THEN
  gen(192) = 0
 END IF
 
+'Autoenable bug 430 emulation if the game definitely hasn't been edited with a
+'version with the bugfix.
+'menuitem.bin has been autocreated since r1522 (2007-10-30), though it could
+'have existed earlier.  The bug 430 fix was enabled in wip in r1529 (2007-11-03)
+'but voxhumana (2008-01-21) released with the bugfix disabled; werewaffle had
+'the fix. We probably can't detect games edited with voxhumana, so they don't
+'get the bug emulation.
+'genVersion wasn't incremented until 2008-11-21. Only a sanity check.
+IF was_missing_menus ANDALSO original_genVersion < 7 THEN
+ upgrade_message "Enabling 'Simulate Bug #430' bit"
+ setprefbit 33 '"Simulate Bug #430 script wait skips"
+END IF
+
 IF getfixbit(fixSetOldAttackPosBit) = 0 THEN
  upgrade_message "Enabling 'Old attack positioning at bottom-left of target' bit"
  setfixbit(fixSetOldAttackPosBit, 1)
@@ -5348,7 +5366,7 @@ IF getfixbit(fixWrapCroppedMapsBit) = 0 THEN
 END IF
 
 IF getfixbit(fixOldElementalFailBit) = 0 THEN
- upgrade_message "Enabling 'Simulate old fail vs. element resist bit' bitset"
+ upgrade_message "Enabling 'Simulate old fail vs. element resist bit' bit"
  setfixbit(fixOldElementalFailBit, 1)
  setprefbit 25
 END IF
@@ -5586,7 +5604,7 @@ SUB adjust_record_count(byref last_rec_index as integer, records as integer, lum
 END SUB
 
 'Correct a variable holding number of fixed-length-records (last_rec_index + 1 + count_offset)
-'to the real amount in a file, and check that the file doesn't have any partial records.
+'to the real amount in a file, and expand the file if it has a partial final record.
 'NOTE: This doesn't fix a lump which is missing or zero length; use fix_recordless_lump for that.
 SUB fix_record_count(byref last_rec_index as integer, record_byte_size as integer, lumpname as string, info as string, skip_header_bytes as integer=0, count_offset as integer=0, errlvl as ErrorLevelEnum=errError)
  DIM rec_count as integer = last_rec_index + 1 + count_offset
