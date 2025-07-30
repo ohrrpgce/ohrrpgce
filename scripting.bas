@@ -48,7 +48,7 @@ DIM command_profiles(maxScriptCmdID) as CommandProfile
 '--------- Module shared variables ---------
 
 'Used by trigger_script
-DIM SHARED trigger_script_failure as bool
+DIM SHARED trigger_script_result as RunScriptResult
 DIM SHARED last_triggered_fibre as ScriptFibre ptr   'Fibre created by the last trigger_script, NULL on failure or after dequeued
 
 
@@ -84,8 +84,8 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
 
   DIM rsr as RunScriptResult
   rsr = runscript(id, YES, double_trigger_check, scripttype)
-  trigger_script_failure = (rsr <> rsSuccess)
-  IF trigger_script_failure THEN EXIT SUB
+  trigger_script_result = rsr
+  IF trigger_script_result <> rsSuccess THEN EXIT SUB
 
   last_triggered_fibre = NEW ScriptFibre
   last_triggered_fibre->slot = nowscript
@@ -101,7 +101,7 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
  ELSE
   'Script log will be handled by run_queued_script
 
-  trigger_script_failure = NO  'Can't fail until runscript actually called
+  trigger_script_result = rsSuccess  'Can't fail until runscript actually called
 
   last_triggered_fibre = NEW ScriptFibre
   last_triggered_fibre->slot = -1
@@ -135,14 +135,14 @@ END SUB
 SUB trigger_script_arg (byval argno as integer, byval value as integer, byval argname as zstring ptr = NULL)
  'Set one of the args for a script that was just triggered. They must be in the right order, and all provided.
  'Note that after calling trigger_script, script queuing can be in three states:
- 'inside interpreter, trigger_script_failure = NO, last_triggered_fibre valid
+ 'inside interpreter, trigger_script_result = rsSuccess, last_triggered_fibre valid
  '    triggered a script which started immediately
- 'inside interpreter, trigger_script_failure = YES, last_triggered_fibre = NULL
+ 'inside interpreter, trigger_script_result <> rsSuccess, last_triggered_fibre = NULL
  '    triggered a script which there was an error starting
- 'not inside interpreter, trigger_script_failure = NO, last_triggered_fibre valid
+ 'not inside interpreter, trigger_script_result = rsSuccess, last_triggered_fibre valid
  '    queued a script, can now set the arguments
 
- IF trigger_script_failure ORELSE last_triggered_fibre = NULL THEN EXIT SUB
+ IF trigger_script_result <> rsSuccess ORELSE last_triggered_fibre = NULL THEN EXIT SUB
 
  IF insideinterpreter THEN
   setScriptArg argno, value
@@ -538,7 +538,7 @@ END IF
 IF double_trigger_check ANDALSO index > 0 THEN
  IF n = scriptinsts(index - 1).id ANDALSO prefbit(10) = NO THEN  '"Permit double-triggering of scripts" off
   scripterr "Not double-triggering script " & scriptname(n), serrInfo
-  RETURN rsQuietFail
+  RETURN rsIgnored
  END IF
 END IF
 

@@ -42,6 +42,7 @@ ENUM 'RunScriptResult
   rsFail = 0
   rsSuccess = 1
   rsQuietFail = 2
+  rsIgnored = 3     'Didn't trigger because of double-trigger prevention
 END ENUM
 TYPE RunScriptResult as integer
 

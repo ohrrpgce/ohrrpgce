@@ -1819,6 +1819,7 @@ SUB script_commands(byval cmdid as integer)
   ELSEIF rsr = rsFail THEN
    scripterr "run script by id failed loading " & retvals(0), serrMajor
   END IF
+  'Don't show error on quiet errors or ignored triggers
  CASE 180'--map width([map])
   'map width did not originally have an argument
   DIM map_id as integer = get_optional_arg(0, -1)
