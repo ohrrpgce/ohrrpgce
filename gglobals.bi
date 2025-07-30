@@ -70,7 +70,6 @@ EXTERN heap() as integer
 EXTERN scrat() as OldScriptState
 EXTERN scriptinsts() as ScriptInst
 EXTERN retvalsbase as integer ptr
-EXTERN wantimmediate as integer
 EXTERN scriptprofiling as bool
 EXTERN commandprofiling as bool
 EXTERN timing_fibre as bool

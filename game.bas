@@ -184,7 +184,6 @@ DIM insideinterpreter as bool
 DIM timing_fibre as bool
 DIM scriptprofiling as bool
 DIM commandprofiling as bool
-DIM wantimmediate as integer  'Equal to 0, -1 or -2
 
 'incredibly frustratingly fbc doesn't export global array debugging symbols
 DIM globalp as integer ptr
@@ -2531,41 +2530,51 @@ END FUNCTION
 
 
 SUB execute_script_fibres
+ DIM wantimmediate_bug_emu as bool
+
  WHILE nowscript >= 0
   WITH scriptinsts(nowscript)
    IF .waiting THEN
     process_wait_conditions
+    'Other scripts are blocked
+    IF .waiting THEN EXIT WHILE
    END IF
-   IF .waiting THEN
-    EXIT WHILE
-   END IF
-
-   '--interpret script
-   insideinterpreter = YES
-   wantimmediate = 0
-   'May set wantimmediate to -1 to indicate fibre finished, or -2 to indicate fibre
-   'finished in way that triggered bug 430
-   scriptinterpreter
-   insideinterpreter = NO
-
-   IF wantimmediate = -2 THEN
-    'IF nowscript < 0 THEN
-    ' debug "wantimmediate ended on nowscript = -1"
-    'ELSE
-    ' debug "wantimmediate would have skipped wait on command " & commandname(scrat(nowscript).curvalue) _
-    '       & " in " & scriptname(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
-    'END IF
-    IF prefbit(33) THEN  '"Simulate Bug #430 script wait skips"
-     'Reenable bug 430 (see also bug 550), where if two scripts were triggered at once then
-     'when the top script ended it would cause the one below it to run for two ticks.
-     wantimmediate = -1
-    ELSE
-     wantimmediate = 0
-    END IF
-   END IF
-
-   IF wantimmediate = 0 THEN EXIT WHILE
   END WITH
+
+  '--interpret script
+  DIM finished_fibre as bool
+  finished_fibre = scriptinterpreter()
+  'scriptinterpreter returns whenever the topmost fibre finishes or starts
+  'waiting (it might be one newly triggered, not the one we started executing)
+
+  IF finished_fibre = NO THEN
+   BUG_IF(nowscript < 0 ORELSE scriptinsts(nowscript).waiting = NO, "Fibre stopped but not waiting")
+
+   'Bug 430 emulation (see also bug 550), where whenever a fibre finishes and the script
+   'beneath it isn't waiting (which happened after two or more scripts were triggered at once),
+   'the wantimmediate flag got set so the next script on that tick that tried to wait would
+   'immediately run again, skipping one tick of waiting.
+   IF wantimmediate_bug_emu THEN
+    wantimmediate_bug_emu = NO
+    CONTINUE WHILE
+   END IF
+
+   'Other fibres are blocked
+   EXIT WHILE
+  END IF
+
+  'Loop only when resuming a suspended script, whose state could include
+  'ststart, stwait, streturn (called a command that triggered a script), or others.
+
+  'Check bug 430 trigger
+  IF nowscript >= 0 ANDALSO scrat(nowscript).state <> stwait THEN
+   ' debug "WANTIMMEDIATE BUG"
+   ' debug scriptname(scrat(nowscript + 1).id) & " terminated, setting wantimmediate on " & scriptname(scrat(nowscript).id)
+   IF prefbit(33) THEN  '"Simulate Bug #430 script wait skips"
+    wantimmediate_bug_emu = YES
+   END IF
+  END IF
+
  WEND
 END SUB
 

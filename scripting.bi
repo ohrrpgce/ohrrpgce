@@ -74,7 +74,7 @@ DECLARE FUNCTION script_interrupt () as bool
 ' The following are in oldhsinterpreter.bas
 
 DECLARE FUNCTION oldscriptstate_init (index as integer, script as ScriptData ptr) as zstring ptr
-DECLARE SUB scriptinterpreter ()
+DECLARE FUNCTION scriptinterpreter () as bool
 DECLARE SUB breakpoint (byref mode as integer, byval callspot as integer)
 DECLARE SUB scriptwatcher (byref mode as integer, byval drawloop as bool = NO)
 DECLARE SUB scriptdump (header as string)

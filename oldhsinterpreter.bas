@@ -20,7 +20,7 @@
 #include "game.bi"
 
 'local subs and functions
-DECLARE SUB scriptinterpreter_loop ()
+DECLARE FUNCTION scriptinterpreter_loop () as bool
 DECLARE FUNCTION interpreter_occasional_checks () as integer
 DECLARE FUNCTION functiondone () as integer
 DECLARE SUB killtopscript ()
@@ -119,7 +119,8 @@ FUNCTION oldscriptstate_init (index as integer, script as ScriptData ptr) as zst
  RETURN NULL
 END FUNCTION
 
-SUB scriptinterpreter ()
+'Return true if the script fibre finished
+FUNCTION scriptinterpreter () as bool
  WITH scrat(nowscript)
   SELECT CASE .state
    CASE IS < stnone
@@ -127,15 +128,15 @@ SUB scriptinterpreter ()
     .state = ABS(.state)
    CASE stnone
     showbug "script " & nowscript & " became stateless"
-   CASE stwait
-    EXIT SUB
+   CASE stwait  'Never happens; doesn't get called
+    RETURN NO
    CASE ELSE
-    scriptinterpreter_loop
+    RETURN scriptinterpreter_loop
   END SELECT
  END WITH
-END SUB
+END FUNCTION
 
-SUB scriptinterpreter_loop ()
+FUNCTION scriptinterpreter_loop () as bool
 DIM i as integer
 DIM temp as integer
 DIM tmpstate as integer
@@ -146,7 +147,9 @@ DIM tmpstep as integer
 DIM tmpnow as integer
 DIM tmpvar as integer
 DIM tmpkind as integer
+DIM finished_fibre as bool
 
+insideinterpreter = YES
 IF scriptprofiling THEN start_fibre_timing
 
 scriptinsts(nowscript).started = YES
@@ -490,23 +493,13 @@ DO
    END WITH
    EXIT DO
   CASE stdone'---script terminates
-   SELECT CASE functiondone()
-    'CASE 0
-     '--if returning a value to a calling script, .state is streturn
-    CASE 1
-     '--if no scripts left, break the loop
-     EXIT DO
-    CASE 2
-     '--if resuming a supended script, restore its state, which might include
-     '--ststart, stwait, streturn (called a command that triggered a script), or more
-     IF scrat(nowscript).state <> stwait THEN
-'      debug "WANTIMMEDIATE BUG"
-'      debug scriptname(scrat(nowscript + 1).id) & " terminated, setting wantimmediate on " & scriptname(scrat(nowscript).id)
-      wantimmediate = -2
-     ELSE
-      wantimmediate = -1
-     END IF
-   END SELECT
+   IF functiondone() = 0 THEN
+    '--returning a value to a calling script, caller's .state is streturn
+   ELSE
+    '--finished the current script fibre, break the loop
+    finished_fibre = YES
+    EXIT DO
+   END IF
    IF gam.debug_scripts AND breakstnext THEN breakpoint gam.debug_scripts, 2
    GOTO interpretloop 'new WITH pointer
   CASE sttriggered'---special initial state used just for script trigger logging
@@ -526,8 +519,10 @@ LOOP
 END WITH
 
 IF scriptprofiling THEN stop_fibre_timing
+insideinterpreter = NO
+RETURN finished_fibre
 
-END SUB
+END FUNCTION
 
 'Returns true if current interpreter block should be aborted.
 'Gets called at the top of every kind of loop.
@@ -596,8 +591,7 @@ END FUNCTION
 
 FUNCTION functiondone () as integer
 'returns 0 when returning a value to a caller
-'returns 1 when all scripts/fibres are finished
-'returns 2 when the fibre finished and reactivating a suspended fibre
+'returns 1 when the last script in the fibre is finished
 
 DIM endingscript as ScriptData ptr = scrat(nowscript).scr
 
@@ -616,7 +610,7 @@ deref_script(endingscript)
 nowscript = nowscript - 1
 
 IF nowscript < 0 THEN
- functiondone = 1'--no scripts are running anymore
+ RETURN 1'--no scripts are running anymore
 ELSE
  DIM state as OldScriptState ptr = @scrat(nowscript)
 
@@ -635,12 +629,12 @@ ELSE
    scriptret = state->saved_scriptret
   END IF
   IF scriptinsts(nowscript).watched THEN watched_script_resumed
-  functiondone = 2'--reactivating a supended fibre
   IF scriptprofiling THEN start_fibre_timing
+  RETURN 1'--reactivating a supended fibre
  ELSE
   scriptret = scrat(nowscript + 1).ret
   state->state = streturn
-  functiondone = 0'--returning a value to a caller
+  RETURN 0'--returning a value to a caller
  END IF
 END IF
 
