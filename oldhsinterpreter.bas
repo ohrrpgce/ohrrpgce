@@ -295,8 +295,7 @@ DO
         scrst.pos = stkpos
        END WITH
 
-      END IF
-      IF rsr = rsFail THEN
+      ELSE
        'runscript may have shown an error, which might change the old scrat(nowscript).state to streturn (in killscriptthread)
        'or stexit (in killallscripts). TODO: don't set .state in so many places when runscript is called
        .state = streturn
