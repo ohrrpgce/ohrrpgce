@@ -1,5 +1,5 @@
 'OHRRPGCE GAME
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 '
 ' This module contains routines to do with HamsterSpeak which are (mostly)
@@ -82,9 +82,7 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
   'Always becomes the topmost fibre, priority ignored (TODO: this will change)
   insertpos = v_len(fibregroup)
 
-  DIM rsr as RunScriptResult
-  rsr = runscript(id, YES, double_trigger_check, scripttype)
-  trigger_script_result = rsr
+  trigger_script_result = runscript(id, YES, double_trigger_check, scripttype)
   IF trigger_script_result <> rsSuccess THEN EXIT SUB
 
   last_triggered_fibre = NEW ScriptFibre
@@ -165,9 +163,8 @@ LOCAL FUNCTION run_queued_script (fibre as ScriptFibre) as bool
  'If the script is missing then .id = 0 and decodetrigger already showed an error
  IF fibre.id = 0 THEN RETURN NO
 
- DIM rsr as RunScriptResult
- rsr = runscript(fibre.id, YES, fibre.double_trigger_check, fibre.scripttype)
- IF rsr = rsSuccess THEN
+ trigger_script_result = runscript(fibre.id, YES, fibre.double_trigger_check, fibre.scripttype)
+ IF trigger_script_result = rsSuccess THEN
   FOR argno as integer = 0 TO fibre.argc - 1
    setScriptArg argno, fibre.args(argno)
   NEXT
@@ -179,7 +176,7 @@ LOCAL FUNCTION run_queued_script (fibre as ScriptFibre) as bool
  'Log failed triggers too
  IF gam.script_log.enabled THEN watched_script_triggered fibre
 
- RETURN rsr = rsSuccess
+ RETURN trigger_script_result = rsSuccess
 END FUNCTION
 
 'Load queued script fibres into the interpreter (this is delayed so the order
@@ -283,19 +280,29 @@ FUNCTION script_log_indent (byval upto as integer = -1, byval spaces as integer 
 END FUNCTION
 
 'Called after runscript when running a script which should be watched
-'TODO: handle runscript failure
 SUB watched_script_triggered(fibre as ScriptFibre)
- scriptinsts(nowscript).watched = YES
  IF gam.script_log.last_logged > -1 ANDALSO scriptinsts(gam.script_log.last_logged).started = NO THEN
   script_log_out " (queued)"
  END IF
 
+ DIM prev_nowscript as integer
+
+ IF trigger_script_result = rsSuccess THEN
+  prev_nowscript = nowscript - 1
+  scriptinsts(nowscript).watched = YES
+  gam.script_log.last_logged = nowscript
+ ELSE
+  prev_nowscript = nowscript
+  gam.script_log.last_logged = -1
+ END IF
+
  DIM logline as string
  logline = !"\n" & script_log_indent()
+
  IF insideinterpreter THEN
-  IF nowscript >= 1 ANDALSO scrat(nowscript - 1).state < 0 THEN
+  IF prev_nowscript >= 0 ANDALSO scrat(prev_nowscript).state < 0 THEN
    'The previous script was suspended, therefore this script was triggered as
-   'a side effect of something that script did, such as activate an NPC
+   'a side effect of something that script did, such as advance a text box
    logline &= "!"
   ELSE
    'Called normally
@@ -310,9 +317,13 @@ SUB watched_script_triggered(fibre as ScriptFibre)
  IF LEN(fibre.trigger_loc) THEN
   logline &= ", " & fibre.trigger_loc
  END IF
- script_log_out logline
+ IF trigger_script_result = rsIgnored THEN
+  logline &= " ...did not trigger: double trigger ignored"
+ ELSEIF trigger_script_result <> rsSuccess THEN
+  logline &= " ...ERROR: could not run! See g_debug.txt"
+ END IF
 
- gam.script_log.last_logged = nowscript
+ script_log_out logline
 END SUB
 
 'nowscript has been started and resumed and has .watched = YES
@@ -553,11 +564,8 @@ END IF
 
 WITH scriptinsts(index)
  '-- Load the script (or return the reference if already loaded)
- .scr = loadscript(n)
- IF .scr = NULL THEN
-  scripterr "Failed to load " + *scripttype + " script " & n & " " & scriptname(n), serrError
-  RETURN rsFail
- END IF
+ .scr = loadscript(n)  'Displays error on failure
+ IF .scr = NULL THEN RETURN rsFail
  IF scriptprofiling THEN .scr->numcalls += 1
  scriptctr += 1
  .scr->lastuse = scriptctr
@@ -639,7 +647,8 @@ LOCAL FUNCTION loadscript_open_script (n as integer, expect_exists as bool = YES
  RETURN fh
 END FUNCTION
 
-'Loads a script (putting it in the cache) or fetchs it from the cache. Returns NULL on failure.
+'Loads a script (putting it in the cache) or fetchs it from the cache.
+'Displays an serrError error and returns NULL on failure.
 'Does not increment its refcount.
 'If loaddata is false, only loads the script header.
 FUNCTION loadscript (id as integer, loaddata as bool = YES) as ScriptData ptr
@@ -2016,7 +2025,7 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
    logged_repeat = YES
    EXIT SUB
   END IF
-  debug "Scripterr(" & errorlevel & " " & *scripterr_names(errorlevel) & "): " + logmsg
+  debug "Scripterr(errlvl=" & errorlevel & " " & *scripterr_names(errorlevel) & "): " + logmsg
   logged_ignore = NO  'Indicate when there are hidden script errors between the logged ones
  ELSEIF error_count = error_count_limit THEN
   debug "Ignoring further script errors"
