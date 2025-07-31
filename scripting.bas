@@ -2049,12 +2049,16 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
 
  IF errorlevel = serrError THEN errtext = "Script data may be corrupt or unsupported:" + CHR(10) + errtext
 
- errtext &= !"\n\n  Call chain (current script last):\n" & script_call_chain(YES, errorlevel)
+ 'TODO: sometimes outside the interpreter we're still in the context of a command, e.g. processing gam.want
+ 'flags. We should add another global to indicate the relevance of a script.
+ IF insideinterpreter THEN
+  errtext &= !"\n\n  Call chain (current script last):\n" & script_call_chain(YES, errorlevel)
 
- IF nowscript >= 0 THEN
-  DIM as ScriptTokenPos posdata
-  IF get_script_line_info(posdata, nowscript) THEN
-   errtext &= !"\n" & fgtag(uilook(uiDescription)) & highlighted_script_line(posdata, 120, @scriptinsts(nowscript))
+  IF nowscript >= 0 THEN
+   DIM as ScriptTokenPos posdata
+   IF get_script_line_info(posdata, nowscript) THEN
+    errtext &= !"\n" & fgtag(uilook(uiDescription)) & highlighted_script_line(posdata, 120, @scriptinsts(nowscript))
+   END IF
   END IF
  END IF
 
@@ -2084,7 +2088,7 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
  IF context_slice THEN
   append_menu_item menu, "Show this slice in the slice editor", 5
  ELSE
-  append_menu_item menu, "Enter slice editor/debugger", 5
+  'append_menu_item menu, "Enter slice editor/debugger", 5
  END IF
 
  IF recursivecall = 1 THEN  'don't reenter the debugger if possibly already inside!
