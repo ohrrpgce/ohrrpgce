@@ -41,7 +41,7 @@ DECLARE SUB script_stop_waiting(returnval as integer = 0)
 ENUM 'RunScriptResult
   rsFail = 0
   rsSuccess = 1
-  rsQuietFail = 2
+  rsNoScript = 2    'Passed id = 0 to runscript, so it did nothing
   rsIgnored = 3     'Didn't trigger because of double-trigger prevention
 END ENUM
 TYPE RunScriptResult as integer

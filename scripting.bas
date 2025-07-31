@@ -532,10 +532,13 @@ END SUB
 FUNCTION runscript (id as integer, newcall as bool, double_trigger_check as bool, scripttype as zstring ptr) as RunScriptResult
 'newcall: whether this script is triggered (start a new fibre) rather than called from a script as a call
 'double_trigger_check: whether "no double-triggering" should take effect
-'scripttype: type of the script (used for debugging/tracing), eg "autorun"
+'scripttype: type of the script (used for debugging/tracing), eg "autorun". Never NULL
+
+'AFAICT this only happens when executing runscriptbyid(0)
+IF id = 0 THEN RETURN rsNoScript
 
 DIM n as integer = decodetrigger(id)
-IF n = 0 THEN RETURN rsQuietFail  '(though decodetrigger might have shown a scripterr)
+IF n = 0 THEN RETURN rsFail  'decodetrigger would have shown a scripterr
 
 BUG_IF(insideinterpreter = NO AND newcall = NO, "newcall=NO outside interpreter", rsFail)
 
@@ -635,7 +638,9 @@ LOCAL FUNCTION loadscript_open_script (n as integer, expect_exists as bool = YES
    scriptfile = workingdir & SLASH & n & ".hsx"
    IF NOT isfile(scriptfile) THEN
     IF expect_exists THEN
-     scripterr "script " & n & " " & scriptname(n) & " does not exist. (Maybe it was renamed, and the script trigger needs to be updated?)", serrError
+     'This should probably only happen with old definescript manually numbered scripts. With
+     'autonumbered scripts, decodetrigger should have already noticed the script was missing.
+     scripterr "script " & scriptname(n) & " does not exist. (Maybe it was renumbered, and the script trigger needs to be updated?)", serrError
     END IF
     RETURN 0
    END IF
@@ -643,13 +648,13 @@ LOCAL FUNCTION loadscript_open_script (n as integer, expect_exists as bool = YES
  END IF
 
  DIM fh as integer
- OPENFILE(scriptfile, FOR_BINARY + ACCESS_READ, fh)
+ OPENFILE(scriptfile, FOR_BINARY + ACCESS_READ + OR_ERROR, fh)
  RETURN fh
 END FUNCTION
 
 'Loads a script (putting it in the cache) or fetchs it from the cache.
-'Displays an serrError error and returns NULL on failure.
 'Does not increment its refcount.
+'Displays an serrError error and returns NULL on failure.
 'If loaddata is false, only loads the script header.
 FUNCTION loadscript (id as integer, loaddata as bool = YES) as ScriptData ptr
  'debuginfo "loadscript(" & id & " " & scriptname(id) & ", loaddata = " & loaddata & ")"
@@ -1932,7 +1937,8 @@ FUNCTION script_call_chain (trim_front as bool = YES, errorlevel as scriptErrEnu
   scriptlocation = scriptname(scriptinsts(i).id) + " -> " + scriptlocation
  NEXT
 
- 'If a serious error occurred, the call chain is useless, and less screen space is available
+ 'If corrupt game data or an interpreter internal error occurred the call chain is useless,
+ 'and less screen space may be available
  DIM as integer cchainlimit
  cchainlimit = IIF(errorlevel >= serrError, 50, 120)
  IF trim_front AND LEN(scriptlocation) > cchainlimit THEN scriptlocation = " ..." + RIGHT(scriptlocation, cchainlimit - 4)

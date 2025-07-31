@@ -1809,6 +1809,8 @@ SUB script_commands(byval cmdid as integer)
   scriptret = -1
   DIM rsr as RunScriptResult
   DIM argc as integer = curcmd->argc  'Must store before calling runscript
+  'Note: if retvals(0) no error is shown or logged! Not sure what's best.
+  'On any other failure runscript shows an error.
   rsr = runscript(retvals(0), NO, NO, "runscriptbyid")
   IF rsr = rsSuccess THEN
    '--fill heap with arguments
@@ -1816,10 +1818,7 @@ SUB script_commands(byval cmdid as integer)
     setScriptArg i - 1, retvals(i)
    NEXT i
    'NOTE: scriptret is not set here when this command is successful. The return value of the called script will be returned.
-  ELSEIF rsr = rsFail THEN
-   scripterr "run script by id failed loading " & retvals(0), serrMajor
   END IF
-  'Don't show error on quiet errors or ignored triggers
  CASE 180'--map width([map])
   'map width did not originally have an argument
   DIM map_id as integer = get_optional_arg(0, -1)
