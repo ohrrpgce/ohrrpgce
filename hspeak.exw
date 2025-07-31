@@ -2672,7 +2672,12 @@ function pick_script_id(integer parent_id, string name)
     end if
     at=find_in_column({parent_id,encoded},reuse_ids,REUSE_PARENT_AND_NAME)
     if at then
-      return reuse_ids[at][PAIR_NUM]
+      id=reuse_ids[at][PAIR_NUM]
+      --Ignore non-autonumbered IDs, otherwise you couldn't change a script
+      --from definescript to autonumbered!
+      if id>=16384 then
+        return id
+      end if
     end if
   end if
 

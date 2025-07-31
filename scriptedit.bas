@@ -608,6 +608,8 @@ FUNCTION compilescripts(fname as string, hsifile as string, quickimport as bool 
   'preview, currently running scripts don't start calling the wrong scripts due
   'to ID remapping; 2) you can store script IDs in saved games and still have them
   'work later.
+  'However, if an old definescript-style script is converted to a plotscript then
+  'hspeak (since 3Wa) will ignore the old ID and assign a new autonumber.
   IF strcmp(STRPTR(hspeak_ver), STRPTR("3Pa")) >= 0 THEN
    unlumpfile game & ".hsp", "scripts.bin", tmpdir
    IF real_isfile(tmpdir & "scripts.bin") THEN
