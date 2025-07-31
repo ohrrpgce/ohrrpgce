@@ -231,16 +231,19 @@ FUNCTION save_lookup1_bin (triggers() as TriggerData, filename as string) as boo
   RETURN NO
  END IF
 
+ DIM binsize as integer = curbinsize(binLOOKUP1)
+ DIM buf(binsize \ 2 - 1) as integer  '0 TO 34
  FOR idx as integer = 0 TO UBOUND(triggers)
   WITH triggers(idx)
-   DIM buf(19) as integer
    buf(0) = .id
-   writebinstring .name, buf(), 1, 36
-   storerecord buf(), lookupfh, 20, idx
+   writebinstring .name, buf(), 1, 64  '1-33
+   buf(34) = .role
+   storerecord buf(), lookupfh, binsize \ 2, idx
   END WITH
  NEXT
 
  CLOSE lookupfh
+ setbinsize binLOOKUP1, binsize
  RETURN YES
 END FUNCTION
 
@@ -341,7 +344,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   DIM viscount as integer = 0
   DIM scrname as string = ""
   DIM id as integer
-  DIM role as integer
+  DIM role as ScriptRole
 
   'We first write to plotscr.lst.tmp, which we afterwards move to plotscr.lst, with
   'previous file moved to plotscr.lst.old.tmp.
@@ -374,7 +377,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
      LINE INPUT #fptr, dummy
     NEXT i
     id = str2int(num)
-    role = 0
+    role = script_role
     scrname = LEFT(scrname, 36)
    END IF
 
@@ -386,16 +389,17 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
 
    IF id < 16384 THEN maxscriptid = large(maxscriptid, id)
 
-   'add to triggers()
-   IF role > 0 THEN
+   'add plotscripts to triggers()
+   IF role > script_role THEN
     WITH find_or_add_trigger(triggers(), scrname)
      .id = id
+     .role = role
      .imported = YES
     END WITH
    END IF
 
-   'Display progress, don't show plain "script"s
-   IF id < 16384 OR role > 0 THEN
+   'Display progress, don't show plain "script"s or "subscript"s
+   IF id < 16384 OR role > script_role THEN
     viscount += 1
     IF quickimport = NO THEN console_append_message scrname & ", "
    END IF

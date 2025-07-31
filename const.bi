@@ -367,8 +367,9 @@ CONST binDT0 = 10
 CONST binDT1 = 11
 CONST binITM = 12
 CONST binTAP = 13
+CONST binLOOKUP1 = 14
 
-CONST binLASTENTRY = 13 ' *** Update this when adding binsize records ***
+CONST binLASTENTRY = 14 ' *** Update this when adding binsize records ***
 
 Enum SpriteType
 	sprTypeInvalid = -2

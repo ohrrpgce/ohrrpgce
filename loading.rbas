@@ -4808,15 +4808,17 @@ SUB load_lookup1_bin(triggers() as TriggerData)
   debuginfo "lookup1.bin missing"  'The game might have no scripts.
   REDIM triggers(-1 TO -1)
  ELSE
-  DIM as integer records = LOF(fh) \ 40
+  DIM binsize as integer = getbinsize(binLOOKUP1)
+  DIM as integer records = LOF(fh) \ binsize
   REDIM triggers(-1 TO records - 1)
 
   DIM idx as integer = 0
-  DIM buf(19) as integer
-  WHILE loadrecord(buf(), fh, 20, idx, NO)
+  DIM buf(dimbinsize(binLOOKUP1)) as integer
+  WHILE loadrecord(buf(), fh, binsize \ 2, idx, NO)
    WITH triggers(idx)
     .id = buf(0)
-    .name = readbinstring(buf(), 1, 36)
+    .name = readbinstring(buf(), 1, 64)  '1-33
+    .role = IIF(binsize >= 70, buf(34), plotscript_role)
     .imported = NO
     'debug "lookup1: trigger " & (idx + 16384) & " script " & .id & " " & .name
    END WITH

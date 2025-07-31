@@ -407,9 +407,16 @@ Type HSHeader
   plotscr_version as string   'empty if not known
 End Type
 
+ENUM ScriptRole
+  subscript_role = -1
+  script_role = 0
+  plotscript_role = 1
+END ENUM
+
 TYPE TriggerData
   name as string
   id as integer
+  role as ScriptRole
   imported as bool      'For importscripts only: whether the script has actually been imported
 END TYPE
 
