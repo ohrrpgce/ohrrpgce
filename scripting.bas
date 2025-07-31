@@ -57,7 +57,7 @@ DIM SHARED last_triggered_fibre as ScriptFibre ptr   'Fibre created by the last 
 '==========================================================================================
 
 
-SUB trigger_script (id as integer, numargs as integer, double_trigger_check as bool, scripttype as string, trigger_loc as string, byref fibregroup as ScriptFibre ptr vector, priority as integer = 0)
+SUB trigger_script (id as integer, numargs as integer, double_trigger_check as bool, trigger_name as string, trigger_loc as string, byref fibregroup as ScriptFibre ptr vector, priority as integer = 0)
  'Add a script to one of the script queues, unless already inside the interpreter.
  'In that case, run immediately.
  'After calling this SUB, call trigger_script_arg zero or more times to set the arguments.
@@ -66,7 +66,7 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
  'id:           either a script ID or a trigger number
  'numargs:      the number of arguments that will be provided
  'double_trigger_check:  whether "no double-triggering" should take effect
- 'scripttype:   type of the script (used for debugging/tracing), eg "autorun"
+ 'trigger_name: identifies the trigger (used for debugging/tracing), eg "autorun"
  'trigger_loc:  specific script trigger cause, eg "map 5"
  'fibregroup:   a vector of ScriptFibre ptrs, usually mainFibreGroup
 
@@ -82,7 +82,7 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
   'Always becomes the topmost fibre, priority ignored (TODO: this will change)
   insertpos = v_len(fibregroup)
 
-  trigger_script_result = runscript(id, YES, double_trigger_check, scripttype)
+  trigger_script_result = runscript(id, YES, double_trigger_check, trigger_name)
   IF trigger_script_result <> rsSuccess THEN EXIT SUB
 
   last_triggered_fibre = NEW ScriptFibre
@@ -121,7 +121,7 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
   id = decodetrigger(id)
   'If the script was missing, id is now 0, but still queue the script so trigger_script_arg works.
   .id = id
-  .scripttype = scripttype
+  .trigger_name = trigger_name
   .log_line = scriptname(id) & "("
   .trigger_loc = trigger_loc
   .double_trigger_check = double_trigger_check
@@ -147,7 +147,7 @@ SUB trigger_script_arg (byval argno as integer, byval value as integer, byval ar
  END IF
 
  WITH *last_triggered_fibre
-  BUG_IF(argno >= .argc, .scripttype & " triggering is broken: bad arg num " & argno)
+  BUG_IF(argno >= .argc, .trigger_name & " triggering is broken: bad arg num " & argno)
   .args(argno) = value
   IF gam.script_log.enabled THEN
    IF argno <> 0 THEN .log_line += ", "
@@ -163,7 +163,7 @@ LOCAL FUNCTION run_queued_script (fibre as ScriptFibre) as bool
  'If the script is missing then .id = 0 and decodetrigger already showed an error
  IF fibre.id = 0 THEN RETURN NO
 
- trigger_script_result = runscript(fibre.id, YES, fibre.double_trigger_check, fibre.scripttype)
+ trigger_script_result = runscript(fibre.id, YES, fibre.double_trigger_check, fibre.trigger_name)
  IF trigger_script_result = rsSuccess THEN
   FOR argno as integer = 0 TO fibre.argc - 1
    setScriptArg argno, fibre.args(argno)
@@ -313,7 +313,7 @@ SUB watched_script_triggered(fibre as ScriptFibre)
   logline &= "+"
  END IF
 
- logline &= fibre.log_line & ") " & fibre.scripttype & " script"
+ logline &= fibre.log_line & ") " & fibre.trigger_name & " script"
  IF LEN(fibre.trigger_loc) THEN
   logline &= ", " & fibre.trigger_loc
  END IF
@@ -529,10 +529,11 @@ END SUB
 '==========================================================================================
 
 
-FUNCTION runscript (id as integer, newcall as bool, double_trigger_check as bool, scripttype as zstring ptr) as RunScriptResult
+FUNCTION runscript (id as integer, newcall as bool, double_trigger_check as bool, trigger_name as zstring ptr) as RunScriptResult
 'newcall: whether this script is triggered (start a new fibre) rather than called from a script as a call
 'double_trigger_check: whether "no double-triggering" should take effect
-'scripttype: type of the script (used for debugging/tracing), eg "autorun". Never NULL
+'trigger_name: type of the script (used for debugging/tracing), eg "autorun".
+'     Never NULL. Is "called" or "runscriptbyid" for non-triggered scripts.
 
 'AFAICT this only happens when executing runscriptbyid(0)
 IF id = 0 THEN RETURN rsNoScript
@@ -545,7 +546,7 @@ BUG_IF(insideinterpreter = NO AND newcall = NO, "newcall=NO outside interpreter"
 DIM index as integer = nowscript + 1
 
 IF index >= maxScriptRunning THEN
- scripterr "Can't load " & *scripttype & " script " & scriptname(n) & ", too many scripts running", serrMajor
+ scripterr "Can't load " & *trigger_name & " script " & scriptname(n) & ", too many scripts running", serrMajor
  RETURN rsFail
 END IF
 
@@ -572,7 +573,7 @@ WITH scriptinsts(index)
  IF scriptprofiling THEN .scr->numcalls += 1
  scriptctr += 1
  .scr->lastuse = scriptctr
- IF newcall THEN .scr->trigger_type = *scripttype
+ IF newcall THEN .scr->last_trigger_name = *trigger_name
  'increment refcount once loading is successful
 
  .fibre = NULL  'Caller initializes
@@ -590,7 +591,7 @@ WITH scriptinsts(index)
 
  DIM errstr as zstring ptr = oldscriptstate_init(index, .scr)
  IF errstr <> NULL THEN
-  scripterr "Failed to load " + *scripttype + " script " & n & " " & scriptname(n) & ", " & *errstr, serrError
+  scripterr "Failed to load " + *trigger_name + " script " & n & " " & scriptname(n) & ", " & *errstr, serrError
   RETURN rsFail
  END IF
 
@@ -611,7 +612,7 @@ WITH scriptinsts(index)
  END IF
 
  'debug "running " & .id & " " & scriptname(.id) & " in slot " & nowscript & " newcall = " _
- '      & newcall & " type " & *scripttype & ", parent = " & .scr->parent & " numcalls = " _
+ '      & newcall & " type " & *trigger_name & ", parent = " & .scr->parent & " numcalls = " _
  '      & .scr->numcalls & " refc = " & .scr->refcount & " lastuse = " & .scr->lastuse
 END WITH
 
@@ -951,6 +952,7 @@ END TYPE
 'Iterate over all loaded scripts, sort them in descending order according to score
 'returned by the callback, and return number of scripts in numscripts
 '(LRUlist is dynamic)
+'fibres_only: only include scripts which have been triggered as the root of a fibre
 SUB sort_scripts(LRUlist() as ScriptListElmt, byref numscripts as integer, scorefunc as function(scr as ScriptData) as double, fibres_only as bool = NO)
  DIM j as integer
  numscripts = 0
@@ -960,7 +962,7 @@ SUB sort_scripts(LRUlist() as ScriptListElmt, byref numscripts as integer, score
   DIM scrp as ScriptData Ptr = script(i)
   WHILE scrp
    ' A script is a fibre root if it has been started with a call to runscript with a trigger type name.
-   IF fibres_only AND LEN(scrp->trigger_type) = 0 THEN
+   IF fibres_only ANDALSO LEN(scrp->last_trigger_name) = 0 THEN
     scrp = scrp->next
     CONTINUE WHILE
    END IF
@@ -1393,7 +1395,7 @@ SUB print_script_profiling
        & lpad(format(.childtime*1000, "0"), , 10) & "ms" _
        & lpad(format(.childtime*1000/.numcalls, "0.0"), , 12) & "ms" _
        & lpad(STR(.numcalls), , 10) _
-       & lpad(.trigger_type, , 20) _
+       & lpad(.last_trigger_name, , 20) _
        & "  " & scriptname(ABS(.id))
   END WITH
  NEXT

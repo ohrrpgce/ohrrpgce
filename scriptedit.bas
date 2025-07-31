@@ -1394,24 +1394,24 @@ SUB general_scripts_menu ()
  DIM menu_display(menusize) as string
  DIM selectable(menusize) as bool
  flusharray selectable(), , YES
- DIM scripttype(menusize) as string
+ DIM trigger_names(menusize) as string
  selectable(1) = NO
  selectable(2) = NO  'Global script triggers:
- scripttype(3) = "New game"
- scripttype(4) = "Game over"
- scripttype(5) = "Load game"
- scripttype(6) = "Menu action"
- scripttype(7) = "Add hero"
- scripttype(8) = "Remove hero"
- scripttype(9) = "Swap hero"
+ trigger_names(3) = "New game"
+ trigger_names(4) = "Game over"
+ trigger_names(5) = "Load game"
+ trigger_names(6) = "Menu action"
+ trigger_names(7) = "Add hero"
+ trigger_names(8) = "Remove hero"
+ trigger_names(9) = "Swap hero"
 
  selectable(10) = NO
  selectable(11) = NO  'Map default scripts:
- scripttype(12) = "Map autorun"
- scripttype(13) = "After battle"
- scripttype(14) = "Instead of battle"
- scripttype(15) = "Each-step"
- scripttype(16) = "On-keypress"
+ trigger_names(12) = "Map autorun"
+ trigger_names(13) = "After battle"
+ trigger_names(14) = "Instead of battle"
+ trigger_names(15) = "Each-step"
+ trigger_names(16) = "On-keypress"
 
  DIM scriptgenoff(menusize) as integer = { _
      0, 0, 0, genNewGameScript, genGameoverScript, genLoadGameScript, genEscMenuScript, _
@@ -1438,7 +1438,7 @@ SUB general_scripts_menu ()
    'This menu item is a header
   ELSE
    IF enter_space_click(state) THEN
-    scriptbrowse(gen(scriptgenoff(state.pt)), plottrigger, scripttype(state.pt) + " script")
+    scriptbrowse(gen(scriptgenoff(state.pt)), plottrigger, trigger_names(state.pt) + " script")
    ELSE
     scrintgrabber(gen(scriptgenoff(state.pt)), 0, 0, ccLeft, ccRight, 1, plottrigger)
    END IF
@@ -1449,7 +1449,7 @@ SUB general_scripts_menu ()
   menu(11) = fgtag(uilook(eduiHeading)) + " Map default scripts"
   FOR i as integer = 1 TO menusize
    IF scriptgenoff(i) THEN
-    menu(i) = scripttype(i) + ": " + scriptname(gen(scriptgenoff(i)))
+    menu(i) = trigger_names(i) + ": " + scriptname(gen(scriptgenoff(i)))
    END IF
   NEXT
 

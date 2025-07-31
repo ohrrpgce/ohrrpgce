@@ -7,7 +7,7 @@
 
 #include "scrconst.bi"
 
-DECLARE SUB trigger_script (id as integer, numargs as integer, double_trigger_check as bool, scripttype as string, trigger_loc as string, byref fibregroup as ScriptFibre ptr vector, priority as integer = 0)
+DECLARE SUB trigger_script (id as integer, numargs as integer, double_trigger_check as bool, trigger_name as string, trigger_loc as string, byref fibregroup as ScriptFibre ptr vector, priority as integer = 0)
 
 DECLARE SUB trigger_script_arg (byval argno as integer, byval value as integer, byval argname as zstring ptr = NULL)
 DECLARE SUB run_queued_scripts (group as ScriptFibre ptr vector)
@@ -46,7 +46,7 @@ ENUM 'RunScriptResult
 END ENUM
 TYPE RunScriptResult as integer
 
-DECLARE FUNCTION runscript (id as integer, newcall as bool, double_trigger_check as bool, scripttype as zstring ptr) as RunScriptResult
+DECLARE FUNCTION runscript (id as integer, newcall as bool, double_trigger_check as bool, trigger_name as zstring ptr) as RunScriptResult
 DECLARE FUNCTION loadscript (id as integer, loaddata as bool = YES) as ScriptData ptr
 DECLARE SUB delete_ScriptData (byval scriptd as ScriptData ptr)
 DECLARE SUB deref_script (script as ScriptData ptr)

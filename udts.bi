@@ -437,8 +437,7 @@ TYPE ScriptData
   parent as integer     'ID of parent script or 0 if not a subscript
 
   'Book keeping
-  trigger_type as string 'The type of the last trigger (eg "new game") of this script, or blank
-                        '(A script is considered to be a fibre root if it has a non-blank trigger_type)
+  last_trigger_name as string 'The last trigger (eg "new game") of this script, or blank
   refcount as integer   'number of ScriptInst pointing to this data
   lastuse as uinteger
   'For script profiling. The following are filled in and used only if scriptprofiling is true.
@@ -525,11 +524,11 @@ TYPE ScriptFibre
 
   id as integer         'Triggers pre-decoded
   slot as integer       'scrat/scriptinsts index of head script; -1 if not started
-  scripttype as string
+  trigger_name as string
   trigger_loc as string 'More information about how it was triggered
   double_trigger_check as bool  'Whether to prevent double triggering
   priority as integer   'Determines ordering when multiple scripts are triggered at once
-  log_line as string    'Debugging aid: Comprised from scripttype, arg names and values and trigger_loc
+  log_line as string    'Debugging aid: Composed from trigger_name, arg names and values and trigger_loc
   argc as integer       'The number of args passed
   args(maxScriptArgs - 1) as integer
 END TYPE
