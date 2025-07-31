@@ -341,7 +341,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   DIM viscount as integer = 0
   DIM scrname as string = ""
   DIM id as integer
-  DIM trigger as integer
+  DIM role as integer
 
   'We first write to plotscr.lst.tmp, which we afterwards move to plotscr.lst, with
   'previous file moved to plotscr.lst.old.tmp.
@@ -359,7 +359,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
     'read from scripts.bin
     loadrecord buffer(), fptr, scripts_bin_recordsize \ 2
     id = buffer(0)
-    trigger = buffer(1)
+    role = buffer(1)
     scrname = readbinstring(buffer(), 2, 36)
    ELSE
     'read from scripts.txt
@@ -374,7 +374,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
      LINE INPUT #fptr, dummy
     NEXT i
     id = str2int(num)
-    trigger = 0
+    role = 0
     scrname = LEFT(scrname, 36)
    END IF
 
@@ -387,16 +387,15 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
    IF id < 16384 THEN maxscriptid = large(maxscriptid, id)
 
    'add to triggers()
-   IF trigger > 0 THEN
+   IF role > 0 THEN
     WITH find_or_add_trigger(triggers(), scrname)
      .id = id
      .imported = YES
     END WITH
    END IF
 
-   'display progress
-   IF id < 16384 OR trigger > 0 THEN
-    'This is a plotscript
+   'Display progress, don't show plain "script"s
+   IF id < 16384 OR role > 0 THEN
     viscount += 1
     IF quickimport = NO THEN console_append_message scrname & ", "
    END IF

@@ -1,6 +1,6 @@
 -- HamsterSpeak Compiler
 
--- (C) Copyright 2001-2024 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+-- (C) Copyright 2001-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 -- Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 -- This is a compiler for HamsterSpeak scripts used for plotscripting in
@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Wa 2025-07-31 definerole alternative spelling of definetrigger
 --3W  2024-02-06 Add srcpos debug info, local var names, and srcfiles.txt
 --3Vb 2024-02-06 Disallow local/subscript or script/global with the same name
 --    2024-01-11 Fix lexing of identifiers ending in : & | or -
@@ -189,8 +190,8 @@ constant COMPILER_VERSION="3"
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="W "
-constant COPYRIGHT_DATE="2024"
+constant COMPILER_SUB_VERSION="Wa"
+constant COPYRIGHT_DATE="2025"
 
 --Known single-character commandline options
 constant VALID_OPTIONS="abcdfjknstwuyz"
@@ -303,7 +304,7 @@ constant KIND_SEPARATOR=15  --Auto-delimiting tokens like +, if they haven't bee
                             --KIND_OPERATOR yet. Can only be used in defineoperator. (separator_list)
 constant KIND_ATTRIBUTE=16  --An @attribute
 constant KIND_LAST_VALID_IN_SCRIPT=16
-constant KIND_TOPLEVEL=17   --Toplevel keyword such as defineconstant, or script trigger, eg. plotscript
+constant KIND_TOPLEVEL=17   --Toplevel keyword such as defineconstant, or script role, eg. plotscript
 constant KIND_UNIMPLEMENTED=18
 constant KIND_LAST=18
 
@@ -368,7 +369,7 @@ integer total_lines       total_lines=0
 sequence cmd              cmd={}                  --TokenList (but type checking is very slow)
 sequence reuse_ids        reuse_ids={}            --type {PAIR_NUM, REUSE_PARENT_AND_NAME={parent_id, PAIR_NAME}}
 map constant_list         constant_list=map:new()
-sequence trigger_list     trigger_list={}         --type {PAIR_NUM, PAIR_NAME}
+sequence script_role_list script_role_list={}     --type {PAIR_NUM, PAIR_NAME}
 sequence operator_list    operator_list={}        --type {PAIR_NUM, PAIR_NAME, OPER_TRUENAME, OPER_POS}
 sequence function_list    function_list={}        --type {PAIR_NUM, PAIR_NAME, FUNC_ARGS, FUNC_POS, FUNC_ATTRS, FUNC_FLAGS}
 sequence global_list      global_list={{},{},{}}  --NOTE: three lists {PAIR_NUM, PAIR_NAME, GLB_POS}, not a list of globals
@@ -379,8 +380,8 @@ sequence script_list      script_list={}          --type {PAIR_NUM, PAIR_NAME, F
 map global_scope          global_scope=map:new()  --Maps all names in global scope EXCEPT operators to {SYM_KIND, SYM_ID, SYM_POS} tuples
 
 --SCRIPT_* are for all_scripts.
---The number of data fields used is variable, between _SCRIPT_MIN_LAST and _SCRIPT_MAX_LAST
-constant SCRIPT_TRIGGER_TOK=1     --Trigger token (type {CMD_TEXT, CMD_POS}), e.g. "script"
+--The number of data fields existing is variable, between _SCRIPT_MIN_LAST and _SCRIPT_MAX_LAST
+constant SCRIPT_ROLE_TOK=1        --Script role token (type {CMD_TEXT, CMD_POS}), e.g. "script"
 constant SCRIPT_NAME=2            --String, not fully-scoped
 constant SCRIPT_POS=3             --srcpos of script name token
 constant SCRIPT_FULL_NAME=4       --Full-scoped script name
@@ -394,12 +395,12 @@ constant SCRIPT_END_POS=10        --A srcpos of the last token of the script ('e
 constant _SCRIPT_MIN_LAST=10
 --The following are added later
 constant SCRIPT_ID=11             --Script ID. Value not appended until all IDs are assigned in check_script_declarations
-constant SCRIPT_TRIGGER_ID=12     --trigger ID. SCRIPT_TRIGGER_ID and later not appended until compile_a_script
+--The following are added in compile_a_script
+constant SCRIPT_ROLE_ID=12        --Role ID. 0 is "script", etc
 constant SCRIPT_NUM_NONLOCALS=13
-
 constant SCRIPT_VARIABLES=14      --VarList of locals and nonlocals
-constant SCRIPT_AST=15
-constant SCRIPT_BINARY=16
+constant SCRIPT_AST=15            --NodeList of the abstract syntax tree
+constant SCRIPT_BINARY=16         --Compiled data to go into the HSZ lumps
 constant _SCRIPT_MAX_LAST=16
 
 sequence all_scripts      all_scripts={}       --list of 'Script's == {SCRIPT_*} (variable length)
@@ -1131,7 +1132,8 @@ procedure init()
   --Init global data tables
   global_scope=map:new_from_kvpairs({
            {"defineconstant",{KIND_TOPLEVEL,0,0}}
-          ,{"definetrigger" ,{KIND_TOPLEVEL,0,0}}
+          ,{"definerole"    ,{KIND_TOPLEVEL,0,0}}
+          ,{"definetrigger" ,{KIND_TOPLEVEL,0,0}}  --obsolete naming of definerole
           ,{"defineoperator",{KIND_TOPLEVEL,0,0}}
           ,{"globalvariable",{KIND_TOPLEVEL,0,0}}
           ,{"definefunction",{KIND_TOPLEVEL,0,0}}
@@ -1174,8 +1176,8 @@ procedure init()
   for i=1 to length(attribute_list) do
     map:put(global_scope,attribute_list[i][ATTR_NAME],{KIND_ATTRIBUTE,i,0})
   end for
-  --Append subscript trigger id (this is needed for scripts.bin)
-  trigger_list=append(trigger_list,{-1,"subscript"})
+  --Append subscript role id (this is needed for scripts.bin)
+  script_role_list=append(script_role_list,{-1,"subscript"})
   --Lexer finite state transition tables
   init_lexer()
 end procedure
@@ -2352,7 +2354,7 @@ procedure check_undefined_string(Token s, string expect)
     src_error(
       sprintf_utf(
         COLYEL&"%s"&COLRED&" can't be used as a %s because it's already declared as a %s on line %d of "&COLPNK&"%s"&COLRED,
-        {s[CMD_TEXT], expect, all_scripts[at][SCRIPT_TRIGGER_TOK][CMD_TEXT],
+        {s[CMD_TEXT], expect, all_scripts[at][SCRIPT_ROLE_TOK][CMD_TEXT],
          src_position[POS_LINE], src_position[POS_FILENAME]}
       )
       ,s[CMD_POS]
@@ -2544,19 +2546,19 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure parse_trigger_block(TokenList block)
+procedure parse_role_block(TokenList block)
   integer num
   string name
   srcpos pos
   for i=1 to length(block) by 2 do
     if i+1>length(block) then
-      src_error("Expected name but script trigger definition block ended",block[i][CMD_POS])
+      src_error("Expected name but define role block ended",block[i][CMD_POS])
     end if
     num=force_16_bit(try_string_to_number(block[i]),block[i][CMD_POS])
-    check_undefined_string(block[i+1],"script trigger name")
+    check_undefined_string(block[i+1],"script role name")
     name=block[i+1][CMD_TEXT]
     pos=block[i+1][CMD_POS]
-    trigger_list=append(trigger_list,{num,name})
+    script_role_list=append(script_role_list,{num,name})
     map:put(global_scope,name,{KIND_TOPLEVEL,0,pos})
   end for
 end procedure
@@ -2837,8 +2839,8 @@ procedure preliminary_parse_pass()
     this=get_cmd()
     if equal("defineconstant",this[CMD_TEXT]) then
       parse_constant_block(get_cmd_block(false))
-    elsif equal("definetrigger",this[CMD_TEXT]) then
-      parse_trigger_block(get_cmd_block(false))
+    elsif equal("definerole",this[CMD_TEXT]) or equal("definetrigger",this[CMD_TEXT]) then
+      parse_role_block(get_cmd_block(false))
     elsif equal("plotscrversion",this[CMD_TEXT]) then
       parse_version_block(get_cmd_block(false))
     end if
@@ -2860,7 +2862,7 @@ end procedure
 --parent_name is a fully-scoped name of parent script, or ""
 --if this script isn't a subscript of another.
 --Returns Token with name of parsed script
-function parse_script(Token trigger, string parent_name, integer parent_idx, sequence attributes)
+function parse_script(Token role, string parent_name, integer parent_idx, sequence attributes)
   Token name
   string full_name
   TokenList arglist
@@ -2888,7 +2890,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx, seq
     if nest_depth>MAX_NEST_DEPTH then
       src_error(
         sprintf_utf("%s "&COLYEL&"%s"&COLRED&" is nested too deeply (%d layers deep), which is more than is supported. Reorganise your scripts to not use so much nesting."
-          ,{trigger[CMD_TEXT],name[CMD_TEXT],nest_depth})
+          ,{role[CMD_TEXT],name[CMD_TEXT],nest_depth})
         ,name[CMD_POS]
       )
     end if
@@ -2898,7 +2900,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx, seq
   --Note that we won't add it to script_list or global_scope yet; that happens later in check_script_declarations
   if not find_in_column(full_name,script_list,PAIR_NAME) then
     cur_script_num=parent_idx --temporarily to check for subscripts
-    check_undefined_string(name, COLYEL &trigger[CMD_TEXT] &COLRED &" name")
+    check_undefined_string(name, COLYEL & role[CMD_TEXT] & COLRED &" name")
     cur_script_num=0 --This probably isn't needed
   end if
 
@@ -2909,7 +2911,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx, seq
   arglist={}
   while true do
     if get_cmd_pointer>length(cmd) then
-      src_error(sprintf_utf("%s "&COLYEL&"%s"&COLRED&" is missing "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED,{trigger[CMD_TEXT],name[CMD_TEXT]}),name[CMD_POS])
+      src_error(sprintf_utf("%s "&COLYEL&"%s"&COLRED&" is missing "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED,{role[CMD_TEXT],name[CMD_TEXT]}),name[CMD_POS])
     end if
     this=get_cmd()
     if compare("begin",this[CMD_TEXT])=0 then
@@ -2923,7 +2925,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx, seq
   --Create all_scripts entry now for recursive calls; SCRIPT_BODY_TOKS and SCRIPT_END_POS filled in later,
   --and more fields are appended in compile_a_script
   all_scripts=append(all_scripts,{
-           trigger
+           role
           ,name[CMD_TEXT]
           ,name[CMD_POS]
           ,full_name
@@ -2991,7 +2993,7 @@ function parse_script(Token trigger, string parent_name, integer parent_idx, seq
       src_error(
         sprintf_utf(
            "%s "&COLYEL&"%s"&COLRED&" is missing "&COLYEL&"end"&COLRED&" or "&COLYEL&")"&COLRED
-          ,{trigger[CMD_TEXT],name[CMD_TEXT]}
+          ,{role[CMD_TEXT],name[CMD_TEXT]}
         )
         ,name[CMD_POS]
       )
@@ -3008,21 +3010,21 @@ end function
 
 procedure parse_top_level()
   Token this
-  sequence triggers, attributes
+  sequence roles, attributes
   sequence attrs_and_ptr
-  integer triggeridx
+  integer roleidx
   enter_timing_zone("Top level pass")
   color_print("parsing top-level\n",{})
-  triggers=column(trigger_list,PAIR_NAME)
+  roles=column(script_role_list,PAIR_NAME)
   attributes={}
   get_cmd_pointer=1
   while get_cmd_pointer<=length(cmd) do
     --read a top-level command
     this=get_cmd()
-    triggeridx=find(this[CMD_TEXT],triggers)
+    roleidx=find(this[CMD_TEXT],roles)
 
     --If we just read some attribute statements, they must precede a script
-    if length(attributes)>0 and triggeridx=0 then
+    if length(attributes)>0 and roleidx=0 then
       src_error(
         sprintf_utf(
           "Expected a script to follow function attribute "&COLYEL&"%s"&COLRED&", but found "&COLYEL&"%s"&COLRED
@@ -3032,6 +3034,8 @@ procedure parse_top_level()
     end if
 
     if compare("defineconstant",this[CMD_TEXT])=0 then
+      get_cmd_block(true)
+    elsif compare("definerole",this[CMD_TEXT])=0 then
       get_cmd_block(true)
     elsif compare("definetrigger",this[CMD_TEXT])=0 then
       get_cmd_block(true)
@@ -3046,9 +3050,9 @@ procedure parse_top_level()
     elsif compare("plotscrversion",this[CMD_TEXT])=0 then
       --ignore
       get_cmd_block(false)
-    elsif triggeridx>0 then
-      --"script"/etc. Negative trigger IDs are subscripts
-      if trigger_list[triggeridx][PAIR_NUM]<0 then
+    elsif roleidx>0 then
+      --"script"/etc. Negative role IDs are subscripts
+      if script_role_list[roleidx][PAIR_NUM]<0 then
         src_error(
           sprintf_utf(
             COLYEL&"%s"&COLRED&" can only occur inside another script. Use "&COLYEL&"script"&COLRED&" instead for regular scripts."
@@ -3362,12 +3366,12 @@ procedure dump_debug_report()
             ,script[SCRIPT_NUM_NONLOCALS]
           })
         end if
-        src_position=decode_srcpos(script[SCRIPT_TRIGGER_TOK][CMD_POS])
-        print_utf(fh,"%s %d\tTrigger=%d\t%s\n",{
+        src_position=decode_srcpos(script[SCRIPT_ROLE_TOK][CMD_POS])
+        print_utf(fh,"%s %d\tRole=%d\t%s\n",{
            src_position[POS_FILENAME]
           ,src_position[POS_LINE]
-          ,script[SCRIPT_TRIGGER_ID]
-          ,script[SCRIPT_TRIGGER_TOK][CMD_TEXT]
+          ,script[SCRIPT_ROLE_ID]
+          ,script[SCRIPT_ROLE_TOK][CMD_TEXT]
         })
         locals=script[SCRIPT_VARIABLES]
         for j=1 to length(locals) do
@@ -4805,7 +4809,7 @@ function binary_compile(Script script)
   result&=output_word(0)
   --28..31: the srcpos offset of the start of the script
   integer script_start
-  script_start=srcpos_offset(script[SCRIPT_TRIGGER_TOK][CMD_POS])
+  script_start=srcpos_offset(script[SCRIPT_ROLE_TOK][CMD_POS])
   result&=int_to_bytes(script_start)
   script_position=script_start*power(2,9) --aka encode_srcpos(0,script_start-1,0)
 
@@ -5180,13 +5184,13 @@ procedure compile_a_script(integer script_idx)
   TokenList args
   integer num_nonlocals
   integer parent_idx
-  integer trigger_idx
-  integer trigger
+  integer role_idx
+  integer role
 
   cur_script_num=script_idx
   script=all_scripts[script_idx]
-  trigger_idx=find_in_column(script[SCRIPT_TRIGGER_TOK][CMD_TEXT],trigger_list,PAIR_NAME)
-  trigger=trigger_list[trigger_idx][PAIR_NUM]
+  role_idx=find_in_column(script[SCRIPT_ROLE_TOK][CMD_TEXT],script_role_list,PAIR_NAME)
+  role=script_role_list[role_idx][PAIR_NUM]
   current_script=script[SCRIPT_FULL_NAME]
   parent_idx=script[SCRIPT_PARENT_IDX]
 
@@ -5198,9 +5202,9 @@ procedure compile_a_script(integer script_idx)
   end if
   num_nonlocals=length(local_vars)
   script&={
-     trigger          --trigger type
-    ,num_nonlocals
-    ,local_vars
+     role            --SCRIPT_ROLE_ID
+    ,num_nonlocals   --SCRIPT_NUM_NONLOCALS
+    ,local_vars      --SCRIPT_VARIABLES
   }
   all_scripts[script_idx]=script
 
@@ -5255,8 +5259,8 @@ procedure compile_a_script(integer script_idx)
   end if
 
   script&={
-     script_tree
-    ,{}               --compiled data to go into the HSZ lumps
+     script_tree     --SCRIPT_AST
+    ,{}              --SCRIPT_BINARY
   }
   all_scripts[script_idx]=script
   reenter_timing_zone("binary_compile")
@@ -5473,7 +5477,7 @@ function generate_scripts_dot_bin()
 
   for i=1 to length(all_scripts) do
     result&=output_word(all_scripts[i][SCRIPT_ID])
-    result&=output_word(all_scripts[i][SCRIPT_TRIGGER_ID])  --trigger type
+    result&=output_word(all_scripts[i][SCRIPT_ROLE_ID])
     encoded_name=encode_ohr(all_scripts[i][SCRIPT_NAME],36)
     result&=output_word(length(encoded_name))
     result&=encoded_name

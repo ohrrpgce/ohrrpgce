@@ -12,7 +12,7 @@ plotscr version, begin
           # Only very rarely necessary to increment (don't when
           # new commands are added; that's detected separately),
           # otherwise leave alone to allow forwards compatibility.
-  "3S "   # Minimum supported version of hspeak;
+  "3Wa"   # Minimum supported version of hspeak;
           # Custom/Game don't care about this.
 end
 
@@ -2072,9 +2072,9 @@ end
 
 
 #--------------------------------------------------------------------------
-# script triggers
+# script roles
 
-define trigger,begin
+define role,begin
 0, script
 1, plotscript
 end
