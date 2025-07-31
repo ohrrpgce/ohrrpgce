@@ -783,7 +783,7 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
  'If trigger is a script that isn't imported, either numbered or a plotscript, then
  'show it as a special option at the top of the menu, equivalent to cancelling
  IF trigger > 0 THEN
-  IF a_find(script_names(), trigger) = -1 THEN
+  IF script_trigger_exists(trigger) = NO THEN
    a_append scriptnames(), scriptname(trigger)
    a_append scriptids(), trigger
   END IF
