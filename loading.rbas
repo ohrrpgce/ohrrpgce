@@ -4801,44 +4801,55 @@ SUB load_hsp_header(filename as string, header as HSHeader)
  END WITH
 END SUB
 
-'Load script triggers and script names lookup tables
-'There's a lot of similar loading code in importscripts. Maybe it could be moved here
-SUB load_script_triggers_and_names()
- DIM buf(19) as integer
- REDIM script_names(0)
-
- ' Load lookup1.bin (script trigger -> script ID and name)
+'Load lookup1.bin file format (save_lookup1_bin is in scriptedit.bas)
+SUB load_lookup1_bin(triggers() as TriggerData)
  DIM fh as integer
  IF OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY + ACCESS_READ, fh) THEN
   debuginfo "lookup1.bin missing"  'The game might have no scripts.
-  REDIM lookup1_bin_cache(-1 TO -1)
+  REDIM triggers(-1 TO -1)
  ELSE
   DIM as integer records = LOF(fh) \ 40
-  REDIM lookup1_bin_cache(-1 TO records - 1)
+  REDIM triggers(-1 TO records - 1)
 
   DIM idx as integer = 0
+  DIM buf(19) as integer
   WHILE loadrecord(buf(), fh, 20, idx, NO)
-   DIM script_id as integer = buf(0)
-   DIM trigger_id as integer = idx + 16384
-   DIM scrname as string = readbinstring(buf(), 1, 36)
-   'debug "lookup1: trigger " & trigger_id & " script " & id & " " & scrname
-   lookup1_bin_cache(idx).id = script_id
-   lookup1_bin_cache(idx).name = scrname
-   IF script_id = 0 THEN
-    ' Previously defined, but no longer exists
-    scrname = "[" & scrname & "]"
-   END IF
-   a_append script_names(), trigger_id, scrname
+   WITH triggers(idx)
+    .id = buf(0)
+    .name = readbinstring(buf(), 1, 36)
+    .imported = NO
+    'debug "lookup1: trigger " & (idx + 16384) & " script " & .id & " " & .scrname
+   END WITH
    idx += 1
   WEND
   CLOSE fh
  END IF
+END SUB
 
- ' Load plotscr.lst (ID -> script name)
+'Load script triggers and script names lookup tables needed by decodetrigger and scriptname
+SUB load_script_triggers_and_names()
+ REDIM script_names(0)
+
+ ' Load lookup1.bin (script trigger ID -> script ID and name)
+ load_lookup1_bin lookup1_bin_cache()
+
+ ' Copy script names for trigger IDs
+ FOR idx as integer = 0 TO UBOUND(lookup1_bin_cache)
+  WITH lookup1_bin_cache(idx)
+   DIM trigger_id as integer = idx + 16384
+   DIM scrname as string = .name
+   IF .id = 0 THEN scrname = "[" & .name & "]"  'Previously defined, but no longer exists
+   a_append script_names(), trigger_id, scrname
+  END WITH
+ NEXT
+
+ ' Load plotscr.lst (ID -> script name) to get script names for raw script IDs
+ DIM fh as integer
  IF OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY + ACCESS_READ, fh) THEN
   debuginfo "plotscr.lst missing"  'Never imported any scripts
  ELSE
   DIM idx as integer = 0
+  DIM buf(19) as integer
   WHILE loadrecord(buf(), fh, 20, idx, NO)
    DIM script_id as integer = buf(0)
    DIM scrname as string = readbinstring(buf(), 1, 38)
@@ -4849,7 +4860,6 @@ SUB load_script_triggers_and_names()
   CLOSE fh
  END IF
 END SUB
-
 
 
 '==========================================================================================

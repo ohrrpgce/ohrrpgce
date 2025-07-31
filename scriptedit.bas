@@ -17,12 +17,6 @@
 
 '--Types
 
-TYPE TriggerSet
- size as integer
- trigs as TriggerData ptr
- usedbits as unsigned integer ptr
-END TYPE
-
 DIM inside_importscripts as bool
 
 DIM SHARED script_import_default as string   'File, directory, or "" if not initialised
@@ -34,7 +28,7 @@ DECLARE SUB browse_andor_import_scripts (fname as string = "", quickimport as bo
 DECLARE FUNCTION isunique (s as string, set() as string) as bool
 DECLARE FUNCTION exportnames (outdir as string = "") as string
 DECLARE SUB export_scripts()
-DECLARE SUB addtrigger (scrname as string, byval id as integer, byref triggers as TriggerSet)
+DECLARE FUNCTION save_lookup1_bin (triggers() as TriggerData, fname as string) as bool
 DECLARE SUB decompile_scripts()
 DECLARE SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
 
@@ -217,37 +211,38 @@ END FUNCTION
 '==========================================================================================
 
 
-SUB addtrigger (scrname as string, byval id as integer, triggers as TriggerSet)
- WITH triggers
-  FOR i as integer = 0 TO .size - 1
-   IF .trigs[i].name = scrname THEN
-    .trigs[i].id = id
-    .usedbits[i \ 32] = BITSET(.usedbits[i \ 32], i MOD 32)
-    EXIT SUB
-   END IF
-  NEXT
+'Find a trigger by script name or add a new one.
+FUNCTION find_or_add_trigger (triggers() as TriggerData, name as string) byref as TriggerData
+ DIM idx as integer
+ FOR idx = 0 TO UBOUND(triggers)
+  IF triggers(idx).name = name THEN RETURN triggers(idx)
+ NEXT
 
-  'add to the end
-  .trigs[.size].name = scrname
-  .trigs[.size].id = id
-  .usedbits[.size \ 32] = BITSET(.usedbits[.size \ 32], .size MOD 32)
+ idx = UBOUND(triggers) + 1
+ REDIM PRESERVE triggers(-1 TO idx)
+ triggers(idx).name = name
+ RETURN triggers(idx)
+END FUNCTION
 
-  'expand
-  .size += 1
-  IF .size MOD 32 = 0 THEN
-   DIM allocnum as integer = .size + 32
-   .usedbits = REALLOCATE(.usedbits, allocnum \ 8)  'bits/byte
-   .trigs = REALLOCATE(.trigs, allocnum * SIZEOF(TriggerData))
+'Writes lookup1.bin
+FUNCTION save_lookup1_bin (triggers() as TriggerData, filename as string) as bool
+ DIM lookupfh as integer
+ IF OPENFILE(filename, FOR_BINARY + ACCESS_WRITE + OR_ERROR, lookupfh) <> fberrOK THEN
+  RETURN NO
+ END IF
 
-   IF .usedbits = 0 OR .trigs = 0 THEN showerror "Could not allocate memory for script importation": EXIT SUB
+ FOR idx as integer = 0 TO UBOUND(triggers)
+  WITH triggers(idx)
+   DIM buf(19) as integer
+   buf(0) = .id
+   writebinstring .name, buf(), 1, 36
+   storerecord buf(), lookupfh, 20, idx
+  END WITH
+ NEXT
 
-   FOR i as integer = .size TO allocnum - 1
-    .trigs[i].Constructor()  'Zero everything out
-   NEXT
-   .usedbits[.size \ 32] = 0
-  END IF
- END WITH
-END SUB
+ CLOSE lookupfh
+ RETURN YES
+END FUNCTION
 
 ' Returns true on success
 ' If quickimport is true, doesn't display the names of imported scripts
@@ -279,8 +274,6 @@ END FUNCTION
 ' srcfile is used as the filename in messages to the user.
 ' If quickimport is true, doesn't display the names of imported scripts
 FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as bool = NO) as bool
- DIM triggers as TriggerSet
- DIM triggercount as integer
  DIM fptr as integer
  DIM dotbin as bool
  DIM scripts_bin_recordsize as integer
@@ -336,31 +329,9 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
    END IF
   END IF
 
-  'load in existing trigger table
-  WITH triggers
-    DIM fh as integer = 0
-    .size = 0
-    DIM fname as string = workingdir & SLASH & "lookup1.bin"
-    IF OPENFILE(fname, FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
-     .size = LOF(fh) \ 40
-    END IF
-
-    'number of triggers rounded to next multiple of 32 (as triggers get added, allocate space for 32 at a time)
-    DIM allocnum as integer = (.size \ 32) * 32 + 32
-    .trigs = CALLOCATE(allocnum, SIZEOF(TriggerData))
-    .usedbits = CALLOCATE(allocnum \ 8)
-
-    IF .usedbits = 0 OR .trigs = 0 THEN showerror "Could not allocate memory for script importation": RETURN NO
-
-    IF fh THEN
-     FOR j as integer = 0 TO .size - 1
-      loadrecord buffer(), fh, 20, j
-      .trigs[j].id = buffer(0)
-      .trigs[j].name = readbinstring(buffer(), 1, 36)
-     NEXT
-     CLOSE fh
-    END IF
-  END WITH
+  'Load in existing trigger table from lookup1.bin
+  DIM triggers() as TriggerData
+  load_lookup1_bin triggers()
 
   console_reset
   textcolor uilook(uiMenuItem), 0
@@ -412,12 +383,15 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
    writebinstring scrname, buffer(), 1, 36
    storerecord buffer(), plotscr_lsth, 20, numscripts
    numscripts += 1
-   IF buffer(0) > maxscriptid AND buffer(0) < 16384 THEN maxscriptid = buffer(0)
 
-   'process trigger
+   IF id < 16384 THEN maxscriptid = large(maxscriptid, id)
+
+   'add to triggers()
    IF trigger > 0 THEN
-    addtrigger scrname, id, triggers
-    triggercount += 1
+    WITH find_or_add_trigger(triggers(), scrname)
+     .id = id
+     .imported = YES
+    END WITH
    END IF
 
    'display progress
@@ -429,27 +403,17 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   LOOP
   CLOSE plotscr_lsth
 
-  'output the updated trigger table
-  DIM lookupfh as integer
-  IF OPENFILE(workingdir + SLASH + "lookup1.bin.tmp", FOR_BINARY + ACCESS_WRITE + OR_ERROR, lookupfh) <> fberrOK THEN
-   CLOSE fptr
-   RETURN NO
-  END IF
-  WITH triggers
-    FOR j as integer = 0 TO .size - 1
-     IF BIT(.usedbits[j \ 32], j MOD 32) = 0 THEN .trigs[j].id = 0
-     buffer(0) = .trigs[j].id
-     writebinstring .trigs[j].name, buffer(), 1, 36
-     storerecord buffer(), lookupfh, 20, j
-     .trigs[j].DESTRUCTOR()
-    NEXT
-
-    DEALLOCATE(.trigs)
-    DEALLOCATE(.usedbits)
-  END WITH
-  CLOSE lookupfh
   CLOSE fptr
   IF dotbin THEN safekill tmpdir & "scripts.bin" ELSE safekill tmpdir & "scripts.txt"
+
+  'Zero out IDs for missing scripts
+  FOR idx as integer = 0 TO UBOUND(triggers)
+   IF triggers(idx).imported = NO THEN triggers(idx).id = 0
+  NEXT
+
+  IF save_lookup1_bin(triggers(), workingdir + SLASH + "lookup1.bin.tmp") = NO THEN
+   RETURN NO
+  END IF
 
   '--No error has occurred, so commit changes
   writeablecopyfile hsfile, game + ".hsp"
@@ -457,6 +421,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
   renamefile workingdir + SLASH + "plotscr.lst", workingdir + SLASH + "plotscr.lst.old.tmp"
   renamefile workingdir + SLASH + "plotscr.lst.tmp", workingdir + SLASH + "plotscr.lst"
   renamefile workingdir + SLASH + "lookup1.bin.tmp", workingdir + SLASH + "lookup1.bin"
+  setbinsize binLOOKUP1, curbinsize(binLOOKUP1)
   gen(genNumPlotscripts) = numscripts
   gen(genMaxRegularScript) = maxscriptid
 

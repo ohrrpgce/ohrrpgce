@@ -410,6 +410,7 @@ End Type
 TYPE TriggerData
   name as string
   id as integer
+  imported as bool      'For importscripts only: whether the script has actually been imported
 END TYPE
 
 TYPE ScriptData
