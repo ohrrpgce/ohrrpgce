@@ -417,7 +417,7 @@ FUNCTION importscripts (hsfile as string, srcfile as string = "", quickimport as
 
   '--No error has occurred, so commit changes
   writeablecopyfile hsfile, game + ".hsp"
-  '--Make a copy of the old plotscr.lst, used by autofix_broken_old_scripts
+  '--Keep the old plotscr.lst, used by autofix_broken_old_scripts
   renamefile workingdir + SLASH + "plotscr.lst", workingdir + SLASH + "plotscr.lst.old.tmp"
   renamefile workingdir + SLASH + "plotscr.lst.tmp", workingdir + SLASH + "plotscr.lst"
   renamefile workingdir + SLASH + "lookup1.bin.tmp", workingdir + SLASH + "lookup1.bin"
@@ -761,11 +761,9 @@ END SUB
 'allow_default: true when 0 means default and -1 means none.
 'default: only when allow_default. The ID/trigger of the default script.
 FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, scrtype as string, allow_default as bool = NO, default as integer = 0) as string
- DIM localbuf(20) as integer
  REDIM scriptnames(0) as string
  REDIM scriptids(0) as integer
- 
- DIM fh as integer
+
  DIM i as integer
 
  'First option is [none]
@@ -792,31 +790,27 @@ FUNCTION scriptbrowse (byref trigger as integer, byval triggertype as integer, s
  DIM firstscript as integer = UBOUND(scriptids) + 1
 
  'Look through lists of definescript scripts too
- IF OPENFILE(workingdir + SLASH + "plotscr.lst", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
-  FOR record as integer = 0 TO gen(genNumPlotscripts) - 1
-   loadrecord localbuf(), fh, 20
-   'Add any non-autonumbered scripts (definescript was used)
-   IF localbuf(0) < 16384 THEN
-    a_append scriptnames(), localbuf(0) & " " + readbinstring(localbuf(), 1, 36)
-    a_append scriptids(), localbuf(0)
+ FOR i = 0 to UBOUND(script_names)
+  'Add any non-autonumbered scripts (definescript was used)
+  WITH script_names(i)
+   IF .i > 0 AND .i < 16384 THEN
+    a_append scriptnames(), .i & " " & .s
+    a_append scriptids(), .i
    END IF
-  NEXT
-  CLOSE #fh
- END IF
+  END WITH
+ NEXT
 
  DIM numberedlast as integer = UBOUND(scriptids)
 
  'And list of plotscripts
- IF OPENFILE(workingdir + SLASH + "lookup1.bin", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
-  FOR record as integer = 0 TO (LOF(fh) \ 40) - 1
-   loadrecord localbuf(), fh, 20
-   IF localbuf(0) <> 0 THEN
-    a_append scriptids(), 16384 + record
-    a_append scriptnames(), readbinstring(localbuf(), 1, 36)
+ FOR i = 0 to UBOUND(lookup1_bin_cache)
+  WITH lookup1_bin_cache(i)
+   IF .id > 0 THEN
+    a_append scriptnames(), .name
+    a_append scriptids(), 16384 + i
    END IF
-  NEXT
-  CLOSE #fh
- END IF
+  END WITH
+ NEXT
 
  DIM scriptmax as integer = UBOUND(scriptids)
 
@@ -964,22 +958,24 @@ FUNCTION scrintgrabber (byref n as integer, byval min as integer, byval max as i
  n = temp
 END FUNCTION
 
+' Whether script ID or trigger ID has been imported (doesn't guarantee its lump isn't missing)
+FUNCTION script_trigger_exists (id_or_trigger as integer) as bool
+ DIM triggeridx as integer = id_or_trigger - 16384
+ IF triggeridx >= 0 ANDALSO triggeridx <= UBOUND(lookup1_bin_cache) THEN
+  RETURN lookup1_bin_cache(triggeridx).id > 0
+ ELSE
+  RETURN a_find(script_names(), id_or_trigger) <> -1
+ END IF
+END FUNCTION
+
 LOCAL SUB seekscript (byref temp as integer, byval seekdir as integer, byval triggertype as integer)
  'Helper function to find the next script ID/trigger assigned to a script that exists.
+ 'temp is the current script ID/trigger.
  'temp = -1 means scroll to last script
  'returns 0 when scrolled past first script, -1 when went past last
- 'triggertype not used (yet?)
+ 'triggertype not used
 
- DIM buf(19) as integer
- DIM plotids(gen(genMaxRegularScript)) as integer
- DIM recordsloaded as integer = 0
- DIM screxists as bool = NO
-
- DIM num_triggers as integer
- DIM fh as integer
- IF OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
-  num_triggers = LOF(fh) \ 40
- END IF
+ DIM num_triggers as integer = UBOUND(lookup1_bin_cache) + 1
  IF temp = -1 THEN temp = num_triggers + 16384
 
  DO
@@ -996,28 +992,7 @@ LOCAL SUB seekscript (byref temp as integer, byval seekdir as integer, byval tri
    temp = -1
    EXIT DO
   END IF
-  'check script exists, else keep looking
-  IF temp < 16384 THEN
-   IF plotids(temp) THEN
-    screxists = YES
-   ELSE
-    ' Find out which script IDs < 16384 are used (do this just once)
-    WHILE recordsloaded < gen(genNumPlotscripts)
-     loadrecord buf(), workingdir + SLASH + "plotscr.lst", 20, recordsloaded
-     recordsloaded += 1
-     IF buf(0) = temp THEN screxists = YES: EXIT WHILE
-     IF buf(0) <= gen(genMaxRegularScript) THEN plotids(buf(0)) = YES
-    WEND
-   END IF
-  END IF
-  IF temp >= 16384 ANDALSO fh THEN
-   loadrecord buf(), fh, 20, temp - 16384
-   IF buf(0) THEN screxists = YES
-  END IF
-  IF screxists THEN EXIT DO
- LOOP
-
- IF fh THEN CLOSE fh
+ LOOP UNTIL script_trigger_exists(temp)
 END SUB
 
 
@@ -1208,55 +1183,36 @@ SUB script_usage_list ()
  script_usage_menu(1).s = "Export to File..."
  DIM num_fixed_menu_items as integer = 2
 
- 'Loop through old-style non-autonumbered scripts
- IF OPENFILE(workingdir & SLASH & "plotscr.lst", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
-  FOR i as integer = 0 TO gen(genNumPlotscripts) - 1
-   loadrecord buf(), fh, 20, i
-   id = buf(0)
-   IF id <= 16383 THEN
-    s = id & ":" & readbinstring(buf(), 1, 38)
-    a_append script_usage_menu(), id, s
+ 'Add old-style non-autonumbered scripts
+ FOR i as integer = 0 TO UBOUND(script_names)
+  WITH script_names(i)
+   IF .i <= 16383 THEN  'Not a trigger ID
+    a_append script_usage_menu(), .i, .i & ":" & .s
    END IF
-  NEXT i
-  CLOSE #fh
- END IF
+  END WITH
+ NEXT
 
- 'Loop through new-style plotscripts
+ 'Add new-style plotscripts
+ IF UBOUND(lookup1_bin_cache) >= 0 THEN
+  'First, a detour: determine the alphabetic rank of each plotscript
+  REDIM plotscript_order(UBOUND(lookup1_bin_cache))
+  qsort_strings_indices plotscript_order(), @lookup1_bin_cache(0).name, UBOUND(lookup1_bin_cache) + 1, sizeof(TriggerData)
+  invert_permutation plotscript_order()
 
- 'First, a detour: determine the alphabetic rank of each plotscript
- REDIM plotscripts(0) as string
- IF OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
-  WHILE loadrecord(buf(), fh, 20, , NO)  'expect_exists=NO
-   s = readbinstring(buf(), 1, 38)
-   a_append plotscripts(), s
-  WEND
-
-  'Have to skip if no plotscripts
-  IF UBOUND(plotscripts) > 0 THEN
-   'We must skip plotscripts(0)
-   REDIM plotscript_order(UBOUND(plotscripts) - 1)
-   qsort_strings_indices plotscript_order(), @plotscripts(1), UBOUND(plotscripts), sizeof(string)
-   invert_permutation plotscript_order()
-
-   'OK, now that we can calculate ranks, we can add new-style scripts
-   SEEK #fh, 1
-   i = 0
-   WHILE loadrecord(buf(), fh, 20, , NO)  'expect_exists=NO
-    id = buf(0)
-    IF id <> 0 THEN
-     s = readbinstring(buf(), 1, 38)
-     a_append script_usage_menu(), 100000 + plotscript_order(i), s
+  'OK, now that we can calculate ranks, we can add new-style scripts
+  FOR i as integer = 0 TO UBOUND(lookup1_bin_cache)
+   WITH lookup1_bin_cache(i)
+    IF .id <> 0 THEN  'Not missing
+     a_append script_usage_menu(), 100000 + plotscript_order(i), .name
     END IF
-    i += 1
-   WEND
-  END IF
-  CLOSE #fh
+   END WITH
+  NEXT
  END IF
 
  'add script instances to script_usage_menu
  visit_scripts @script_usage_visitor
 
- IF UBOUND(script_usage_menu) = 1 THEN
+ IF UBOUND(script_usage_menu) < num_fixed_menu_items THEN
   a_append script_usage_menu(), 0, "No plotscripts imported!"
  END IF
 
@@ -1271,7 +1227,7 @@ SUB script_usage_list ()
   WITH script_usage_menu(indices(i))
    IF MID(.s, 1, 1) = " " THEN
     'script trigger
-    'Do not add triggers which are missing their scripts; those go in the other menu
+    'Do not add triggers which are missing their scripts
     IF .i <> currentscript THEN CONTINUE FOR
    END IF
    menu(j) = .s
@@ -1283,8 +1239,8 @@ SUB script_usage_list ()
  DIM menu_display(j - 1) as string
 
  'Free memory
- REDIM plotscript_order(0)
- REDIM script_usage_menu(0)
+ ERASE plotscript_order
+ ERASE script_usage_menu
 
  'debug "script usage in " & ((TIMER - t) * 1000) & "ms"
 
@@ -1381,43 +1337,30 @@ SUB script_broken_trigger_list()
  REDIM missing_script_trigger_list(0)
 END SUB
 
+DIM SHARED old_plotscr_lst() as IntStrPair
+
 'Internal, called from autofix_broken_old_scripts()
-FUNCTION autofix_old_script_visitor(byref id as integer, description as string, caption as string) as bool
+LOCAL FUNCTION autofix_old_script_visitor(byref id as integer, description as string, caption as string) as bool
  '--returns true if a fix has occured
  IF id = 0 THEN RETURN NO ' not a trigger
  IF id >= 16384 THEN RETURN NO 'New-style script
  IF a_find(script_names(), id) <> -1 THEN RETURN NO 'Found okay
 
- DIM buf(19) as integer
- DIM fh as integer
-  
  DIM found_name as string = ""
-
- 'Read the old copy of plotscr.lst
- IF OPENFILE(workingdir & "plotscr.lst.old.tmp", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
-  FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
-   loadrecord buf(), fh, 20, i
-   IF buf(0) = id THEN '--Yay! found it in the old file!
-    found_name = readbinstring(buf(), 1, 38)
-    EXIT FOR
-   END IF
-  NEXT i
-  CLOSE #fh
+ DIM found as integer = a_find(old_plotscr_lst(), id)
+ IF found <> -1 THEN '--Yay! found it in the old file!
+  found_name = old_plotscr_lst(found).s
+ ELSE
+  RETURN NO '--broken but unfixable (no old name)
  END IF
 
- IF found_name = "" THEN RETURN NO '--broken but unfixable (no old name)
-
- IF OPENFILE(workingdir & SLASH & "lookup1.bin", FOR_BINARY + ACCESS_READ, fh) = fberrOK THEN
-  FOR i as integer = 0 TO (LOF(fh) \ 40) - 1
-   loadrecord buf(), fh, 20, i
-   IF found_name = readbinstring(buf(), 1, 38) THEN '--Yay! found it in the new file!
-    id = 16384 + i
-    CLOSE #fh
-    RETURN YES '--fixed it, report a change!
-   END IF
-  NEXT i
-  CLOSE #fh
- END IF
+ FOR i as integer = 0 TO UBOUND(lookup1_bin_cache)
+  IF found_name = lookup1_bin_cache(i).name THEN
+   id = 16384 + i
+   RETURN YES '--fixed it, report a change!
+   '(It's possible the new-style script is also missing, but at least we got partway there)
+  END IF
+ NEXT i
 
  RETURN NO '--broken but unfixable (no matching new name)
 END FUNCTION
@@ -1432,7 +1375,11 @@ SUB autofix_broken_old_scripts()
   EXIT SUB
  END IF
 
+ load_plotscr_lst old_plotscr_lst(), workingdir & "plotscr.lst.old.tmp"
+
  visit_scripts @autofix_old_script_visitor
+
+ ERASE old_plotscr_lst
 END SUB
 
 

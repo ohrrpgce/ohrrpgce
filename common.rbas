@@ -1023,7 +1023,8 @@ FUNCTION trigger_or_default(trigger as integer, default as integer) as integer
 END FUNCTION
 
 ' Find the name of a script given ID number or trigger ID.
-' If called with an invalid script id, the result will be "[id ###]"
+' If called with a trigger ID for a missing script the result will be "[$scriptname]"
+' and if called with a missing script ID, the result will be "[id ###]".
 FUNCTION scriptname (id_or_trigger as integer) as string
  IF id_or_trigger = 0 THEN
   RETURN "[none]"
