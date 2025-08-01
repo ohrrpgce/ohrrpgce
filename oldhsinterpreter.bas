@@ -600,6 +600,7 @@ FUNCTION functiondone () as integer
 'returns 1 when the last script in the fibre is finished
 
 DIM endingscript as ScriptData ptr = scrat(nowscript).scr
+DIM return_value as integer = hsvm.cur_scrat->ret
 
 'debug "functiondone nowscript " & nowscript & " id = " & scriptinsts(nowscript).id  & " " & scriptname(scriptinsts(nowscript).id)
 
@@ -612,13 +613,15 @@ IF scriptprofiling THEN script_return_timing
 ' Script logging
 IF scriptinsts(nowscript).watched THEN watched_script_finished
 
+' Cleanup the old script
 deref_script(endingscript)
 nowscript = nowscript - 1
+hsvm.set_cur_script
 
 IF nowscript < 0 THEN
  RETURN 1'--no scripts are running anymore
 ELSE
- DIM state as OldScriptState ptr = @scrat(nowscript)
+ DIM state as OldScriptState ptr = hsvm.cur_scrat
 
  nowscript_locals = @heap(state->frames(0).heap)
  curcmd = cast(ScriptCommand ptr, state->scrdata + state->ptr)
@@ -638,7 +641,7 @@ ELSE
   IF scriptprofiling THEN start_fibre_timing
   RETURN 1'--reactivating a supended fibre
  ELSE
-  scriptret = scrat(nowscript + 1).ret
+  scriptret = return_value
   state->state = streturn
   RETURN 0'--returning a value to a caller
  END IF

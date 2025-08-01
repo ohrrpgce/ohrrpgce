@@ -398,31 +398,43 @@ END SUB
 '                                   Fibre/Script Control
 '==========================================================================================
 
+'Must be called after nowscript changes
+SUB HSVMState.set_cur_script()
+ IF nowscript < 0 THEN
+  cur_scrat = NULL
+  cur_scriptinst = NULL
+  cur_script = NULL
+ ELSE
+  cur_scrat = @scrat(nowscript)
+  cur_scriptinst = @scriptinsts(nowscript)
+  cur_script = cur_scriptinst->scr
+  'Used to be the case that in-use scripts could be unloaded
+  BUG_IF(cur_script = NULL, "NULL ScriptData")
+ END IF
+END SUB
 
 'Kills the currently running script fibre
 SUB killscriptthread
- BUG_IF(insideinterpreter = NO ORELSE nowscript < 0, "Inappropriate call")
+ BUG_IF(insideinterpreter = NO ORELSE hsvm.cur_scrat = NULL, "Inappropriate call")
 
- debuginfo "Killing script fibre; last script = " & scriptname(scrat(nowscript).id)
+ debuginfo "Killing script fibre; last script = " & scriptname(hsvm.cur_scrat->id)
 
- 'Hack: we set the state of the old script so that the main loop sees it reads with a stale WITH pointer.
+ 'Hack: we set the state of the old script because the main loop has a stale WITH pointer.
  'Come to think of it, there's no good reason for the interpreter state to be stored in scrat instead
  'of being global.
- scrat(nowscript).state = stdone
+ hsvm.cur_scrat->state = stdone
 
  'Remove every script in this fibre, except for the bottommost one
- '(The script below it on the stack will be suspended, state < 0)
- WHILE nowscript > 0 ANDALSO scrat(nowscript - 1).state >= 0
-  WITH scrat(nowscript)
-   IF .scr <> NULL THEN deref_script(.scr)
-  END WITH
+ WHILE hsvm.cur_scriptinst->parent
+  deref_script hsvm.cur_script
   nowscript -= 1
+  hsvm.set_cur_script
  WEND
  gam.script_log.last_logged = -1
 
  'Let functiondone handle the fibre exit
- setstackposition(scrst, scrat(nowscript).stackbase)
- scrat(nowscript).state = stdone
+ setstackposition(scrst, hsvm.cur_scrat->stackbase)
+ hsvm.cur_scrat->state = stdone
 END SUB
 
 SUB killallscripts
@@ -433,12 +445,13 @@ SUB killallscripts
  stop_fibre_timing
 
  'Hack, see explanation in killscriptthread
- IF nowscript >= 0 THEN scrat(nowscript).state = stexit
+ IF hsvm.cur_scrat THEN hsvm.cur_scrat->state = stexit
 
- FOR i as integer = nowscript TO 0 STEP -1
-  IF scrat(i).scr <> NULL THEN deref_script(scrat(i).scr)
- NEXT
- nowscript = -1
+ WHILE hsvm.cur_script
+  deref_script(hsvm.cur_script)
+  nowscript -= 1
+  hsvm.set_cur_script
+ WEND
  nowscript_locals = NULL
  gam.script_log.last_logged = -1
 
@@ -576,6 +589,11 @@ WITH scriptinsts(index)
  IF newcall THEN .scr->last_trigger_name = *trigger_name
  'increment refcount once loading is successful
 
+ IF newcall THEN
+  .parent = NULL
+ ELSE
+  .parent = hsvm.cur_scriptinst
+ END IF
  .fibre = NULL  'Caller initializes
  .id = n
  .watched = NO
@@ -598,12 +616,13 @@ WITH scriptinsts(index)
  IF newcall ANDALSO nowscript >= 0 THEN
   '--suspend the previous fibre
   IF scriptprofiling THEN stop_fibre_timing  'Must call before suspending
-  scrat(nowscript).state *= -1
+  hsvm.cur_scrat->state *= -1
  END IF
 
  '--we are successful, so now its safe to increment these
  nowscript = index
- nowscript_locals = @heap(scrat(nowscript).frames(0).heap)  'Should really be in oldscriptstate_init
+ hsvm.set_cur_script
+ nowscript_locals = @heap(hsvm.cur_scrat->frames(0).heap)  'Should really be in oldscriptstate_init
 
  .scr->refcount += 1
  IF .scr->refcount = 1 THEN

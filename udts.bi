@@ -517,6 +517,7 @@ TYPE ScriptInst
   started as bool       'used only if watched is true: whether the script has started
   id as integer         'id number of script
   fibre as ScriptFibreFwd ptr 'NULL if not the head of a fibre
+  parent as ScriptInst ptr 'The script that called this one, or NULL if the head/root of a fibre
 
   'These 3 items are only updated when the script interpreter is left. While inside
   'the script interpreter (command handlers) use the curcmd (ScriptCommand ptr) global.
@@ -541,6 +542,14 @@ TYPE ScriptFibre
 END TYPE
 
 DECLARE_VECTOR_OF_TYPE(ScriptFibre ptr, ScriptFibre_ptr)
+
+TYPE HSVMState
+  DECLARE SUB set_cur_script()
+
+  cur_script as ScriptData ptr
+  cur_scrat as OldScriptState ptr
+  cur_scriptinst as ScriptInst ptr
+END TYPE
 
 'Node of an .hsz script abstract syntax tree
 TYPE ScriptCommand

@@ -164,6 +164,7 @@ DIM topmenu as integer = -1  'Always equal to UBOUND(menus)
 REDIM remembered_menu_pts(0) as integer  'True slot number of the selected menu item when the menu was last closed
 
 'Script interpreter
+DIM hsvm as HSVMState
 DIM nowscript as integer = -1
 DIM nowscript_locals as integer ptr
 DIM scriptret as integer
@@ -642,6 +643,7 @@ read_srcfiles_txt
 'Default to showing all errors. genErrorLevel is no longer used (but might be again in future)
 IF err_suppress_lvl = 0 THEN err_suppress_lvl = serrIgnore
 nowscript = -1
+hsvm.set_cur_script
 nowscript_locals = NULL
 numloadedscr = 0
 totalscrmem = 0
