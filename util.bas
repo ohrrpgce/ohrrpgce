@@ -1041,7 +1041,6 @@ SUB checkoverflow (st as Stack, byval amount as integer = 1)
     IF .pos - .bottom + amount >= .size THEN
       .size += .size \ 2 + amount
       'debug "new stack size = " & .size & " * 4  pos = " & (.pos - .bottom) & " amount = " & amount
-      'debug "nowscript = " & nowscript & " " & scrat(nowscript).id & " " & scriptname(scrat(nowscript).id) 
 
       DIM newptr as integer ptr
       newptr = reallocate(.bottom, .size * sizeof(integer))

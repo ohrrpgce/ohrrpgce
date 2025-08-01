@@ -2534,8 +2534,8 @@ END FUNCTION
 SUB execute_script_fibres(fibregroup as ScriptFibre ptr vector)
  DIM wantimmediate_bug_emu as bool
 
- WHILE nowscript >= 0
-  WITH scriptinsts(nowscript)
+ WHILE hsvm.cur_scriptinst
+  WITH *hsvm.cur_scriptinst
    IF .waiting THEN
     process_wait_conditions
     'Other scripts are blocked
@@ -2550,7 +2550,7 @@ SUB execute_script_fibres(fibregroup as ScriptFibre ptr vector)
   'waiting (it might be one newly triggered, not the one we started executing)
 
   IF finished_fibre = NO THEN
-   BUG_IF(nowscript < 0 ORELSE scriptinsts(nowscript).waiting = NO, "Fibre stopped but not waiting")
+   BUG_IF(hsvm.cur_scriptinst = NULL ORELSE hsvm.cur_scriptinst->waiting = waitingOnNothing, "Fibre stopped but not waiting")
 
    'Bug 430 emulation (see also bug 550), where whenever a fibre finishes and the script
    'beneath it isn't waiting (which happened after two or more scripts were triggered at once),
@@ -2569,9 +2569,9 @@ SUB execute_script_fibres(fibregroup as ScriptFibre ptr vector)
   'ststart, stwait, streturn (called a command that triggered a script), or others.
 
   'Check bug 430 trigger
-  IF nowscript >= 0 ANDALSO scrat(nowscript).state <> stwait THEN
+  IF hsvm.cur_scriptinst ANDALSO hsvm.cur_scriptinst->waiting = waitingOnNothing THEN
    ' debug "WANTIMMEDIATE BUG"
-   ' debug scriptname(scrat(nowscript + 1).id) & " terminated, setting wantimmediate on " & scriptname(scrat(nowscript).id)
+   ' debug scriptname(scrat(nowscript + 1).id) & " terminated, setting wantimmediate on " & scriptname(hsvm.cur_scrat->id)
    IF prefbit(33) THEN  '"Simulate Bug #430 script wait skips"
     wantimmediate_bug_emu = YES
    END IF

@@ -430,10 +430,10 @@ SUB trigger_onkeypress_script ()
  'Because anykeypressed doesn't check it, and we don't want to break scripts looking for key:alt (== scUnfilteredAlt)
  IF keyval(scUnfilteredAlt) > 0 THEN doit = YES
 
- IF nowscript >= 0 THEN
-  IF scriptinsts(nowscript).waiting = waitingOnCmd AND scriptinsts(nowscript).curvalue = 9 THEN
-   '--never trigger a onkey script when the previous script
-   '--has a "wait for key" command active
+ IF hsvm.cur_scriptinst THEN
+  IF hsvm.cur_scriptinst->waiting = waitingOnCmd AND hsvm.cur_scriptinst->curvalue = 9 THEN
+   '--never trigger an onkey plotscript when there is an active plotscript
+   '--waiting on a "wait for key" command
    doit = NO
   END IF
  END IF
@@ -454,7 +454,7 @@ END SUB
 
 ' Implementations of 'wait' commands.
 SUB process_wait_conditions()
- WITH scriptinsts(nowscript)
+ WITH *hsvm.cur_scriptinst
 
    ' Evaluate wait conditions, even if the fibre is paused (unimplemented),
    ' as waiting for unpause first will just lead to bugs eg. due to map changes

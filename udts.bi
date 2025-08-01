@@ -549,6 +549,7 @@ TYPE HSVMState
   cur_script as ScriptData ptr
   cur_scrat as OldScriptState ptr
   cur_scriptinst as ScriptInst ptr
+  cur_slot as integer               'This is just nowscript
 END TYPE
 
 'Node of an .hsz script abstract syntax tree
