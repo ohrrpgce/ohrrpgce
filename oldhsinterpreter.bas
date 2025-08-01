@@ -579,20 +579,21 @@ SUB setScriptArg (byval arg as integer, byval value as integer)
  END WITH
 END SUB
 
-FUNCTION ancestor_script_id(scriptslot as integer, depth as integer) as integer
- 'Returns the script ID of a parent or ancestor of a script. Depth is 1 for parent,
- '2 for grandparent, etc.
- 'scriptslot is a scrat slot number (eg nowscript).
+FUNCTION ancestor_script_id(depth as integer) as integer
+ 'Returns the script ID of a parent or ancestor of the current script.
+ 'Depth is 0 for itself, 1 for parent, 2 for grandparent, etc.
  'Returns 0 for none.
 
- FOR slot as integer = scriptslot - 1 TO scriptslot - depth STEP -1
-  'Script stack doesn't go that far down
-  IF slot < 0 THEN RETURN 0
-  'Suspended script; i.e. a different script fibre
-  IF scrat(slot).state < 0 THEN RETURN 0
- NEXT
+ DIM si as ScriptInst ptr = hsvm.cur_scriptinst
 
- RETURN scrat(scriptslot - depth).id
+ WHILE depth > 0
+  depth -= 1
+  si = si->parent
+  'Script stack doesn't go that far down
+  IF si = NULL THEN RETURN 0
+ WEND
+
+ RETURN si->id
 END FUNCTION
 
 FUNCTION functiondone () as integer

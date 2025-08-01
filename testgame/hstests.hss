@@ -36,6 +36,7 @@ script, interpreter tests, begin
   flow tests
   subscript tests
   random tests
+  debug tests
 end
 
 ########################################################################
@@ -1405,3 +1406,36 @@ script, random tests, begin
 end
 
 ########################################################################
+
+script, debug tests, begin
+  assert(get calling script id(0) == @debug tests)
+  assert(get calling script id(1) == @interpreter tests)
+  assert(get calling script id    == @interpreter tests)
+  assert(get calling script id(5) == 0)
+
+  get script name(1, @debug tests)
+  assert(string equal(1, $2="debugtests"))
+
+  subscript, some subscript, begin
+    subscript, some subsubscript, begin
+      # Reference for subscripts not supported
+      #assert(get calling script id(0) == @some subsubscript)
+      #assert(get calling script id(1) == @some subscript)
+
+      get script name(1, get calling script id(0))
+      assert(string equal(1,$2="somesubsubscript"))
+
+      get script name(1, get calling script id(1))
+      assert(string equal(1,$2="somesubscript"))
+
+      assert(get calling script id(2) == @debug tests)
+      assert(get calling script id(3) == @interpreter tests)
+
+      get script name(1, get calling script id(0))
+      assert(string equal(1,$2="somesubsubscript"))
+
+    end
+    some subsubscript
+  end
+  some subscript
+end

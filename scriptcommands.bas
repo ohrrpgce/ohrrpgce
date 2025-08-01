@@ -3648,11 +3648,11 @@ SUB script_commands(byval cmdid as integer)
    END IF
   END IF
  CASE 568 '--get calling script id (depth)
-  IF retvals(0) < 1 THEN
-   scripterr "get calling script id: expected a depth of at least 1", serrBadOp
+  IF retvals(0) < 0 THEN
+   scripterr "get calling script id: can't have a negative depth", serrBadOp
   ELSE
    ' Returns 0 if non-existent
-   scriptret = ancestor_script_id(nowscript, retvals(0))
+   scriptret = ancestor_script_id(retvals(0))
   END IF
  CASE 595'--running on windows
   #IFDEF __FB_WIN32__

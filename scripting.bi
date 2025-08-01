@@ -80,7 +80,7 @@ DECLARE SUB scriptwatcher (byref mode as integer, byval drawloop as bool = NO)
 DECLARE SUB scriptdump (header as string)
 DECLARE FUNCTION script_current_srcpos (which_scrat as OldScriptState ptr) as uinteger
 DECLARE SUB setScriptArg (byval arg as integer, byval value as integer)
-DECLARE FUNCTION ancestor_script_id(scriptslot as integer, depth as integer) as integer
+DECLARE FUNCTION ancestor_script_id(depth as integer) as integer
 
 ' Globals for profiling of builtin script commands
 EXTERN profiling_cmdid as integer
