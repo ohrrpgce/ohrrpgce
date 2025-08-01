@@ -1685,10 +1685,10 @@ END FUNCTION
 'Get information about position in the script source of the currently executing
 'command of a script on the script stack (eg nowscript)
 'Returns true on success (debug info is available)
-FUNCTION get_script_line_info(posdata as ScriptTokenPos, selectedscript as integer) as bool
+FUNCTION get_script_line_info(posdata as ScriptTokenPos, which_scrat as OldScriptState ptr) as bool
  DIM srcpos as uinteger
- srcpos = script_current_srcpos(selectedscript)
- RETURN decode_srcpos(posdata, srcpos, scrat(selectedscript).scr->script_position)
+ srcpos = script_current_srcpos(which_scrat)
+ RETURN decode_srcpos(posdata, srcpos, which_scrat->scr->script_position)
 END FUNCTION
 
 'Format the line and statement that a script is currently at,
@@ -1754,8 +1754,8 @@ END FUNCTION
 
 
 'Read one of the strings from a script's string table.
-FUNCTION script_string_constant(scriptinsts_slot as integer, offset as integer) as string
- WITH *scriptinsts(scriptinsts_slot).scr
+FUNCTION script_string_constant(script as ScriptData ptr, offset as integer) as string
+ WITH *script
   DIM stringp as integer ptr = .ptr + .strtable + offset
   'IF .strtable + offset >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
   IF offset >= .strtablelen ORELSE offset + (stringp[0] + 3) \ 4 >= .strtablelen THEN
@@ -1947,16 +1947,15 @@ END FUNCTION
 'trim_front: if true, limit string length.
 'errorlevel: optional, relevant only to scripterr
 FUNCTION script_call_chain (trim_front as bool = YES, errorlevel as scriptErrEnum = 0) as string
- IF nowscript < 0 THEN
-  RETURN "(No scripts running)"
- END IF
+ DIM inst as ScriptInst ptr = hsvm.cur_scriptinst
+ IF inst = NULL THEN RETURN "(No scripts running)"
 
  DIM scriptlocation as string
- scriptlocation = scriptname(scriptinsts(nowscript).id)
- FOR i as integer = nowscript - 1 TO 0 STEP -1
-  IF scrat(i).state < 0 THEN EXIT FOR 'suspended: not part of the call chain
-  scriptlocation = scriptname(scriptinsts(i).id) + " -> " + scriptlocation
- NEXT
+ scriptlocation = scriptname(inst->id)
+ WHILE inst->parent
+  inst = inst->parent
+  scriptlocation = scriptname(inst->id) + " -> " + scriptlocation
+ WEND
 
  'If corrupt game data or an interpreter internal error occurred the call chain is useless,
  'and less screen space may be available
@@ -2077,8 +2076,8 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
 
   IF nowscript >= 0 THEN
    DIM as ScriptTokenPos posdata
-   IF get_script_line_info(posdata, nowscript) THEN
-    errtext &= !"\n" & fgtag(uilook(uiDescription)) & highlighted_script_line(posdata, 120, @scriptinsts(nowscript))
+   IF get_script_line_info(posdata, hsvm.cur_scrat) THEN
+    errtext &= !"\n" & fgtag(uilook(uiDescription)) & highlighted_script_line(posdata, 120, hsvm.cur_scriptinst)
    END IF
   END IF
  END IF

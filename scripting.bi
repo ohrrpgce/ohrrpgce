@@ -53,7 +53,7 @@ DECLARE SUB deref_script (script as ScriptData ptr)
 DECLARE SUB reload_scripts (force_full_message as bool = YES)
 DECLARE SUB load_hsp ()
 
-DECLARE FUNCTION script_string_constant(scriptinsts_slot as integer, offset as integer) as string
+DECLARE FUNCTION script_string_constant(script as ScriptData ptr, offset as integer) as string
 
 DECLARE FUNCTION script_lookup_local_name (var_id as integer, scrdat as ScriptData) as string
 DECLARE FUNCTION localvariablename (var_id as integer, scrdat as ScriptData) as string
@@ -62,7 +62,7 @@ DECLARE FUNCTION commandname (byval id as integer) as string
 
 DECLARE SUB read_srcfiles_txt ()
 DECLARE FUNCTION decode_srcpos(posdata as ScriptTokenPos, srcpos as uinteger, script_offset as integer = 0) as bool
-DECLARE FUNCTION get_script_line_info(posdata as ScriptTokenPos, selectedscript as integer) as bool
+DECLARE FUNCTION get_script_line_info(posdata as ScriptTokenPos, which_scrat as OldScriptState ptr) as bool
 DECLARE FUNCTION highlighted_script_line(posdata as ScriptTokenPos, maxchars as integer, scrinst as ScriptInst ptr = NULL) as string
 DECLARE FUNCTION current_command_name() as string
 DECLARE FUNCTION interpreter_context_name() as string
@@ -78,7 +78,7 @@ DECLARE FUNCTION scriptinterpreter () as bool
 DECLARE SUB breakpoint (byref mode as integer, byval callspot as integer)
 DECLARE SUB scriptwatcher (byref mode as integer, byval drawloop as bool = NO)
 DECLARE SUB scriptdump (header as string)
-DECLARE FUNCTION script_current_srcpos (selectedscript as integer) as uinteger
+DECLARE FUNCTION script_current_srcpos (which_scrat as OldScriptState ptr) as uinteger
 DECLARE SUB setScriptArg (byval arg as integer, byval value as integer)
 DECLARE FUNCTION ancestor_script_id(scriptslot as integer, depth as integer) as integer
 

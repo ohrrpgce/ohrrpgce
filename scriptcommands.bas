@@ -2162,12 +2162,12 @@ SUB script_commands(byval cmdid as integer)
   IF retvals(0) >= 0 THEN gold = retvals(0)
  CASE 251'--set string from table
   IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# = \"...\"") THEN
-   plotstr(retvals(0)).s = script_string_constant(nowscript, retvals(1))
+   plotstr(retvals(0)).s = script_string_constant(hsvm.cur_script, retvals(1))
    scriptret = retvals(0)
   END IF
  CASE 252'--append string from table
   IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# + \"...\"") THEN
-   plotstr(retvals(0)).s += script_string_constant(nowscript, retvals(1))
+   plotstr(retvals(0)).s += script_string_constant(hsvm.cur_script, retvals(1))
    scriptret = retvals(0)
   END IF
  CASE 256'--suspend map music
@@ -3135,7 +3135,7 @@ SUB script_commands(byval cmdid as integer)
   FOR i as integer = 0 TO curcmd->argc - 1
    IF i MOD 2 = 0 THEN
     IF i <> 0 THEN result &= ", "
-    result &= script_string_constant(nowscript, retvals(i)) & " = "
+    result &= script_string_constant(hsvm.cur_script, retvals(i)) & " = "
    ELSE
     result &= retvals(i)
    END IF
@@ -4720,7 +4720,7 @@ SUB script_commands(byval cmdid as integer)
  CASE 659 '--_asserteq(x, y, stringid, stringoffset)
   IF retvals(0) <> retvals(1) THEN
    IF bound_arg(retvals(2), 0, UBOUND(plotstr), "string ID", "assert expression string") THEN
-    plotstr(retvals(2)).s = script_string_constant(nowscript, retvals(3)) & _
+    plotstr(retvals(2)).s = script_string_constant(hsvm.cur_script, retvals(3)) & _
                             " [actual values were " & retvals(0) & " == " & retvals(1) & "]"
     scriptret = 1
    END IF
@@ -5149,7 +5149,7 @@ SUB script_commands(byval cmdid as integer)
   FOR i as integer = 0 TO curcmd->argc - 1
    IF i MOD 2 = 0 THEN
     IF i <> 0 THEN result &= ", "
-    result &= script_string_constant(nowscript, retvals(i)) & "="
+    result &= script_string_constant(hsvm.cur_script, retvals(i)) & "="
    ELSE
     result &= STR(retvals(i))
    END IF
