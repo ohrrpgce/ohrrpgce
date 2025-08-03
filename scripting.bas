@@ -282,15 +282,15 @@ END FUNCTION
 'Called after runscript when running a script which should be watched
 '(Currently always a new fibre, but in future would be nice to be able to watch other scripts)
 SUB watched_script_triggered(fibre as ScriptFibre)
- IF gam.script_log.last_logged > -1 ANDALSO scriptinsts(gam.script_log.last_logged).started = NO THEN
+ IF gam.script_log.last_logged ANDALSO gam.script_log.last_logged->started = NO THEN
   script_log_out " (queued)"
  END IF
 
  IF trigger_script_result = rsSuccess THEN
   hsvm.cur_scriptinst->watched = YES
-  gam.script_log.last_logged = nowscript
+  gam.script_log.last_logged = hsvm.cur_scriptinst
  ELSE
-  gam.script_log.last_logged = -1
+  gam.script_log.last_logged = NULL
  END IF
 
  DIM logline as string
@@ -327,21 +327,21 @@ END SUB
 
 'nowscript has been started and resumed and has .watched = YES
 SUB watched_script_resumed
- IF gam.script_log.last_logged = nowscript THEN
+ IF gam.script_log.last_logged = hsvm.cur_scriptinst THEN
   'nothing
  ELSEIF hsvm.cur_scriptinst->started THEN
   'also nothing
  ELSE
   script_log_out !"\n" & script_log_indent() & "*" & scriptname(hsvm.cur_scriptinst->id) & " started"
-  gam.script_log.last_logged = nowscript
+  gam.script_log.last_logged = hsvm.cur_scriptinst
  END IF
  hsvm.cur_scriptinst->started = YES
 END SUB
 
-'Called right before the current script terminates and has .watched = YES
+'Called right before the current script terminates if it has .watched = YES
 SUB watched_script_finished
  DIM logline as string
- IF gam.script_log.last_logged = nowscript THEN
+ IF gam.script_log.last_logged = hsvm.cur_scriptinst THEN
   logline = " ... finished"
  ELSE
   logline = !"\n" & script_log_indent() & "-" & scriptname(hsvm.cur_scriptinst->id) & " finished"
@@ -352,7 +352,7 @@ SUB watched_script_finished
  END IF
  script_log_out logline
 
- gam.script_log.last_logged = -1
+ gam.script_log.last_logged = NULL
 END SUB
 
 'Call each tick if script logging is enabled
@@ -387,7 +387,7 @@ SUB script_log_tick
    script_log_out logline
    .output_flag = NO
 
-   .last_logged = -1
+   .last_logged = NULL
   END IF
  END WITH
 END SUB
@@ -430,7 +430,9 @@ SUB killscriptthread
   nowscript -= 1
   hsvm.set_cur_script
  WEND
- gam.script_log.last_logged = -1
+ gam.script_log.last_logged = NULL
+ 'Won't be used, but better not to leave a stale ptr as we return to the interpreter
+ nowscript_locals = @heap(hsvm.cur_scrat->frames(0).heap)
 
  'Let functiondone handle the fibre exit
  setstackposition(scrst, hsvm.cur_scrat->stackbase)
@@ -453,7 +455,7 @@ SUB killallscripts
   hsvm.set_cur_script
  WEND
  nowscript_locals = NULL
- gam.script_log.last_logged = -1
+ gam.script_log.last_logged = NULL
 
  setstackposition(scrst, 0)
 

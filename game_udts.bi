@@ -111,7 +111,7 @@ TYPE ScriptLoggingState
   enabled as bool
   filename as string
   tick as integer                    'Number of times interpret has been called
-  last_logged as integer             'scrat index
+  last_logged as ScriptInst ptr      'The script on the last output log line, or NULL if no longer running
   output_flag as bool                'Set to true after script_log_out called
   last_wait_msg as string
   wait_msg_repeats as integer        'Number of ticks in a row with identical last_wait_msg
