@@ -116,6 +116,7 @@ TYPE SpriteEditState
   number_typing_deadline as double  'Deadline for typing more digits of a color idx
   drawcursor as integer 'Icon to use for the cursor, (character in the font)
   tool as integer
+  alternate_mode as bool 'When Marking, cut instead of copy
   pal_num as integer    'Palette used by current sprite
   curcolor as integer   'Index in master palette (equal to .palette->col(.palindex))
   palindex as integer   'Index in 16 color palette
@@ -123,7 +124,7 @@ TYPE SpriteEditState
   airsize as integer
   mist as integer
   hold as integer
-  tick as integer
+  tick as integer       'usually 0, 1 every 110ms
   tog as integer        '0/1
   holdpos as XYPair     'Opposite corner of a line/box, center of an ellipse, Clone brush offset
   radius as double
@@ -166,6 +167,7 @@ TYPE TileEditState
   drawcursor as integer
   preview_content as integer   'tile preview mode (0=neighbours/1=tiled)
   tool as integer
+  alternate_mode as bool     'When Marking, cut instead of copy
   curcolor as integer
   hidemouse as bool
   radius as double

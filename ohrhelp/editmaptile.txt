@@ -45,13 +45,20 @@ S Scroll tool. While this is the
   keys, to move it around. Pixels
   will wrap over the edges.
 
-M Mark tool. Marks a rectangular
-  area of the tile to use with the
-  clone tool.
+M Mark tool (Copy). Marks (copies) a
+  rectangular area of the tile to
+  use with the clone tool.
+
+  Mark, alternate tool (Cut):
+  Right Click or hold CTRL or SHIFT
+  while clicking or pressing SPACE
+  to cut a piece from the sprite
+  instead of copying it. Great for
+  moving parts of the tile!
 
 C Clone tool. Draw on the tile using
   a portion of a tile that you have
-  previously chosen with the mark
+  previously chosen with the Mark
   tool. Pixels drawn in color 0
   (normally black) will be
   transparent. While you are using

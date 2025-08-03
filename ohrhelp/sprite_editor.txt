@@ -47,18 +47,25 @@ S Scroll tool. While this is the
   editor, pixels will be cropped
   instead of wrapping around.
 
-M Mark tool. This tool selects
+M Mark tool (Copy). This tool selects
   (copies) a rectangular area to use
   with the clone tool.
 
-C Clone tool. This tool paints using
+  Mark, alternate tool (Cut):
+  Right Click or hold CTRL or SHIFT
+  while clicking or pressing SPACE
+  to cut a piece from the sprite
+  instead of copying it. Great for
+  moving parts of the sprite!
+
+C Clone tool (Paste). Paints using
   a portion of a sprite that you have
-  previously selected with the mark
+  previously selected with the Mark
   tool. Color 0 is transparent.
   While the clone tool is active you
   can press + and - to rotate the
   cloned area. Hold down ENTER or the
-  right mouse button to reposition   
+  Right mouse button to reposition
   the brush relative to the cursor.
 
 + and - Rotate the sprite. Use

@@ -43,7 +43,7 @@ DECLARE SUB writeundoblock (state as TileEditState)
 DECLARE SUB readundoblock (state as TileEditState)
 DECLARE SUB fliptile (ts as TileEditState)
 DECLARE SUB scrolltile (ts as TileEditState, byval shiftx as integer, byval shifty as integer)
-DECLARE SUB clicktile (ts as TileEditState, byval newkeypress as integer, byref clone as TileCloneBuffer)
+DECLARE SUB clicktile (ts as TileEditState, newkeypress as integer, toolinfo() as ToolInfoType, byref clone as TileCloneBuffer)
 DECLARE SUB tilecopy (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB tilepaste (cutnpaste() as integer, ts as TileEditState)
 DECLARE SUB tiletranspaste (cutnpaste() as integer, ts as TileEditState)
@@ -1801,7 +1801,7 @@ DO
   readundoblock ts
   ts.didscroll = NO  'save a new undo block upon scrolling
  END IF
- IF keyval(scSpace) > 0 THEN clicktile ts, keyval(scSpace) AND 4, clone
+ IF keyval(scSpace) > 0 THEN clicktile ts, keyval(scSpace) AND 4, toolinfo(), clone
  IF keyval(scAnyEnter) > 1 ORELSE keyval(scG) > 1 THEN
   ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
   'If the tool is a non-drawing tool, switch back to draw
@@ -1815,7 +1815,16 @@ DO
   'Drawing area
   ts.x = zox \ 8
   ts.y = zoy \ 8
-  IF ts.tool = clone_tool THEN
+  DIM usetool as bool = (mouse.buttons AND mouseLeft) <> 0
+  DIM newkeypress as bool = (mouse.clicks AND mouseLeft) <> 0
+  IF ts.tool = mark_tool THEN
+   'For mark tool, right click to cut instead of copy
+   IF mouse.buttons AND mouseRight THEN
+    ts.alternate_mode = YES
+    usetool = YES
+    newkeypress OR= (mouse.clicks AND mouseRight) <> 0
+   END IF
+  ELSEIF ts.tool = clone_tool THEN
    ' For clone brush tool, enter/right-click moves the handle point
    IF ts.readjust THEN
     IF keyval(scEnter) = 0 AND mouse.buttons = 0 THEN ' click or key release
@@ -1846,7 +1855,7 @@ DO
     IF ts.tool = scroll_tool THEN tileedit_set_tool ts, toolinfo(), draw_tool
    END IF
   END IF
-  IF mouse.buttons AND mouseLeft THEN clicktile ts, (mouse.clicks AND mouseLeft), clone
+  IF usetool THEN clicktile ts, newkeypress, toolinfo(), clone
  CASE 2
   'Colour selector
   IF mouse.buttons AND mouseLeft THEN
@@ -2107,11 +2116,12 @@ END SUB
 SUB tileedit_set_tool (ts as TileEditState, toolinfo() as ToolInfoType, byval toolnum as integer)
  IF ts.tool <> toolnum AND toolnum = scroll_tool THEN ts.didscroll = NO
  ts.tool = toolnum
+ ts.alternate_mode = NO
  ts.hold = NO
  ts.drawcursor = toolinfo(ts.tool).cursor + 1
 END SUB
 
-SUB clicktile (ts as TileEditState, byval newkeypress as integer, byref clone as TileCloneBuffer)
+SUB clicktile (ts as TileEditState, newkeypress as integer, toolinfo() as ToolInfoType, byref clone as TileCloneBuffer)
 DIM spot as XYPair
 
 IF ts.delay > 0 THEN EXIT SUB
@@ -2220,13 +2230,18 @@ SELECT CASE ts.tool
  CASE mark_tool
   IF newkeypress THEN
    IF ts.hold = YES THEN
+    'alternate means cut instead of copy
+    IF (keyval(scShift) OR keyval(scCtrl)) > 0 THEN ts.alternate_mode = YES
+    IF ts.alternate_mode THEN writeundoblock ts
     DIM select_rect as RectType
     corners_to_rect_inclusive Type(ts.x, ts.y), ts.holdpos, select_rect
     clone.size.x = select_rect.wide
     clone.size.y = select_rect.high
     FOR i as integer = 0 TO clone.size.y - 1
      FOR j as integer = 0 TO clone.size.x - 1
-      clone.buf(j, i) = readpixel(ts.tilex * 20 + select_rect.x + j, ts.tiley * 20 + select_rect.y + i, 3)
+      DIM pos as XYPair = XY(ts.tilex, ts.tiley) * 20 + select_rect.xy + XY(j, i)
+      clone.buf(j, i) = readpixel(pos.x, pos.y, 3)
+      IF ts.alternate_mode THEN putpixel(pos.x, pos.y, 0, 3)
      NEXT j
     NEXT i
     clone.offset.x = clone.size.x \ 2
@@ -2236,8 +2251,8 @@ SELECT CASE ts.tool
     ts.adjustpos.y = 0
     clone.exists = YES
     refreshtileedit ts
-    ts.hold = NO
-    ts.tool = clone_tool ' auto-select the clone tool after marking
+    ' auto-select the clone tool after marking
+    tileedit_set_tool ts, toolinfo(), clone_tool
    ELSE
     ts.hold = YES
     ts.holdpos.x = ts.x
@@ -2261,10 +2276,11 @@ SELECT CASE ts.tool
     refreshtileedit ts
    ELSE
     'if no clone buffer, switch to mark tool
-    ts.tool = mark_tool
+    tileedit_set_tool ts, toolinfo(), mark_tool
     ts.hold = YES
     ts.holdpos.x = ts.x
     ts.holdpos.y = ts.y
+    IF readmouse.buttons AND mouseRight THEN ts.alternate_mode = YES
    END IF
   END IF
 END SELECT
@@ -4032,7 +4048,20 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
   ss.y = ss.zone.y
  END IF
 
- IF ((ss.zonenum = 1 OR ss.zonenum = 14) ANDALSO (ss.mouse.buttons AND mouseLeft)) OR keyval(scSpace) > 0 THEN
+ DIM usetool as bool
+ DIM alternate as bool = (keyval(scShift) OR keyval(scCtrl)) > 0
+ IF keyval(scSpace) > 0 THEN usetool = YES
+ ' Mouse over canvas or thumbnail
+ IF ss.zonenum = 1 OR ss.zonenum = 14 THEN
+  IF ss.mouse.buttons AND mouseLeft THEN usetool = YES
+  IF ss.tool = mark_tool ANDALSO (ss.mouse.buttons AND mouseRight) THEN
+   'Right click to cut
+   usetool = YES
+   alternate = YES
+  END IF
+ END IF
+
+ IF usetool THEN
   SELECT CASE ss.tool
    CASE draw_tool
     spriteedit_put_dot(ss)
@@ -4083,10 +4112,18 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
    CASE airbrush_tool
     spriteedit_spray_spot(ss)
    CASE mark_tool
+    'alternate means cut
     IF ss.mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
      IF ss.hold THEN
       ss.hold = NO
-      frame_assign @ss_save.clone_brush, frame_resized(ss.sprite, ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, -small(ss.x, ss.holdpos.x), -small(ss.y, ss.holdpos.y))
+      DIM rect as RectType
+      rect.xy = XY(small(ss.x, ss.holdpos.x), small(ss.y, ss.holdpos.y))
+      rect.wh = XY(ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1)
+      frame_assign @ss_save.clone_brush, frame_resized(ss.sprite, rect.w, rect.h, -rect.x, -rect.y)
+      IF alternate THEN
+       writeundospr ss
+       rectangle ss.sprite, rect, 0
+      END IF
       ss_save.clonepos.x = ss_save.clone_brush->w \ 2
       ss_save.clonepos.y = ss_save.clone_brush->h \ 2
       ss.tool = clone_tool ' auto-select the clone tool after marking
@@ -4143,7 +4180,10 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
   END IF
  END IF
  DIM normal_enter_rclick as bool = YES
- IF ss.tool = clone_tool THEN
+ IF ss.tool = mark_tool THEN
+  ' For mark tool, right click to cut. Handled above
+  normal_enter_rclick = NO
+ ELSEIF ss.tool = clone_tool THEN
   ' For clone brush tool, enter/right-click moves the handle point
   normal_enter_rclick = NO
   IF ss.readjust THEN
@@ -4193,7 +4233,7 @@ SUB spriteedit_sprctrl(byref ss as SpriteEditState)
    spriteedit_scroll ss, ss.x - ss.lastcpos.x, ss.y - ss.lastcpos.y
   END IF
  END IF
- IF ss.tool = scroll_tool AND keyval(scAlt) = 0 THEN
+ IF ss.tool = scroll_tool AND keyval(scAlt) = 0 AND keyval(scCtrl) = 0 THEN
   DIM scrolloff as XYPair
   DIM stepsize as integer = IIF(keyval(scShift) > 0, ss.fastmovestep, 1)
   IF slowkey(ccUp, 100)    THEN scrolloff.y -= stepsize

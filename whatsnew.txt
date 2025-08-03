@@ -5,6 +5,9 @@ Aug 04 2025 [Kaleidophone]
   *** New Features
     * New pref bit "Allow wasting out-of-battle cures" defaults to on [James]
     * New Item Editor
+    * While using the Mark tool in the Sprite and Tile Editors, Right click or
+      hold Shift or Ctrl to cut instead of copying, great for moving pieces of
+      the image [Ralph]
 
    * Plotscripting Features
     * "swap in hero by slot", "swap out hero by slot", "lock hero by slot",
@@ -32,6 +35,7 @@ Aug 04 2025 [Kaleidophone]
 
   *** Stuff Only Developers Will Notice
 
+
 July 4 2025 [Jocoserious+2]
 
   *** New Features
@@ -46,6 +50,7 @@ July 4 2025 [Jocoserious+2]
       map editor [Ralph]
     * Importing a spriteset "from custom layout" cut out frames using the
       default frame size rather than the specified one [Ralph]
+
 
 March 29 2025 [Jocoserious+1]
 
