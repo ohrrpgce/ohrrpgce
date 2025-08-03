@@ -2548,6 +2548,7 @@ SUB execute_script_fibres(fibregroup as ScriptFibre ptr vector)
   finished_fibre = scriptinterpreter()
   'scriptinterpreter returns whenever the topmost fibre finishes or starts
   'waiting (it might be one newly triggered, not the one we started executing)
+  'hsvm.cur_script/fibre/etc now point to the new topmost fibre.
 
   IF finished_fibre = NO THEN
    BUG_IF(hsvm.cur_scriptinst = NULL ORELSE hsvm.cur_scriptinst->waiting = waitingOnNothing, "Fibre stopped but not waiting")
@@ -2606,7 +2607,8 @@ SUB interpret_scripts(fibregroup as ScriptFibre ptr vector)
  'map autorun script (which might contain important initialisation). 
 
  'Also note that now if two fibres run two commands like fightformation and usedoor the order in which
- 'they occur is independent of the order in which they were called.
+ 'they occur is independent of the order in which they were called. In future anyway... currently, two
+ 'such commands can't be run by plotscripts on the same tick.
 
  'FIXME: 
  'Currently if a map changes (or even is a game is loaded) there is one tick on the new map

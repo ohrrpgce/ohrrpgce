@@ -502,15 +502,8 @@ DO
    IF gam.debug_scripts AND breakstnext THEN breakpoint gam.debug_scripts, 2
    GOTO interpretloop 'new WITH pointer
   CASE sttriggered'---special initial state used just for script trigger logging
-   DIM byref inst as ScriptInst = *hsvm.cur_scriptinst
-   IF gam.script_log.enabled THEN
-    IF inst.fibre = NULL THEN
-     showbug "sttriggered missing fibre ptr"
-    ELSE
-     watched_script_triggered *inst.fibre
-    END IF
-   END IF
-   inst.started = YES
+   IF gam.script_log.enabled THEN watched_script_triggered *hsvm.cur_fibre
+   hsvm.cur_scriptinst->started = YES
    .state = ststart
   CASE sterror'---some error has occurred, crash and burn
    '--note that there's no thought out plan for handling errors
@@ -604,14 +597,17 @@ DIM return_value as integer = hsvm.cur_scrat->ret
 
 'debug "functiondone slot " & hsvm.cur_slot & " id = " & hsvm.cur_scriptinst->id  & " " & scriptname(hsvm.cur_scriptinst->id)
 
-'Pretty useless bookkeeping, could delete
+'Very marginally useful bookkeeping, could get rid of lastuse
 scriptctr += 1
 hsvm.cur_script->lastuse = scriptctr
 
 IF scriptprofiling THEN script_return_timing
 
-' Script logging
+' Script logging (needed also to wipe the stale gam.script_log.last_logged ptr)
 IF hsvm.cur_scriptinst->watched THEN watched_script_finished
+
+' Cleanup the fibre (wipes hsvm.cur_fibre)
+IF hsvm.cur_scriptinst->parent = NULL THEN delete_fibre hsvm.cur_fibre
 
 ' Cleanup the old script
 deref_script hsvm.cur_script
@@ -627,12 +623,13 @@ ELSE
  curcmd = cast(ScriptCommand ptr, state->scrdata + state->ptr)
  IF state->state < 0 THEN
   '--suspended fibre is resumed
+  hsvm.cur_fibre = hsvm.cur_scriptinst->fibre
   'debug "  resuming fibre in slot " & hsvm.cur_slot
   state->state = ABS(state->state)
   IF state->state = streturn THEN
    'streturn means a script command was interrupted by a triggered
    'script. Restore the scriptret that the command was about to return
-   '(otherwise it would replaced by the triggered script's return value)
+   '(otherwise it would be replaced by the triggered script's return value)
    '(May wish to do this on other states too?)
    '? "state " & state->state & " RESTORE scriptret " & state->saved_scriptret & ", overwriting " & scriptret
    scriptret = state->saved_scriptret

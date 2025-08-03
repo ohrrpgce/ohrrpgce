@@ -516,7 +516,7 @@ TYPE ScriptInst
   watched as bool       'true for scripts which are being logged (fibre roots only)
   started as bool       'used only if watched is true: whether the script has started
   id as integer         'id number of script
-  fibre as ScriptFibreFwd ptr 'NULL if not the head of a fibre
+  fibre as ScriptFibreFwd ptr
   parent as ScriptInst ptr 'The script that called this one, or NULL if the head/root of a fibre
 
   'These 3 items are only updated when the script interpreter is left. While inside
@@ -529,9 +529,9 @@ TYPE ScriptInst
 END TYPE
 
 TYPE ScriptFibre
-
-  id as integer         'Triggers pre-decoded
-  slot as integer       'scrat/scriptinsts index of head script; -1 if not started
+  'role as ScriptRole
+  id as integer         'Root script ID (trigger ID pre-decoded)
+  root as ScriptInst ptr 'The initial triggered script; NULL if not loaded with runscript yet
   trigger_name as string
   trigger_loc as string 'More information about how it was triggered
   double_trigger_check as bool  'Whether to prevent double triggering
@@ -546,6 +546,9 @@ DECLARE_VECTOR_OF_TYPE(ScriptFibre ptr, ScriptFibre_ptr)
 TYPE HSVMState
   DECLARE SUB set_cur_script()
 
+  'cur_fibre is updated only when the fibre changes, all these
+  'others are updated by set_cur_script() whenever nowscript changes.
+  cur_fibre as ScriptFibre ptr
   cur_script as ScriptData ptr
   cur_scrat as OldScriptState ptr
   cur_scriptinst as ScriptInst ptr

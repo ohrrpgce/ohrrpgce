@@ -30,6 +30,7 @@ DECLARE SUB script_call_timing ()
 DECLARE SUB script_return_timing ()
 DECLARE SUB timed_script_commands(byval cmdid as integer)
 
+DECLARE SUB delete_fibre (fibre as ScriptFibre ptr)
 DECLARE SUB killallscripts ()
 DECLARE SUB killscriptthread ()
 DECLARE SUB resetinterpreter ()

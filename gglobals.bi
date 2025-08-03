@@ -87,7 +87,6 @@ EXTERN interruption_grace_period as integer
 EXTERN scripts_use_cc_scancodes as bool
 EXTERN scrst as Stack
 EXTERN curcmd as ScriptCommand ptr
-EXTERN last_queued_script as ScriptFibre ptr
 EXTERN mainFibreGroup as ScriptFibre ptr vector
 EXTERN err_suppress_lvl as scriptErrEnum
 EXTERN backcompat_sound_slot_mode as bool

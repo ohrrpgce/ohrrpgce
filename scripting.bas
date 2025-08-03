@@ -76,25 +76,29 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
  END IF
 
  DIM insertpos as integer
- last_triggered_fibre = NULL
+ DIM prev_fibre as ScriptFibre ptr
 
  IF insideinterpreter THEN
   'Always becomes the topmost fibre, priority ignored (TODO: this will change)
   insertpos = v_len(fibregroup)
 
-  trigger_script_result = runscript(id, YES, double_trigger_check, trigger_name)
-  IF trigger_script_result <> rsSuccess THEN EXIT SUB
-
+  prev_fibre = hsvm.cur_fibre
   last_triggered_fibre = NEW ScriptFibre
-  last_triggered_fibre->slot = nowscript
-  hsvm.cur_scriptinst->fibre = last_triggered_fibre
+  hsvm.cur_fibre = last_triggered_fibre
 
-  IF gam.script_log.enabled THEN
-   'Can't call watched_script_triggered until after the trigger_script_args calls,
-   'so get interpretloop to call it.
-   hsvm.cur_scriptinst->watched = YES
-   hsvm.cur_scrat->state = sttriggered
+  trigger_script_result = runscript(id, YES, double_trigger_check, trigger_name)
+
+  IF trigger_script_result = rsSuccess THEN
+   hsvm.cur_fibre->root = hsvm.cur_scriptinst
+
+   IF gam.script_log.enabled THEN
+    'Can't call watched_script_triggered until after the trigger_script_args calls,
+    'so get interpretloop to call it.
+    hsvm.cur_scriptinst->watched = YES
+    hsvm.cur_scrat->state = sttriggered
+   END IF
   END IF
+  'Else keep going just in case logging scripts
 
  ELSE
   'Script log will be handled by run_queued_script
@@ -102,7 +106,6 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
   trigger_script_result = rsSuccess  'Can't fail until runscript actually called
 
   last_triggered_fibre = NEW ScriptFibre
-  last_triggered_fibre->slot = -1
 
   'Insert into the queue according to priority
   'Note that the script at the top of the queue is the first to run,
@@ -128,6 +131,16 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
   .priority = priority
   .argc = numargs
  END WITH
+
+ IF trigger_script_result <> rsSuccess THEN
+  'insideinterpreter = YES. Log failed trigger
+  IF gam.script_log.enabled THEN watched_script_triggered *last_triggered_fibre
+
+  delete_fibre hsvm.cur_fibre
+  hsvm.cur_fibre = prev_fibre
+  EXIT SUB
+ END IF
+
 END SUB
 
 SUB trigger_script_arg (byval argno as integer, byval value as integer, byval argname as zstring ptr = NULL)
@@ -163,14 +176,18 @@ LOCAL FUNCTION run_queued_script (fibre as ScriptFibre) as bool
  'If the script is missing then .id = 0 and decodetrigger already showed an error
  IF fibre.id = 0 THEN RETURN NO
 
+ DIM prev_fibre as ScriptFibre ptr = hsvm.cur_fibre
+ hsvm.cur_fibre = @fibre
+
  trigger_script_result = runscript(fibre.id, YES, fibre.double_trigger_check, fibre.trigger_name)
  IF trigger_script_result = rsSuccess THEN
   FOR argno as integer = 0 TO fibre.argc - 1
    setScriptArg argno, fibre.args(argno)
   NEXT
 
-  hsvm.cur_scriptinst->fibre = @fibre
-  fibre.slot = nowscript
+  fibre.root = hsvm.cur_scriptinst
+ ELSE
+  hsvm.cur_fibre = prev_fibre
  END IF
 
  'Log failed triggers too
@@ -182,15 +199,14 @@ END FUNCTION
 'Load queued script fibres into the interpreter (this is delayed so the order
 'can change by priority)
 SUB run_queued_scripts(fibregroup as ScriptFibre ptr vector)
- last_triggered_fibre = NULL  'Might delete
+ last_triggered_fibre = NULL
 
  FOR idx as integer = 0 TO v_len(fibregroup) - 1
-  IF fibregroup[idx]->slot = -1 THEN
-   'Not started yet
+  IF fibregroup[idx]->root = NULL THEN
+   'Not run yet
    IF run_queued_script(*fibregroup[idx]) = NO THEN
     'runscript failed
-    DELETE fibregroup[idx]
-    v_pop fibregroup, idx
+    delete_fibre fibregroup[idx]
     idx -= 1
    END IF
   END IF
@@ -299,7 +315,10 @@ SUB watched_script_triggered(fibre as ScriptFibre)
  IF insideinterpreter THEN
   'Being inside the interpreter means we weren't called from run_queued_scripts,
   'therefore there was already a running script.
-  IF hsvm.cur_scriptinst->parent = NULL THEN
+  IF trigger_script_result <> rsSuccess THEN
+   'hsvm.cur_scriptinst is the previously running script
+   logline &= "!"
+  ELSEIF hsvm.cur_scriptinst->parent = NULL THEN
    'This script was triggered as a side effect of something that the previous
    'script did, such as advance a text box
    logline &= "!"
@@ -413,6 +432,17 @@ SUB HSVMState.set_cur_script()
  cur_slot = nowscript   'Temp
 END SUB
 
+SUB delete_fibre(fibre as ScriptFibre ptr)
+ '? " fibre ended " & scriptname(hsvm.cur_scriptinst->id)
+ 'Cleanup every global that might hold a reference
+ IF hsvm.cur_fibre = fibre THEN hsvm.cur_fibre = NULL
+ IF last_triggered_fibre = fibre THEN last_triggered_fibre = NULL
+ 'If runscript fails, the fibre might not yet have been added to the group
+ v_remove mainFibreGroup, fibre
+
+ DELETE fibre
+END SUB
+
 'Kills the currently running script fibre
 SUB killscriptthread
  BUG_IF(insideinterpreter = NO ORELSE hsvm.cur_scrat = NULL, "Inappropriate call")
@@ -434,7 +464,7 @@ SUB killscriptthread
  'Won't be used, but better not to leave a stale ptr as we return to the interpreter
  nowscript_locals = @heap(hsvm.cur_scrat->frames(0).heap)
 
- 'Let functiondone handle the fibre exit
+ 'Let functiondone handle the fibre exit, so that we do everything properly and exit interpretloop normally
  setstackposition(scrst, hsvm.cur_scrat->stackbase)
  hsvm.cur_scrat->state = stdone
 END SUB
@@ -450,6 +480,9 @@ SUB killallscripts
  IF hsvm.cur_scrat THEN hsvm.cur_scrat->state = stexit
 
  WHILE hsvm.cur_script
+  IF hsvm.cur_scriptinst->parent = NULL THEN
+   delete_fibre hsvm.cur_scriptinst->fibre
+  END IF
   deref_script(hsvm.cur_script)
   nowscript -= 1
   hsvm.set_cur_script
@@ -459,13 +492,12 @@ SUB killallscripts
 
  setstackposition(scrst, 0)
 
- 'Delete the fibres
- last_triggered_fibre = NULL
+ 'Delete the fibres... but there should be none left.
+ IF v_len(mainFibreGroup) THEN debugc errBug, "killallscripts: orphan fibres"
  IF mainFibreGroup THEN  'During startup not initialised yet?
-  FOR idx as integer = 0 TO v_len(mainFibreGroup) - 1
-   DELETE mainFibreGroup[idx]
+  FOR idx as integer = v_len(mainFibreGroup) - 1 TO 0 STEP -1
+   delete_fibre mainFibreGroup[idx]
   NEXT
-  v_resize mainFibreGroup, 0
  END IF
 
 END SUB
@@ -596,7 +628,7 @@ WITH scriptinsts(index)
  ELSE
   .parent = hsvm.cur_scriptinst
  END IF
- .fibre = NULL  'Caller initializes
+ .fibre = hsvm.cur_fibre  'If newcall, the caller will have set this
  .id = n
  .watched = NO
  .started = NO
