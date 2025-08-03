@@ -1252,23 +1252,19 @@ SUB start_fibre_timing
  ' Exclusive time (in this script)
  hsvm.cur_script->totaltime -= timestamp
 
- ' Error checking
- FOR which as integer = nowscript TO 0 STEP -1
-  IF scrat(which).state < 0 THEN EXIT FOR  'Bottom of fibre callstack
-  WITH *scrat(which).scr
-   IF .calls_in_stack <> 0 THEN showbug "Garbage calls_in_stack=" & .calls_in_stack & " value for script " & .id
-  END WITH
- NEXT
-
  ' Inclusive time (in this script and call tree descendents)
- FOR which as integer = nowscript TO 0 STEP -1
-  IF scrat(which).state < 0 THEN EXIT FOR  'Bottom of fibre callstack
-  WITH *scrat(which).scr
+ DIM inst as ScriptInst ptr = hsvm.cur_scriptinst
+ WHILE inst
+  WITH *inst->scr
+   ' Error checking
+   IF .calls_in_stack <> 0 THEN showbug "Garbage calls_in_stack=" & .calls_in_stack & " value for script " & .id
+
    .calls_in_stack += 1
    .laststart = timestamp
    'debug "  set slot " & which & " id " & .id & " laststart = " & timestamp & " ++calls_in_stack = " & .calls_in_stack
   END WITH
- NEXT
+  inst = inst->parent
+ WEND
 END SUB
 
 ' Call this when execution of the current script fibre stops, e.g. due to a wait
@@ -1278,7 +1274,7 @@ SUB stop_fibre_timing
  stop_command_timing
  IF scriptprofiling = NO THEN EXIT SUB
  IF hsvm.cur_script = NULL ORELSE insideinterpreter = NO THEN EXIT SUB
- 'debug "stop_fibre_timing slot " & nowscript & " id " & hsvm.cur_script->id
+ 'debug "stop_fibre_timing slot " & hsvm.cur_slot & " id " & hsvm.cur_script->id
  IF timing_fibre = NO THEN EXIT SUB
  timing_fibre = NO
 
@@ -1290,9 +1286,9 @@ SUB stop_fibre_timing
  'debug "  id " & hsvm.cur_script->id & " totaltime now " & hsvm.cur_script->totaltime
 
  ' Inclusive time (in this script and call tree descendents)
- FOR which as integer = nowscript TO 0 STEP -1
-  IF scrat(which).state < 0 THEN EXIT FOR  'Bottom of fibre callstack
-  WITH *scrat(which).scr
+ DIM inst as ScriptInst ptr = hsvm.cur_scriptinst
+ WHILE inst
+  WITH *inst->scr
    'debug "  id " & .id & " calls_in_stack-- = " & .calls_in_stack
    .calls_in_stack -= 1
    IF .calls_in_stack = 0 THEN
@@ -1300,17 +1296,12 @@ SUB stop_fibre_timing
     .childtime += timestamp - .laststart
     'debug "  adding to id " & .id & " childtime: " & (timestamp - .laststart) & " now: " & .childtime
    END IF
-  END WITH
- NEXT
 
- ' Error checking
- FOR which as integer = nowscript TO 0 STEP -1
-  IF scrat(which).state < 0 THEN EXIT FOR  'Bottom of fibre callstack
-  WITH *scrat(which).scr
-   IF .calls_in_stack <> 0 THEN showbug "Garbage calls_in_stack=" & .calls_in_stack & " value for script " & .id & " slot " & which
+   ' Error checking
+   IF .calls_in_stack <> 0 THEN showbug "Garbage calls_in_stack=" & .calls_in_stack & " value for script " & .id
   END WITH
- NEXT
-
+  inst = inst->parent
+ WEND
 END SUB
 
 'Sort by total time
