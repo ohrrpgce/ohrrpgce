@@ -27,6 +27,7 @@ Aug 04 2025 [Kaleidophone]
     * Squeezed 25-30% more speed out of the script interpreter [Ralph]
 
   *** Changes
+    * Changed "get item" to return the number of items added [James]
 
   *** Bugfixes
     * Bug #1186 Add hero hook script breaks "add hero" return value [Ralph]
@@ -34,6 +35,7 @@ Aug 04 2025 [Kaleidophone]
       in ubersetzung and older games, which oft relied on it [Ralph]
 
   *** Stuff Only Developers Will Notice
+    * The code for the new item editor is so much prettier! Yay EditorKit!
 
 
 July 4 2025 [Jocoserious+2]

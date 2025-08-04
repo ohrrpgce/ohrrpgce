@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-07-18)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-08-04)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -7212,7 +7212,7 @@ end</pre>
 			<a name="about-getitem"></a>
 				<h4>get item (item, number)</h4>
 <p>
-			Adds the specified number of the specified item to your inventory. If you do not specify a number, only one will be added. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name. This command normally returns true, but it will return false if there was not room in the inventory to hold at least one of the items you werte trying to add.
+			Adds the specified number of the specified item to your inventory. If you do not specify a number, only one will be added. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name. This command returns the number of items actually added, which could be different from the number requested if the inventory is full.
 			
 			
 			
@@ -22496,7 +22496,13 @@ assert (check tag (tag:initialised) == OFF)  # something ought to be true at thi
 			<a name="about-getcallingscriptid"></a>
 				<h4>get calling script id (depth)</h4>
 <p>
-			Returns the ID number of the script which called this one. The optional <span class="param">depth</span> argument, which defaults to 1, allows returning the ID of a deeper ancestor script instead: 1 is the parent, 2 is the grandparent, etc. If there is no calling script (the script was triggered instead), then the return value is 0. You can get the ID number of a script by writing <span class="code">@scriptname</span>.
+			
+				Returns the ID number of the script which called this one, or some other scriptin the call stack.
+				The optional <span class="param">depth</span> argument, which defaults to 1, allows returning the ID of a
+				deeper ancestor script instead: 0 is the current script, 1 is the parent, 2 is the grandparent, etc.
+				If there is no calling script (the script was triggered instead), then the return value is 0.
+				You can get the ID number of a script by writing <span class="code">@scriptname</span>.
+			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-getscriptname" class="ref">get script name</a></li></ul>

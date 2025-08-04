@@ -1420,9 +1420,11 @@ SUB script_commands(byval cmdid as integer)
  CASE 17'--get item
   IF valid_item(retvals(0)) THEN
    IF retvals(1) >= 1 THEN
-    IF getitem(retvals(0), retvals(1)) = YES THEN scriptret = 1
+    DIM old_count as integer = countitem(retvals(0))
+    getitem retvals(0), retvals(1)
     evalitemtags
     tag_updates
+    scriptret = countitem(retvals(0)) - old_count
    END IF
   END IF
  CASE 18'--delete item

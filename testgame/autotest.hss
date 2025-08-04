@@ -460,8 +460,8 @@ script, inventory tests, begin
   delete item(item:Bulky, 46)
 
   # Max out the inventory (was set to 10 rows, 30 slots)
-  assert(get item(item:spamknif, 99) == true) # yes there is room for 99 of these
-  assert(get item(item:spamknif, 3000) == false) # No, there will not be room for these
+  assert(get item(item:spamknif, 99) == 99) # yes there is room for 99 of these
+  assert(get item(item:spamknif, 3000) == 2871) # No, there will not be room for all of these
   assert(inventory(item:spamknif) == 2970)
   variable(who)
   who := find hero(hero:Freki)
