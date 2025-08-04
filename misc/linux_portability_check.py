@@ -11,6 +11,7 @@ Placed in the public domain by Ralph Versteegen.
 
 from __future__ import print_function
 import sys
+import os
 import subprocess
 import re
 
@@ -24,6 +25,9 @@ def check_deps(binary):
     Old versions before ~2010 are lumped together, and GCC versions newer than 6.1
     aren't supported yet.
     """
+
+    if not os.path.isfile(binary):
+        raise FileNotFoundError(binary)
 
     libraries = []
     current_lib = None
@@ -73,6 +77,10 @@ def check_deps(binary):
         (3,4,27): (9,2,0),
         (3,4,28): (9,3,0),
         (3,4,29): (11,1,0),
+        (3,4,30): (12,1,0),
+        (3,4,31): (13,1,0),
+        (3,4,32): (13,2,0),
+        (3,4,33): (14,1,0),
     }
 
     # Ditto for CXXABI
@@ -95,13 +103,19 @@ def check_deps(binary):
         (1,3,11): (7,1,0),
         (1,3,12): (9,1,0),
         (1,3,13): (11,1,0),
+        (1,3,14): (13,1,0),
+        (1,3,15): (14,1,0),
     }
 
     # From https://gcc.gnu.org/releases.html
     # This list is missing various stable branch releases
     gcc_release_dates = {
         (4,0,0): '2005-04-20',
+        (4,0,1): '2005-07-07',
+        (4,0,2): '2005-09-28',
+        (4,0,3): '2006-03-10',
         (4,1,0): '2006-02-28',
+        (4,1,1): '2006-05-24',
         (4,2,0): '2007-05-13',
         (4,3,0): '2008-03-05',
         (4,4,0): '2009-04-21',
@@ -132,6 +146,9 @@ def check_deps(binary):
         (11,2,0): '2021-07-28',
         (11,3,0): '2022-04-21',
         (12,1,0): '2022-05-06',
+        (13,1,0): '2023-04-26',
+        (13,2,0): '2023-07-27',
+        (14,1,0): '2024-05-07',
     }
 
     # From https://sourceware.org/glibc/wiki/Glibc%20Timeline
@@ -178,8 +195,13 @@ def check_deps(binary):
         (2,34):   '2021-08-02',
         (2,35):   '2022-02-03',
         (2,36):   '2022-08-01',
-        (2,37):   '2023-02-01',  # Future
-        (2,38):   '2023-08-01',  # Future
+        (2,37):   '2023-02-01',
+        (2,38):   '2023-07-31',
+        (2,39):   '2024-01-31',
+        (2,40):   '2024-07-22',
+        (2,41):   '2025-01-30',
+        (2,42):   '2025-07-28',
+        (2,43):   '2026-02-01',  # Future
     }
     #print(req)
 
