@@ -13,7 +13,11 @@ Shift/Ctrl+F1 Pick a spot on the minimap of any map to teleport to.
 
 F2 Quicksave anywhere
 
+Shift/Ctrl+F2 Save game menu
+
 F3 Quickload anywhere (Warning: Do not quicksave or load during a script, especially if the suspend player command has been issued. The script will not continue when you quickload later)
+
+Shift/Ctrl+F3 Load game menu
 
 -------------------------------------
 The following are only available when a text box IS being displayed:
@@ -30,19 +34,19 @@ Shift/Ctrl+F4 Edit the slice tree (in the Slice Collection Editor). You can even
 
 F5 Menu for forcing reloading of edited data while running Game using "Test Game". If you are not editing while you play then this menu is only useful for reloading the map to undo changes made by scripts.
 
-Shift/Ctrl+F5 Shows CPU usage - shows how much time is spent on different tasks including running scripts and drawing slices. Also shows numbers of drawn and total slices. Press F1 after enabling it for detailed help.
-
 F6 NPC Debug Mode. Draw NPC type ID and reference numbers on top of NPCs. ID numbers at top, reference numbers below. The reference numbers are shown without the negative signs. NPCs that are hidden due to tag conditions are shown with darkened ID numbers.
 Move the mouse over an NPC to see some of the NPC type and instance data. (Hint: use the PAUSE key to examine at moving NPCs)
 Press F6 twice to also see dotted lines around each NPC indicating everything that's considered an obstruction. Press three times to disable this mode.
 
+Shift/Ctrl+F6 Shows CPU usage - shows how much time is spent on different tasks including running scripts and drawing slices. Also shows numbers of drawn and total slices. Press F1 after enabling it for detailed help.
+
 F7 Enter camera movement mode. Lets you use the arrow keys to move the camera (hold Shift to go faster). Press F7 to exit this mode.
 
-Shift/Ctrl+F7 Lets you switch graphics backend. This key combination works everywhere in Game and Custom. Try switching if you have graphical or keyboard/mouse/joystick problems or want certain features. Only gfx_sdl supports resolutions other than 320x200.
+Shift/Ctrl+F7 Engine Settings menu. This key combination works everywhere in Game and Custom. Lets you change graphics options like gfx backend (try switching if you have graphical or keyboard/mouse/joystick problems) and scaling.
 
 F8 Bring up this debug menu (this option does nothing)
 
-Shift/Ctrl+F8 Open g_debug.txt with a (default) external program. g_debug.txt is written next to the .rpg file and error messages and other output is written to it. Errors are lines beginning with "! ", and often don't cause a message to display to the player.
+Shift/Ctrl+F8 Open g_debug.txt with a (default) external program. g_debug.txt is written next to the .rpg file and error messages and other output is written to it. Errors are lines beginning with "! ". They normally don't cause a message to display to the player.
 This menu item will read "View g_debug.txt: # errors" if there are errors.
 
 Shift/Ctrl+F9 Toggle script profiling. When profiling, the script interpreter collects statistics about how long each script ran for, how long the scripts it called ran for, and how many times it was run. These stats are printed to g_debug.txt (press Shift-F8 to view) when you quit, or when you turn off profiling. Note: If you turn profiling on and off several times, data from all profiling sessions gets printed.
@@ -51,17 +55,17 @@ Start script+command profiling. (Only when not already profiling.) Script profil
 
 Start specific command profiling. (Only when not already profiling.) Shows a prompt for the name or ID number (from the list in plotscr.hsd, e.g. showtextbox is 11) of a builtin script command. Then starts script+command profiling. After stopping the profiling, the printed script profiles table has two extra columns showing how many times each script called the command and how much time it took. This doesn't work for builtin scripts in plotscr.hsd which aren't commands like "npc copy number".
 
-F10 Toggle script-debugging mode. Press once to draw some information on-screen while continuing to play, twice to pause and enter the script debugger, three times to exit.
+F10 Script Debugger. Inspect running scripts, global variables, timers, etc.
 
 Shift/Ctrl+F10 Enable script trigger logging. Every time a script is triggered by an event like a keypress it is logged to a text file called script_log.txt. Also displays when triggered scripts are paused by a wait or finish, however this won't work for scripts started before the bdebug key was pressed (restart the game if needed).
 
-F11 Toggle walking through walls (and other obstructions)
+F11 Toggle letting the player walk through walls (and other obstructions)
 
 Shift/Ctrl+F11 Open the Macro record and replay menu, or if you're currently recording or replaying a macro, stops it.
 
 F12 Take a screenshot, saving it next to the .rpg. Hold down to take a screenshot every frame.
 
-Shift/Ctrl+F12 Start recording a 'video' as a looping .gif file. Press again to stop. Saved alongside the screenshots. The files will be large; you can compress them to typically half the size with the free 'gifsicle' tool or similar.
+Shift/Ctrl+F12 Start recording a 'video' as a looping .gif file. Press again to stop. Saved alongside the screenshots. The files may be large; you can compress them to typically half the size with the free 'gifsicle' tool or similar.
 
 PAUSE Pauses the game; only debug keys can be used.
 
@@ -69,7 +73,9 @@ Ctrl + slows down and Ctrl - speeds up the frame rate (adjusts milliseconds per 
 
 Holding down Shift+Tab increases the framerate greatly. (The menu option does nothing - you have to hold it down.)
 
-Toggle window resizability: Turning this on makes the window resizable by dragging the edges. Select again to disable. NOTE: This doesn't work if using gfx_directx (the default on Windows).
+Ctrl ~ Show frames per second. Workes everywhere in Game and Custom. Press once to show the "Display" framerate (frames actually shown on the screen, twice to show "Draw" framerate, including frames that are frame-skipped.
+
+Toggle window resizability: Turning this on makes the window resizable by dragging the edges. Select again to disable.
 
 Set zoom: These options change the window size without changing the resolution.
 
@@ -77,13 +83,19 @@ List slices to g_debug.txt: Write a textual dump of the whole slice tree to g_de
 
 Realign leader to grid: This is useful if a buggy script misaligns the hero. Misalignment causes problems (bug #660).
 
+Edit general preference bitsets: Lots of useful settings.
+
 Edit backcompat bitsets: Lets you toggle backcompat bitsets to fix games broken by recent OHRRPGCE versions. It's not always possible for the engine to automatically turn on the correct bits.
+
+Edit battle system bitsets: More settings!
 
 Show/test battle formations: Display the battle formation set for the tile the hero is standing on, and start any of the battles in it.
 
+Show/test any battle formations: Start any battle.
+
 Enable/disable random battles: Control whether the foemap triggers battles.
 
-Manipulate gen() array: Raw-edit gen(), for engine developers. This gives you direct access to the data represented in the General Game Data menu, as well as an assortment of other data. Press Esc to exit.
+Manipulate gen() array: Raw-edit gen(), for engine developers. This gives you direct access to the data represented in the General Game Data menu and more. Press Esc to exit.
 
 Manipulate gmap() array: Raw-edit gmap(), for engine developers. This gives you direct access to the data represented in the General Map Data submenu of the map editor.
 

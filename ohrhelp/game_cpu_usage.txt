@@ -9,9 +9,9 @@ NOTE: You might see some very bizarre effects, such as CPU times dropping when d
 
 Controls:
 
-Press Ctrl/Shift-F5 a 2nd time to show milliseconds per frame (useful for comparing frame rates) instead of the % of available time, and again to exit.
+Press Ctrl/Shift-F6 a 2nd time to show milliseconds per frame (useful for comparing frame rates) instead of the % of available time, and again to exit.
 
-Press Ctrl~ once ("Display") or twice ("Draw") to see the framerate. "Draw" might be less if some Screen Updates are skipped. Try pressing Shift-Tab!
+Press Ctrl~ once ("Display") or twice ("Draw") to see the framerate. "Draw" might be less if frame-skipping happens (when some Screen Updates are skipped) -- try pressing Shift-Tab to run the game fast to see that!
 
 Timing lines:
 
