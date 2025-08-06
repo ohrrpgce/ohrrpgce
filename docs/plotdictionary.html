@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-08-04)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-08-05)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -818,6 +818,7 @@ function toggleContent(target) {
 		<a href="#about-exitscript" class="ref">exit script</a><br>
 		<a href="#about-expandstring" class="ref">expand string(ID, saveslot)</a><br>
 		<a href="#about-expandstringsinslices" class="ref">expand strings in slices(handle, saveslot)</a><br>
+		<a href="#about-experiencereward" class="ref">experience reward</a><br>
 		<a href="#about-experiencetolevel" class="ref">experience to level (level, hero slot)</a><br>
 		<a href="#about-experiencetonextlevel" class="ref">experience to next level (who)</a><br>
 		<a href="#about-exponent" class="ref">number ^ power</a><br>
@@ -1108,6 +1109,8 @@ function toggleContent(target) {
 		<a href="#about-itemcountinslot" class="ref">item count in slot (slot)</a><br>
 		<a href="#about-iteminslot" class="ref">item in slot (slot)</a><br>
 		<a href="#about-itemsmenu" class="ref">items menu</a><br>
+		<a href="#about-itemsquantityreward" class="ref">items quantity reward (number)</a><br>
+		<a href="#about-itemsreward" class="ref">items reward (number)</a><br>
 		<a href="#about-joystickaxis" class="ref">joystick axis (axis, multiplier, player)</a><br>
 		<a href="#about-joystickbutton" class="ref">joystick button (button, player)</a><br>
 		<a href="#about-controlcodes" class="ref">Key Constants</a><br>
@@ -1183,6 +1186,7 @@ function toggleContent(target) {
 		<a href="#about-milliseconds" class="ref">milliseconds</a><br>
 		<a href="#about-minutesofplay" class="ref">minutes of play</a><br>
 		<a href="#about-modulus" class="ref">number,mod,number</a><br>
+		<a href="#about-moneyreward" class="ref">money reward</a><br>
 		<a href="#about-mousebutton" class="ref">mouse button (which)</a><br>
 		<a href="#about-mouseclick" class="ref">mouse click (which)</a><br>
 		<a href="#about-mouseconstants" class="ref">Mouse Constants</a><br>
@@ -6487,6 +6491,7 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 		<a href="#about-rankincaterpillar" class="ref">rank in caterpillar (who)</a><br>
 		<a href="#about-herobyrank" class="ref">hero by rank (where)</a><br>
 		<a href="#about-roominactiveparty" class="ref">room in active party</a><br>
+		<a href="#about-experiencereward" class="ref">experience reward</a><br>
 </ul>
 <ul></ul>
 </li>
@@ -6579,6 +6584,16 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 				<h4>room in active party</h4>
 <p>
 			A function that returns the number of available spaces in your active party. It will return zero or <a href="#about-false" class="ref">false</a> if there is no room.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-experiencereward"></a>
+				<h4>experience reward</h4>
+<p>
+			Returns the total experience given by enemies as reward in the most recent battle (or 0 if no battles have been fought so far).
 			
 			
 			
@@ -6836,6 +6851,7 @@ if (slot &gt; 0) then (load from slot (slot))</pre>
 		<a href="#about-losemoney" class="ref">lose money (amount)</a><br>
 		<a href="#about-setmoney" class="ref">set money (amount)</a><br>
 		<a href="#about-paymoney" class="ref">pay money (amount)</a><br>
+		<a href="#about-moneyreward" class="ref">money reward</a><br>
 </div></ul>
 </div>
 		<div class="command">
@@ -6893,6 +6909,16 @@ end</pre>
 			
 		</p>
 </div>
+		<div class="command">
+			<a name="about-moneyreward"></a>
+				<h4>money reward</h4>
+<p>
+			Returns how much money the party gained in the most recent battle (0 if there have been no battles so far).
+			
+			
+			
+		</p>
+</div>
 		<hr>
 		</div>
 		<div class="section">
@@ -6932,6 +6958,8 @@ end</pre>
 		<a href="#about-getinventorysize" class="ref">get inventory size</a><br>
 		<a href="#about-setinventorysize" class="ref">set inventory size (new size)</a><br>
 		<a href="#about-sortinventory" class="ref">sort inventory</a><br>
+		<a href="#about-itemsreward" class="ref">items reward (number)</a><br>
+		<a href="#about-itemsquantityreward" class="ref">items quantity reward (number)</a><br>
 </ul>
 <ul></ul>
 </li>
@@ -7371,6 +7399,50 @@ end</pre>
 			
 			
 			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-itemsreward"></a>
+				<h4>items reward (number)</h4>
+<p>
+			
+				Returns the id numbers of the items dropped by enemies in the last battle
+				(-1 if item reward number is not present).
+				If the argument is <a href="#about-getcount" class="ref">get count</a>, then it returns the number of distinct
+				items acquired at the end of the battle.
+				You can use it in a loop in order to display all item rewards (for example, in
+				an after battle script), usually in tandem with <a href="#about-itemsquantityreward" class="ref">items quantity reward</a>.
+				<pre>script, print items gained, begin
+  # assume text box 123 contains text "Got ${S0} x ${S1}."
+  variable (idx)
+  for (idx, 0, items reward (get count) -- 1) do (
+    clear string (0)
+    append number (0, items quantity reward (idx))
+    get item name (1, items reward (idx))
+    show text box (123) # this should display e.g. "Got 2 x Herb."
+    wait for text box
+  )
+end</pre>
+
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-itemsquantityreward" class="ref">items quantity reward</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-itemsquantityreward"></a>
+				<h4>items quantity reward (number)</h4>
+<p>
+			
+				Similar to <a href="#about-itemsreward" class="ref">items reward</a>, except it returns the quantities of corresponding
+				items acquired in the last battle.
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-itemsreward" class="ref">items reward</a></li></ul>
+</div>
 		</p>
 </div>
 		<hr>
@@ -23843,7 +23915,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 990 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 994 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
