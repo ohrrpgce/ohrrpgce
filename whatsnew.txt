@@ -1,5 +1,17 @@
 WHAT IS NEW?
 
+Nov ?? 2025 [Lexiphanic]
+
+  *** New Features
+
+   * Plotscripting Features
+
+  *** Changes
+
+  *** Bugfixes
+
+  *** Stuff Only Developers Will Notice
+
 Aug 04 2025 [Kaleidophone]
 
   *** New Features
