@@ -256,6 +256,7 @@ TYPE GameState
   hero_pathing(3) as HeroPathing
   stillticks(3) as integer           'keeps track of how long a hero has been standing still
   pathing_click_start as double
+  rew as RewardsState                'keeps track of rewards gained in the most recent battle
 END TYPE
 
 'Note that .showing, .fully_shown, .sayer need to be always correct even if no box is up

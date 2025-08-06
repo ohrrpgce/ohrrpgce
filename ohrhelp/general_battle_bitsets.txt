@@ -45,6 +45,7 @@ This does everything the next two bits do, and more. If ON, those bits have no e
 
 "Randomize initial ready meters" determines whether at the beginning of battle, ready meters have random values, or start empty.
 
+"Rewards display" determines whether and for how long rewards (dropped items, experience, money) are displayed at the end of the battle.
 
  Turn-based Battle Options
 

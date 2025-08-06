@@ -306,7 +306,13 @@ FUNCTION battle (byval form as integer) as bool
   battle_display_menus bat, bslot(), st(), uipage
 
   IF bat.vic.state = vicEXITDELAY THEN bat.vic.state = vicEXIT
-  IF bat.vic.state > vicNONE THEN show_victory bat, bslot(), uipage
+  IF bat.vic.state > vicNONE THEN
+   IF gen(genSkipBattleRewardsTicks) = -1 THEN
+    bat.vic.state = vicEXITDELAY
+   ELSE
+    show_victory bat, bslot(), uipage
+   END IF
+  END IF
 
   IF bat.death_mode = deathENEMIES AND bat.vic.state = vicNONE THEN
    IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory bat, bslot()
@@ -2629,11 +2635,21 @@ SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
  '--Collect gold (which is capped at 2 billion max)
  gold = gold + bat.rew.plunder
  IF gold < 0 OR gold > 2000000000 THEN gold = 2000000000
- '--Give out experience
 
+ '--Give out experience
  export_battle_hero_stats bslot() 'Needed because distribute_party_experience() might level-up some heroes
  bat.rew.exper = distribute_party_experience(bat.rew.exper)
  import_battle_hero_stats bslot() 'Needed because we will likely be calling export_battle_hero_stats() again later
+
+ '--Give items
+ DIM i as integer = 0
+ FOR i = 0 TO UBOUND(bat.rew.found)
+  IF bat.rew.found(i).num > 0 THEN getitem bat.rew.found(i).id, bat.rew.found(i).num
+ NEXT
+
+ '-- Record rewards for after-battle usage
+ gam.rew = bat.rew
+
  '--Trigger the display of end-of-battle rewards
  bat.vic.state = vicGOLDEXP
  bat.vic.display_ticks = 0
@@ -2700,7 +2716,7 @@ SUB RewardsState.add_item(itemid as integer, count as integer = 1)
 END SUB
 
 FUNCTION should_victory_advance(byref bat as BattleState) as bool
- IF game_check_use_key() ORELSE game_check_cancel_key() THEN RETURN YES
+ IF gen(genSkipBattleRewardsTicks) = -1 ORELSE game_check_use_key() ORELSE game_check_cancel_key() THEN RETURN YES
  IF (readmouse.release AND mouseLeft) ORELSE (readmouse.release AND mouseLeft) THEN RETURN YES
  IF gen(genSkipBattleRewardsTicks) > 0 THEN
   IF bat.vic.display_ticks > gen(genSkipBattleRewardsTicks) THEN
@@ -2722,7 +2738,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
   SELECT CASE .state
    CASE vicGOLDEXP
     '--print acquired gold and experience
-    IF bat.rew.plunder > 0 OR bat.rew.exper > 0 THEN draw_victory_box 4, page
+    IF gen(genDefaultBattleMenu) >= 0 AND (bat.rew.plunder > 0 OR bat.rew.exper > 0) THEN draw_victory_box 4, page
     IF bat.rew.plunder > 0 THEN
      tempstr = .gold_caption & " " & price_string(bat.rew.plunder) & "!"
      edgeprint tempstr, pCentered, 16, uilook(uiText), page
@@ -2741,7 +2757,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
     FOR i as integer = 0 TO UBOUND(gam.hero)
      IF gam.hero(i).lev_gain <> 0 THEN numlevelled += 1
     NEXT
-    IF numlevelled THEN
+    IF gen(genDefaultBattleMenu) >= 0 AND numlevelled THEN
      draw_victory_box large(numlevelled, 4), page
     END IF
     FOR i as integer = 0 TO UBOUND(gam.hero)
@@ -2791,7 +2807,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
      IF should_victory_advance(bat) THEN
       .showlearn = NO ' hide the display (which causes us to search for the next learned spell)
      END IF
-     draw_victory_box 4, page
+     IF gen(genDefaultBattleMenu) >= 0 THEN draw_victory_box 4, page
      edgeprint .item_name, pCenteredLeft, 22, uilook(uiText), page
     END IF
    CASE vicITEMS
@@ -2807,8 +2823,6 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
      END IF
      '--get the item name
      .item_name = readitemname(pickedup.id)
-     '--actually acquire the item
-     getitem pickedup.id, pickedup.num
      'tag_updates called when exiting battle() to handle all at once
     END IF
     '--if the present item is gotten, show the caption
@@ -2817,7 +2831,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
     ELSE
      tempstr = .plural_item_caption & " " & pickedup.num & " " & .item_name
     END IF
-    draw_victory_box 4, page
+    IF gen(genDefaultBattleMenu) >= 0 THEN draw_victory_box 4, page
     edgeprint tempstr, pCenteredLeft, 22, uilook(uiText), page
     '--check for a keypress
     IF should_victory_advance(bat) THEN
@@ -2883,6 +2897,7 @@ SUB reset_battle_state (byref bat as BattleState)
  reset_attack bat
  reset_victory_state bat.vic
  reset_rewards_state bat.rew
+ reset_rewards_state gam.rew
 END SUB
 
 SUB reset_targetting (byref bat as BattleState)
