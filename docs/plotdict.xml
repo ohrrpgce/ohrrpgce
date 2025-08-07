@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-08-05">
+<plotscript version="wip" datecode="2025-08-07">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -3816,12 +3816,14 @@ end</example>
 			<shortname>items reward</shortname>
 			<description>
 				Returns the id numbers of the items dropped by enemies in the last battle
-				(-1 if item reward number is not present).
+				(-1 if item reward <p>number</p> is not present).
+				<p>number</p> counts from 0 up, where <tt>items reward(0)</tt> is the ID of
+				the first gained item, etc.
 				If the argument is <ref>getcount</ref>, then it returns the number of distinct
 				items acquired at the end of the battle.
 				You can use it in a loop in order to display all item rewards (for example, in
 				an after battle script), usually in tandem with <ref>itemsquantityreward</ref>.
-				<example>script, print items gained, begin
+				<example>plotscript, print items gained, begin
   # assume text box 123 contains text "Got ${S0} x ${S1}."
   variable (idx)
   for (idx, 0, items reward (get count) -- 1) do (
