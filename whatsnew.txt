@@ -12,6 +12,12 @@ Nov ?? 2025 [Lexiphanic]
 
   *** Stuff Only Developers Will Notice
 
+Aug ?? 2025 [Kaleidophone+1]
+
+  *** Bugfixes
+    * Fix BUG message about binsize.bin every time you imported scripts while
+      using Test Game. Maybe I did not Test Game [Ralph]
+
 Aug 04 2025 [Kaleidophone]
 
   *** New Features
