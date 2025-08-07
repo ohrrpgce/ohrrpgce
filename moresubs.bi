@@ -48,6 +48,7 @@ DECLARE SUB resetgame ()
 DECLARE SUB reset_levelmp (byref hero as HeroState)
 DECLARE SUB reset_game_state ()
 DECLARE SUB reset_map_state (map as MapModeState)
+DECLARE SUB reset_rewards_state (byref rew as RewardsState)
 
 DECLARE SUB shop (byval id as integer)
 DECLARE FUNCTION useinn (byval price as integer, byval holdscreen as integer) as bool

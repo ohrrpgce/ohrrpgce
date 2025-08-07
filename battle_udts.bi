@@ -9,6 +9,7 @@
 'so as to prevent them from cluttering up the global udts.bi file
 
 #include "slices.bi"
+#include "game_udts.bi"
 
 UNION BattleStatsSingle
   'See also Stats '-- the two of these can probably be unified eventually
