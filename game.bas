@@ -45,7 +45,7 @@ DECLARE SUB pick_npc_action(npci as NPCInst, npcdata as NPCType)
 DECLARE FUNCTION perform_npc_move(byval npcnum as NPCIndex, npci as NPCInst, npcdata as NPCType) as bool
 DECLARE SUB npchitwall (npci as NPCInst, npcdata as NPCType, collision_type as WalkaboutCollisionType)
 DECLARE FUNCTION find_useable_npc () as NPCIndex
-DECLARE SUB interpret_scripts(fibregroup as ScriptFibre ptr vector)
+DECLARE SUB interpret_scripts(byref fibregroup as ScriptFibre ptr vector)
 DECLARE SUB update_heroes(force_step_check as bool=NO)
 DECLARE SUB doloadgame(byval load_slot as integer, prefix as string="")
 DECLARE SUB reset_game_final_cleanup()
@@ -2531,7 +2531,7 @@ END FUNCTION
 '==========================================================================================
 
 
-SUB execute_script_fibres(fibregroup as ScriptFibre ptr vector)
+SUB execute_script_fibres(byref fibregroup as ScriptFibre ptr vector)
  DIM wantimmediate_bug_emu as bool
 
  WHILE hsvm.cur_scriptinst
@@ -2581,7 +2581,7 @@ SUB execute_script_fibres(fibregroup as ScriptFibre ptr vector)
  WEND
 END SUB
 
-SUB interpret_scripts(fibregroup as ScriptFibre ptr vector)
+SUB interpret_scripts(byref fibregroup as ScriptFibre ptr vector)
  IF gam.debug_timings THEN main_timer.substart TimerIDs.Scripts
 
  'It seems like it would be good to call this immediately before scriptinterpreter so that
