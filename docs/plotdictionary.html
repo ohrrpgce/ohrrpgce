@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-08-05)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-08-07)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -7407,12 +7407,14 @@ end</pre>
 <p>
 			
 				Returns the id numbers of the items dropped by enemies in the last battle
-				(-1 if item reward number is not present).
+				(-1 if item reward <span class="param">number</span> is not present).
+				<span class="param">number</span> counts from 0 up, where <span class="code">items reward(0)</span> is the ID of
+				the first gained item, etc.
 				If the argument is <a href="#about-getcount" class="ref">get count</a>, then it returns the number of distinct
 				items acquired at the end of the battle.
 				You can use it in a loop in order to display all item rewards (for example, in
 				an after battle script), usually in tandem with <a href="#about-itemsquantityreward" class="ref">items quantity reward</a>.
-				<pre>script, print items gained, begin
+				<pre>plotscript, print items gained, begin
   # assume text box 123 contains text "Got ${S0} x ${S1}."
   variable (idx)
   for (idx, 0, items reward (get count) -- 1) do (
