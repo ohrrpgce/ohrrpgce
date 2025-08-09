@@ -38,7 +38,6 @@ DECLARE SUB reset_battle_state (byref bat as BattleState)
 DECLARE SUB reset_targetting (byref bat as BattleState)
 DECLARE SUB reset_attack (byref bat as BattleState)
 DECLARE SUB reset_victory_state (byref vic as VictoryState)
-DECLARE SUB reset_rewards_state (byref rew as RewardsState)
 DECLARE SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as integer)
 DECLARE SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
 DECLARE SUB fulldeathcheck (byval killing_attack as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -2912,19 +2911,6 @@ SUB reset_attack (byref bat as BattleState)
   .non_elemental = NO
   FOR i = 0 TO UBOUND(.elemental)
   .elemental(i) = NO
-  NEXT i
- END WITH
-END SUB
-
-SUB reset_rewards_state (byref rew as RewardsState)
- 'This could become a constructor for RewardsState when we support the -lang fb dialect
- DIM i as integer
- WITH rew
-  .plunder = 0
-  .exper = 0
-  FOR i = 0 TO UBOUND(.found)
-   .found(i).id = 0   'Note: id is not offset; num=0 indicates slot not used
-   .found(i).num = 0
   NEXT i
  END WITH
 END SUB

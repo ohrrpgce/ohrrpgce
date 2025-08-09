@@ -107,6 +107,21 @@ TYPE NPCSliceContext EXTENDS SliceContext
   npcindex as NPCIndex
 END TYPE
 
+'This type is just used by RewardState
+TYPE RewardsStateItem
+ id as integer    'Not offset
+ num as integer   'num = 0 indcates slot not used
+END TYPE
+
+'The rewards gathered in a battle
+TYPE RewardsState
+ plunder as integer
+ exper as integer
+ found(16) as RewardsStateItem
+
+ DECLARE SUB add_item(itemid as integer, count as integer = 1)
+END TYPE
+
 TYPE ScriptLoggingState
   enabled as bool
   filename as string
