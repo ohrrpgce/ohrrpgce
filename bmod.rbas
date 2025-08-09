@@ -2738,7 +2738,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
   SELECT CASE .state
    CASE vicGOLDEXP
     '--print acquired gold and experience
-    IF gen(genDefaultBattleMenu) >= 0 AND (bat.rew.plunder > 0 OR bat.rew.exper > 0) THEN draw_victory_box 4, page
+    IF bat.rew.plunder > 0 OR bat.rew.exper > 0 THEN draw_victory_box 4, page
     IF bat.rew.plunder > 0 THEN
      tempstr = .gold_caption & " " & price_string(bat.rew.plunder) & "!"
      edgeprint tempstr, pCentered, 16, uilook(uiText), page
@@ -2757,9 +2757,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
     FOR i as integer = 0 TO UBOUND(gam.hero)
      IF gam.hero(i).lev_gain <> 0 THEN numlevelled += 1
     NEXT
-    IF gen(genDefaultBattleMenu) >= 0 AND numlevelled THEN
-     draw_victory_box large(numlevelled, 4), page
-    END IF
+    IF numlevelled THEN draw_victory_box large(numlevelled, 4), page
     FOR i as integer = 0 TO UBOUND(gam.hero)
      SELECT CASE gam.hero(i).lev_gain
       CASE 1
@@ -2807,7 +2805,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
      IF should_victory_advance(bat) THEN
       .showlearn = NO ' hide the display (which causes us to search for the next learned spell)
      END IF
-     IF gen(genDefaultBattleMenu) >= 0 THEN draw_victory_box 4, page
+     draw_victory_box 4, page
      edgeprint .item_name, pCenteredLeft, 22, uilook(uiText), page
     END IF
    CASE vicITEMS
@@ -2831,7 +2829,7 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
     ELSE
      tempstr = .plural_item_caption & " " & pickedup.num & " " & .item_name
     END IF
-    IF gen(genDefaultBattleMenu) >= 0 THEN draw_victory_box 4, page
+    draw_victory_box 4, page
     edgeprint tempstr, pCenteredLeft, 22, uilook(uiText), page
     '--check for a keypress
     IF should_victory_advance(bat) THEN
