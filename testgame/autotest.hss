@@ -3663,6 +3663,7 @@ script, battle tests, begin
 
   test battle formation modification
   test hero counterattacks
+  test battle rewards
 end
 
 # Formation set should be 1-2
@@ -3842,6 +3843,28 @@ script, test hero counterattacks, begin
   assert(get hero stat(0, stat:HP, current stat) == 6), w
   # Heal up
   set hero stat(0, stat:HP, 10, current stat), w
+end
+
+script, test battle rewards, begin
+  fight formation(11), w
+  assert(money reward == 4)
+  assert(experience reward == 2)
+  assert(items reward (get count) == 1)
+  variable (i, item, qty)
+  for (i, 0, items reward (get count) -- 1) do (
+    item := items reward(i)
+    qty := items quantity reward(i)
+    assert(item == item:tooth)
+    assert(qty == 2)
+    get item name(3, item)
+    string sprintf(1, $2="Got %s x %d", 3, qty)
+    show string(1)
+    w
+  )
+  show no value
+  clear string(1)
+  clear string(2)
+  clear string(3)
 end
 
 ########################################################################

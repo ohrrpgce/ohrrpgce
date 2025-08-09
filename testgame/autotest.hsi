@@ -97,6 +97,7 @@ define constant, begin
 14,item:dulsword
 15,item:SordPic
 16,item:AcksPic
+17,item:Tooth
 0,stat:HP
 1,stat:MP
 2,stat:Atk
@@ -170,6 +171,7 @@ define constant, begin
 7,enemy:Data read test
 8,enemy:Ogreboom
 9,enemy:IceAttacker
+11,enemy:Dogwolf
 1,sli:Some lookup
 2,sli:my root slice
 3,sli:no extras
