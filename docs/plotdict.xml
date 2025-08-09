@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-08-07">
+<plotscript version="wip" datecode="2025-08-09">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -3323,7 +3323,7 @@ if (slot > 0) then (load from slot (slot))</example>
 		<command id="experiencereward">
 			<canon>experience reward</canon>
 			<shortname>experience reward</shortname>
-			<description>Returns the total experience given by enemies as reward in the most recent battle (or 0 if no battles have been fought so far).</description>
+			<description>Returns the amount of experience given to each hero by enemies as reward in the most recent battle (or 0 if no battles have been fought so far).</description>
 		</command>
 		</section>		<!-- Inspecting the Party-->
 
