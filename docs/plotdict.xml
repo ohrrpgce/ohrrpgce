@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-08-04">
+<plotscript version="wip" datecode="2025-08-05">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -3320,6 +3320,11 @@ if (slot > 0) then (load from slot (slot))</example>
 			<shortname>room in active party</shortname>
 			<description>A function that returns the number of available spaces in your active party. It will return zero or <ref>false</ref> if there is no room.</description>
 		</command>
+		<command id="experiencereward">
+			<canon>experience reward</canon>
+			<shortname>experience reward</shortname>
+			<description>Returns the total experience given by enemies as reward in the most recent battle (or 0 if no battles have been fought so far).</description>
+		</command>
 		</section>		<!-- Inspecting the Party-->
 
 		<section title="Changing the Party">
@@ -3524,6 +3529,11 @@ end, else, begin
 	show text box(61) # ha ha, no uber sword for you!
 	wait for text box
 end</example>
+		</command>
+		<command id = "moneyreward">
+			<canon>money reward</canon>
+			<shortname>money reward</shortname>
+			<description>Returns how much money the party gained in the most recent battle (0 if there have been no battles so far).</description>
 		</command>
 	</section>
 
@@ -3800,6 +3810,44 @@ end</example>
 				Moves all items to the top of the inventory and reorders them according to the
 				"Inventory autosort" setting in General Game Settings.
 			</description>
+		</command>
+		<command id="itemsreward">
+			<canon>items reward (number)</canon>
+			<shortname>items reward</shortname>
+			<description>
+				Returns the id numbers of the items dropped by enemies in the last battle
+				(-1 if item reward number is not present).
+				If the argument is <ref>getcount</ref>, then it returns the number of distinct
+				items acquired at the end of the battle.
+				You can use it in a loop in order to display all item rewards (for example, in
+				an after battle script), usually in tandem with <ref>itemsquantityreward</ref>.
+				<example>script, print items gained, begin
+  # assume text box 123 contains text "Got ${S0} x ${S1}."
+  variable (idx)
+  for (idx, 0, items reward (get count) -- 1) do (
+    clear string (0)
+    append number (0, items quantity reward (idx))
+    get item name (1, items reward (idx))
+    show text box (123) # this should display e.g. "Got 2 x Herb."
+    wait for text box
+  )
+end</example>
+
+			</description>
+			<seealso>
+				<ref>itemsquantityreward</ref>
+			</seealso>
+		</command>
+		<command id="itemsquantityreward">
+			<canon>items quantity reward (number)</canon>
+			<shortname>items quantity reward</shortname>
+			<description>
+				Similar to <ref>itemsreward</ref>, except it returns the quantities of corresponding
+				items acquired in the last battle.
+			</description>
+			<seealso>
+				<ref>itemsreward</ref>
+			</seealso>
 		</command>
 
 		</section>		<!--Inventory-->
