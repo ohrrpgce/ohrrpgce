@@ -117,6 +117,10 @@ SUB trigger_script (id as integer, numargs as integer, double_trigger_check as b
   insertpos += 1
  END IF
 
+ 'Note: we always add the new fibre to mainFibreGroup even if runscript failed.
+ 'If we didn't, then we shouldn't call delete_fibre.
+ '(delete_fibre expects it as a sanity check. It wouldn't otherwise be necessary.)
+
  v_insert fibregroup, insertpos, last_triggered_fibre
 
  'Save information about this script, for use by trigger_script_arg()
@@ -198,19 +202,21 @@ END FUNCTION
 
 'Load queued script fibres into the interpreter (this is delayed so the order
 'can change by priority)
-SUB run_queued_scripts(fibregroup as ScriptFibre ptr vector)
+SUB run_queued_scripts(byref fibregroup as ScriptFibre ptr vector)
  last_triggered_fibre = NULL
 
- FOR idx as integer = 0 TO v_len(fibregroup) - 1
+ DIM idx as integer = 0
+ WHILE idx < v_len(fibregroup)  'Length changes during iteration
   IF fibregroup[idx]->root = NULL THEN
    'Not run yet
    IF run_queued_script(*fibregroup[idx]) = NO THEN
     'runscript failed
     delete_fibre fibregroup[idx]
-    idx -= 1
+    CONTINUE WHILE
    END IF
   END IF
- NEXT
+  idx += 1
+ WEND
 END SUB
 
 
@@ -432,14 +438,17 @@ SUB HSVMState.set_cur_script()
  cur_slot = nowscript   'Temp
 END SUB
 
+'Delete a fibre that's been added to mainFibreGroup (or in future, any other global fibre group).
+'A fibre must be deleted after any ScriptInsts that point to it!
+'(Hence, this doesn't look for any ScriptInsts with a pointer to `fibre`.)
 SUB delete_fibre(fibre as ScriptFibre ptr)
  '? " fibre ended " & scriptname(hsvm.cur_scriptinst->id)
  'Cleanup every global that might hold a reference
  IF hsvm.cur_fibre = fibre THEN hsvm.cur_fibre = NULL
  IF last_triggered_fibre = fibre THEN last_triggered_fibre = NULL
- 'If runscript fails, the fibre might not yet have been added to the group
- v_remove mainFibreGroup, fibre
-
+ 'Even if runscript fails, we always add new fibres to mainFibreGroup
+ DIM idx as integer = v_remove(mainFibreGroup, fibre)
+ BUG_IF(idx = -1, "Missing from mainFibreGroup")
  DELETE fibre
 END SUB
 
@@ -481,6 +490,7 @@ SUB killallscripts
 
  WHILE hsvm.cur_script
   IF hsvm.cur_scriptinst->parent = NULL THEN
+   'TODO: in future, delete the fibre after the last script in it
    delete_fibre hsvm.cur_scriptinst->fibre
   END IF
   deref_script(hsvm.cur_script)

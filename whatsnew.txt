@@ -17,6 +17,8 @@ Aug ?? 2025 [Kaleidophone+1]
   *** Bugfixes
     * Fix BUG message about binsize.bin every time you imported scripts while
       using Test Game. Maybe I did not Test Game [Ralph]
+    * Bug #1284 possible crash when scripts double-trigger (seen only on Mac so
+      far) [James, Ralph]
 
 Aug 04 2025 [Kaleidophone]
 
