@@ -5486,6 +5486,30 @@ SUB script_commands(byval cmdid as integer)
    loaditemdata item, retvals(0)
    scriptret = item.wep_pal
   END IF
+ CASE 799 '--money reward
+  scriptret = gam.rew.plunder
+ CASE 800 '--experience reward
+  scriptret = gam.rew.exper
+ CASE 801, /'--items reward idx'/ 802 /'--items quantity reward itx'/
+  DIM i as integer = retvals(0)
+  DIM j as integer = 0
+  WITH gam.rew
+   IF i = -1 THEN 'getcount
+    scriptret = 0
+    FOR j = 0 to UBOUND(.found)
+     IF .found(j).num > 0 THEN scriptret = j + 1
+    NEXT
+   ELSE
+    scriptret = IIF(cmdid = 801, -1, 0)
+    IF 0 <= i AND i <= UBOUND(.found) THEN
+     IF .found(i).num = 0 THEN
+      scriptret = IIF(cmdid = 801, -1, 0)
+     ELSE
+      scriptret = IIF(cmdid = 801, .found(i).id, .found(i).num)
+     END IF
+    END IF
+   END IF
+  END WITH
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
