@@ -1,5 +1,5 @@
 'OHRRPGCE - Slices
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 #ifndef SLICES_BI
@@ -186,6 +186,7 @@ CONST SL_COLLECT_SPELLSCREEN = 5
 'CONST SL_COLLECT_LOADSCREEN = 12
 CONST SL_COLLECT_VIRTUALKEYBOARDSCREEN = 21
 
+Type SliceFwd as Slice
 
 Type SliceTypes as integer
 Enum 'SliceTypes
@@ -277,9 +278,10 @@ DECLARE_VECTOR_OF_TYPE(SliceDynamicProp, SliceDynamicProp)
 Type SliceContext Extends Object
  Declare Virtual Destructor()
  Declare Virtual Function description() as string
- ' Contexts can't necessarily be loaded and saved; implementing save/load is optional.
- Declare Virtual Sub save(node as Reload.Nodeptr)
- Declare Virtual Sub load(node as Reload.Nodeptr)
+ ' Contexts can't necessarily be loaded/saved/cloned; implementing these is optional.
+ Declare Virtual Sub save(sl as SliceFwd ptr, node as Reload.Nodeptr)
+ Declare Virtual Sub load(sl as SliceFwd ptr, node as Reload.Nodeptr)
+ Declare Function clone() as SliceContext ptr
  attributes as SliceAttribute vector
 End Type
 
@@ -290,15 +292,15 @@ DECLARE_VECTOR_OF_TYPE(SliceContext ptr, SliceContext_ptr)
 ' and other data shared across the collection.
 Type SliceCollectionContext Extends SliceContext
  Declare Virtual Function description() as string
- Declare Virtual Sub save(node as Reload.Nodeptr)
- Declare Virtual Sub load(node as Reload.Nodeptr)
+ Declare Virtual Sub save(sl as SliceFwd ptr, node as Reload.Nodeptr)
+ Declare Virtual Sub load(sl as SliceFwd ptr, node as Reload.Nodeptr)
  name as string
- dont_save as bool       'Set when insert-importing a collection: this context is temporary, unsaved
+ dont_save as bool       'Set when insert-importing a collection: this collection context is temporary, unsaved
+                         '(Base.save() is still called to save context variables)
  id as integer = -1      'Only used by user collections. Not saved. -1 means unknown
 End Type
 
 Extern "C"
-Type SliceFwd as Slice
 Type SliceDraw as Sub(Byval as SliceFwd ptr, byval page as integer)
 Type SliceDispose as Sub(Byval as SliceFwd ptr)
 Type SliceClone as Sub(Byval as SliceFwd ptr, byval as SliceFwd ptr)

@@ -1270,17 +1270,69 @@ Destructor SliceContext()
  v_free attributes
 End Destructor
 
-Sub SliceContext.save(node as Reload.Nodeptr)
+Sub SliceContext.save(sl as Slice ptr, node as Reload.Nodeptr)
+ if v_len(attributes) then
+  dim varsnode as Reload.Nodeptr = Reload.AppendChildNode(node, "contextvars")
+  for idx as integer = 0 to v_len(attributes) - 1
+   with attributes[idx]
+    dim varnode as Reload.Nodeptr = Reload.AppendChildNode(varsnode, "var", .name)
+    select case .dtype
+     case attyBool
+      Reload.AppendChildNode(varnode, "bool", iif(.int_value, 1, 0))
+     case attyInt
+      Reload.AppendChildNode(varnode, "int", .int_value)
+     case attyStr
+      Reload.AppendChildNode(varnode, "str", .str_value)
+    end select
+    'In future if there are any other children they should be after the value one
+   end with
+  next
+ end if
 End Sub
 
-Sub SliceContext.load(node as Reload.Nodeptr)
+'Loads context variables.
+Sub SliceContext.load(sl as Slice ptr, node as Reload.Nodeptr)
+ dim varsnode as Reload.Nodeptr = Reload.GetChildByName(node, "contextvars")
+ if varsnode then
+  dim varnode as Reload.Nodeptr = Reload.FirstChild(varsnode, "var")
+  while varnode
+   dim attrname as string = Reload.GetString(varnode)
+   'The first child must be the value (XML geeks would be appalled)
+   dim datnode as Reload.Nodeptr = Reload.FirstChild(varnode)
+   if datnode = NULL then
+    reporterr "Error loading slice: context variable node without child", errError
+    exit sub
+   end if
+   select case Reload.NodeName(datnode)
+    case "bool": SetAttributeBool(sl, attrname, Reload.GetInteger(datnode))
+    case "int":  SetAttribute(sl, attrname, Reload.GetInteger(datnode))
+    case "str":  SetAttribute(sl, attrname, Reload.GetString(datnode))
+    case else:   reporterr "Error loading slice: unknown context variable data type", errError
+   end select
+
+   varnode = NextSibling(varnode, "var")
+  wend
+ end if
 End Sub
 
-Sub SliceCollectionContext.load(node as Reload.Nodeptr)
+'Clone context variables, but in general subclasses probably shouldn't override this.
+'(For example if you clone an NPC's slice, the clone is not an NPC)
+Function SliceContext.clone() as SliceContext ptr
+ dim ret as SliceContext ptr = NULL
+ if v_len(attributes) then
+  ret = new SliceContext
+  v_copy ret->attributes, attributes
+ end if
+ return ret
+End Function
+
+Sub SliceCollectionContext.load(sl as Slice ptr, node as Reload.Nodeptr)
+ base.load(sl, node)
  name = LoadPropStr(node, "collection_name")
 End Sub
 
-Sub SliceCollectionContext.save(node as Reload.Nodeptr)
+Sub SliceCollectionContext.save(sl as Slice ptr, node as Reload.Nodeptr)
+ base.save(sl, node)
  if dont_save then exit sub
  SaveProp node, "collection_name", name
  'id not saved
@@ -4928,6 +4980,10 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
    .AnimState->sl = clone
   end if
  end with
+ if sl->Context then
+  '--Cloned context will generally contain context variables only, not other data
+  clone->Context = sl->Context->clone()
+ end if
  '--clone special properties for this slice type
  sl->Clone(sl, clone)
  if recurse = NO then return clone
@@ -5068,7 +5124,7 @@ Sub SliceSaveToNode(byval sl as Slice Ptr, node as Reload.Nodeptr, save_handles 
  '--Save properties specific to this slice type
  sl->Save(sl, node)
  '--Contexts may or may not be savable
- if sl->Context then sl->Context->save(node)
+ if sl->Context then sl->Context->save(sl, node)
  if sl->Animations andalso sl->Animations->slice_specific then
   'Empty AnimationSets will be created if entering the animation editor in the
   'slice editor. They don't need to be saved.
@@ -5137,6 +5193,23 @@ Function LoadPropFloat(node as Reload.Nodeptr, propname as zstring ptr, byval de
  if node = 0 then debug "LoadPropFloat null node ptr": return defaultval
  return Reload.GetChildNodeFloat(node, propname, defaultval)
 End function
+
+'Give a slice a Context if necessary and load it (from the slice's root node)
+Private Sub SliceTryLoadContext(sl as Slice ptr, node as Reload.Nodeptr)
+ 'We will create a SliceContext so it can load itself.
+ 'For now, SliceLoadFromFile gives the root slice a SliceCollectionContext.
+
+ 'Future logic here
+ 'dim contextstr as string = LoadPropStr(node, "context")
+ 'if contextstr = "..." then sl->Context = new ...
+
+ 'A plain SliceContext for variables.
+ if Reload.GetChildByName(node, "contextvars") then
+  if sl->Context = NULL then sl->Context = new SliceContext
+ end if
+
+ if sl->Context then sl->Context->load(sl, node)
+End Sub
 
 'Note that this mutates an existing slice, which should be a new slice with no children
 'Returns true on (apparent) success; when returning false may be partially
@@ -5208,11 +5281,9 @@ Function SliceLoadFromNode(byval sl as Slice Ptr, node as Reload.Nodeptr, load_h
    if tableslot then restore_saved_plotslice_handle(sl, tableslot)
   end if
  #ENDIF
- 'TODO: create a SliceContext so it can load itself. For now, SliceLoadFromFile gives
- 'the root slice a SliceCollectionContext.
- 'dim contextstr as string = LoadPropStr(node, "context")
- if sl->Context then sl->Context->load(node)
- 'now update the type
+ 'Create and load Context if we have one
+ SliceTryLoadContext sl, node
+ 'Now update the type
  dim typestr as string = LoadPropStr(node, "type")
  dim typenum as SliceTypes = SliceTypeByName(typestr)
  if typenum = slInvalid then
