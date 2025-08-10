@@ -451,21 +451,21 @@ SUB save_npc_instance (byval parent as NodePtr, byval index as NPCIndex, npc as 
  DIM n as NodePtr
  n = AppendChildNode(parent, "npc", index)
  WITH npc
-  SetChildNode(n, "id", ABS(.id) - 1)
-  SetChildNode(n, "pool", .pool)
-  SetChildNode(n, "x", .x - map_offset.x * 20)
-  SetChildNode(n, "y", .y - map_offset.y * 20)
-  SetChildNode(n, "z", .z)
-  SetChildNode(n, "d", .dir)
-  SetChildNode(n, "fr", .wtog)
-  IF .xgo THEN SetChildNode(n, "xgo", .xgo)
-  IF .ygo THEN SetChildNode(n, "ygo", .ygo)
+  AppendChildNode(n, "id", ABS(.id) - 1)
+  AppendChildNode(n, "pool", .pool)
+  AppendChildNode(n, "x", .x - map_offset.x * 20)
+  AppendChildNode(n, "y", .y - map_offset.y * 20)
+  AppendChildNode(n, "z", .z)
+  AppendChildNode(n, "d", .dir)
+  AppendChildNode(n, "fr", .wtog)
+  IF .xgo THEN AppendChildNode(n, "xgo", .xgo)
+  IF .ygo THEN AppendChildNode(n, "ygo", .ygo)
   SaveExtraVector n, "extravec", .extravec
-  IF .ignore_walls THEN SetChildNode(n, "ignore_walls")
-  IF .not_obstruction THEN SetChildNode(n, "not_obstruction")
-  IF .suspend_use THEN SetChildNode(n, "suspend_use")
-  IF .suspend_ai THEN SetChildNode(n, "suspend_move")
-  SetChildNode(n, "edit", 0) 'FIXME: this is a placeholder. Real edits will start with 1
+  IF .ignore_walls THEN AppendChildNode(n, "ignore_walls")
+  IF .not_obstruction THEN AppendChildNode(n, "not_obstruction")
+  IF .suspend_use THEN AppendChildNode(n, "suspend_use")
+  IF .suspend_ai THEN AppendChildNode(n, "suspend_move")
+  AppendChildNode(n, "edit", 0) 'FIXME: this is a placeholder. Real edits will start with 1
  END WITH
 END SUB
 
@@ -2204,25 +2204,25 @@ FUNCTION WriteStatsNode (byval parent as NodePtr, nodename as string, statobj as
  DIM ch as NodePtr
  FOR i as integer = 0 TO UBOUND(statobj.sta)
   ch = AppendChildNode(node, "stat", i)
-  SetChildNode(ch, "value", statobj.sta(i))
+  AppendChildNode(ch, "value", statobj.sta(i))
  NEXT i
  RETURN node
 END FUNCTION
 
 FUNCTION WriteXYPairNode (byval parent as NodePtr, nodename as string, pair as XYPair) as NodePtr
  DIM node as NodePtr
- node = SetChildNode(parent, nodename)
- SetChildNode node, "x", pair.x
- SetChildNode node, "y", pair.y
+ node = AppendChildNode(parent, nodename)
+ AppendChildNode node, "x", pair.x
+ AppendChildNode node, "y", pair.y
  RETURN node
 END FUNCTION
 
 FUNCTION WritePicPalNode (byval parent as NodePtr, nodename as string, byval pic as integer, byval pal as integer=-1) as NodePtr
  DIM node as NodePtr
- node = SetChildNode(parent, nodename)
- SetChildNode node, "pic", pic
+ node = AppendChildNode(parent, nodename)
+ AppendChildNode node, "pic", pic
  IF pal >= 0 THEN
-  SetChildNode node, "pal", pal
+  AppendChildNode node, "pal", pal
  END IF
  RETURN node
 END FUNCTION

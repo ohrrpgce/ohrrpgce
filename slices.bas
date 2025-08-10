@@ -1,5 +1,5 @@
 'OHRRPGCE - Slices
-'(C) Copyright 1997-2022 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
 
@@ -5029,7 +5029,7 @@ End Extern
 
 Sub SavePropAlways(node as Reload.Nodeptr, propname as zstring ptr, byval value as integer)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
- Reload.SetChildNode(node, propname, CLNGINT(value))
+ Reload.AppendChildNode(node, propname, CLNGINT(value))
 End Sub
 
 'Doesn't save anything = 0
@@ -5040,7 +5040,7 @@ End Sub
 'This function only exists because of FB bug sf#826 "Weird overload resolution with booleans", fixed in FB 1.10
 Sub SavePropBoolAlways(node as Reload.Nodeptr, propname as zstring ptr, byval value as boolean)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
- Reload.SetChildNode(node, propname, CLNGINT(value))
+ Reload.AppendChildNode(node, propname, CLNGINT(value))
 END Sub
 
 'Ditto
@@ -5050,7 +5050,7 @@ End Sub
 
 Sub SavePropAlways(node as Reload.Nodeptr, propname as zstring ptr, byval value as double)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
- Reload.SetChildNode(node, propname, value)
+ Reload.AppendChildNode(node, propname, value)
 End Sub
 
 Sub SaveProp(node as Reload.Nodeptr, propname as zstring ptr, byval value as double)
@@ -5059,7 +5059,7 @@ End Sub
 
 Sub SavePropAlways(node as Reload.Nodeptr, propname as zstring ptr, s as string)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
- Reload.SetChildNode(node, propname, s)
+ Reload.AppendChildNode(node, propname, s)
 End Sub
 
 Sub SaveProp(node as Reload.Nodeptr, propname as zstring ptr, s as string)

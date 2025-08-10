@@ -204,6 +204,7 @@ Declare Function GetChildNodeBool(byval parent as NodePtr, n as zstring ptr, byv
 Declare Function GetChildNodeExists(byval parent as NodePtr, n as zstring ptr) as bool
 Declare Function AppendChildNode Overload (byval parent as NodePtr, n as zstring ptr) as NodePtr
 Declare Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, byval val as longint) as NodePtr
+Declare Function AppendChildNodeBool(byval parent as NodePtr, n as zstring ptr, byval val as bool) as NodePtr
 Declare Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, byval val as double) as NodePtr
 Declare Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, val as string) as NodePtr
 Declare Function ChildByIndex(byval parent as NodePtr, byval index as integer, byval withname as zstring ptr = NULL) as NodePtr

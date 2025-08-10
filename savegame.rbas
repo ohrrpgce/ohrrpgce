@@ -987,7 +987,8 @@ SUB script_trigger_to_reload(byval parent as Reload.NodePtr, node_name as string
   SetChildNode(node, "id", script_id)
  'ELSE
  ' '--new style
- ' 'FIXME: this isn't saved yet because we can't load it yet
+ ' This isn't saved yet because we can't load it yet
+ ' ...but many years later, I no longer see the need for this. Trigger IDs are stable.
  ' SetChildNode(node, "name", scriptname(script_id))
  'END IF
 END SUB
@@ -1014,7 +1015,7 @@ SUB gamestate_globals_to_reload(byval parent as Reload.NodePtr, byval first as i
  FOR i as integer = first TO last
   IF global(i) <> 0 THEN
    n = AppendChildNode(node, "global", i)
-   SetChildNode n, "int", global(i)
+   AppendChildNode n, "int", global(i)
   END IF
  NEXT i
 
@@ -1077,7 +1078,7 @@ SUB gamestate_npcs_to_reload(byval parent as Reload.NodePtr, byval map_id as int
  map_offset = load_map_pos_save_offset(map_id)
 
  DIM n as NodePtr
- FOR i as integer = 0 TO 299
+ FOR i as integer = 0 TO UBOUND(npc)
   IF npc(i).id <> 0 ANDALSO NO THEN 'currently disabled for all NPCs
    n = AppendChildNode(node, "npc", i)
    save_npc_instance n, i, npc(i), map_offset
@@ -1132,77 +1133,77 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
  FOR i as integer = 0 TO 40
   slot = AppendChildNode(node, "slot", i)
   
-  IF gam.hero(i).id >= 0 THEN SetChildNode(slot, "id", gam.hero(i).id)
-  SetChildNode(slot, "name", gam.hero(i).name)
+  IF gam.hero(i).id >= 0 THEN AppendChildNode(slot, "id", gam.hero(i).id)
+  AppendChildNode(slot, "name", gam.hero(i).name)
   
   IF gam.hero(i).locked THEN
-   SetChildNode(slot, "locked")
+   AppendChildNode(slot, "locked")
   END IF
 
   WITH gam.hero(i)
    
-   ch = SetChildNode(slot, "stats")
+   ch = AppendChildNode(slot, "stats")
    FOR j as integer = 0 TO statLast
     WITH .stat
      IF .cur.sta(j) <> 0 OR .max.sta(j) <> 0 OR .base.sta(j) <> 0 THEN
       n = AppendChildNode(ch, "stat", j)
-      SetChildNode(n, "cur", .cur.sta(j))
-      SetChildNode(n, "max", .max.sta(j))
-      SetChildNode(n, "base", .base.sta(j))
+      AppendChildNode(n, "cur", .cur.sta(j))
+      AppendChildNode(n, "max", .max.sta(j))
+      AppendChildNode(n, "base", .base.sta(j))
      END IF
     END WITH
    NEXT j
    
-   SetChildNode(slot, "lev", .lev)
-   SetChildNode(slot, "lev_gain", .lev_gain)
-   SetChildNode(slot, "exp", .exp_cur)
-   SetChildNode(slot, "exp_next", .exp_next)
-   SetChildNode(slot, "exp_mult", .exp_mult)
-   SetChildNode(slot, "def_wep", .def_wep)
-   SetChildNodeBool(slot, "auto_battle", .auto_battle)
+   AppendChildNode(slot, "lev", .lev)
+   AppendChildNode(slot, "lev_gain", .lev_gain)
+   AppendChildNode(slot, "exp", .exp_cur)
+   AppendChildNode(slot, "exp_next", .exp_next)
+   AppendChildNode(slot, "exp_mult", .exp_mult)
+   AppendChildNode(slot, "def_wep", .def_wep)
+   AppendChildNodeBool(slot, "auto_battle", .auto_battle)
 
    IF gam.hero(i).id >= 0 THEN
     IF .hand_pos_overridden THEN
-     ch = SetChildNode(slot, "hand")
+     ch = AppendChildNode(slot, "hand")
      FOR j as integer = 0 TO UBOUND(.hand_pos)
       n = AppendChildNode(ch, "frame", j)
-      SetChildNode(n, "x", .hand_pos(j).x)
-      SetChildNode(n, "y", .hand_pos(j).y)
+      AppendChildNode(n, "x", .hand_pos(j).x)
+      AppendChildNode(n, "y", .hand_pos(j).y)
      NEXT j
     END IF
    END IF
 
-   ch = SetChildNode(slot, "in_battle")
-   SetChildNode(ch, "pic", .battle_pic)
-   SetChildNode(ch, "pal", .battle_pal)
+   ch = AppendChildNode(slot, "in_battle")
+   AppendChildNode(ch, "pic", .battle_pic)
+   AppendChildNode(ch, "pal", .battle_pal)
  
-   ch = SetChildNode(slot, "walkabout")
-   SetChildNode(ch, "pic", .pic)
-   SetChildNode(ch, "pal", .pal)
+   ch = AppendChildNode(slot, "walkabout")
+   AppendChildNode(ch, "pic", .pic)
+   AppendChildNode(ch, "pal", .pal)
 
    IF gam.hero(i).id >= 0 THEN
     'Only save this node on non-empty slots
-    ch = SetChildNode(slot, "portrait")
+    ch = AppendChildNode(slot, "portrait")
     loadherodata her, gam.hero(i).id
     'Only save these nodes when they differ from the default for this hero
-    IF .portrait_pic <> her.portrait    THEN SetChildNode(ch, "pic", .portrait_pic)
-    IF .portrait_pal <> her.portrait_pal THEN SetChildNode(ch, "pal", .portrait_pal)
+    IF .portrait_pic <> her.portrait    THEN AppendChildNode(ch, "pic", .portrait_pic)
+    IF .portrait_pal <> her.portrait_pal THEN AppendChildNode(ch, "pal", .portrait_pal)
    END IF
    
-   ch = SetChildNode(slot, "spell_lists")
+   ch = AppendChildNode(slot, "spell_lists")
    FOR j as integer = 0 TO 3
     n = AppendChildNode(ch, "list", j)
     gamestate_spelllist_to_reload(i, j, n)
    NEXT j
    
-   ch = SetChildNode(slot, "level_mp")
+   ch = AppendChildNode(slot, "level_mp")
    FOR j as integer = 0 TO 7
     IF max_levelmp_for_hero(gam.hero(i), j) <> 0 THEN
      SetKeyValueNode(ch, "lev", j, gam.hero(i).levelmp(j), "val")
     END IF
    NEXT j
   
-   ch = SetChildNode(slot, "equipment")
+   ch = AppendChildNode(slot, "equipment")
    FOR j as integer = 0 TO 4
     IF gam.hero(i).equip(j).id >= 0 THEN
      SetKeyValueNode(ch, "equip", j, gam.hero(i).equip(j).id, "item")
@@ -1213,10 +1214,10 @@ SUB gamestate_party_to_reload(byval parent as Reload.NodePtr)
     'Unlike all the other hero commands, hero elemental commands aren't allowed
     'to read/write empty hero slots, so don't need to save those
  
-    ch = SetChildNode(slot, "elements")
+    ch = AppendChildNode(slot, "elements")
     FOR j as integer = 0 TO gen(genNumElements) - 1
      n = AppendChildNode(ch, "element", j)
-     SetChildNode(n, "damage", cast(double, .elementals(j)))
+     AppendChildNode(n, "damage", cast(double, .elementals(j)))
     NEXT j
    END IF
   END WITH
@@ -1234,7 +1235,7 @@ SUB gamestate_spelllist_to_reload(byval hero_slot as integer, byval spell_list a
   atk_id = gam.hero(hero_slot).spells(spell_list, i) - 1
   IF atk_id >= 0 THEN
    n = AppendChildNode(node, "spell", i)
-   SetChildNode(n, "attack", atk_id)
+   AppendChildNode(n, "attack", atk_id)
   END IF
  NEXT i
  
@@ -1254,8 +1255,8 @@ SUB gamestate_inventory_to_reload(byval parent as Reload.NodePtr)
   WITH inventory(i)
    IF .used THEN
     n = AppendChildNode(ch, "slot", i)
-    SetChildNode(n, "item", .id)
-    SetChildNode(n, "num", .num)
+    AppendChildNode(n, "item", .id)
+    AppendChildNode(n, "num", .num)
    END IF
   END WITH
  NEXT i
@@ -1277,12 +1278,12 @@ SUB gamestate_shops_to_reload(byval parent as Reload.NodePtr)
   FOR j as integer = 0 TO shoptmp(16)
    IF gam.stock(i, j) <> 0 THEN  'Has been initialised
     n2 = AppendChildNode(ch, "slot", j)
-    SetChildNode(n2, "stock", gam.stock(i, j))
+    AppendChildNode(n2, "stock", gam.stock(i, j))
     WITH gam.original_stock(i, j)
      IF .thingtype > -1 THEN  'Has been initialised
-      SetChildNode(n2, "orig_type",  .thingtype)
-      SetChildNode(n2, "orig_id",    .thingid)
-      SetChildNode(n2, "orig_stock", .stock)
+      AppendChildNode(n2, "orig_type",  .thingtype)
+      AppendChildNode(n2, "orig_id",    .thingid)
+      AppendChildNode(n2, "orig_stock", .stock)
      END IF
     END WITH
    END IF

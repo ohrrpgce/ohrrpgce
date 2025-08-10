@@ -1571,12 +1571,17 @@ Function AppendChildNode(byval parent as NodePtr, n as zstring ptr) as NodePtr
 	return ret
 end Function
 
-'Appends a child node of name n to with integer value.
+'Appends a child node of name n to parent with integer value.
 Function AppendChildNode(byval parent as NodePtr, n as zstring ptr, byval val as longint) as NodePtr
 	dim ret as NodePtr = AppendChildNode(parent, n)
 	if ret = 0 then return 0
 	SetContent(ret, val)
 	return ret
+end Function
+
+'Appends a child node of name n with value 1/0 (the preferred on-disk boolean values).
+Function AppendChildNodeBool(byval parent as NodePtr, n as zstring ptr, byval val as bool) as NodePtr
+	return AppendChildNode(parent, n, iif(val, 1, 0))
 end Function
 
 'Appends a child node of name n with a floating point value.
