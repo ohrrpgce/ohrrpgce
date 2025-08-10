@@ -89,6 +89,9 @@ CONSTRUCTOR SlicePropertiesEditor(sl as Slice ptr, ses_draw_root as Slice ptr = 
   IF UBOUND(slicelookup) < 1 THEN
     REDIM slicelookup(1) as string
   END IF
+  menuopts.edged = YES
+  menuopts.drawbg = YES
+  menuopts.highlight_selection = YES
 END CONSTRUCTOR
 
 'Collect a list of properties and section headers into_vector, used by the animation editor
@@ -127,6 +130,11 @@ SUB SlicePropertiesEditor.finish_defitem()
     IF cur_item.title = prev_menu_text THEN  'Previous Menu
       EXIT SUB
     END IF
+    IF cur_animkey = "" THEN
+      'Menu items without propkey are not animatable properties
+      EXIT SUB
+    END IF
+
     WITH *v_expand(*gather_items)
       .infotype = SlicePropInfoType.prop
       .sltype = cur_slicetype
@@ -172,6 +180,8 @@ SUB SlicePropertiesEditor.finish_defitem()
       '? "finishdef", .display, GetString(.value_node)
     END WITH
   END IF
+
+  cur_animkey = ""
 END SUB
 
 SUB SlicePropertiesEditor.define_items()
@@ -534,6 +544,34 @@ SUB SlicePropertiesEditor.define_items()
     propkey "tx", "target"
     defint "Target Y:", .Targ.Y, -999999, 999999
     propkey "ty", "target"
+
+    section "Attributes"
+    IF .Context THEN
+      'Each existing attribute. These don't have propkeys. Animations will have
+      'separate opcodes to modify attributes.
+      FOR idx as integer = 0 TO v_len(.Context->attributes) - 1
+        WITH .Context->attributes[idx]
+          defitem .name & ":"
+          SELECT CASE .dtype
+            CASE attyBool
+              edit_bool .int_value
+            CASE attyInt
+              edit_int .int_value, INT_MIN, INT_MAX
+            CASE attyStr
+              edit_str .str_value
+          END SELECT
+          set_helpkey "sliceedit_attribute"
+          IF delete_action THEN
+            RemoveAttribute sl, .name
+            state.need_update = YES
+          END IF
+        END WITH
+      NEXT
+    END IF
+    IF defitem_act("Add new...") THEN
+      state.need_update OR= slice_editor_add_attribute_menu(sl)
+    END IF
+    set_helpkey "sliceedit_add_attribute"
 
     'Animation, Extra Data, Metadata (except screen pos) omitted
 

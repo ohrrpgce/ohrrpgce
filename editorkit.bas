@@ -354,6 +354,23 @@ sub EditorKit.run_phase(which_phase as Phases)
 	finish_defitem
 end sub
 
+function EditorKit.form_default_caption() as string
+	with cur_item
+		select case .dtype
+			case dtypeBool:   return iif(value, "YES", "NO")
+			case dtypeInt:    return str(value)
+			case dtypeFloat:
+				if .is_percent then
+					return format_percent(valuefloat)
+				else
+					return format_float(valuefloat)
+				end if
+			case dtypeStr:    return valuestr
+			case dtypeNone:   return "N/A"
+		end select
+	end with
+end function
+
 ' Called after an item definition is finished
 sub EditorKit.finish_defitem()
 	if started_item = NO then exit sub
@@ -385,18 +402,7 @@ sub EditorKit.finish_defitem()
 			dim as string text, title = .title, caption = .caption
 			' If there's no caption, use the current data value as a default
 			if len(caption) = 0 andalso ends_with(.title, ":") then
-				select case .dtype
-					case dtypeBool:   caption = iif(value, "YES", "NO")
-					case dtypeInt:    caption = str(value)
-					case dtypeFloat:
-						if .is_percent then
-							caption = format_percent(valuefloat)
-						else
-							caption = format_float(valuefloat)
-						end if
-					case dtypeStr:    caption = valuestr
-					case dtypeNone:   caption = "N/A"
-				end select
+				caption = form_default_caption()
 			end if
 
 			if len(title) > 0 then

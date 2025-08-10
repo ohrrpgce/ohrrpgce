@@ -288,6 +288,7 @@ type EditorKit extends ModularMenu
 
 	' Mostly internal
 	declare sub wrap_caption(caption as string)
+	declare function form_default_caption() as string
 
 	'---- Other menu item attributes
 	declare sub keycombo(key1 as KBScancode, key2 as KBScancode = scNone)
