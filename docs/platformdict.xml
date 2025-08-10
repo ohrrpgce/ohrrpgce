@@ -44,7 +44,7 @@
 	<!ELEMENT b            (#PCDATA)>
 ]>
 
-<plotscript version="kaleidophone" datecode="2025-08-04">
+<plotscript version="kaleidophone+1" datecode="2025-08-10">
 	<title>
 		Additional Platform Script Commands
 	</title>

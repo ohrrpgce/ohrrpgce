@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E            (2025-08-04 kaleidophone version)
+ O.H.R.RPG.C.E          (2025-08-10 kaleidophone+1 version)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 for Mac OS X

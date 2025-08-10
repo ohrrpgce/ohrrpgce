@@ -1,6 +1,6 @@
 # The first non-commented line in this file is the name of the release. 'wip' means
 # not a stable release (which does change engine behaviour in a few places).
-kaleidophone
+kaleidophone+1
 # The second line is the name of the SVN branch. This is nearly always the same as
 # the codename, but should be ASCII only.
 kaleidophone

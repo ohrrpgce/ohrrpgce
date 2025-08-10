@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-Aug ?? 2025 [Kaleidophone+1]
+Aug 10 2025 [Kaleidophone+1]
 
   *** Bugfixes
     * Fix BUG message about binsize.bin every time you imported scripts while
