@@ -706,6 +706,7 @@ DECLARE Function FindAttribute overload (context_stack as SliceContext ptr vecto
 DECLARE Function FindAttribute overload (sl as Slice ptr, attributename as string) as SliceAttribute ptr
 DECLARE Function GetOrAddAttribute (sl as Slice ptr, attributename as string) as SliceAttribute ptr
 DECLARE Function GetAttributeInteger(context_stack as SliceContext ptr vector, attributename as string, byref value as integer) as bool
+DECLARE Sub SetAttributeBool (sl as Slice ptr, attributename as string, value as bool)
 DECLARE Sub SetAttribute overload (sl as Slice ptr, attributename as string, value as integer)
 DECLARE Sub SetAttribute overload (sl as Slice ptr, attributename as string, value as string)
 DECLARE Sub RemoveAttribute (sl as Slice ptr, attributename as string)

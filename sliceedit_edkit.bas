@@ -37,6 +37,43 @@ SUB SlicePropertiesEditor.propkey(prop as zstring ptr, helpkey as zstring ptr = 
   set_helpkey "sliceedit_" & *IIF(helpkey, helpkey, prop)
   IF animkey = NULL THEN animkey = prop
   cur_animkey = *animkey
+
+  'Insert/F2 to convert to dynamic property
+  IF process ANDALSO selected THEN
+    IF keyval(scInsert) > 1 ORELSE keyval(scF2) > 1 THEN
+      DIM attrname as string
+      prompt_for_string(attrname, !"  Create dynamic property...\nName of variant for source data?", 100)
+      attrname = sanitize_script_identifier(attrname, NO)
+      IF LEN(attrname) THEN
+        AddSliceDynamicProp sl, *prop, attrname
+        'FIXME: this doesn't actually force the necessary update
+        state.need_update = YES
+      END IF
+    END IF
+  END IF
+
+  'Show dynamic properties in the caption
+  IF refresh ANDALSO sl->DynamicProps THEN
+    FOR idx as integer = 0 TO v_len(sl->DynamicProps) - 1
+      WITH sl->DynamicProps[idx]
+        IF .propname = *prop THEN
+          'Maybe should have an add_note method instead
+          set_caption "{" & .attrname & "} = " & form_default_caption()
+        END IF
+      END WITH
+    NEXT
+  END IF
+
+  'If a property is dynamic, attempting to edit it... removes the dynamic.
+  'Or we could edit value of the attribute, or the name of the attribute to use,
+  'or ask the user what to do.
+  IF edited ANDALSO sl->DynamicProps THEN
+    DIM idx as integer = FindSliceDynamicProp(sl, *prop)
+    IF idx > -1 THEN
+      v_delete_slice sl->DynamicProps, idx, idx + 1
+      state.need_update = YES
+    END IF
+  END IF
 END SUB
 
 SUB SlicePropertiesEditor.set_default(value as integer)

@@ -120,6 +120,7 @@ TYPE SliceEditState
  expand_extra as bool
  expand_sort as bool
  expand_meta as bool
+ expand_attributes as bool
 
  tool as SliceTool = SliceTool.pick
  focus as SliceEditorFocus        'What gets keyboard input. focusMenu or focusPicker only.
@@ -191,6 +192,7 @@ END ENUM
 
 TYPE EditRule
   dataptr as any ptr  'It scares the heck out of me that I think this is the best solution
+  datakey as string   'Currently for slgrATTRIBUTE only. When dataptr isn't enough
   mode as EditRuleMode
   lower as integer    'Interpreted as percent for percent_grabber
   upper as integer    'Interpreted as percent for percent_grabber
@@ -253,6 +255,8 @@ CONST slgrEXTRA = 32768
 CONST slgrVELOCITY = 1 shl 16
 CONST slgrTARGET = 1 shl 17
 '--This system won't be able to expand forever ... :(
+CONST slgrATTRIBUTE = 1 shl 26
+CONST slgrADDATTRIBUTE = 1 shl 27
 CONST slgrPREVIEWANIMATIONS = 1 shl 28
 CONST slgrEDITANIMATIONS = 1 shl 29
 CONST slgrPICKANIMATION = 1 shl 30
@@ -316,6 +320,7 @@ DECLARE SUB slice_editor_save_settings(byref ses as SliceEditState)
 DECLARE SUB slice_editor_load_settings(byref ses as SliceEditState)
 DECLARE FUNCTION collection_context(edslice as Slice ptr, expect_exists as bool = NO) as SliceCollectionContext ptr
 DECLARE SUB slice_editor_preview_animations(byref ses as SliceEditState, slice_to_animate as Slice ptr = NULL)
+DECLARE FUNCTION slice_editor_add_attribute_menu(sl as Slice ptr) as bool
 
 DECLARE SUB edkit_slice_detail_menu (sl as Slice ptr, ses_draw_root as Slice ptr)
 
@@ -1913,7 +1918,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
     DIM expand as bool
     expand = .expand_dimensions OR .expand_visible OR .expand_alignment OR _
              .expand_special OR .expand_padding OR .expand_movement OR .expand_sort OR _
-             .expand_animation OR .expand_meta OR .expand_extra
+             .expand_animation OR .expand_meta OR .expand_extra OR .expand_attributes
     expand XOR= YES
     .expand_dimensions = expand
     .expand_visible = expand
@@ -1925,6 +1930,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
     .expand_animation = expand
     .expand_meta = expand
     .expand_extra = expand
+    .expand_attributes = expand
    END WITH
    state.need_update = YES
   END IF
@@ -2371,6 +2377,17 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, b
    slice_editor_preview_animations ses, IIF(keyval(scShift) > 0, NULL, sl)
   END IF
  END IF
+ IF rule.group AND slgrATTRIBUTE THEN
+  IF keyval(scDelete) > 1 THEN
+   RemoveAttribute sl, rule.datakey
+   state.need_update = YES
+  END IF
+ END IF
+ IF rule.group AND slgrADDATTRIBUTE THEN
+  IF enter_space_click(state) THEN
+   state.need_update OR= slice_editor_add_attribute_menu(sl)
+  END IF
+ END IF
  IF rule.group AND slgrFRAMEID THEN
   'dataptr is only a temp var
   sl->SpriteData->set_frameid(sl, *CAST(integer ptr, rule.dataptr))
@@ -2483,9 +2500,11 @@ SUB sliceed_rule (rules() as EditRule, helpkey as zstring ptr, mode as EditRuleM
  REDIM PRESERVE rules(index) as EditRule
  WITH rules(index)
   .dataptr = dataptr
+  .datakey = ""
   .mode = mode
   .lower = lower
   .upper = upper
+  .default = 0
   .group = group
   .helpkey = helpkey
  END WITH
@@ -2493,8 +2512,12 @@ END SUB
 
 'Set default value when pressing Delete. Must be called after one of the other sliceedit_rule_* subs
 'Not supported by strings, bools/toggles, or floats.
-SUB sliceed_rule_set_default (rules() as EditRule, default as integer=0)
+SUB sliceed_rule_set_default (rules() as EditRule, default as integer)
  rules(UBOUND(rules)).default = default
+END SUB
+
+SUB sliceed_rule_set_datakey (rules() as EditRule, key as string)
+ rules(UBOUND(rules)).datakey = key
 END SUB
 
 /' Not currently needed because all Slice pseudo-enums are ubytes
@@ -2648,7 +2671,7 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
   sliceed_rule_none rules(), "protect"
  END IF
 
- sliceed_header menu(), rules(), "[Dimensions]", @ses.expand_dimensions
+ sliceed_header menu(), rules(), "[Position/Size]", @ses.expand_dimensions
  IF ses.expand_dimensions THEN
   IF .FillHoriz = NO THEN
    a_append menu(), " X: " & .X
@@ -3068,6 +3091,27 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
   sliceed_rule_none rules(), "draw_time"
  END IF
 
+ sliceed_header menu(), rules(), "[Attributes]", @ses.expand_attributes
+ IF ses.expand_attributes THEN
+  IF .Context THEN
+   FOR idx as integer = 0 TO v_len(.Context->attributes) - 1
+    WITH .Context->attributes[idx]
+     a_append menu(), " " & .name & ": " & .asString()
+     IF .dtype = attyBool THEN
+      sliceed_rule_tog rules(), "attribute", @.int_value, slgrATTRIBUTE
+     ELSEIF .dtype = attyInt THEN
+      sliceed_rule rules(), "attribute", erIntgrabber, @.int_value, INT_MIN, INT_MAX, slgrATTRIBUTE
+     ELSEIF .dtype = attyStr THEN
+      sliceed_rule_str rules(), "attribute", erStrgrabber, @.str_value, 128000, slgrATTRIBUTE  'Arbitrary limit
+     END IF
+     sliceed_rule_set_datakey rules(), .name
+    END WITH
+   NEXT
+  END IF
+  a_append menu(), " Add new..."
+  sliceed_rule_none rules(), "add_attribute", slgrADDATTRIBUTE
+ END IF
+
  sliceed_header menu(), rules(), "[Extra Data]", @ses.expand_extra
  IF ses.expand_extra THEN
   DIM length as integer = IIF(.ExtraVec, v_len(.ExtraVec), 3)
@@ -3146,7 +3190,7 @@ FUNCTION slice_caption (byref ses as SliceEditState, edslice as Slice ptr, sl as
   IF .Context THEN
    'Hide the Context of the root slice of a collection because it duplicates collection name, ID
    IF sl <> edslice ORELSE (*.Context IS SliceCollectionContext) = NO THEN
-    s &= .Context->description()
+    s &= .Context->description()  'may be zero length
    END IF
   END IF
   IF sl->Template THEN
@@ -3695,6 +3739,27 @@ FUNCTION slice_color_caption(byval n as integer, ifzero as string="0") as string
  END IF
  'Invalid values still print, but !?
  RETURN n & "(!?)"
+END FUNCTION
+
+'Prompt for adding a new attribute to a slice. Overwrites any existing of the same name.
+'Returns true if one added (or modified).
+FUNCTION slice_editor_add_attribute_menu(sl as Slice ptr) as bool
+ DIM name as string
+ IF prompt_for_string(name, "Attribute name?") = NO THEN RETURN NO
+ IF LEN(name) = 0 THEN RETURN NO
+ name = LCASE(sanitize_script_identifier(name, NO, NO))  'allow_whitespace=NO, allow_leading_number=NO
+ IF LEN(name) = 0 THEN
+  show_overlay_message "Not a valid script identifier"
+  RETURN NO
+ END IF
+ DIM ty as SliceAttributeTypes
+ DIM types(2) as string = {"Bool", "Integer", "String"}
+ ty = multichoice("Attribute type?", types())
+ IF ty < 0 THEN RETURN NO
+ IF ty = attyBool THEN SetAttributeBool sl, name, NO
+ IF ty = attyInt  THEN SetAttribute sl, name, 0
+ IF ty = attyStr  THEN SetAttribute sl, name, ""
+ RETURN YES
 END FUNCTION
 
 'Editor for slice extra data or other integer vectors (used not just by the slice editor).

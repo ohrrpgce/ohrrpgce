@@ -4254,16 +4254,25 @@ Function GetOrAddAttribute (sl as Slice ptr, /'byref context_stack as SliceConte
  end with
 end function
 
+Sub SetAttributeBool (sl as Slice ptr, attributename as string, value as bool)
+ with *GetOrAddAttribute(sl, attributename)
+  .dtype = attyBool
+  .int_value = value
+ end with
+end sub
+
 Sub SetAttribute overload (sl as Slice ptr, attributename as string, value as integer)
- dim attribute as SliceAttribute ptr = GetOrAddAttribute(sl, attributename)
- attribute->dtype = attyInt
- attribute->int_value = value
+ with *GetOrAddAttribute(sl, attributename)
+  .dtype = attyInt
+  .int_value = value
+ end with
 end sub
 
 Sub SetAttribute overload (sl as Slice ptr, attributename as string, value as string)
- dim attribute as SliceAttribute ptr = GetOrAddAttribute(sl, attributename)
- attribute->dtype = attyStr
- attribute->str_value = value
+ with *GetOrAddAttribute(sl, attributename)
+  .dtype = attyStr
+  .str_value = value
+ end with
 end sub
 
 'Only removes from sl itself, does not search ancestors. Not an error if not present

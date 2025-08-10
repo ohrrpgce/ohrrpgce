@@ -7429,12 +7429,15 @@ FUNCTION remove_nonprintable_ascii(s as string, replacement as string = "") as s
  RETURN ret
 END FUNCTION
 
-FUNCTION sanitize_script_identifier (ident as string, allow_whitespace as bool = YES) as string
+'Normally allows leading numbers because this is mostly used for names of constants which will be prefixed.
+FUNCTION sanitize_script_identifier (ident as string, allow_whitespace as bool = YES, allow_leading_number as bool = YES) as string
  ' :'_~? are allowed
  DIM to_exclude as string = "`!@#$%^&*()-+=[]{}\|<>,.;/"""
  IF allow_whitespace = NO THEN to_exclude &= " "
  DIM tmp as string = exclude(ident, to_exclude)
- RETURN remove_nonprintable_ascii(tmp)
+ tmp = remove_nonprintable_ascii(tmp)
+ IF LEN(tmp) ANDALSO isdigit(tmp[0]) THEN RETURN ""
+ RETURN tmp
 END FUNCTION
 
 '=========================================================================================
