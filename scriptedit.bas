@@ -243,7 +243,6 @@ FUNCTION save_lookup1_bin (triggers() as TriggerData, filename as string) as boo
  NEXT
 
  CLOSE lookupfh
- setbinsize binLOOKUP1, binsize
  RETURN YES
 END FUNCTION
 

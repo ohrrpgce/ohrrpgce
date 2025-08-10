@@ -1935,12 +1935,10 @@ SUB try_reload_lumps_anywhere ()
   'them to happen while live previewing
   ELSEIF modified_lumps[i] = "binsize.bin" THEN                           'BINSIZE.BIN
    clear_binsize_cache
-   showbug "Received binsize.bin modification, should not happen!"
    handled = YES
 
   ELSEIF modified_lumps[i] = "fixbits.bin" THEN                           'FIXBITS.BIN
    clear_fixbits_cache
-   showbug "Received fixbits.bin modification, should not happen!"
    handled = YES
 
   ELSEIF modified_lumps[i] = "palettes.bin" THEN                          'PALETTES.BIN
