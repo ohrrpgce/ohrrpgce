@@ -243,32 +243,32 @@ Enum 'CoverModes
  coverFull = 3
 End Enum
 
-Type SliceAttributeTypes as integer
-Enum 'SliceAttributeTypes
- attyBool  '0 or -1
- attyInt
- attyStr
+Type SliceContextVarTypes as integer
+Enum 'SliceContextVarTypes
+ cttyBool  '0 or 1
+ cttyInt
+ cttyStr
  'others: TODO
 End Enum
 
-'Attributes are almost RELOAD nodes without children
-Type SliceAttribute
+'Context variables are almost RELOAD nodes without children
+Type SliceContextVar
  name as string
- dtype as SliceAttributeTypes
+ dtype as SliceContextVarTypes
  'Union  'TODO: Can't put string in a union
-  int_value as integer  'attyBool, attyInt
-  str_value as string   'attyStr
+  int_value as integer  'cttyBool, cttyInt
+  str_value as string   'cttyStr
  'End Union
 
  Declare Function asString() as string
 End Type
 
-DECLARE_VECTOR_OF_TYPE(SliceAttribute, SliceAttribute)
+DECLARE_VECTOR_OF_TYPE(SliceContextVar, SliceContextVar)
 
-'Describes a slice property that should be set to the value of attribute
+'Describes a slice property that should be set to the value of a context variable
 Type SliceDynamicProp
  propname as string   'The set_slice_property key
- attrname as string
+ ctxname as string
 End Type
 
 DECLARE_VECTOR_OF_TYPE(SliceDynamicProp, SliceDynamicProp)
@@ -282,7 +282,7 @@ Type SliceContext Extends Object
  Declare Virtual Sub save(sl as SliceFwd ptr, node as Reload.Nodeptr)
  Declare Virtual Sub load(sl as SliceFwd ptr, node as Reload.Nodeptr)
  Declare Function clone() as SliceContext ptr
- attributes as SliceAttribute vector
+ context_vars as SliceContextVar vector
 End Type
 
 DECLARE_VECTOR_OF_TYPE(SliceContext ptr, SliceContext_ptr)
@@ -712,20 +712,20 @@ DECLARE Sub AdvanceSlice(byval s as slice ptr)
 End Extern
 
 DECLARE Function CalcContextStack(byval sl as Slice ptr) as SliceContext ptr vector
-DECLARE Function FindAttribute overload (context as SliceContext, attributename as string) as SliceAttribute ptr
-DECLARE Function FindAttribute overload (context_stack as SliceContext ptr vector, attributename as string) as SliceAttribute ptr
-DECLARE Function FindAttribute overload (sl as Slice ptr, attributename as string) as SliceAttribute ptr
-DECLARE Function GetOrAddAttribute (sl as Slice ptr, attributename as string) as SliceAttribute ptr
-DECLARE Function GetAttributeInteger(context_stack as SliceContext ptr vector, attributename as string, byref value as integer) as bool
-DECLARE Sub SetAttributeBool (sl as Slice ptr, attributename as string, value as bool)
-DECLARE Sub SetAttribute overload (sl as Slice ptr, attributename as string, value as integer)
-DECLARE Sub SetAttribute overload (sl as Slice ptr, attributename as string, value as string)
-DECLARE Sub RemoveAttribute (sl as Slice ptr, attributename as string)
+DECLARE Function FindContext overload (context as SliceContext, ctxname as string) as SliceContextVar ptr
+DECLARE Function FindContext overload (context_stack as SliceContext ptr vector, ctxname as string) as SliceContextVar ptr
+DECLARE Function FindContext overload (sl as Slice ptr, ctxname as string) as SliceContextVar ptr
+DECLARE Function GetOrAddContext (sl as Slice ptr, ctxname as string) as SliceContextVar ptr
+DECLARE Function GetContextInteger(context_stack as SliceContext ptr vector, ctxname as string, byref value as integer) as bool
+DECLARE Sub SetContextBool (sl as Slice ptr, ctxname as string, value as bool)
+DECLARE Sub SetContext overload (sl as Slice ptr, ctxname as string, value as integer)
+DECLARE Sub SetContext overload (sl as Slice ptr, ctxname as string, value as string)
+DECLARE Sub RemoveContext (sl as Slice ptr, ctxname as string)
 
 Extern "C"
 
 DECLARE Sub UpdateSliceDynamicProps(sl as Slice ptr, recurse as bool = YES)
-DECLARE Sub AddSliceDynamicProp(sl as Slice ptr, propname as string, attrname as string)
+DECLARE Sub AddSliceDynamicProp(sl as Slice ptr, propname as string, ctxname as string)
 DECLARE Function FindSliceDynamicProp(sl as Slice ptr, propname as string) as integer
 
 DECLARE Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)

@@ -196,7 +196,7 @@ END WITH
 
 DEFINE_VECTOR_OF_POD_TYPE(Slice ptr, Slice_ptr)
 DEFINE_VECTOR_OF_POD_TYPE(SliceContext ptr, SliceContext_ptr)
-DEFINE_VECTOR_OF_CLASS(SliceAttribute, SliceAttribute)
+DEFINE_VECTOR_OF_CLASS(SliceContextVar, SliceContextVar)
 DEFINE_VECTOR_OF_CLASS(SliceDynamicProp, SliceDynamicProp)
 
 'Built up while inside DrawSlice, otherwise NULL.
@@ -1267,21 +1267,21 @@ End Property
 End Extern
 
 Destructor SliceContext()
- v_free attributes
+ v_free context_vars
 End Destructor
 
 Sub SliceContext.save(sl as Slice ptr, node as Reload.Nodeptr)
- if v_len(attributes) then
-  dim varsnode as Reload.Nodeptr = Reload.AppendChildNode(node, "contextvars")
-  for idx as integer = 0 to v_len(attributes) - 1
-   with attributes[idx]
+ if v_len(context_vars) then
+  dim varsnode as Reload.Nodeptr = Reload.AppendChildNode(node, "context_vars")
+  for idx as integer = 0 to v_len(context_vars) - 1
+   with context_vars[idx]
     dim varnode as Reload.Nodeptr = Reload.AppendChildNode(varsnode, "var", .name)
     select case .dtype
-     case attyBool
+     case cttyBool
       Reload.AppendChildNode(varnode, "bool", iif(.int_value, 1, 0))
-     case attyInt
+     case cttyInt
       Reload.AppendChildNode(varnode, "int", .int_value)
-     case attyStr
+     case cttyStr
       Reload.AppendChildNode(varnode, "str", .str_value)
     end select
     'In future if there are any other children they should be after the value one
@@ -1292,11 +1292,11 @@ End Sub
 
 'Loads context variables.
 Sub SliceContext.load(sl as Slice ptr, node as Reload.Nodeptr)
- dim varsnode as Reload.Nodeptr = Reload.GetChildByName(node, "contextvars")
+ dim varsnode as Reload.Nodeptr = Reload.GetChildByName(node, "context_vars")
  if varsnode then
   dim varnode as Reload.Nodeptr = Reload.FirstChild(varsnode, "var")
   while varnode
-   dim attrname as string = Reload.GetString(varnode)
+   dim ctxname as string = Reload.GetString(varnode)
    'The first child must be the value (XML geeks would be appalled)
    dim datnode as Reload.Nodeptr = Reload.FirstChild(varnode)
    if datnode = NULL then
@@ -1304,9 +1304,9 @@ Sub SliceContext.load(sl as Slice ptr, node as Reload.Nodeptr)
     exit sub
    end if
    select case Reload.NodeName(datnode)
-    case "bool": SetAttributeBool(sl, attrname, Reload.GetInteger(datnode))
-    case "int":  SetAttribute(sl, attrname, Reload.GetInteger(datnode))
-    case "str":  SetAttribute(sl, attrname, Reload.GetString(datnode))
+    case "bool": SetContextBool(sl, ctxname, Reload.GetInteger(datnode))
+    case "int":  SetContext(sl, ctxname, Reload.GetInteger(datnode))
+    case "str":  SetContext(sl, ctxname, Reload.GetString(datnode))
     case else:   reporterr "Error loading slice: unknown context variable data type", errError
    end select
 
@@ -1319,9 +1319,9 @@ End Sub
 '(For example if you clone an NPC's slice, the clone is not an NPC)
 Function SliceContext.clone() as SliceContext ptr
  dim ret as SliceContext ptr = NULL
- if v_len(attributes) then
+ if v_len(context_vars) then
   ret = new SliceContext
-  v_copy ret->attributes, attributes
+  v_copy ret->context_vars, context_vars
  end if
  return ret
 End Function
@@ -4232,33 +4232,33 @@ Function CalcContextStack(byval sl as Slice ptr) as SliceContext ptr vector
  return ret
 end function
 
-Function FindAttribute overload (context as SliceContext, attributename as string) as SliceAttribute ptr
- dim vec as SliceAttribute vector = context.attributes
+Function FindContext overload (context as SliceContext, ctxname as string) as SliceContextVar ptr
+ dim vec as SliceContextVar vector = context.context_vars
  if vec = NULL then return NULL
  'Can't use v_find
  for idx as integer = 0 to v_len(vec) - 1
-  if vec[idx].name = attributename then return @vec[idx]
+  if vec[idx].name = ctxname then return @vec[idx]
  next
  return NULL
 end function
 
-'Search the whole stack for a slice attribute
-Function FindAttribute overload (context_stack as SliceContext ptr vector, attributename as string) as SliceAttribute ptr
+'Search the whole stack for a slice context variable
+Function FindContext overload (context_stack as SliceContext ptr vector, ctxname as string) as SliceContextVar ptr
  for idx as integer = v_len(context_stack) - 1 to 0 step -1
-  dim attr as SliceAttribute ptr
-  attr = FindAttribute(*context_stack[idx], attributename)
-  if attr then return attr
+  dim ctx as SliceContextVar ptr
+  ctx = FindContext(*context_stack[idx], ctxname)
+  if ctx then return ctx
  next
  return NULL
 end function
 
-'Search a slice and its ancestors for a slice attribute
-Function FindAttribute overload (sl as Slice ptr, attributename as string) as SliceAttribute ptr
+'Search a slice and its ancestors for a slice context variable
+Function FindContext overload (sl as Slice ptr, ctxname as string) as SliceContextVar ptr
  while sl
   if sl->Context then
-   dim attr as SliceAttribute ptr
-   attr = FindAttribute(*sl->Context, attributename)
-   if attr then return attr
+   dim ctx as SliceContextVar ptr
+   ctx = FindContext(*sl->Context, ctxname)
+   if ctx then return ctx
   end if
   sl = sl->Parent
  wend
@@ -4266,28 +4266,28 @@ Function FindAttribute overload (sl as Slice ptr, attributename as string) as Sl
 end function
 
 'Returns true and sets value if this context stack (belonging to a slice) has
-'the attribute set.
-'Attributes set on descendent slices (higher in the stack) override their ancestors
-Function GetAttributeInteger(context_stack as SliceContext ptr vector, attributename as string, byref value as integer) as bool
- dim attr as SliceAttribute ptr
- attr = FindAttribute(context_stack, attributename)
- if attr then
-  value = attr->int_value
+'the context variable set.
+'Context variables set on descendent slices (higher in the stack) override their ancestors
+Function GetContextInteger(context_stack as SliceContext ptr vector, ctxname as string, byref value as integer) as bool
+ dim ctx as SliceContextVar ptr
+ ctx = FindContext(context_stack, ctxname)
+ if ctx then
+  value = ctx->int_value
   return YES
  end if
  return NO
 end function
 
-Function SliceAttribute.asString() as string
+Function SliceContextVar.asString() as string
  select case dtype
-   case attyBool: return yesorno(int_value)
-   case attyInt:  return str(int_value)
-   case attyStr:  return str_value
+   case cttyBool: return yesorno(int_value)
+   case cttyInt:  return str(int_value)
+   case cttyStr:  return str_value
  end select
 end function
 
 'context_stack is optional. If it's not NULL, then it's updated too.
-Function GetOrAddAttribute (sl as Slice ptr, /'byref context_stack as SliceContext ptr vector = NULL,'/ attributename as string) as SliceAttribute ptr
+Function GetOrAddContext (sl as Slice ptr, /'byref context_stack as SliceContext ptr vector = NULL,'/ ctxname as string) as SliceContextVar ptr
  if sl->Context = NULL then
   'We need to add a context, and push onto context_stack
   sl->Context = new SliceContext
@@ -4295,51 +4295,51 @@ Function GetOrAddAttribute (sl as Slice ptr, /'byref context_stack as SliceConte
  end if
 
  with *sl->Context
-  if .attributes = NULL then
-   v_new .attributes
+  if .context_vars = NULL then
+   v_new .context_vars
   end if
 
-  dim ret as SliceAttribute ptr
-  ret = FindAttribute(*sl->Context, attributename)
+  dim ret as SliceContextVar ptr
+  ret = FindContext(*sl->Context, ctxname)
   if ret = NULL then
-   ret = v_expand(.attributes)
-   ret->name = attributename
+   ret = v_expand(.context_vars)
+   ret->name = ctxname
   end if
   return ret
  end with
 end function
 
-Sub SetAttributeBool (sl as Slice ptr, attributename as string, value as bool)
- with *GetOrAddAttribute(sl, attributename)
-  .dtype = attyBool
+Sub SetContextBool (sl as Slice ptr, ctxname as string, value as bool)
+ with *GetOrAddContext(sl, ctxname)
+  .dtype = cttyBool
   .int_value = value
  end with
 end sub
 
-Sub SetAttribute overload (sl as Slice ptr, attributename as string, value as integer)
- with *GetOrAddAttribute(sl, attributename)
-  .dtype = attyInt
+Sub SetContext overload (sl as Slice ptr, ctxname as string, value as integer)
+ with *GetOrAddContext(sl, ctxname)
+  .dtype = cttyInt
   .int_value = value
  end with
 end sub
 
-Sub SetAttribute overload (sl as Slice ptr, attributename as string, value as string)
- with *GetOrAddAttribute(sl, attributename)
-  .dtype = attyStr
+Sub SetContext overload (sl as Slice ptr, ctxname as string, value as string)
+ with *GetOrAddContext(sl, ctxname)
+  .dtype = cttyStr
   .str_value = value
  end with
 end sub
 
 'Only removes from sl itself, does not search ancestors. Not an error if not present
-Sub RemoveAttribute (sl as Slice ptr, attributename as string)
+Sub RemoveContext (sl as Slice ptr, ctxname as string)
  if sl->Context = NULL then exit sub
 
  with *sl->Context
-  if .attributes = NULL then exit sub
+  if .context_vars = NULL then exit sub
 
-  for idx as integer = 0 to v_len(.attributes) - 1
-   if .attributes[idx].name = attributename then
-    v_delete_slice .attributes, idx, idx + 1
+  for idx as integer = 0 to v_len(.context_vars) - 1
+   if .context_vars[idx].name = ctxname then
+    v_delete_slice .context_vars, idx, idx + 1
     exit sub
    end if
   next
@@ -4351,35 +4351,35 @@ end sub
 
 dim shared temp_value_node as Reload.NodePtr
 
-'Lookup an attribute, return it as a value Node as used by set_slice_property,
-'returns a null Node if there is no such attribute.
-Local Function GetAttributeAsNode(sl as Slice ptr, attributename as string, propname as string) as Reload.NodePtr
+'Lookup a context variable, return its value as a Node as used by set_slice_property,
+'returns a null Node if there is no such variable.
+Local Function GetContextAsNode(sl as Slice ptr, ctxname as string, propname as string) as Reload.NodePtr
  if temp_value_node = NULL then
   temp_value_node = CreateNode(get_anim_doc, "value")
  end if
 
- dim attr as SliceAttribute ptr
- attr = FindAttribute(sl, attributename)
+ dim ctx as SliceContextVar ptr
+ ctx = FindContext(sl, ctxname)
 
- if attr then
-  select case attr->dtype
-   case attyBool
+ if ctx then
+  select case ctx->dtype
+   case cttyBool
     'Set to 0 or 1
     if propname = "s" then
      'Setting text slice text. Convert to a string "No"/"Yes"
      'TODO: make customisable global text strings
      '(RELOAD Nodes don't actually have a bool type, so the conversion has to be here rather
      'than in set_slice_property.)
-     SetContent temp_value_node, iif(attr->int_value, "Yes", "No")
+     SetContent temp_value_node, iif(ctx->int_value, "Yes", "No")
     else
-     SetContentBool temp_value_node, attr->int_value
+     SetContentBool temp_value_node, ctx->int_value
      endif
-   case attyInt
-    SetContent temp_value_node, attr->int_value
-   case attyStr
-    SetContent temp_value_node, attr->str_value
+   case cttyInt
+    SetContent temp_value_node, ctx->int_value
+   case cttyStr
+    SetContent temp_value_node, ctx->str_value
    case else
-    showbug("GetAttributeAsNode: bad dtype")
+    showbug("GetContextAsNode: bad dtype")
   end select
  else
   'Default to NO/0/""
@@ -4394,7 +4394,7 @@ Sub UpdateSliceDynamicProps(sl as Slice ptr, recurse as bool = YES)
  if sl->DynamicProps then
   for idx as integer = 0 to v_len(sl->DynamicProps) - 1
    with sl->DynamicProps[idx]
-    set_slice_property sl, .propname, GetAttributeAsNode(sl, .attrname, .propname)
+    set_slice_property sl, .propname, GetContextAsNode(sl, .ctxname, .propname)
    end with
   next
  end if
@@ -4423,14 +4423,14 @@ Function FindSliceDynamicProp(sl as Slice ptr, propname as string) as integer
  return -1
 end function
 
-'Makes a slice property (named by the set_slice_property key) dynamically set to named attribute.
+'Makes a slice property (named by the set_slice_property key) dynamically set to a context variable.
 'Overwrites existing.
-Sub AddSliceDynamicProp(sl as Slice ptr, propname as string, attrname as string)
+Sub AddSliceDynamicProp(sl as Slice ptr, propname as string, ctxname as string)
  if sl->DynamicProps then
   dim idx as integer = FindSliceDynamicProp(sl, propname)
   if idx > -1 then
    'Replace
-   sl->DynamicProps[idx].attrname = attrname
+   sl->DynamicProps[idx].ctxname = ctxname
    exit sub
   end if
  else
@@ -4439,7 +4439,7 @@ Sub AddSliceDynamicProp(sl as Slice ptr, propname as string, attrname as string)
 
  with *v_expand(sl->DynamicProps)
   .propname = propname
-  .attrname = attrname
+  .ctxname = ctxname
  end with
 end sub
 
@@ -4457,7 +4457,7 @@ Local Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childind
  'so don't need to check that here.
 
  'Refresh the slice: calc the size and screen X,Y and possibly visibility (select slices)
- 'or other attributes. Refreshing is skipped if the slice isn't visible.
+ 'or other properties. Refreshing is skipped if the slice isn't visible.
  '(Note: if ChildrenRefresh is set, it was already called from the parent's
  'ChildDraw, and ChildRefresh will do nothing.)
  DIM attach as Slice Ptr
@@ -5204,7 +5204,7 @@ Private Sub SliceTryLoadContext(sl as Slice ptr, node as Reload.Nodeptr)
  'if contextstr = "..." then sl->Context = new ...
 
  'A plain SliceContext for variables.
- if Reload.GetChildByName(node, "contextvars") then
+ if Reload.GetChildByName(node, "context_vars") then
   if sl->Context = NULL then sl->Context = new SliceContext
  end if
 

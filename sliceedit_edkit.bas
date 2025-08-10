@@ -31,15 +31,15 @@ SUB SlicePropertiesEditor.caption_slice_color(ifzero as string = "0")
 END SUB
 
 FUNCTION create_dynamic_prop_menu(sl as Slice ptr, propname as string) as bool
-  DIM attrname as string
-  prompt_for_string(attrname, !"  Creating dynamic property...\nName of attribute to use as source?", 100)
-  IF LEN(attrname) = 0 THEN RETURN NO
-  attrname = LCASE(sanitize_script_identifier(attrname, NO, NO))
-  IF LEN(attrname) = 0 THEN
+  DIM ctxname as string
+  prompt_for_string(ctxname, !"  Creating dynamic property...\nContext variable to use as source?", 100)
+  IF LEN(ctxname) = 0 THEN RETURN NO
+  ctxname = LCASE(sanitize_script_identifier(ctxname, NO, NO))
+  IF LEN(ctxname) = 0 THEN
     show_overlay_message "Not a valid script identifier"
     RETURN NO
   END IF
-  AddSliceDynamicProp sl, propname, attrname
+  AddSliceDynamicProp sl, propname, ctxname
   RETURN YES
 END FUNCTION
 
@@ -67,14 +67,14 @@ SUB SlicePropertiesEditor.propkey(prop as zstring ptr, helpkey as zstring ptr = 
       WITH sl->DynamicProps[idx]
         IF .propname = *prop THEN
           'Maybe should have an add_note method instead
-          set_caption "{" & .attrname & "} = " & form_default_caption()
+          set_caption "{" & .ctxname & "} = " & form_default_caption()
         END IF
       END WITH
     NEXT
   END IF
 
   'If a property is dynamic, attempting to edit it... removes the dynamic.
-  'Or we could edit value of the attribute, or the name of the attribute to use,
+  'Or we could edit value of the context variable, or the name of the context variable to use,
   'or ask the user what to do.
   IF edited ANDALSO sl->DynamicProps THEN
     DIM idx as integer = FindSliceDynamicProp(sl, *prop)
@@ -555,34 +555,34 @@ SUB SlicePropertiesEditor.define_items()
     defint "Target Y:", .Targ.Y, -999999, 999999
     propkey "ty", "target"
 
-    section "Attributes"
+    section "Context Data"
     IF .Context THEN
-      'Each existing attribute. These don't have propkeys. Animations will have
-      'separate opcodes to modify attributes.
-      FOR idx as integer = 0 TO v_len(.Context->attributes) - 1
-        WITH .Context->attributes[idx]
+      'Each existing context variable. These don't have propkeys. Animations will have
+      'separate opcodes to modify context.
+      FOR idx as integer = 0 TO v_len(.Context->context_vars) - 1
+        WITH .Context->context_vars[idx]
           defitem .name & ":"
           SELECT CASE .dtype
-            CASE attyBool
+            CASE cttyBool
               edit_bool .int_value
-            CASE attyInt
+            CASE cttyInt
               edit_int .int_value, INT_MIN, INT_MAX
-            CASE attyStr
+            CASE cttyStr
               edit_str .str_value
           END SELECT
-          set_helpkey "sliceedit_attribute"
+          set_helpkey "sliceedit_context_var"
           IF delete_action THEN
-            RemoveAttribute sl, .name
+            RemoveContext sl, .name
             'FIXME: this doesn't actually force the necessary update
             state.need_update = YES
           END IF
         END WITH
       NEXT
     END IF
-    IF defitem_act("Add new...") THEN
-      state.need_update OR= slice_editor_add_attribute_menu(sl)
+    IF defitem_act("Add new var...") THEN
+      state.need_update OR= slice_editor_add_context_var_menu(sl)
     END IF
-    set_helpkey "sliceedit_add_attribute"
+    set_helpkey "sliceedit_add_context_var"
 
     'Animation, Extra Data, Metadata (except screen pos) omitted
 
