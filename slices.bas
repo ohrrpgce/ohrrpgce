@@ -46,6 +46,7 @@
 'So unrolling that, each slice `sl` is processed in this order:
 'Before DrawSlice called:
 ' -[NPC, hero, etc, slices] - positions & visibility updated based on in-game logic (done separately)
+' -UpdateSliceDynamicProps() - update dynamic properties
 ' -AdvanceSlice() - update position based on movement (done separately - in-game wandering on map only!)
 'Before parent is drawn:
 ' -If parent->CoverChildren sl->Size/sl->Pos are used to update the parent's size
@@ -196,6 +197,7 @@ END WITH
 DEFINE_VECTOR_OF_POD_TYPE(Slice ptr, Slice_ptr)
 DEFINE_VECTOR_OF_POD_TYPE(SliceContext ptr, SliceContext_ptr)
 DEFINE_VECTOR_OF_CLASS(SliceAttribute, SliceAttribute)
+DEFINE_VECTOR_OF_CLASS(SliceDynamicProp, SliceDynamicProp)
 
 'Built up while inside DrawSlice, otherwise NULL.
 'A stack of all the non-NULL .Context ptrs for all the ancestors of the current slice.
@@ -731,6 +733,7 @@ Sub DeleteSlice(byval s as Slice ptr ptr, byval debugme as integer=0)
 
  delete sl->Context
  v_free sl->ExtraVec
+ v_free sl->DynamicProps
  delete sl->AnimState
  animset_unload @sl->Animations
  delete sl
@@ -4288,6 +4291,103 @@ Sub RemoveAttribute (sl as Slice ptr, attributename as string)
     exit sub
    end if
   next
+ end with
+end sub
+
+
+'=============================================================================
+
+dim shared temp_value_node as Reload.NodePtr
+
+'Lookup an attribute, return it as a value Node as used by set_slice_property,
+'returns a null Node if there is no such attribute.
+Local Function GetAttributeAsNode(sl as Slice ptr, attributename as string, propname as string) as Reload.NodePtr
+ if temp_value_node = NULL then
+  temp_value_node = CreateNode(get_anim_doc, "value")
+ end if
+
+ dim attr as SliceAttribute ptr
+ attr = FindAttribute(sl, attributename)
+
+ if attr then
+  select case attr->dtype
+   case attyBool
+    'Set to 0 or 1
+    if propname = "s" then
+     'Setting text slice text. Convert to a string "No"/"Yes"
+     'TODO: make customisable global text strings
+     '(RELOAD Nodes don't actually have a bool type, so the conversion has to be here rather
+     'than in set_slice_property.)
+     SetContent temp_value_node, iif(attr->int_value, "Yes", "No")
+    else
+     SetContentBool temp_value_node, attr->int_value
+     endif
+   case attyInt
+    SetContent temp_value_node, attr->int_value
+   case attyStr
+    SetContent temp_value_node, attr->str_value
+   case else
+    showbug("GetAttributeAsNode: bad dtype")
+  end select
+ else
+  'Default to NO/0/""
+  SetContent temp_value_node
+ end if
+
+ return temp_value_node
+end function
+
+'Update dynamic properties of a whole slice tree if recurse=YES
+Sub UpdateSliceDynamicProps(sl as Slice ptr, recurse as bool = YES)
+ if sl->DynamicProps then
+  for idx as integer = 0 to v_len(sl->DynamicProps) - 1
+   with sl->DynamicProps[idx]
+    set_slice_property sl, .propname, GetAttributeAsNode(sl, .attrname, .propname)
+   end with
+  next
+ end if
+
+ if recurse = NO then exit sub
+
+ dim ch as Slice ptr = sl->FirstChild
+ do while ch
+  if ch->FirstChild orelse ch->DynamicProps then
+   if ShouldSkipSlice(ch) = NO then
+    UpdateSliceDynamicProps ch, YES
+   end if
+  end if
+  ch = ch->NextSibling
+ loop
+end sub
+
+'Returns index or -1
+Function FindSliceDynamicProp(sl as Slice ptr, propname as string) as integer
+ if sl->DynamicProps = NULL then return -1
+ for idx as integer = 0 to v_len(sl->DynamicProps) - 1
+  if sl->DynamicProps[idx].propname = propname then
+   return idx
+  end if
+ next
+ return -1
+end function
+
+'Makes a slice property (named by the set_slice_property key) dynamically set to named attribute.
+'Overwrites existing.
+Sub AddSliceDynamicProp(sl as Slice ptr, propname as string, attrname as string)
+ if sl->DynamicProps then
+  dim idx as integer = FindSliceDynamicProp(sl, propname)
+  if idx > -1 then
+   'Replace
+   sl->DynamicProps[idx].attrname = attrname
+   exit sub
+  end if
+ else
+  v_new sl->DynamicProps
+ end if
+
+ with *v_expand(sl->DynamicProps)
+  .propname = propname
+  .attrname = attrname
  end with
 end sub
 

@@ -1974,6 +1974,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
 
   draw_background vpages(dpage), bgChequer
 
+  UpdateSliceDynamicProps ses.draw_root
   RefreshSliceScreenPos sl  'Invisible slices won't otherwise be updated by DrawSlice
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
@@ -2433,6 +2434,7 @@ SUB slice_editor_preview_animations(byref ses as SliceEditState, slice_to_animat
   setkeys
   IF keyval(scP) > 1 THEN paused XOR= YES
   IF keyval(ccCancel) > 1 ORELSE readmouse.release ORELSE enter_or_space() THEN EXIT DO
+  UpdateSliceDynamicProps slice_to_animate
   IF NOT paused THEN AdvanceSlice slice_to_animate
   draw_background vpages(vpage), bgChequer
   DrawSlice newroot, vpage

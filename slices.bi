@@ -264,6 +264,14 @@ End Type
 
 DECLARE_VECTOR_OF_TYPE(SliceAttribute, SliceAttribute)
 
+'Describes a slice property that should be set to the value of attribute
+Type SliceDynamicProp
+ propname as string   'The set_slice_property key
+ attrname as string
+End Type
+
+DECLARE_VECTOR_OF_TYPE(SliceDynamicProp, SliceDynamicProp)
+
 ' Stores information about what this slice is used for, if that isn't explained
 ' by the lookup code.
 Type SliceContext Extends Object
@@ -389,6 +397,7 @@ Type Slice
   Declare Function GetAnimState() as AnimationState ptr
 
   Context as SliceContext ptr  'NULL if none
+  DynamicProps as SliceDynamicProp vector  'Dynamically set properties, NULL if none
   TableSlot as integer 'which slot in plotslices() holds a reference to this slice, or 0 for none
                        'The script handle is stored at plotslices(.TableSlot).handle.
   Lookup as integer
@@ -712,6 +721,10 @@ DECLARE Sub SetAttribute overload (sl as Slice ptr, attributename as string, val
 DECLARE Sub RemoveAttribute (sl as Slice ptr, attributename as string)
 
 Extern "C"
+
+DECLARE Sub UpdateSliceDynamicProps(sl as Slice ptr, recurse as bool = YES)
+DECLARE Sub AddSliceDynamicProp(sl as Slice ptr, propname as string, attrname as string)
+DECLARE Function FindSliceDynamicProp(sl as Slice ptr, propname as string) as integer
 
 DECLARE Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
 DECLARE Sub InsertSliceAfter(byval sl as Slice ptr, byval newsl as Slice ptr)
