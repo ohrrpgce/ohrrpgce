@@ -2,8 +2,8 @@
 # not a stable release (which does change engine behaviour in a few places).
 kaleidophone+1
 # The second line is the name of the SVN branch. This is nearly always the same as
-# the codename, but should be ASCII only.
-kaleidophone
+# the codename, but should be ASCII only. (okay to add +1 even if that isn't in the branch name)
+kaleidophone+1
 # The third line should be either 0 for a wip build, or the SVN revision number at which this
 # release was branched from wip, or other appropriate 'nearest match' wip revision
 14039
