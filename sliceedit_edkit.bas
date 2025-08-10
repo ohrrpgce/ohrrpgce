@@ -30,6 +30,19 @@ SUB SlicePropertiesEditor.caption_slice_color(ifzero as string = "0")
   set_caption slice_color_caption(value, ifzero)
 END SUB
 
+FUNCTION create_dynamic_prop_menu(sl as Slice ptr, propname as string) as bool
+  DIM attrname as string
+  prompt_for_string(attrname, !"  Creating dynamic property...\nName of attribute to use as source?", 100)
+  IF LEN(attrname) = 0 THEN RETURN NO
+  attrname = LCASE(sanitize_script_identifier(attrname, NO, NO))
+  IF LEN(attrname) = 0 THEN
+    show_overlay_message "Not a valid script identifier"
+    RETURN NO
+  END IF
+  AddSliceDynamicProp sl, propname, attrname
+  RETURN YES
+END FUNCTION
+
 ' prop is the Reload node name used (for SaveProp) to save this slice property to .slices files.
 ' It's very often equal to the help key.
 ' animkey is used in animations, if it differs from prop
@@ -41,11 +54,7 @@ SUB SlicePropertiesEditor.propkey(prop as zstring ptr, helpkey as zstring ptr = 
   'Insert/F2 to convert to dynamic property
   IF process ANDALSO selected THEN
     IF keyval(scInsert) > 1 ORELSE keyval(scF2) > 1 THEN
-      DIM attrname as string
-      prompt_for_string(attrname, !"  Create dynamic property...\nName of variant for source data?", 100)
-      attrname = sanitize_script_identifier(attrname, NO)
-      IF LEN(attrname) THEN
-        AddSliceDynamicProp sl, *prop, attrname
+      IF create_dynamic_prop_menu(sl, *prop) THEN
         'FIXME: this doesn't actually force the necessary update
         state.need_update = YES
       END IF
@@ -71,6 +80,7 @@ SUB SlicePropertiesEditor.propkey(prop as zstring ptr, helpkey as zstring ptr = 
     DIM idx as integer = FindSliceDynamicProp(sl, *prop)
     IF idx > -1 THEN
       v_delete_slice sl->DynamicProps, idx, idx + 1
+      'FIXME: this doesn't actually force the necessary update
       state.need_update = YES
     END IF
   END IF
@@ -563,6 +573,7 @@ SUB SlicePropertiesEditor.define_items()
           set_helpkey "sliceedit_attribute"
           IF delete_action THEN
             RemoveAttribute sl, .name
+            'FIXME: this doesn't actually force the necessary update
             state.need_update = YES
           END IF
         END WITH
@@ -606,6 +617,7 @@ END SUB
 
 SUB SlicePropertiesEditor.draw_underlays()
   draw_background vpages(vpage), bgChequer
+  UpdateSliceDynamicProps ses_draw_root
   RefreshSliceScreenPos sl  'Invisible slices won't otherwise be updated by DrawSlice
   DrawSlice ses_draw_root, vpage
 END SUB
