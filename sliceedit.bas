@@ -2633,8 +2633,12 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
   sliceed_rule_none rules(), "scripthandle"
  #ENDIF
  IF .Context THEN
-  a_append menu(), "Info: " &  .Context->description()
-  sliceed_rule_none rules(), "metadata"
+  'The context might have no description if it's just a container for attributes
+  DIM description as string = .Context->description()
+  IF LEN(description) THEN
+   a_append menu(), "Info: " & description
+   sliceed_rule_none rules(), "metadata"
+  END IF
  END IF
  IF ses.privileged THEN
   a_append menu(), "Protected: " & yesorno(.Protect)

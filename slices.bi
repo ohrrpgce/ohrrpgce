@@ -242,14 +242,37 @@ Enum 'CoverModes
  coverFull = 3
 End Enum
 
+Type SliceAttributeTypes as integer
+Enum 'SliceAttributeTypes
+ attyBool  '0 or -1
+ attyInt
+ attyStr
+ 'others: TODO
+End Enum
+
+'Attributes are almost RELOAD nodes without children
+Type SliceAttribute
+ name as string
+ dtype as SliceAttributeTypes
+ 'Union  'TODO: Can't put string in a union
+  int_value as integer  'attyBool, attyInt
+  str_value as string   'attyStr
+ 'End Union
+
+ Declare Function asString() as string
+End Type
+
+DECLARE_VECTOR_OF_TYPE(SliceAttribute, SliceAttribute)
+
 ' Stores information about what this slice is used for, if that isn't explained
 ' by the lookup code.
 Type SliceContext Extends Object
  Declare Virtual Destructor()
- Declare Abstract Function description() as string
+ Declare Virtual Function description() as string
  ' Contexts can't necessarily be loaded and saved; implementing save/load is optional.
  Declare Virtual Sub save(node as Reload.Nodeptr)
  Declare Virtual Sub load(node as Reload.Nodeptr)
+ attributes as SliceAttribute vector
 End Type
 
 DECLARE_VECTOR_OF_TYPE(SliceContext ptr, SliceContext_ptr)
@@ -675,6 +698,20 @@ DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as in
 DECLARE Function SliceIsMoving(byval sl as Slice ptr) as bool
 DECLARE Sub AdvanceSlice(byval s as slice ptr)
 
+End Extern
+
+DECLARE Function CalcContextStack(byval sl as Slice ptr) as SliceContext ptr vector
+DECLARE Function FindAttribute overload (context as SliceContext, attributename as string) as SliceAttribute ptr
+DECLARE Function FindAttribute overload (context_stack as SliceContext ptr vector, attributename as string) as SliceAttribute ptr
+DECLARE Function FindAttribute overload (sl as Slice ptr, attributename as string) as SliceAttribute ptr
+DECLARE Function GetOrAddAttribute (sl as Slice ptr, attributename as string) as SliceAttribute ptr
+DECLARE Function GetAttributeInteger(context_stack as SliceContext ptr vector, attributename as string, byref value as integer) as bool
+DECLARE Sub SetAttribute overload (sl as Slice ptr, attributename as string, value as integer)
+DECLARE Sub SetAttribute overload (sl as Slice ptr, attributename as string, value as string)
+DECLARE Sub RemoveAttribute (sl as Slice ptr, attributename as string)
+
+Extern "C"
+
 DECLARE Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
 DECLARE Sub InsertSliceAfter(byval sl as Slice ptr, byval newsl as Slice ptr)
 DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
@@ -694,7 +731,6 @@ DECLARE Function FindRootSlice(slc as Slice ptr) as Slice ptr
 DECLARE Function NextDescendent(desc as Slice ptr, root_sl as Slice ptr, visit_children as bool = YES) as Slice ptr
 DECLARE Function IsAncestor(byval sl as slice ptr, byval ancestor as slice ptr) as bool
 DECLARE Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as bool
-DECLARE Function CalcContextStack(byval sl as Slice ptr) as SliceContext ptr vector
 DECLARE Function UpdateRootSliceSize(sl as slice ptr, page as integer) as bool
 DECLARE Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
@@ -733,7 +769,7 @@ DECLARE Sub UpdateColor (sl as Slice Ptr, newcol as integer, oldcol1 as integer,
 
 End Extern
 
-'Declare any overloaded functions here. Overloaded functions can't be accessed from C/C++
+'Declare any overloaded functions here. Overloaded functions can't be accessed from C
 
 DECLARE FUNCTION SliceTypeName OVERLOAD (sl as Slice Ptr) as string
 DECLARE FUNCTION SliceTypeName OVERLOAD (t as SliceTypes) as string

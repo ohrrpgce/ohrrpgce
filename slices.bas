@@ -195,9 +195,11 @@ END WITH
 
 DEFINE_VECTOR_OF_POD_TYPE(Slice ptr, Slice_ptr)
 DEFINE_VECTOR_OF_POD_TYPE(SliceContext ptr, SliceContext_ptr)
+DEFINE_VECTOR_OF_CLASS(SliceAttribute, SliceAttribute)
 
 'Built up while inside DrawSlice, otherwise NULL.
 'A stack of all the non-NULL .Context ptrs for all the ancestors of the current slice.
+'(TODO: this is just a premature optimisation, which very probably doesn't help and should be removed)
 Dim Shared context_stack as SliceContext ptr vector
 
 EXTERN "C"
@@ -1262,6 +1264,7 @@ End Property
 End Extern
 
 Destructor SliceContext()
+ v_free attributes
 End Destructor
 
 Sub SliceContext.save(node as Reload.Nodeptr)
@@ -4155,6 +4158,10 @@ end sub
 
 '=============================================================================
 
+'Default
+Function SliceContext.description() as string
+ return ""
+end function
 
 'The context_stack global is built up during a DrawSlice call.
 'Use this function to compute the stack if you need it outside of DrawSlice.
@@ -4169,6 +4176,114 @@ Function CalcContextStack(byval sl as Slice ptr) as SliceContext ptr vector
  v_reverse ret
  return ret
 end function
+
+Function FindAttribute overload (context as SliceContext, attributename as string) as SliceAttribute ptr
+ dim vec as SliceAttribute vector = context.attributes
+ if vec = NULL then return NULL
+ 'Can't use v_find
+ for idx as integer = 0 to v_len(vec) - 1
+  if vec[idx].name = attributename then return @vec[idx]
+ next
+ return NULL
+end function
+
+'Search the whole stack for a slice attribute
+Function FindAttribute overload (context_stack as SliceContext ptr vector, attributename as string) as SliceAttribute ptr
+ for idx as integer = v_len(context_stack) - 1 to 0 step -1
+  dim attr as SliceAttribute ptr
+  attr = FindAttribute(*context_stack[idx], attributename)
+  if attr then return attr
+ next
+ return NULL
+end function
+
+'Search a slice and its ancestors for a slice attribute
+Function FindAttribute overload (sl as Slice ptr, attributename as string) as SliceAttribute ptr
+ while sl
+  if sl->Context then
+   dim attr as SliceAttribute ptr
+   attr = FindAttribute(*sl->Context, attributename)
+   if attr then return attr
+  end if
+  sl = sl->Parent
+ wend
+ return NULL
+end function
+
+'Returns true and sets value if this context stack (belonging to a slice) has
+'the attribute set.
+'Attributes set on descendent slices (higher in the stack) override their ancestors
+Function GetAttributeInteger(context_stack as SliceContext ptr vector, attributename as string, byref value as integer) as bool
+ dim attr as SliceAttribute ptr
+ attr = FindAttribute(context_stack, attributename)
+ if attr then
+  value = attr->int_value
+  return YES
+ end if
+ return NO
+end function
+
+Function SliceAttribute.asString() as string
+ select case dtype
+   case attyBool: return yesorno(int_value)
+   case attyInt:  return str(int_value)
+   case attyStr:  return str_value
+ end select
+end function
+
+'context_stack is optional. If it's not NULL, then it's updated too.
+Function GetOrAddAttribute (sl as Slice ptr, /'byref context_stack as SliceContext ptr vector = NULL,'/ attributename as string) as SliceAttribute ptr
+ if sl->Context = NULL then
+  'We need to add a context, and push onto context_stack
+  sl->Context = new SliceContext
+  'if context_stack then v_append context_stack, sl->Context
+ end if
+
+ with *sl->Context
+  if .attributes = NULL then
+   v_new .attributes
+  end if
+
+  dim ret as SliceAttribute ptr
+  ret = FindAttribute(*sl->Context, attributename)
+  if ret = NULL then
+   ret = v_expand(.attributes)
+   ret->name = attributename
+  end if
+  return ret
+ end with
+end function
+
+Sub SetAttribute overload (sl as Slice ptr, attributename as string, value as integer)
+ dim attribute as SliceAttribute ptr = GetOrAddAttribute(sl, attributename)
+ attribute->dtype = attyInt
+ attribute->int_value = value
+end sub
+
+Sub SetAttribute overload (sl as Slice ptr, attributename as string, value as string)
+ dim attribute as SliceAttribute ptr = GetOrAddAttribute(sl, attributename)
+ attribute->dtype = attyStr
+ attribute->str_value = value
+end sub
+
+'Only removes from sl itself, does not search ancestors. Not an error if not present
+Sub RemoveAttribute (sl as Slice ptr, attributename as string)
+ if sl->Context = NULL then exit sub
+
+ with *sl->Context
+  if .attributes = NULL then exit sub
+
+  for idx as integer = 0 to v_len(.attributes) - 1
+   if .attributes[idx].name = attributename then
+    v_delete_slice .attributes, idx, idx + 1
+    exit sub
+   end if
+  next
+ end with
+end sub
+
+
+'=============================================================================
 
 'The central slice drawing function, called regardless of what slice-specific methods have been set.
 '(See comments at the top of this file for an overview of slice drawing.)

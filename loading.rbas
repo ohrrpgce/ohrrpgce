@@ -12,8 +12,10 @@
 #include "reloadext.bi"
 #include "os.bi"
 #include "slices.bi"
-#include "battle_udts.bi"
 #include "crt.bi"
+#IFDEF IS_GAME
+#include "battle_udts.bi"
+#ENDIF
 
 USING RELOAD
 USING RELOAD.EXT
