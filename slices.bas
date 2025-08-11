@@ -1261,94 +1261,6 @@ Property Slice.Extra(index as integer, newval as integer)
  set_extra(ExtraVec, index, newval)
 End Property
 
-'=============================================================================
-'                                Slice contexts
-
-End Extern
-
-Destructor SliceContext()
- v_free context_vars
-End Destructor
-
-Sub SliceContext.save(sl as Slice ptr, node as Reload.Nodeptr)
- if v_len(context_vars) then
-  dim varsnode as Reload.Nodeptr = Reload.AppendChildNode(node, "context_vars")
-  for idx as integer = 0 to v_len(context_vars) - 1
-   with context_vars[idx]
-    dim varnode as Reload.Nodeptr = Reload.AppendChildNode(varsnode, "var", .name)
-    select case .dtype
-     case cttyBool
-      Reload.AppendChildNode(varnode, "bool", iif(.int_value, 1, 0))
-     case cttyInt
-      Reload.AppendChildNode(varnode, "int", .int_value)
-     case cttyStr
-      Reload.AppendChildNode(varnode, "str", .str_value)
-    end select
-    'In future if there are any other children they should be after the value one
-   end with
-  next
- end if
-End Sub
-
-'Loads context variables.
-Sub SliceContext.load(sl as Slice ptr, node as Reload.Nodeptr)
- dim varsnode as Reload.Nodeptr = Reload.GetChildByName(node, "context_vars")
- if varsnode then
-  dim varnode as Reload.Nodeptr = Reload.FirstChild(varsnode, "var")
-  while varnode
-   dim ctxname as string = Reload.GetString(varnode)
-   'The first child must be the value (XML geeks would be appalled)
-   dim datnode as Reload.Nodeptr = Reload.FirstChild(varnode)
-   if datnode = NULL then
-    reporterr "Error loading slice: context variable node without child", errError
-    exit sub
-   end if
-   select case Reload.NodeName(datnode)
-    case "bool": SetContextBool(sl, ctxname, Reload.GetInteger(datnode))
-    case "int":  SetContext(sl, ctxname, Reload.GetInteger(datnode))
-    case "str":  SetContext(sl, ctxname, Reload.GetString(datnode))
-    case else:   reporterr "Error loading slice: unknown context variable data type", errError
-   end select
-
-   varnode = NextSibling(varnode, "var")
-  wend
- end if
-End Sub
-
-'Clone context variables, but in general subclasses probably shouldn't override this.
-'(For example if you clone an NPC's slice, the clone is not an NPC)
-Function SliceContext.clone() as SliceContext ptr
- dim ret as SliceContext ptr = NULL
- if v_len(context_vars) then
-  ret = new SliceContext
-  v_copy ret->context_vars, context_vars
- end if
- return ret
-End Function
-
-Sub SliceCollectionContext.load(sl as Slice ptr, node as Reload.Nodeptr)
- base.load(sl, node)
- name = LoadPropStr(node, "collection_name")
-End Sub
-
-Sub SliceCollectionContext.save(sl as Slice ptr, node as Reload.Nodeptr)
- base.save(sl, node)
- if dont_save then exit sub
- SaveProp node, "collection_name", name
- 'id not saved
-End Sub
-
-Function SliceCollectionContext.description() as string
- dim ret as string = "Collection"
- if id > -1 then ret &= " " & id
- if len(name) then ret &= " " & name
- 'Try to indicate that no link with the original collection remains
- if dont_save then ret = "From " & ret
- return ret
-End Function
-
-Extern "C"
-
 
 '=============================================================================
 '                                 Slice types
@@ -3892,6 +3804,9 @@ Sub ChangePanelSlice(byval sl as Slice ptr,_
 end sub
 
 
+' End of slice types
+'=============================================================================
+
 '=============================================================================
 '                      Slice alignment & position helpers
 
@@ -4085,8 +4000,9 @@ Function SlicePossiblyResizable(sl as Slice ptr) as bool
  end select
 end Function
 
+
 '=============================================================================
-'                                Slice Velocity
+'                           Slice Animation & Velocity
 
 'Slice has velocity. Note: returns true if it's paused.
 'Warning: inconsistently returns false if VelTicks>0 but Velocity=0, but true if TargTicks>0 but Targ=Pos.
@@ -4212,11 +4128,98 @@ end sub
 
 
 '=============================================================================
+'                                SliceContexts
 
-'Default
+End Extern
+
+Destructor SliceContext()
+ v_free context_vars
+End Destructor
+
+Sub SliceContext.save(sl as Slice ptr, node as Reload.Nodeptr)
+ if v_len(context_vars) then
+  dim varsnode as Reload.Nodeptr = Reload.AppendChildNode(node, "context_vars")
+  for idx as integer = 0 to v_len(context_vars) - 1
+   with context_vars[idx]
+    dim varnode as Reload.Nodeptr = Reload.AppendChildNode(varsnode, "var", .name)
+    select case .dtype
+     case cttyBool
+      Reload.AppendChildNode(varnode, "bool", iif(.int_value, 1, 0))
+     case cttyInt
+      Reload.AppendChildNode(varnode, "int", .int_value)
+     case cttyStr
+      Reload.AppendChildNode(varnode, "str", .str_value)
+    end select
+    'In future if there are any other children they should be after the value one
+   end with
+  next
+ end if
+End Sub
+
+'Loads context variables.
+Sub SliceContext.load(sl as Slice ptr, node as Reload.Nodeptr)
+ dim varsnode as Reload.Nodeptr = Reload.GetChildByName(node, "context_vars")
+ if varsnode then
+  dim varnode as Reload.Nodeptr = Reload.FirstChild(varsnode, "var")
+  while varnode
+   dim ctxname as string = Reload.GetString(varnode)
+   'The first child must be the value (XML geeks would be appalled)
+   dim datnode as Reload.Nodeptr = Reload.FirstChild(varnode)
+   if datnode = NULL then
+    reporterr "Error loading slice: context variable node without child", errError
+    exit sub
+   end if
+   select case Reload.NodeName(datnode)
+    case "bool": SetContextBool(sl, ctxname, Reload.GetInteger(datnode))
+    case "int":  SetContext(sl, ctxname, Reload.GetInteger(datnode))
+    case "str":  SetContext(sl, ctxname, Reload.GetString(datnode))
+    case else:   reporterr "Error loading slice: unknown context variable data type", errError
+   end select
+
+   varnode = NextSibling(varnode, "var")
+  wend
+ end if
+End Sub
+
+'Clone context variables, but in general subclasses probably shouldn't override this.
+'(For example if you clone an NPC's slice, the clone is not an NPC)
+Function SliceContext.clone() as SliceContext ptr
+ dim ret as SliceContext ptr = NULL
+ if v_len(context_vars) then
+  ret = new SliceContext
+  v_copy ret->context_vars, context_vars
+ end if
+ return ret
+End Function
+
 Function SliceContext.description() as string
  return ""
 end function
+
+Sub SliceCollectionContext.load(sl as Slice ptr, node as Reload.Nodeptr)
+ base.load(sl, node)
+ name = LoadPropStr(node, "collection_name")
+End Sub
+
+Sub SliceCollectionContext.save(sl as Slice ptr, node as Reload.Nodeptr)
+ base.save(sl, node)
+ if dont_save then exit sub
+ SaveProp node, "collection_name", name
+ 'id not saved
+End Sub
+
+Function SliceCollectionContext.description() as string
+ dim ret as string = "Collection"
+ if id > -1 then ret &= " " & id
+ if len(name) then ret &= " " & name
+ 'Try to indicate that no link with the original collection remains
+ if dont_save then ret = "From " & ret
+ return ret
+End Function
+
+
+'=============================================================================
+'                             Context Variables
 
 'The context_stack global is built up during a DrawSlice call.
 'Use this function to compute the stack if you need it outside of DrawSlice.
@@ -4346,8 +4349,11 @@ Sub RemoveContext (sl as Slice ptr, ctxname as string)
  end with
 end sub
 
+Extern "C"
+
 
 '=============================================================================
+'                              Dynamic Properties
 
 dim shared temp_value_node as Reload.NodePtr
 
@@ -4445,6 +4451,7 @@ end sub
 
 
 '=============================================================================
+'                                   Drawing
 
 'The central slice drawing function, called regardless of what slice-specific methods have been set.
 '(See comments at the top of this file for an overview of slice drawing.)
@@ -4603,6 +4610,10 @@ Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
  'Update descendents
  SliceRefreshRecurse slc
 end sub
+
+
+'=============================================================================
+'                                   Collision
 
 Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as bool
  'Check for a screen-position collision between slice 1 and slice 2 (regardless of parentage)

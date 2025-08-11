@@ -709,7 +709,7 @@ DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as in
 DECLARE Function SliceIsMoving(byval sl as Slice ptr) as bool
 DECLARE Sub AdvanceSlice(byval s as slice ptr)
 
-End Extern
+End Extern 'Lots of overloads, and SliceContext itself not Extern "C"
 
 DECLARE Function CalcContextStack(byval sl as Slice ptr) as SliceContext ptr vector
 DECLARE Function FindContext overload (context as SliceContext, ctxname as string) as SliceContextVar ptr
