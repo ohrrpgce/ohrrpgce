@@ -4,7 +4,7 @@
 #ifndef __AUDWRAP_BI__
 #define __AUDWRAP_BI__
 
-#include "../lumpfile.bi"
+#include "lumpfile.bi"
 
 extern "C"
 
