@@ -1840,14 +1840,28 @@ def Phony(name, source, action, message = None, buildsource = True):
     AlwaysBuild(node)  # Run even if there happens to be a file of the same name
     return node
 
+# Avoid gfx_directx when running test games, it doesn't skip frames
+_gfx = sorted(gfx, key=lambda x: x == 'directx')
+run_args = ' --gfx ' + _gfx[0]
+if int(ARGUMENTS.get('headless', 0)):
+    if _gfx[0] not in ('fb', 'console'):
+        exit("headless=1 requires gfx_fb or gfx_console")
+    run_args += ' --nogfx'
+    # gfx_fb requires --noinput or else its polling thread will freeze waiting for input.
+    # I think this happens only when stdin is not a tty
+    if _gfx[0] == 'fb':
+        run_args += ' --noinput'
+
 def RPGWithScripts(rpg, main_script):
     """Construct an (Action) node for an .rpg, which updates it by re-importing
-    an .hss if it (or any included script file) has been modified."""
+    an .hss if it (or any included script file) has been modified. Compiles and runs Custom."""
     sources = [main_script, "plotscr.hsd"]
     if EUC:
         # Only include hspeak as dependency if Euphoria is installed, otherwise can't run tests
         sources += [HSPEAK]
-    action = env.Action(CUSTOM.abspath + ' --nowait --hsflags w ' + rpg + ' ' + main_script)  # Ignore warnings
+    args = CUSTOM.abspath + run_args + ' --nowait --hsflags w '
+
+    action = env.Action(args + rpg + ' ' + main_script)  # Ignore warnings
     # Prepending # means relative to rootdir, otherwise this a rule to build a file in build/
     if os.path.isdir(rootdir + rpg):
         # Hack, you can't rebuild a directory but this seems to work nicely
@@ -1868,21 +1882,20 @@ def RPGWithScripts(rpg, main_script):
 
 ### Test .rpgs
 T = 'testgame/'
-# Avoid gfx_directx when running test games, it doesn't skip frames
-_gfx = sorted(gfx, key=lambda x: x == 'directx')
-test_args = GAME.abspath + ' --gfx ' + _gfx[0] + ' --log . --runfast -z 2 '
+
+def test_rpg_actions(rpg, more_args = ''):
+    return [GAME.abspath + run_args + f' --log . --runfast -z 2 {T}{rpg} ' + more_args,
+            Action(f'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt && echo " * {rpg} PASSED" || echo " * {rpg} FAILED, see g_debug.txt"',
+                   f"ohrrpgce-game {rpg} exited")]
+
 AUTOTEST = Phony ('autotest_rpg',
                   source = [GAME, RPGWithScripts(T+'autotest.rpgdir', T+'autotest.hss')],
-                  action =
-                  [test_args + T+'autotest.rpgdir',
-                   'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'],
+                  action = test_rpg_actions('autotest.rpgdir'),
                   buildsource = buildtests)
 env.Alias ('autotest', source = AUTOTEST)
 INTERTEST = Phony ('interactivetest',
                    source = [GAME, RPGWithScripts(T+'interactivetest.rpg', T+'interactivetest.hss')],
-                   action =
-                   [test_args + T+'interactivetest.rpg --replayinput ' + T+'interactivetest.ohrkey',
-                    'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt'],
+                   action = test_rpg_actions('interactivetest.rpg', f'--replayinput {T}interactivetest.ohrkey'),
                    buildsource = buildtests)
 # This prevents more than one copy of Game from being run at once
 # (doesn't matter where g_debug.txt is actually placed).
@@ -2007,6 +2020,8 @@ Options:
   dry_run=1           For 'uninstall' only. Print files that would be deleted.
   buildtests=0        Affects test targets only: run tests without recompiling
                       anything or reimporting scripts.
+  headless=1          Affects test targets only: run Game/Custom with --nogfx
+                      to not need a graphical desktop. Requires gfx_console/fb
   v=1                 Verbose output from commands.
   linkgcc=0           Link using fbc instead of gcc/clang. May not work.
   compiler=gcc|clang|...   Prefer to use clang/gcc/... for C, C++ and -gen gcc.
