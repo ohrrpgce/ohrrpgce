@@ -142,6 +142,11 @@ dim faded_to_color as RGBcolor 'If faded_in=NO, the color the screen is faded to
 'like alt+enter or window buttons.
 dim user_toggled_fullscreen as bool = NO
 
+'Running in nongraphical mode (--nogfx with gfx_console or gfx_fb), not even using curses.
+'Uses include running testcases ("scons headless=1 tests") or importing scripts,
+'so may want to print certain messages to console instead.
+dim nogfx_mode as bool = NO
+
 'The -input-debug cmdline option: causes gfx backends to print info about events and other user/OS input
 '(Use set_debugging_io to set)
 dim debugging_io as bool = NO
@@ -609,6 +614,10 @@ local sub after_gfx_backend_init()
 			resizing_enabled = gfx_set_resizable(NO, 0, 0)
 		end if
 	end if
+
+	dim gfx_settings as GfxSettings
+	gfx_get_settings(gfx_settings)
+	nogfx_mode = gfx_settings.nogfx <> 0
 end sub
 
 ' Initialise this module and backends, create a window
@@ -3631,6 +3640,7 @@ function gfx_try_set_settings(settings as GfxSettings) as bool
 	return memcmp(@settings, @newsettings, sizeof(GfxSettings)) = 0
 end function
 
+'See also nogfx_mode
 
 '==========================================================================================
 '                                  Engine Settings menu

@@ -48,7 +48,7 @@ enum ImageFileTypes
 // Each backend understands only a subset of these, leaving the rest uninitialised/unsupported, which can
 // be used to test whether they are supported. ('Supported' means it supports querying and changing that
 // setting using gfx_get/set_settings, not that it supports that feature.)
-#define GFXSETTINGS_SZ 11
+#define GFXSETTINGS_SZ 12
 struct GfxSettings
 {
 	int structsize;           // Number of members (= GFXSETTINGS_SZ), always >= 11. Set by engine, read by backend.
@@ -66,6 +66,9 @@ struct GfxSettings
 	boolint vsync;
 
 	enum ImageFileTypes screenshot_format;  // gfx_directx only
+
+	boolint nogfx;            // Displaying nothing, not even curses, so printing stuff to console is suitable.
+				  // Can't be set.
 };
 
 typedef void (__cdecl *FnDebug)(enum ErrorLevel errlvl, const char* message);

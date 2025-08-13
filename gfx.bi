@@ -68,7 +68,7 @@ type ImageFileTypes as integer
 ' Each backend understands only a subset of these, leaving the rest uninitialised/unsupported, which can
 ' be used to test whether they are supported. ('Supported' means it supports querying and changing that
 ' setting using gfx_get/set_settings, not that it supports that feature.)
-#define GFXSETTINGS_SZ 11
+#define GFXSETTINGS_SZ 12
 type GfxSettings
 	structsize as integer = GFXSETTINGS_SZ  'Number of members, always >= 11. Set by engine, read by dll backends
 
@@ -86,6 +86,9 @@ type GfxSettings
 	vsync as boolint            'gfx_directx only
 
 	screenshot_format as ImageFileTypes 'gfx_directx only
+
+	nogfx as boolint            'Displaying nothing, not even using curses.
+				    'Can't be set. gfx_console & gfx_fb only
 end type
 
 

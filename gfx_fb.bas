@@ -288,6 +288,7 @@ end function
 
 sub gfx_fb_get_settings(byref settings as GfxSettings)
 	settings.upscaler = smooth   '0/1
+	settings.nogfx = nogfx
 end sub
 
 sub gfx_fb_set_settings(settings as GfxSettings)
@@ -323,11 +324,11 @@ function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as
 		end if
 		ret = 1
 	elseif *opt = "nogfx" then
-		debug "nogfx"
+		debuginfo "gfx_fb: --nogfx"
 		nogfx = YES
 		ret = 1
 	elseif *opt = "noinput" then
-		debug "noinput"
+		debuginfo "gfx_fb: --noinput"
 		noinput = YES
 		ret = 1
 	end if

@@ -135,7 +135,7 @@ function music_get_info() as string
 		#define SONAME libsdl_mixer_name
 	#endif
 
-	dim ret as string = "music_" & lcase(sdlX)
+	dim ret as string = "music_" & lcase(sdlX) & ": "
 	dim libhandle as any ptr
 
 	#ifdef __FB_DARWIN__

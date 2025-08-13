@@ -313,6 +313,10 @@ function gfx_console_getwindowstate() as WindowState ptr
 	return @window_state
 end function
 
+sub gfx_console_get_settings(byref settings as GfxSettings)
+	settings.nogfx = (curses_mode = NO)
+end sub
+
 function gfx_console_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
 	dim as integer value = str2int(*arg, -1)
 	dim as integer ret = 0
@@ -327,6 +331,9 @@ function gfx_console_setoption(byval opt as zstring ptr, byval arg as zstring pt
 		elseif *opt = "dontforce256" then
 			force_256_color = NO
 			ret = 1
+		elseif *opt = "z" orelse *opt = "zoom" then
+			'Ignore
+			ret = 2
 		end if
 	else
 		debug "gfx_console_setoption: backend already started"
@@ -433,6 +440,8 @@ function gfx_console_setprocptrs() as integer
 	gfx_setwindowed = @gfx_console_setwindowed
 	gfx_windowtitle = @gfx_console_windowtitle
 	gfx_getwindowstate = @gfx_console_getwindowstate
+	gfx_get_settings = @gfx_console_get_settings
+	'gfx_set_settings = @gfx_console_set_settings
 	gfx_setoption = @gfx_console_setoption
 	gfx_describe_options = @gfx_console_describe_options
 	gfx_printchar = @gfx_console_printchar
