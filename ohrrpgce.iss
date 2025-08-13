@@ -5,8 +5,8 @@
 AppName=Official Hamster Republic RPG Construction Engine
 AppPublisher=Hamster Republic Productions
 AppPublisherURL=http://HamsterRepublic.com/ohrrpgce/
-AppSupportURL=http://HamsterRepublic.com/ohrrpgce/docs.php
-AppUpdatesURL=http://HamsterRepublic.com/ohrrpgce/download.php
+AppSupportURL=http://rpg.HamsterRepublic.com/ohrrpgce/Documentation
+AppUpdatesURL=http://rpg.HamsterRepublic.com/ohrrpgce/Downloads
 AppReadmeFile={app}\README-custom.txt
 DefaultDirName=\OHRRPGCE
 DefaultGroupName=OHRRPGCE
@@ -43,8 +43,8 @@ Name: "{userdesktop}\OHRRPGCE Folder (install games here)"; Filename: "{app}"; W
 Name: "{group}\OHRRPGCE Game Player"; Filename: "{app}\game.exe"; WorkingDir: "{app}"; Flags: closeonexit
 Name: "{group}\OHRRPGCE Custom Editor"; Filename: "{app}\custom.exe"; WorkingDir: "{app}"; Flags: closeonexit
 Name: "{group}\OHRRPGCE Folder (install games here)"; Filename: "{app}"; WorkingDir: "{app}";
-Name: "{group}\Website (Help, HOWTO, FAQ)"; Filename: "http://HamsterRepublic.com/ohrrpgce/";
-Name: "{group}\Download RPG Games"; Filename: "http://HamsterRepublic.com/ohrrpgce/index.php/Games.html";
+Name: "{group}\Website (Help, HOWTO, FAQ)"; Filename: "http://rpg.HamsterRepublic.com/ohrrpgce/";
+Name: "{group}\Download RPG Games"; Filename: "http://rpg.HamsterRepublic.com/ohrrpgce/Games";
 Name: "{group}\Plotscripting Dictionary"; Filename: "{app}\docs\plotdictionary.html";
 
 [Registry]

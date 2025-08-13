@@ -5,9 +5,9 @@
 AppName=Official Hamster Republic RPG Construction Engine
 #include "iver.txt"
 AppPublisher=Hamster Republic Productions
-AppPublisherURL=http://HamsterRepublic.com/ohrrpgce/
-AppSupportURL=http://HamsterRepublic.com/ohrrpgce/docs.php
-AppUpdatesURL=http://HamsterRepublic.com/ohrrpgce/download.php
+AppPublisherURL=http://rpg.HamsterRepublic.com/ohrrpgce/
+AppSupportURL=http://rpg.HamsterRepublic.com/ohrrpgce/Documentation
+AppUpdatesURL=http://rpg.HamsterRepublic.com/ohrrpgce/Downloads
 AppReadmeFile={app}\README-game.txt
 DefaultDirName={pf}\Hamster Republic\OHRRPGCE
 DefaultGroupName=OHRRPGCE

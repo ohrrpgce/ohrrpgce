@@ -30,10 +30,10 @@ function global_setoption(opt as string, arg as string) as integer
 	dim help as string = ""
 	if opt = "v" or opt = "version" then
 		help = help & long_version & build_info & LINE_END
-		help = help & "(C) Copyright 1997-2022 James Paige, Ralph Versteegen, and the OHRRPGCE Developers" & LINE_END
+		help = help & "(C) Copyright 1997-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers" & LINE_END
 		help = help & "Dual licensed under the GNU GPL v2+ and MIT Licenses." & LINE_END
 		help = help & "Read LICENSE.txt for terms and disclaimer of liability." & LINE_END
-		help = help & "For source-code see http://HamsterRepublic.com/ohrrpgce/source.php" & LINE_END
+		help = help & "For source code see https://HamsterRepublic.com/ohrrpgce/Source" & LINE_END
 		help = help & "Game data copyright and license will vary." & LINE_END
 		display_help_string help
 		terminate_program
