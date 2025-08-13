@@ -128,21 +128,28 @@ FBSTRING *memory_usage_string() {
 #endif
 }
 
-struct signal_info {int signo; const char *name; bool interrupt_signal;};
+struct signal_info {int signo; const char *name; bool includes_code;};
 const struct signal_info signal_infos[] = {
 	{SIGABRT, "SIGABRT", false},
-	{SIGFPE,  "SIGFPE",  false},
-	{SIGILL,  "SIGILL",  false},
-	{SIGSEGV, "SIGSEGV", false},
-	{SIGBUS,  "SIGBUS",  false},
-	{SIGTRAP, "SIGTRAP", false},
-	{SIGTERM, "SIGTERM", true},
-	{SIGINT,  "SIGINT",  true},
-	{SIGQUIT, "SIGQUIT", true},
+	{SIGFPE,  "SIGFPE",  true},
+	{SIGILL,  "SIGILL",  true},
+	{SIGSEGV, "SIGSEGV", true},
+	{SIGBUS,  "SIGBUS",  true},
+	{SIGTRAP, "SIGTRAP", true},
+	{SIGTERM, "SIGTERM", false},
+	{SIGINT,  "SIGINT",  false},
+	{SIGQUIT, "SIGQUIT", false},
 	{0,       "",        false},
 };
 
 void fatal_signal_handler(int signum, siginfo_t *si, void *ucontext) {
+	if (signum == SIGTERM || signum == SIGINT) {
+		// Exit cleanly by calling post_terminate_signal
+		fb_error_hook(signum == SIGTERM ? "Received SIGTERM" : "Received SIGINT",
+			      YES, NO);
+		return;
+	}
+
 	already_saved_backtrace = save_backtrace(false);
 
 	// If this is a debug (fbc -e) build then we will know the name of the current FB function
@@ -164,7 +171,7 @@ void fatal_signal_handler(int signum, siginfo_t *si, void *ucontext) {
 	// "SIGILL, SIGFPE, SIGSEGV, SIGBUS, and SIGTRAP fill in si_addr with the address of the fault"
 	// si_code tells the subtype of signal, or else where the signal came from (e.g. kill(2), ptrace, kernel)
 	ADDTEXT("Aborting due to signal %d %s", si->si_signo, siginfo->name);
-	if (!siginfo->interrupt_signal)  // Not the right check
+	if (siginfo->includes_code)
 		ADDTEXT(" code %d address %p", si->si_code, si->si_addr);
 
 	if (module) {
@@ -174,7 +181,7 @@ void fatal_signal_handler(int signum, siginfo_t *si, void *ucontext) {
 			ADDTEXT(" in %s()", module);
 	}
 
-	fb_error_hook(buf, siginfo->interrupt_signal);
+	fb_error_hook(buf, NO, signum == SIGQUIT);
 }
 
 #endif  // not MINIMAL_OS

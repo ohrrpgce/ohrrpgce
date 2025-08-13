@@ -33,7 +33,7 @@ enum ErrorLevel {
 
 //// in util.bas
 
-void fb_error_hook(const char *message, boolint interrupt_signal);
+void fb_error_hook(const char *message, boolint terminate_signal, boolint interrupt_signal);
 
 // Escape a filename for use in a shell in a way suitable for this OS.
 // Returns a malloc'd string buffer

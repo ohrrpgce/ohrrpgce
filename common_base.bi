@@ -19,6 +19,8 @@ declare sub debuginfo (msg as const zstring ptr)
 declare sub debugerror (msg as const zstring ptr)
 declare sub fatalerror (msg as const zstring ptr)
 declare sub fatalbug (msg as const zstring ptr)
+declare sub fatal_error_shutdown ()
+declare sub post_terminate_signal cdecl ()
 declare sub visible_debug (msg as const zstring ptr)
 declare sub reporterr (msg as zstring ptr, errlvl as scriptErrEnum = serrBadOp, context as zstring ptr = NULL, context_slice as SliceFwd ptr = NULL)
 

@@ -39,7 +39,6 @@
 DECLARE SUB setup_sprite_sizes ()
 DECLARE SUB check_map_count ()
 DECLARE SUB apply_script_fixups ()
-DECLARE SUB fatal_error_shutdown ()
 DECLARE SUB zero_out_pre_july_8_1999_general_map_data_garbage ()
 DECLARE SUB append_to_logfile(s as string)
 DECLARE SUB archive_log_file(logfile as string, archivefile as string)
@@ -1278,6 +1277,7 @@ END SUB
 
 'Wrapper around SYSTEM - you should usually instead call exitprogram/cleanup_and_terminate
 'to cleanly quit Game/Custom respectively, or fatal_error_shutdown for unclean quit.
+'This is called directly either from the above, or for an error during initialisation.
 SUB terminate_program(retval as integer = 0)
  IF retval = 0 THEN end_debug
  close_lazy_files  'Only needed to avoid "Double close" warnings

@@ -68,12 +68,22 @@ END SUB
 
 SUB fatalerror (msg as const zstring ptr)
   IF LEN(*msg) THEN print "ERROR: " + *msg
-  IF cleanup_function THEN cleanup_function()
-  SYSTEM 1
+  fatal_error_shutdown
 END SUB
 
 SUB fatalbug (msg as const zstring ptr)
   debugc errFatalBug, msg
+END SUB
+
+'Also called by SIGTERM, SIGINT. Replaces the function in allmodex.bas
+SUB post_terminate_signal CDECL ()
+  fatal_error_shutdown
+END SUB
+
+'Also called by SIGQUIT.
+SUB fatal_error_shutdown ()
+  IF cleanup_function THEN cleanup_function()
+  SYSTEM 1
 END SUB
 
 ' SUB showbug (msg as const zstring ptr)

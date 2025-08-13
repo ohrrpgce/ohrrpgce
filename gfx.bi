@@ -174,8 +174,9 @@ type FnEventHandler as function (event as EventEnum, arg1 as intptr_t = 0, arg2 
 'Used by backend to send events to the engine. GfxInitData.PostEvent is a pointer to it.
 'See FnEventHandler.
 declare function post_event(event as EventEnum, arg1 as intptr_t = 0, arg2 as intptr_t = 0) as integer
-'Call on window or application close request event (redundant to post_event)
-declare sub post_terminate_signal ()
+'Call on window or application close request event (redundant to post_event) including SIGTERM
+'(Declaration moved to common_base.bi)
+'declare sub post_terminate_signal ()
 
 
 '============================== gfx Backend API ===============================

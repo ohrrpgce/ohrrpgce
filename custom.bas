@@ -721,7 +721,7 @@ SUB export_translations_and_terminate (translationfile as string)
 END SUB
 
 SUB cleanup_and_terminate (show_quit_msg as bool = YES, retval as integer = 0)
- debuginfo "Cleaning up and terminating " & retval
+ debuginfo "Cleaning up and terminating, exitcode=" & retval
 
  save_window_state_to_config
 

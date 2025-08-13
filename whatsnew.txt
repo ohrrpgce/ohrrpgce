@@ -13,6 +13,8 @@ Nov ?? 2025 [Lexiphanic]
   *** Changes
 
   *** Bugfixes
+    * Game/Custom now quit cleanly on a SIGTERM or SIGINT (and abort on SIGQUIT)
+      instead of showing a FATAL error screen [Ralph]
 
   *** Stuff Only Developers Will Notice
 
