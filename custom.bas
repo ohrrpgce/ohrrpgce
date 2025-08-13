@@ -268,6 +268,7 @@ idle_time_threshold = large(read_config_int("idle_time", 30), 1)
 'For getdisplayname
 copylump sourcerpg, "archinym.lmp", workingdir, YES
 
+IF nogfx_mode THEN PRINT "Loading " & sourcerpg
 debuginfo "Editing game " & sourcerpg & " (" & getdisplayname(" ") & ")"
 setwindowtitle "O.H.R.RPG.C.E - " + trimpath(sourcerpg)
 

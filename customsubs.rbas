@@ -2388,6 +2388,7 @@ FUNCTION save_current_game (byval genDebugMode_override as integer=-1) as bool
  xbsave game + ".gen", gen(), 1000
  save_edit_time
 
+ IF nogfx_mode THEN PRINT "Writing " & sourcerpg
  basic_textbox "LUMPING DATA: please wait.", , vpage, , , YES  'shrink
  setvispage vpage, NO
  '--verify various stuff

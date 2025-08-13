@@ -3491,14 +3491,16 @@ FUNCTION spawn_and_wait (app as string, args as string, expect_exitcode_0 as boo
 
  DIM appname as string = trimpath(app)
 
- IF gfxbackend = "console" THEN
-  CLS
+ IF nogfx_mode ORELSE gfxbackend = "console" THEN
+  IF nogfx_mode = NO THEN CLS  'Using gfx_console with curses display
   DIM res as integer
   res = safe_shell(escape_filename(app) & " " & args)
-  'Sync actual and backend-internal screens
-  CLS
-  clearpage vpage
-  setvispage vpage, NO
+  IF nogfx_mode = NO THEN
+   'Sync actual and backend-internal (curses) screens
+   CLS
+   clearpage vpage
+   setvispage vpage, NO
+  END IF
   'res is < 0 if there was a problem running it, > 0 is an exit code from the program
   IF res < 0 THEN
    RETURN "Failed to run " & appname & ", errorcode " & res

@@ -285,6 +285,8 @@ unlock_resolution 320, 200   'Minimum window size
 
 setupmusic
 
+IF nogfx_mode THEN PRINT "Running headless (input from console)"
+
 
 '==============================================================================
 
@@ -518,6 +520,9 @@ setvispage vpage, NO
 
 
 '==================================== Unlump ==================================
+
+
+IF nogfx_mode THEN PRINT "Loading " & sourcerpg
 
 ' Don't show "Loading..." (nor upgrade messages) on consoles, to give more control to the game
 IF running_on_console = NO THEN
