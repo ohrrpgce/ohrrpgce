@@ -2639,7 +2639,7 @@ function interrupting_keypress () as bool
 	if keybd_dummy(scPageup) > 0 and keybd_dummy(scPagedown) > 0 and keybd_dummy(scEsc) > 1 then closerequest = YES
 	if closerequest then
 #ifdef IS_GAME
-		exit_gracefully()
+		exit_gracefully(YES)
 #else
 		ret = YES
 #endif
@@ -3788,7 +3788,7 @@ local sub allmodex_controls()
 #elseif defined(IS_GAME)
 	'Quick abort (could probably do better, just moving this here for now)
 	if closerequest then
-		exit_gracefully()
+		exit_gracefully(YES)
 	end if
 #endif
 
