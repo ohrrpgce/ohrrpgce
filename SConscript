@@ -1884,9 +1884,9 @@ def RPGWithScripts(rpg, main_script):
 T = 'testgame/'
 
 def test_rpg_actions(rpg, more_args = ''):
-    return [GAME.abspath + run_args + f' --log . --runfast -z 2 {T}{rpg} ' + more_args,
-            Action(f'grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt && echo " * {rpg} PASSED" || echo " * {rpg} FAILED, see g_debug.txt"',
-                   f"ohrrpgce-game {rpg} exited")]
+    return [GAME.abspath + run_args + ' --log . --runfast -z 2 ' + T+rpg + ' ' + more_args,
+            Action('grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt && echo " * {} PASSED" || echo " * {} FAILED, see g_debug.txt"'.format(rpg, rpg),
+                   "ohrrpgce-game " + rpg + " exited")]
 
 AUTOTEST = Phony ('autotest_rpg',
                   source = [GAME, RPGWithScripts(T+'autotest.rpgdir', T+'autotest.hss')],
@@ -1895,7 +1895,7 @@ AUTOTEST = Phony ('autotest_rpg',
 env.Alias ('autotest', source = AUTOTEST)
 INTERTEST = Phony ('interactivetest',
                    source = [GAME, RPGWithScripts(T+'interactivetest.rpg', T+'interactivetest.hss')],
-                   action = test_rpg_actions('interactivetest.rpg', f'--replayinput {T}interactivetest.ohrkey'),
+                   action = test_rpg_actions('interactivetest.rpg', '--replayinput ' + T + 'interactivetest.ohrkey'),
                    buildsource = buildtests)
 # This prevents more than one copy of Game from being run at once
 # (doesn't matter where g_debug.txt is actually placed).
