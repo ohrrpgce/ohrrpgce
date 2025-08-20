@@ -2100,10 +2100,11 @@ FUNCTION playtime (byval d as integer, byval h as integer, byval m as integer) a
 
 END FUNCTION
 
+'Increment play timer (by at most one second since the last tick)
 SUB playtimer
  STATIC n as double
  
- IF TIMER >= n + 1 OR n - TIMER > 3600 THEN
+ IF TIMER >= n + 1 THEN
   n = INT(TIMER)
   gen(genSeconds) = gen(genSeconds) + 1
   WHILE gen(genSeconds) >= 60
