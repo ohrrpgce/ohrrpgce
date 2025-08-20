@@ -6,4 +6,10 @@ if [ "$1" = "-l" ] ; then
   shift
 fi
 
-grep -P -n -i ${ARGS} "${1}" *.bas *.bi *.rbas | grep -P -i -v "^[^ ]+\.rbas\.bas:"
+GREPTYPE=-P
+if [ "$(uname)" = "Darwin" ] ; then
+  # Fall back to traditional grep on Mac, which doesn't support PCRE grep
+  GREPTYPE=-G
+fi
+
+grep $GREPTYPE -n -i ${ARGS} "${1}" *.bas *.bi *.rbas | grep $GREPTYPE -i -v "^[^ ]+\.rbas\.bas:"
