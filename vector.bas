@@ -15,7 +15,7 @@ DECLARE FUNCTION fb_StrAssignEx alias "fb_StrAssignEx" (byval dst as any ptr, by
 
 
 'Unfortunately fb_StrDelete is not cdecl
-SUB string_dtor cdecl (byval arg as string ptr)
+SUB string_dtor cdecl (byval arg as const string ptr)
   fb_StrDelete(*arg)
 END SUB
 

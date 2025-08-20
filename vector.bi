@@ -28,13 +28,13 @@
 #DEFINE vector ptr
 
 TYPE FnCtor as sub cdecl (byval as any ptr)
-TYPE FnCopyCtor as sub cdecl (byval dest as any ptr, byval src as any ptr)
-TYPE FnDtor as sub cdecl (byval as any ptr)
-TYPE FnCopy as function cdecl (byval as any ptr) as any ptr  'Allocate and initialise a copy
-TYPE FnDelete as sub cdecl (byval as any ptr)  'Destruct and delete
-TYPE FnStr as function cdecl (byval as any ptr) as string
+TYPE FnCopyCtor as sub cdecl (byval dest as any ptr, byval src as const any ptr)
+TYPE FnDtor as sub cdecl (byval as const any ptr)    'Destruct. You can delete const objects, as in C++
+TYPE FnCopy as function cdecl (byval as const any ptr) as any ptr  'Allocate and initialise a copy
+TYPE FnDelete as sub cdecl (byval as const any ptr)  'Destruct and delete. You can delete const objects, as in C++.
+TYPE FnStr as function cdecl (byval as const any ptr) as string
 TYPE FnCompare as function cdecl (byval as const any ptr, byval as const any ptr) as int32
-TYPE FnHash as function cdecl (byval as any ptr) as uinteger
+TYPE FnHash as function cdecl (byval as const any ptr) as uinteger
 
 'Not used
 ENUM 'PassConvention
@@ -366,7 +366,7 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
     p1->constructor(*p2)
   end sub
 
-  private sub TID##_dtor_func cdecl (byval p as T ptr)
+  private sub TID##_dtor_func cdecl (byval p as const T ptr)
     '(Only works for UDTs, not primitive types)
     'FB acts very strangely wrt destructors... if a UDT does not actually need destructing,
     'FB will still generate destructor calls, but if you try to call ->destructor() on such

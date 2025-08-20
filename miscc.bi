@@ -12,11 +12,11 @@ extern "C"
 
 declare function get_sys_err_string() as zstring ptr
 
-declare function stringhash(byval strp as zstring ptr, byval leng as integer) as unsigned integer
+declare function stringhash(byval strp as const zstring ptr, byval leng as integer) as unsigned integer
 
 declare sub strip_carriage_returns(byval text as zstring ptr)
 
-declare function strprintf (byval fmtstr as zstring ptr, ...) as string
+declare function strprintf (byval fmtstr as const zstring ptr, ...) as string
 
 declare sub init_crt ()
 

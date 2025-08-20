@@ -383,7 +383,7 @@ SUB write_translation_file_txt(fname as string, translations as StrHashTable)
   v_sort items, CAST(FnCompare, @compare_translations)
 
   FOR idx as integer = 0 TO v_len(items) - 1
-    DIM code as string ptr = items[idx].key
+    DIM code as const string ptr = items[idx].key
     WITH *CAST(TranslationString ptr, items[idx].value)
       PRINT #fh,
       IF LEN(.description) THEN PRINT #fh, "# " & .description

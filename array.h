@@ -7,10 +7,10 @@
 struct FBSTRING;
 
 typedef void (*FnCtor)(void *);
-typedef void (*FnCopyCtor)(void *, void *);  // second arg ought to be const, but in practice isn't (AnyVector)
-typedef void (*FnDtor)(void *);
-typedef void *(*FnCopy)(void *);  // Allocate and initialise a copy
-typedef void (*FnDelete)(void *);  // Destruct and delete
+typedef void (*FnCopyCtor)(void *, const void *);
+typedef void (*FnDtor)(const void *);       // Destruct. You can destruct const objects, as in C++.
+typedef void *(*FnCopy)(const void *);      // Allocate and initialise a copy
+typedef void (*FnDelete)(const void *);     // Destruct and delete. You can delete const objects, as in C++.
 typedef int (*FnCompare)(const void *, const void *);
 typedef unsigned int (*FnHash)(const void *);
 typedef struct FBSTRING *(*FnStr)(const void *);

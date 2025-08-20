@@ -301,7 +301,7 @@ declare function dlist_walk (byref this as DoubleList(Any), byval startitem as a
 
 Type HashBucketItem
   hash as integer
-  key as any ptr              'If the table uses integer keys, 'key' is NULL
+  key as const any ptr       'If the table uses integer keys, 'key' is NULL
   Union
     value as any ptr
     value_int as integer
@@ -382,36 +382,36 @@ Type HashTable
   'However if the value is NULL you can't distinguish between NULL values and keys that aren't present!
   'NOTE: if the key already exists, it will be duplicated! Use set() instead to overwrite.
   'The add order of duplicated keys is preserved.
-  declare sub add(hash as integer, value as any ptr, _key as any ptr = NULL)  'Ignore _key
+  declare sub add(hash as integer, value as any ptr, _key as const any ptr = NULL)  'Ignore _key
   declare sub add(hash as integer, value as integer)
-  declare sub add(key as any ptr, value as any ptr)
-  declare sub add(key as any ptr, value as integer)
+  declare sub add(key as const any ptr, value as any ptr)
+  declare sub add(key as const any ptr, value as integer)
 
   'Change the value of (the first instance of) a key, or add it if it's not in the table yet.
-  declare sub set(hash as integer, value as any ptr, _key as any ptr = NULL)  'Ignore _key
+  declare sub set(hash as integer, value as any ptr, _key as const any ptr = NULL)  'Ignore _key
   declare sub set(hash as integer, value as integer)
-  declare sub set(key as any ptr, value as any ptr)
-  declare sub set(key as any ptr, value as integer)
+  declare sub set(key as const any ptr, value as any ptr)
+  declare sub set(key as const any ptr, value as integer)
 
   'Returns the value for (the first instance of) a key, or default if not present
-  declare function get(hash as integer, default as any ptr = NULL, _key as any ptr = NULL) as any ptr  'Ignore _key
-  declare function get(key as any ptr, default as any ptr = 0) as any ptr
+  declare function get(hash as integer, default as any ptr = NULL, _key as const any ptr = NULL) as any ptr  'Ignore _key
+  declare function get(key as const any ptr, default as any ptr = 0) as any ptr
   'Convenience functions, which cast the return value of .get()
   declare function get_int(hash as integer, default as integer = 0) as integer
-  declare function get_int(key as any ptr, default as integer = 0) as integer
-  declare function get_str(hash as integer, default as zstring ptr = @"", _key as any ptr = NULL) as string  'Ignore _key
-  declare function get_str(key as any ptr, default as zstring ptr = @"") as string
+  declare function get_int(key as const any ptr, default as integer = 0) as integer
+  declare function get_str(hash as integer, default as zstring ptr = @"", _key as const any ptr = NULL) as string  'Ignore _key
+  declare function get_str(key as const any ptr, default as zstring ptr = @"") as string
 
   'Remove (the first instance of) an item and call key/value dtors, if provided.
   'Returns YES if it was found, NO otherwise
-  declare function remove(hash as integer, _key as any ptr = NULL) as bool  'Ignore _key
-  declare function remove(key as any ptr) as bool
+  declare function remove(hash as integer, _key as const any ptr = NULL) as bool  'Ignore _key
+  declare function remove(key as const any ptr) as bool
 
   'To iterate over a hash table, dim state as uinteger = 0 and prev_value = NULL and
   'pass to iter until value = NULL. Returns values, and optionally keys ('key' set byref).
   'Adding items to the table while iterating is OK; they may or may not get iterated over. Removing items while
   'iterating is OK, provided that prev_value isn't removed and that values are unique.
-  declare function iter(byref state as uinteger, prev_value as any ptr, byref key as any ptr = NULL) as any ptr
+  declare function iter(byref state as uinteger, prev_value as any ptr, byref key as const any ptr = NULL) as any ptr
 
   'Returns either an integer vector (if this.key_is_integer) or else an any ptr vector
   '(you should store the result in an appropriate variable!)
@@ -434,7 +434,7 @@ Type HashTable
   declare function items_sorted() as HashBucketItem vector
 
   'For internal use, mostly. Get the hash of a key ptr.
-  declare function hash_key(key as any ptr) as integer
+  declare function hash_key(key as const any ptr) as integer
 end Type
 
 

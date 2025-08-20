@@ -3742,7 +3742,7 @@ function HashTable.constructed() as bool
 end function
 
 'Look for a key in a bucket vector, return NULL on failure
-local function hash_search_bucket(this as HashTable, bucket as HashBucketItem vector, hash as integer, key as any ptr = NULL) as HashBucketItem ptr
+local function hash_search_bucket(this as HashTable, bucket as HashBucketItem vector, hash as integer, key as const any ptr = NULL) as HashBucketItem ptr
   for bucketidx as integer = 0 to v_len(bucket) - 1
     dim it as HashBucketItem ptr = @bucket[bucketidx]
     if it->hash = hash then
@@ -3762,7 +3762,7 @@ local function hash_search_bucket(this as HashTable, bucket as HashBucketItem ve
   return NULL
 end function
 
-function HashTable.hash_key(key as any ptr) as integer
+function HashTable.hash_key(key as const any ptr) as integer
   if this.key_is_opaque_ptr then
     return cintptr32(key)
   elseif this.key_hash then
@@ -3774,7 +3774,7 @@ function HashTable.hash_key(key as any ptr) as integer
   return 0
 end function
 
-sub HashTable.add(hash as integer, value as any ptr, _key as any ptr = NULL)
+sub HashTable.add(hash as integer, value as any ptr, _key as const any ptr = NULL)
   BUG_IF(this.table = NULL, "construct() not called")
   dim byref bucket as HashBucketItem vector = this.table[cuint(hash) mod this.tablesize]
   dim item as HashBucketItem ptr = any
@@ -3794,15 +3794,15 @@ sub HashTable.add(hash as integer, value as integer)
   this.add(hash, canyptr(value), NULL)
 end sub
 
-sub HashTable.add(key as any ptr, value as any ptr)
+sub HashTable.add(key as const any ptr, value as any ptr)
   this.add(this.hash_key(key), value, key)
 end sub
 
-sub HashTable.add(key as any ptr, value as integer)
+sub HashTable.add(key as const any ptr, value as integer)
   this.add(this.hash_key(key), canyptr(value), key)
 end sub
 
-sub HashTable.set(hash as integer, value as any ptr, _key as any ptr = NULL)
+sub HashTable.set(hash as integer, value as any ptr, _key as const any ptr = NULL)
   BUG_IF(this.table = NULL, "construct() not called")
   dim bucket as HashBucketItem vector = this.table[cuint(hash) mod this.tablesize]
   dim it as HashBucketItem ptr = hash_search_bucket(this, bucket, hash, _key)
@@ -3818,15 +3818,15 @@ sub HashTable.set(hash as integer, value as integer)
   this.set(hash, canyptr(value), NULL)
 end sub
 
-sub HashTable.set(key as any ptr, value as any ptr)
+sub HashTable.set(key as const any ptr, value as any ptr)
   this.set(this.hash_key(key), value, key)
 end sub
 
-sub HashTable.set(key as any ptr, value as integer)
+sub HashTable.set(key as const any ptr, value as integer)
   this.set(this.hash_key(key), canyptr(value), key)
 end sub
 
-function HashTable.get(hash as integer, default as any ptr = NULL, _key as any ptr = NULL) as any ptr
+function HashTable.get(hash as integer, default as any ptr = NULL, _key as const any ptr = NULL) as any ptr
   BUG_IF(this.table = NULL, "construct() not called", NULL)
   dim bucket as HashBucketItem vector = this.table[cuint(hash) mod this.tablesize]
   dim it as HashBucketItem ptr = hash_search_bucket(this, bucket, hash, _key)
@@ -3834,7 +3834,7 @@ function HashTable.get(hash as integer, default as any ptr = NULL, _key as any p
   return it->value
 end function
 
-function HashTable.get(key as any ptr, default as any ptr = 0) as any ptr
+function HashTable.get(key as const any ptr, default as any ptr = 0) as any ptr
   return this.get(this.hash_key(key), default, key)
 end function
 
@@ -3842,11 +3842,11 @@ function HashTable.get_int(hash as integer, default as integer = 0) as integer
   return cintptr32(this.get(hash, canyptr(default), NULL))
 end function
 
-function HashTable.get_int(key as any ptr, default as integer = 0) as integer
+function HashTable.get_int(key as const any ptr, default as integer = 0) as integer
   return cintptr32(this.get(this.hash_key(key), canyptr(default), key))
 end function
 
-function HashTable.get_str(hash as integer, default as zstring ptr = @"", _key as any ptr = NULL) as string
+function HashTable.get_str(hash as integer, default as zstring ptr = @"", _key as const any ptr = NULL) as string
   'return *cast(string ptr, this.get(hash, @default, _key))
   'Avoiding initialising a new string from default if not needed, but want to still allow NULL as a value
   dim ret as any ptr = this.get(hash, canyptr(-1234), _key)
@@ -3860,12 +3860,12 @@ function HashTable.get_str(hash as integer, default as zstring ptr = @"", _key a
   end if
 end function
 
-function HashTable.get_str(key as any ptr, default as zstring ptr = @"") as string
+function HashTable.get_str(key as const any ptr, default as zstring ptr = @"") as string
   return this.get_str(this.hash_key(key), default, key)
   'if ret = canyptr(-1) then return *default else return *ret
 end function
 
-function HashTable.remove(hash as integer, _key as any ptr = NULL) as bool
+function HashTable.remove(hash as integer, _key as const any ptr = NULL) as bool
   dim byref bucket as HashBucketItem vector = this.table[cuint(hash) mod this.tablesize]
   dim it as HashBucketItem ptr = hash_search_bucket(this, bucket, hash, _key)
   if it = NULL then return NO
@@ -3877,7 +3877,7 @@ function HashTable.remove(hash as integer, _key as any ptr = NULL) as bool
   return YES
 end function
 
-function HashTable.remove(key as any ptr) as bool
+function HashTable.remove(key as const any ptr) as bool
   return this.remove(this.hash_key(key), key)
 end function
 
@@ -3895,7 +3895,7 @@ sub HashTable.clear()
   this.numitems = 0
 end sub
 
-function HashTable.iter(byref state as uinteger, prev_value as any ptr, byref key as any ptr = NULL) as any ptr
+function HashTable.iter(byref state as uinteger, prev_value as any ptr, byref key as const any ptr = NULL) as any ptr
   if state = &hFFFFFFFF then
     key = NULL
     return NULL
