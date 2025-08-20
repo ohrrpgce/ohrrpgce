@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-08-09)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-08-21)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1890,10 +1890,17 @@ global variable(1,mini game score)</pre>
 			<a name="about-variable"></a>
 				<h4>variable (name)</h4>
 <p>
-			Creates a local variable that can only be used inside the script where it was created. The value of this variable is lost when the script ends. If you need a variable who's value persists between calls to a script, or that is automatically saved when the player saves their game, you will need to use a <a href="#about-globalvariable" class="ref">global variable</a> instead.
 			
-			<pre>variable(points) # make a new variable
-variable+=1 # add one to it</pre>
+				Creates a local variable that can only be used inside the script where it was created (and any <a href="#about-subscript" class="ref">subscript</a>s).
+				The value of this variable is lost when the script ends.
+				If you need a variable whose value persists between calls to a script,
+				or that is automatically saved when the player saves their game,
+				you will need to use a <a href="#about-globalvariable" class="ref">global variable</a> instead.
+			
+			
+			<pre>variable(points) # Make a new variable
+points := 10  # Set its starting value
+points += 1   # Add one to it</pre>
 			
 		</p>
 </div>
