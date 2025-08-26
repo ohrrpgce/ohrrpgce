@@ -338,6 +338,21 @@ FUNCTION buystuff_change_preview_hero_equipment (buyst as ShopBuyState, byval th
    LOOP UNTIL slot = -1 ORELSE can_equip(slot)
   END IF
  END IF
+
+ IF get_gen_bool("/mouse/mouse_menus") THEN
+  DIM panel as Slice Ptr = LookupSlice(SL_SHOP_BUY_INFO_PANEL, buyst.root_sl)
+  IF panel ANDALSO SliceCollidePoint(panel, readmouse.pos) THEN
+   'A click on the info panel
+   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
+    slot = -1
+    FOR i as integer = 0 TO 3
+     IF buyst.party_box(i) ANDALSO can_equip(i) ANDALSO SliceCollidePoint(buyst.party_box(i), readmouse.pos) THEN
+      slot = i
+     END IF
+    NEXT i
+   END IF
+  END IF
+ END IF
  
  DIM result as integer = slot <> buyst.preview_hero_slot
  buyst.preview_hero_slot = slot
