@@ -465,15 +465,17 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
     END IF
    NEXT i
    buyst.preview_cursor->Visible = NO
+   DIM preview_str as string
    IF equip_any = NO THEN
-    'FIXME: make this a global string
-    append_menu_item buyst.info, "No heroes can equip it"
+    preview_str = readglobalstring(337, "No heroes can equip", 30)
+    append_menu_item buyst.info, preview_str
    ELSEIF buyst.preview_hero_slot = -1 THEN
-    'FIXME: make this a global string
-    append_menu_item buyst.info, "< preview hero >"
+    preview_str = readglobalstring(334, "< preview hero >", 30)
+    append_menu_item buyst.info, preview_str
    ELSEIF eq_id >= 0 THEN
-    'FIXME: make this a global string
-    append_menu_item buyst.info, "Vs equipped " & already_item.name
+    DIM vs_eq as string = readglobalstring(340, "Vs equipped $I", 30)
+    replacestr vs_eq, "$I", already_item.name
+    append_menu_item buyst.info, vs_eq
     buyst.preview_cursor->Visible = YES
     buyst.preview_cursor->X = buyst.party_box(buyst.preview_hero_slot)->X + buyst.party_box(buyst.preview_hero_slot)->Width / 2
    END IF
