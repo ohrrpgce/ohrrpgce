@@ -33,6 +33,9 @@ DECLARE SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, 
 DECLARE FUNCTION buystuff_can_show(byval slot as NodePtr, byval shop_id as integer) as bool
 DECLARE FUNCTION buystuff_can_buy(byval thing as NodePtr, buyst as ShopBuyState, byval sound_and_alert as bool=NO) as bool
 DECLARE SUB buystuff_set_alert(buyst as ShopBuyState, alert as string, byval ticks as integer = 18)
+DECLARE FUNCTION find_already_equipped_by_item (item_id as integer, hero_slot as integer) as integer
+DECLARE FUNCTION buystuff_change_preview_hero_equipment (buyst as ShopBuyState, byval thing as NodePtr) as bool
+
 
 DECLARE SUB equip_menu_setup (byref st as EquipMenuState)
 DECLARE SUB equip_menu_do_equip(byval item as integer, byref st as EquipMenuState)
@@ -75,6 +78,7 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
  WITH buyst
   .shop_id = shop_id
   .shoptype = shoptype
+  .preview_hero_slot = -1
  END WITH
 
  DIM stuff_doc as DocPtr
@@ -155,6 +159,13 @@ SUB buystuff (byval shop_id as integer, byval shoptype as integer, storebuf() as
   END IF
   IF game_check_cancel_key() THEN do_quit = YES
   IF game_check_use_key() THEN do_pick = YES
+
+  IF menu.numitems > 0 THEN
+   IF buystuff_change_preview_hero_equipment(buyst, menu.items[st.pt]->dataptr) THEN
+    menusound gen(genCursorSFX)
+    buystuff_refresh_selected buyst, menu.items[st.pt]->dataptr
+   END IF
+  END IF
 
   buyst.alert_ticks = large(0, buyst.alert_ticks - 1)
   IF buyst.alert_ticks <= 0 THEN
@@ -285,6 +296,54 @@ SUB buystuff_do_purchase(buyst as ShopBuyState, byval thing as NodePtr, byval th
  tag_updates
 END SUB
 
+FUNCTION buystuff_change_preview_hero_equipment (buyst as ShopBuyState, byval thing as NodePtr) as bool
+ 'Check if the current thing is an item
+ 'Check if it is equippable
+ 'If so, check left and right keypresses to update which hero to preview
+ 'Returns YES on any change, NO on no change
+
+ DIM thing_kind as string = NodeName(thing)
+ IF thing_kind <> "item" THEN RETURN NO
+ DIM item_id as integer = GetInteger(thing)
+ IF item_id = -1 THEN RETURN NO
+ DIM item as ItemDef
+ loaditemdata item, item_id
+
+ 'Check which heroes can equip
+ DIM eq_any as bool = NO
+ DIM can_equip(3) as bool
+ DIM hero_id as integer
+ FOR i as integer = 0 to 3
+  hero_id = gam.hero(i).id
+  IF hero_id >= 0 THEN
+   IF item_read_equipbit(item, hero_id) THEN
+    eq_any = YES
+    can_equip(i) = YES
+   END IF
+  END IF
+ NEXT i
+ 
+ DIM slot as integer = buyst.preview_hero_slot
+
+ IF eq_any = NO THEN
+  slot = -1
+ ELSE
+  'Check keys
+  DIM direction as integer = 0
+  IF keyval(ccLeft) > 1 THEN direction = -1
+  IF keyval(ccRight) > 1 THEN direction = 1
+  IF direction <> 0 THEN  
+   DO
+    loopvar slot, -1, 3, direction
+   LOOP UNTIL slot = -1 ORELSE can_equip(slot)
+  END IF
+ END IF
+ 
+ DIM result as integer = slot <> buyst.preview_hero_slot
+ buyst.preview_hero_slot = slot
+ RETURN result
+END FUNCTION
+
 'thing is either "hero" or "item" node of a shop thing, in the new RELOAD respresentation of STF
 SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
  ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & price_string(gold)
@@ -349,12 +408,54 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
    FOR i as integer = 1 to 4
     IF item.eqslots(i) THEN append_menu_item buyst.info, eqprefix & " " & readglobalstring(24 + i, "Armor" & i)
    NEXT i 
+   'Preview which heroes can equip it
+   DIM hero_id as integer
+   DIM can_equip(3) as bool
+   DIM equip_any as bool = NO
+   FOR i as integer = 0 TO 3
+    buyst.party_sl(i)->Extra(0) = NO
+    ChangeRectangleSlice buyst.party_box(i), 0, , , , transOpaque
+    hero_id = gam.hero(i).id
+    IF hero_id >= 0 THEN
+     IF item_read_equipbit(item, hero_id) THEN
+      can_equip(i) = YES
+      equip_any = YES
+      buyst.party_sl(i)->Extra(0) = YES
+      ChangeRectangleSlice buyst.party_box(i), 3, , , , transOpaque
+     END IF
+    END IF
+    ChangeRectangleSlice buyst.party_box(i), , , , borderLine
+   NEXT i
+   'Validate which hero party slot we are previewing equipment changes for
+   IF buyst.preview_hero_slot >= 0 ANDALSO NOT can_equip(buyst.preview_hero_slot) THEN
+    'Selected hero can't equip, reselect the first one that can
+    buyst.preview_hero_slot = -1
+    FOR i as integer = 0 TO 3
+     IF can_equip(i) THEN
+      buyst.preview_hero_slot = i
+      EXIT FOR
+     END IF
+    NEXT i
+   END IF
+   'Show equipment bonuses
    DIM bonus as integer
+   DIM bonus_info as string
+   DIM eq_id as integer = -1
+   DIM already_item as ItemDef
+   IF buyst.preview_hero_slot >= 0 THEN
+    eq_id = find_already_equipped_by_item(thing_id, buyst.preview_hero_slot)
+    IF eq_id >= 0 THEN loaditemdata already_item, eq_id
+   END IF
    FOR i as integer = 0 to 11
     bonus = item.stat_bonuses(i)
+    IF eq_id >= 0 THEN
+     bonus = item.stat_bonuses(i) - already_item.stat_bonuses(i)
+    END IF
+    bonus_info = ""
     IF bonus <> 0 THEN
      IF bonus > 0 THEN
-      append_menu_item buyst.info, "+" & bonus & " " & statnames(i)
+      bonus_info = "+" & bonus & " " & statnames(i)
+      append_menu_item buyst.info, bonus_info
       buyst.info.last->col = uilook(uiSelectedItem)
      END IF
      IF bonus < 0 THEN
@@ -363,19 +464,19 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
      END IF
     END IF
    NEXT i
-   DIM hero_id as integer
-   FOR i as integer = 0 TO 3
-    buyst.party_sl(i)->Extra(0) = NO
-    ChangeRectangleSlice buyst.party_box(i), 0, , , , transOpaque
-    hero_id = gam.hero(i).id
-    IF hero_id >= 0 THEN
-     IF item_read_equipbit(item, hero_id) THEN
-      buyst.party_sl(i)->Extra(0) = YES
-      ChangeRectangleSlice buyst.party_box(i), 3, , , , transOpaque
-     END IF
-    END IF
-    ChangeRectangleSlice buyst.party_box(i), , , , borderLine
-   NEXT i
+   buyst.preview_cursor->Visible = NO
+   IF equip_any = NO THEN
+    'FIXME: make this a global string
+    append_menu_item buyst.info, "No heroes can equip it"
+   ELSEIF buyst.preview_hero_slot = -1 THEN
+    'FIXME: make this a global string
+    append_menu_item buyst.info, "< preview hero >"
+   ELSEIF eq_id >= 0 THEN
+    'FIXME: make this a global string
+    append_menu_item buyst.info, "Vs equipped " & already_item.name
+    buyst.preview_cursor->Visible = YES
+    buyst.preview_cursor->X = buyst.party_box(buyst.preview_hero_slot)->X + buyst.party_box(buyst.preview_hero_slot)->Width / 2
+   END IF
   ELSE
    'Not equippable
    buyst.hero_box->Visible = NO
@@ -445,7 +546,30 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
  init_menu_state buyst.info_st, buyst.info
  buyst.info_st.active = NO
  
-END SUB ' itemdef
+END SUB
+
+FUNCTION find_already_equipped_by_item (item_id as integer, hero_slot as integer) as integer
+ 'Given an item and a hero slot,
+ 'check which slot the item is equippable in
+ '(use the first if there are multiple, we might add a "preferred" slot in the future)
+ 'then check what item the hero in that slot has equipped currently, and return its id
+ 'or -1 for nothing
+ IF gam.hero(hero_slot).id = -1 THEN RETURN -1
+ IF item_id = -1 THEN RETURN -1
+ DIM item as ItemDef
+ loaditemdata item, item_id
+ DIM eq_slot as integer = -1
+ 'For now we just pick the first slot, but eventually we might want a preferred slot
+ 'or per-hero slot exceptions or someting.
+ FOR i as integer = 0 to UBOUND(item.eqslots)
+  IF item.eqslots(i) THEN
+   eq_slot = i
+   EXIT FOR
+  END IF
+ NEXT i
+ IF eq_slot = -1 THEN RETURN -1
+ RETURN gam.hero(hero_slot).equip(eq_slot).id
+END FUNCTION
 
 SUB buystuff_refresh_empty (buyst as ShopBuyState)
  ChangeTextSlice buyst.money_sl, readglobalstring(145, "You have", 20) & " " & price_string(gold)
@@ -819,6 +943,14 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
   END WITH
   ChangeSpriteSlice buyst.party_sl(i), sprTypeHero
  NEXT i
+ 
+ buyst.preview_cursor =  NewSliceOfType(slText, buyst.hero_box)
+ ChangeTextSlice buyst.preview_cursor, CHR(24), uiSelectedItem2 * -1 - 1, YES
+ WITH *(buyst.preview_cursor)
+  .AnchorVert = alignBottom
+  .AnchorHoriz = alignCenter
+ END WITH
+ buyst.preview_cursor->Visible = NO
  
  'info_sl is just used later to set the position and size of the info menu
  buyst.info_sl = NewSliceOfType(slContainer, info_box)

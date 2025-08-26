@@ -356,6 +356,7 @@ TYPE ShopBuyState
   hero_box       as Slice Ptr
   party_box(3)    as Slice Ptr
   party_sl(3)    as Slice Ptr
+  preview_cursor as Slice ptr
   price_box      as Slice Ptr
   price_sl       as Slice Ptr
   alert_box      as Slice Ptr
@@ -369,6 +370,7 @@ TYPE ShopBuyState
   walk           as integer
   info           as MenuDef
   info_st        as MenuState
+  preview_hero_slot as integer
 END TYPE
 
 TYPE OrderTeamState
