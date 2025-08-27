@@ -1795,6 +1795,7 @@ DO
    EXIT DO
   END IF
   IF menuid(st.pt) = 0 THEN '--BUY
+   copypage holdscreen, vpage
    buystuff id, 0, storebuf()
   END IF
   IF menuid(st.pt) = 1 THEN '--SELL
