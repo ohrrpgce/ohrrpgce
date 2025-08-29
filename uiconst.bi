@@ -5,7 +5,7 @@
 #IFNDEF __UICONST_BI__
 #DEFINE __UICONST_BI__
 
-CONST uiColorLast = 53
+CONST uiColorLast = 56
 CONST uiColorOldLast = 17 ' the last uilook saved in uicolors.bin
 CONST uiBoxLast = 14
 CONST uiBoxOldLast = 14 ' the last boxlook saved in uicolors.bin
@@ -66,6 +66,9 @@ CONST uiFadeOutWonBattle = 50
 CONST uiFadeOutExitBattle = 51
 CONST uiMPBar = 52               'hero's mp bar
 CONST uiMPBarFlash = 53          'mp bar flash colour (when higher than max)
+CONST uiBuyItemDescription = 54
+CONST uiBuyBonusUp = 55
+CONST uiBuyBonusDown = 56
 
 CONST colInvalid = -999
 

@@ -2524,6 +2524,9 @@ SUB GuessDefaultUIColors (masterpal() as RGBcolor, colarray() as integer)
  fixeddefaults(uiFadeOutExitBattle)   = &h000000
  fixeddefaults(uiMPBar)               = &h00E0E0
  fixeddefaults(uiMPBarFlash)          = &h80FFFF
+ fixeddefaults(uiBuyItemDescription)  = &h4F595A
+ fixeddefaults(uiBuyBonusUp)          = &hFFFC62
+ fixeddefaults(uiBuyBonusDown)        = &h8E6B00
 
  DIM c as RGBcolor
  FOR i as integer = 0 TO uiColorLast
@@ -2598,6 +2601,9 @@ FUNCTION FillMissingUIColor(byval index as integer, colarray() as integer, maste
   CASE uiBattleHeal: RETURN colarray(uiText)
   CASE uiBattlePoison: RETURN colarray(uiText)
   CASE uiBattleRegen: RETURN colarray(uiText)
+  CASE uiBuyItemDescription: RETURN colarray(uiDisabledItem)
+  CASE uiBuyBonusUp: RETURN colarray(uiSelectedItem)
+  CASE uiBuyBonusDown: RETURN colarray(uiSelectedDisabled)
   CASE ELSE
    'Return defaults for all other colors
    DIM defaults(uiColorLast) as integer
@@ -2662,6 +2668,9 @@ FUNCTION UiColorCaption(byval n as integer) as string
   CASE uiFadeOutExitBattle: RETURN "Fadeout: exit/flee battle"
   CASE uiMPBar: RETURN "MP bar"
   CASE uiMPBarFlash: RETURN "MP bar overfull"
+  CASE uiBuyItemDescription: RETURN "Shop Buy: Item description"
+  CASE uiBuyBonusUp: RETURN "Shop Buy: Equipment bonus up"
+  CASE uiBuyBonusDown: RETURN "Shop Buy: Equipment bonus down"
 
  END SELECT
  'Invalid values still print, but !?

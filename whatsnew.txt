@@ -7,6 +7,8 @@ Nov ?? 2025 [Lexiphanic]
      battle. Useful if you create your own way of displaying rewards. [Dre]
    * When buying stuff in shops, you can preview the difference in stat
      bonuses compared to the heros' current equipment [James]
+   * New customizable UI colors for the shop "Buy" screen, for item
+     description, stat bonus up, and stat bonus down [James]
 
    * Plotscripting Features
     * Commands to access rewards from the latest battle: "money reward",
