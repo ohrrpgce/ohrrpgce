@@ -475,6 +475,7 @@ dim shared fps_time_start as double = 0.0
 dim shared draw_fps as double             'Current measured frame draw rate, per second
 dim shared real_fps as double             'Current measured frame display rate, per second
 dim shared overlay_showfps as integer = 0 'Draw on overlay? 0 (off), 1 (real fps), or 2 (draw fps)
+dim shared as integer total_real_frames, total_skipped_frames, unskippable_frames  'Stats, for interest only
 
 dim shared overlays_enabled as bool = YES 'Whether to draw overlays in general
 dim shared overlay_message as string      'Message to display on screen
@@ -635,6 +636,8 @@ end sub
 local sub modex_quit()
 	stop_recording_input
 	stop_recording_video
+
+	'? "Frame statistics: displayed: " & total_real_frames & " (inc unskippable: " & unskippable_frames & ") skipped: " & total_skipped_frames
 
 	for i as integer = 0 to ubound(vpages)
 		frame_unload(@vpages(i))
@@ -1280,10 +1283,12 @@ sub SkippedFrame.drop()
 	page = -1
 end sub
 
-' If the last setvispage was skipped, display it
+' If the last setvispage was skipped, display it afterall. This is needed if we want
+' to fade the palette after a skipped frame.
 sub SkippedFrame.show ()
 	' Note: setvispage will call SkippedFrame.drop() after displaying the page
 	if page > -1 then
+		total_skipped_frames -= 1
 		setvispage page, NO
 	end if
 end sub
@@ -1340,6 +1345,7 @@ sub setvispage (page as integer, skippable as bool = YES)
 		update_fps_counter YES
 		exit sub
 	end if
+	if not skippable then unskippable_frames += 1
 	update_fps_counter NO
 
 	dim starttime as double = timer
@@ -4132,12 +4138,16 @@ sub toggle_fps_display ()
 	overlay_showfps = (overlay_showfps + 1) MOD 3
 end sub
 
-' Called every time a frame is drawn.
-' skipped: true if this frame was frameskipped.
+' Called every time a frame is drawn (to a vpage), or we attempted to redisplay it with a
+' different palette during fades.
+' skipped: true if this frame was frameskipped meaning it wasn't sent to the gfx backend for display.
 local sub update_fps_counter (skipped as bool)
 	fps_draw_frames += 1
 	if not skipped then
 		fps_real_frames += 1
+		total_real_frames += 1
+	else
+		total_skipped_frames += 1
 	end if
 	dim nowtime as double = timer
 	if nowtime > fps_time_start + 1 then

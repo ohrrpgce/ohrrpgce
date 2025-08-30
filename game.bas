@@ -285,7 +285,7 @@ unlock_resolution 320, 200   'Minimum window size
 
 setupmusic
 
-IF nogfx_mode THEN PRINT "Running headless (input from console)"
+IF nogfx_mode THEN PRINT "Running headless"
 
 
 '==============================================================================
