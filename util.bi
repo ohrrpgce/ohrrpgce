@@ -1145,7 +1145,7 @@ declare function ini_key_match(text as string, key as string, byref value as str
 
 
 declare function days_since_datestr(datestr as string) as integer
-declare function format_duration(length as double, decimal_places as integer = 1) as string
+declare function format_duration(total_seconds as double, decimal_places as integer = 1) as string
 declare function format_date(timeser as double) as string
 declare function seconds2str(sec as integer, f as string = " %m: %S") as string
 

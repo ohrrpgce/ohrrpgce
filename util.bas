@@ -1394,14 +1394,15 @@ END FUNCTION
 
 'Format a duration as a string with given precision, like '2m23.1s' or '0.4s'.
 'decimal_places = 1 means 0.1s precision, = 0 means 1s precision, etc
-FUNCTION format_duration(length as double, decimal_places as integer = 1) as string
+'See also seconds2str for actual format strings.
+FUNCTION format_duration(total_seconds as double, decimal_places as integer = 1) as string
  DIM subseconds as string
  IF decimal_places > 0 THEN subseconds = "." & STRING(decimal_places, "0")
 
- DIM seconds as double = fmod(length, 60)
- DIM minutes as integer = INT(length) \ 60
+ DIM seconds as double = fmod(total_seconds, 60)
+ DIM minutes as integer = INT(total_seconds) \ 60
  IF seconds > 60 - 0.5 * 0.1 ^ decimal_places THEN
-  'Avoid e.g. printing 1m60.0s for length 119.99
+  'Avoid e.g. printing 1m60.0s for total_seconds 119.99
   seconds = 0.
   minutes += 1
  END IF
@@ -1420,12 +1421,16 @@ FUNCTION format_duration(length as double, decimal_places as integer = 1) as str
  RETURN msg
 END FUNCTION
 
-' Argument is a timeserial
+' Argument is a timeserial (measured in days, e.g. NOW, FILEDATETIME)
 FUNCTION format_date(timeser as double) as string
  IF timeser = 0 THEN RETURN "0"
  RETURN FORMAT(timeser, "yyyy mmm dd hh:mm:ss")
 END FUNCTION
 
+' Format seconds according to a format string containing %s/%S, %m/%M, %h/%H.
+' The largest time interval should be lower-case, others uppercase,
+' e.g. "%h:%M:%S" or "%m:%S".
+' Use format_duration instead for less rigid formatting.
 FUNCTION seconds2str(sec as integer, f as string = " %m: %S") as string
   DIM ret as string
   DIM as integer s, m, h
