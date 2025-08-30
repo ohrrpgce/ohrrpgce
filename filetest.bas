@@ -27,7 +27,7 @@ dim shared num_errors as integer = 0
 '#define DBG(x) ?x
 
 #if defined(__FB_UNIX__)
-	' Mac, Linux
+	' Unix: we create a file with permissions 0000
         #define UNREADABLE_FILE "_testunreadable.tmp"
 #elseif defined(__FB_WIN32__)
 	' Don't have an easy example of an unreadable file
@@ -167,7 +167,7 @@ startTest(get_file_type)
 	if get_file_type("_testfile.tmp" SLASH "file") <> fileTypeNonexistent then fail
 	' Read-only and special files/dirs
 	#ifdef UNREADABLE_FILE
-		if get_file_type(UNREADABLE_FILE) <> fileTypeFile then fail
+		if get_file_type("_testunreadable.tmp") <> fileTypeFile then fail
 	#endif
 	#if defined(__FB_UNIX__) and not defined(MINIMAL_OS)
 		if get_file_type("/bin/sh") <> fileTypeFile then fail
@@ -195,10 +195,11 @@ startTest(fileisreadable)
 		if fileisreadable("_testreadonly.tmp") = NO then fail
 	#endif
 
-	' isfile is just an alias for fileisreadable, so should behave the same
 	#ifdef UNREADABLE_FILE
-                'FIXME: Prints "Error 2" (file not found) on BSD and Linux
-		if fileisreadable(UNREADABLE_FILE) then fail
+                'On BSD and Linux, at least, FB's fb_FileOpenVfsEx returns
+		'fberrNOTFOUND, a misleading error number.
+		? !"Ignore ""Error 2 reading _testunreadable.tmp"":"
+		if fileisreadable("_testunreadable.tmp") then fail
 	#endif
 endTest
 
@@ -216,8 +217,7 @@ startTest(real_isfile)
 		if real_isfile("_testreadonly.tmp") = NO then fail
 	#endif
 	#ifdef UNREADABLE_FILE
-                'FIXME: Prints "Error 2" (file not found) on BSD and Linux
-		if real_isfile(UNREADABLE_FILE) = NO then fail
+		if real_isfile("_testunreadable.tmp") = NO then fail
 	#endif
 endTest
 
@@ -291,7 +291,7 @@ startTest(makeWritable)
 endTest
 
 startTest(unreadableCleanup)
-	#ifndef __FB_WIN32__
+	#ifdef __FB_UNIX__
 		if safekill("_testunreadable.tmp") = NO then fail
 		if real_isfile("_testunreadable.tmp") then fail
 	#else
