@@ -165,7 +165,7 @@ class parser(object):
                 makekeyword = makekeyword or whole_word_regex.match(pattern)
             if self.caseInsensitive:
                 if makekeyword:
-                    ret = ignore("'%s'" % pattern, re.escape(pattern) + "(?!\w)", re.I)
+                    ret = ignore("'%s'" % pattern, re.escape(pattern) + r"(?!\w)", re.I)
                 else:
                     ret = ignore("'%s'" % pattern, re.escape(pattern), re.I)
             elif makekeyword:
