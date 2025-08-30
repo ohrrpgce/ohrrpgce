@@ -18,18 +18,22 @@ TYPE testPtr as function() as integer
 extern pauseTime as double
 extern errorpos as integer
 extern errorfile as string
+extern startTest_name as string
+extern startTest_line as integer
 dim pauseTime as double
 dim errorpos as integer
 dim errorfile as string
+dim startTest_name as string
+dim startTest_line as integer
 
 Randomize 42
 
-sub doTest(t as string, byval theTest as testPtr)
+sub doTest(byval theTest as testPtr)
 	static num as integer = 0
 	
 	num += 1
 	
-	print "Test #" & num & ": " & t & "... ";
+	print "Test #" & num & ": " & startTest_name & "... ";
 	
 	dim as double start, finish, diff
 	dim as integer ret
@@ -45,7 +49,8 @@ sub doTest(t as string, byval theTest as testPtr)
 	diff = finish - start
 
 	if ret > 0 then
-		print "FAIL (on line " & errorpos & " in " & errorfile & ")"
+		print "FAIL on line " & errorpos & " in " & errorfile & " (line " _
+		      & (errorpos - startTest_line) & " of " & startTest_name & ")"
 		close_lazy_files  'Avoid "double close" messages
 		end num
 	elseif ret = 0 then
@@ -76,7 +81,9 @@ end sub
 
 #macro startTest(t)
 	Declare Function t##_TEST() as integer
-	doTest(#t, @t##_TEST)
+	startTest_name = #t
+	startTest_line = __LINE__
+	doTest(@t##_TEST)
 	function t##_TEST() as integer
 #endmacro
 #define endTest pass : end Function
