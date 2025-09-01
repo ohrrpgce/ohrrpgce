@@ -1196,7 +1196,9 @@ music_map = {'native':
                  {'shared_modules': 'music_allegro.bas',
                   'common_libraries': 'alleg'},
              'silence':
-                 {'shared_modules': 'music_silence.bas'}
+                 {'shared_modules': 'music_silence.bas'},
+             'blackbox':
+                 {'shared_modules': 'music_blackbox.bas'}
             }
 
 for k in gfx:
