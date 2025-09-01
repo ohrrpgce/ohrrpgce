@@ -174,8 +174,10 @@ DECLARE FUNCTION spriteset_from_basic_spritesheet(sheet as Frame ptr, sprtype as
 DECLARE FUNCTION load_spriteset_from_file(file as string, framesize as XYPair, numframes as integer) as Frame ptr
 
 
-DECLARE SUB loaditemdata OVERLOAD (array() as integer, byval index as integer)
-DECLARE SUB loaditemdata OVERLOAD (item as ItemDef, index as integer)
+DECLARE SUB loaditemdata (item as ItemDef, index as integer)
+DECLARE SUB load_item_from_reload(item as ItemDef, byval node as NodePtr, byval id as integer = -1)
+DECLARE SUB loaditemdata_old_itm_format OVERLOAD (array() as integer, byval index as integer)
+DECLARE SUB loaditemdata_old_itm_format OVERLOAD (item as ItemDef, index as integer)
 DECLARE SUB saveitemdata (item as ItemDef, byval index as integer)
 DECLARE SUB save_item_as_reload(item as ItemDef, byval parent as NodePtr)
 DECLARE SUB saveitemdata_old_itm_format OVERLOAD (array() as integer, byval index as integer)
@@ -270,6 +272,7 @@ DECLARE FUNCTION WriteStatsNode (byval parent as NodePtr, nodename as string, st
 DECLARE FUNCTION WriteElementalFloatsNode(byval parent as NodePtr, nodename as string, elementals() as single) as NodePtr
 
 DECLARE SUB ReadStatsNode (byval stats as NodePtr, statobj as Stats)
+DECLARE SUB ReadElementalFloatsNode (byval elements_node as NodePtr, elementals() as single, debug_thing as string="")
 
 DECLARE FUNCTION get_general_reld() as NodePtr
 DECLARE SUB write_general_reld()

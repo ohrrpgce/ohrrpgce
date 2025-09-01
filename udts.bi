@@ -1010,7 +1010,7 @@ TYPE ItemDef
 	'attack and text_box are mutually exclusive in the ITM file format
 	teach_spell as integer   ' attack ID, or -1 for none
 	oob_attack as integer    ' attack ID, or -1 for none
-	text_box as integer      ' text box id or -1 for none (box 0 not allowed in ITM file format)
+	text_box as integer      ' text box id or -1 for none (box 0 not allowed in ITM file format, but is okay in items.reld)
 
 	stat_bonuses as Stats '0 for no bonus, negative bonuses allowed
 	elemental_resist(maxElements - 1) as single '1.0 is default

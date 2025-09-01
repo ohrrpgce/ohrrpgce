@@ -1950,17 +1950,7 @@ SUB load_hero_from_reload(hero as HeroDef, byval parent as NodePtr, byval id as 
     END SELECT
    END WITHNODE
   END READNODE
-  READNODE parent."elements" as elements
-   WITHNODE elements."element" as element
-    DIM i as integer = GetInteger(element)
-    SELECT CASE i
-     CASE 0 TO maxElements - 1
-      hero.elementals(i) = CAST(single, element."damage".default(1.0).double)
-     CASE ELSE
-      debug "out-of-bounds elemental " & i & " for hero " & hero.name
-    END SELECT
-   END WITHNODE
-  END READNODE
+  ReadElementalFloatsNode parent."elements".ptr, hero.elementals(), "hero " & id & " " & hero.name
   IF parent."rename_on_add".exists    THEN setbit hero.bits(), 0, 24, YES
   IF parent."rename_on_status".exists THEN setbit hero.bits(), 0, 25, YES
   IF parent."hide_empty_lists".exists THEN setbit hero.bits(), 0, 26, YES
@@ -2219,6 +2209,20 @@ FUNCTION WritePicPalNode (byval parent as NodePtr, nodename as string, byval pic
  END IF
  RETURN node
 END FUNCTION
+
+SUB ReadElementalFloatsNode (byval elements_node as NodePtr, elementals() as single, debug_thing as string="")
+ READNODE elements_node
+  WITHNODE elements_node."element" as element
+   DIM i as integer = GetInteger(element)
+   SELECT CASE i
+    CASE 0 TO maxElements - 1
+     elementals(i) = CAST(single, element."damage".default(1.0).double)
+    CASE ELSE
+     debug "out-of-bounds elemental " & i & IIF(LEN(debug_thing) > 0, " for ", "") & debug_thing
+   END SELECT
+  END WITHNODE
+ END READNODE
+END SUB
 
 FUNCTION WriteElementalFloatsNode(byval parent as NodePtr, nodename as string, elementals() as single) as NodePtr
  DIM node as NodePtr
@@ -4126,11 +4130,16 @@ CONSTRUCTOR ItemDef()
  NEXT i
 END CONSTRUCTOR
 
-SUB loaditemdata (array() as integer, byval index as integer)
+SUB ClearItemData (item as ItemDef)
+  item.Destructor()
+  item.Constructor()
+END SUB
+
+SUB loaditemdata_old_itm_format (array() as integer, byval index as integer)
  flusharray array(), dimbinsize(binITM), 0
- IF index > gen(genMaxItem) THEN debug "loaditemdata:" & index & " out of range" : EXIT SUB
+ IF index > gen(genMaxItem) THEN debug "loaditemdata_old_itm_format:" & index & " out of range" : EXIT SUB
  IF loadrecord(array(), game & ".itm", getbinsize(binITM) \ 2, index) = NO THEN
-  debug "loaditemdata:" & index & " loadrecord failed"
+  debug "loaditemdata_old_itm_format:" & index & " loadrecord failed"
   EXIT SUB
  END IF
  'Auto-update equipability bits if needed
@@ -4169,9 +4178,15 @@ FUNCTION item_is_equippable_in_slot(itembuf() as integer, byval slot as integer)
  RETURN xreadbit(itembuf(), slot, 239)
 END FUNCTION
 
-SUB loaditemdata (item as ItemDef, item_id as integer)
+SUB loaditemdata_old_itm_format (item as ItemDef, item_id as integer)
+ 'Clearing the item data first makes sure that we corrtectly set any
+ 'defaults for data that is newer than when the ITM format was deprecated
+ '(Probably it will be okay because the constructor will have already been called,
+ ' but we do it explicitly here in case this is a re-used ItemDef object)
+ ClearItemData item
+
  DIM itembuf(dimbinsize(binITM)) as integer
- loaditemdata itembuf(), item_id
+ loaditemdata_old_itm_format itembuf(), item_id
  WITH item
   .name = readbadbinstring(itembuf(), 0, 8)
   .info = readbadbinstring(itembuf(), 9, 36)
@@ -4221,6 +4236,169 @@ SUB loaditemdata (item as ItemDef, item_id as integer)
   END IF
 
  END WITH
+END SUB
+
+SUB debug_compare_items(it1 as ItemDef, it2 as ItemDef, id as integer)
+ 'This is just for sanity-testing migration from ITM format to items.reld format
+ 'There is no reason to keep this around after that migration is complete
+ DIM ok as bool = YES
+ DIM msg as string = "ITEM MISMATCH " & id & " " & it1.name & ": "
+ IF it1.name <> it2.name THEN debug msg & " on name " & it1.name & "<>" & it2.name : ok = NO
+ IF it1.info <> it2.info THEN debug msg & " on info " & it1.info & "<>" & it2.info : ok = NO
+ IF it1.stacksize <> it2.stacksize THEN debug msg & " on stacksize " & it1.stacksize & "<>" & it2.stacksize : ok = NO
+ IF it1.eqslots(0) THEN
+  'Don't care about these unless it is equippable as a weapon. ITM kept around stale data fror non-weapons
+  FOR i as integer = 0 to 1
+   IF it1.wep_handle(i).x <> it2.wep_handle(i).x THEN debug msg & " on wep_handle(" & i & ").x " & it1.wep_handle(i).x & "<>" & it2.wep_handle(i).x : ok = NO
+   IF it1.wep_handle(i).y <> it2.wep_handle(i).y THEN debug msg & " on wep_handle(" & i & ").y " & it1.wep_handle(i).y & "<>" & it2.wep_handle(i).y : ok = NO
+  NEXT i
+  IF it1.wep_pic <> it2.wep_pic THEN debug msg & " on wep_pic " & it1.wep_pic & "<>" & it2.wep_pic : ok = NO
+  IF it1.wep_pal > 0 ORELSE it2.wep_pal > 0 THEN
+   '--Default for items that don't use this differs and that is okay
+   IF it1.wep_pal <> it2.wep_pal THEN debug msg & " on wep_pal " & it1.wep_pal & "<>" & it2.wep_pal : ok = NO
+  END IF
+ END IF
+ IF it1.tags.have_tag <> it2.tags.have_tag THEN debug msg & " on tags.have_tag " & it1.tags.have_tag & "<>" & it2.tags.have_tag : ok = NO
+ IF it1.tags.in_inventory_tag <> it2.tags.in_inventory_tag THEN debug msg & " on tags.in_inventory_tag " & it1.tags.in_inventory_tag & "<>" & it2.tags.in_inventory_tag : ok = NO
+ IF it1.tags.is_equipped_tag <> it2.tags.is_equipped_tag THEN debug msg & " on tags.is_equipped_tag " & it1.tags.is_equipped_tag & "<>" & it2.tags.is_equipped_tag : ok = NO
+ IF it1.tags.is_actively_equipped_tag <> it2.tags.is_actively_equipped_tag THEN debug msg & " on tags.is_actively_equipped_tag " & it1.tags.is_actively_equipped_tag & "<>" & it2.tags.is_actively_equipped_tag : ok = NO
+ FOR i as integer = 0 to 4
+  IF it1.eqslots(i) <> it2.eqslots(i) THEN debug msg & " on eqslots(" & i & ") " & it1.eqslots(i) & "<>" & it2.eqslots(i) : ok = NO
+ NEXT i
+ FOR i as integer = 0 to gen(genMaxHero)
+  IF item_read_equipbit(it1, i) <> item_read_equipbit(it2, i) THEN debug msg & " on item_read_equipbit(item, " & i & ") " & item_read_equipbit(it1, i) & "<>" & item_read_equipbit(it2, i) : ok = NO
+ NEXT i
+ IF it1.buy_price <> it2.buy_price THEN debug msg & " on buy_price " & it1.buy_price & "<>" & it2.buy_price : ok = NO
+ IF it1.teach_spell <> it2.teach_spell THEN debug msg & " on teach_spell " & it1.teach_spell & "<>" & it2.teach_spell : ok = NO
+ IF it1.oob_attack <> it2.oob_attack THEN debug msg & " on oob_attack " & it1.oob_attack & "<>" & it2.oob_attack : ok = NO
+ IF it1.text_box <> it2.text_box THEN debug msg & " on text_box " & it1.text_box & "<>" & it2.text_box : ok = NO
+ FOR i as integer = 0 to 11
+  IF it1.stat_bonuses.sta(i) <> it2.stat_bonuses.sta(i) THEN debug msg & " on stat_bonuses.sta(" & i & ") " & it1.stat_bonuses.sta(i) & "<>" & it2.stat_bonuses.sta(i) : ok = NO
+ NEXT i
+ FOR i as integer = 0 to maxElements - 1
+  IF it1.elemental_resist(i) <> it2.elemental_resist(i) THEN debug msg & " on elemental_resist(" & i & ") " & it1.elemental_resist(i) & "<>" & it2.elemental_resist(i) : ok = NO
+ NEXT i
+ IF it1.consumed_by_use <> it2.consumed_by_use THEN debug msg & " on consumed_by_use " & it1.consumed_by_use & "<>" & it2.consumed_by_use : ok = NO
+ IF it1.cannot_be_sold_or_dropped <> it2.cannot_be_sold_or_dropped THEN debug msg & " on cannot_be_sold_or_dropped " & it1.cannot_be_sold_or_dropped & "<>" & it2.cannot_be_sold_or_dropped : ok = NO
+ IF it1.battle_items_menu_attack <> it2.battle_items_menu_attack THEN debug msg & " on battle_items_menu_attack " & it1.battle_items_menu_attack & "<>" & it2.battle_items_menu_attack : ok = NO
+ IF it1.battle_weapon_attack <> it2.battle_weapon_attack THEN debug msg & " on battle_weapon_attack " & it1.battle_weapon_attack & "<>" & it2.battle_weapon_attack : ok = NO
+
+ IF ok THEN debuginfo "GOOD ITEM " & id & " " & it1.name
+END SUB
+
+SUB loaditemdata (item as ItemDef, item_id as integer)
+ 'First try to load the data from items.reld and then fall back on the .ITM
+ 'lump if that hero wasn't in heroes.reld. Do this because we don't always upgrade
+ '.ITM -> items.reld in one go, they can get upgraded as individual records are
+ 'loaded and saved, during upgrade() or in hero_editor, so the upgrade may be
+ 'partial!
+
+ DIM loaded as bool = NO
+
+ DIM doc as DocPtr
+ doc = LoadDocument(workingdir & SLASH & "items.reld", optIgnoreMissing)
+ IF doc THEN  'file present
+  DIM item_node as NodePtr = NodeByPath(doc, "/item[" & item_id & "]")
+  IF item_node THEN
+   'debuginfo "Item ID " & item_id & " was found in items.reld"
+   load_item_from_reload item, item_node, item_id
+   loaded = YES
+   
+   'FIXME: Remove this section soon! It is just a migration sanity test and it is slow and debug noisy
+   DIM olditem as ItemDef
+   loaditemdata_old_itm_format olditem, item_id
+   debug_compare_items olditem, item, item_id
+  END IF
+
+  FreeDocument doc
+ END IF
+
+ 'if not found, fall back to ITM lump
+ IF NOT loaded THEN
+  'debuginfo "falling back to " & game & ".itm" & " slot " & item_id
+  loaditemdata_old_itm_format item, item_id
+ END IF
+END SUB
+
+'id is only used for debugging
+SUB load_item_from_reload(item as ItemDef, byval node as NodePtr, byval id as integer = -1)
+ ClearItemData item 'Sets some defaults, but we don't rely on that; everything below should use correct defaults
+ LoadNode node   'Efficiency
+ READNODE node, default
+  item.name = node."name".string
+  item.info = node."info".string
+  item.stacksize = node."stacksize".integer
+
+  'These will get moved to sprite data somehow later, but for now they still live here
+  READNODE node."wep_handles" as wep_handles
+   WITHNODE wep_handles."wep_handle" as wep_handle
+    DIM i as integer = GetInteger(wep_handle)
+    SELECT CASE i
+     CASE 0 TO UBOUND(item.wep_handle)
+      item.wep_handle(i).x = wep_handle."x".integer
+      item.wep_handle(i).y = wep_handle."y".integer
+    END SELECT
+   END WITHNODE
+  END READNODE
+
+  READNODE node."wepspr" as wepspr
+   item.wep_pic = wepspr."pic".integer
+   item.wep_pal = wepspr."pal".default(-1).integer
+  END READNODE
+  
+  READNODE node."tags" as tags_node
+   item.tags.have_tag                 = tags_node."have".integer
+   item.tags.in_inventory_tag         = tags_node."in_inventory".integer
+   item.tags.is_equipped_tag          = tags_node."is_equipped".integer
+   item.tags.is_actively_equipped_tag = tags_node."is_actively_equipped".integer
+  END READNODE
+
+  READNODE node."eqslots" as eqslots
+   WITHNODE eqslots."slot" as slot
+    DIM i as integer = GetInteger(slot)
+    SELECT CASE i
+    CASE 0 TO UBOUND(item.eqslots)
+     item.eqslots(i) = YES
+    CASE ELSE
+     debuginfo "load_item_from_reload: out of bound equip slot " & i & " for item " & id & " " & item.name
+    END SELECT
+   END WITHNODE
+  END READNODE
+  
+  READNODE node."equip_by" as equip_by
+   WITHNODE equip_by."hero" as hero_node
+    DIM i as integer = GetInteger(hero_node)
+    SELECT CASE i
+    CASE 0 TO gen(genMaxHero)
+     item_write_equipbit item, i, YES
+    CASE ELSE
+     debuginfo "load_item_from_reload: out of bound equip hero id " & i & " for item " & id & " " & item.name
+    END SELECT
+   END WITHNODE
+  END READNODE
+
+  item.buy_price = node."buy_price".integer
+
+  READNODE node."outside_battle" as outside_battle
+   item.teach_spell = outside_battle."teach_spell".default(-1).integer
+   item.oob_attack = outside_battle."oob_attack".default(-1).integer
+   item.text_box = outside_battle."text_box".default(-1).integer
+  END READNODE
+
+  ReadStatsNode node."stat_bonuses".ptr, item.stat_bonuses
+  ReadElementalFloatsNode node."elemental_resist".ptr, item.elemental_resist(), "item " & id & " " & item.name
+  
+  item.consumed_by_use = node."consumed_by_use".bool
+  item.cannot_be_sold_or_dropped = node."cannot_be_sold_or_dropped".bool
+
+  item.battle_items_menu_attack = node."battle_items_menu_attack".default(-1).integer
+  item.battle_weapon_attack = node."battle_weapon_attack".default(-1).integer
+
+ END READNODE
+
+ IF NumChildren(node."outside_battle".ptr) > 1 THEN
+  debuginfo "load_item_from_reload: more than one outside_battle action node for item " & id & " " & item.name
+ END IF
 END SUB
 
 SUB saveitemdata_old_itm_format (array() as integer, byval index as integer)

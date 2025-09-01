@@ -22,6 +22,7 @@ Nov ?? 2025 [Lexiphanic]
     * The shop menu is no longer visible underneath the "Buy" menu [James]
 
   *** Stuff Only Developers Will Notice
+    * Item data is now stored in a new lump, items.reld [James]
 
 Aug 10 2025 [Kaleidophone+1]
 
