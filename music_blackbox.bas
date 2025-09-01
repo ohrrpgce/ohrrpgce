@@ -1,4 +1,4 @@
-'OHRRPGCE - music_blackbox audio backend 
+'OHRRPGCE - music_blackbox audio backend
 '(C) Copyright 1997-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 
@@ -65,7 +65,7 @@ End Sub
 
 Sub music_close()
 
-	'We don't expect this to get used... 
+	'We don't expect this to get used...
 	'Even though it makes no sense to turn off audio on blackbox, we need to clean the state properly (volumes and channels ETC)
 
 	'do nothing if not running
