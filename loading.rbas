@@ -4243,47 +4243,47 @@ SUB debug_compare_items(it1 as ItemDef, it2 as ItemDef, id as integer)
  'There is no reason to keep this around after that migration is complete
  DIM ok as bool = YES
  DIM msg as string = "ITEM MISMATCH " & id & " " & it1.name & ": "
- IF it1.name <> it2.name THEN debug msg & " on name " & it1.name & "<>" & it2.name : ok = NO
- IF it1.info <> it2.info THEN debug msg & " on info " & it1.info & "<>" & it2.info : ok = NO
- IF it1.stacksize <> it2.stacksize THEN debug msg & " on stacksize " & it1.stacksize & "<>" & it2.stacksize : ok = NO
+ IF it1.name <> it2.name THEN debugerror msg & " on name " & it1.name & "<>" & it2.name : ok = NO
+ IF it1.info <> it2.info THEN debugerror msg & " on info " & it1.info & "<>" & it2.info : ok = NO
+ IF it1.stacksize <> it2.stacksize THEN debugerror msg & " on stacksize " & it1.stacksize & "<>" & it2.stacksize : ok = NO
  IF it1.eqslots(0) THEN
   'Don't care about these unless it is equippable as a weapon. ITM kept around stale data fror non-weapons
   FOR i as integer = 0 to 1
-   IF it1.wep_handle(i).x <> it2.wep_handle(i).x THEN debug msg & " on wep_handle(" & i & ").x " & it1.wep_handle(i).x & "<>" & it2.wep_handle(i).x : ok = NO
-   IF it1.wep_handle(i).y <> it2.wep_handle(i).y THEN debug msg & " on wep_handle(" & i & ").y " & it1.wep_handle(i).y & "<>" & it2.wep_handle(i).y : ok = NO
+   IF it1.wep_handle(i).x <> it2.wep_handle(i).x THEN debugerror msg & " on wep_handle(" & i & ").x " & it1.wep_handle(i).x & "<>" & it2.wep_handle(i).x : ok = NO
+   IF it1.wep_handle(i).y <> it2.wep_handle(i).y THEN debugerror msg & " on wep_handle(" & i & ").y " & it1.wep_handle(i).y & "<>" & it2.wep_handle(i).y : ok = NO
   NEXT i
-  IF it1.wep_pic <> it2.wep_pic THEN debug msg & " on wep_pic " & it1.wep_pic & "<>" & it2.wep_pic : ok = NO
+  IF it1.wep_pic <> it2.wep_pic THEN debugerror msg & " on wep_pic " & it1.wep_pic & "<>" & it2.wep_pic : ok = NO
   IF it1.wep_pal > 0 ORELSE it2.wep_pal > 0 THEN
    '--Default for items that don't use this differs and that is okay
-   IF it1.wep_pal <> it2.wep_pal THEN debug msg & " on wep_pal " & it1.wep_pal & "<>" & it2.wep_pal : ok = NO
+   IF it1.wep_pal <> it2.wep_pal THEN debugerror msg & " on wep_pal " & it1.wep_pal & "<>" & it2.wep_pal : ok = NO
   END IF
  END IF
- IF it1.tags.have_tag <> it2.tags.have_tag THEN debug msg & " on tags.have_tag " & it1.tags.have_tag & "<>" & it2.tags.have_tag : ok = NO
- IF it1.tags.in_inventory_tag <> it2.tags.in_inventory_tag THEN debug msg & " on tags.in_inventory_tag " & it1.tags.in_inventory_tag & "<>" & it2.tags.in_inventory_tag : ok = NO
- IF it1.tags.is_equipped_tag <> it2.tags.is_equipped_tag THEN debug msg & " on tags.is_equipped_tag " & it1.tags.is_equipped_tag & "<>" & it2.tags.is_equipped_tag : ok = NO
- IF it1.tags.is_actively_equipped_tag <> it2.tags.is_actively_equipped_tag THEN debug msg & " on tags.is_actively_equipped_tag " & it1.tags.is_actively_equipped_tag & "<>" & it2.tags.is_actively_equipped_tag : ok = NO
+ IF it1.tags.have_tag <> it2.tags.have_tag THEN debugerror msg & " on tags.have_tag " & it1.tags.have_tag & "<>" & it2.tags.have_tag : ok = NO
+ IF it1.tags.in_inventory_tag <> it2.tags.in_inventory_tag THEN debugerror msg & " on tags.in_inventory_tag " & it1.tags.in_inventory_tag & "<>" & it2.tags.in_inventory_tag : ok = NO
+ IF it1.tags.is_equipped_tag <> it2.tags.is_equipped_tag THEN debugerror msg & " on tags.is_equipped_tag " & it1.tags.is_equipped_tag & "<>" & it2.tags.is_equipped_tag : ok = NO
+ IF it1.tags.is_actively_equipped_tag <> it2.tags.is_actively_equipped_tag THEN debugerror msg & " on tags.is_actively_equipped_tag " & it1.tags.is_actively_equipped_tag & "<>" & it2.tags.is_actively_equipped_tag : ok = NO
  FOR i as integer = 0 to 4
-  IF it1.eqslots(i) <> it2.eqslots(i) THEN debug msg & " on eqslots(" & i & ") " & it1.eqslots(i) & "<>" & it2.eqslots(i) : ok = NO
+  IF it1.eqslots(i) <> it2.eqslots(i) THEN debugerror msg & " on eqslots(" & i & ") " & it1.eqslots(i) & "<>" & it2.eqslots(i) : ok = NO
  NEXT i
  FOR i as integer = 0 to gen(genMaxHero)
-  IF item_read_equipbit(it1, i) <> item_read_equipbit(it2, i) THEN debug msg & " on item_read_equipbit(item, " & i & ") " & item_read_equipbit(it1, i) & "<>" & item_read_equipbit(it2, i) : ok = NO
+  IF item_read_equipbit(it1, i) <> item_read_equipbit(it2, i) THEN debugerror msg & " on item_read_equipbit(item, " & i & ") " & item_read_equipbit(it1, i) & "<>" & item_read_equipbit(it2, i) : ok = NO
  NEXT i
- IF it1.buy_price <> it2.buy_price THEN debug msg & " on buy_price " & it1.buy_price & "<>" & it2.buy_price : ok = NO
- IF it1.teach_spell <> it2.teach_spell THEN debug msg & " on teach_spell " & it1.teach_spell & "<>" & it2.teach_spell : ok = NO
- IF it1.oob_attack <> it2.oob_attack THEN debug msg & " on oob_attack " & it1.oob_attack & "<>" & it2.oob_attack : ok = NO
- IF it1.text_box <> it2.text_box THEN debug msg & " on text_box " & it1.text_box & "<>" & it2.text_box : ok = NO
+ IF it1.buy_price <> it2.buy_price THEN debugerror msg & " on buy_price " & it1.buy_price & "<>" & it2.buy_price : ok = NO
+ IF it1.teach_spell <> it2.teach_spell THEN debugerror msg & " on teach_spell " & it1.teach_spell & "<>" & it2.teach_spell : ok = NO
+ IF it1.oob_attack <> it2.oob_attack THEN debugerror msg & " on oob_attack " & it1.oob_attack & "<>" & it2.oob_attack : ok = NO
+ IF it1.text_box <> it2.text_box THEN debugerror msg & " on text_box " & it1.text_box & "<>" & it2.text_box : ok = NO
  FOR i as integer = 0 to 11
-  IF it1.stat_bonuses.sta(i) <> it2.stat_bonuses.sta(i) THEN debug msg & " on stat_bonuses.sta(" & i & ") " & it1.stat_bonuses.sta(i) & "<>" & it2.stat_bonuses.sta(i) : ok = NO
+  IF it1.stat_bonuses.sta(i) <> it2.stat_bonuses.sta(i) THEN debugerror msg & " on stat_bonuses.sta(" & i & ") " & it1.stat_bonuses.sta(i) & "<>" & it2.stat_bonuses.sta(i) : ok = NO
  NEXT i
  FOR i as integer = 0 to maxElements - 1
-  IF it1.elemental_resist(i) <> it2.elemental_resist(i) THEN debug msg & " on elemental_resist(" & i & ") " & it1.elemental_resist(i) & "<>" & it2.elemental_resist(i) : ok = NO
+  IF it1.elemental_resist(i) <> it2.elemental_resist(i) THEN debugerror msg & " on elemental_resist(" & i & ") " & it1.elemental_resist(i) & "<>" & it2.elemental_resist(i) : ok = NO
  NEXT i
- IF it1.consumed_by_use <> it2.consumed_by_use THEN debug msg & " on consumed_by_use " & it1.consumed_by_use & "<>" & it2.consumed_by_use : ok = NO
- IF it1.cannot_be_sold_or_dropped <> it2.cannot_be_sold_or_dropped THEN debug msg & " on cannot_be_sold_or_dropped " & it1.cannot_be_sold_or_dropped & "<>" & it2.cannot_be_sold_or_dropped : ok = NO
- IF it1.battle_items_menu_attack <> it2.battle_items_menu_attack THEN debug msg & " on battle_items_menu_attack " & it1.battle_items_menu_attack & "<>" & it2.battle_items_menu_attack : ok = NO
- IF it1.battle_weapon_attack <> it2.battle_weapon_attack THEN debug msg & " on battle_weapon_attack " & it1.battle_weapon_attack & "<>" & it2.battle_weapon_attack : ok = NO
+ IF it1.consumed_by_use <> it2.consumed_by_use THEN debugerror msg & " on consumed_by_use " & it1.consumed_by_use & "<>" & it2.consumed_by_use : ok = NO
+ IF it1.cannot_be_sold_or_dropped <> it2.cannot_be_sold_or_dropped THEN debugerror msg & " on cannot_be_sold_or_dropped " & it1.cannot_be_sold_or_dropped & "<>" & it2.cannot_be_sold_or_dropped : ok = NO
+ IF it1.battle_items_menu_attack <> it2.battle_items_menu_attack THEN debugerror msg & " on battle_items_menu_attack " & it1.battle_items_menu_attack & "<>" & it2.battle_items_menu_attack : ok = NO
+ IF it1.battle_weapon_attack <> it2.battle_weapon_attack THEN debugerror msg & " on battle_weapon_attack " & it1.battle_weapon_attack & "<>" & it2.battle_weapon_attack : ok = NO
 
- IF ok THEN debuginfo "GOOD ITEM " & id & " " & it1.name
+ 'IF ok THEN debuginfo "GOOD ITEM " & id & " " & it1.name
 END SUB
 
 SUB loaditemdata (item as ItemDef, item_id as integer)
