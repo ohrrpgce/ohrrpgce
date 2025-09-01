@@ -373,8 +373,8 @@ Sub PlayBackThread(byval dummy as any ptr)
 	dim played as integer, carry as double, pauseflag as integer
 	dim labels(15) as MIDI_EVENT ptr, jumpcount(15) as integer, choruswas as MIDI_EVENT ptr
 	labels(0) = midi_song
-	for curtime = 0 to 15
-		jumpcount(curtime) = -1
+	for idx as integer = 0 to 15
+		jumpcount(idx) = -1
 	next
 
 	tempo = 500000 'assume 120 bmp
