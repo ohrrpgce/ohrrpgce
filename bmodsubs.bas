@@ -1066,7 +1066,7 @@ SUB hero_total_equipment_bonuses(byval hero_slot as integer, bonuses() as intege
    IF .equip(slot).id >= 0 THEN
     loaditemdata item, .equip(slot).id
     FOR statnum as integer = 0 TO statLast
-     bonuses(statnum) += item.stat_bonuses(statnum)
+     bonuses(statnum) += item.stat_bonuses.sta(statnum)
     NEXT statnum
    END IF
   NEXT slot

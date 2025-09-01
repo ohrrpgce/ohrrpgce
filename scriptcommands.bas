@@ -5414,7 +5414,7 @@ SUB script_commands(byval cmdid as integer)
    IF valid_stat(retvals(1)) THEN
     DIM item as ItemDef
     loaditemdata item, retvals(0)
-    scriptret = item.stat_bonuses(retvals(1))
+    scriptret = item.stat_bonuses.sta(retvals(1))
    END IF
   END IF
  CASE 787 '--equippable in slot

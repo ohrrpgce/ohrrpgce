@@ -387,7 +387,7 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
    IF hire_level < 0 THEN hire_level = averagelev()
   END IF
   loaditemdata item, her.def_weapon
-  append_menu_item buyst.info, (atlevel(hire_level, her.lev0.hp, her.levMax.hp) + item.stat_bonuses(0)) & " " & statnames(statHP)
+  append_menu_item buyst.info, (atlevel(hire_level, her.lev0.hp, her.levMax.hp) + item.stat_bonuses.hp) & " " & statnames(statHP)
   buyst.info.last->disabled = YES
   buyst.hero_box->Visible = NO
   buyst.hire_box->Visible = YES
@@ -462,9 +462,9 @@ SUB buystuff_refresh_selected (buyst as ShopBuyState, byval thing as NodePtr)
     IF eq_id >= 0 THEN loaditemdata already_item, eq_id
    END IF
    FOR i as integer = 0 to 11
-    bonus = item.stat_bonuses(i)
+    bonus = item.stat_bonuses.sta(i)
     IF eq_id >= 0 THEN
-     bonus = item.stat_bonuses(i) - already_item.stat_bonuses(i)
+     bonus = item.stat_bonuses.sta(i) - already_item.stat_bonuses.sta(i)
     END IF
     bonus_info = ""
     IF bonus <> 0 THEN
@@ -3656,7 +3656,7 @@ SUB equip_menu_stat_bonus(byref st as EquipMenuState)
  ELSE
   loaditemdata item, item_id
   FOR i as integer = 0 TO statLast
-   st.stat_bonus(i) = item.stat_bonuses(i)
+   st.stat_bonus(i) = item.stat_bonuses.sta(i)
   NEXT i
  END IF
 
@@ -3665,7 +3665,7 @@ SUB equip_menu_stat_bonus(byref st as EquipMenuState)
  IF equipped >= 0 THEN
   loaditemdata item, equipped
   FOR i as integer = 0 TO statLast
-   st.stat_bonus(i) -= item.stat_bonuses(i)
+   st.stat_bonus(i) -= item.stat_bonuses.sta(i)
   NEXT i
  END IF
 

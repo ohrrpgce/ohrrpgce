@@ -1012,7 +1012,7 @@ TYPE ItemDef
 	oob_attack as integer    ' attack ID, or -1 for none
 	text_box as integer      ' text box id or -1 for none (box 0 not allowed in ITM file format)
 
-	stat_bonuses(statLast) as integer '0 for no bonus, negative bonuses allowed
+	stat_bonuses as Stats '0 for no bonus, negative bonuses allowed
 	elemental_resist(maxElements - 1) as double '1.0 is default
 	consumed_by_use as bool
 	cannot_be_sold_or_dropped as bool

@@ -177,10 +177,10 @@ SUB ItemEditor.define_items()
  prev_menu_text = "Previous Menu"
 
  FOR i as integer = 0 TO statLast
-  defint statnames(i) + " Bonus:", item.stat_bonuses(i), -32768, 32767
+  defint statnames(i) + " Bonus:", item.stat_bonuses.sta(i), -32768, 32767
   DIM cap as integer = gen(genStatCap + i)
-  IF cap > 0 ANDALSO item.stat_bonuses(i) > cap THEN
-   set_caption item.stat_bonuses(i) & " [stat capped to " & cap & "]"
+  IF cap > 0 ANDALSO item.stat_bonuses.sta(i) > cap THEN
+   set_caption item.stat_bonuses.sta(i) & " [stat capped to " & cap & "]"
   END IF
  NEXT
 

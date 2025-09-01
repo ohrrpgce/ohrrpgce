@@ -4193,7 +4193,7 @@ SUB loaditemdata (item as ItemDef, item_id as integer)
   .battle_items_menu_attack = itembuf(47) - 1
   .battle_weapon_attack = itembuf(48) - 1
   FOR i as integer = 0 to 11
-   .stat_bonuses(i) = itembuf(54 + i)
+   .stat_bonuses.sta(i) = itembuf(54 + i)
   NEXT i
   FOR i as integer = 0 to 3
    .equip_by_bits(i) = itembuf(66 + i)
@@ -4270,7 +4270,7 @@ SUB saveitemdata (item as ItemDef, byval index as integer)
   itembuf(47) = .battle_items_menu_attack + 1
   itembuf(48) = .battle_weapon_attack + 1
   FOR i as integer = 0 to 11
-   itembuf(54 + i) = .stat_bonuses(i)
+   itembuf(54 + i) = .stat_bonuses.sta(i)
   NEXT i
   FOR i as integer = 0 to 3
    itembuf(66 + i) = .equip_by_bits(i)
