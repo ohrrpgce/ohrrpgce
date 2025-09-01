@@ -444,7 +444,7 @@ FUNCTION old_individual_item_editor(item_id as integer) as integer
   gen(genMaxItem) += 1
   item_id = gen(genMaxItem)
   old_item_editor_init_new itembuf()
-  saveitemdata itembuf(), item_id
+  saveitemdata_old_itm_format itembuf(), item_id
  END IF
  IF item_id > UBOUND(itemtags) THEN
   'REDIMs itemtags
@@ -716,7 +716,7 @@ FUNCTION old_individual_item_editor(item_id as integer) as integer
   dowait
  LOOP
  unload_sprite_and_pal wep_img
- saveitemdata itembuf(), item_id
+ saveitemdata_old_itm_format itembuf(), item_id
  RETURN item_id
 END FUNCTION
 

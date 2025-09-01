@@ -176,8 +176,10 @@ DECLARE FUNCTION load_spriteset_from_file(file as string, framesize as XYPair, n
 
 DECLARE SUB loaditemdata OVERLOAD (array() as integer, byval index as integer)
 DECLARE SUB loaditemdata OVERLOAD (item as ItemDef, index as integer)
-DECLARE SUB saveitemdata OVERLOAD (array() as integer, byval index as integer)
-DECLARE SUB saveitemdata OVERLOAD (item as ItemDef, byval index as integer)
+DECLARE SUB saveitemdata (item as ItemDef, byval index as integer)
+DECLARE SUB save_item_as_reload(item as ItemDef, byval parent as NodePtr)
+DECLARE SUB saveitemdata_old_itm_format OVERLOAD (array() as integer, byval index as integer)
+DECLARE SUB saveitemdata_old_itm_format OVERLOAD (item as ItemDef, byval index as integer)
 DECLARE SUB item_tags_from_buf(tags as ItemDefTags, itembuf() as integer)
 DECLARE FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as single
 DECLARE SUB LoadItemElementals (byval index as integer, itemresists() as single)
@@ -265,6 +267,7 @@ DECLARE SUB save_distrib_state OVERLOAD (byref distinfo as DistribState, byval n
 DECLARE FUNCTION WriteXYPairNode (byval parent as NodePtr, nodename as string, pair as XYPair) as NodePtr
 DECLARE FUNCTION WritePicPalNode (byval parent as NodePtr, nodename as string, byval pic as integer, byval pal as integer=-1) as NodePtr
 DECLARE FUNCTION WriteStatsNode (byval parent as NodePtr, nodename as string, statobj as Stats) as NodePtr
+DECLARE FUNCTION WriteElementalFloatsNode(byval parent as NodePtr, nodename as string, elementals() as single) as NodePtr
 
 DECLARE SUB ReadStatsNode (byval stats as NodePtr, statobj as Stats)
 

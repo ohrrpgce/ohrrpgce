@@ -5401,7 +5401,7 @@ IF full_upgrade ANDALSO getfixbit(fixItemElementals) = 0 THEN
   FOR j as integer = 0 TO 63 'maxElements - 1
    SerSingle(dat(), 82 + j*2, LoadOldItemElemental(dat(), j))
   NEXT
-  saveitemdata dat(), i
+  saveitemdata_old_itm_format dat(), i
  NEXT
 END IF
 

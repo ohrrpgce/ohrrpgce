@@ -2113,14 +2113,7 @@ SUB save_hero_as_reload(hero as HeroDef, byval parent as NodePtr)
   END IF
  NEXT i
  
- DIM elements as NodePtr
- elements = SetChildNode(parent, "elements")
- FOR i as integer = 0 to gen(genNumElements) - 1
-  IF INT(hero.elementals(i) * 10000) <> 10000 THEN
-   ch = AppendChildNode(elements, "element", i)
-   SetChildNode ch, "damage", cast(double, hero.elementals(i))
-  END IF
- NEXT i
+ WriteElementalFloatsNode(parent, "elements", hero.elementals())
  
  IF xreadbit(hero.bits(), 24) THEN SetChildNode parent, "rename_on_add"
  IF xreadbit(hero.bits(), 25) THEN SetChildNode parent, "rename_on_status"
@@ -2224,6 +2217,19 @@ FUNCTION WritePicPalNode (byval parent as NodePtr, nodename as string, byval pic
  IF pal >= 0 THEN
   AppendChildNode node, "pal", pal
  END IF
+ RETURN node
+END FUNCTION
+
+FUNCTION WriteElementalFloatsNode(byval parent as NodePtr, nodename as string, elementals() as single) as NodePtr
+ DIM node as NodePtr
+ node = SetChildNode(parent, nodename)
+ DIM ch as NodePtr
+ FOR i as integer = 0 to gen(genNumElements) - 1
+  IF INT(elementals(i) * 10000) <> 10000 THEN
+   ch = AppendChildNode(node, "element", i)
+   SetChildNode ch, "damage", cast(double, elementals(i))
+  END IF
+ NEXT i
  RETURN node
 END FUNCTION
 
@@ -4217,7 +4223,7 @@ SUB loaditemdata (item as ItemDef, item_id as integer)
  END WITH
 END SUB
 
-SUB saveitemdata (array() as integer, byval index as integer)
+SUB saveitemdata_old_itm_format (array() as integer, byval index as integer)
  'Back-port the first equip slot
  'We do not support downgrading, but it does not hurt to minimize the damage of downgrading
  IF xreadbit(array(), 15, 239) THEN
@@ -4233,7 +4239,7 @@ SUB saveitemdata (array() as integer, byval index as integer)
  storerecord array(), game & ".itm", getbinsize(binITM) \ 2, index
 END SUB
 
-SUB saveitemdata (item as ItemDef, byval index as integer)
+SUB saveitemdata_old_itm_format (item as ItemDef, byval index as integer)
  '-- Convert ItemDef back into ITM buffer format
  'When we switch to items.reld we can keep this around to reduce the damage from a downgrade
  'But there is no way to add support for any future additions to the item data
@@ -4290,7 +4296,98 @@ SUB saveitemdata (item as ItemDef, byval index as integer)
   NEXT
 
  END WITH
- saveitemdata itembuf(), index
+ saveitemdata_old_itm_format itembuf(), index
+END SUB
+
+SUB saveitemdata (item as ItemDef, byval index as integer)
+ '--save the old way
+ 'WARNING: this is lossy, and serves no purpose other than
+ 'allowing people to downgrade to older versions WITH DATA LOSS
+ saveitemdata_old_itm_format item, index
+
+ '--save the new way
+ DIM filename as string = workingdir & SLASH & "items.reld"
+ DIM doc as DocPtr
+ doc = LoadDocument(filename, optNoDelay OR optIgnoreMissing)
+ IF doc = 0 THEN
+  debuginfo "items doc not found, create it"
+  doc = CreateDocument()
+ END IF
+
+ DIM items_node as NodePtr
+ items_node = DocumentRoot(doc)
+ IF items_node = 0 THEN
+  items_node = CreateNode(doc, "items")
+  SetRootNode(doc, items_node)
+ END IF
+
+ 'Create a new item node if it doesn't already exist, otherwise we replace it
+ DIM itemnode as NodePtr
+ itemnode = NodeByPath(items_node, "/item[" & index & "]", YES)
+
+ save_item_as_reload item, itemnode
+
+ SerializeBin filename, doc
+ FreeDocument doc
+END SUB
+
+SUB save_item_as_reload(item as ItemDef, byval parent as NodePtr)
+ FreeChildren parent
+ SetChildNode(parent, "name", item.name)
+ SetChildNode(parent, "info", item.info)
+ SetChildNode(parent, "stacksize", item.stacksize)
+
+ IF item.eqslots(0) THEN
+  'Weapon handle will eventually be moved to the sprite data itself, and will need to support more frames
+  'Maybe this node will continue to exist as overrides? Who knows! Overrides might not be useful!
+  DIM wep_handles as NodePtr
+  DIM wep_handle as NodePtr
+  wep_handles = SetChildNode(parent, "wep_handles")
+  FOR i as integer = 0 TO UBOUND(item.wep_handle)
+   wep_handle = WriteXYPairNode(wep_handles, "wep_handle", item.wep_handle(i))
+   SetContent(wep_handle, i)
+  NEXT i
+  WritePicPalNode(parent, "wepspr", item.wep_pic, item.wep_pal)
+ END IF
+ 
+ DIM tags_node as NodePtr
+ tags_node = SetChildNode(parent, "tags")
+ IF item.tags.have_tag <> 0                 THEN SetChildNode(tags_node, "have", item.tags.have_tag)
+ IF item.tags.in_inventory_tag <> 0         THEN SetChildNode(tags_node, "in_inventory", item.tags.in_inventory_tag)
+ IF item.tags.is_equipped_tag <> 0          THEN SetChildNode(tags_node, "is_equipped", item.tags.is_equipped_tag)
+ IF item.tags.is_actively_equipped_tag <> 0 THEN SetChildNode(tags_node, "is_actively_equipped", item.tags.is_actively_equipped_tag)
+
+ DIM eqslots_node as NodePtr
+ eqslots_node = SetChildNode(parent, "eqslots")
+ FOR i as integer = 0 to UBOUND(item.eqslots)
+  IF item.eqslots(i) THEN AppendChildNode(eqslots_node, "slot", i)
+ NEXT i
+
+ DIM equip_by_node as NodePtr
+ equip_by_node = SetChildNode(parent, "equip_by")
+ FOR i as integer = 0 to small(gen(genMaxHero), maxMaxHero)
+  IF item_read_equipbit(item, i) THEN AppendChildNode(equip_by_node, "hero", i)
+ NEXT i
+
+ SetChildNode(parent, "buy_price", item.buy_price)
+
+ DIM outside_battle as NodePtr
+ outside_battle = SetChildNode(parent, "outside_battle")
+ IF item.teach_spell >= 0 THEN SetChildNode(outside_battle, "teach_spell", item.teach_spell)
+ IF item.oob_attack >= 0  THEN SetChildNode(outside_battle, "oob_attack", item.oob_attack)
+ IF item.text_box >= 0    THEN SetChildNode(outside_battle, "text_box", item.text_box)
+ IF NumChildren(outside_battle) > 1 THEN
+  debuginfo "save_item_as_reload(""" & item.name & """) wrote multiple outside_battle actions"
+ END IF
+
+ WriteStatsNode(parent, "stat_bonuses", item.stat_bonuses)
+ WriteElementalFloatsNode(parent, "elemental_resist", item.elemental_resist())
+ SetChildNodeBool(parent, "consumed_by_use", item.consumed_by_use)
+ SetChildNodeBool(parent, "cannot_be_sold_or_dropped", item.cannot_be_sold_or_dropped)
+
+ IF item.battle_items_menu_attack >= 0 THEN SetChildNode(parent, "battle_items_menu_attack", item.battle_items_menu_attack)
+ IF item.battle_weapon_attack >= 0     THEN SetChildNode(parent, "battle_weapon_attack", item.battle_weapon_attack)
+ 
 END SUB
 
 FUNCTION LoadOldItemElemental (itembuf() as integer, byval element as integer) as single
