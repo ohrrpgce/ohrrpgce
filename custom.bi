@@ -62,7 +62,6 @@ DECLARE SUB general_data_editor ()
 DECLARE SUB global_text_strings_editor ()
 DECLARE SUB item_editor ()
 DECLARE FUNCTION individual_item_editor(item_id as integer) as integer
-DECLARE FUNCTION old_individual_item_editor(item_id as integer) as integer
 DECLARE SUB formation_editor ()
 DECLARE FUNCTION individual_formation_editor (form_id as integer = -1) as integer
 DECLARE FUNCTION formation_set_editor (set_id as integer = -1) as integer
