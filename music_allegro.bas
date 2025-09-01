@@ -19,6 +19,7 @@
 #undef readkey
 #undef bitmap
 #undef ellipse
+#undef num_joysticks
 #include "allegro.bi"
 
 
@@ -27,12 +28,26 @@
 #define MIDI_AUTODETECT -1
 #endif
 
+TYPE SoundEffect EXTENDS SFXCommonData
+  used as bool 'whether this slot is free
+
+  paused as bool
+  playing as bool
+
+  buf as SAMPLE ptr
+  voice as integer
+END TYPE
+
 '''' Module-shared variables
 
-dim shared music_on as integer = 0
+dim shared music_on as bool = NO
 dim shared music_vol as single
-dim shared music_paused as integer
+dim shared music_paused as bool = NO
 dim shared music_song as MIDI ptr = 0
+
+dim shared sound_inited as bool  'Needed for anything but sound_init to work
+dim shared sfx_slots(7) as SoundEffect
+
 
 'The music module needs to manage a list of temporary files to
 'delete when closed, mainly for custom, so they don't get lumped
@@ -50,32 +65,32 @@ sub music_init()
 		allegro_initialised = YES
 	end if
 
-	if music_on = 0 then
+	if music_on = NO then
 		install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, 0)
-		
+
 		music_vol = 0.5
-		music_on = 1
-		music_paused = 0
-		
+		music_on = YES
+		music_paused = NO
+
 		music_setvolume(music_vol)
 	end if	
 end sub
 
 sub music_close()
-	if music_on = 1 then
+	if music_on then
 		'Let Allegro shut down the music systems on exit
 		'just stop the song, if playing
-		if music_song <> 0 then
+		if music_song then
 			destroy_midi(music_song)
-			music_song = 0
-			music_paused = 0
+			music_song = NO
+			music_paused = NO
 		end if
-		
+
 		if delhead <> null then
 			'delete temp files
 			dim ditem as delitem ptr
 			dim dlast as delitem ptr
-			
+
 			ditem = delhead
 			while ditem <> null
 				if isfile(*(ditem->fname)) then
@@ -88,7 +103,7 @@ sub music_close()
 			wend
 			delhead = null
 		end if
-		'music_on = 0
+		'music_on = NO
 	end if
 end sub
 
@@ -109,7 +124,7 @@ function music_settings_menu () as bool
 end function
 
 sub music_play(filename as string, fmt as MusicFormatEnum)
-	if music_on = 1 then
+	if music_on = YES then
 		dim songname as string = filename
 
 		if fmt = FORMAT_BAM then
@@ -145,10 +160,10 @@ sub music_play(filename as string, fmt as MusicFormatEnum)
 		end if
 
 		'stop current song
-		if music_song <> 0 then
+		if music_song then
 			destroy_midi(music_song)
-			music_song = 0
-			music_paused = 0
+			music_song = NO
+			music_paused = NO
 		end if
 
 		log_openfile(songname)
@@ -159,26 +174,26 @@ sub music_play(filename as string, fmt as MusicFormatEnum)
 		end if
 
 		play_midi(music_song, 1)
-		music_paused = 0
+		music_paused = NO
 	end if
 end sub
 
 sub music_pause()
-	if music_on = 1 then
-		if music_song > 0 then
-			if music_paused = 0 then
+	if music_on = YES then
+		if music_song then
+			if music_paused = NO then
 				midi_pause
-				music_paused = 1
+				music_paused = YES
 			end if
 		end if
 	end if
 end sub
 
 sub music_resume()
-	if music_on = 1 then
-		if music_song > 0 then
+	if music_on then
+		if music_song then
 			midi_resume
-			music_paused = 0
+			music_paused = YES
 		end if
 	end if
 end sub
@@ -189,7 +204,7 @@ end sub
 
 sub music_setvolume(byval vol as single)
 	music_vol = vol
-	if music_on = 1 then
+	if music_on = YES then
 		'This sets only MIDI volume
 		set_volume(-1, music_vol * 255)
 	end if
@@ -199,22 +214,6 @@ function music_getvolume() as single
 	music_getvolume = music_vol
 end function
 
-TYPE sound_effect EXTENDS SFXCommonData
-  used as bool 'whether this slot is free
-  
-  paused as integer
-  playing as integer
-  
-  pause_pos as integer
-  
-  buf as SAMPLE ptr
-  voice as integer
-END TYPE
-
-dim shared sfx_slots(7) as sound_effect
-
-
-dim shared sound_inited as integer 'must be non-zero for anything but _init to work
 
 
 sub sound_init
@@ -228,7 +227,7 @@ end sub
 
 sub sound_close
   'trying to free something that's already freed... bad!
-  if sound_inited = 0 then exit sub
+  if sound_inited = NO then exit sub
   
   dim i as integer
   
@@ -237,8 +236,8 @@ sub sound_close
       if .used then
         deallocate_voice(.voice)
         destroy_sample(.buf)
-        .paused = 0
-        .playing = 0
+        .paused = NO
+        .playing = NO
         .used = NO
         .buf = 0
       end if
@@ -247,11 +246,12 @@ sub sound_close
   
   'let allegro clean up for me
   
-  sound_inited = 0
+  sound_inited = NO
 end sub
 
 'UNIMPLEMENTED
-sub sound_reset() : end sub
+sub sound_reset()
+end sub
 
 'PARTIALLY UNIMPLEMENTED
 ' Returns -1 if too many sounds already playing/loaded
@@ -323,8 +323,8 @@ sub sound_unload(slot as integer)
   with sfx_slots(slot)
     if .used then
       .used = NO
-      .playing = 0
-      .paused = 0
+      .playing = NO
+      .paused = NO
       deallocate_voice(.voice)
       destroy_sample(.buf)
     end if
@@ -335,7 +335,7 @@ end sub
 sub sound_play(slot as integer, loopcount as integer, volume as single)
   with sfx_slots(slot)
     if .used = NO then exit sub
-    if .playing and .paused = 0 then exit sub
+    if .playing and .paused = NO then exit sub
     if .buf = 0 then exit sub
     
     if loopcount then
@@ -345,8 +345,8 @@ sub sound_play(slot as integer, loopcount as integer, volume as single)
       voice_set_playmode(.voice,PLAYMODE_PLAY)
     end if
     
-    .paused = 0
-    .playing = 1
+    .paused = NO
+    .playing = YES
     voice_start(.voice)
   end with
 end sub
@@ -357,16 +357,16 @@ end sub
 
 ' UNIMPLEMENTED
 function sound_getvolume(slot as integer) as single
-  return 0.
+  return 1.
 end function
 
 sub sound_pause(slot as integer)
   with sfx_slots(slot)
     if .used = NO then exit sub
-    if .playing = 0 then exit sub
+    if .playing = NO then exit sub
     if .paused then exit sub
     
-    .paused = 1
+    .paused = YES
     voice_stop(.voice)
   end with
 end sub
@@ -374,10 +374,10 @@ end sub
 sub sound_stop(slot as integer)
   with sfx_slots(slot)
     if .used = NO then exit sub
-    if .playing = 0 then exit sub
+    if .playing = NO then exit sub
     
-    .playing = 0
-    .paused = 0
+    .playing = NO
+    .paused = NO
     
     voice_stop(.voice)
     voice_set_position(.voice,0)
