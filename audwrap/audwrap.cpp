@@ -179,6 +179,44 @@ AUDWRAP_API void AudPause(int slot) {
     if (sounds[slot].stream->isPlaying()) sounds[slot].stream->stop();
 }
 
+AUDWRAP_API int AudSampleRate(int slot) {
+    if (!isvalid(slot)) return 0;
+    int channel_count, sample_rate;
+    SampleFormat format;
+    sounds[slot].source->getFormat(channel_count, sample_rate, format);
+    return sample_rate;
+}
+
+//Whether AudSetPosition (should) work
+AUDWRAP_API bool AudIsSeekable(int slot) {
+    if (!isvalid(slot)) return false;
+    return sounds[slot].stream->isSeekable();
+}
+
+//Length in seconds, -1 on failure
+AUDWRAP_API double AudGetLength(int slot) {
+    if (!isvalid(slot)) return -1.0;
+    int sample_rate = AudSampleRate(slot);
+    if (!sample_rate) return -1.0;
+    return sounds[slot].source->getLength() / sample_rate;
+}
+
+//Sets time in seconds
+AUDWRAP_API void AudSetPosition(int slot, double position) {
+    if (!isvalid(slot)) return;
+    int sample_rate = AudSampleRate(slot);
+    if (!sample_rate) return;
+    sounds[slot].stream->setPosition(position * sample_rate);
+}
+
+//Time in seconds, -1 on failure
+AUDWRAP_API double AudGetPosition(int slot) {
+    if (!isvalid(slot)) return -1.0;
+    int sample_rate = AudSampleRate(slot);
+    if (!sample_rate) return -1.0;
+    return sounds[slot].stream->getPosition() * sample_rate;
+}
+
 //interates the slots until it finds a sound. If there isn't any room, it grows the array
 int findFreeSlot() {
     for (int slot = 0; slot < numSounds; slot++) {

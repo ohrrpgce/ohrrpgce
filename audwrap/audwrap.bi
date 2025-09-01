@@ -27,6 +27,10 @@ declare sub AudSetVolume (as integer, as single)
 declare function AudGetVolume (slot as integer) as single
 declare sub AudSetRepeat (slot as integer, repeat as bool)
 declare function AudGetRepeat (slot as integer) as bool
+declare function AudIsSeekable (slot as integer) as bool
+declare function AudGetLength (slot as integer) as double
+declare sub AudSetPosition (slot as integer, position as double)
+declare function AudGetPosition (slot as integer) as double
 
 end extern
 

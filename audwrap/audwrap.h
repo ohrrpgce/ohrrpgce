@@ -52,5 +52,9 @@ AUDWRAP_API bool AudIsPlaying(int s);
 AUDWRAP_API void AudPlay(int s);
 AUDWRAP_API void AudStop(int s);
 AUDWRAP_API void AudPause(int s);
+AUDWRAP_API bool AudIsSeekable(int s);
+AUDWRAP_API double AudGetLength(int s);
+AUDWRAP_API void AudSetPosition(int s, double position);
+AUDWRAP_API double AudGetPosition(int s);
 }
 #endif
