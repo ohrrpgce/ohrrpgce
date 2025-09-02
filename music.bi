@@ -38,6 +38,15 @@ declare function music_getvolume() as single
 ' Return YES if a menu was shown, NO otherwise
 declare function music_settings_menu() as bool
 
+' Returns whether music_settime should work on the current song.
+declare function music_seekable() as bool
+' Returns the current time position of the current song in seconds, or -1 if not supported.
+declare function music_gettime() as double
+' Sets the current time position of the current song in seconds, returns true on success.
+declare function music_settime(byval pos_s as double) as bool
+' Returns the length of the current song in seconds, or -1 if not supported.
+declare function music_getlength() as double
+
 '==========================================================================================
 '                                            SFX
 
@@ -79,6 +88,13 @@ declare sub sound_free(num as integer)
 
 declare function sound_slotdata(slot as integer) as SFXCommonData ptr
 declare function sound_lastslot() as integer
+
+' The following are only implemented by music_audiere and used internally by music_native/native2, for now.
+declare function sound_getlength(slot as integer) as double
+declare function sound_seekable(slot as integer) as bool
+declare function sound_gettime(slot as integer) as double
+declare function sound_settime(slot as integer, position as double) as bool
+
 
 '==========================================================================================
 '' Functions in bam2mid.bas

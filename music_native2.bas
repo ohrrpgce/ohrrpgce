@@ -872,3 +872,36 @@ function music_getvolume() as single
 	end if
 	return music_vol
 end function
+
+function music_seekable() as bool
+	if midi_song then return NO  'Unimplemented
+	if sound_song >= 0 then
+		return AudIsSeekable(sound_song)
+	end if
+	return NO
+end function
+
+function music_gettime() as double
+	if midi_song then return -1.0  'Unimplemented
+	if sound_song >= 0 then
+		return AudGetPosition(sound_song)
+	end if
+	return -1.0
+end function
+
+function music_settime(byval pos_s as double) as bool
+	if midi_song then return NO
+	if sound_song >= 0 then
+		AudSetPosition(sound_song, pos_s)
+		return YES
+	end if
+	return NO
+end function
+
+function music_getlength() as double
+	if midi_song then return -1.0
+	if sound_song >= 0 then
+		return AudGetLength(sound_song)
+	end if
+	return -1.0
+end function

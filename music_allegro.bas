@@ -44,6 +44,7 @@ dim shared music_on as bool = NO
 dim shared music_vol as single
 dim shared music_paused as bool = NO
 dim shared music_song as MIDI ptr = 0
+dim shared music_length as double = 0
 
 dim shared sound_inited as bool  'Needed for anything but sound_init to work
 dim shared sfx_slots(7) as SoundEffect
@@ -173,6 +174,9 @@ sub music_play(filename as string, fmt as MusicFormatEnum)
 			exit sub
 		end if
 
+		get_midi_length(music_song)  'Sets midi_time
+		music_length = midi_time  'In seconds!
+
 		play_midi(music_song, 1)
 		music_paused = NO
 	end if
@@ -212,6 +216,31 @@ end sub
 
 function music_getvolume() as single
 	music_getvolume = music_vol
+end function
+
+function music_seekable() as bool
+	return NO
+end function
+
+function music_gettime() as double
+	if music_song then
+		return midi_time
+	end if
+	return -1.0
+end function
+
+function music_settime(byval pos_s as double) as bool
+	' Allegro allows seeking in MIDI using midi_pos and midi_seek but that requires a beat number
+	' not a time in seconds.
+	return NO
+end function
+
+' Returns length in seconds!
+function music_getlength() as double
+	if music_song then
+		return music_length
+	end if
+	return -1.0
 end function
 
 

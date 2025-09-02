@@ -258,6 +258,7 @@ function memory_usage_string() as string
 end function
 
 ' Like FB's dylibload except it doesn't load the library if it isn't already.
+' (But the os_unix version requires full filenames, "libfoo.so" not "foo".)
 ' The ".dll" suffix on the name is optional and it can include a path.
 ' Use with FB's dylibsymbol and dylibfree.
 function dylib_noload(libname as const zstring ptr) as any ptr

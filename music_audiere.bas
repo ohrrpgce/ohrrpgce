@@ -139,6 +139,28 @@ function sound_lastslot() as integer
   return ubound(SoundPool)
 end function
 
+function sound_getlength(slot as integer) as double
+  if slot = -1 then return -1.0
+  return AudGetLength(slot)
+end function
+
+function sound_seekable(slot as integer) as bool
+  if slot = -1 then return NO
+  return AudIsSeekable(slot) <> 0
+end function
+
+function sound_gettime(slot as integer) as double
+  if slot = -1 then return -1.0
+  return AudGetPosition(slot)
+end function
+
+function sound_settime(slot as integer, position as double) as bool
+  if slot = -1 then return NO
+  AudSetPosition(slot, position)
+  return YES
+end function
+
+
 '-------------------------------------------------------------------------------
 
 
@@ -190,9 +212,9 @@ function sound_load(fname as string, num as integer = -1) as integer
   dim audslot as integer  'Audiere sound number
   log_openfile fname
   if extn = "mp3" or extn = "ogg" then 'intended for streaming
-    audslot = AudLoadSound(fname, 1)
+    audslot = AudLoadSound(fname, YES)  'streaming
   else
-    audslot = AudLoadSound(fname, 0)
+    audslot = AudLoadSound(fname, NO)  'Don't stream
   end if
   'debug "slot is " & audslot
 

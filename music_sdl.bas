@@ -39,7 +39,6 @@
 	#define Mix_ClearError  SDL_ClearError
 #endif
 
-
 ' External functions
 
 #ifndef SDL_MIXER2
@@ -58,6 +57,10 @@ dim shared _Mix_GetNumMusicDecoders as function () as Sint32
 dim shared _Mix_GetNumChunkDecoders as function () as Sint32
 dim shared _Mix_GetMusicDecoder as function (byval index as Sint32) as zstring ptr
 dim shared _Mix_GetChunkDecoder as function (byval index as Sint32) as zstring ptr
+
+'Only available since 2.6.0 (July 2022)
+dim shared _Mix_GetMusicPosition as function (byval music as Mix_Music ptr) as double
+dim shared _Mix_MusicDuration  as function (byval music as Mix_Music ptr) as double
 
 'We might not actually link to libmodplug, but want the type/enum declarations.
 'Warning: does #inclib "modplug", which we don't actually want.
@@ -148,6 +151,9 @@ function music_get_info() as string
 		'and our SDL2_mixer.dll before 2.6.1 (which switched to libxmp-lite),
 		_ModPlug_GetSettings = dylibsymbol(libhandle, "ModPlug_GetSettings")
 		_ModPlug_SetSettings = dylibsymbol(libhandle, "ModPlug_SetSettings")
+
+		_Mix_GetMusicPosition = dylibsymbol(libhandle, "_Mix_GetMusicPosition")
+		_Mix_MusicDuration = dylibsymbol(libhandle, "_Mix_MusicDuration")
 	else
 		debug "dylib_noload(" & SONAME & ") failed. Continuing"
 	end if
@@ -571,6 +577,35 @@ end sub
 function music_getvolume() as single
 	'return Mix_VolumeMusic(-1) / MIX_MAX_VOLUME
 	return music_vol
+end function
+
+function music_seekable() as bool
+	'if Mix_SetMusicPosition = NULL then return NO
+	dim mus_type as Mix_MusicType = Mix_GetMusicType(NULL)
+	' Supposedly "MOD" and "MODPLUG" are supported, not MIDI
+	if mus_type = MUS_NONE or mus_type = MUS_MID then
+		return NO
+	end if
+	return YES
+' 	return nonmidi_playing
+end function
+
+function music_gettime() as double
+	if _Mix_GetMusicPosition then
+		return _Mix_GetMusicPosition(NULL)
+	end if
+	return -1.0
+end function
+
+function music_settime(byval pos_s as double) as bool
+	return Mix_SetMusicPosition(pos_s) = 0
+end function
+
+function music_getlength() as double
+	if _Mix_MusicDuration then
+		return _Mix_MusicDuration(NULL)
+	end if
+	return -1.0
 end function
 
 '------------ Sound effects --------------

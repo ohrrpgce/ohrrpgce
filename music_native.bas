@@ -358,6 +358,39 @@ function music_getvolume() as single
 	return music_vol
 end function
 
+function music_seekable() as bool
+	if midi_song then return NO  'Unimplemented
+	if sound_song >= 0 then
+		return sound_seekable(sound_song)
+	end if
+	return NO
+end function
+
+function music_gettime() as double
+	if midi_song then return -1.0  'Unimplemented
+	if sound_song >= 0 then
+		return sound_gettime(sound_song)
+	end if
+	return -1.0
+end function
+
+function music_settime(byval position as double) as bool
+	if midi_song then return NO
+	if sound_song >= 0 then
+		return sound_settime(sound_song, position)
+	end if
+	return NO
+end function
+
+function music_getlength() as double
+	if midi_song then return -1.0
+	if sound_song >= 0 then
+		return sound_getlength(sound_song)
+	end if
+	return -1.0
+end function
+
+
 Sub dumpdata(m as MIDI_EVENT ptr)
 	dim d as string
 	dim i as integer
