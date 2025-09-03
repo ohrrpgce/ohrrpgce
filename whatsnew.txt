@@ -9,6 +9,8 @@ Nov ?? 2025 [Lexiphanic]
      bonuses compared to the heros' current equipment [James]
    * New customizable UI colors for the shop "Buy" screen, for item
      description, stat bonus up, and stat bonus down [James]
+   * New customizable UI colors for the equip screen, for slot
+     background colors [James]
 
    * Plotscripting Features
     * Commands to access rewards from the latest battle: "money reward",
@@ -20,6 +22,8 @@ Nov ?? 2025 [Lexiphanic]
     * Game/Custom now quit cleanly on a SIGTERM or SIGINT (and abort on SIGQUIT)
       instead of showing a FATAL error screen [Ralph]
     * The shop menu is no longer visible underneath the "Buy" menu [James]
+    * Equip menu cursor background no longer flashes in an obnoxious
+      and inconsistent manner [James]
 
   *** Stuff Only Developers Will Notice
     * Item data is now stored in a new lump, items.reld [James]

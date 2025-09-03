@@ -3491,14 +3491,14 @@ DO
  IF st.mode = 0 THEN
   '--main menu display
   FOR i = 0 TO 6
-   textcolor uilook(uiMenuItem), uilook(uiHighlight)
+   textcolor uilook(uiMenuItem), uilook(uiEquipSlotBg)
    IF i < 5 THEN
-    IF gam.hero(st.who).equip(i).id = -1 AND st.eq(i).count = 0 THEN textcolor uilook(uiMenuItem), boxlook(0).bgcol
+    IF gam.hero(st.who).equip(i).id = -1 AND st.eq(i).count = 0 THEN textcolor uilook(uiMenuItem), uilook(uiEquipDisabledSlotBg)
    END IF
    IF st.slot = i THEN
-    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2)
+    textcolor uilook(uiSelectedItem + tog), uilook(uiEquipCursorBg)
     IF i < 5 THEN
-      IF st.eq(i).count = 0 THEN textcolor uilook(uiSelectedItem), uilook(uiHighlight2)
+      IF st.eq(i).count = 0 THEN textcolor uilook(uiSelectedItem), uilook(uiEquipCursorBg)
     END IF
    END IF
    printstr st.menu(i), 204, 45 + i * 9, page
@@ -3513,7 +3513,7 @@ DO
   centerbox 236, 100, 96, 152, 4, page
   FOR i = st.eq_cursor.top TO st.eq_cursor.top + st.eq_cursor.size
    textcolor uilook(uiMenuItem), 0
-   IF i = st.eq_cursor.pt THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2)
+   IF i = st.eq_cursor.pt THEN textcolor uilook(uiSelectedItem + tog), uilook(uiEquipCursorBg)
    IF i > st.eq(st.slot).count THEN
     '--all done!
     EXIT FOR

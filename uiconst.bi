@@ -5,7 +5,7 @@
 #IFNDEF __UICONST_BI__
 #DEFINE __UICONST_BI__
 
-CONST uiColorLast = 56
+CONST uiColorLast = 59
 CONST uiColorOldLast = 17 ' the last uilook saved in uicolors.bin
 CONST uiBoxLast = 14
 CONST uiBoxOldLast = 14 ' the last boxlook saved in uicolors.bin
@@ -69,6 +69,9 @@ CONST uiMPBarFlash = 53          'mp bar flash colour (when higher than max)
 CONST uiBuyItemDescription = 54
 CONST uiBuyBonusUp = 55
 CONST uiBuyBonusDown = 56
+CONST uiEquipCursorBg = 57
+CONST uiEquipSlotBg = 58
+CONST uiEquipDisabledSlotBg = 59
 
 CONST colInvalid = -999
 
