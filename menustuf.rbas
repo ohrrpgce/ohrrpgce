@@ -3496,7 +3496,7 @@ DO
     IF gam.hero(st.who).equip(i).id = -1 AND st.eq(i).count = 0 THEN textcolor uilook(uiMenuItem), boxlook(0).bgcol
    END IF
    IF st.slot = i THEN
-    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight + tog)
+    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2)
     IF i < 5 THEN
       IF st.eq(i).count = 0 THEN textcolor uilook(uiSelectedItem), uilook(uiHighlight2)
     END IF
