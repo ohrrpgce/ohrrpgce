@@ -421,6 +421,8 @@ function getmusictype (file as string) as MusicFormatEnum
 		chk = FORMAT_MP3
 	case "flac"
 		chk = FORMAT_FLAC
+	case "opus"
+		chk = FORMAT_OPUS
 	case "s3m"
 		chk = FORMAT_S3M
 	case "mod"

@@ -872,8 +872,9 @@ SUB build_listing(tree() as BrowseMenuEntry, byref br as BrowseMenuState)
      browse_add_files "*.ogg",     fileTypeFile, br, tree()
      browse_add_files "*.mp3",     fileTypeFile, br, tree()
      browse_add_files "*.wav",     fileTypeFile, br, tree()
-     'Can only play FLAC in some builds, so don't allow it.
+     'Can only play FLAC/OPUS in some builds, so don't allow them yet.
      'browse_add_files "*.flac",    fileTypeFile, br, tree()
+     'browse_add_files "*.opus",     fileTypeFile, br, tree()
     CASE browseSfx
      '--disregard fmask. one call per extension
      browse_add_files "*.wav",     fileTypeFile, br, tree()

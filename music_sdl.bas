@@ -217,6 +217,8 @@ function music_get_info() as string
 					supported_formats or= FORMAT_OGG
 				elseif form = "FLAC" then
 					supported_formats or= FORMAT_FLAC
+				elseif form = "OPUS" then
+					supported_formats or= FORMAT_OPUS
 				elseif form = "WAVE" then
 					supported_formats or= FORMAT_WAV
 				elseif form = "MOD" or form = "MIKMOD" or form = "XMP" then
@@ -357,7 +359,11 @@ sub music_init()
 		'loaded. So force loading them. (SDL_mixer 2.0.2 only, earlier versions always
 		'loaded everything from Mix_OpenAudio). Increasing startup time just to get
 		'supported_formats is sad, but at least it prevents pauses later.
-		Mix_Init(MIX_INIT_MID or MIX_INIT_OGG or MIX_INIT_MP3 or MIX_INIT_MOD or MIX_INIT_FLAC)
+		var init_formats = MIX_INIT_MID or MIX_INIT_OGG or MIX_INIT_MP3 or MIX_INIT_MOD or MIX_INIT_FLAC
+		#ifdef SDL_MIXER2
+			init_formats or= MIX_INIT_OPUS
+		#endif
+		Mix_Init(init_formats)
 		'SDL_mixer 1.2.12 bug: if compiled against libmad Mix_Init sets the error "Mixer not built with MP3 support"
 		'if Mix_GetError then debug "Mix_Init: " & *Mix_GetError
 		Mix_ClearError

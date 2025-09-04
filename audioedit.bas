@@ -610,6 +610,10 @@ SUB importsong_get_song_info (songname as string, songfile as string, bamfile as
   file_ext = ".flac"
   songfile = temp & file_ext
   songtype = "FLAC"
+ ELSEIF isfile(temp & ".opus") THEN ' Not supported by most builds, and importing isn't permitted
+  file_ext = ".opus"
+  songfile = temp & file_ext
+  songtype = "OPUS"
  ELSEIF isfile(temp & ".mid") THEN
   file_ext = ".mid"
   songfile = temp & file_ext
