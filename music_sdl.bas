@@ -151,12 +151,14 @@ function music_get_info() as string
 		'and our SDL2_mixer.dll before 2.6.1 (which switched to libxmp-lite),
 		_ModPlug_GetSettings = dylibsymbol(libhandle, "ModPlug_GetSettings")
 		_ModPlug_SetSettings = dylibsymbol(libhandle, "ModPlug_SetSettings")
-
-		_Mix_GetMusicPosition = dylibsymbol(libhandle, "_Mix_GetMusicPosition")
-		_Mix_MusicDuration = dylibsymbol(libhandle, "_Mix_MusicDuration")
+		'2.6.0+
+		_Mix_GetMusicPosition = dylibsymbol(libhandle, "Mix_GetMusicPosition")
+		_Mix_MusicDuration = dylibsymbol(libhandle, "Mix_MusicDuration")
 	else
 		debug "dylib_noload(" & SONAME & ") failed. Continuing"
 	end if
+	if _Mix_GetMusicPosition = 0 then debuginfo "Lacking Mix_GetMusicPosition"
+	if _Mix_MusicDuration = 0 then debuginfo "Lacking Mix_MusicDuration"
 
 	dim ver as const SDL_version ptr
 	if gfxbackend <> "sdl" andalso gfxbackend <> "sdl2" then
@@ -217,13 +219,11 @@ function music_get_info() as string
 					supported_formats or= FORMAT_FLAC
 				elseif form = "WAVE" then
 					supported_formats or= FORMAT_WAV
-				elseif form = "MOD" then
+				elseif form = "MOD" or form = "MIKMOD" or form = "XMP" then
 					supported_formats or= FORMAT_MODULES
 				elseif form = "MODPLUG" then
 					supported_formats or= FORMAT_MODULES
 					have_modplug = YES
-				elseif form = "MIKMOD" then
-					supported_formats or= FORMAT_MODULES
 				elseif form = "MIDI" or form = "TIMIDITY" or form = "FLUIDSYNTH" or form = "NATIVEMIDI" then
 					supported_formats or= FORMAT_MIDI or FORMAT_BAM
 				end if
@@ -580,14 +580,13 @@ function music_getvolume() as single
 end function
 
 function music_seekable() as bool
-	'if Mix_SetMusicPosition = NULL then return NO
-	dim mus_type as Mix_MusicType = Mix_GetMusicType(NULL)
-	' Supposedly "MOD" and "MODPLUG" are supported, not MIDI
-	if mus_type = MUS_NONE or mus_type = MUS_MID then
-		return NO
-	end if
+	if music_song = NULL then return NO
+	#ifdef __FB_WIN32__
+		dim mus_type as Mix_MusicType = Mix_GetMusicType(NULL)
+		' But presumable it would be seekable with fluidsynth or timidity, as it is on Linux
+		if mus_type = MUS_MID then return NO
+	#endif
 	return YES
-' 	return nonmidi_playing
 end function
 
 function music_gettime() as double
@@ -598,6 +597,10 @@ function music_gettime() as double
 end function
 
 function music_settime(byval pos_s as double) as bool
+	'Note: when using mikmod in SDL_mixer 1.2 positions seem to be off by a factor of 100 or so:
+	'1.0-3.0 might be the end of the song.
+	'In SDL_mixer 2.0 with xmp, seeking seems to go to the beginning of the pattern containing that
+	'time, or does nothing if it's the current pattern.
 	return Mix_SetMusicPosition(pos_s) = 0
 end function
 
