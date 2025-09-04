@@ -12,6 +12,8 @@
 #include "uiconst.bi"
 #include "loading.bi"
 #include "thingbrowser.bi"
+#include "music.bi"
+#include "gfx.bi"
 
 
 '''' Local functions
@@ -25,7 +27,7 @@ DECLARE SUB export_songlist()
 DECLARE SUB delete_song (byval songnum as integer, songfile as string, bamfile as string)
 DECLARE SUB importsong_save_song_data(songname as string, byval songnum as integer)
 DECLARE SUB importsong_exportsong(songfile as string, bamfile as string, file_ext as string, songname as string)
-DECLARE SUB importsong_get_song_info (songname as string, songfile as string, bamfile as string, byval songnum as integer, file_ext as string, menu() as string, metadata as string, selectable() as bool, state as MenuState)
+DECLARE SUB importsong_get_song_info (songname as string, songfile as string, bamfile as string, byval songnum as integer, file_ext as string, menu() as string, metadata as string, byref songlength as double, selectable() as bool, state as MenuState)
 DECLARE SUB importsong_import_song_file (songname as string, songfile as string, bamfile as string, byval songnum as integer)
 DECLARE SUB importsfx_get_sfx_info(sfxname as string, sfxfile as string, byval sfxnum as integer, file_ext as string, menu() as string, metadata as string, selectable() as bool, state as MenuState)
 DECLARE SUB importsfx_save_sfx_data(sfxname as string, byval sfxnum as integer)
@@ -327,6 +329,35 @@ FUNCTION song_picker_or_none (recindex as integer = -1) as integer
  RETURN b.browse(recindex - 1, YES , @importsong, NO) + 1
 END FUNCTION
 
+SUB importsong_draw_seek_bar(seekbar as RectType, seekpos as double, songlength as double, page as integer)
+ WITH seekbar
+  rectangle .x, .y, .w, .h, findrgb(0,50,50), page
+  DIM songpos as double = music_gettime()
+  CONST border = 2
+  IF songpos >= 0 ANDALSO songlength > 0 THEN
+   DIM barlen as integer = .w * songpos / songlength
+   rectangle .x, .y, barlen, .h, findrgb(50,50,220), page
+   rectangle .x + barlen, .y, 1, .h, findrgb(200,200,255), page
+  END IF
+  drawbox .x - border, .y - border, .w + border*2, .h + border*2, findrgb(200,200,200), border, page
+  DIM text as string
+  IF seekpos >= 0.0 THEN  'Hovering
+   text = format_duration(seekpos, 2, YES)
+  ELSEIF songpos >= 0 THEN
+   text = format_duration(songpos, 2, YES)
+  ELSE
+   text = "???"
+  END IF
+  IF songlength >= 0 THEN
+   text &= "/" & format_duration(songlength, 2, YES)
+  ELSE
+   text &= "/???"
+  END IF
+  IF music_seekable = NO THEN text &= " (Not seekable)"
+  edgeprint text, pCentered, .y + 2, uilook(uiMenuItem), page
+ END WITH
+END SUB
+
 FUNCTION importsong (byval songnum as integer) as integer
 'songnum is the song to start with, or > max to add a new one.
 'Return value is the last selected song, or -1 if cancelling an add-new
@@ -355,10 +386,20 @@ state.pt = 1
 
 DIM songname as string = ""
 DIM songfile as string = ""
+DIM songlength as double
+
+DIM seekbar as RectType
+seekbar.x = 20
+'seekbar.y = pBottom - 15   'Continually updated
+'seekbar.w = vpages(vpage)->size.w - 40
+seekbar.h = 14
+
+
 DIM bamfile as string = ""  '"" if none, differs from songfile if it's a BAM fallback
 DIM file_ext as string
 DIM metadata as string
-importsong_get_song_info songname, songfile, bamfile, songnum, file_ext, menu(), metadata, selectable(), state
+'Also plays the song
+importsong_get_song_info songname, songfile, bamfile, songnum, file_ext, menu(), metadata, songlength, selectable(), state
 
 setkeys YES
 DO
@@ -423,9 +464,31 @@ DO
   END IF
  END IF
 
+ ' Update seek bar position...
+ seekbar.y = vpages(vpage)->h - 15 - seekbar.h
+ seekbar.w = vpages(vpage)->w - 40
+ ' ...and hover
+ DIM seekpos as double = -1.0  'Also used for mouse hovering
+ 'Allow clicking off the left side of the bar, which seeks to 0.00
+ 'IF rect_collide_point(seekbar, readmouse.pos) THEN
+ IF rect_collide_point(XYWH(0, seekbar.y, vpages(vpage)->w, seekbar.h), readmouse.pos) THEN
+  'Older SDL_mixer allow seeking but don't have Mix_MusicDuration or Mix_GetMusicPosition,
+  'so just use a 10min dummy length so that the seek bar still allows seeking.
+  DIM songend as double = IIF(songlength > 0, songlength, 600)
+  seekpos = songend * (readmouse.x - seekbar.x) / seekbar.w
+  seekpos = bound(seekpos, 0.0, songend)
+ END IF
+ ' Seek bar clicking
+ IF seekpos >= 0.0 THEN
+  IF (readmouse.clicks AND mouseLeft) ORELSE (readmouse.buttons AND mouseLeft ANDALSO readmouse.moved) THEN
+   music_settime(seekpos)
+  END IF
+ END IF
+
  IF state.need_update THEN
   state.need_update = NO
-  importsong_get_song_info songname, songfile, bamfile, songnum, file_ext, menu(), metadata, selectable(), state
+  'Plays the song
+  importsong_get_song_info songname, songfile, bamfile, songnum, file_ext, menu(), metadata, songlength, selectable(), state
  END IF
 
  clearpage dpage
@@ -433,6 +496,7 @@ DO
  'Allow newlines in metadata but don't wrap, to cut off long comments
  edgeprint metadata, pMenuX, pMenuY + 9 * (UBOUND(menu) + 2), uilook(uiMenuItem), dpage, YES, YES
  edgeprint "F2: Preview volume " & CINT(100 * get_music_volume()) & "%", pInfoRight, pInfoY, uilook(uiMenuItem), dpage
+ importsong_draw_seek_bar seekbar, seekpos, songlength, dpage
 
  SWAP vpage, dpage
  setvispage vpage
@@ -491,7 +555,7 @@ SUB importsong_import_song_file (songname as string, songfile as string, bamfile
  importsong_save_song_data songname, songnum
 END SUB
 
-SUB importsong_get_song_info (songname as string, songfile as string, bamfile as string, byval songnum as integer, file_ext as string, menu() as string, metadata as string, selectable() as bool, state as MenuState)
+SUB importsong_get_song_info (songname as string, songfile as string, bamfile as string, byval songnum as integer, file_ext as string, menu() as string, metadata as string, byref songlength as double, selectable() as bool, state as MenuState)
  music_stop
 
  'TODO: this is redundant to find_music_lump and getmusictype
@@ -557,8 +621,10 @@ SUB importsong_get_song_info (songname as string, songfile as string, bamfile as
 
  IF songfile <> "" THEN '--song exists
   loadsong songfile
+  songlength = music_getlength
  ELSE
   songname = ""
+  songlength = -1.0
  END IF
 
  menu(1) = "<- Song " & songnum & " of " & gen(genMaxSong) & " ->"
@@ -579,15 +645,22 @@ SUB importsong_get_song_info (songname as string, songfile as string, bamfile as
 
   '-- add author, length, etc, info here
   DIM extended_metadata as string
+  DIM metadata_duration as double
   IF file_ext = ".mp3" THEN
-   extended_metadata = read_mp3_metadata(songfile, songtype)
+   extended_metadata = read_mp3_metadata(songfile, songtype, metadata_duration)
   END IF
   IF file_ext = ".ogg" THEN
-   extended_metadata = read_ogg_metadata(songfile)
+   extended_metadata = read_ogg_metadata(songfile, metadata_duration)
   END IF
+  IF songlength < 0.0 ANDALSO metadata_duration > 0.0 THEN songlength = metadata_duration
 
   metadata  = "Type:     " & songtype & !"\n"
+  'read_ogg/mp3_metadata also add Length
+  IF INSTR(metadata, "Length: ") = 0 ANDALSO songlength > 0 THEN
+   metadata &= "Length:   " & format_duration(songlength) & !"\n" '& " (" & IIF(music_seekable, "", "Not ") & !"Seekable)\n"
+  END IF
   metadata &= "Filesize: " & filesize(songfile) & !"\n"
+
   IF bamfile <> songfile AND bamfile <> "" THEN
    metadata &= "BAM fallback exists. Filesize: " & filesize(bamfile) & !"\n"
   END IF

@@ -1394,8 +1394,9 @@ END FUNCTION
 
 'Format a duration as a string with given precision, like '2m23.1s' or '0.4s'.
 'decimal_places = 1 means 0.1s precision, = 0 means 1s precision, etc
+'minutes_always: include minutes when < 60s
 'See also seconds2str for actual format strings.
-FUNCTION format_duration(total_seconds as double, decimal_places as integer = 1) as string
+FUNCTION format_duration(total_seconds as double, decimal_places as integer = 1, minutes_always as bool = NO) as string
  DIM subseconds as string
  IF decimal_places > 0 THEN subseconds = "." & STRING(decimal_places, "0")
 
@@ -1408,7 +1409,7 @@ FUNCTION format_duration(total_seconds as double, decimal_places as integer = 1)
  END IF
 
  DIM msg as string
- IF minutes >= 1 THEN
+ IF minutes_always ORELSE minutes >= 1 THEN
   IF minutes >= 60 THEN
    msg = (minutes \ 60) & "h"
    minutes = minutes MOD 60

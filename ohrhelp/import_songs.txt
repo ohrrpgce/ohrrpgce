@@ -1,4 +1,4 @@
-This is the song importer.
+This is the song browser/importer.
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu. To change which song you are editing, select the Song number and press the Left and Right arrow keys.
 
@@ -12,11 +12,19 @@ Here is a list of the supported song formats:
   instruments to play them with.
   MIDI has very small filesize,
   so it is the most popular choice
-  for people who want to keep
-  their game size small. Sound
-  quality is somewhat limited, and
-  MIDI music does not sound the same
-  on every different computer.
+  for people who want to keep their
+  game size small. However there are
+  several reasons to avoid MIDI!
+  Sound quality is variable, as MIDI
+  music does not sound the same
+  on every computer.
+  There is the risk that MIDI might
+  not play at all (mostly on Linux)
+  and it's not supported on Android.
+  There are problems with changing the
+  MIDI volume on Windows, which can
+  cause the whole program to go silent.
+  You typically can't seek in MIDI.
 
 .OGG - Ogg Vorbis is digital music.
   If you need higher quality sound,
@@ -56,6 +64,10 @@ Here is a list of the supported song formats:
 
 Extra metadata like file comments is shown for some audio file formats, especially OGG files.
 The `quality' of OGG files is the approximate equivalent quality setting used to encode them (if encoded by the OHRRPGCE's oggenc tool).
+
+Click on the seek bar at the bottom of the
+screen to jump to different times. Seeking
+is not supported in all formats.
 
 Press F2 to change the volume level in the editor. This is not saved in the game, it only affects Custom (the editor).
 

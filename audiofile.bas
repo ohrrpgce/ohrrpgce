@@ -207,7 +207,7 @@ function oggenc_quality(channels as integer, bitrate as integer) as integer
 end function
 
 ' Return one or more lines of text describing bitrate, sample rate, channels, and comments of an .ogg Vorbis file
-function read_ogg_metadata(songfile as string) as string
+function read_ogg_metadata(songfile as string, byref duration as double = 0.0) as string
 	if load_vorbisfile() = NO then
 		return !"Can't read OGG metadata: missing library\n"
 	end if
@@ -234,10 +234,9 @@ function read_ogg_metadata(songfile as string) as string
 	dim ret as string
 
 	' Length
-	dim length as double
-	length = ov_time_total(@oggfile, -1)
-	if length <> OV_EINVAL then
-		ret &= "Length:   " & format_duration(length) & !"\n"
+	duration = ov_time_total(@oggfile, -1)
+	if duration <> OV_EINVAL then
+		ret &= "Length:   " & format_duration(duration, 3) & !"\n"
 	else
 		debug "ov_time_total failed on " & songfile
 	end if
@@ -299,7 +298,7 @@ end function
 ' Returns metadata, and optionally modifies filetype to the actual file type (eg MP2 file).
 ' Doesn't read embedded ID3 tags
 ' This depends on libmad. It will be present on Windows, and probably on Linux, but not Macs.
-function read_mp3_metadata(songfile as string, byref filetype as string = "") as string
+function read_mp3_metadata(songfile as string, byref filetype as string = "", byref duration as double = 0.0) as string
 	if load_libmad() = NO then
 		return !"Can't read MP3 metadata: need libmad\n"
 	end if
@@ -309,7 +308,7 @@ function read_mp3_metadata(songfile as string, byref filetype as string = "") as
 	' To compute stuff like the duration you need to scan the whole file!
 	' libmad is quite a low level library, so doesn't have a function to do that!
 
-	dim duration as double      'In seconds
+	duration = 0.0
 	dim bits as longint         'bits per second integrated over time
 	dim samplerate as integer   'Hz; maximum samplerate of any frame
 	dim channels as integer = 1 '1 or 2.
@@ -354,7 +353,7 @@ function read_mp3_metadata(songfile as string, byref filetype as string = "") as
 	filetype = "MPEG Layer " & string(layer, "I") & " (MP" & layer & !")"
 
 	' Bit and sample rate, channels
-	return "Length:   " & format_duration(duration) & !"\n" & _
+	return "Length:   " & format_duration(duration, 3) & !"\n" & _
 	       channels & " channel(s)  " & format(samplerate / 1000, "0.0") & !"kHz  \n" _
 	       "Bitrate:  " & cint(bits / duration / 1000) & !"kbps\n"
 end function

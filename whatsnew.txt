@@ -11,6 +11,7 @@ Nov ?? 2025 [Lexiphanic]
      description, stat bonus up, and stat bonus down [James]
    * New customizable UI colors for the equip screen, for slot
      background colors [James]
+   * Added a clickable seek bar to the song editor showing current time [Ralph]
 
    * Plotscripting Features
     * Commands to access rewards from the latest battle: "money reward",

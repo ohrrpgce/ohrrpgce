@@ -3753,6 +3753,8 @@ end function
 
 sub engine_settings_menu()
 	push_and_reset_gfxio_state
+	'Might be worth updating the info since it can change as songs are played and libraries are loaded
+	musicbackendinfo = music_get_info
 	dim menu as EngineSettingsMenu
 	menu.title = "Engine Settings"
 	menu.helpkey = "shared_engine_settings"
