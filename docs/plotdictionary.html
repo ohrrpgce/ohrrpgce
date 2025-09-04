@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-08-21)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-09-04)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -983,6 +983,8 @@ function toggleContent(target) {
 		<a href="#about-getmenutextalign" class="ref">get menu text align(menu handle)</a><br>
 		<a href="#about-getmenutextcolor" class="ref">get menu textcolor(menu handle)</a><br>
 		<a href="#about-getmoney" class="ref">get money (amount)</a><br>
+		<a href="#about-getmusiclengthms" class="ref">get music length ms</a><br>
+		<a href="#about-getmusictimems" class="ref">get music time ms</a><br>
 		<a href="#about-getmusicvolume" class="ref">get music volume</a><br>
 		<a href="#about-getnpcid" class="ref">get NPC ID (reference)</a><br>
 		<a href="#about-getnpcignoreswalls" class="ref">get NPC ignores walls (who)</a><br>
@@ -1028,7 +1030,9 @@ function toggleContent(target) {
 		<a href="#about-getslicevelocityx" class="ref">get slice velocity x (handle)</a><br>
 		<a href="#about-getslicevelocityy" class="ref">get slice velocity y (handle)</a><br>
 		<a href="#about-getslicevisible" class="ref">get slice visible (handle)</a><br>
+		<a href="#about-getsonglengthms" class="ref">get song length ms</a><br>
 		<a href="#about-getsongname" class="ref">get song name (ID, song)</a><br>
+		<a href="#about-getsongtimems" class="ref">get song time ms</a><br>
 		<a href="#about-getsortorder" class="ref">get sort order (handle)</a><br>
 		<a href="#about-getspritedefaultpal" class="ref">get sprite default pal (handle)</a><br>
 		<a href="#about-getspriteframe" class="ref">get sprite frame (handle)</a><br>
@@ -1202,6 +1206,7 @@ function toggleContent(target) {
 		<a href="#about-moveslicewithwallchecking" class="ref">move slice with wallchecking (sl, relative x, relative y, friction%)</a><br>
 		<a href="#about-multdiv" class="ref">multdiv (a, b, c)</a><br>
 		<a href="#about-multiply" class="ref">number * number</a><br>
+		<a href="#about-musicisseekable" class="ref">music is seekable</a><br>
 		<a href="#about-newkeypress" class="ref">new keypress (scancode, player)</a><br>
 		<a href="#about-nextcontainersibling" class="ref">next container sibling (handle)</a><br>
 		<a href="#about-nextellipsesibling" class="ref">next ellipse sibling (handle)</a><br>
@@ -1484,6 +1489,7 @@ function toggleContent(target) {
 		<a href="#about-setmenutextcolor" class="ref">set menu textcolor(menu handle, new textcolor)</a><br>
 		<a href="#about-setminutesofplay" class="ref">set minutes of play (min)</a><br>
 		<a href="#about-setmoney" class="ref">set money (amount)</a><br>
+		<a href="#about-setmusictimems" class="ref">set music time ms (pos)</a><br>
 		<a href="#about-setmusicvolume" class="ref">set music volume (volume)</a><br>
 		<a href="#about-setnompleveluprestore" class="ref">set MP level up restore (state)</a><br>
 		<a href="#about-setnpcdirection" class="ref">set NPC direction (who, direction)</a><br>
@@ -1540,6 +1546,7 @@ function toggleContent(target) {
 		<a href="#about-setslicewidth" class="ref">set slice width (handle, width)</a><br>
 		<a href="#about-setslicex" class="ref">set slice x (handle, X)</a><br>
 		<a href="#about-setslicey" class="ref">set slice y (handle, Y)</a><br>
+		<a href="#about-setsongtimems" class="ref">set song time (pos)</a><br>
 		<a href="#about-setsortorder" class="ref">set sort order (handle, order)</a><br>
 		<a href="#about-setspriteframe" class="ref">set sprite frame (handle, num)</a><br>
 		<a href="#about-setspriteframeid" class="ref">set sprite frame id (handle, id, exact)</a><br>
@@ -1613,6 +1620,7 @@ function toggleContent(target) {
 		<a href="#about-song:sameaslastmap" class="ref">song: same as last map</a><br>
 		<a href="#about-song:sameasmap" class="ref">song: same as map</a><br>
 		<a href="#about-song:silence" class="ref">song: silence</a><br>
+		<a href="#about-songisseekable" class="ref">song is seekable</a><br>
 		<a href="#about-sortchildren" class="ref">sort children (handle, wipe)</a><br>
 		<a href="#about-sortinventory" class="ref">sort inventory</a><br>
 		<a href="#about-soundisplaying" class="ref">sound is playing (num)</a><br>
@@ -7623,6 +7631,14 @@ gain hero stat(who, stat:mp, 0)</pre>
 		<a href="#about-currentsong" class="ref">current music</a><br>
 		<a href="#about-stopsong" class="ref">stop song</a><br>
 		<a href="#about-stopsong" class="ref">stop music</a><br>
+		<a href="#about-getmusictimems" class="ref">get music time ms</a><br>
+		<a href="#about-getsongtimems" class="ref">get song time ms</a><br>
+		<a href="#about-setmusictimems" class="ref">set music time ms (pos)</a><br>
+		<a href="#about-setsongtimems" class="ref">set song time (pos)</a><br>
+		<a href="#about-musicisseekable" class="ref">music is seekable</a><br>
+		<a href="#about-songisseekable" class="ref">song is seekable</a><br>
+		<a href="#about-getmusiclengthms" class="ref">get music length ms</a><br>
+		<a href="#about-getsonglengthms" class="ref">get song length ms</a><br>
 		<a href="#about-setvictorymusic" class="ref">set victory music (song)</a><br>
 		<a href="#about-getvictorymusic" class="ref">get victory music</a><br>
 		<a href="#about-setambientmusic" class="ref">set ambient music (song)</a><br>
@@ -7721,6 +7737,91 @@ gain hero stat(who, stat:mp, 0)</pre>
 				<h4>stop music</h4>
 				An alias for <a href="#about-stopsong">stop song</a>.
 			</div>
+		<div class="command">
+			<a name="about-getmusictimems"></a>
+			<a name="about-getsongtimems"></a>
+				<h4>get music time ms</h4>
+			<div class="notetext">Alias:</div>
+			<h4>get song time ms</h4>
+<p>
+			
+				Returns the current position of the song in milliseconds, or -1 if this is not supported for the current audio format by the music backend.
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					Whether a song is seekable may vary by engine build and operating system,
+					but generally you should expect that seeking in a MIDI file is not supported.
+				</div>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setmusictimems"></a>
+			<a name="about-setsongtimems"></a>
+				<h4>set music time ms (pos)</h4>
+			<div class="notetext">Alias:</div>
+			<h4>set song time (pos)</h4>
+<p>
+			
+				Seeks to/sets the position in milliseconds of the currently playing song.
+				Returns <a href="#about-true" class="ref">true</a> on success, or <a href="#about-false" class="ref">false</a> on failure.
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					Whether a song is seekable will vary by engine build and platform (operating system),
+					for example, you can expect that seeking in a MIDI file is not supported on Windows.
+				</div>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Getting and setting the song time won't be accurate to the millisecond,
+					e.g. because of buffering.
+					For module music (with libxmp specifically, the current default playback library),
+					you'll probably find that the song skips to the beginning of a pattern
+					(a section of music), or does nothing if that pattern is already playing.
+				</div>
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-musicisseekable"></a>
+			<a name="about-songisseekable"></a>
+				<h4>music is seekable</h4>
+			<div class="notetext">Alias:</div>
+			<h4>song is seekable</h4>
+<p>
+			
+				Returns true if the currently playing song is capable of seeking with <a href="#about-setmusictimems" class="ref">set music time ms</a>.
+				This depends on the audio format of the song, the engine build and the platform.
+			
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getmusiclengthms"></a>
+			<a name="about-getsonglengthms"></a>
+				<h4>get music length ms</h4>
+			<div class="notetext">Alias:</div>
+			<h4>get song length ms</h4>
+<p>
+			
+				Returns the duration of the currently playing song in milliseconds, or -1 if querying this is not supported for the current audio format/engine build/music library.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Most likely to work for OGG music (but still fails for all audio formats wth music_sdl, used on Android),
+					least likely to work for MIDI music (fails on Windows).
+				</div>
+			
+			
+			
+			
+		</p>
+</div>
 		<div class="command">
 			<a name="about-setvictorymusic"></a>
 				<h4>set victory music (song)</h4>
@@ -23924,7 +24025,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 994 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 998 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

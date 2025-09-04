@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-08-21">
+<plotscript version="wip" datecode="2025-09-04">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -3998,6 +3998,73 @@ gain hero stat(who, stat:mp, 0)</example>
 			<alias>stopsong</alias>
 			<shortname>stop music</shortname>
 		</command>
+
+		<command id="getmusictimems">
+			<canon>get music time ms</canon>
+			<shortname>get music time ms</shortname>
+			<altcommand id="getsongtimems">
+				<canon>get song time ms</canon>
+				<shortname>get song time ms</shortname>
+			</altcommand>
+			<description>
+				Returns the current position of the song in milliseconds, or -1 if this is not supported for the current audio format by the music backend.
+				<warn>
+					Whether a song is seekable may vary by engine build and operating system,
+					but generally you should expect that seeking in a MIDI file is not supported.
+				</warn>
+			</description>
+		</command>
+		<command id="setmusictimems">
+			<canon>set music time ms (pos)</canon>
+			<shortname>set music time ms</shortname>
+			<altcommand id="setsongtimems">
+				<canon>set song time (pos)</canon>
+				<shortname>set song time</shortname>
+			</altcommand>
+			<description>
+				Seeks to/sets the position in milliseconds of the currently playing song.
+				Returns <ref>true</ref> on success, or <ref>false</ref> on failure.
+				<warn>
+					Whether a song is seekable will vary by engine build and platform (operating system),
+					for example, you can expect that seeking in a MIDI file is not supported on Windows.
+				</warn>
+				<note>
+					Getting and setting the song time won't be accurate to the millisecond,
+					e.g. because of buffering.
+					For module music (with libxmp specifically, the current default playback library),
+					you'll probably find that the song skips to the beginning of a pattern
+					(a section of music), or does nothing if that pattern is already playing.
+				</note>
+			</description>
+		</command>
+		<command id="musicisseekable">
+			<canon>music is seekable</canon>
+			<shortname>music is seekable</shortname>
+			<altcommand id="songisseekable">
+				<canon>song is seekable</canon>
+				<shortname>song is seekable</shortname>
+			</altcommand>
+			<description>
+				Returns true if the currently playing song is capable of seeking with <ref>setmusictimems</ref>.
+				This depends on the audio format of the song, the engine build and the platform.
+			</description>
+		</command>
+		<command id="getmusiclengthms">
+			<canon>get music length ms</canon>
+			<shortname>get music length ms</shortname>
+			<altcommand id="getsonglengthms">
+				<canon>get song length ms</canon>
+				<shortname>get song length ms</shortname>
+			</altcommand>
+			<description>
+				Returns the duration of the currently playing song in milliseconds, or -1 if querying this is not supported for the current audio format/engine build/music library.
+				<note>
+					Most likely to work for OGG music (but still fails for all audio formats wth music_sdl, used on Android),
+					least likely to work for MIDI music (fails on Windows).
+				</note>
+			</description>
+		</command>
+
 		<command id="setvictorymusic">
 			<canon>set victory music (song)</canon>
 			<shortname>set victory music</shortname>

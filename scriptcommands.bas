@@ -5510,6 +5510,16 @@ SUB script_commands(byval cmdid as integer)
     END IF
    END IF
   END WITH
+ CASE 803 '--song is seekable
+  scriptret = IIF(music_seekable(), 1, 0)
+ CASE 804 '--get song position ms
+  scriptret = music_gettime() * 1000
+  IF scriptret < 0 THEN scriptret = -1
+ CASE 805 '--set song position ms
+  scriptret = IIF(music_settime(retvals(0) / 1000.0), 1, 0)
+ CASE 806 '--get song length ms
+  scriptret = music_getlength() * 1000
+  IF scriptret < 0 THEN scriptret = -1
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

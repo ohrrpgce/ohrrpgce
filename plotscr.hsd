@@ -838,6 +838,14 @@ define function, begin
 800,experiencereward,0        # Return experience reward from the last battle, or 0 if N/A
 801,itemsreward,1,0           # Number ids of items gained as rewards in last battle (-1 for N/A)
 802,itemsquantityreward,1,0   # Number quantities of items gained as rewards in last battle (0 for N/A)
+803,musicisseekable,0         # True if "set music position ms" should work
+803,songisseekable,0          # Alias
+804,getmusictimems,0          # Current position in milliseconds, -1 on failure
+804,getsongtimems,0           # Alias
+805,setmusictimems,1,0        # Set current position in milliseconds
+805,setsongtimems,1,0         # Alias
+806,getmusiclengthms,0        # Duration in milliseconds, -1 on failure
+806,getsonglengthms,0         # Alias
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

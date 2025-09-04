@@ -16,6 +16,8 @@ Nov ?? 2025 [Lexiphanic]
    * Plotscripting Features
     * Commands to access rewards from the latest battle: "money reward",
       "experience reward", "items reward", "items quantity reward". [Dre]
+    * "get music time ms", "set music time ms", "get music length ms",
+      "music is seekable" [Ralph]
 
   *** Changes
 
