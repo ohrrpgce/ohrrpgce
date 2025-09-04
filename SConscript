@@ -1273,7 +1273,7 @@ if win32:
         base_libraries += ['winmm', 'ole32', 'gdi32', 'shell32', 'advapi32', 'wsock32' if win95 else 'ws2_32']
         commonenv['FBFLAGS'] += ['-s','gui']  # Change to -s console to see 'print' statements in the console!
         # -s gui defines __FB_GUI__ which makes display_help_string use fbgfx
-        common_libraries += ['fbgfxmt']   # For display_help_string
+        common_libraries += ['fbgfxmt', 'fbmt']   # For display_help_string
     if win95:
         # Link to Winsock 2 instead of 1 to support stock Win95 (Use win95=0 and mingw-w64 (not mingw) to get support for IPv6)
         env['CFLAGS'] += ['-D', 'USE_WINSOCK1']
