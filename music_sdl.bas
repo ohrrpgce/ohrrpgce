@@ -361,7 +361,9 @@ sub music_init()
 		'supported_formats is sad, but at least it prevents pauses later.
 		var init_formats = MIX_INIT_MID or MIX_INIT_OGG or MIX_INIT_MP3 or MIX_INIT_MOD or MIX_INIT_FLAC
 		#ifdef SDL_MIXER2
-			init_formats or= MIX_INIT_OPUS
+			#ifndef __FB_DARWIN__
+				init_formats or= MIX_INIT_OPUS
+			#endif
 		#endif
 		Mix_Init(init_formats)
 		'SDL_mixer 1.2.12 bug: if compiled against libmad Mix_Init sets the error "Mixer not built with MP3 support"
