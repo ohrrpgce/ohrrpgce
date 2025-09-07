@@ -1955,11 +1955,15 @@ FUNCTION getheroname (hero_id as integer, use_default as bool = YES) as string
 END FUNCTION
 
 FUNCTION readitemname (byval index as integer) as string
- RETURN readbadgenericname(index, game + ".itm", getbinsize(binITM), 0, 8, 0)
+ DIM item as ItemDef
+ loaditemdata item, index
+ RETURN item.name
 END FUNCTION
 
 FUNCTION readitemdescription (byval index as integer) as string
- RETURN readbadgenericname(index, game + ".itm", getbinsize(binITM), 9, 36, 0)
+ DIM item as ItemDef
+ loaditemdata item, index
+ RETURN item.info
 END FUNCTION
 
 FUNCTION getmapname (byval mapnum as integer) as string
@@ -4523,7 +4527,11 @@ fix_record_count gen(genMaxTagname),   42, game & ".tmn", "Tag names"
 DIM menuerrlvl as ErrorLevelEnum = IIF(getbinsize(binMENUS) <= 52, errInfo, errDebug)
 fix_record_count gen(genMaxMenu),      getbinsize(binMENUS), workingdir & SLASH & "menus.bin", "Menus", , , menuerrlvl
 fix_record_count gen(genMaxMenuItem),  getbinsize(binMENUITEM), workingdir & SLASH & "menuitem.bin", "Menu Items"
-fix_record_count gen(genMaxItem),      getbinsize(binITM), game & ".itm", "Items"
+IF real_isfile(workingdir & SLASH & "items.reld") THEN
+ 'TODO: genMaxItem fix-up for items.reld is unimplemented
+ELSEIF real_isfile(game & ".itm") THEN
+ fix_record_count gen(genMaxItem),      getbinsize(binITM), game & ".itm", "Items"
+END IF
 'palettes.bin may not exist yet
 fix_record_count gen(genMaxMasterPal), 256 * 3, workingdir & SLASH & "palettes.bin", "Master Palettes", 4
 fix_record_count gen(genMaxSong),      getbinsize(binSONGDATA), workingdir & SLASH "songdata.bin", "Songs"
