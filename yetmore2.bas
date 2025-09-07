@@ -1978,12 +1978,16 @@ SUB try_reload_lumps_anywhere ()
    'Ignore: old hero data (redundant to heroes.reld) only for compatibility
    handled = YES
 
-  ELSEIF extn = "itm" THEN                                                '.ITM
+  ELSEIF modified_lumps[i] = "items.reld" THEN                            'ITEMS.RELD
    FOR slot as integer = 0 TO last_inv_slot()
     update_inventory_caption slot
    NEXT
    load_special_tag_caches  'includes item tags
    'Does anything else need to be done?
+   handled = YES
+
+  ELSEIF extn = "itm" THEN                                                '.ITM
+   'Ignore: old item data (redundant to items.reld) only for compatibility
    handled = YES
 
   ELSEIF extn = "stt" THEN                                                '.STT
