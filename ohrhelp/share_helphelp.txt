@@ -12,6 +12,6 @@ While editing, controls are as follows:
 CTRL+Left/Right move by word, Home and End move by line, and CTRL+Home/End moves to the start/end.
 CTRL+Backspace or ALT+Backspace deletes the previous word, and CTRL+Delete or ALT+Delete deletes the next word.
 You can also press CTRL+S to search the text (case-insensitive).
-CTRL+C copies the whole contents of the buffer to the system clipboard, and CTRL+V overwrites the whole buffer with the contents of the system clipboard (just like very other text field in the OHRRPGCE), so be careful. There's no undo!
+CTRL+C copies the whole contents of the buffer to the system clipboard, and CTRL+V overwrites the whole buffer with the contents of the system clipboard (just like every other text field in the OHRRPGCE), so be careful. There's no undo!
 
 Alright, since you read all the way to the end... you can also press F6 to open the slice editor (don't worry, changes aren't saved).
