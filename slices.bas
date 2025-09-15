@@ -3624,6 +3624,7 @@ Sub ClonePanelSlice(byval sl as Slice ptr, byval cl as Slice ptr)
   .pixels = dat->pixels
   .percent = dat->percent
   .padding = dat->padding
+  .size_by_child = dat->size_by_child
  end with
 end sub
 
@@ -3637,6 +3638,7 @@ Sub SavePanelSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  'We MUST always save percent, as it gets loaded with wrong default if it's missing
  SavePropAlways node, "percent", dat->percent
  SaveProp node, "padding", dat->padding
+ SavePropBoolAlways node, "size_by_child", dat->size_by_child
 End Sub
 
 Sub LoadPanelSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
@@ -3650,6 +3652,7 @@ Sub LoadPanelSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  'in r9509 which omitted 'percent' if equal to 0, we must it load as 0 if omitted.
  dat->percent = LoadPropFloat(node, "percent")
  dat->padding = LoadProp(node, "padding")
+ dat->size_by_child = LoadPropBool(node, "size_by_child")
 End Sub
 
 'Calculate support (size and position relative to screen) of child 'index' of panel slice 'par'.
@@ -3670,7 +3673,7 @@ Sub CalcPanelSupport (byref support as RectType, byval par as Slice ptr, byval i
  dim other as integer = axis XOR 1
 
  dim innersize as XYPair = par->Size  'Total space available for both children with all padding subtracted
- dim prsize as integer
+ dim prsize as integer 'Primary child size
  dim prepad as XYPair
  dim postpad as XYPair
  prepad.x = par->paddingLeft
@@ -3682,7 +3685,21 @@ Sub CalcPanelSupport (byref support as RectType, byval par as Slice ptr, byval i
  innersize.n(other) -= prepad.n(other) + postpad.n(other)
  support.wh.n(other) = innersize.n(other)
  support.xy.n(other) = prepad.n(other)
- prsize = int(innersize.n(axis) * dat->percent) + dat->pixels
+ 
+ if dat->size_by_child then
+   'Trust the primary child to dictate the proper size.
+   'We only end up using the child size on "axis", the "other" axis is overridden later.
+   dim child as Slice ptr = SliceChildByIndex(par, dat->primary)
+   if child then
+     DefaultChildRefresh par, child
+     prsize = child->size.n(axis)
+   end if
+ else
+   'Fixed percent and fixed size.
+   'Calculate the percentage, and add the pixels
+   prsize = int(innersize.n(axis) * dat->percent) + dat->pixels
+ end if
+ 
  if index = dat->primary then
   support.wh.n(axis) = prsize
  else
@@ -3781,7 +3798,8 @@ Sub ChangePanelSlice(byval sl as Slice ptr,_
                       byval primary as integer=-1,_
                       byval pixels as integer=-1,_
                       byval percent as double=-1.0,_
-                      byval padding as integer=-1)
+                      byval padding as integer=-1,_
+                      byval size_by_child as optbool=NONBOOL)
  if sl = 0 then debug "ChangePanelSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slPanel)
  with *sl->PanelData
@@ -3799,6 +3817,9 @@ Sub ChangePanelSlice(byval sl as Slice ptr,_
   end if
   if padding >= 0 then
    .padding = padding
+  end if
+  if size_by_child <> NONBOOL then
+   .size_by_child = size_by_child <> 0
   end if
  end with
 end sub

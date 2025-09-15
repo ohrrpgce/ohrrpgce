@@ -677,10 +677,14 @@ End Type
 Type PanelSliceData
  vertical as bool 'Defaults to horizontal. Becomes vertical if this is YES
  primary as integer '0 or 1, determines if the first or second child is primary
+ 'Both pixels and percent only apply if size_by_child = NO
  pixels as integer 'Fixed-pixel size of the primary. Pixels and percent are combined.
  percent as double 'Fraction (not percent!) of the primary size. Pixels and percent are combined
                     'stored as a float. 1.0=100% 0.5=50% 0.01=1%
  padding as integer ' pixels of padding between the sub-panels
+ size_by_child as bool 'If this is YES, the primary child is allowed to dictate panel size,
+                       'and the other child gets the remaining space.
+                       'pixels and percent are ignored when this is YES
 End Type
 
 DECLARE Function NewSlice(byval parent as Slice ptr = 0) as Slice Ptr
@@ -920,7 +924,8 @@ DECLARE Sub ChangePanelSlice(byval sl as slice ptr,_
                       byval primary as integer=-1,_
                       byval pixels as integer=-1,_
                       byval percent as double=-1.0,_
-                      byval padding as integer=-1)
+                      byval padding as integer=-1,_
+                      byval size_by_child as optbool=NONBOOL)
 DECLARE Sub CalcPanelSupport (byref support as RectType, byval par as Slice ptr, byval index as integer)
 
 
