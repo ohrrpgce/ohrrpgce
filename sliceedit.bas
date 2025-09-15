@@ -2417,6 +2417,9 @@ FUNCTION slice_editor_filename(byref ses as SliceEditState) as string
   ' An external file
   RETURN ses.collection_file
  ELSEIF ses.use_index THEN
+  'This is obsolete, and only happens on games that created this file in the spam menu.
+  'When we are ready to enable collection editing for built-in screens, we probably won't use these files at all
+  'and will come up with a better naming scheme
   RETURN workingdir & SLASH & "slicetree_" & ses.collection_group_number & "_" & ses.collection_number & ".reld"
  ELSE
   'Editing an existing or a "<blank>" slice tree. Return ""

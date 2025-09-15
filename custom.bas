@@ -1370,10 +1370,10 @@ SUB secret_menu ()
      "Text tests", _
      "Font tests", _
      "Stat Growth Chart", _
-     "Edit Status Screen", _
-     "Edit Item Screen", _
-     "Edit Spell Screen", _
-     "Edit Virtual Keyboard Screen", _
+     "Edit Status Screen (Unused)", _
+     "Edit Item Screen (Unused)", _
+     "Edit Spell Screen (Unused)", _
+     "Edit Virtual Keyboard Screen (Unused)", _
      "(Unused)", _
      "(Unused)", _
      "(Unused)", _
@@ -1402,7 +1402,7 @@ SUB secret_menu ()
   setkeys
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF enter_space_click(st) THEN
-   IF st.pt = 0 THEN slice_editor SL_COLLECT_EDITOR, "<blank>", YES
+   IF st.pt = 0 THEN slice_editor SL_COLLECT_EDITOR, "<blank>", YES 'This is the best one currently for editing sourceslices/*.slice
    IF st.pt = 1 THEN reload_editor
    IF st.pt = 2 THEN editor_editor
    IF st.pt = 3 THEN condition_test_menu
@@ -1411,10 +1411,12 @@ SUB secret_menu ()
    IF st.pt = 6 THEN text_test_menu
    IF st.pt = 7 THEN font_test_menu
    IF st.pt = 8 THEN stat_growth_chart
-   IF st.pt = 9 THEN slice_editor SL_COLLECT_STATUSSCREEN
-   IF st.pt = 10 THEN slice_editor SL_COLLECT_ITEMSCREEN
-   IF st.pt = 11 THEN slice_editor SL_COLLECT_SPELLSCREEN
-   IF st.pt = 12 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN
+   'These four edit a slicetree_n_n.reld lump which is currently not loaded in-game, and probably will never be loaded.
+   'We will change the lump name when we feel ready to expose these special screen collections to game authors
+   IF st.pt = 9 THEN slice_editor SL_COLLECT_STATUSSCREEN, , YES
+   IF st.pt = 10 THEN slice_editor SL_COLLECT_ITEMSCREEN, , YES
+   IF st.pt = 11 THEN slice_editor SL_COLLECT_SPELLSCREEN, , YES
+   IF st.pt = 12 THEN slice_editor SL_COLLECT_VIRTUALKEYBOARDSCREEN, , YES
    '13-16 unused
    IF st.pt = 17 THEN
     'Nothing special here except that you can select Backdrop and Enemy
