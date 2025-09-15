@@ -5520,6 +5520,16 @@ SUB script_commands(byval cmdid as integer)
  CASE 806 '--get song length ms
   scriptret = music_getlength() * 1000
   IF scriptret < 0 THEN scriptret = -1
+ CASE 807'--get panel sized by child
+  sl = get_arg_panelsl(0)
+  IF sl THEN
+   scriptret = IIF(sl->PanelData->size_by_child, 1, 0)
+  END IF
+ CASE 808'--set panel sized by child
+  sl = get_arg_panelsl(0)
+  IF sl THEN
+   ChangePanelSlice sl, , , , , , retvals(1) <> 0
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

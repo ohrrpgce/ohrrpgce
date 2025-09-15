@@ -5545,6 +5545,7 @@ script, panel slice tests, begin
   assert(get panel padding(sl) == 0)
   assert(get panel is vertical(sl) == false)
   assert(get panel pixels(sl) == 0)
+  assert(get panel sized by child(sl) == false)
 
   set panel primary index(sl, 1)
   assert(get panel primary index(sl) == 1)
@@ -5561,7 +5562,36 @@ script, panel slice tests, begin
   set panel is vertical(sl, true)
   assert(get panel is vertical(sl) == true)
 
-  # TODO: check children are sized correctly
+  # check children are sized correctly
+
+  # First make the panel a 200x200 square
+  set slice width(sl, 200)
+  set slice height(sl, 200)
+  set panel primary index(sl, 0)
+
+  # Create a sprite and a box and put them in the panel. Make the box fill.  
+  variable(sprite, box)
+  sprite := load hero sprite(1)
+  box := create rect(10, 10, 0)
+  set parent(sprite, sl)
+  set parent(box, sl)
+  fill parent(box, sl)
+  w
+  assert(slice width(box) == 200)
+  assert(slice height(box) == 113)
+
+  # Now make the panel take its size from the primary child slice
+  set panel sized by child(sl, true)
+  assert(get panel sized by child(sl) == true)
+  w
+  assert(slice width(box) == 200)
+  assert(slice height(box) == 156)
+
+  # Change the size of the first child
+  replace large enemy sprite(sprite, 1)
+  w
+  assert(slice width(box) == 200)
+  assert(slice height(box) == 116)
 
   free slice(sl)
 end

@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-09-04)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-09-15)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1003,6 +1003,7 @@ function toggleContent(target) {
 		<a href="#about-getpanelpercentasint" class="ref">get panel percent as int (handle)</a><br>
 		<a href="#about-getpanelpixels" class="ref">get panel pixels (handle)</a><br>
 		<a href="#about-getpanelprimaryindex" class="ref">get panel primary index (handle)</a><br>
+		<a href="#about-getpanelsizedbychild" class="ref">get panel sized by child (handle)</a><br>
 		<a href="#about-getrectbgcol" class="ref">get rect bgcol (handle)</a><br>
 		<a href="#about-getrectborder" class="ref">get rect border (handle)</a><br>
 		<a href="#about-getrectfgcol" class="ref">get rect fgcol (handle)</a><br>
@@ -1512,6 +1513,7 @@ function toggleContent(target) {
 		<a href="#about-setpanelpercent" class="ref">set panel percent (handle, percent)</a><br>
 		<a href="#about-setpanelpixels" class="ref">set panel pixels (handle, pixels)</a><br>
 		<a href="#about-setpanelprimaryindex" class="ref">set panel primary index (handle, zero or one)</a><br>
+		<a href="#about-setpanelsizedbychild" class="ref">set panel sized by child (handle, value)</a><br>
 		<a href="#about-setparent" class="ref">set parent (handle, parent handle)</a><br>
 		<a href="#about-setrectbgcol" class="ref">set rect bgcol (handle, color)</a><br>
 		<a href="#about-setrectborder" class="ref">set rect border (handle, border)</a><br>
@@ -13868,6 +13870,8 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-setpanelisvertical" class="ref">set panel is vertical (handle, value)</a><br>
 		<a href="#about-getpanelprimaryindex" class="ref">get panel primary index (handle)</a><br>
 		<a href="#about-setpanelprimaryindex" class="ref">set panel primary index (handle, zero or one)</a><br>
+		<a href="#about-getpanelsizedbychild" class="ref">get panel sized by child (handle)</a><br>
+		<a href="#about-setpanelsizedbychild" class="ref">set panel sized by child (handle, value)</a><br>
 		<a href="#about-getpanelpercentasint" class="ref">get panel percent as int (handle)</a><br>
 		<a href="#about-setpanelpercent" class="ref">set panel percent (handle, percent)</a><br>
 		<a href="#about-getpanelpixels" class="ref">get panel pixels (handle)</a><br>
@@ -19484,6 +19488,26 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 		</p>
 </div>
 		<div class="command">
+			<a name="about-getpanelsizedbychild"></a>
+				<h4>get panel sized by child (handle)</h4>
+<p>
+			Returns true if the given panel slice <span class="param">handle</span> will adjust panel size based on the primary child, or false if it uses fixed percent and pixels.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setpanelsizedbychild"></a>
+				<h4>set panel sized by child (handle, value)</h4>
+<p>
+			Changes whether the given panel slice <span class="param">handle</span> is sized by its primary child. If the <span class="param">value</span> is true, primary child will dictate the panel split size, or if false then the split will be based on a fixed percentage and pixels.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
 			<a name="about-getpanelpercentasint"></a>
 				<h4>get panel percent as int (handle)</h4>
 <p>
@@ -19497,7 +19521,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 			<a name="about-setpanelpercent"></a>
 				<h4>set panel percent (handle, percent)</h4>
 <p>
-			Given a panel slice <span class="param">handle</span>, changes the percentage of the panel that should be filled by the primary child slice. The panel's percentage size and pixel size will be added together to compute the actual size of the primary child.
+			Given a panel slice <span class="param">handle</span>, changes the percentage of the panel that should be filled by the primary child slice. The panel's percentage size and pixel size will be added together to compute the actual size of the primary child. (If the panel is configured to take its split size from the child, then this option is ignored entirely)
 			
 			
 			
@@ -19517,7 +19541,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 			<a name="about-setpanelpixels"></a>
 				<h4>set panel pixels (handle, pixels)</h4>
 <p>
-			Given a panel slice <span class="param">handle</span>, changes the number of pixels of space that the panel will reserve for its primary child. The panel's percentage size and pixel size will be added together to compute the actual size of the primary child.
+			Given a panel slice <span class="param">handle</span>, changes the number of pixels of space that the panel will reserve for its primary child. The panel's percentage size and pixel size will be added together to compute the actual size of the primary child. (If the panel is configured to take its split size from the child, then this option is ignored entirely)
 			
 			
 			
@@ -24025,7 +24049,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 998 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 1000 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

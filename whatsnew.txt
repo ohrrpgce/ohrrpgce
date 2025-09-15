@@ -12,12 +12,15 @@ Nov ?? 2025 [Lexiphanic]
    * New customizable UI colors for the equip screen, for slot
      background colors [James]
    * Added a clickable seek bar to the song editor showing current time [Ralph]
+   * Panel slices can now optionally be sized based on their primary child
+     [James]
 
    * Plotscripting Features
     * Commands to access rewards from the latest battle: "money reward",
       "experience reward", "items reward", "items quantity reward". [Dre]
     * "get music time ms", "set music time ms", "get music length ms",
       "music is seekable" [Ralph]
+    * "get/set panel sized by child" [James]
 
   *** Changes
 

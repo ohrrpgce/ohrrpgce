@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-09-04">
+<plotscript version="wip" datecode="2025-09-15">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -11402,6 +11402,16 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 			<shortname>set panel primary index</shortname>
 			<description>Changes whether the first or second child of the given panel slice <p>handle</p> is the primary one. The primary child gets its size based on the panel slices's percentage and pixels, while the other child slice takes the remaining space.</description>
 		</command>
+		<command id="getpanelsizedbychild">
+			<canon>get panel sized by child (handle)</canon>
+			<shortname>get panel sized by child</shortname>
+			<description>Returns true if the given panel slice <p>handle</p> will adjust panel size based on the primary child, or false if it uses fixed percent and pixels.</description>
+		</command>
+		<command id="setpanelsizedbychild">
+			<canon>set panel sized by child (handle, value)</canon>
+			<shortname>set panel sized by child</shortname>
+			<description>Changes whether the given panel slice <p>handle</p> is sized by its primary child. If the <p>value</p> is true, primary child will dictate the panel split size, or if false then the split will be based on a fixed percentage and pixels.</description>
+		</command>
 		<command id="getpanelpercentasint">
 			<canon>get panel percent as int (handle)</canon>
 			<shortname>get panel percent as int</shortname>
@@ -11410,7 +11420,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 		<command id="setpanelpercent">
 			<canon>set panel percent (handle, percent)</canon>
 			<shortname>set panel percent</shortname>
-			<description>Given a panel slice <p>handle</p>, changes the percentage of the panel that should be filled by the primary child slice. The panel's percentage size and pixel size will be added together to compute the actual size of the primary child.</description>
+			<description>Given a panel slice <p>handle</p>, changes the percentage of the panel that should be filled by the primary child slice. The panel's percentage size and pixel size will be added together to compute the actual size of the primary child. (If the panel is configured to take its split size from the child, then this option is ignored entirely)</description>
 		</command>
 		<command id="getpanelpixels">
 			<canon>get panel pixels (handle)</canon>
@@ -11420,7 +11430,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 		<command id="setpanelpixels">
 			<canon>set panel pixels (handle, pixels)</canon>
 			<shortname>set panel pixels</shortname>
-			<description>Given a panel slice <p>handle</p>, changes the number of pixels of space that the panel will reserve for its primary child. The panel's percentage size and pixel size will be added together to compute the actual size of the primary child.</description>
+			<description>Given a panel slice <p>handle</p>, changes the number of pixels of space that the panel will reserve for its primary child. The panel's percentage size and pixel size will be added together to compute the actual size of the primary child. (If the panel is configured to take its split size from the child, then this option is ignored entirely)</description>
 		</command>
 		<command id="getpanelpadding">
 			<canon>get panel padding (handle)</canon>

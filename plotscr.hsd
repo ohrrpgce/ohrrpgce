@@ -846,6 +846,9 @@ define function, begin
 805,setsongtimems,1,0         # Alias
 806,getmusiclengthms,0        # Duration in milliseconds, -1 on failure
 806,getsonglengthms,0         # Alias
+807,getpanelsizedbychild,1,0    #x return true for a panel that is sized by child, or false for a fixed size panel
+808,setpanelsizedbychild,2,0,1  #x change whether a panel is sized by child or fixed sized
+
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
