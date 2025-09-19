@@ -1,0 +1,3 @@
+When a panel is sized by child, then the primary child is allowed to dictate the panel sizing.
+
+When a panel uses fixed sizing, you must specify a percentage and a number of pixels that will be added together to determine panel sizing.

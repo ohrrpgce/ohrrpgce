@@ -7,3 +7,5 @@ The size of the parent slice is adjusted (reduced) by the parent's padding, as u
 If a slice is set to Fill Parent vertically, horizontally or both then the corresponding Align, Anchor and Clamp options do nothing (they are overridden) and are hidden (in fact the whole 'Alignment' section will be hidden for Full filling).
 
 If the parent slice is a Grid, the slice will only fill one cell of the grid.
+
+Filling parent always takes priority over "Cover Children" if they are both turned on for the same axis on the same slice.

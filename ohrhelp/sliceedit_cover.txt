@@ -1,0 +1,12 @@
+When a slice is set to cover children, it will automatically grow or shrink so that it covers the dimensions of its children.
+
+You can cover on the horizontal axis, the veritical axis, or both at once.
+
+If you enable covering children and filling parent on the same axis on the same slice, then covering will be ignored, and filling will take priority.
+
+Only immediate children are covered. Grandchildren are not covered if they go outside the bounds of the child.
+
+Child alignment affects covering.
+If a child is left-aligned, only the right side matters.
+If a child is right-aligned, only the left side matters.
+If a child is center-aligned, both sides matter.
