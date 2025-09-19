@@ -75,6 +75,7 @@
 '[[FIXME: the above reveals several problems
 ' -parent->CoverChildren happens before most updates to children
 ' -CoverChildren updates Size after Size has already been used to update ScreenPos
+'   (Fixed: now re-calculates ScreenPos right after updating cover size)
 ' -it's really hard to see the order things happen from the code
 ']]
 '
@@ -4492,7 +4493,11 @@ Local Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childind
  if attach then attach->ChildRefresh(attach, s, childindex, YES)
 
  if s->Visible then
-  if s->CoverChildren then UpdateCoverSize(s)
+  if s->CoverChildren then
+   UpdateCoverSize(s)
+   'Re-calculate ScreenPos after updating covering
+   if attach then attach->ChildRefresh(attach, s, childindex, YES)
+  end if
 
   if s->Context then v_append context_stack, s->Context
 
