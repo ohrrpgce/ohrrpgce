@@ -5263,6 +5263,7 @@ script, slice tests, begin
   slice sort tests
   slice clone tests
   slice handle tests
+  slice filling and covering tests
 
   sprite slice tests
   rect slice tests
@@ -5272,6 +5273,213 @@ script, slice tests, begin
 end
 
 ########################################################################
+
+script, slice filling and covering tests, begin
+  $0="Slice filling and covering tests"
+  
+  variable(par, sl, ch, ch2)
+  par := create rect(150, 150, 0)
+  center slice(par)
+  set padding(par, 4)
+  
+  sl := create rect(0, 0, 1)
+  fill parent(sl, true)
+  w
+  assert(slice width(sl) == 320)
+  assert(slice height(sl) == 200)
+  
+  set parent(sl, par)
+  w
+  assert(slice width(sl) == 142)
+  assert(slice height(sl) == 142)
+  
+  set slice width(par, 160)
+  w
+  assert(slice width(sl) == 152)
+  assert(slice height(sl) == 142)
+
+  ch := load hero sprite(1)
+  ch2 := load hero sprite(2)
+  set parent(ch, sl)
+  set parent(ch2, sl)
+  set fill parent(sl, fill:none)
+  set cover children(sl, cover:all)
+  w
+  assert(slice width(sl) == 32)
+  assert(slice height(sl) == 40)
+  set padding(sl, 2)
+  w
+  assert(slice width(sl) == 36)
+  assert(slice height(sl) == 44)
+  w
+  # Children start anchored top left.
+  set slice x(ch, 20)
+  set slice y(ch, 10)
+  w
+  assert(slice width(sl) == 56)
+  assert(slice height(sl) == 54)
+  
+  # A left anchored child only matters for its right edge, so doesn't get covered if its right edge is negative
+  set slice x(ch, -20)
+  w
+  assert(slice width(sl) == 36)
+  
+  # Right aligned child only matters for its left edge, so doesn't get covered if its left edge is positive
+  realign slice(ch, edge:right, edge:top, edge:right, edge:top)
+  set slice x(ch, 50)
+  w
+  assert(slice width(sl) == 36) # Not covering the right-aligned slice, is by design here
+  set slice x(ch, -50)
+  w
+  assert(slice width(sl) == 86)
+
+  # For a center aligned slice, both edges matter  
+  realign slice(ch, edge:center, edge:top, edge:center, edge:top)
+  set slice x(ch, 0)
+  w
+  assert(slice width(sl) == 36)
+
+  set slice x(ch, -50)
+  w
+  assert(slice width(sl) == 136)
+  set slice x(ch, 50)
+  w
+  assert(slice width(sl) == 136)
+  
+  # Now reset the sprite positions and test covering only in one axis
+  realign slice(ch, edge:left, edge:top, edge:left, edge:top)
+  set slice x(ch, 32)
+  set slice y(ch, 0)
+  w
+  assert(slice width(sl) == 68)
+  assert(slice height(sl) == 44)
+
+  # changing size manually would error out and we can't assert error yet
+  #set slice width(sl, 10) #expected to error
+  #set slice height(sl, 10) #expected to error
+  #w
+  
+  assert(slice width(sl) == 68)
+  assert(slice height(sl) == 44)
+  # Change to horiz covering. No change to size yet
+  set cover children(sl, cover:horiz)
+  w
+  assert(slice width(sl) == 68)
+  assert(slice height(sl) == 44)
+  # Change vertical size
+  set slice height(sl, 10)
+  assert(slice width(sl) == 68)
+  assert(slice height(sl) == 10)
+  w
+  # Change to vertical covering
+  set cover children(sl, cover:vert)
+  w
+  assert(slice width(sl) == 68)
+  assert(slice height(sl) == 44)
+  # Change horiz size
+  set slice width(sl, 10)
+  assert(slice width(sl) == 10)
+  assert(slice height(sl) == 44)
+  
+  # Now turn off covering, we will test filling next
+  set cover children(sl, cover:none)
+  set fill parent(sl, fill:all)
+  w
+  assert(slice width(sl) == 152)
+  assert(slice height(sl) == 142)
+  # Shrink the parent a bit
+  set slice width(par, 120)
+  set slice height(par, 110)
+  w
+  assert(slice width(sl) == 112)
+  assert(slice height(sl) == 102)
+  # Test filling only horizontally
+  set fill parent(sl, fill:horiz)
+  w
+  # No change yet
+  assert(slice width(sl) == 112)
+  assert(slice height(sl) == 102)
+  # Now shrink vertically
+  set slice height(sl, 10)
+  w
+  assert(slice width(sl) == 112)
+  assert(slice height(sl) == 10)
+  # Next fill vertically
+  set fill parent(sl, fill:vert)
+  w
+  assert(slice width(sl) == 112)
+  assert(slice height(sl) == 102)
+  # Now shrink horizontally
+  set slice width(sl, 10)
+  w
+  assert(slice width(sl) == 10)
+  assert(slice height(sl) == 102)
+  
+  # Now check filling and covering at the same time
+  # Opposite axises coexist peacefully
+  set fill parent(sl, fill:horiz)
+  set cover children(sl, cover:vert)
+  w
+  assert(slice width(sl) == 112)
+  assert(slice height(sl) == 44)
+  # And the other way...
+  set fill parent(sl, fill:vert)
+  set cover children(sl, cover:horiz)
+  w
+  assert(slice width(sl) == 68)
+  assert(slice height(sl) == 102)
+  
+  # When both are active at the same time, fill takes priority, and cover does nothing
+  set fill parent(sl, fill:all)
+  set cover children(sl, cover:all)
+  w
+  assert(slice width(sl) == 112)
+  assert(slice height(sl) == 102)
+  # That should remain true even if a covered child goes outside of the parent that is being filled
+  set slice x(ch, 150)
+  w
+  assert(slice width(sl) == 112)
+  assert(slice height(sl) == 102)
+  
+  # Now test covering grandchildren (they don't get covered, only children!)
+  set fill parent(sl, fill:none)
+  set cover children(sl, cover:all)
+  set slice x(ch, 0)
+  set parent(ch2, ch)
+  set slice y(ch2, 30)
+  w
+  assert(slice width(sl) == 36)
+  assert(slice height(sl) == 44)
+  # change the grandchild back into a child, it will be covered
+  gently reparent(ch2, sl)
+  w
+  assert(slice width(sl) == 36)
+  assert(slice height(sl) == 74)
+  
+  # Now verify that "fill parent" has no effect on fill type
+  # and that "is filling parent doesn't care about fill type"
+  set fill parent(sl, fill:all)
+  set cover children(sl, cover:none)
+  w
+  assert(slice width(sl) == 112)
+  assert(slice height(sl) == 102)
+  assert(is filling parent(sl) == true)
+  fill parent(sl, false)
+  set slice width(sl, 10)
+  set slice height(sl, 10)
+  assert(is filling parent(sl) == false)
+  w
+  assert(slice width(sl) == 10)
+  assert(slice height(sl) == 10)
+  set fill parent(sl, fill:horiz)
+  w
+  assert(slice width(sl) == 112)
+  assert(slice height(sl) == 10)
+  assert(is filling parent(sl) == true)
+  w
+  
+  free slice(par)
+end
 
 script, slice handle tests, begin
   $0="Slice handle tests"

@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-09-15)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-09-16)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -891,6 +891,7 @@ function toggleContent(target) {
 		<a href="#about-getchildautosort" class="ref">get child autosort (handle)</a><br>
 		<a href="#about-getcolor" class="ref">get color (index)</a><br>
 		<a href="#about-getcount" class="ref">get count</a><br>
+		<a href="#about-getcoverchildren" class="ref">get cover children (handle)</a><br>
 		<a href="#about-getcurrentmapautorunscript" class="ref">get current map autorun script</a><br>
 		<a href="#about-getcurrentmapautorunscriptargument" class="ref">get current map autorun script argument</a><br>
 		<a href="#about-getdamagecap" class="ref">get damage cap</a><br>
@@ -909,6 +910,7 @@ function toggleContent(target) {
 		<a href="#about-getenemyname" class="ref">get enemy name (enemyid, stringid)</a><br>
 		<a href="#about-getenemystat" class="ref">get enemy stat(enemy, stat)</a><br>
 		<a href="#about-getextra" class="ref">get extra (handle, extra)</a><br>
+		<a href="#about-getfillparent" class="ref">get fill parent (handle)</a><br>
 		<a href="#about-getfootoffset" class="ref">get foot offset</a><br>
 		<a href="#about-getformationbackground" class="ref">get formation background (formation)</a><br>
 		<a href="#about-getformationsong" class="ref">get formation song (formation)</a><br>
@@ -1408,6 +1410,7 @@ function toggleContent(target) {
 		<a href="#about-setcaterpillarmode" class="ref">set caterpillar mode (state)</a><br>
 		<a href="#about-setchildautosort" class="ref">set child autosort (handle, setting)</a><br>
 		<a href="#about-setcolor" class="ref">set color (index, value)</a><br>
+		<a href="#about-setcoverchildren" class="ref">set cover children (handle, cover:constant)</a><br>
 		<a href="#about-setdamagecap" class="ref">set damage cap (cap)</a><br>
 		<a href="#about-setdaysofplay" class="ref">set days of play (days)</a><br>
 		<a href="#about-setdeadheroesgainexperience" class="ref">set dead heroes gain experience (state)</a><br>
@@ -1422,6 +1425,7 @@ function toggleContent(target) {
 		<a href="#about-setenemystat" class="ref">set enemy stat(enemy, stat, value)</a><br>
 		<a href="#about-setexperience" class="ref">set experience (who, experience, allowforget)</a><br>
 		<a href="#about-setextra" class="ref">set extra (handle, extra, value)</a><br>
+		<a href="#about-setfillparent" class="ref">set fill parent (handle, fill:constant)</a><br>
 		<a href="#about-setfootoffset" class="ref">set foot offset (offset)</a><br>
 		<a href="#about-setformationbackground" class="ref">set formation background (formation, background, animation frames, animation ticks)</a><br>
 		<a href="#about-setformationsong" class="ref">set formation song (formation, song)</a><br>
@@ -13503,6 +13507,10 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-clampslice" class="ref">clamp slice (slice, within slice)</a><br>
 		<a href="#about-fillparent" class="ref">fill parent (handle, true_or_false)</a><br>
 		<a href="#about-isfillingparent" class="ref">is filling parent (handle)</a><br>
+		<a href="#about-getfillparent" class="ref">get fill parent (handle)</a><br>
+		<a href="#about-setfillparent" class="ref">set fill parent (handle, fill:constant)</a><br>
+		<a href="#about-getcoverchildren" class="ref">get cover children (handle)</a><br>
+		<a href="#about-setcoverchildren" class="ref">set cover children (handle, cover:constant)</a><br>
 </ul>
 <ul></ul>
 </li>
@@ -14804,10 +14812,14 @@ end
 			<a name="about-fillparent"></a>
 				<h4>fill parent (handle, true_or_false)</h4>
 <p>
-			Make a slice <span class="param">handle</span> automatically fill its parent. This will change the position and size of the slice so that it completely fills the parent (minus the parent's padding). You can also disable filling with this command by passing <span class="param">false</span> as the second argument, such as <span class="param">fill parent(handle, false)</span>. If a slice is filling its parent, then any commands which modify the width or height of the slice will fail. You should resize the parent instead. This command only works on rects and containers. It will not work on sprites because they cannot change size.
+			Make a slice <span class="param">handle</span> automatically fill its parent. This will change the position and size of the slice so that it completely fills the parent (minus the parent's padding). You can also disable filling with this command by passing <span class="param">false</span> as the second argument, such as <span class="param">fill parent(handle, false)</span>. If a slice is filling its parent, then any commands which modify the width or height of the slice will fail. You should resize the parent instead. This command only works on resizable slices like rects and containers. It will not work on sprites because they cannot change size. Note that the <span class="param">fill:</span> constants are not used with this command, they are only used for <a href="#about-setfillparent" class="ref">set fill parent</a> and <a href="#about-getfillparent" class="ref">get fill parent</a>. Note that this command has no effect on whether the filling is horizontal, veritical or both. If you need to control those, you should use <a href="#about-setfillparent" class="ref">set fill parent</a> instead.
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-isfillingparent" class="ref">is filling parent</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-isfillingparent" class="ref">is filling parent</a>, </li>
+<li><a href="#about-setfillparent" class="ref">set fill parent</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -14815,10 +14827,74 @@ end
 			<a name="about-isfillingparent"></a>
 				<h4>is filling parent (handle)</h4>
 <p>
-			Returns true if a slice <span class="param">handle</span> is set to automatically fill its parent, or false if it is not. This command always returns false for sprite slice handles because sprites cannot be set to fill parent.
+			Returns true if a slice <span class="param">handle</span> is set to automatically fill its parent, or false if it is not. This command always returns false for slice handles that cannot be resized such as sprite slices. This command doesn't care if the slice is set to fill horizontally, vertically, or both, it returns true for all of them. If you need to check those, use <a href="#about-getfillparent" class="ref">get fill parent</a> instead.
 			
 			
-			<div class="seealso">See also: <ul><li><a href="#about-fillparent" class="ref">fill parent</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-fillparent" class="ref">fill parent</a>, </li>
+<li><a href="#about-getfillparent" class="ref">get fill parent</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getfillparent"></a>
+				<h4>get fill parent (handle)</h4>
+<p>
+			Checks a slice <span class="param">handle</span> and returns whether or not it is filling its parent. Return values will be the constants <span class="param">fill:none</span>, <span class="param">fill:horiz</span>, <span class="param">fill:vert</span>, or <span class="param">fill:all</span>.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-isfillingparent" class="ref">is filling parent</a>, </li>
+<li><a href="#about-setfillparent" class="ref">set fill parent</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setfillparent"></a>
+				<h4>set fill parent (handle, fill:constant)</h4>
+<p>
+			Makes a slice <span class="param">handle</span> fill its parent, but only if this is a type of slice that can be resized. Use the constants <span class="param">fill:none</span>, <span class="param">fill:horiz</span>, <span class="param">fill:vert</span>, or <span class="param">fill:all</span>. Note that you should not use <span class="param">true</span> and <span class="param">false</span> because they will not have the intended effect. <span class="param">true</span> is not equal to <span class="param">fill:all</span> and <span class="param">false</span> is not equal to <span class="param">fill:none</span>.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-fillparent" class="ref">fill parent</a>, </li>
+<li><a href="#about-getfillparent" class="ref">get fill parent</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getcoverchildren"></a>
+				<h4>get cover children (handle)</h4>
+<p>
+			Checks a slice <span class="param">handle</span> and returns whether or not it is configured to automatically resize to cover its children. Return values will be the constants <span class="param">cover:none</span>, <span class="param">cover:horiz</span>, <span class="param">cover:vert</span>, or <span class="param">cover:all</span>. Note that the cover children setting has no effect on a slice that is set to fill its parent in the same axis.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setcoverchildren" class="ref">set cover children</a>, </li>
+<li><a href="#about-getfillparent" class="ref">get fill parent</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-setcoverchildren"></a>
+				<h4>set cover children (handle, cover:constant)</h4>
+<p>
+			Makes a slice <span class="param">handle</span> automatically resize to cover its children, but only if this is a type of slice that can be resized. Use the constants <span class="param">cover:none</span>, <span class="param">cover:horiz</span>, <span class="param">cover:vert</span>, or <span class="param">cover:all</span>. Note that you should not use <span class="param">true</span> and <span class="param">false</span> because they will not have the intended effect. <span class="param">true</span> is not equal to <span class="param">cover:all</span>. Covering children has no effect if the slice is set to fill its parent on the same axis.
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getcoverchildren" class="ref">get cover children</a>, </li>
+<li><a href="#about-setfillparent" class="ref">set fill parent</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -24049,7 +24125,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 1000 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 1004 commands (of which 15 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

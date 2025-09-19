@@ -21,8 +21,12 @@ Nov ?? 2025 [Lexiphanic]
     * "get music time ms", "set music time ms", "get music length ms",
       "music is seekable" [Ralph]
     * "get/set panel sized by child" [James]
+    * "get/set fill parent" "get/set cover children" [James]
 
   *** Changes
+    * "Cover Children" feature is now available. It is no longer hidden.
+      Fill parent now always takes priority over cover children when
+      set on the same axis of the same slice.
 
   *** Bugfixes
     * Game/Custom now quit cleanly on a SIGTERM or SIGINT (and abort on SIGQUIT)

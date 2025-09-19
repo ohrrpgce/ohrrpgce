@@ -2720,12 +2720,11 @@ SUB script_commands(byval cmdid as integer)
  CASE 400 '--fill parent
   sl = get_arg_resizeable_slice(0, YES, YES)
   IF sl THEN
-   'FIXME: need to ensure we don't clash with Cover Children by disabling
-   'that as appropriate. See SliceLegalCoverModes.
-   'TODO: there's no command to change slice fill mode!
+   'This command leaves the fillmode unchanged, and is documented as such
    sl->Fill = (retvals(1) <> 0)
   END IF
  CASE 401 '--is filling parent
+  'This command doesn't care which fillmode is used, and is documented as such
   sl = get_arg_slice(0)
   IF sl THEN
    scriptret = IIF(sl->Fill, 1, 0)
@@ -5530,6 +5529,42 @@ SUB script_commands(byval cmdid as integer)
   IF sl THEN
    ChangePanelSlice sl, , , , , , retvals(1) <> 0
   END IF
+ CASE 809'--get cover children
+  sl = get_arg_slice(0)
+  IF sl THEN
+   scriptret = sl->CoverChildren ' The possible values of CoverChildren match the cover: constants
+  END IF
+ CASE 810'--set cover children
+  sl = get_arg_resizeable_slice(0, YES, YES)
+  IF bound_arg(retvals(1), 0, 3, "cover: constant", , serrBadOp) THEN
+   IF sl THEN
+    sl->CoverChildren = retvals(1)
+   END IF
+  END IF
+ CASE 811'--get fill parent
+  sl = get_arg_slice(0)
+  IF sl THEN
+   IF sl->Fill THEN
+    scriptret = sl->FillMode
+   ELSE
+    scriptret = -1 'fill:none constant
+   END IF
+  END IF
+ CASE 812'--set fill parent
+  sl = get_arg_resizeable_slice(0, YES, YES)
+  IF bound_arg(retvals(1), -1, 2, "fill: constant", , serrBadOp) THEN
+   IF sl THEN
+    IF retvals(1) = -1 THEN
+     'fill:none constant
+     sl->Fill = NO
+     sl->FillMode = sliceFillFull
+    ELSE
+     sl->Fill = YES
+     sl->FillMode = retvals(1)
+    END IF
+   END IF
+  END IF
+
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
@@ -5905,7 +5940,7 @@ FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fill_ok as
    RETURN NULL
   END IF
 
-  'This is only for "set slice width/height"; "fill parent" needs to do its own checks
+  'This is only for "set slice width/height"
   IF ((sl->CoverChildren AND coverHoriz) ANDALSO horiz_fill_ok = NO) ORELSE _
      ((sl->CoverChildren AND coverVert)  ANDALSO vert_fill_ok = NO) THEN
    unresizable_error sl, " while Covering Children", serrWarn

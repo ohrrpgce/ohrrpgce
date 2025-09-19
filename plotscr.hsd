@@ -848,7 +848,10 @@ define function, begin
 806,getsonglengthms,0         # Alias
 807,getpanelsizedbychild,1,0    #x return true for a panel that is sized by child, or false for a fixed size panel
 808,setpanelsizedbychild,2,0,1  #x change whether a panel is sized by child or fixed sized
-
+809,getcoverchildren,1,0      # Check the current cover children settings of a slice
+810,setcoverchildren,2,0,3    # Change a slice's cover children setting
+811,getfillparent,1,0         # Check the current fill settings on a slice
+812,setfillparent,2,0,0       # Change a slice's parent filling settings
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
@@ -2421,6 +2424,14 @@ define constant, begin
 16,dissolve:fade up
 17,dissolve:blip
 -1,dissolvetime:default
+0,cover:none,
+1,cover:horiz,
+2,cover:vert,
+3,cover:all,
+-1,fill:none
+0,fill:all,
+1,fill:horiz,
+2,fill:vert,
 50000,maximum global id
 255,maximum string id
  -1, ui:Background               # Background colour
