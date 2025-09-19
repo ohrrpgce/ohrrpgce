@@ -3940,8 +3940,6 @@ end Function
 'edge, etc. Children center-aligned on the parent matter for both edges.
 'And the padding acts as a min size.
 Local Sub UpdateCoverSize(par as Slice ptr)
- 'Don't bother checking whether we're filling. You shouldn't be able to set a slice
- 'to both fill and cover.
 
  'Panel, grid, layout are special, and will have to implement covering in their own way if at all.
  'They will probably do so in ChildRefresh or ChildrenRefresh, where Fill Parent is also handled.
@@ -3953,6 +3951,7 @@ Local Sub UpdateCoverSize(par as Slice ptr)
  while ch
   with *ch
    if .IsShown then
+    'We skip children who are filling this parent in a given axis
     dim filling_horiz as bool = .Fill andalso .FillMode <> sliceFillVert
     dim filling_vert  as bool = .Fill andalso .FillMode <> sliceFillHoriz
 
@@ -3971,10 +3970,13 @@ Local Sub UpdateCoverSize(par as Slice ptr)
  wend
 
  with *par
-  if .CoverChildren and coverHoriz then
+  'We skip covering if the par is also filling in the same axis
+  dim filling_horiz as bool = .Fill andalso .FillMode <> sliceFillVert
+  dim filling_vert  as bool = .Fill andalso .FillMode <> sliceFillHoriz
+  if .CoverChildren and coverHoriz andalso not filling_horiz then
    .Width = large(0, size.w + .PaddingLeft + .PaddingRight)
   end if
-  if .CoverChildren and coverVert then
+  if .CoverChildren and coverVert andalso not filling_vert then
    .Height = large(0, size.h + .PaddingTop + .PaddingBottom)
   end if
  end with
@@ -3988,10 +3990,7 @@ Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
   if SlicePossiblyResizable(sl) = NO then return coverNone
   'TODO: once zooming sprites by resizing them is implemented, allow a Sprite to Cover.
 
-  dim ret as CoverModes = coverFull
-  if .Fill andalso .FillMode <> sliceFillVert then ret -= coverHoriz    'filling_horiz
-  if .Fill andalso .FillMode <> sliceFillHoriz then ret -= coverVert
-  return ret
+  return coverFull
  end with
 end Function
 

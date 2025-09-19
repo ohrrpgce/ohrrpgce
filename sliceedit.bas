@@ -2065,14 +2065,10 @@ SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
   'That restriction is actually enforced in LoadSpriteSliceImage rather than in sliceedit;
   'ought to be cleaned up (TODO)
 
-  'Covering and Filling are mutually exclusive
-  IF dataptr = @.Fill OR dataptr = @.FillMode THEN
-   .CoverChildren AND= SliceLegalCoverModes(sl)
-  END IF
+  'Covering and Filling are not mutually exclusive,
+  'but Filling overrides Covering if they are both set on the same axis
+  '(Why mention it here? Because we used to have code here that made them mutually exclusive)
   IF dataptr = @.CoverChildren THEN
-   IF .CoverChildren AND coverHoriz THEN disable_horiz_fill(sl)
-   IF .CoverChildren AND coverVert THEN disable_vert_fill(sl)
-
    'Restrict .CoverChildren to only the allowed modes.
    'It's ugly to do this here when all other slice data editing restrictions are
    'implemented using "rule groups", but this has to be done AFTER filling is
@@ -2697,10 +2693,8 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
   sliceed_rule rules(), "size", erIntgrabber, @.Width, minsize, 9999, slgrPICKWH
   a_append menu(), " Height: " & .Height
   sliceed_rule rules(), "size", erIntgrabber, @.Height, minsize, 9999, slgrPICKWH
-  IF ses.privileged THEN
-   a_append menu(), " Cover children: " & CoverModeCaptions(.CoverChildren)
-   sliceed_rule_ubyte rules(), "cover", @.CoverChildren, 0, 3
-  END IF
+  a_append menu(), " Cover children: " & CoverModeCaptions(.CoverChildren)
+  sliceed_rule_ubyte rules(), "cover", @.CoverChildren, 0, 3
   a_append menu(), " Fill parent: " & yesorno(.Fill)
   sliceed_rule_tog rules(), "fill", @.Fill
   IF .Fill THEN
