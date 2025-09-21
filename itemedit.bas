@@ -94,8 +94,6 @@ TYPE ItemEditor EXTENDS EditorKit
  wep_sl as Slice Ptr
  handle_pos_sl as Slice ptr
  preview_wep_frame as integer
- tooltip_sl as Slice Ptr
- tooltip as string
  STATIC clipboard_item as ItemDef ptr  'For copy/pasting, NULL if nothing copied
  undo_item as ItemDef ptr  'Just to undo pasting. NULL if nothing
  can_copy_and_paste as bool
@@ -133,13 +131,6 @@ CONSTRUCTOR ItemEditor(item_id as integer)
  handle_pos_sl->Height = 3
  ReAlignSlice handle_pos_sl, alignLeft, alignLeft, alignCenter, alignCenter
  ChangeRectangleSlice handle_pos_sl, , , uiSelectedItem2 * -1 - 1, borderLine, transHollow
- tooltip_sl = NewSliceOfType(slText)
- SetSliceParent tooltip_sl, underlay
- tooltip_sl->Fill = YES
- tooltip_sl->FillMode = sliceFillHoriz
- tooltip_sl->AlignVert = alignBottom
- tooltip_sl->AnchorVert = alignBottom
- ChangeTextSlice tooltip_sl, "Hint Text Goes Here", uiText * -1 - 1, NO, YES, uiHighlight * -1 - 1
 END CONSTRUCTOR
 
 DESTRUCTOR ItemEditor()
@@ -167,8 +158,6 @@ END SUB
 
 SUB ItemEditor.define_items()
 
- tooltip = ""
-
  '----------------------------
  IF submenu = "statbonus" THEN
  
@@ -187,19 +176,19 @@ SUB ItemEditor.define_items()
 
  helpkey = "item_editor"
 
- 'Only do copy-pasting on the main menu. Not in sub-menus
- '(We don't want to create the false impression that only the contents of the sub-menu would be pasted)
- 'The copy-paste is implemented at the end of the main menu definition
- IF state.pt = state.top THEN
-  IF clipboard_item THEN
-   tooltip = "Alt-C/V to copy/paste item definition"
-  ELSE
-   tooltip = "Alt-C to copy item definition"
-  END IF
- END IF
  can_copy_and_paste = YES
 
  def_record_switcher
+ 'Only do copy-pasting on the main menu. Not in sub-menus
+ '(We don't want to create the false impression that only the contents of the sub-menu would be pasted)
+ 'The copy-paste is implemented at the end of the main menu definition
+ IF selected THEN
+  IF clipboard_item THEN
+   set_tooltip "Alt-C/V to copy/paste item definition"
+  ELSE
+   set_tooltip "Alt-C to copy item definition"
+  END IF
+ END IF
  
  defstr "Name:", item.name, 8
  IF selected THEN can_copy_and_paste = NO
@@ -229,7 +218,7 @@ SUB ItemEditor.define_items()
  defitem "When used as an item in battle:"
  edit_as_attack item.battle_items_menu_attack, Or_None
  IF value = -1 THEN set_caption "NOTHING"
- IF selected THEN tooltip = THINGGRABBER_TOOLTIP
+ set_tooltip THINGGRABBER_TOOLTIP
 
  IF item.eqslots(0) THEN
   section "As a weapon"
@@ -238,7 +227,7 @@ SUB ItemEditor.define_items()
   defitem "When used as a Weapon:"
   edit_as_attack item.battle_weapon_attack, Or_None
   IF value = -1 THEN set_caption "NOTHING"
-  IF selected THEN tooltip = THINGGRABBER_TOOLTIP
+  set_tooltip THINGGRABBER_TOOLTIP
   
   defitem "Weapon Picture:"
   IF edit_as_spriteset(item.wep_pic, sprTypeWeapon) THEN
@@ -286,7 +275,7 @@ SUB ItemEditor.define_items()
   edit_as_attack item.oob_attack, Or_None
   IF value = -1 THEN set_caption "NOTHING"
  END IF
- IF selected THEN tooltip = THINGGRABBER_TOOLTIP
+ set_tooltip THINGGRABBER_TOOLTIP
 
  defitem "Text Box:"
  IF item.oob_attack >= 0 ORELSE item.teach_spell >= 0 THEN
@@ -297,7 +286,7 @@ SUB ItemEditor.define_items()
   IF value = -1 THEN set_caption "NOTHING"
   IF value = 0 THEN set_caption "(Box 0 not supported here)"
  END IF
- IF selected THEN tooltip = THINGGRABBER_TOOLTIP
+ set_tooltip THINGGRABBER_TOOLTIP
 
  defitem "Teach Spell:"
  IF item.oob_attack >= 0 ORELSE item.text_box >= 0 THEN
@@ -307,7 +296,7 @@ SUB ItemEditor.define_items()
   edit_as_attack item.teach_spell, Or_None
   IF value = -1 THEN set_caption "NOTHING"
  END IF
- IF selected THEN tooltip = THINGGRABBER_TOOLTIP
+ set_tooltip THINGGRABBER_TOOLTIP
 
  section "Automatically set tags"
 
@@ -367,7 +356,6 @@ SUB ItemEditor.reload_sprite()
 END SUB
 
 SUB ItemEditor.draw_underlays ()
- ChangeTextSlice tooltip_sl, tooltip
  DrawSlice underlay, vpage
 END SUB
 
