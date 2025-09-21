@@ -361,7 +361,8 @@ sub music_init()
 		'supported_formats is sad, but at least it prevents pauses later.
 		var init_formats = MIX_INIT_MID or MIX_INIT_OGG or MIX_INIT_MP3 or MIX_INIT_MOD or MIX_INIT_FLAC
 		#ifdef SDL_MIXER2
-			#ifndef __FB_DARWIN__
+			#ifdef MIX_INIT_OPUS
+				'Added in FB 1.08's headers
 				init_formats or= MIX_INIT_OPUS
 			#endif
 		#endif
