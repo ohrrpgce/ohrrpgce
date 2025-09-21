@@ -137,7 +137,7 @@ SUB SlicePropertiesEditor.finish_defitem()
   base.finish_defitem()
 
   IF gather_items THEN
-    IF cur_item.title = prev_menu_text THEN  'Previous Menu
+    IF cur_item.title = exit_menu_text THEN  'Previous Menu
       EXIT SUB
     END IF
     IF cur_animkey = "" THEN

@@ -2060,7 +2060,7 @@ CONSTRUCTOR GeneralSettingsMenu()
 
   last_update = TIMER
 
-  prev_menu_text = "Return to Main Menu"
+  exit_menu_text = "Return to Main Menu"
   helpkey = "general_game_data"
 END CONSTRUCTOR
 

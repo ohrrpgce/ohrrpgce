@@ -38,7 +38,8 @@
 '
 ' ==== Adding menu items ====
 '
-' "Previous Menu" (customisable with prev_menu_text) is added automatically.
+' "Previous Menu" (customisable with exit_menu_text and exit_submenu_text) is added
+' automatically.
 '
 ' To add a menu item, call from define_items():
 ' -spacer: a blank line
@@ -346,7 +347,7 @@ sub EditorKit.run_phase(which_phase as Phases)
 
 	if refresh then clear_menu
 
-	defitem prev_menu_text
+	defitem iif(submenu = "", exit_menu_text, exit_submenu_text)
 	if activate then want_exit = YES
 
 	define_items()

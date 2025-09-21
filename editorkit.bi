@@ -120,7 +120,8 @@ DECLARE_VECTOR_OF_TYPE(SubmenuState, SubmenuState)
 ' See editorkit.bas for usage information
 type EditorKit extends ModularMenu
 	'---- Menu settings
-	prev_menu_text as string = "Previous Menu"
+	exit_menu_text as string = "Previous Menu"
+	exit_submenu_text as string = "Previous Menu"
 	' And many others in ModularMenu, including:
 	'helpkey as string         'F1 page if not overridden for an item. Gets copied to default_helpkey
 	'floating as bool          'Float on top of current screen contents

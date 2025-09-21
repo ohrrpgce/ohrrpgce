@@ -112,6 +112,9 @@ CONSTRUCTOR ItemEditor(item_id as integer)
   id = item_id
  ENd IF
 
+ exit_menu_text = "Previous Menu"
+ exit_submenu_text = "Back to Item Menu"
+
  setup_record_switching id, 0, gen(genMaxItem), , "Item", maxMaxItems
  
  'Set up the weapon preview underlay
@@ -170,7 +173,6 @@ SUB ItemEditor.define_items()
  IF submenu = "statbonus" THEN
  
  helpkey = "equipment_stat_bonuses"
- prev_menu_text = "Previous Menu"
 
  FOR i as integer = 0 TO statLast
   defint statnames(i) + " Bonus:", item.stat_bonuses.sta(i), -32768, 32767
@@ -184,7 +186,6 @@ SUB ItemEditor.define_items()
  ELSE '--main menu
 
  helpkey = "item_editor"
- prev_menu_text = "Back to Item Menu"
 
  'Only do copy-pasting on the main menu. Not in sub-menus
  '(We don't want to create the false impression that only the contents of the sub-menu would be pasted)
