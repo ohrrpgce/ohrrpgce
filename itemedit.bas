@@ -16,12 +16,8 @@
 
 
 '--Local SUBs
-DECLARE FUNCTION item_attack_name(n as integer) as string
-DECLARE SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
-
 DECLARE SUB item_editor_equipbits(item as ItemDef)
 DECLARE SUB item_editor_elementals(item as ItemDef)
-DECLARE SUB item_editor_stat_bonuses(item as ItemDef)
 
 SUB item_editor ()
  DIM itemb as ItemBrowser
@@ -407,85 +403,6 @@ END FUNCTION
 
 '-----------------------------------------------------------------------
 
-
-SUB generate_item_edit_menu (menu() as string, shaded() as bool, itembuf() as integer, item_name as string, info_string as string, equip_types() as string, byref box_preview as string)
- DIM weapon as string = readglobalstring(38, "Weapon", 10)
- menu(0) = "Back to Item Menu"
- menu(1) = "Name:" & item_name
- menu(2) = "Info:" & info_string
- menu(3) = "Value: " & itembuf(46)
- menu(4) = "Maximum stack size: " & defaultint(itembuf(210), "Default (" & gen(genItemStackSize) & ")", 0)
-
- DIM is_equippable as bool = NO
- DIM is_weapon as bool = item_is_equippable_in_slot(itembuf(), 0)
- menu(5) = "Equippable as...: "
- DIM sep as string = " "
- FOR i as integer = 0 TO 4
-  IF item_is_equippable_in_slot(itembuf(), i) THEN
-   menu(5) &= sep & equip_types(i)
-   sep = "/"
-   is_equippable = YES
-  END IF
- NEXT i
- IF NOT is_equippable THEN menu(5) &= " NEVER EQUIPPED"
- 
- menu(6) = "When used in battle: " & item_attack_name(itembuf(47))
- menu(7) = "When used as a " & weapon & ": " & item_attack_name(itembuf(48))
- menu(8) = "Teach Spell: " & item_attack_name(itembuf(50))
- IF itembuf(51) > 0 THEN
-  menu(9) = "When used out of battle: " & item_attack_name(itembuf(51))
-  box_preview = ""
- ELSEIF itembuf(51) = 0 THEN
-  menu(9) = "When used out of battle: NO ATTACK/TEXTBOX"
-  box_preview = ""
- ELSE
-  menu(9) = "When used out of battle: Text " & ABS(itembuf(51))
-  box_preview = textbox_preview_line(ABS(itembuf(51)))
- END IF
- menu(10) = "Unlimited Use"
- IF itembuf(73) = 1 THEN menu(10) = "Consumed By Use"
- IF itembuf(73) = 2 THEN menu(10) = "Cannot be Sold/Dropped"
- menu(11) = "Own item Tag " & itembuf(74) & " " & load_tag_name(itembuf(74))
- menu(12) = "Is in inventory Tag " & itembuf(75) & " " & load_tag_name(itembuf(75))
- menu(13) = "Is equipped Tag " & itembuf(76) & " " & load_tag_name(itembuf(76))
- menu(14) = "Equipped by active hero Tag " & itembuf(77) & " " & load_tag_name(itembuf(77))
- menu(15) = "Weapon Picture: " & itembuf(52)
- menu(16) = "Weapon Palette: " & defaultint(itembuf(53))
- menu(17) = "Handle position A..."
- menu(18) = "Handle position B..."
- menu(19) = "Stat Bonuses..."
- menu(20) = "Elemental Resists..."
- 'menu(20) = "Equipment Bits..."
- menu(21) = "Who Can Equip?..."
-
- FOR i as integer = 0 TO UBOUND(shaded)
-  shaded(i) = NO
- NEXT
- IF NOT is_weapon THEN
-  menu(7) = "When used as a " & weapon & ": N/A"
-  shaded(7) = YES
-  menu(15) = "Weapon Picture: N/A"
-  menu(16) = "Weapon Palette: N/A"
-  shaded(15) = YES
-  shaded(16) = YES
-  shaded(17) = YES
-  shaded(18) = YES
- END IF
- IF NOT is_equippable THEN
-  'Don't N/A the tags, because they still take effect
-  shaded(13) = YES
-  shaded(14) = YES
-  shaded(19) = YES
-  shaded(20) = YES
-  shaded(21) = YES
- END IF
-
-END SUB
-
-FUNCTION item_attack_name(n as integer) as string
- IF n <= 0 THEN RETURN "NOTHING"
- RETURN n - 1 & " " & readattackname(n - 1)
-END FUNCTION
 
 'This elemental resistance editor is shared by the hero and item editors
 SUB common_elementals_editor(elementals() as single, helpfile as string, byval showsign as integer = 0)
