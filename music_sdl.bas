@@ -876,7 +876,7 @@ type ModplugSettingsMenu extends ModularMenu
 	settings as ModPlug_Settings
 
 	declare sub update ()
-	declare function each_tick () as bool
+	declare sub each_tick ()
 end type
 
 sub ModplugSettingsMenu.update ()
@@ -892,11 +892,11 @@ sub ModplugSettingsMenu.update ()
 	menu(4) = "Megabass: " & settings.mBassAmount & "%"
 end sub
 
-function ModplugSettingsMenu.each_tick () as bool
+sub ModplugSettingsMenu.each_tick ()
 	dim changed as bool
 	select case state.pt
 		case 0
-			if enter_space_click(state) then return YES
+			if enter_space_click(state) then want_exit = YES
 		case 1
 			changed = bitgrabber(settings.mFlags, MODPLUG_ENABLE_NOISE_REDUCTION, state)
 		case 2
@@ -909,7 +909,7 @@ function ModplugSettingsMenu.each_tick () as bool
 			setbitmask settings.mFlags, MODPLUG_ENABLE_MEGABASS, settings.mBassAmount > 0
 	end select
 	state.need_update or= changed
-end function
+end sub
 
 function modplug_settings_menu () as bool
 	if _ModPlug_GetSettings = NULL or _ModPlug_SetSettings = NULL then return NO

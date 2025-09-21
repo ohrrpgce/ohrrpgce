@@ -468,7 +468,7 @@ TYPE FormationEditor EXTENDS ModularMenu
  preview_music as bool
  last_music as integer = -1
 
- DECLARE VIRTUAL FUNCTION each_tick() as bool
+ DECLARE VIRTUAL SUB each_tick()
  DECLARE VIRTUAL FUNCTION try_exit() as bool
  DECLARE VIRTUAL SUB update()
  DECLARE VIRTUAL SUB draw_underlays()
@@ -476,7 +476,7 @@ TYPE FormationEditor EXTENDS ModularMenu
  DECLARE SUB load_form()
  DECLARE SUB update_music()
 
- DECLARE FUNCTION each_tick_menu_mode() as bool
+ DECLARE SUB each_tick_menu_mode()
  DECLARE SUB each_tick_positioning_mode()
 END TYPE
 
@@ -524,13 +524,13 @@ FUNCTION FormationEditor.try_exit() as bool
  RETURN YES
 END FUNCTION
 
-FUNCTION FormationEditor.each_tick() as bool
+SUB FormationEditor.each_tick()
  IF keyval(scF6) > 1 THEN slice_editor rootslice, SL_COLLECT_EDITOR
 
  IF positioning_mode THEN
   each_tick_positioning_mode()
  ELSE
-  IF each_tick_menu_mode() THEN RETURN YES
+  each_tick_menu_mode()
  END IF
 
  IF positioning_mode THEN
@@ -541,14 +541,15 @@ FUNCTION FormationEditor.each_tick() as bool
   'Rebuild the menu unconditionally, because each_tick_menu_mode doesn't set need_update
   state.need_update = YES
  END IF
-END FUNCTION
+END SUB
 
 SUB FormationEditor.each_tick_positioning_mode()
  'ccCancel is handled by try_exit()
  IF enter_or_space() ORELSE (readmouse.release AND mouseRight) THEN
-  positioning_mode = NO
-  state.pt = remem_pt
-  RETURN
+  'positioning_mode = NO
+  'state.pt = remem_pt
+  want_exit = YES  'Call try_exit
+  EXIT SUB
  END IF
  DIM as integer movespeed = 1
  IF keyval(scShift) THEN movespeed = 8
@@ -572,8 +573,8 @@ SUB FormationEditor.each_tick_positioning_mode()
  END WITH
 END SUB
 
-FUNCTION FormationEditor.each_tick_menu_mode() as bool
- IF state.empty() THEN RETURN NO
+SUB FormationEditor.each_tick_menu_mode()
+ IF state.empty() THEN EXIT SUB
  DIM itemid as integer = itemtypes(state.pt)
  slot = -1
 
@@ -584,7 +585,7 @@ FUNCTION FormationEditor.each_tick_menu_mode() as bool
 
  SELECT CASE itemid
   CASE 0  'Previous menu
-   IF activate THEN RETURN YES
+   IF activate THEN want_exit = YES
   CASE 1  'Select a different formation
    DIM as integer remember_id = form_id
    IF intgrabber_with_addset(form_id, 0, gen(genMaxFormation), maxMaxFormation, "formation") THEN
@@ -676,7 +677,7 @@ FUNCTION FormationEditor.each_tick_menu_mode() as bool
    END WITH
 
  END SELECT
-END FUNCTION
+END SUB
 
 SUB FormationEditor.update_music()
  IF preview_music ANDALSO form.music <> last_music THEN

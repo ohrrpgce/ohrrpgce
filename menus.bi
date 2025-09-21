@@ -128,6 +128,7 @@ TYPE ModularMenu EXTENDS Object
  selectst as SelectTypeState
  can_use_strgrabber as bool 'Whether you can use strgrabber (false when selecting-by-typing)
  using_strgrabber as bool 'Set this true in each_tick() to disable select-by-typing
+ want_exit as bool        'True in each_tick if user is trying to exit. Set this true in each_tick to force exit
  menuopts as MenuOptions
  floating as bool        'Appears in the center of the screen, like notification, instead of fullscreen
  use_selectable as bool  'Set to true to make use of selectable() (TODO: get rid of this horrible setting, somehow)
@@ -151,13 +152,16 @@ TYPE ModularMenu EXTENDS Object
  ' Delete all menu items
  DECLARE SUB clear_menu()
 
+ ' Whether should call try_exit()
+ DECLARE FUNCTION exit_condition() as bool
+
  ' Called to create/update 'menu()' and 'state' if state.need_update is true. Also called once at start.
  ' Should correctly set state.last
  DECLARE VIRTUAL SUB update()
 
  ' Called each tick. Can either call update() itself or set state.need_update=YES
- ' Return YES to exit the menu
- DECLARE VIRTUAL FUNCTION each_tick() as bool
+ ' Set want_exit = YES to exit the menu
+ DECLARE VIRTUAL SUB each_tick()
 
  ' Called when user tries to leave the menu
  ' Return YES to exit the menu

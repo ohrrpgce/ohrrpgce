@@ -265,12 +265,12 @@ sub EditorKit.update()
 	run_phase(Phases.refreshing)
 end sub
 
-function EditorKit.each_tick() as bool
+sub EditorKit.each_tick()
 	base.helpkey = default_helpkey
 	base.tooltip = ""
-	want_exit = keyval(ccCancel) > 1
 	want_submenu = "NO"
 	want_activate = enter_space_click(state)
+	'want_exit set by ModularMenu
 	record_id_grabber_called = NO
 
 	run_phase(Phases.processing)
@@ -295,21 +295,27 @@ function EditorKit.each_tick() as bool
 		end if
 	end if
 
-	if want_exit then
-		if v_len(submenu_stack) then  'Exit submenu
-			want_submenu = v_pop(submenu_stack)
-		elseif try_exit() then  'Exit root menu
-			save()
-			return YES
-		end if
-		' Don't let ModularMenu handle it
-		if keyval(ccCancel) > 1 then setkeys
-	end if
 	if want_submenu <> "NO" then
 		apply_enter_submenu want_submenu
 	end if
 
 	'tooltip = v_str(submenu_stack) & " '" & submenu & "'"
+
+	' If want_exit, ModularMenu calls try_exit() next
+end sub
+
+function EditorKit.try_exit() as bool
+	' One reason want_exit might be NO when a menu item enters an editor
+	' and the user exits it with ESC
+	if want_exit then
+		want_exit = NO
+		if v_len(submenu_stack) then  'Exit submenu
+			apply_enter_submenu v_pop(submenu_stack)
+		else  'Exit root menu
+			save()
+			return YES
+		end if
+	end if
 	return NO
 end function
 
@@ -375,16 +381,6 @@ end function
 ' Called after an item definition is finished
 sub EditorKit.finish_defitem()
 	if started_item = NO then exit sub
-
-	if activate then
-		' If you enter some editor and then exit it by hitting ESC/etc then we
-		' need to ignore that cancel key or this menu will exit.
-		' (Ideally would call setkeys regardless of how you exit the menu,
-		' but it's not possible to tell that we entered one, and if you exit
-		' it any other way there doesn't seem to be a possibility of
-		' misinterpreting input.)
-		if keyval(ccCancel) > 1 then setkeys
-	end if
 
 	if edited then
 		state.need_update = YES

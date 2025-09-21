@@ -155,7 +155,7 @@ type EditorKit extends ModularMenu
 
 	'---- Global menu state variables (for access inside define_items())
 	submenu as string          'Name of current submenu; "" by default
-	want_exit as bool          'Called exit_menu()
+	'want_exit as bool         'Pressed ESC/etc or called exit_menu()  (from ModularMenu)
 	want_activate as bool      'Cache enter_space_click() result
 
 	enum Phases
@@ -208,7 +208,7 @@ type EditorKit extends ModularMenu
 
   private:
 	declare sub update()
-	declare function each_tick() as bool
+	declare sub each_tick()
 	declare sub draw_overlays()
 	declare sub write_value()
 	declare function get_submenu_state(name as string) as SubmenuState ptr
@@ -224,8 +224,10 @@ type EditorKit extends ModularMenu
 	declare virtual sub load()
 	declare virtual sub save()
 	declare virtual function get_record_name(id as integer) as string
+	' If you override try_exit you must call base.try_exit()!
+	declare virtual function try_exit() as bool
 
-	' And also ModularMenu methods such as draw_underlays, draw_overlays, try_exit
+	' And also ModularMenu methods such as draw_underlays, draw_overlays
 
 	enum EKFlags
 		no_flags = 0

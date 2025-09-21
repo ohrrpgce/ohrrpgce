@@ -523,7 +523,7 @@ type AnimationNamePicker extends ModularMenu
   declare function selected_name() as string
 
   declare sub update()
-  declare function each_tick() as bool
+  declare sub each_tick()
   declare sub draw_underlays()
 end type
 
@@ -578,12 +578,12 @@ function AnimationNamePicker.selected_name() as string
   return *names_list[idx].name
 end function
 
-function AnimationNamePicker.each_tick() as bool
+sub AnimationNamePicker.each_tick()
   if enter_space_click(state) then
     selected_pt = state.pt
-    return YES
+    want_exit = YES
   end if
-end function
+end sub
 
 sub AnimationNamePicker.draw_underlays()
   fuzzyrect 0, 0, , , findrgb(32, 32, 100), vpage, 50, , 1

@@ -2019,9 +2019,8 @@ END SUB
 SUB ModularMenu.update()
 END SUB
 
-FUNCTION ModularMenu.each_tick() as bool
- RETURN NO
-END FUNCTION
+SUB ModularMenu.each_tick()
+END SUB
 
 FUNCTION ModularMenu.try_exit() as bool
  RETURN YES
@@ -2102,6 +2101,15 @@ SUB ModularMenu.update_wrapper()
  'correct_menu_state state  'Also calls mouse_update_hover
 END SUB
 
+FUNCTION ModularMenu.exit_condition() as bool
+ IF keyval(ccCancel) > 1 THEN RETURN YES
+ IF floating ANDALSO readmouse.release AND (mouseLeft OR mouseRight) THEN
+  IF NOT rect_collide_point(state.rect, readmouse.pos) THEN
+   RETURN YES
+  END IF
+ END IF
+END FUNCTION
+
 SUB ModularMenu.run()
  running = YES
  IF floating THEN
@@ -2131,15 +2139,13 @@ SUB ModularMenu.run()
   can_use_strgrabber = (LEN(selectst.query) = 0)
   using_strgrabber = NO
 
-  'Call each_tick before checking cancel and help keys, so it can override them if it wants
-  IF each_tick() THEN EXIT DO
+  'Call exit_condition before each_tick, so that if an subeditor is entered we ignore the ESC/etc that exits it.
+  want_exit = exit_condition()  'ESC, etc
 
-  IF keyval(ccCancel) > 1 ANDALSO try_exit() THEN EXIT DO
-  IF floating ANDALSO readmouse.release AND (mouseLeft OR mouseRight) THEN
-   IF NOT rect_collide_point(state.rect, readmouse.pos) THEN
-    IF try_exit() THEN EXIT DO
-   END IF
-  END IF
+  'Call each_tick before checking cancel (want_exit) and help keys, so it can override them if it wants.
+  each_tick()
+
+  IF want_exit ANDALSO try_exit() THEN EXIT DO
 
   IF LEN(helpkey) ANDALSO keyval(scF1) > 1 ANDALSO (keyval(scCtrl) OR keyval(scShift)) = 0 THEN
    show_help helpkey

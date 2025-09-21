@@ -6893,7 +6893,7 @@ TYPE MapSettingsMenu EXTENDS ModularMenu
  pan_mult_str as string
 
  DECLARE SUB update ()
- DECLARE FUNCTION each_tick () as bool
+ DECLARE SUB each_tick ()
 END TYPE
 
 SUB MapSettingsMenu.update ()
@@ -6934,18 +6934,18 @@ SUB MapSettingsMenu.update ()
  'Next free item type is 18
 END SUB
 
-FUNCTION MapSettingsMenu.each_tick () as bool
+SUB MapSettingsMenu.each_tick ()
  IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN
   'We act like an edit mode
   FOR fn as integer = scF2 TO scF8
-   IF keyval(fn) > 1 THEN RETURN YES
+   IF keyval(fn) > 1 THEN want_exit = YES : EXIT SUB
   NEXT
  END IF
 
  DIM changed as bool
  SELECT CASE itemtypes(state.pt)
   CASE 0
-   IF enter_space_click(state) THEN RETURN YES
+   IF enter_space_click(state) THEN want_exit = YES
   CASE 1
    changed = intgrabber(st->shift_speed.x, 0, 100)  'Because why limit?
   CASE 2
@@ -6991,7 +6991,7 @@ FUNCTION MapSettingsMenu.each_tick () as bool
 
  END SELECT
  state.need_update OR= changed
-END FUNCTION
+END SUB
 
 SUB mapedit_settings_menu (st as MapEditState)
  DIM menu as MapSettingsMenu

@@ -1168,7 +1168,7 @@ TYPE EnemyUsageMenu EXTENDS ModularMenu
  DECLARE SUB update()
  DECLARE FUNCTION check_spawn(eid as integer, enemy as EnemyDef, spawn as integer, description as string) as bool
  DECLARE SUB draw()
- DECLARE FUNCTION each_tick() as bool
+ DECLARE SUB each_tick()
 END TYPE
 
 'Count number of uses of each form set in a foemap
@@ -1349,7 +1349,7 @@ FUNCTION EnemyUsageMenu.check_spawn(eid as integer, enemy as EnemyDef, spawn as 
  END IF
 END FUNCTION
 
-FUNCTION EnemyUsageMenu.each_tick() as bool
+SUB EnemyUsageMenu.each_tick()
  DIM changed as bool
 
  IF keyval(scAlt) > 0 THEN
@@ -1370,7 +1370,7 @@ FUNCTION EnemyUsageMenu.each_tick() as bool
    changed = YES
    SELECT CASE itemtype
     CASE -2 'Quit
-     RETURN YES
+     want_exit = YES
     CASE 0  'Formation
      individual_formation_editor itemid
     CASE 1  'Formation set
@@ -1388,7 +1388,7 @@ FUNCTION EnemyUsageMenu.each_tick() as bool
  END IF
 
  this.state.need_update = changed
-END FUNCTION
+END SUB
 
 SUB EnemyUsageMenu.draw()
  BASE.draw()
@@ -1425,7 +1425,7 @@ TYPE FoemapStatsMenu EXTENDS ModularMenu
  DECLARE DESTRUCTOR()
  DECLARE SUB clear_cache()
  DECLARE SUB update()
- DECLARE FUNCTION each_tick() as bool
+ DECLARE SUB each_tick()
  DECLARE FUNCTION get_enemy(eid as integer) byref as EnemyDef
 END TYPE
 
@@ -1726,7 +1726,7 @@ SUB FoemapStatsMenu.update()
  this.state.last = UBOUND(this.menu)
 END SUB
 
-FUNCTION FoemapStatsMenu.each_tick() as bool
+SUB FoemapStatsMenu.each_tick()
  DIM changed as bool
 
  DIM itemtype as integer = this.itemtypes(this.state.pt)
@@ -1737,7 +1737,7 @@ FUNCTION FoemapStatsMenu.each_tick() as bool
    changed = YES
    SELECT CASE itemtype
     CASE -2 'Quit
-     RETURN YES
+     want_exit = YES
     CASE 0  'Formation set
      formation_set_editor itemid
      this.clear_cache()  'Out of date after entering any editor
@@ -1766,7 +1766,7 @@ FUNCTION FoemapStatsMenu.each_tick() as bool
  END SELECT
 
  this.state.need_update = changed
-END FUNCTION
+END SUB
 
 SUB foemap_stats_menu(foemap as TileMap, title as string)
  DIM menu as FoemapStatsMenu

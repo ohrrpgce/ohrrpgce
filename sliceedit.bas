@@ -424,7 +424,7 @@ TYPE CollectionPickerMenu EXTENDS ModularMenu
  draw_root as Slice ptr
  collectionsl as Slice ptr
  DECLARE SUB update ()
- DECLARE FUNCTION each_tick () as bool
+ DECLARE SUB each_tick ()
  DECLARE SUB draw_underlays()
 END TYPE
 
@@ -443,17 +443,17 @@ SUB CollectionPickerMenu.update ()
  add_item 2, , " Name: " & name, NO  'Unselectable
 END SUB
 
-FUNCTION CollectionPickerMenu.each_tick () as bool
+SUB CollectionPickerMenu.each_tick ()
  tooltip = ""
  SELECT CASE itemtypes(state.pt)
   CASE 0
-   IF enter_space_click(state) THEN RETURN YES
+   IF enter_space_click(state) THEN want_exit = YES
   CASE 1
-   IF enter_space_click(state) THEN ret = id : RETURN YES
+   IF enter_space_click(state) THEN ret = id : want_exit = YES
    tooltip = "ENTER/CLICK to pick"
    state.need_update OR= intgrabber(id, 0, 32767)
  END SELECT
-END FUNCTION
+END SUB
 
 SUB CollectionPickerMenu.draw_underlays()
  draw_background vpages(vpage), bgChequer
@@ -3957,7 +3957,7 @@ TYPE SliceEditSettingsMenu EXTENDS ModularMenu
  in_detail_editor as bool
 
  DECLARE SUB update ()
- DECLARE FUNCTION each_tick () as bool
+ DECLARE SUB each_tick ()
 END TYPE
 
 SUB SliceEditSettingsMenu.update()
@@ -4008,12 +4008,12 @@ SUB SliceEditSettingsMenu.update()
  END IF
 END SUB
 
-FUNCTION SliceEditSettingsMenu.each_tick() as bool
+SUB SliceEditSettingsMenu.each_tick()
  DIM activate as bool = enter_space_click(state)
  DIM changed as bool
  SELECT CASE itemtypes(state.pt)
   CASE 0
-   IF activate THEN RETURN YES
+   IF activate THEN want_exit = YES
   CASE 1  'Toggle visible
    changed = booleangrabber(ses->curslice->Visible, state)
   CASE 2  'Toggle subtree hidden
@@ -4021,12 +4021,12 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
   CASE 3  'Reset position/align
    IF activate THEN
     slice_editor_reset_slice *ses, ses->curslice
-    RETURN YES
+    want_exit = YES
    END IF
   CASE 4  'Focus view on slice
    IF activate THEN
     slice_editor_focus_on_slice *ses, edslice
-    RETURN YES  'quit
+    want_exit = YES
    END IF
 
   CASE 7
@@ -4074,7 +4074,7 @@ FUNCTION SliceEditSettingsMenu.each_tick() as bool
   'Next free: 22
  END SELECT
  state.need_update OR= changed
-END FUNCTION
+END SUB
 
 SUB slice_editor_settings_menu(byref ses as SliceEditState, byref edslice as Slice ptr, in_detail_editor as bool)
  DIM menu as SliceEditSettingsMenu

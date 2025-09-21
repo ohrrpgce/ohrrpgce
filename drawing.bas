@@ -535,7 +535,7 @@ TYPE DitherMenu EXTENDS ModularMenu
  dither_amount as integer
  DECLARE SUB update()
  DECLARE SUB draw()
- DECLARE FUNCTION each_tick() as bool
+ DECLARE SUB each_tick()
 END TYPE
 
 SUB DitherMenu.update()
@@ -553,7 +553,7 @@ SUB DitherMenu.draw()
  BASE.draw()
 END SUB
 
-FUNCTION DitherMenu.each_tick() as bool
+SUB DitherMenu.each_tick()
  IF state.pt = 3 ANDALSO intgrabber(dither_amount, 0, 300) THEN state.need_update = YES
 
  IF state.need_update ORELSE imported = NULL ORELSE usemenu_ret THEN
@@ -582,11 +582,9 @@ FUNCTION DitherMenu.each_tick() as bool
 
  IF keyval(ccUse) > 1 ANDALSO state.pt <> 5 THEN
   accept = YES
-  RETURN YES
+  want_exit = YES
  END IF
-
- RETURN NO
-END FUNCTION
+END SUB
 
 ' A menu asking the user how much dithering to do while importing an image
 FUNCTION importimage_dither_menu(filename as string, pmask() as RGBcolor) as Frame ptr
@@ -4336,7 +4334,7 @@ TYPE AddNewSpritesetMenu EXTENDS ModularMenu
   confirmed as bool   'Confirmed instead of cancelled
 
   DECLARE SUB update ()
-  DECLARE FUNCTION each_tick () as bool
+  DECLARE SUB each_tick ()
 END TYPE
 
 SUB AddNewSpritesetMenu.update ()
@@ -4349,7 +4347,7 @@ SUB AddNewSpritesetMenu.update ()
   menu(3) = "[Cancel]"
 END SUB
 
-FUNCTION AddNewSpritesetMenu.each_tick () as bool
+SUB AddNewSpritesetMenu.each_tick ()
   IF state.pt <> 1 THEN
    IF framesize.w < MINSIZE THEN
     framesize.w = MINSIZE
@@ -4366,14 +4364,14 @@ FUNCTION AddNewSpritesetMenu.each_tick () as bool
   IF enter_space_click(state) THEN
    IF state.pt = 0 THEN
     confirmed = YES
-    RETURN YES 'Confirmed
+    want_exit = YES 'Confirmed
    ELSEIF state.pt = 3 THEN
-    RETURN YES 'Cancel
+    want_exit = YES 'Cancel
    END IF
    IF state.pt < 3 ANDALSO enter_or_space() THEN
     'Enter or space should confirm on the numbers, even though click should not
     confirmed = YES
-    RETURN YES 'Confirmed
+    want_exit = YES 'Confirmed
    END IF
   END IF
 
@@ -4382,7 +4380,7 @@ FUNCTION AddNewSpritesetMenu.each_tick () as bool
   ELSEIF state.pt = 2 THEN
     state.need_update OR= intgrabber(framesize.h, 0, MAXSIZE)
   END IF
-END FUNCTION
+END SUB
 
 'framesize should be passed in with its default size
 'Returns true if didn't cancel
@@ -4413,7 +4411,7 @@ TYPE ResizeSpritesetMenu EXTENDS ModularMenu
 
   DECLARE DESTRUCTOR ()
   DECLARE SUB update ()
-  DECLARE FUNCTION each_tick () as bool
+  DECLARE SUB each_tick ()
   DECLARE SUB draw_underlays()
 END TYPE
 
@@ -4437,7 +4435,7 @@ SUB ResizeSpritesetMenu.update ()
   spriteset_resize_menu_rebuild root, resized, pal
 END SUB
 
-FUNCTION ResizeSpritesetMenu.each_tick () as bool
+SUB ResizeSpritesetMenu.each_tick ()
   IF keyval(scF6) > 1 THEN
     IF keyval(scCtrl) > 0 THEN
       slice_editor SL_COLLECT_EDITOR, finddatafile("spriteset_editor.slice"), YES
@@ -4463,14 +4461,14 @@ FUNCTION ResizeSpritesetMenu.each_tick () as bool
   IF enter_space_click(state) THEN
     IF state.pt = 5 THEN
       confirmed = YES
-      RETURN YES 'Confirmed
+      want_exit = YES 'Confirmed
     ELSEIF state.pt = 0 THEN
-      RETURN YES 'Cancel
+      want_exit = YES 'Cancel
     END IF
     IF state.pt > 0 ANDALSO enter_or_space() THEN
       'Enter or space should confirm on the numbers, even though click should not
       confirmed = YES
-      RETURN YES 'Confirmed
+      want_exit = YES 'Confirmed
     END IF
   END IF
 
@@ -4483,7 +4481,7 @@ FUNCTION ResizeSpritesetMenu.each_tick () as bool
   ELSEIF state.pt = 4 THEN
     state.need_update OR= intgrabber(shift.y, -framesize.h, framesize.h)
   END IF
-END FUNCTION
+END SUB
 
 SUB ResizeSpritesetMenu.draw_underlays()
   DrawSlice root, vpage

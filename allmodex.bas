@@ -3656,7 +3656,7 @@ type EngineSettingsMenu extends ModularMenu
 	gfx_settings as GfxSettings
 	got_gfx_settings as bool     'gfx_settings have been initialised (by the current backend)
 	declare sub update()
-	declare function each_tick() as bool
+	declare sub each_tick()
 end type
 
 sub EngineSettingsMenu.update()
@@ -3721,12 +3721,12 @@ sub EngineSettingsMenu.update()
 	end with
 end sub
 
-function EngineSettingsMenu.each_tick() as bool
+sub EngineSettingsMenu.each_tick()
 	dim activate as bool = enter_space_click(state)
 
 	select case itemtypes(state.pt)
 		case -1
-			if activate then return YES
+			if activate then want_exit = YES
 		case 10
 			if activate then
 				copypage holdscreen, vpage  'Hide this menu
@@ -3749,7 +3749,7 @@ function EngineSettingsMenu.each_tick() as bool
 	if state.need_update andalso got_gfx_settings then
 		gfx_set_settings(gfx_settings)
 	end if
-end function
+end sub
 
 sub engine_settings_menu()
 	push_and_reset_gfxio_state
