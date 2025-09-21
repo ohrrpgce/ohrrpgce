@@ -360,14 +360,12 @@ END SUB
 
 FUNCTION importsong (byval songnum as integer) as integer
 'songnum is the song to start with, or > max to add a new one.
-'Return value is the last selected song, or -1 if cancelling an add-new
+'Return value is the last selected song
 
 IF songnum > gen(genMaxSong) THEN
  'Requested a new one
- IF NOT needaddset(songnum, gen(genMaxSong), "song") THEN
-  'Cancelled
-  RETURN -1
- END IF
+ gen(genMaxSong) += 1
+ songnum = gen(genMaxSong)
  importsong_save_song_data "", songnum
 END IF
 
@@ -766,14 +764,12 @@ END FUNCTION
 
 FUNCTION importsfx (byval sfxnum as integer) as integer
 'sfxnum is the sfx to start with, or > max to add a new one.
-'Return value is the last selected sfx, or -1 if cancelling an add-new
+'Return value is the last selected sfx
 
 IF sfxnum > gen(genMaxSFX) THEN
  'Requested a new one
- IF NOT needaddset(sfxnum, gen(genMaxSFX), "sfx") THEN
-  'Cancelled
-  RETURN -1
- END IF
+ gen(genMaxSFX) += 1
+ sfxnum = gen(genMaxSFX)
 END IF
 
 REDIM menu(6) as string

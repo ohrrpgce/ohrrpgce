@@ -1354,6 +1354,7 @@ FUNCTION generic_add_new (what as string, maxindex as integer, getname as FnReco
  DIM state as MenuState
  state.last = UBOUND(menu)
  state.size = 24
+ state.pt = 1
  DIM menuopts as MenuOptions
  menuopts.edged = YES
  menuopts.drawbg = YES

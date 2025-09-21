@@ -104,7 +104,7 @@ FUNCTION textbox_picker_or_none (recindex as integer = -1, skip_zero as bool = N
 END FUNCTION
 
 'whichbox is the box to edit, -1 for default, or past last textbox to add a new
-'one. Returns -1 if cancelled add-new, or else last box edited.
+'one. Returns ID of the last box edited.
 '(See also FnEditor)
 FUNCTION text_box_editor(whichbox as integer = -1) as integer
  DIM box as TextBox
@@ -122,14 +122,11 @@ FUNCTION text_box_editor(whichbox as integer = -1) as integer
  IF whichbox <= -1 THEN
   st.id = small(remember_box_id, gen(genMaxTextBox))
  ELSE
-  st.id = small(whichbox, gen(genMaxTextBox) + 1)
+  st.id = whichbox
   IF st.id > gen(genMaxTextBox) THEN
-   IF yesno("Add new text box?") THEN
-    gen(genMaxTextBox) = st.id
-    textbox_create_from_box 0, box, st
-   ELSE
-    RETURN -1
-   END IF
+   gen(genMaxTextBox) += 1
+   st.id = gen(genMaxTextBox)
+   textbox_create_from_box 0, box, st
   END IF
  END IF
 
