@@ -3997,7 +3997,8 @@ Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
  end with
 end Function
 
-'This function does not consider fill or cover mode! A slice set to fill/cover is not resizable either.
+'This function does not consider fill or cover mode! A slice set to fill/cover is not resizable either
+'(but you use slice_edit_updates to turn those off automatically).
 Function SlicePossiblyResizable(sl as Slice ptr) as bool
  if sl = 0 then return NO
  select case sl->SliceType

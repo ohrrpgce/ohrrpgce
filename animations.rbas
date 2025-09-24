@@ -268,11 +268,20 @@ sub set_slice_property(sl as Slice ptr, prop as zstring ptr, datnode as NodePtr)
 				sl->Y += intval - (sl->ScreenY + SliceYAnchor(sl))
 			case _w
 				' "set slice width" allows negative width, so we will too.
-				sl->Width = intval
-				slice_edit_updates sl, @sl->Width
+				' Text slices are resizable horizontally if and only if they wrap
+				if SlicePossiblyResizable(sl) then
+					sl->Width = intval
+					' Unlike "set slice width", this succeeds on slices set
+					' to Fill Parent or Cover Children by turning those off.
+					slice_edit_updates sl, @sl->Width
+				end if
 			case _h
-				sl->Height = intval
-				slice_edit_updates sl, @sl->Height
+				' Text slices are never resizable vertically. (This is unlike "set slice height",
+				' which momentarily allows, before it's reset.)
+				if SlicePossiblyResizable(sl) andalso sl->SliceType <> slText then
+					sl->Height = intval
+					slice_edit_updates sl, @sl->Height
+				end if
 			case _cover
 				if in_bound(intval, 0, coverLAST) then
 					sl->CoverChildren = intval
