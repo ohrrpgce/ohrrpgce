@@ -261,7 +261,6 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
   end if
 
   if do_add then
-   do_add = NO
    'Add a new thing
    if highest_id() + 1 > highest_possible_id() then
     visible_debug "There are already " & highest_possible_id() & " " & thing_kind_name() & ", which is the most " & thing_kind_name() & " you can have."
@@ -276,6 +275,8 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
    do_edit = NO
    dim ed_ret as integer = editor_func(edit_record)
    if ed_ret = -1 andalso quit_if_add_cancelled then result = -1 : exit do
+   ' Add New in pick mode: pick the new thing
+   if ed_ret >= 0 andalso do_add andalso edit_by_default = NO then result = edit_record : exit do
    save_plank_selection ps
    build_thing_list()
    restore_plank_selection ps
@@ -295,6 +296,8 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
     cursor_moved = YES
    end if
   end if
+
+  do_add = NO
 
   'Set selection indicators
   if orig_cur then set_plank_state ps, orig_cur, plankSPECIAL
