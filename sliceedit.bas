@@ -2698,11 +2698,13 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
   sliceed_rule rules(), "size", erIntgrabber, @.Width, minsize, 9999, slgrPICKWH
   a_append menu(), " Height: " & .Height
   sliceed_rule rules(), "size", erIntgrabber, @.Height, minsize, 9999, slgrPICKWH
-  DIM effmode as CoverModes = sl->EffectiveCoverChildren()
-  temp = ""
-  IF effmode <> .CoverChildren THEN temp = " (effectively " & CoverModeCaptions(effmode) & ")"
-  a_append menu(), " Cover children: " & CoverModeCaptions(.CoverChildren) & temp
-  sliceed_rule_ubyte rules(), "cover", @.CoverChildren, 0, coverLAST
+  IF SliceLegalCoverModes(sl) <> coverNone THEN
+   DIM effmode as CoverModes = sl->EffectiveCoverChildren()
+   temp = ""
+   IF effmode <> .CoverChildren THEN temp = " (effectively " & CoverModeCaptions(effmode) & ")"
+   a_append menu(), " Cover children: " & CoverModeCaptions(.CoverChildren) & temp
+   sliceed_rule_ubyte rules(), "cover", @.CoverChildren, 0, coverLAST
+  END IF
   a_append menu(), " Fill parent: " & yesorno(.Fill)
   sliceed_rule_tog rules(), "fill", @.Fill
   IF .Fill THEN

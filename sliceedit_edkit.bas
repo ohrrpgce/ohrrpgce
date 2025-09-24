@@ -222,9 +222,12 @@ SUB SlicePropertiesEditor.define_items()
     propkey "w", "size"
     defint "Height:", .Height, minsize, 9999   'slgrPICKWH
     propkey "h", "size"
-    defint "Cover Children:", .CoverChildren, 0, coverLAST   'ubyte
-    captions CoverModeCaptions()
-    propkey "cover"
+    IF SliceLegalCoverModes(sl) <> coverNone THEN
+      defint "Cover Children:", .CoverChildren, 0, coverLAST   'ubyte
+      IF edited THEN value AND= SliceLegalCoverModes(sl)
+      captions CoverModeCaptions()
+      propkey "cover"
+    END IF
     defbool "Fill parent:", .Fill
     propkey "fill"
     IF .Fill THEN
