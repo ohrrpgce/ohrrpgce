@@ -1,12 +1,20 @@
-When a slice is set to cover children, it will automatically grow or shrink so that it covers the dimensions of its children.
+When a slice is set to Cover its children, it will automatically grow or shrink so that it is just large enough to contain all its visible children, plus the usual padding. The position of the slice or its children are never changed (unlike Fill Parent, which changes Screen X/Y), so depending on their alignment it's not always possible to totally cover the children.
 
-You can cover on the horizontal axis, the veritical axis, or both at once.
+You can cover on the horizontal axis, the vertical axis, or both.
 
-If you enable covering children and filling parent on the same axis on the same slice, then covering will be ignored, and filling will take priority.
+For example, suppose a slice with left and right padding 1px has one child at X = 10, width = 20, left-aligned and left-anchored as default. Then the parent's width is set to 32: 1 + 10 + 20 + 1.
 
-Only immediate children are covered. Grandchildren are not covered if they go outside the bounds of the child.
+If the slice has no visible children it will shrink down to the size of its padding, but never less than zero if the padding is negative.
 
-Child alignment affects covering.
-If a child is left-aligned, only the right side matters.
-If a child is right-aligned, only the left side matters.
-If a child is center-aligned, both sides matter.
+Invisible children and those set to Fill Parent on the relevant axis are ignored.
+
+If you enable covering children and filling parent on the same axis on the same slice, then covering will be ignored as filling takes priority.
+
+Only immediate children are covered. Grandchildren are not covered if they go outside the bounds of the child, but you can set the child to Cover Children to cover them too.
+
+Child alignment limits covering.
+If a child is left-aligned, the parent only grows to cover its right side, because if it has a negative X the child might stick out to the left.
+If a child is right-aligned, only the left side is covered.
+If a child is center-aligned, both sides are covered.
+
+Cover Children can't be used on non-resizable slices (including Sprite, Map, and Text depending on wrapping), or on Grid, Panel and Layout slices.

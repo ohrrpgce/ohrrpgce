@@ -2,7 +2,6 @@ Panels are split into two parts, which each act like a separate Container slices
 
 The default, "Fixed" width/height: the primary part is a fractional percentage of the entire space, plus a number of pixels. (The Panel margins and padding are subtracted before calculating the fraction.)
 
-Alternatively, when a panel is "sized by child", the primary size is the "Larger of the primary child"'s actual size and the fixed size.
-
+Alternatively, when a panel is "sized by child", the primary size is the "Larger of the primary child"'s actual size and the fixed size. The X/Y position and anchor/alignment of the child are ignored.
 
 For example, you can use sizing by child to create two columns of equal size, but squeeze the second column if the first one needs more space. Combining with Cover Children is helpful.
