@@ -2785,8 +2785,10 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
     sliceed_rule_tog rules(), "text_outline", @(dat->outline)
     a_append menu(), " Wrap: " & yesorno(dat->wrap)
     sliceed_rule_tog rules(), "text_wrap", @(dat->wrap)
-    a_append menu(), " Justify: " & TextJustifyCaptions(dat->justify)
-    sliceed_rule rules(), "justify", erIntgrabber, @(dat->justify), 0, 2
+    IF dat->wrap THEN
+     a_append menu(), " Justify: " & TextJustifyCaptions(dat->justify)
+     sliceed_rule rules(), "justify", erIntgrabber, @(dat->justify), 0, 2
+    END IF
 
    CASE slSprite
     DIM dat as SpriteSliceData Ptr = .SliceData
