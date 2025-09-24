@@ -2565,6 +2565,8 @@ SUB script_commands(byval cmdid as integer)
    scriptret = IIF(sl->SliceType = slRectangle, 1, 0)
   END IF
  CASE 372 '--set slice width
+  'Unlike the slice editor or animations, we don't call slice_edit_updates
+  'to turn off Fill Parent/Cover Children, instead we fail with a warning.
   sl = get_arg_resizeable_slice(0, NO, YES)
   IF sl THEN
    sl->Width = retvals(1)
@@ -5536,7 +5538,7 @@ SUB script_commands(byval cmdid as integer)
   END IF
  CASE 810'--set cover children
   sl = get_arg_resizeable_slice(0, YES, YES)
-  IF bound_arg(retvals(1), 0, 3, "cover: constant", , serrBadOp) THEN
+  IF bound_arg(retvals(1), 0, coverLAST, "cover: constant", , serrBadOp) THEN
    IF sl THEN
     IF (SliceLegalCoverModes(sl) AND retvals(1)) <> retvals(1) THEN
      scripterr SliceTypeName(sl) & " slices don't support cover children"
@@ -5556,7 +5558,7 @@ SUB script_commands(byval cmdid as integer)
   END IF
  CASE 812'--set fill parent
   sl = get_arg_resizeable_slice(0, YES, YES)
-  IF bound_arg(retvals(1), -1, 2, "fill: constant", , serrBadOp) THEN
+  IF bound_arg(retvals(1), -1, sliceFillLAST, "fill: constant", , serrBadOp) THEN
    IF sl THEN
     IF retvals(1) = -1 THEN
      'fill:none constant
@@ -5944,7 +5946,8 @@ FUNCTION get_arg_resizeable_slice(byval argno as integer, byval horiz_fill_ok as
    RETURN NULL
   END IF
 
-  'This is only for "set slice width/height"
+  'Cover Children and Fill Parent checks are only for "set slice width/height"
+
   IF ((sl->CoverChildren AND coverHoriz) ANDALSO horiz_fill_ok = NO) ORELSE _
      ((sl->CoverChildren AND coverVert)  ANDALSO vert_fill_ok = NO) THEN
    unresizable_error sl, " while Covering Children", serrWarn

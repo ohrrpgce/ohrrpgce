@@ -2061,18 +2061,15 @@ SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
    .CoverChildren AND= NOT coverVert
    IF sl->SliceType <> slLine THEN sl->Height = large(0, sl->Height)
   END IF
-  'NOTE: Sprite slices can't be resized, unless they Fill Parent.
-  'That restriction is actually enforced in LoadSpriteSliceImage rather than in sliceedit;
-  'ought to be cleaned up (TODO)
+  'NOTE: Sprite slices can't be resized, Fill Parent excepted.
+  'That restriction is actually enforced in LoadSpriteSliceImage rather than in sliceedit.
+  'Likewise Text slices are only partially/sometimes resizable, Fill Parent excepted.
 
   'Covering and Filling are not mutually exclusive,
   'but Filling overrides Covering if they are both set on the same axis
   '(Why mention it here? Because we used to have code here that made them mutually exclusive)
   IF dataptr = @.CoverChildren THEN
-   'Restrict .CoverChildren to only the allowed modes.
-   'It's ugly to do this here when all other slice data editing restrictions are
-   'implemented using "rule groups", but this has to be done AFTER filling is
-   'disabled, above, or else you need to manually disable filling before covering.
+   'Restrict .CoverChildren, depending on slice type
    .CoverChildren AND= SliceLegalCoverModes(sl)
   END IF
 
@@ -2081,8 +2078,8 @@ SUB slice_edit_updates (sl as Slice ptr, dataptr as any ptr)
    .CoverChildren AND= SliceLegalCoverModes(sl)
   END IF
 
-  'When adding anything here, may want to call this sub from set_slice_property
-
+  'When adding anything here it's probably necessary to add a call to this sub
+  'from set_slice_property
  END WITH
 END SUB
 
@@ -2694,12 +2691,12 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
   a_append menu(), " Height: " & .Height
   sliceed_rule rules(), "size", erIntgrabber, @.Height, minsize, 9999, slgrPICKWH
   a_append menu(), " Cover children: " & CoverModeCaptions(.CoverChildren)
-  sliceed_rule_ubyte rules(), "cover", @.CoverChildren, 0, 3
+  sliceed_rule_ubyte rules(), "cover", @.CoverChildren, 0, coverLAST
   a_append menu(), " Fill parent: " & yesorno(.Fill)
   sliceed_rule_tog rules(), "fill", @.Fill
   IF .Fill THEN
    a_append menu(), "  Fill type: " & FillModeCaptions(.FillMode)
-   sliceed_rule_ubyte rules(), "fill", @.FillMode, 0, 2
+   sliceed_rule_ubyte rules(), "fill", @.FillMode, 0, sliceFillLAST
   END IF
  END IF
 

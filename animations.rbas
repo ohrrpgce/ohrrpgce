@@ -259,6 +259,8 @@ sub set_slice_property(sl as Slice ptr, prop as zstring ptr, datnode as NodePtr)
 			case _y
 				sl->Y = intval
 			case _screen_x
+				' TODO: It would be nice if you could instead set the screen position
+				' without changing X/Y, like Fill Parent does
 				RefreshSliceScreenPos sl
 				sl->X += intval - (sl->ScreenX + SliceXAnchor(sl))
 			case _screen_y
@@ -272,8 +274,7 @@ sub set_slice_property(sl as Slice ptr, prop as zstring ptr, datnode as NodePtr)
 				sl->Height = intval
 				slice_edit_updates sl, @sl->Height
 			case _cover
-				' Not exposed to users yet
-				if in_bound(intval, 0, 3) then
+				if in_bound(intval, 0, coverLAST) then
 					sl->CoverChildren = intval
 					slice_edit_updates sl, @sl->CoverChildren
 				end if
@@ -281,7 +282,7 @@ sub set_slice_property(sl as Slice ptr, prop as zstring ptr, datnode as NodePtr)
 				sl->Fill = boolval
 				slice_edit_updates sl, @sl->Fill
 			case _fillmode
-				if in_bound(intval, 0, 2) then
+				if in_bound(intval, 0, sliceFillLAST) then
 					sl->FillMode = intval
 					slice_edit_updates sl, @sl->FillMode
 				end if

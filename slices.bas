@@ -16,7 +16,7 @@
 '
 '  If sl->Visible:
 '
-'    If sl->CoverChildren: UpdateCoverSize(sl)
+'    If sl->CoverChildren: UpdateCoverSize(sl) and RefreshChild() again
 '
 '    If sl->Context: push onto context_stack
 '
@@ -57,6 +57,7 @@
 ' -parent->ChildRefresh() & RefreshChild() update sl->ScreenPos/sl->Size/sl->Visible
 ' -If sl->Visible:
 '   -If sl->CoverChildren, update sl->Size
+'     -and call parent->ChildRefresh() again
 '   -push sl->Context onto context_stack
 '   -sl->Draw()
 '   -children autosorted
@@ -65,7 +66,7 @@
 '     -For each child:
 '       -Skip if a template slice (and template_slices_shown=NO)
 '       -shrinkclip if clipping; usually done once for all children
-'          (clip to parent size minus padding, or to child's support for Grid/Panel)
+'          (clip to parent size minus padding, or to child's support for Grid/Panel (not Layout!))
 '       -If the cliprect isn't zero-size:
 '         -DrawSliceRecurse(child)
 '           -sl->ChildRefresh(child)
@@ -2566,7 +2567,7 @@ Function SpriteSliceData.find_frameid(sl as Slice ptr, frameid as integer, exact
 end function
 
 'Cause the sprite to be scaled/stretched to a certain size.
-'TODO: once scaled sprites are available in games, uncomment the relevant code in valid_resizeable_slice.
+'TODO: once scaled sprites are available in games, uncomment the relevant code in get_arg_resizeable_slice.
 'Size can't be negative (Maybe handle negatives by setting flipVert and flipHoriz?)
 Sub ScaleSpriteSlice(sl as Slice ptr, size as XYPair)
  if sl = 0 then debug "ScaleSpriteSlice null ptr" : exit sub
@@ -4012,7 +4013,7 @@ Function SlicePossiblyResizable(sl as Slice ptr) as bool
    if sl->SpriteData = 0 then return NO
    return sl->SpriteData->scaled
   ' If you add any more special cases like slText, please also add special case
-  ' error messages to valid_resizeable_slice.
+  ' error messages to get_arg_resizeable_slice.
   case slMap
    ' Resizing map slices isn't implemented.
    return NO

@@ -233,6 +233,7 @@ Enum 'FillModes
  sliceFillFull = 0
  sliceFillHoriz = 1
  sliceFillVert = 2
+ sliceFillLAST = 2
 End Enum
 
 Type CoverModes as ubyte
@@ -241,6 +242,7 @@ Enum 'CoverModes
  coverHoriz = 1
  coverVert = 2
  coverFull = 3
+ coverLAST = 3
 End Enum
 
 Type SliceContextVarTypes as integer
@@ -358,7 +360,9 @@ Type Slice
 
   Union
     Type
-      ScreenX as integer 'The actual X,Y, updated every frame
+      'X,Y of the TOP-LEFT CORNER on the screen. Updated every refresh.
+      'This differs from the "slice screen x/y" commands, which return the anchor point!
+      ScreenX as integer
       ScreenY as integer
     End Type
     ScreenPos as XYPair
