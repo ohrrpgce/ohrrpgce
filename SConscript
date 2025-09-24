@@ -1886,9 +1886,15 @@ def RPGWithScripts(rpg, main_script):
 T = 'testgame/'
 
 def test_rpg_actions(rpg, more_args = ''):
+    def check(target, source, env):
+        with open('g_debug.txt', 'rb') as f:
+            if b'TRACE: TESTS SUCCEEDED' in f.read():
+                print(f" * {rpg} PASSED")
+            else:
+                print(f" * {rpg} FAILED, see g_debug.txt")
+                Exit(1)
     return [GAME.abspath + run_args + ' --log . --runfast -z 2 ' + T+rpg + ' ' + more_args,
-            Action('grep -q "TRACE: TESTS SUCCEEDED" g_debug.txt && echo " * {} PASSED" || echo " * {} FAILED, see g_debug.txt"'.format(rpg, rpg),
-                   "ohrrpgce-game " + rpg + " exited")]
+            Action(check, f"ohrrpgce-game {rpg} exited")]
 
 AUTOTEST = Phony ('autotest_rpg',
                   source = [GAME, RPGWithScripts(T+'autotest.rpgdir', T+'autotest.hss')],
