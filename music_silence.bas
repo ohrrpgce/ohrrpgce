@@ -43,6 +43,22 @@ function music_getvolume() as single
 	return 0.5
 end function
 
+function music_seekable() as bool
+	return NO
+end function
+
+function music_gettime() as double
+	return -1.0
+end function
+
+function music_settime(byval pos_s as double) as bool
+	return NO
+end function
+
+function music_getlength() as double
+	return -1.0
+end function
+
 sub sound_init() : end sub
 
 sub sound_close() : end sub
