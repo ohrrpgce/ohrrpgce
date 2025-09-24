@@ -150,6 +150,7 @@ TYPE SliceEditState
 
  slice_type_icons as Frame ptr
  fill_mode_icons as Frame ptr
+ cover_mode_icons as Frame ptr
  blend_icons as Frame ptr
  other_icons as Frame ptr
 
@@ -558,6 +559,7 @@ END FUNCTION
 SUB slice_editor_load_icons(byref ses as SliceEditState)
  ses.slice_type_icons = load_icon_spritesheet("icons/slice_types_8x8.bmp", XY(9,8), slLAST+1)
  ses.fill_mode_icons = load_icon_spritesheet("icons/slice_fill_modes_8x8.bmp", XY(9,8), 3)
+ ses.cover_mode_icons = load_icon_spritesheet("icons/slice_cover_modes_8x8.bmp", XY(9,8), 4)
  ses.blend_icons = load_icon_spritesheet("icons/slice_blend_modes_8x8.bmp", XY(9,8), 3)
  ses.other_icons = load_icon_spritesheet("icons/slice_other_8x8.bmp", XY(9,8), 6)
 END SUB
@@ -1203,6 +1205,11 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
      itempos.x = 8 + 1 + ses.slicemenu(i).icon_group_x
      IF sl->Fill THEN
       slice_editor_draw_icon ses, ses.fill_mode_icons, sl->FillMode, itempos, "Fill " & FillModeCaptions(sl->FillMode), dpage
+     END IF
+     IF sl->CoverChildren THEN
+      'Covering that's overridden by filling is not interesting
+      DIM mode as CoverModes = sl->EffectiveCoverChildren()
+      slice_editor_draw_icon ses, ses.cover_mode_icons, mode, itempos, "Cover " & CoverModeCaptions(mode), dpage
      END IF
      IF sl->Clip THEN
       slice_editor_draw_icon ses, ses.other_icons, 0, itempos, "Clip children", dpage
@@ -2027,7 +2034,8 @@ END SUB
 SUB disable_horiz_fill (sl as Slice ptr)
  WITH *sl
   'When filling, X is effectively 0, so actually set to 0 when disabling fill,
-  'to keep slice at same position
+  'to keep slice at same position (for common align/anchor configurations).
+  'The original size isn't restored so X/Y doesn't have to either.
   IF .Fill THEN
    IF .FillMode = sliceFillHoriz THEN .Fill = NO : .X = 0
    IF .FillMode = sliceFillFull THEN .FillMode = sliceFillVert : .X = 0
@@ -2690,7 +2698,10 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
   sliceed_rule rules(), "size", erIntgrabber, @.Width, minsize, 9999, slgrPICKWH
   a_append menu(), " Height: " & .Height
   sliceed_rule rules(), "size", erIntgrabber, @.Height, minsize, 9999, slgrPICKWH
-  a_append menu(), " Cover children: " & CoverModeCaptions(.CoverChildren)
+  DIM effmode as CoverModes = sl->EffectiveCoverChildren()
+  temp = ""
+  IF effmode <> .CoverChildren THEN temp = " (effectively " & CoverModeCaptions(effmode) & ")"
+  a_append menu(), " Cover children: " & CoverModeCaptions(.CoverChildren) & temp
   sliceed_rule_ubyte rules(), "cover", @.CoverChildren, 0, coverLAST
   a_append menu(), " Fill parent: " & yesorno(.Fill)
   sliceed_rule_tog rules(), "fill", @.Fill
