@@ -13,7 +13,8 @@ Nov ?? 2025 [Lexiphanic]
      background colors [James]
    * Added a clickable seek bar to the song editor showing current time [Ralph]
    * Panel slices can now optionally be sized based on their primary child
-     [James]
+     (so the other child gets the remaining space) [James]
+   * Slices can be set to Cover Children, automatically resizing [Ralph, James]
 
    * Plotscripting Features
     * Commands to access rewards from the latest battle: "money reward",
@@ -24,9 +25,6 @@ Nov ?? 2025 [Lexiphanic]
     * "get/set fill parent" "get/set cover children" [James]
 
   *** Changes
-    * "Cover Children" feature is now available. It is no longer hidden.
-      Fill parent now always takes priority over cover children when
-      set on the same axis of the same slice.
 
   *** Bugfixes
     * Game/Custom now quit cleanly on a SIGTERM or SIGINT (and abort on SIGQUIT)
