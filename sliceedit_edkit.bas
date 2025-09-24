@@ -407,10 +407,13 @@ SUB SlicePropertiesEditor.define_items()
         defint "Primary child:", dat->primary, 0, 1
         propkey "primary", "panel_primary"
         ' " " & IIF(dat->vertical, "Height", "Width") & "" & format_percent(dat->percent) & " of panel"
-        defitem "Percent size:"
+        defbool "Primary " & IIF(dat->vertical, "height:", "width:"), dat->size_by_child
+        captions_yesno  "Larger of primary child and:", "Fixed:"
+        propkey "size_by_child"
+        defitem " Percent size:"
         edit_float dat->percent, 0.0, 1.0   'dat->percent is a fraction, NOT a percentage!
         propkey "percent", "panel_percent"
-        defint "Pixels size:", dat->pixels, 0, 9999 'FIXME: upper limit of 9999 is totally arbitrary
+        defint " ...plus pixels:", dat->pixels, 0, 9999 'FIXME: upper limit of 9999 is totally arbitrary
         propkey "pixels", "panel_pixels"
         defint "Padding between children:", dat->padding, 0, 9999 'FIXME: upper limit of 9999 is totally arbitrary
         propkey "padding", "panel_padding"

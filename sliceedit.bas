@@ -2904,16 +2904,14 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
     dat = .SliceData
     a_append menu(), " Orientation: " & IIF(dat->vertical, "Vertical", "Horizontal")
     sliceed_rule_tog rules(), "panel_vertical", @(dat->vertical)
-    a_append menu(), " Primary child is: " & dat->primary
+    a_append menu(), " Primary child index is: " & dat->primary
     sliceed_rule rules(), "panel_primary", erIntgrabber, @(dat->primary), 0, 1
-    a_append menu(), " Sizing: " & IIF(dat->size_by_child, "By primary child", "Fixed")
+    a_append menu(), " Primary " & IIF(dat->vertical, "height: ", "width: ") & IIF(dat->size_by_child, "Larger of primary child and:", "Fixed:")
     sliceed_rule_tog rules(), "panel_size_by_child", @(dat->size_by_child)
-    IF NOT dat->size_by_child THEN
-     a_append menu(), "  " & IIF(dat->vertical, "Height", "Width") & ": " & format_percent(dat->percent) & " of panel"
-     sliceed_rule_double rules(), "panel_percent", erPercentgrabber, @(dat->percent)
-     a_append menu(), "  ...plus: " & dat->pixels & " pixels"
-     sliceed_rule rules(), "panel_pixels", erIntgrabber, @(dat->pixels), 0, 9999 'FIXME: upper limit of 9999 is totally arbitrary
-    END IF
+    a_append menu(), "  " & format_percent(dat->percent) & " of panel " & IIF(dat->vertical, "height", "width")
+    sliceed_rule_double rules(), "panel_percent", erPercentgrabber, @(dat->percent)
+    a_append menu(), "  ...plus: " & dat->pixels & " pixels"
+    sliceed_rule rules(), "panel_pixels", erIntgrabber, @(dat->pixels), 0, 9999 'FIXME: upper limit of 9999 is totally arbitrary
     a_append menu(), " Padding between children: " & dat->padding
     sliceed_rule rules(), "panel_padding", erIntgrabber, @(dat->padding), 0, 9999 'FIXME: upper limit of 9999 is totally arbitrary
 

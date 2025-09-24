@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-09-16)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-09-24)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -19567,7 +19567,7 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 			<a name="about-getpanelsizedbychild"></a>
 				<h4>get panel sized by child (handle)</h4>
 <p>
-			Returns true if the given panel slice <span class="param">handle</span> will adjust panel size based on the primary child, or false if it uses fixed percent and pixels.
+			Returns true if the given panel slice <span class="param">handle</span> will adjust its split based on the primary child ("larger of primary child..." in the slice editor), or false if it only uses "fixed" sized based on percent and pixels.
 			
 			
 			
@@ -19577,7 +19577,13 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</pre>
 			<a name="about-setpanelsizedbychild"></a>
 				<h4>set panel sized by child (handle, value)</h4>
 <p>
-			Changes whether the given panel slice <span class="param">handle</span> is sized by its primary child. If the <span class="param">value</span> is true, primary child will dictate the panel split size, or if false then the split will be based on a fixed percentage and pixels.
+			
+				Changes whether the given panel slice <span class="param">handle</span> is split using its primary child's size.
+				If <span class="param">value</span> is true, the width or height of the primary part will be the "larger of the primary child's size" and the usual percent plus pixels, aka "sized by child".
+				If false then the split will be the "fixed" percent plus pixels size only.
+				<br>
+				Turning on sized-by-child does not set 'percent' and 'pixels' to zero.
+			
 			
 			
 			

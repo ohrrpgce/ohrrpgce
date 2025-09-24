@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-09-16">
+<plotscript version="wip" datecode="2025-09-24">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -11444,12 +11444,18 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 		<command id="getpanelsizedbychild">
 			<canon>get panel sized by child (handle)</canon>
 			<shortname>get panel sized by child</shortname>
-			<description>Returns true if the given panel slice <p>handle</p> will adjust panel size based on the primary child, or false if it only uses fixed percent and pixels.</description>
+			<description>Returns true if the given panel slice <p>handle</p> will adjust its split based on the primary child ("larger of primary child..." in the slice editor), or false if it only uses "fixed" sized based on percent and pixels.</description>
 		</command>
 		<command id="setpanelsizedbychild">
 			<canon>set panel sized by child (handle, value)</canon>
 			<shortname>set panel sized by child</shortname>
-			<description>Changes whether the given panel slice <p>handle</p> is sized by its primary child. If the <p>value</p> is true, the panel split size will be the larger of the primary child's size and the usual percent plus pixels. If false then the split will be the fixed percentage plus pixels size.</description>
+			<description>
+				Changes whether the given panel slice <p>handle</p> is split using its primary child's size.
+				If <p>value</p> is true, the width or height of the primary part will be the "larger of the primary child's size" and the usual percent plus pixels, aka "sized by child".
+				If false then the split will be the "fixed" percent plus pixels size only.
+				<lb/>
+				Turning on sized-by-child does not set 'percent' and 'pixels' to zero.
+			</description>
 		</command>
 		<command id="getpanelpercentasint">
 			<canon>get panel percent as int (handle)</canon>

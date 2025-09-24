@@ -1,5 +1,4 @@
-Here you choose which of the Panel's two children will be the primary one,
-either index 0 (the first) or 1 the (the second).
+Here you choose which of the Panel's two children will be the primary one, either index 0 (the first) or 1 the (the second).
 
 The primary child is the one for which you choose a size in various ways.
 
