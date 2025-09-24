@@ -11444,12 +11444,12 @@ set rect trans(rect, trans:fuzzy)  # Becomes fuzzy with 70% fuzziness</example>
 		<command id="getpanelsizedbychild">
 			<canon>get panel sized by child (handle)</canon>
 			<shortname>get panel sized by child</shortname>
-			<description>Returns true if the given panel slice <p>handle</p> will adjust panel size based on the primary child, or false if it uses fixed percent and pixels.</description>
+			<description>Returns true if the given panel slice <p>handle</p> will adjust panel size based on the primary child, or false if it only uses fixed percent and pixels.</description>
 		</command>
 		<command id="setpanelsizedbychild">
 			<canon>set panel sized by child (handle, value)</canon>
 			<shortname>set panel sized by child</shortname>
-			<description>Changes whether the given panel slice <p>handle</p> is sized by its primary child. If the <p>value</p> is true, primary child will dictate the panel split size, or if false then the split will be based on a fixed percentage and pixels.</description>
+			<description>Changes whether the given panel slice <p>handle</p> is sized by its primary child. If the <p>value</p> is true, the panel split size will be the larger of the primary child's size and the usual percent plus pixels. If false then the split will be the fixed percentage plus pixels size.</description>
 		</command>
 		<command id="getpanelpercentasint">
 			<canon>get panel percent as int (handle)</canon>

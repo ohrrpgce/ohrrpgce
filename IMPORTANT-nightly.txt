@@ -18,6 +18,13 @@ http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
 
+2025-09-24:
+Panel slice's "size by child" setting has changed behaviour, it now uses
+the larger of the primary child's size and the usual percent + pixels size.
+
+
+** Many Releases **
+
 2023-04-06:
 Exporting Linux builds from Distribute Game actually uses the latest nightly
 again, it hasn't for many months. Sorry for the delay.

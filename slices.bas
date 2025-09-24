@@ -3695,11 +3695,11 @@ Sub CalcPanelSupport (byref support as RectType, byval par as Slice ptr, byval i
      DefaultChildRefresh par, child
      prsize = child->size.n(axis)
    end if
- else
-   'Fixed percent and fixed size.
-   'Calculate the percentage, and add the pixels
-   prsize = int(innersize.n(axis) * dat->percent) + dat->pixels
  end if
+
+ 'If size_by_child is on, 'percent' and 'pixels' set a minimum primary size, otherwise
+ 'they are the fixed size.
+ prsize = large(prsize, int(innersize.n(axis) * dat->percent) + dat->pixels)
  
  if index = dat->primary then
   support.wh.n(axis) = prsize
