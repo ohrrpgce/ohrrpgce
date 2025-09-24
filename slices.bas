@@ -3937,14 +3937,26 @@ Local Function SliceExtent(position as integer, size as integer, align as AlignT
  end if
 end Function
 
+'Subtract FillMode from CoverChildren, as it overrides
+Function Slice.EffectiveCoverChildren() as CoverModes
+ dim ret as CoverModes = this.CoverChildren
+ if this.Fill then
+  dim filling_horiz as bool = this.FillMode <> sliceFillVert
+  dim filling_vert  as bool = this.FillMode <> sliceFillHoriz
+  if filling_horiz then ret and= coverVert
+  if filling_vert then ret and= coverHoriz
+ end if
+ return ret
+end Function
+
 'Called on slices which CoverChildren, in order to update their size.
 'If a child is aligned to the left, we only care about it going over the right
 'edge, etc. Children center-aligned on the parent matter for both edges.
 'And the padding acts as a min size.
 Local Sub UpdateCoverSize(par as Slice ptr)
 
- 'Panel, grid, layout are special, and will have to implement covering in their own way if at all.
- 'They will probably do so in ChildRefresh or ChildrenRefresh, where Fill Parent is also handled.
+ 'Panel, grid, layout are special, and would have to implement covering in their own way,
+ 'in ChildRefresh or ChildrenRefresh (where Fill Parent is also handled), but there's no plan to.
  if par->SliceType = slPanel orelse par->SliceType = slGrid orelse par->SliceType = slLayout then exit sub
 
  dim size as XYPair
@@ -3973,12 +3985,11 @@ Local Sub UpdateCoverSize(par as Slice ptr)
 
  with *par
   'We skip covering if the par is also filling in the same axis
-  dim filling_horiz as bool = .Fill andalso .FillMode <> sliceFillVert
-  dim filling_vert  as bool = .Fill andalso .FillMode <> sliceFillHoriz
-  if .CoverChildren and coverHoriz andalso not filling_horiz then
+  dim effmode as CoverModes = .EffectiveCoverChildren()
+  if effmode and coverHoriz then
    .Width = large(0, size.w + .PaddingLeft + .PaddingRight)
   end if
-  if .CoverChildren and coverVert andalso not filling_vert then
+  if effmode and coverVert then
    .Height = large(0, size.h + .PaddingTop + .PaddingBottom)
   end if
  end with

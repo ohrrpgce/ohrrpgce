@@ -445,6 +445,8 @@ Type Slice
   Declare Function FillVert() as boolean
 
   CoverChildren as CoverModes
+  ' Fill overrides Cover
+  Declare Function EffectiveCoverChildren() as CoverModes
 
   'Attach changes which slice is responsible for ChildRefresh, but not ChildDraw
   'or ChildrenRefresh. (It's not possible to support Attach for ChildrenRefresh,
