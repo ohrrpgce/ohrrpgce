@@ -1776,22 +1776,27 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
  if dat->line_limit <> -1 then last_line = small(last_line, dat->first_line + dat->line_limit - 1)
 
  for linenum as integer = dat->first_line to last_line
-  dim ypos as integer
-  ypos = (linenum - dat->first_line) * 10
+  dim linepos as XYPair
+  select case dat->justify
+   case justifyLeft: linepos.x = 0
+   case justifyCenter: linepos.x = (sl->width - len(lines(linenum)) * 8) / 2
+   case justifyRight: linepos.x = sl->width - len(lines(linenum)) * 8
+  end select
+  linepos.y = (linenum - dat->first_line) * 10
   if dat->show_insert then
    dim offset_in_line as integer  '0-based offset
    offset_in_line = dat->insert - line_starts(linenum)
    dim next_line as integer = iif(linenum = last_line, len(dat->s) + 1, line_starts(linenum + 1))
    'The insert cursor might point to a space or newline after the end of the line or end of text
    if offset_in_line >= 0 and dat->insert < next_line then
-    rectangle sl->screenx + offset_in_line * 8, sl->screeny + ypos, insert_size, insert_size, uilook(uiHighlight + dat->insert_tog), p
+    rectangle sl->screenx + linepos.x + offset_in_line * 8, sl->screeny + linepos.y, insert_size, insert_size, uilook(uiHighlight + dat->insert_tog), p
    end if
   end if
   if dat->outline then
-   edgeprint lines(linenum), sl->screenx, sl->screeny + ypos, col, p
+   edgeprint lines(linenum), sl->screenx + linepos.x, sl->screeny + linepos.y, col, p
   else
    textcolor col, ColorIndex(dat->bgcol)
-   printstr lines(linenum), sl->screenx, sl->screeny + ypos, p
+   printstr lines(linenum), sl->screenx + linepos.x, sl->screeny + linepos.y, p
   end if
  next
 
@@ -1874,6 +1879,7 @@ Sub CloneTextSlice(byval sl as Slice ptr, byval cl as Slice ptr)
   .outline = dat->outline
   .wrap    = dat->wrap
   .bgcol   = dat->bgcol
+  .justify = dat->justify
  end with
 end sub
 
@@ -1886,6 +1892,7 @@ Sub SaveTextSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "outline", dat->outline
  SaveProp node, "wrap", dat->wrap
  SaveProp node, "bgcol", dat->bgcol
+ SaveProp node, "justify", dat->bgcol
 End Sub
 
 Sub LoadTextSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
@@ -1897,6 +1904,7 @@ Sub LoadTextSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->outline = LoadPropBool(node, "outline")
  dat->wrap    = LoadPropBool(node, "wrap")
  dat->bgcol   = LoadProp(node, "bgcol")
+ dat->justify = LoadProp(node, "justify")
 
  'Ensure that width is correct, because it's currently only set when something changes,
  'and I have seen it saved wrong (e.g. due to a bug in etheldreme)
@@ -1931,7 +1939,8 @@ Sub ChangeTextSlice(byval sl as Slice ptr,_
                       byval col as integer=colInvalid,_
                       byval outline as optbool=NONBOOL,_
                       byval wrap as optbool=NONBOOL,_
-                      byval bgcol as integer=colInvalid)
+                      byval bgcol as integer=colInvalid,_
+                      byval justify as TextJustify=-1)
  if sl = 0 then debug "ChangeTextSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slText)
  with *sl->TextData
@@ -1949,6 +1958,9 @@ Sub ChangeTextSlice(byval sl as Slice ptr,_
   end if
   if wrap <> NONBOOL then
    .wrap = wrap <> 0
+  end if
+  if justify <> -1 then
+   .justify = justify
   end if
  end with
  UpdateTextSlice sl

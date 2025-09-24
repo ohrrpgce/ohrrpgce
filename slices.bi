@@ -245,6 +245,13 @@ Enum 'CoverModes
  coverLAST = 3
 End Enum
 
+Type TextJustify as ubyte
+Enum 'TextJustify
+ justifyLeft
+ justifyCenter
+ justifyRight
+End Enum
+
 Type SliceContextVarTypes as integer
 Enum 'SliceContextVarTypes
  cttyBool  '0 or 1
@@ -546,6 +553,7 @@ Type TextSliceData
  s_orig as string 'UNSAVED: Used when expanding ${} codes, so the codes can be re-expanded again later
  wrap as bool     'Whether to wrap the text according to slice width. Otherwise slice width is determined by s.
  'Declare constructor(st as string, byval col as integer = -1, byval ol as bool = YES)
+ justify as TextJustify
 
  'All of the following are UNSAVED and not cloned and are not exposed to users in the editor or in scripts
  use_render_text as bool 'Use alternative render_text-based implementation. Enables text markup.
@@ -865,7 +873,8 @@ DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
                       byval col as integer=colInvalid,_
                       byval outline as optbool=NONBOOL,_
                       byval wrap as optbool=NONBOOL,_
-                      byval bgcol as integer=colInvalid)
+                      byval bgcol as integer=colInvalid,_
+                      byval justify as TextJustify=-1)
 DECLARE Function TextSliceCharPos(sl as Slice ptr, charnum as integer) as XYPair
 
 DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)

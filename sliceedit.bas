@@ -373,6 +373,10 @@ CoverModeCaptions(0) = "NO"
 CoverModeCaptions(1) = "Horizontal"
 CoverModeCaptions(2) = "Vertical"
 CoverModeCaptions(3) = "Full"
+REDIM SHARED TextJustifyCaptions(2) as string
+TextJustifyCaptions(0) = "Left"
+TextJustifyCaptions(1) = "Center"
+TextJustifyCaptions(2) = "Right"
 REDIM SHARED DirectionCaptions(3) as string
 DirectionCaptions(0) = "Up"
 DirectionCaptions(1) = "Right"
@@ -2781,6 +2785,8 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
     sliceed_rule_tog rules(), "text_outline", @(dat->outline)
     a_append menu(), " Wrap: " & yesorno(dat->wrap)
     sliceed_rule_tog rules(), "text_wrap", @(dat->wrap)
+    a_append menu(), " Justify: " & TextJustifyCaptions(dat->justify)
+    sliceed_rule rules(), "justify", erIntgrabber, @(dat->justify), 0, 2
 
    CASE slSprite
     DIM dat as SpriteSliceData Ptr = .SliceData
