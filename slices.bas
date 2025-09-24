@@ -3986,9 +3986,10 @@ end Sub
 'Returns whether it's legal to set this slice to cover its children horizontally or vertically.
 Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
  with *sl
-  if .SliceType = slPanel orelse .SliceType = slGrid then return coverNone  'Not implemented
-  if .SliceType = slScroll then return coverNone  'That would be daft
+  if .SliceType = slPanel orelse .SliceType = slGrid orelse .SliceType = slLayout then return coverNone  'Not implemented
+  'Let's not repeat Fill Parent's ability to resize slices that aren't meant to be.
   if SlicePossiblyResizable(sl) = NO then return coverNone
+  if .SliceType = slText then return iif(.TextData->wrap, coverHoriz, coverNone)
   'TODO: once zooming sprites by resizing them is implemented, allow a Sprite to Cover.
 
   return coverFull
