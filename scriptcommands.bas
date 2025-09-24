@@ -5538,7 +5538,11 @@ SUB script_commands(byval cmdid as integer)
   sl = get_arg_resizeable_slice(0, YES, YES)
   IF bound_arg(retvals(1), 0, 3, "cover: constant", , serrBadOp) THEN
    IF sl THEN
-    sl->CoverChildren = retvals(1)
+    IF (SliceLegalCoverModes(sl) AND retvals(1)) <> retvals(1) THEN
+     scripterr SliceTypeName(sl) & " slices don't support cover children"
+    ELSE
+     sl->CoverChildren = retvals(1)
+    END IF
    END IF
   END IF
  CASE 811'--get fill parent

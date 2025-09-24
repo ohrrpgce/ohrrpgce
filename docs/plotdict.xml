@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-09-24">
+<plotscript version="wip" datecode="2025-09-25">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -8429,7 +8429,19 @@ end
 		<command id="setcoverchildren">
 			<canon>set cover children (handle, cover:constant)</canon>
 			<shortname>set cover children</shortname>
-			<description>Makes a slice <p>handle</p> automatically resize to cover its children, but only if this is a type of slice that can be resized. Use the constants <p>cover:none</p>, <p>cover:horiz</p>, <p>cover:vert</p>, or <p>cover:all</p>. Note that you should not use <p>true</p> and <p>false</p> because they will not have the intended effect. <p>true</p> is not equal to <p>cover:all</p>. Covering children has no effect if the slice is set to fill its parent on the same axis.</description>
+			<description>
+				Makes a slice <p>handle</p> automatically resize to cover its children (if the slice type supports it). Use the constants <p>cover:none</p>, <p>cover:horiz</p>, <p>cover:vert</p>, or <p>cover:all</p>.
+				<lb/>
+				Covering children has no effect if the slice is set to fill its parent on the same axis.
+				<warn>
+					You cannot use <p>true</p> and <p>false</p> for <p>cover:constant</p> because they will not have the intended effect.
+					<p>true</p> is not equal to <p>cover:all</p>.
+				</warn>
+				<note>
+					This command fails (with an error) on Grid, Panel and Layout slices and on unresizable slices: Sprite, Map, and Text that's not set to wrap.
+					Text slice can't cover their children vertically, because their height is fixed.
+				</note>
+			</description>
 			<seealso>
 				<ref>getcoverchildren</ref>
 				<ref>setfillparent</ref>

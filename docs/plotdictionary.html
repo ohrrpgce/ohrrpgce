@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-09-24)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-09-25)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -14887,7 +14887,21 @@ end
 			<a name="about-setcoverchildren"></a>
 				<h4>set cover children (handle, cover:constant)</h4>
 <p>
-			Makes a slice <span class="param">handle</span> automatically resize to cover its children, but only if this is a type of slice that can be resized. Use the constants <span class="param">cover:none</span>, <span class="param">cover:horiz</span>, <span class="param">cover:vert</span>, or <span class="param">cover:all</span>. Note that you should not use <span class="param">true</span> and <span class="param">false</span> because they will not have the intended effect. <span class="param">true</span> is not equal to <span class="param">cover:all</span>. Covering children has no effect if the slice is set to fill its parent on the same axis.
+			
+				Makes a slice <span class="param">handle</span> automatically resize to cover its children (if the slice type supports it). Use the constants <span class="param">cover:none</span>, <span class="param">cover:horiz</span>, <span class="param">cover:vert</span>, or <span class="param">cover:all</span>.
+				<br>
+				Covering children has no effect if the slice is set to fill its parent on the same axis.
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					You cannot use <span class="param">true</span> and <span class="param">false</span> for <span class="param">cover:constant</span> because they will not have the intended effect.
+					<span class="param">true</span> is not equal to <span class="param">cover:all</span>.
+				</div>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					This command fails (with an error) on Grid, Panel and Layout slices and on unresizable slices: Sprite, Map, and Text that's not set to wrap.
+					Text slice can't cover their children vertically, because their height is fixed.
+				</div>
+			
 			
 			
 			<div class="seealso">See also: <ul>
