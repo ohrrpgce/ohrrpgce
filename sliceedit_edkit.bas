@@ -309,6 +309,10 @@ SUB SlicePropertiesEditor.define_items()
         propkey "outline", "text_outline"
         defbool "Wrap:", dat->wrap
         propkey "wrap", "text_wrap"
+        IF dat->wrap THEN
+          defint "Justify:", dat->justify, 0, 2
+          propkey "justify", "text_justify"
+        END IF
 
       CASE slSprite
         DIM dat as SpriteSliceData Ptr = .SliceData

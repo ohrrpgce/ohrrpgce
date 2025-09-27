@@ -2787,7 +2787,7 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
     sliceed_rule_tog rules(), "text_wrap", @(dat->wrap)
     IF dat->wrap THEN
      a_append menu(), " Justify: " & TextJustifyCaptions(dat->justify)
-     sliceed_rule rules(), "justify", erIntgrabber, @(dat->justify), 0, 2
+     sliceed_rule_ubyte rules(), "text_justify", @(dat->justify), 0, 2
     END IF
 
    CASE slSprite
