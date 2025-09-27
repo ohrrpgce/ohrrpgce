@@ -501,13 +501,11 @@ sub set_slice_property(sl as Slice ptr, prop as zstring ptr, datnode as NodePtr)
 					case _wrap
 						'ChangeTextSlice sl, , , , boolval
 						dat->wrap = boolval
-					/' TODO: rename to row_align
-					case _justify
+					case _row_align
 						'ChangeTextSlice sl, , , , , , boolval
 						if in_bound(intval, alignLeft, alignRight) then
-							dat->justify = intval
+							dat->row_alignment = intval
 						end if
-					'/
 				end select
 
 			case slGrid

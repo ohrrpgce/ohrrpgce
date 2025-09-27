@@ -310,8 +310,8 @@ SUB SlicePropertiesEditor.define_items()
         defbool "Wrap:", dat->wrap
         propkey "wrap", "text_wrap"
         IF dat->wrap THEN
-          defint "Justify:", dat->justify, 0, 2
-          propkey "justify", "text_justify"
+          defint "Text alignment:", dat->row_alignment, 0, 2
+          propkey "row_align", "text_row_align"
         END IF
 
       CASE slSprite

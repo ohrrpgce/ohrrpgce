@@ -15,7 +15,7 @@ Nov ?? 2025 [Lexiphanic]
    * Panel slices can now optionally be sized based on their primary child
      (so the other child gets the remaining space) [James]
    * Slices can be set to Cover Children, automatically resizing [Ralph, James]
-   * Wrapping text slices now support justifying Left, Center, or Right [James]
+   * Wrapping text slices support Left, Center, or Right text alignment [James]
 
    * Plotscripting Features
     * Commands to access rewards from the latest battle: "money reward",

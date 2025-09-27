@@ -18,10 +18,13 @@ http://hamsterrepublic.com/ohrrpgce/buglist.php
 ------------------------------------------------------------------------------
 
 
+2025-09-27:
+If you used yesterday's Text slice "Justify" setting in a slice collection it
+will have no effect, as it was replaced with "Text alignment".
+
 2025-09-24:
 Panel slice's "size by child" setting has changed behaviour, it now uses
 the larger of the primary child's size and the usual percent + pixels size.
-
 
 ** Many Releases **
 

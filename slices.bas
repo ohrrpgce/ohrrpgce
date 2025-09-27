@@ -1777,10 +1777,10 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
 
  for linenum as integer = dat->first_line to last_line
   dim linepos as XYPair
-  select case dat->justify
-   case justifyLeft: linepos.x = 0
-   case justifyCenter: linepos.x = (sl->width - len(lines(linenum)) * 8) / 2
-   case justifyRight: linepos.x = sl->width - len(lines(linenum)) * 8
+  select case dat->row_alignment
+   case alignLeft:   linepos.x = 0
+   case alignCenter: linepos.x = (sl->width - len(lines(linenum)) * 8) / 2
+   case alignRight:  linepos.x = sl->width - len(lines(linenum)) * 8
   end select
   linepos.y = (linenum - dat->first_line) * 10
   if dat->show_insert then
@@ -1879,7 +1879,7 @@ Sub CloneTextSlice(byval sl as Slice ptr, byval cl as Slice ptr)
   .outline = dat->outline
   .wrap    = dat->wrap
   .bgcol   = dat->bgcol
-  .justify = dat->justify
+  .row_alignment = dat->row_alignment
  end with
 end sub
 
@@ -1892,7 +1892,7 @@ Sub SaveTextSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "outline", dat->outline
  SaveProp node, "wrap", dat->wrap
  SaveProp node, "bgcol", dat->bgcol
- SaveProp node, "justify", dat->bgcol
+ SaveProp node, "row_align", dat->row_alignment
 End Sub
 
 Sub LoadTextSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
@@ -1904,7 +1904,7 @@ Sub LoadTextSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->outline = LoadPropBool(node, "outline")
  dat->wrap    = LoadPropBool(node, "wrap")
  dat->bgcol   = LoadProp(node, "bgcol")
- dat->justify = LoadProp(node, "justify")
+ dat->row_alignment = LoadProp(node, "row_align")
 
  'Ensure that width is correct, because it's currently only set when something changes,
  'and I have seen it saved wrong (e.g. due to a bug in etheldreme)
@@ -1940,7 +1940,7 @@ Sub ChangeTextSlice(byval sl as Slice ptr,_
                       byval outline as optbool=NONBOOL,_
                       byval wrap as optbool=NONBOOL,_
                       byval bgcol as integer=colInvalid,_
-                      byval justify as TextJustify=-1)
+                      byval row_alignment as AlignType=alignINVALID)
  if sl = 0 then debug "ChangeTextSlice null ptr" : exit sub
  ASSERT_SLTYPE(sl, slText)
  with *sl->TextData
@@ -1959,9 +1959,9 @@ Sub ChangeTextSlice(byval sl as Slice ptr,_
   if wrap <> NONBOOL then
    .wrap = wrap <> 0
   end if
-  if justify <> -1 then
-   .justify = justify
-  end if
+   if row_alignment <> alignINVALID then
+    .row_alignment = row_alignment
+   end if
  end with
  UpdateTextSlice sl
 end sub
