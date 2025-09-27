@@ -8,9 +8,8 @@
 '
 'DrawSliceRecurse(sl):
 '
-'  attach->ChildRefresh(attach, sl)
-'   (attach == parent of sl, except for the root slice, then attach == ScreenSlice.
-'    sl->Attached is currently unused.)
+'  parent->ChildRefresh(parent, sl)
+'   (For the root slice, use ScreenSlice instead of parent. This is called the 'attach' slice.)
 '   Calls RefreshChild() to recomputes sl->ScreenPos from sl->Pos.
 '   (Can also adjust sl->Size (if sl->Fill) and sl->Visible, see ChildRefresh details below.)
 '
@@ -179,14 +178,13 @@ DIM benchmarking_draw_timer as SmoothedTimer
 'Whether template slices should be reveal - used in the slice editor
 DIM template_slices_shown as boolean
 
-'ScreenSlice is used by other slices with ->Attach = slScreen
+'ScreenSlice is used when a slice has no parent
 DIM SHARED ScreenSlice as Slice Ptr
 ScreenSlice = NewSlice()
 #ifdef ENABLE_SLICE_DEBUG
  SliceDebugForget ScreenSlice '--screen slice is magical, ignore it for debugging purposes
 #endif
 WITH *ScreenSlice
- 'Note that .Attach is NOT set to slScreen here. slScreen uses this, not the other way around
  .SliceType = slSpecial
  .X = 0
  .Y = 0
@@ -645,8 +643,6 @@ Function NewSlice(byval parent as Slice ptr = 0) as Slice ptr
  
  ret->SliceType = slContainer
  ret->Visible = YES
- ret->Attached = 0
- ret->Attach = slSlice
 
  ret->ClampHoriz = alignNone
  ret->ClampVert = alignNone
@@ -3845,27 +3841,6 @@ end sub
 '=============================================================================
 '                      Slice alignment & position helpers
 
-'Returns the slice which provides the ChildRefresh method, in other words
-'the one that determines the screen position.
-Function GetSliceRefreshAttachParent(byval sl as Slice Ptr) as Slice Ptr
- if sl = 0 then debug "GetSliceRefreshAttachParent null ptr": return 0
- WITH *sl
-  SELECT CASE .Attach
-   case slSlice
-    if .Attached then
-     RETURN .Attached
-    elseif .parent then
-     RETURN .parent
-    else
-     'Fall through, use screen
-    end if
-   case slScreen
-    'Fall through, use screen
-  END SELECT
- END WITH
- '--When no attached slice is found (or when we are explicitly attached to the screen)
- RETURN ScreenSlice
-End Function
 
 Function SliceXAlign(sl as Slice Ptr, supportw as integer) as integer
  if sl = 0 then debug "SliceXAlign null ptr": Return 0
@@ -4514,15 +4489,14 @@ Local Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childind
  'or other properties. Refreshing is skipped if the slice isn't visible.
  '(Note: if ChildrenRefresh is set, it was already called from the parent's
  'ChildDraw, and ChildRefresh will do nothing.)
- DIM attach as Slice Ptr
- attach = GetSliceRefreshAttachParent(s)
- if attach then attach->ChildRefresh(attach, s, childindex, YES)
+ dim attach as Slice ptr = iif(s->Parent, s->Parent, ScreenSlice)
+ attach->ChildRefresh(attach, s, childindex, YES)
 
  if s->Visible then
   if s->CoverChildren then
    UpdateCoverSize(s)
    'Re-calculate ScreenPos after updating covering
-   if attach then attach->ChildRefresh(attach, s, childindex, YES)
+   attach->ChildRefresh(attach, s, childindex, YES)
   end if
 
   if s->Context then v_append context_stack, s->Context
@@ -4619,10 +4593,11 @@ Sub RefreshSliceScreenPos(slc as Slice ptr)
  'and without respect to .Visible (however templates may not be fully updated by their parents)
  if slc = 0 then exit sub
  dim attach as Slice ptr
- attach = GetSliceRefreshAttachParent(slc)
- if attach = 0 then exit sub
- if attach <> ScreenSlice then
+ if slc->Parent then
+  attach = slc->Parent
   RefreshSliceScreenPos attach
+ else
+  attach = ScreenSlice
  end if
  dim par as Slice ptr = slc->Parent
  if par andalso par->ChildrenRefresh then par->ChildrenRefresh(par)
@@ -4634,11 +4609,11 @@ end sub
 Local Sub SliceRefreshRecurse(slc as Slice ptr)
  if slc->ChildrenRefresh then slc->ChildrenRefresh(slc)
 
- dim attach as Slice Ptr
+ dim attach as Slice ptr
  dim ch as Slice ptr = slc->FirstChild
  dim childindex as integer = 0
  do while ch <> 0
-  attach = GetSliceRefreshAttachParent(ch)
+  attach = iif(ch->Parent, ch->Parent, ScreenSlice)
   'Note that normally ChildRefresh isn't called on template slices, but make a best effort to update them.
   attach->ChildRefresh(attach, ch, childindex, NO)  'visibleonly=NO
   SliceRefreshRecurse ch
@@ -4986,7 +4961,6 @@ Function CloneSliceTree(byval sl as Slice ptr, recurse as bool = YES, copy_speci
  with *clone
   'Parent, siblings, etc. not copied
   'Function ptrs not copied.
-  '.Attach and .Attached not copied
   '.TableSlot not copied
   if copy_special then .Protect = sl->Protect  'Otherwise, the copy won't have any special role
   .Lookup = sl->Lookup

@@ -211,11 +211,6 @@ Enum 'SliceTypes
  slAddCollection      'Not a real type, used only by slice_edit_detail_browse_slicetype
 End Enum
 
-Type AttachTypes as ubyte
-Enum 'AttachTypes
- slSlice
- slScreen
-End Enum
 
 Type AutoSortModes as ubyte
 Enum 'AutoSortModes
@@ -447,15 +442,6 @@ Type Slice
   CoverChildren as CoverModes
   ' Fill overrides Cover
   Declare Function EffectiveCoverChildren() as CoverModes
-
-  'Attach changes which slice is responsible for ChildRefresh, but not ChildDraw
-  'or ChildrenRefresh. (It's not possible to support Attach for ChildrenRefresh,
-  'because the parent needs to be aware of all the attached slices to lay them out).
-  'In other words, changes where the child is drawn but not when.
-  Attach as AttachTypes  'Not saved
-  Union
-   Attached as Slice ptr 'Not saved
-  End Union
 
   'Draws the slice itself, not including its children, if visible.
   Draw as SliceDraw      'NULL for some slice types
