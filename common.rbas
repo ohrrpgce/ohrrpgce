@@ -8929,11 +8929,11 @@ SUB init_text_box_slices(byref txtsl as Slice ptr, box as TextBox, parent as Sli
  'The textbox root slice is parent to the box and choicebox
  txtsl = NewSliceOfType(slContainer, parent, SL_TEXTBOX_ROOT)
  WITH *txtsl
-  IF .Parent THEN
+  IF parent THEN
    'Should not be set to fill, as scripts may expect to be able to move it around.
    'Set the width and height according to parent's (which is SliceTable.TextBox) size and padding.
    .Fill = YES
-   .Parent->ChildRefresh(.Parent, txtsl)
+   RefreshSliceScreenPos txtsl
    .Fill = NO
   END IF
  END WITH

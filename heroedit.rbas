@@ -589,7 +589,6 @@ SUB hero_editor_edit_spell_list (her as HeroDef, byval listnum as integer)
   ChangeRectangleSlice spellbox, 1
  END WITH
  DIM infobox as Slice Ptr
- RefreshSliceScreenPos root
  infobox = NewSliceOfType(slText, root)
  ChangeTextSlice infobox, "", , , YES ' make wrapping
  WITH *infobox

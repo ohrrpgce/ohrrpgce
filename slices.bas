@@ -75,7 +75,6 @@
 '[[FIXME: the above reveals several problems
 ' -parent->CoverChildren happens before most updates to children
 ' -CoverChildren updates Size after Size has already been used to update ScreenPos
-'   (Fixed: now re-calculates ScreenPos right after updating cover size)
 ' -it's really hard to see the order things happen from the code
 ']]
 '
@@ -91,8 +90,8 @@
 'to do the actual update. Grid and Panel slices have non-standard supports (each child
 'gets its own instead of all sharing the same one).
 'As an exception, if sl->ChildrenRefresh is defined, sl->ChildRefresh isn't (this may be
-'a mistake, which should be changed). So Layout slices don't have a ChildRefresh and are
-'the only slices that don't call RefreshChild.
+'a mistake, which should be changed). So Layout slices don't have a ChildRefresh, are
+'the only slices that don't call RefreshChild, and refresh in a completely different way.
 '
 'sl->ChildrenRefresh is used for recomputing child X,Y positions if they are determined
 'by the parent slice. Currently only LayoutChildrenRefresh exists. There are no
@@ -2930,6 +2929,7 @@ Function LayoutSliceData.SkipForward(ch as Slice ptr) as Slice ptr
  return ch
 end Function
 
+'A "row" is a line of children in the primary direction (axis0); it may be a column.
 'Calculate offsets of children in a row along axis0, and the breadth of the row.
 'Offsets don't including parent's padding.
 Sub LayoutSliceData.SpaceRow(par as Slice ptr, first as Slice ptr, axis0 as integer, dir0 as integer, byref offsets as integer vector, byref breadth as integer)
@@ -2972,7 +2972,7 @@ Sub LayoutSliceData.SpaceRow(par as Slice ptr, first as Slice ptr, axis0 as inte
  dim is_last_row as bool = (ch = NULL)
 
  dim row_length as integer = offset - this.primary_padding  'We added the padding once too many
- dim extra_space as integer = available_size - row_length  'at the end of the row
+ dim extra_space as integer = available_size - row_length  'Space at the end of the row
 
  dim shift as integer = 0  'To add to each offset
 
@@ -3019,7 +3019,6 @@ Sub LayoutSliceData.Validate()
  'Could do everything else too...
 end Sub
 
-'Layout slices work
 Sub LayoutChildrenRefresh(byval par as Slice ptr)
  if par = 0 then debug "LayoutChildrenRefresh null ptr": exit sub
 
@@ -3088,7 +3087,8 @@ Sub LayoutChildrenRefresh(byval par as Slice ptr)
 
     'The child's X/Y offsets it from its computed position,
     'but doesn't affect the positioning out of anything else.
-    'Anchor, align points, clamping and Fill are ignored. Probably none of these make sense.
+    'Anchor, align points, clamping and Fill are ignored. Probably none of these make sense
+    'except clamp and fill, which should behave different from normal fill, but unimplemented.
     .ScreenX = par->ScreenX + offset.x + .X
     .ScreenY = par->ScreenY + offset.y + .Y
 
@@ -4591,16 +4591,22 @@ Sub RefreshSliceScreenPos(slc as Slice ptr)
  'This sub quickly updates ScreenX, ScreenY, plus Width and Height when filling,
  'of a slice and its ancestors without needing to do a full refresh of the whole tree
  'and without respect to .Visible (however templates may not be fully updated by their parents)
+ 'It is called for the following purposes:
+ '-To immediately update slice size after setting Fill (or in future, CoverChildren).
+ ' (Common and probably necessary superstition in some places)
+ '-If ScreenX/ScreenY are needed outside of DrawSliceRecurse, including ScreenPos
+ ' used for slice collision/clamp/containment checks, and plankmenu functions
+ '-If a slice needs to be refreshed even if it's invisible (e.g. in slice editor)
  if slc = 0 then exit sub
+ dim par as Slice ptr = slc->Parent
  dim attach as Slice ptr
- if slc->Parent then
-  attach = slc->Parent
-  RefreshSliceScreenPos attach
+ if par then
+  RefreshSliceScreenPos par
+  if par->ChildrenRefresh then par->ChildrenRefresh(par)
+  attach = par
  else
   attach = ScreenSlice
  end if
- dim par as Slice ptr = slc->Parent
- if par andalso par->ChildrenRefresh then par->ChildrenRefresh(par)
  attach->ChildRefresh(attach, slc, -1, NO)  'visibleonly=NO
 end sub
 
@@ -4628,7 +4634,8 @@ Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
  'Updates ScreenX, ScreenY, plus Width and Height when filling,
  'of a slice tree (specially, all its ancestors and descendents but not siblings)
  'while ignoring .Visible (however templates may not be fully updated by their parents)
- 'DrawSliceRecurse skips refreshing nonvisible slices.
+ 'DrawSliceRecurse skips refreshing nonvisible slices, so this is called
+ 'in the few places we need it.
  if slc = 0 then exit sub
 
  'Update slc and ancestors

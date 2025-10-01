@@ -884,11 +884,11 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
  '--Create the slices
  
  buyst.root_sl = NewSliceOfType(slSpecial)
- WITH *(buyst.root_sl)
+ WITH *buyst.root_sl
   .Fill = YES
  END WITH
  RefreshSliceScreenPos buyst.root_sl
- 
+
  'The container for the right side of the shop
  DIM right_panel as Slice Ptr
  right_panel = NewSliceOfType(slContainer, buyst.root_sl)
@@ -975,7 +975,6 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
   .Width = .parent->Width - (.parent->PaddingLeft + .parent->PaddingRight)
   .Height = .parent->Height - (.parent->PaddingTop + .parent->PaddingBottom) - buyst.hero_box->Height
  END WITH
- RefreshSliceScreenPos buyst.info_sl
 
  buyst.hire_box = NewSliceOfType(slRectangle, right_panel)
  WITH *(buyst.hire_box)

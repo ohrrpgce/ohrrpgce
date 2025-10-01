@@ -100,8 +100,8 @@ SUB center_camera_on_slice(byval sl as Slice ptr)
 
  RefreshSliceScreenPos sl
 
- mapx = sl->ScreenX + sl->Width/2 - SliceTable.MapRoot->ScreenX - vpages(dpage)->w \ 2
- mapy = sl->ScreenY + sl->Height/2 - SliceTable.MapRoot->ScreenY - vpages(dpage)->h \ 2
+ mapx = sl->ScreenX + sl->Width/2 - SliceTable.MapRoot->ScreenX - SliceTable.Root->Width \ 2
+ mapy = sl->ScreenY + sl->Height/2 - SliceTable.MapRoot->ScreenY - SliceTable.Root->Height \ 2
 END SUB
 
 SUB center_camera_on_walkabout(byval walkabout_cont as Slice ptr)
