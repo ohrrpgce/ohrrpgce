@@ -4840,7 +4840,7 @@ Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
  '(TODO: swap arg order, as it's needlessly the opposite to "clamp slice")
  'NOTE: ignores padding. And doesn't work for Grid slices.
  if sl1 = 0 or sl2 = 0 then exit sub
- if sl2->Fill then reporterr "SliceClamp cannot move slices with .Fill=ON" : exit sub
+ if sl2->Fill then reporterr "Cannot clamp/move slices set to Fill Parent" : exit sub
  RefreshSliceScreenPos(sl1)
  RefreshSliceScreenPos(sl2)
  dim diff as integer

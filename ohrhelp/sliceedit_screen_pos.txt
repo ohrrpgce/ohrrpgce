@@ -1,1 +1,3 @@
-The screen position of a slice is computed from its parent's screen position and settings, X/Y, alignment, and anchor point.
+The screen position of a slice is the location of its anchor point on the screen in pixels from the top-left corner. It might be outside of the screen bounds.
+
+The position is normally computed from its parent's screen position and size, the slice's alignment to its parent, and then X/Y are added. (There are exceptions such as Fill Parent.) Changing the anchor settings doesn't change the screen position coordinate, but it changes where the slice is drawn relative to it.

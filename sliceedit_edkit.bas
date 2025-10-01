@@ -212,9 +212,9 @@ SUB SlicePropertiesEditor.define_items()
     defint "Y:", .Y, -9999, 9999   'slgrPICKXY
     propkey "y", "pos"
 
-    defint "Screen X:", .ScreenX, -9999, 9999
+    defint "Screen X:", ((.ScreenX - ses_draw_root->ScreenX) + SliceXAnchor(sl)), -9999, 9999
     propkey "screen_x", "screen_pos"   'Not saved
-    defint "Screen Y:", .ScreenY, -9999, 9999
+    defint "Screen Y:", ((.ScreenY - ses_draw_root->ScreenY) + SliceYAnchor(sl)), -9999, 9999
     propkey "screen_y", "screen_pos"   'Not saved
 
     DIM minsize as integer = IIF(.SliceType = slLine, -9999, 0)
@@ -603,7 +603,6 @@ SUB SlicePropertiesEditor.define_items()
     'Animation, Extra Data, Metadata (except screen pos) omitted
 
   END WITH
-
 END SUB
 
 SUB SlicePropertiesEditor.add_blend_items(byref drawopts as DrawOptions)

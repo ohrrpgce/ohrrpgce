@@ -3105,9 +3105,10 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
 
  sliceed_header menu(), rules(), "[Metadata]", @ses.expand_meta
  IF ses.expand_meta THEN
-  a_append menu(), " Screen X: " & (.ScreenX - ses.draw_root->ScreenX)
+  ' The "slice screen x/y" commands report the position of the anchor
+  a_append menu(), " Screen X: " & (.ScreenX - ses.draw_root->ScreenX) + SliceXAnchor(sl)
   sliceed_rule_none rules(), "screen_pos"
-  a_append menu(), " Screen Y: " & (.ScreenY - ses.draw_root->ScreenY)
+  a_append menu(), " Screen Y: " & (.ScreenY - ses.draw_root->ScreenY) + SliceYAnchor(sl)
   sliceed_rule_none rules(), "screen_pos"
 
   DIM drawtime as double = large(0.0, benchmarking_draw_timer.smoothtime - measure_timer_overhead())
