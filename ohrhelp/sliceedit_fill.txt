@@ -4,7 +4,7 @@ If Fill Parent is turned on, the Fill Type setting appears, which lets you apply
 
 The slice doesn't cover the parent's padding: its size is the size of the parent slice minus the padding (so negative padding increases its size).
 
-If a slice is set to Fill Parent vertically, horizontally or both then the corresponding X/Y, Align, Anchor and Clamp options do nothing (they are overridden, but don't actually change) and are hidden (in fact the whole 'Alignment' section will be hidden for Full filling).
+If a slice is set to Fill Parent vertically, horizontally or both then the corresponding X/Y, Align, Anchor and Clamp options do nothing (they are overridden, but don't actually change) and are hidden (in fact the whole 'Alignment' section will be empty).
 
 If the parent slice is a Grid or Panel the child slice will only fill one cell of the grid/panel. For example with a Panel you can make the second child fill the space not used by the first.
 

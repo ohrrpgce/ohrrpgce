@@ -2973,9 +2973,19 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
  END IF
 
  DIM as bool fillvert = .FillVert(), fillhoriz = .FillHoriz()
- IF fillhoriz = NO ORELSE fillvert = NO THEN
-  sliceed_header menu(), rules(), "[Alignment]", @ses.expand_alignment
-  IF ses.expand_alignment THEN
+ DIM as bool child_of_layout = IIF(.Parent, .Parent->SliceType = slLayout, NO)
+ sliceed_header menu(), rules(), "[Alignment]", @ses.expand_alignment
+ IF ses.expand_alignment THEN
+  IF (fillhoriz AND fillvert) OR child_of_layout THEN
+   IF fillhoriz AND fillvert THEN
+    a_append menu(), " (Fill Parent ignores alignment)"
+    sliceed_rule_none rules(), ""
+   END IF
+   IF child_of_layout THEN
+    a_append menu(), " (Layout children ignore alignment)"
+    sliceed_rule_none rules(), ""
+   END IF
+  ELSE
    IF fillhoriz = NO THEN
     a_append menu(), " Align horiz. to: " & HorizCaptions(.AlignHoriz)
     sliceed_rule_ubyte rules(), "align", @.AlignHoriz, alignLeft, alignRight

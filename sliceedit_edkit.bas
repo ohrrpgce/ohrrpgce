@@ -478,7 +478,15 @@ SUB SlicePropertiesEditor.define_items()
 
     section "Alignment"
     DIM as bool fillvert = .FillVert(), fillhoriz = .FillHoriz()
-    IF fillhoriz = NO ORELSE fillvert = NO THEN
+    DIM as bool child_of_layout = IIF(.Parent, .Parent->SliceType = slLayout, NO)
+    IF (fillhoriz AND fillvert) OR child_of_layout THEN
+      IF fillhoriz AND fillvert THEN
+        defitem "(Fill Parent ignores alignment)"
+      END IF
+      IF child_of_layout THEN
+        defitem "(Layout children ignore alignment)"
+      END IF
+    ELSE
       IF .FillHoriz() = NO THEN
         defint "Align horiz.:", .AlignHoriz, alignLeft, alignRight   'ubyte
         captions HorizCaptions()
