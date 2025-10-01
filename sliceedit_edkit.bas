@@ -630,6 +630,13 @@ SUB SlicePropertiesEditor.add_blend_items(byref drawopts as DrawOptions)
   END WITH
 END SUB
 
+SUB SlicePropertiesEditor.before_each_tick()
+  IF readmouse.dragging AND mouseRight THEN
+    DIM true_root as Slice ptr = FindRootSlice(ses_draw_root)  'See expanation for SliceTool.pan
+    true_root->Pos += readmouse.pos - readmouse.lastpos
+  END IF
+END SUB
+
 SUB SlicePropertiesEditor.draw_underlays()
   draw_background vpages(vpage), bgChequer
   UpdateSliceDynamicProps ses_draw_root

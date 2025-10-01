@@ -265,7 +265,12 @@ sub EditorKit.update()
 	run_phase(Phases.refreshing)
 end sub
 
+sub EditorKit.before_each_tick()
+end sub
+
 sub EditorKit.each_tick()
+	before_each_tick()
+
 	base.helpkey = default_helpkey
 	base.tooltip = ""
 	want_submenu = "NO"

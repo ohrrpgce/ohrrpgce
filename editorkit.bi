@@ -208,6 +208,7 @@ type EditorKit extends ModularMenu
 
   private:
 	declare sub update()
+	' Use before_each_tick() instead
 	declare sub each_tick()
 	declare sub draw_overlays()
 	declare sub write_value()
@@ -220,6 +221,9 @@ type EditorKit extends ModularMenu
 
 	' Subclasses should implement this method, nothing else is necessary.
 	declare abstract sub define_items()
+
+	' Cleaner to put code here than in a phase = Phases.processing block in define_items
+	declare virtual sub before_each_tick()
 
 	declare virtual sub load()
 	declare virtual sub save()

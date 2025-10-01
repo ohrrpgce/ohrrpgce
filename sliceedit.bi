@@ -94,6 +94,7 @@ TYPE SlicePropertiesEditor EXTENDS EditorKit
   DECLARE SUB set_default(value as integer)
   DECLARE SUB caption_slice_color(ifzero as string = "0")
 
+  DECLARE SUB before_each_tick()
   DECLARE SUB draw_underlays()
 
   DECLARE SUB gather_properties(byref into_vector as SlicePropInfo vector)
