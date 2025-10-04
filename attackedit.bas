@@ -1196,7 +1196,7 @@ menuoff(AtkTransmogRewards) = AtkDatTransmogRewards
 menulimits(AtkTransmogRewards) = AtkLimTransmogRewards
 
 menu(AtkCounterProvoke) = "Provoke counterattacks:"
-menutype(AtkCounterProvoke) = menucapoff(AtkCounterProvoke)
+menutype(AtkCounterProvoke) = 25  'Like 2000 + menucapoff(AtkCounterProvoke), but special caption for Default
 menuoff(AtkCounterProvoke) = AtkDatCounterProvoke
 menulimits(AtkCounterProvoke) = AtkLimCounterProvoke
 

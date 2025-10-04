@@ -34,6 +34,9 @@ Nov ?? 2025 [Lexiphanic]
     * Equip menu cursor background no longer flashes in an obnoxious
       and inconsistent manner [James]
     * "Screen X/Y" in the slice editor disagreed with "slice screen x/y" [Ralph]
+    * The "Provoke counterattacks:" setting in the attack editor has appeared
+      blank since hróðvitnir so it looked like a section header. But pressing
+      left/right there did modify it, so beware garbage data! [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Item data is now stored in a new lump, items.reld [James]
