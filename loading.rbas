@@ -4295,31 +4295,33 @@ SUB debug_compare_items(it1 as ItemDef, it2 as ItemDef, id as integer)
  'IF ok THEN debuginfo "GOOD ITEM " & id & " " & it1.name
 END SUB
 
-SUB loaditemdata (item as ItemDef, item_id as integer)
+SUB loaditemdata (item as ItemDef, item_id as integer, doc as DocPtr = NULL)
  'First try to load the data from items.reld and then fall back on the .ITM
- 'lump if that hero wasn't in heroes.reld. Do this because we don't always upgrade
+ 'lump if that item wasn't in items.reld. Do this because we don't always upgrade
  '.ITM -> items.reld in one go, they can get upgraded as individual records are
- 'loaded and saved, during upgrade() or in hero_editor, so the upgrade may be
- 'partial!
+ 'loaded and saved, including during upgrade(), so the upgrade may be partial!
 
  DIM loaded as bool = NO
+ DIM closedoc as bool = NO
 
- DIM doc as DocPtr
- doc = LoadDocument(workingdir & SLASH & "items.reld", optIgnoreMissing)
+ IF doc = NULL THEN
+  doc = LoadDocument(workingdir & SLASH & "items.reld", optIgnoreMissing)
+  closedoc = YES
+ END IF
  IF doc THEN  'file present
   DIM item_node as NodePtr = NodeByPath(doc, "/item[" & item_id & "]")
   IF item_node THEN
    'debuginfo "Item ID " & item_id & " was found in items.reld"
    load_item_from_reload item, item_node, item_id
    loaded = YES
-   
+
    'FIXME: Remove this section soon! It is just a migration sanity test and it is slow and debug noisy
    DIM olditem as ItemDef
    loaditemdata_old_itm_format olditem, item_id
    debug_compare_items olditem, item, item_id
   END IF
 
-  FreeDocument doc
+  IF closedoc THEN FreeDocument doc
  END IF
 
  'if not found, fall back to ITM lump
@@ -4486,13 +4488,8 @@ SUB saveitemdata_old_itm_format (item as ItemDef, byval index as integer)
  saveitemdata_old_itm_format itembuf(), index
 END SUB
 
-SUB saveitemdata (item as ItemDef, byval index as integer)
- '--save the old way
- 'WARNING: this is lossy, and serves no purpose other than
- 'allowing people to downgrade to older versions WITH DATA LOSS
- saveitemdata_old_itm_format item, index
-
- '--save the new way
+'Open or create items.reld
+FUNCTION open_items_reld() as DocPtr
  DIM filename as string = workingdir & SLASH & "items.reld"
  DIM doc as DocPtr
  doc = LoadDocument(filename, optNoDelay OR optIgnoreMissing)
@@ -4508,17 +4505,32 @@ SUB saveitemdata (item as ItemDef, byval index as integer)
   SetRootNode(doc, items_node)
  END IF
 
- 'Create a new item node if it doesn't already exist, otherwise we replace it
- DIM itemnode as NodePtr
- itemnode = NodeByPath(items_node, "/item[" & index & "]", YES)
+ RETURN doc
+END FUNCTION
 
- save_item_as_reload item, itemnode
-
+SUB save_items_reld(doc as DocPtr)
+ DIM filename as string = workingdir & SLASH & "items.reld"
  SerializeBin filename, doc
+END SUB
+
+SUB saveitemdata (item as ItemDef, byval index as integer)
+ '--save the old way
+ 'WARNING: this is lossy, and serves no purpose other than
+ 'allowing people to downgrade to older versions WITH DATA LOSS
+ saveitemdata_old_itm_format item, index
+
+ '--save the new way
+ DIM doc as DocPtr = open_items_reld
+ save_item_as_reload item, index, doc
+ save_items_reld doc
  FreeDocument doc
 END SUB
 
-SUB save_item_as_reload(item as ItemDef, byval parent as NodePtr)
+SUB save_item_as_reload(item as ItemDef, byval item_id as integer, byval doc as DocPtr)
+ 'Create a new item node if it doesn't already exist, otherwise we replace it
+ DIM parent as NodePtr
+ parent = NodeByPath(doc, "/item[" & item_id & "]", YES)
+
  FreeChildren parent
  SetChildNode(parent, "name", item.name)
  SetChildNode(parent, "info", item.info)

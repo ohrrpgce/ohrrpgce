@@ -5436,12 +5436,13 @@ IF full_upgrade ANDALSO getfixbit(fixInitItemsReld) = 0 THEN
  upgrade_message "Initializing items.reld lump..."
  setfixbit(fixInitItemsReld, 1)
  DIM item as ItemDef
- FOR i as integer = 0 TO gen(genMaxItem)
-  loaditemdata item, i
-  saveitemdata item, i
-  '--load again for sanity check
-  loaditemdata item, i
- NEXT i
+ DIM doc as DocPtr = open_items_reld
+ FOR id as integer = 0 TO gen(genMaxItem)
+  loaditemdata item, id, doc
+  save_item_as_reload item, id, doc
+  '--load again to run debug_compare_items sanity check
+  loaditemdata item, id
+ NEXT
 END IF
 
 IF gen(genStartHero) < 0 OR gen(genStartHero) > gen(genMaxHero) THEN

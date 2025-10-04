@@ -174,12 +174,14 @@ DECLARE FUNCTION spriteset_from_basic_spritesheet(sheet as Frame ptr, sprtype as
 DECLARE FUNCTION load_spriteset_from_file(file as string, framesize as XYPair, numframes as integer) as Frame ptr
 
 
-DECLARE SUB loaditemdata (item as ItemDef, index as integer)
-DECLARE SUB load_item_from_reload(item as ItemDef, byval node as NodePtr, byval id as integer = -1)
+DECLARE SUB loaditemdata (item as ItemDef, index as integer, doc as DocPtr = NULL)
+DECLARE SUB load_item_from_reload (item as ItemDef, byval node as NodePtr, byval id as integer = -1)
 DECLARE SUB loaditemdata_old_itm_format OVERLOAD (array() as integer, byval index as integer)
 DECLARE SUB loaditemdata_old_itm_format OVERLOAD (item as ItemDef, index as integer)
 DECLARE SUB saveitemdata (item as ItemDef, byval index as integer)
-DECLARE SUB save_item_as_reload(item as ItemDef, byval parent as NodePtr)
+DECLARE SUB save_item_as_reload(item as ItemDef, byval item_id as integer, byval doc as DocPtr)
+DECLARE FUNCTION open_items_reld() as DocPtr
+DECLARE SUB save_items_reld(doc as DocPtr)
 DECLARE SUB saveitemdata_old_itm_format OVERLOAD (array() as integer, byval index as integer)
 DECLARE SUB saveitemdata_old_itm_format OVERLOAD (item as ItemDef, byval index as integer)
 DECLARE SUB item_tags_from_buf(tags as ItemDefTags, itembuf() as integer)
