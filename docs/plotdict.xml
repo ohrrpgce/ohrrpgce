@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-09-25">
+<plotscript version="wip" datecode="2025-10-04">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -8402,7 +8402,12 @@ end
 		<command id="getfillparent">
 			<canon>get fill parent (handle)</canon>
 			<shortname>get fill parent</shortname>
-			<description>Checks a slice <p>handle</p> and returns whether or not it is filling its parent. Return values will be the constants <p>fill:none</p>, <p>fill:horiz</p>, <p>fill:vert</p>, or <p>fill:all</p>.</description>
+			<description>
+				<warn>
+					PLEASE DON"T USE THIS COMMAND YET, WE WILL FIX IT TO BE LESS TERRIBLE
+				</warn>
+				Checks a slice <p>handle</p> and returns whether or not it is filling its parent. Return values will be the constants <p>fill:none</p>, <p>fill:horiz</p>, <p>fill:vert</p>, or <p>fill:all</p>.
+			</description>
 			<seealso>
 				<ref>isfillingparent</ref>
 				<ref>setfillparent</ref>
@@ -8411,7 +8416,12 @@ end
 		<command id="setfillparent">
 			<canon>set fill parent (handle, fill:constant)</canon>
 			<shortname>set fill parent</shortname>
-			<description>Makes a slice <p>handle</p> fill its parent, but only if this is a type of slice that can be resized. Use the constants <p>fill:none</p>, <p>fill:horiz</p>, <p>fill:vert</p>, or <p>fill:all</p>. Note that you should not use <p>true</p> and <p>false</p> because they will not have the intended effect. <p>true</p> is not equal to <p>fill:all</p> and <p>false</p> is not equal to <p>fill:none</p>.</description>
+			<description>
+				<warn>
+					PLEASE DON"T USE THIS COMMAND YET, WE WILL FIX IT TO BE LESS TERRIBLE
+				</warn>
+				Makes a slice <p>handle</p> fill its parent, but only if this is a type of slice that can be resized. Use the constants <p>fill:none</p>, <p>fill:horiz</p>, <p>fill:vert</p>, or <p>fill:all</p>. Note that you should not use <p>true</p> and <p>false</p> because they will not have the intended effect. <p>true</p> is not equal to <p>fill:all</p> and <p>false</p> is not equal to <p>fill:none</p>.
+			</description>
 			<seealso>
 				<ref>fillparent</ref>
 				<ref>getfillparent</ref>
@@ -8420,7 +8430,12 @@ end
 		<command id="getcoverchildren">
 			<canon>get cover children (handle)</canon>
 			<shortname>get cover children</shortname>
-			<description>Checks a slice <p>handle</p> and returns whether or not it is configured to automatically resize to cover its children. Return values will be the constants <p>cover:none</p>, <p>cover:horiz</p>, <p>cover:vert</p>, or <p>cover:all</p>. Note that the cover children setting has no effect on a slice that is set to fill its parent in the same axis.</description>
+			<description>
+				<warn>
+					PLEASE DON"T USE THIS COMMAND YET, WE WILL FIX IT TO BE LESS TERRIBLE
+				</warn>
+				Checks a slice <p>handle</p> and returns whether or not it is configured to automatically resize to cover its children. Return values will be the constants <p>cover:none</p>, <p>cover:horiz</p>, <p>cover:vert</p>, or <p>cover:all</p>. Note that the cover children setting has no effect on a slice that is set to fill its parent in the same axis.
+			</description>
 			<seealso>
 				<ref>setcoverchildren</ref>
 				<ref>getfillparent</ref>
@@ -8430,6 +8445,9 @@ end
 			<canon>set cover children (handle, cover:constant)</canon>
 			<shortname>set cover children</shortname>
 			<description>
+				<warn>
+					PLEASE DON"T USE THIS COMMAND YET, WE WILL FIX IT TO BE LESS TERRIBLE
+				</warn>
 				Makes a slice <p>handle</p> automatically resize to cover its children (if the slice type supports it). Use the constants <p>cover:none</p>, <p>cover:horiz</p>, <p>cover:vert</p>, or <p>cover:all</p>.
 				<lb/>
 				Covering children has no effect if the slice is set to fill its parent on the same axis.

@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-09-25)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-10-04)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -14842,7 +14842,13 @@ end
 			<a name="about-getfillparent"></a>
 				<h4>get fill parent (handle)</h4>
 <p>
-			Checks a slice <span class="param">handle</span> and returns whether or not it is filling its parent. Return values will be the constants <span class="param">fill:none</span>, <span class="param">fill:horiz</span>, <span class="param">fill:vert</span>, or <span class="param">fill:all</span>.
+			
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					PLEASE DON"T USE THIS COMMAND YET, WE WILL FIX IT TO BE LESS TERRIBLE
+				</div>
+				Checks a slice <span class="param">handle</span> and returns whether or not it is filling its parent. Return values will be the constants <span class="param">fill:none</span>, <span class="param">fill:horiz</span>, <span class="param">fill:vert</span>, or <span class="param">fill:all</span>.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -14857,7 +14863,13 @@ end
 			<a name="about-setfillparent"></a>
 				<h4>set fill parent (handle, fill:constant)</h4>
 <p>
-			Makes a slice <span class="param">handle</span> fill its parent, but only if this is a type of slice that can be resized. Use the constants <span class="param">fill:none</span>, <span class="param">fill:horiz</span>, <span class="param">fill:vert</span>, or <span class="param">fill:all</span>. Note that you should not use <span class="param">true</span> and <span class="param">false</span> because they will not have the intended effect. <span class="param">true</span> is not equal to <span class="param">fill:all</span> and <span class="param">false</span> is not equal to <span class="param">fill:none</span>.
+			
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					PLEASE DON"T USE THIS COMMAND YET, WE WILL FIX IT TO BE LESS TERRIBLE
+				</div>
+				Makes a slice <span class="param">handle</span> fill its parent, but only if this is a type of slice that can be resized. Use the constants <span class="param">fill:none</span>, <span class="param">fill:horiz</span>, <span class="param">fill:vert</span>, or <span class="param">fill:all</span>. Note that you should not use <span class="param">true</span> and <span class="param">false</span> because they will not have the intended effect. <span class="param">true</span> is not equal to <span class="param">fill:all</span> and <span class="param">false</span> is not equal to <span class="param">fill:none</span>.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -14872,7 +14884,13 @@ end
 			<a name="about-getcoverchildren"></a>
 				<h4>get cover children (handle)</h4>
 <p>
-			Checks a slice <span class="param">handle</span> and returns whether or not it is configured to automatically resize to cover its children. Return values will be the constants <span class="param">cover:none</span>, <span class="param">cover:horiz</span>, <span class="param">cover:vert</span>, or <span class="param">cover:all</span>. Note that the cover children setting has no effect on a slice that is set to fill its parent in the same axis.
+			
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					PLEASE DON"T USE THIS COMMAND YET, WE WILL FIX IT TO BE LESS TERRIBLE
+				</div>
+				Checks a slice <span class="param">handle</span> and returns whether or not it is configured to automatically resize to cover its children. Return values will be the constants <span class="param">cover:none</span>, <span class="param">cover:horiz</span>, <span class="param">cover:vert</span>, or <span class="param">cover:all</span>. Note that the cover children setting has no effect on a slice that is set to fill its parent in the same axis.
+			
 			
 			
 			<div class="seealso">See also: <ul>
@@ -14888,6 +14906,10 @@ end
 				<h4>set cover children (handle, cover:constant)</h4>
 <p>
 			
+				<div class="notice warn">
+<img src="Plotwarn.png" alt="[Warning]" class="icon">
+					PLEASE DON"T USE THIS COMMAND YET, WE WILL FIX IT TO BE LESS TERRIBLE
+				</div>
 				Makes a slice <span class="param">handle</span> automatically resize to cover its children (if the slice type supports it). Use the constants <span class="param">cover:none</span>, <span class="param">cover:horiz</span>, <span class="param">cover:vert</span>, or <span class="param">cover:all</span>.
 				<br>
 				Covering children has no effect if the slice is set to fill its parent on the same axis.
