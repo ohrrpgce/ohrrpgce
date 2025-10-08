@@ -5302,7 +5302,7 @@ script, slice filling and covering tests, begin
   ch2 := load hero sprite(2)
   set parent(ch, sl)
   set parent(ch2, sl)
-  set fill parent(sl, fill:none)
+  set fill parent(sl, fill:none) #bump
   set cover children(sl, cover:all)
   w
   assert(slice width(sl) == 32)
@@ -5783,7 +5783,7 @@ script, panel slice tests, begin
   box := create rect(10, 10, 0)
   set parent(sprite, sl)
   set parent(box, sl)
-  fill parent(box, sl)
+  fill parent(box, true)
   w  # refresh
   assert(slice width(box) == 200)
   assert(slice height(box) == 113)

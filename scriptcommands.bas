@@ -2719,11 +2719,29 @@ SUB script_commands(byval cmdid as integer)
   IF sl THEN
    scriptret = sl->PaddingRight
   END IF
- CASE 400 '--fill parent
+ CASE 400,812 '--set fill parent (also "fill parent")
   sl = get_arg_resizeable_slice(0, YES, YES)
   IF sl THEN
-   'This command leaves the fillmode unchanged, and is documented as such
-   sl->Fill = (retvals(1) <> 0)
+   SELECT CASE retvals(1)
+    CASE 0 'fill:none
+     'Does not change fill mode
+     sl->Fill = NO
+    CASE 1 'fill:enable or true
+     'Enables fill by keeps whatever the old fill mode was
+     sl->Fill = YES
+    CASE 2 'fill:horiz
+     sl->Fill = YES
+     sl->FillMode = sliceFillHoriz
+    CASE 3 'fill:vert
+     sl->Fill = YES
+     sl->FillMode = sliceFillVert
+    CASE 4 'fill:all
+     sl->Fill = YES
+     sl->FillMode = sliceFillFull
+    CASE ELSE 'bad values, warn, but behave like fill:enable
+     sl->Fill = YES
+     scripterr current_command_name() &": invalid fill: constant " & retvals(1) & " fall back to fill:enable", serrBadOp
+   END SELECT
   END IF
  CASE 401 '--is filling parent
   'This command doesn't care which fillmode is used, and is documented as such
@@ -5551,25 +5569,17 @@ SUB script_commands(byval cmdid as integer)
   sl = get_arg_slice(0)
   IF sl THEN
    IF sl->Fill THEN
-    scriptret = sl->FillMode
+    SELECT CASE sl->FillMode
+     CASE sliceFillHoriz: scriptret = 2 'fill:horiz constant
+     CASE sliceFillVert:  scriptret = 3 'fill:vert constant
+     CASE sliceFillFull:  scriptret = 4 'fill:all constant
+    END SELECT
    ELSE
-    scriptret = -1 'fill:none constant
+    scriptret = 0 'fill:none constant
    END IF
   END IF
- CASE 812'--set fill parent
-  sl = get_arg_resizeable_slice(0, YES, YES)
-  IF bound_arg(retvals(1), -1, sliceFillLAST, "fill: constant", , serrBadOp) THEN
-   IF sl THEN
-    IF retvals(1) = -1 THEN
-     'fill:none constant
-     sl->Fill = NO
-     sl->FillMode = sliceFillFull
-    ELSE
-     sl->Fill = YES
-     sl->FillMode = retvals(1)
-    END IF
-   END IF
-  END IF
+
+ '812 is alias of "fill parent"
 
 
  CASE ELSE

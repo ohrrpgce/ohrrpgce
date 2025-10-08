@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-10-04">
+<plotscript version="wip" datecode="2025-10-07">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -8381,15 +8381,6 @@ end
 				<ref>slicecontains</ref>
 			</seealso>
 		</command>
-		<command id="fillparent">
-			<canon>fill parent (handle, true_or_false)</canon>
-			<shortname>fill parent</shortname>
-			<description>Make a slice <p>handle</p> automatically fill its parent. This will change the position and size of the slice so that it completely fills the parent (minus the parent's padding). You can also disable filling with this command by passing <p>false</p> as the second argument, such as <p>fill parent(handle, false)</p>. If a slice is filling its parent, then any commands which modify the width or height of the slice will fail. You should resize the parent instead. This command only works on resizable slices like rects and containers. It will not work on sprites because they cannot change size. Note that the <p>fill:</p> constants are not used with this command, they are only used for <ref>setfillparent</ref> and <ref>getfillparent</ref>. Note that this command has no effect on whether the filling is horizontal, veritical or both. If you need to control those, you should use <ref>setfillparent</ref> instead.</description>
-			<seealso>
-				<ref>isfillingparent</ref>
-				<ref>setfillparent</ref>
-			</seealso>
-		</command>
 		<command id="isfillingparent">
 			<canon>is filling parent (handle)</canon>
 			<shortname>is filling parent</shortname>
@@ -8403,10 +8394,7 @@ end
 			<canon>get fill parent (handle)</canon>
 			<shortname>get fill parent</shortname>
 			<description>
-				<warn>
-					PLEASE DON"T USE THIS COMMAND YET, WE WILL FIX IT TO BE LESS TERRIBLE
-				</warn>
-				Checks a slice <p>handle</p> and returns whether or not it is filling its parent. Return values will be the constants <p>fill:none</p>, <p>fill:horiz</p>, <p>fill:vert</p>, or <p>fill:all</p>.
+				Checks a slice <p>handle</p> and returns a value to indicate how it is filling its parent. Return values will be the constants <p>fill:none</p>, <p>fill:horiz</p>, <p>fill:vert</p>, or <p>fill:all</p>.
 			</description>
 			<seealso>
 				<ref>isfillingparent</ref>
@@ -8417,15 +8405,19 @@ end
 			<canon>set fill parent (handle, fill:constant)</canon>
 			<shortname>set fill parent</shortname>
 			<description>
-				<warn>
-					PLEASE DON"T USE THIS COMMAND YET, WE WILL FIX IT TO BE LESS TERRIBLE
-				</warn>
-				Makes a slice <p>handle</p> fill its parent, but only if this is a type of slice that can be resized. Use the constants <p>fill:none</p>, <p>fill:horiz</p>, <p>fill:vert</p>, or <p>fill:all</p>. Note that you should not use <p>true</p> and <p>false</p> because they will not have the intended effect. <p>true</p> is not equal to <p>fill:all</p> and <p>false</p> is not equal to <p>fill:none</p>.
+				Makes a slice <p>handle</p> fill its parent, but only if this is a type of slice that can be resized. Use the constants <p>fill:none</p>, <p>fill:horiz</p>, <p>fill:vert</p>, or <p>fill:all</p>.
+				<note>
+					For backwards compatability you can also use the value <p>true</p> or <p>fill:enable</p> both of which will turn on filling but will not change the fill mode. The default fill-mode for a new slice is <p>fill:all</p>.
+				</note>
 			</description>
 			<seealso>
-				<ref>fillparent</ref>
+				<ref>isfillingparent</ref>
 				<ref>getfillparent</ref>
 			</seealso>
+		</command>
+		<command id="fillparent">
+			<alias>setfillparent</alias>
+			<shortname>fill parent</shortname>
 		</command>
 		<command id="getcoverchildren">
 			<canon>get cover children (handle)</canon>
