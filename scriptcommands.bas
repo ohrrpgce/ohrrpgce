@@ -5552,17 +5552,27 @@ SUB script_commands(byval cmdid as integer)
  CASE 809'--get cover children
   sl = get_arg_slice(0)
   IF sl THEN
-   scriptret = sl->CoverChildren ' The possible values of CoverChildren match the cover: constants
+   SELECT CASE sl->CoverChildren
+    CASE coverNone: scriptret = 0 'cover:none constant or false
+    CASE coverFull: scriptret = 1 'cover:all constant or true
+    CASE coverHoriz: scriptret = 2 'cover:horiz constant
+    CASE coverVert: scriptret = 3 'cover:vert constant
+   END SELECT
   END IF
  CASE 810'--set cover children
   sl = get_arg_resizeable_slice(0, YES, YES)
-  IF bound_arg(retvals(1), 0, coverLAST, "cover: constant", , serrBadOp) THEN
-   IF sl THEN
-    IF (SliceLegalCoverModes(sl) AND retvals(1)) <> retvals(1) THEN
-     scripterr SliceTypeName(sl) & " slices don't support cover children"
-    ELSE
-     sl->CoverChildren = retvals(1)
-    END IF
+  IF sl THEN
+   IF (SliceLegalCoverModes(sl) AND retvals(1)) <> retvals(1) THEN
+    scripterr SliceTypeName(sl) & " slices don't support cover children"
+   ELSE
+    SELECT CASE retvals(1)
+     CASE 0: sl->CoverChildren = coverNone 'cover:none constant or false
+     CASE 1: sl->CoverChildren = coverFull 'cover:all contant or true
+     CASE 2: sl->CoverChildren = coverHoriz 'cover:horiz constant
+     CASE 3: sl->CoverChildren = coverVert 'cover:vert constant
+     CASE ELSE
+      scripterr current_command_name() &": invalid cover: constant " & retvals(1), serrBadOp
+    END SELECT
    END IF
   END IF
  CASE 811'--get fill parent
@@ -5578,7 +5588,6 @@ SUB script_commands(byval cmdid as integer)
     scriptret = 0 'fill:none constant
    END IF
   END IF
-
  '812 is alias of "fill parent"
 
 

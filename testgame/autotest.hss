@@ -5302,9 +5302,10 @@ script, slice filling and covering tests, begin
   ch2 := load hero sprite(2)
   set parent(ch, sl)
   set parent(ch2, sl)
-  set fill parent(sl, fill:none) #bump
+  set fill parent(sl, fill:none)
   set cover children(sl, cover:all)
   w
+
   assert(slice width(sl) == 32)
   assert(slice height(sl) == 40)
   set padding(sl, 2)

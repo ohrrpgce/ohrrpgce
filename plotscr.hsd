@@ -2425,9 +2425,9 @@ define constant, begin
 17,dissolve:blip
 -1,dissolvetime:default
 0,cover:none,
-1,cover:horiz,
-2,cover:vert,
-3,cover:all,
+1,cover:all,
+2,cover:horiz,
+3,cover:vert,
 0,fill:none,
 1,fill:enable,
 2,fill:horiz,

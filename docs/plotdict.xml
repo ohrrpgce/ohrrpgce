@@ -8423,9 +8423,6 @@ end
 			<canon>get cover children (handle)</canon>
 			<shortname>get cover children</shortname>
 			<description>
-				<warn>
-					PLEASE DON"T USE THIS COMMAND YET, WE WILL FIX IT TO BE LESS TERRIBLE
-				</warn>
 				Checks a slice <p>handle</p> and returns whether or not it is configured to automatically resize to cover its children. Return values will be the constants <p>cover:none</p>, <p>cover:horiz</p>, <p>cover:vert</p>, or <p>cover:all</p>. Note that the cover children setting has no effect on a slice that is set to fill its parent in the same axis.
 			</description>
 			<seealso>
@@ -8437,16 +8434,9 @@ end
 			<canon>set cover children (handle, cover:constant)</canon>
 			<shortname>set cover children</shortname>
 			<description>
-				<warn>
-					PLEASE DON"T USE THIS COMMAND YET, WE WILL FIX IT TO BE LESS TERRIBLE
-				</warn>
 				Makes a slice <p>handle</p> automatically resize to cover its children (if the slice type supports it). Use the constants <p>cover:none</p>, <p>cover:horiz</p>, <p>cover:vert</p>, or <p>cover:all</p>.
 				<lb/>
 				Covering children has no effect if the slice is set to fill its parent on the same axis.
-				<warn>
-					You cannot use <p>true</p> and <p>false</p> for <p>cover:constant</p> because they will not have the intended effect.
-					<p>true</p> is not equal to <p>cover:all</p>.
-				</warn>
 				<note>
 					This command fails (with an error) on Grid, Panel and Layout slices and on unresizable slices: Sprite, Map, and Text that's not set to wrap.
 					Text slice can't cover their children vertically, because their height is fixed.

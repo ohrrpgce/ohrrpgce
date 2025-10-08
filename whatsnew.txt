@@ -23,7 +23,7 @@ Nov ?? 2025 [Lexiphanic]
     * "get music time ms", "set music time ms", "get music length ms",
       "music is seekable" [Ralph]
     * "get/set panel sized by child" [James]
-    * [PLEASE DON"T USE THESE YET, WE WILL FIX THEM TO BE LESS TERRIBLE] "get/set fill parent" "get/set cover children" [James]
+    * "get/set fill parent" "get/set cover children" [James]
 
   *** Changes
 
