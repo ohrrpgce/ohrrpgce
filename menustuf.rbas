@@ -975,6 +975,7 @@ SUB buystuff_make_slices(buyst as ShopBuyState)
   .Width = .parent->Width - (.parent->PaddingLeft + .parent->PaddingRight)
   .Height = .parent->Height - (.parent->PaddingTop + .parent->PaddingBottom) - buyst.hero_box->Height
  END WITH
+ RefreshSliceScreenPos buyst.info_sl
 
  buyst.hire_box = NewSliceOfType(slRectangle, right_panel)
  WITH *(buyst.hire_box)
