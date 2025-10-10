@@ -74,7 +74,7 @@ sub GraphSlice.update_bounds()
  set_min_and_max minx, maxx, x(), 1.
  set_min_and_max miny, maxy, y(), default_maxy
 
- RefreshSliceTreeScreenPos(sl)
+ RefreshSliceTree(sl)
  xscale = (field_sl->Width - 1) / (maxx - minx)
  yscale = (field_sl->Height - 1) / (maxy - miny)
 end sub

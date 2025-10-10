@@ -100,7 +100,7 @@ Function ThingBrowser.browse(byref start_id as integer=0, byval or_none as bool=
 
   'Update scroll after resolution change (not otherwise, or scrollwheel won't work)
   if get_resolution() <> last_resolution then
-    RefreshSliceTreeScreenPos root
+    RefreshSliceTree root
     update_plank_scrolling ps
     last_resolution = get_resolution()
   end if

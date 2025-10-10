@@ -640,7 +640,7 @@ END SUB
 SUB SlicePropertiesEditor.draw_underlays()
   draw_background vpages(vpage), bgChequer
   UpdateSliceDynamicProps ses_draw_root
-  RefreshSliceScreenPos sl  'Invisible slices won't otherwise be updated by DrawSlice
+  RefreshSlice sl  'Invisible slices won't otherwise be updated by DrawSlice
   DrawSlice ses_draw_root, vpage
 END SUB
 

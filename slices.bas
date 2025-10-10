@@ -4587,41 +4587,47 @@ Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
  return changed
 end function
 
-Sub RefreshSliceScreenPos(slc as Slice ptr)
- 'This sub quickly updates ScreenX, ScreenY, plus Width and Height when filling,
- 'of a slice and its ancestors without needing to do a full refresh of the whole tree
- 'and without respect to .Visible (however templates may not be fully updated by their parents)
- 'It is called for the following purposes:
- '-To immediately update slice size after setting Fill (or in future, CoverChildren).
- ' (Common and probably necessary superstition in some places)
- '-If ScreenX/ScreenY are needed outside of DrawSliceRecurse, including ScreenPos
- ' used for slice collision/clamp/containment checks, and plankmenu functions
- '-If a slice needs to be refreshed even if it's invisible (e.g. in slice editor)
- if slc = 0 then exit sub
- dim par as Slice ptr = slc->Parent
+'Use this sub instead of RefreshSlice when you need only sl->ScreenPos and sl->Size
+'of a slice. It refreshes only its ancestors and without respect to .Visible
+'(however templates may not be fully updated by their parents)
+'It is called for the following purposes:
+'-To immediately update slice size after setting Fill (or in future, CoverChildren).
+' (Common and probably necessary superstition in some places)
+'-If ScreenX/ScreenY are needed outside of DrawSliceRecurse, including ScreenPos
+' used for slice collision/clamp/containment checks, and plankmenu functions
+Sub RefreshSliceScreenPos(sl as Slice ptr)
+ ' In future we might have a leaner implementation.
+ RefreshSlice sl
+end sub
+
+'Refresh *all* computed properties of a slice, (except autosorting is optional).
+'Doing so requires updating all ancestor slices too, for ScreenPos and Fill.
+'This is used if a slice needs to be refreshed even if it's invisible (e.g. in slice editor)
+'TODO: This is meant to apply Sprite and Text specific changes too
+Sub RefreshSlice(sl as Slice ptr)
+ if sl = 0 then exit sub
+ dim par as Slice ptr = sl->Parent
  dim attach as Slice ptr
  if par then
-  RefreshSliceScreenPos par
+  RefreshSlice par
   if par->ChildrenRefresh then par->ChildrenRefresh(par)
   attach = par
  else
   attach = ScreenSlice
  end if
- attach->ChildRefresh(attach, slc, -1, NO)  'visibleonly=NO
+ attach->ChildRefresh(attach, sl, -1, NO)  'visibleonly=NO
 end sub
 
-'Refresh all descendents of slc, even if not visible
+'Refresh all descendents of sl, even if not visible
 '(however templates won't normally be positioned/resized by Layout/Panel/etc parents)
-Local Sub SliceRefreshRecurse(slc as Slice ptr)
- if slc->ChildrenRefresh then slc->ChildrenRefresh(slc)
+Local Sub SliceRefreshRecurse(sl as Slice ptr)
+ if sl->ChildrenRefresh then sl->ChildrenRefresh(sl)
 
- dim attach as Slice ptr
- dim ch as Slice ptr = slc->FirstChild
+ dim ch as Slice ptr = sl->FirstChild
  dim childindex as integer = 0
  do while ch <> 0
-  attach = iif(ch->Parent, ch->Parent, ScreenSlice)
   'Note that normally ChildRefresh isn't called on template slices, but make a best effort to update them.
-  attach->ChildRefresh(attach, ch, childindex, NO)  'visibleonly=NO
+  sl->ChildRefresh(sl, ch, childindex, NO)  'visibleonly=NO
   SliceRefreshRecurse ch
   if ShouldSkipSlice(ch) = NO then
    childindex += 1
@@ -4630,18 +4636,19 @@ Local Sub SliceRefreshRecurse(slc as Slice ptr)
  loop
 end sub
 
-Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
- 'Updates ScreenX, ScreenY, plus Width and Height when filling,
- 'of a slice tree (specially, all its ancestors and descendents but not siblings)
- 'while ignoring .Visible (however templates may not be fully updated by their parents)
- 'DrawSliceRecurse skips refreshing nonvisible slices, so this is called
- 'in the few places we need it.
- if slc = 0 then exit sub
+'Refreshes all slices in a subtree, even if .Visible = NO
+'(however templates may not be fully updated by their parents).
+'DrawSliceRecurse skips refreshing nonvisible slices, so this is called
+'in the few places we need it.
+'(Probably most/all calls to this function only care about ScreenPos/Size,
+'but it's not worth adding a separate function for that.)
+Sub RefreshSliceTree(sl as Slice ptr)
+ if sl = 0 then exit sub
 
- 'Update slc and ancestors
- RefreshSliceScreenPos slc
+ 'Update sl and ancestors
+ RefreshSlice sl
  'Update descendents
- SliceRefreshRecurse slc
+ SliceRefreshRecurse sl
 end sub
 
 

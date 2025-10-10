@@ -737,7 +737,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
  template_slices_shown = YES
 
  '--Ensure all the slices are updated before the loop starts
- RefreshSliceTreeScreenPos ses.draw_root
+ RefreshSliceTree ses.draw_root
 
  DIM vpages_were_32bit as bool = vpages_are_32bit()
  push_and_reset_gfxio_state
@@ -1120,7 +1120,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
   END IF
 
   'Positions of invisible slices need to be updated
-  RefreshSliceTreeScreenPos ses.draw_root
+  RefreshSliceTree ses.draw_root
 
   DIM updated as bool = state.need_update
 
@@ -1982,7 +1982,7 @@ SUB slice_edit_detail (byref ses as SliceEditState, edslice as Slice ptr, sl as 
   draw_background vpages(dpage), bgChequer
 
   UpdateSliceDynamicProps ses.draw_root
-  RefreshSliceScreenPos sl  'Invisible slices won't otherwise be updated by DrawSlice
+  RefreshSlice sl  'Invisible slices won't otherwise be updated by DrawSlice
   IF ses.hide_mode <> hideSlices THEN
    DrawSlice ses.draw_root, dpage
   END If
@@ -2490,7 +2490,7 @@ SUB slice_editor_xy (xy1 as XYPair ptr, xy2 as XYPair ptr = NULL, focussl as Sli
   IF keyval(ccLeft)  > 0 THEN pair.x -= speed : slice_edit_updates focussl, @pair.x
   draw_background vpages(dpage), bgChequer
   'Invisible slices won't be updated by DrawSlice
-  RefreshSliceTreeScreenPos focussl
+  RefreshSliceTree focussl
   DrawSlice rootsl, dpage
   IF show_ants THEN DrawSliceAnts focussl, dpage
   wrapprint pair & !"\n" & msg, 0, pBottom, uilook(uiText), dpage

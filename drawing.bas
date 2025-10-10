@@ -4818,7 +4818,7 @@ SUB SpriteSetBrowser.rebuild_menu()
   IF ps.cur = NULL THEN
     'FIXME: Have to then also refresh a second time, otherwise top_left_plank
     'has the wrong screen positions and doesn't work...
-    RefreshSliceTreeScreenPos root
+    RefreshSliceTree root
     ps.cur = top_left_plank(ps)
   END IF
   update_plank_scrolling ps
@@ -4912,7 +4912,7 @@ SUB SpriteSetBrowser.update_info()
   'TODO: This is here to update the positioning of the palette box,
   'and can be removed when CoverChildren is fixed to compute the size
   'of a slice before it's positioned
-  RefreshSliceTreeScreenPos root
+  RefreshSliceTree root
 END SUB
 
 'Move the cursor to a frame or a spriteset (does nothing if not found)
@@ -5436,7 +5436,7 @@ SUB SpriteSetBrowser.run()
 
     'Update scroll after resolution change (not otherwise, or scrollwheel won't work)
     IF get_resolution() <> last_resolution THEN
-      RefreshSliceTreeScreenPos root  'Doesn't seem to be sufficient always
+      RefreshSliceTree root  'Doesn't seem to be sufficient always
       ScrollToChild find_plank_scroll(ps.m), top_left_plank(ps)  'Scroll all the way to the left
       update_plank_scrolling ps
       last_resolution = get_resolution()

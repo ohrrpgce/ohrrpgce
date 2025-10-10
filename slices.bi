@@ -747,8 +747,9 @@ DECLARE Function IsAncestor(byval sl as slice ptr, byval ancestor as slice ptr) 
 DECLARE Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as bool
 DECLARE Function UpdateRootSliceSize(sl as slice ptr, page as integer) as bool
 DECLARE Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
+DECLARE Sub RefreshSlice(sl as Slice ptr)
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
-DECLARE Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
+DECLARE Sub RefreshSliceTree(sl as Slice ptr)
 DECLARE Sub SliceClamp(clamp_sl as Slice ptr, within_sl as Slice ptr)
 
 DECLARE Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
