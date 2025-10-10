@@ -1326,6 +1326,16 @@ SUB fatalbug (msg as const zstring ptr)
  showerror msg, YES, YES
 END SUB
 
+'Print an error to stderr. Mainly for nogfx_mode, otherwise use debugerror etc.
+SUB print_stderr(msg as const zstring ptr)
+ 'Don't use PRINT, doesn't go to the terminal under gfx_fb
+ 'also printing to stdout doesn't work on android
+ 'MBG - this causes trouble, maybe due to define of stderr to __iob_func but it looks buggier than that
+ #IF NOT (DEFINED(__FB_ANDROID__) OR DEFINED(__FB_BLACKBOX__))
+  fprintf(stderr, !"%s\n", msg)
+ #ENDIF
+END SUB
+
 'showerror and showbug are wrapped in miscc.c, so that they can pass the callsite
 '(which we can only obtain in C) to showerror_internal, which is needed to ignore
 'certain invocations
@@ -1361,12 +1371,7 @@ SUB showerror_internal (callsite as any ptr, zmsg as const zstring ptr, byval is
 
  DIM printmsg as string
  printmsg = IIF(isbug, "(BUG) ", "") + IIF(isfatal, "FATAL: ", "ERROR: ") + *zmsg
- 'Don't use PRINT, doesn't go to the terminal under gfx_fb
- 'also printing to stdout doesn't work on android
- 'MBG - this causes trouble, maybe due to define of stderr to __iob_func but it looks buggier than that
- #IF NOT (DEFINED(__FB_ANDROID__) OR DEFINED(__FB_BLACKBOX__))
-  fprintf(stderr, !"%s\n", STRPTR(printmsg))
- #ENDIF
+ print_stderr printmsg
 
  STATIC last_error as string
  DIM msg as string = RTRIM(*zmsg, !"\n")

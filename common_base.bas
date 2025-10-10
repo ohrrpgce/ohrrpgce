@@ -25,6 +25,10 @@ SUB debuginfo (msg as const zstring ptr)
   print *msg
 END SUB
 
+SUB print_stderr(msg as const zstring ptr)
+  fprintf(stderr, !"%s\n", msg)
+END SUB
+
 EXTERN "C"
 
 SUB early_debuginfo (msg as const zstring ptr)

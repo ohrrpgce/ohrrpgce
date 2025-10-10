@@ -14,6 +14,7 @@
 
 type SliceFwd as Slice
 
+declare sub print_stderr (msg as const zstring ptr)
 declare sub debug (msg as const zstring ptr)
 declare sub debuginfo (msg as const zstring ptr)
 declare sub debugerror (msg as const zstring ptr)

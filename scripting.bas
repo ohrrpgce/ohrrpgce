@@ -2072,7 +2072,7 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
  IF display = YES ORELSE error_count < error_count_limit THEN
   DIM as string call_chain
   IF insideinterpreter THEN call_chain = script_call_chain(NO)
-  DIM logmsg as string = call_chain + ": " + errmsg
+  DIM logmsg as string = errmsg + !"\n    Call chain:  " + call_chain
   STATIC lasterror as string
   STATIC logged_repeat as bool = NO  'Logged a 'repeats' line for the last error
   IF display = YES ORELSE logmsg <> lasterror THEN
@@ -2086,7 +2086,9 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
    logged_repeat = YES
    EXIT SUB
   END IF
-  debug "Scripterr(errlvl=" & errorlevel & " " & *scripterr_names(errorlevel) & "): " + logmsg
+  logmsg = "Scripterr(errlvl=" & errorlevel & " " & *scripterr_names(errorlevel) & "):  " + logmsg
+  debug logmsg
+  IF nogfx_mode ANDALSO display THEN print_stderr logmsg
   logged_ignore = NO  'Indicate when there are hidden script errors between the logged ones
  ELSEIF error_count = error_count_limit THEN
   debug "Ignoring further script errors"
@@ -2094,6 +2096,7 @@ SUB scripterr (errmsg as string, byval errorlevel as scriptErrEnum = serrBadOp, 
  error_count += 1
 
  IF display = NO THEN EXIT SUB
+ IF nogfx_mode THEN EXIT SUB
 
  ' OK, decided to show the error
  stop_fibre_timing
