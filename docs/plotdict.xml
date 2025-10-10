@@ -9930,7 +9930,12 @@ end
 					<li><tt>autosort: Bottom Y</tt> - sorted by bottom edge position</li>
 				</ul>
 				Every tick immediately before the screen is redrawn the children of the slice will
-				be sorted according to the autosort setting.
+				be sorted according to the autosort setting in ascending order, meaning that those
+				with lower values (e.g. for the "Y"-type autosorts, towards the top of the screen)
+				will be the first children, drawn earlier, underneath later ones.
+				The sort is "stable" meaning if any children have the same sort value
+				then their relative order won't change.
+				<lb/>
 				This is useful for emulating 3D (or "2.5D") environments, causing slices for objects that are closer to the "view"
 				(the bottom of the screen) to be drawn on top of ones further away.
 			</description>
