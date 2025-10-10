@@ -295,7 +295,7 @@ SUB SlicePropertiesEditor.define_items()
 
       CASE slText
         DIM dat as TextSliceData Ptr = .SliceData
-        defstr "Text:", dat->s, 128000  'Arbitrary limit
+        defstr "Text:", dat->text, 128000  'Arbitrary limit
         propkey "s", "text_text"
         defint "Color:", dat->col, LowColorCode(), 255   'slgrPICKCOL
         caption_slice_color "Default"

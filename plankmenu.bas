@@ -641,9 +641,9 @@ SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as FnE
   IF ch->Lookup <> SL_PLANK_HOLDER THEN
    IF ch->SliceType = slText THEN
     dat = ch->SliceData
-    IF dat->s_orig = "" THEN dat->s_orig = dat->s
+    IF dat->text_orig = "" THEN dat->text_orig = dat->text
 #IFDEF IS_GAME
-    ChangeTextSlice ch, embed_text_codes(dat->s_orig, -1, callback, arg0, arg1, arg2)
+    ChangeTextSlice ch, embed_text_codes(dat->text_orig, -1, callback, arg0, arg1, arg2)
 #ENDIF
    END IF
    expand_slice_text_insert_codes ch, callback, arg0, arg1, arg2

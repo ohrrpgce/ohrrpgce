@@ -4626,7 +4626,7 @@ SUB virtual_keyboard_push_button (byref st as VirtualKeyboardScreenState, byval 
     txt = LookupSlice(SL_VIRTUAL_KEYBOARD_BUTTONTEXT, button)
     IF txt THEN
      DIM dat as TextSliceData Ptr = txt->SliceData
-     st.result &= dat->s
+     st.result &= dat->text
     END IF
    END IF
   CASE SL_VIRTUAL_KEYBOARD_DEL:

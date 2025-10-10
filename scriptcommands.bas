@@ -3523,7 +3523,7 @@ SUB script_commands(byval cmdid as integer)
   IF valid_plotstr(retvals(0), serrBadOp) THEN
    sl = get_arg_textsl(1)
    IF sl THEN
-    plotstr(retvals(0)).s = sl->TextData->s
+    plotstr(retvals(0)).s = sl->TextData->text
    END IF
   END IF
  CASE 531 '--get input text (string)

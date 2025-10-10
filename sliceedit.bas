@@ -2769,8 +2769,8 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
 
    CASE slText
     DIM dat as TextSliceData Ptr = .SliceData
-    a_append menu(), " Text: " & dat->s
-    sliceed_rule_str rules(), "text_text", erStrgrabber, @(dat->s), 128000  'Arbitrary limit
+    a_append menu(), " Text: " & dat->text
+    sliceed_rule_str rules(), "text_text", erStrgrabber, @(dat->text), 128000  'Arbitrary limit
     a_append menu(), " Color: " & slice_color_caption(dat->col, "Default")
     sliceed_rule rules(), "text_color", erIntgrabber, @(dat->col), LowColorCode(), 255, slgrPICKCOL
     IF dat->outline = NO THEN

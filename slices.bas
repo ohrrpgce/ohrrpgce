@@ -1676,9 +1676,9 @@ Sub WrapTextSlice(byval sl as Slice ptr, lines() as string)
   else
    wide = large(1, (get_resolution().w - sl->ScreenX) \ 8)
   end if
-  d = wordwrap(dat->s, wide)
+  d = wordwrap(dat->text, wide)
  else
-  d = dat->s
+  d = dat->text
  end if
 
  split(d, lines())
@@ -1713,7 +1713,7 @@ Sub NewDrawTextSlice(byval sl as Slice ptr, byval p as integer, col as integer)
  'when the size might have changed.
  NewUpdateTextSlice sl
 
- dim text as string = dat->s
+ dim text as string = dat->text
  dim wide as integer = TextSliceRenderTextWide(sl, dat)
  dim fontnum as integer = iif(dat->fontnum, dat->fontnum, iif(dat->outline, fontEdged, fontPlain))
  if fontnum > ubound(fonts) then fontnum = 0  'Silent failure; might have loaded slices from a different game
@@ -1756,7 +1756,7 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
  dim lines() as string
  WrapTextSlice sl, lines()
  dim line_starts() as integer
- split_line_positions dat->s, lines(), line_starts()
+ split_line_positions dat->text, lines(), line_starts()
 
  'If the slice wraps, then its height changes any time that its width does
  'FIXME: we should update the size in ChildRefresh/ChildrenRefresh() instead,
@@ -1781,7 +1781,7 @@ Sub DrawTextSlice(byval sl as Slice ptr, byval p as integer)
   if dat->show_insert then
    dim offset_in_line as integer  '0-based offset
    offset_in_line = dat->insert - line_starts(linenum)
-   dim next_line as integer = iif(linenum = last_line, len(dat->s) + 1, line_starts(linenum + 1))
+   dim next_line as integer = iif(linenum = last_line, len(dat->text) + 1, line_starts(linenum + 1))
    'The insert cursor might point to a space or newline after the end of the line or end of text
    if offset_in_line >= 0 and dat->insert < next_line then
     rectangle sl->screenx + linepos.x + offset_in_line * 8, sl->screeny + linepos.y, insert_size, insert_size, uilook(uiHighlight + dat->insert_tog), p
@@ -1805,7 +1805,7 @@ Sub NewUpdateTextSlice(byval sl as Slice ptr)
  'dat->line_limit not supported yet
  dim fontnum as integer = iif(dat->outline, fontEdged, fontPlain)
  dim wide as integer = TextSliceRenderTextWide(sl, dat)
- dim size as XYPair = textsize(dat->s, wide, fontnum, YES)
+ dim size as XYPair = textsize(dat->text, wide, fontnum, YES)
  sl->Height = size.h
  if dat->Wrap = NO then sl->Width = size.w
 end sub
@@ -1830,7 +1830,7 @@ Sub UpdateTextSlice(byval sl as Slice ptr)
 
  'Update width
  if dat->Wrap = NO then
-  sl->Width = textWidth(dat->s)
+  sl->Width = textWidth(dat->text)
  else
   '--Wrapped text does not change the slice width. Do that manually (or by setting ->Fill = YES)
  end if
@@ -1845,7 +1845,7 @@ Function TextSliceCharPos(sl as Slice ptr, charnum as integer) as XYPair
  dim wide as integer = TextSliceRenderTextWide(sl, dat)
  dim fontnum as integer = iif(dat->outline, fontEdged, fontPlain)
  dim charpos as StringCharPos
- find_text_char_position(@charpos, dat->s, charnum, wide, fontnum)
+ find_text_char_position(@charpos, dat->text, charnum, wide, fontnum)
  return charpos.pos
 end function
 
@@ -1869,7 +1869,7 @@ Sub CloneTextSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  dim dat as TextSliceData Ptr
  dat = sl->TextData
  with *cl->TextData
-  .s       = dat->s
+  .text    = dat->text
   .col     = dat->col
   .outline = dat->outline
   .wrap    = dat->wrap
@@ -1882,7 +1882,7 @@ Sub SaveTextSlice(byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveTextSlice null ptr": exit sub
  DIM dat as TextSliceData Ptr
  dat = sl->SliceData
- SavePropAlways node, "s", dat->s
+ SavePropAlways node, "s", dat->text
  SaveProp node, "col", dat->col
  SaveProp node, "outline", dat->outline
  SaveProp node, "wrap", dat->wrap
@@ -1894,7 +1894,7 @@ Sub LoadTextSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "LoadTextSlice null ptr": exit sub
  dim dat as TextSliceData Ptr
  dat = sl->SliceData
- dat->s       = LoadPropStr(node, "s")
+ dat->text    = LoadPropStr(node, "s")
  dat->col     = LoadProp(node, "col")
  dat->outline = LoadPropBool(node, "outline")
  dat->wrap    = LoadPropBool(node, "wrap")
@@ -1922,8 +1922,8 @@ Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as 
  ret->Save = @SaveTextSlice
  ret->Load = @LoadTextSlice
 
- ret->Width = textwidth(d->s)
- 'split(d->s, d->lines())
+ ret->Width = textwidth(d->text)
+ 'split(d->text, d->lines())
  
  return ret
 end function
@@ -1940,7 +1940,7 @@ Sub ChangeTextSlice(byval sl as Slice ptr,_
  ASSERT_SLTYPE(sl, slText)
  with *sl->TextData
   if s <> CHR(1) & CHR(255) then
-   .s = s
+   .text = s
   end if
   if col <> colInvalid then
    .col = col
@@ -4902,7 +4902,7 @@ Function FindTextSliceStringRecursively(sl as slice ptr, query as string) as Sli
 
  if sl->SliceType = slText then
   'If this slice is text, and the text includes the filter string, Success!
-  if instr(lcase(sl->TextData->s), lcase(query)) then return sl
+  if instr(lcase(sl->TextData->text), lcase(query)) then return sl
  end if
  'Check all children recursively too until we find one that succeeds
  dim ch as Slice Ptr = sl->FirstChild

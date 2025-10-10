@@ -5589,11 +5589,11 @@ SUB embedslicetree (byval sl as Slice Ptr, byval saveslot as integer=-1, repeata
   DIM text as string
   IF repeatable THEN
    'This is intended to be called over and over, perhaps every tick, and is expected to re-expand the strings each time
-   IF sl->TextData->s_orig = "" THEN sl->TextData->s_orig = sl->TextData->s
-   text = sl->TextData->s_orig
+   IF sl->TextData->text_orig = "" THEN sl->TextData->text_orig = sl->TextData->text
+   text = sl->TextData->text_orig
   ELSE
    'This is intended to be called just once after the slice tree is loaded, and the expansions remain static afterwards
-   text = sl->TextData->s
+   text = sl->TextData->text
   END IF
   text = embed_text_codes(text, saveslot, callback, arg0, arg1, arg2)
   ChangeTextSlice sl, text

@@ -2763,7 +2763,7 @@ FUNCTION prompt_for_string (byref retstring as string, caption as string, limit 
   END IF
   IF keyval(scAnyEnter) > 1 THEN
    prompt_for_string = YES
-   retstring = text_area->TextData->s
+   retstring = text_area->TextData->text
    EXIT DO
   END IF
   strgrabber editstr, limit
@@ -2965,7 +2965,7 @@ SUB show_help(helpkey as zstring ptr)
      IF getquitflag() THEN choice = 1  'Second attempt to quit: discard
      IF choice <> -1 THEN
       IF quitting THEN setquitflag
-      IF choice = 0 THEN save_help_file *helpkey, dat->s
+      IF choice = 0 THEN save_help_file *helpkey, dat->text
       EXIT DO
      END IF
     END IF
@@ -2976,9 +2976,9 @@ SUB show_help(helpkey as zstring ptr)
      'Previously we didn't use_render_text while editing so couldn't do text highlighting,
      'so use this old search implementation. TODO: Ctrl-S to start incremental search.
      IF prompt_for_string(searchstring, "Search") THEN
-      DIM idx as integer = INSTR(dat->insert + 2, LCASE(dat->s), LCASE(searchstring))
+      DIM idx as integer = INSTR(dat->insert + 2, LCASE(dat->text), LCASE(searchstring))
       IF idx = 0 THEN  'wrap
-       idx = INSTR(dat->s, searchstring)
+       idx = INSTR(dat->text, searchstring)
       END IF
       IF idx THEN dat->insert = idx - 1
      END IF
@@ -3052,7 +3052,7 @@ SUB show_help(helpkey as zstring ptr)
     ' Move cursor to location of mouse click.
     IF readmouse.buttons AND (mouseLeft OR mouseRight) THEN
      DIM curspos as StringCharPos
-     find_point_in_text @curspos, readmouse.pos, dat->s, help_text->Width, help_text->ScreenPos, fontPlain
+     find_point_in_text @curspos, readmouse.pos, dat->text, help_text->Width, help_text->ScreenPos, fontPlain
      dat->insert = curspos.charnum
     END IF
 
@@ -3170,17 +3170,17 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="", prompt_to_sa
   setwait 30
   setkeys YES
 
-  DIM textstring as string = dat->s
+  DIM textstring as string = dat->text
   cursor_line = stredit(textstring, dat->insert, , dat->line_limit, text->Width \ 8)
   ChangeTextSlice text, textstring
 
   IF keyval(ccCancel) > 1 THEN
    '--If there are any changes to the help screen, offer to save them
-   IF s = dat->s THEN
+   IF s = dat->text THEN
     EXIT DO
    ELSEIF prompt_to_save THEN
     DIM choice as integer = twochoice("Keep changes to this text?", "Yes", "No", 0, -1)
-    IF choice = 1 THEN dat->s = s '--don't use changes!
+    IF choice = 1 THEN dat->text = s '--don't use changes!
     IF choice >= 0 THEN EXIT DO
    ELSE
     EXIT DO
@@ -3188,8 +3188,8 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="", prompt_to_sa
   END IF
   IF deadkeys = 0 THEN 
    IF keyval(scF1) ANDALSO helpkey <> "" THEN show_help helpkey
-   IF keyval(scF2) THEN export_string_to_file dat->s
-   IF keyval(scF3) THEN import_string_from_file dat->s
+   IF keyval(scF2) THEN export_string_to_file dat->text
+   IF keyval(scF3) THEN import_string_from_file dat->text
    dat->first_line = small(dat->first_line, cursor_line - 1)
    dat->first_line = large(dat->first_line, cursor_line - (dat->line_limit - 2))
    dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
@@ -3226,7 +3226,7 @@ FUNCTION multiline_string_editor(s as string, helpkey as string="", prompt_to_sa
  LOOP
 
  DIM result as string
- result = dat->s
+ result = dat->text
  
  freepage holdscreen
  DeleteSlice @root

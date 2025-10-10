@@ -528,8 +528,8 @@ Type TextSliceData
  col as integer
  bgcol as integer
  outline as bool
- s as string
- s_orig as string 'UNSAVED: Used when expanding ${} codes, so the codes can be re-expanded again later
+ text as string
+ text_orig as string 'UNSAVED: Used when expanding ${} codes, so the codes can be re-expanded again later
  wrap as bool     'Whether to wrap the text according to slice width. Otherwise slice width is determined by s.
  row_alignment as AlignType  'Text alignment in each row of text
 
