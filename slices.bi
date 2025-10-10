@@ -498,7 +498,7 @@ DECLARE_VECTOR_OF_TYPE(Slice ptr, Slice_ptr)
 '--Data containers for various slice types
 
 Type RectangleSliceData
- 'If anything aside from translucent/fuzzfactor is manually changed, set style=-1 and style_loaded=NO
+ 'If anything aside from translucent/fuzzfactor is manually changed, set style=-1
  fgcol as integer
  border as RectBorderTypes = borderLine   'borderNone/borderLine/0-14 for box style's border
  translucent as RectTransTypes
@@ -506,9 +506,7 @@ Type RectangleSliceData
  fuzz_stationary as boolean
  fuzz_zoom as integer = 1
  bgcol as integer
- 'if style is changed then set style_loaded = NO
  style as integer = -1    '-1: None, 0-14: style
- style_loaded as boolean 'Used internally flag whether a change of style has been applied to fgcol, bgcol, or border
 
  'When use_raw_box_border is YES, ignore .border and use .raw_box_border instead.
  use_raw_box_border as boolean

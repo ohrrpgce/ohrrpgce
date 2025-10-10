@@ -247,7 +247,10 @@ SUB SlicePropertiesEditor.define_items()
         dat = .SliceData
         defint "Style:", dat->style, -1, 14   'slgrUPDATERECTSTYLE
         caption_default_or_int -1, "None (custom)"
+        IF edited THEN ChangeRectangleSlice sl, value
         propkey "style", "rect_style"
+        ' FIXME: editing any of the following should set style = -1, either by calling
+        ' ChangeRectangleSlice or set_slice_property
         defint "Background color:", dat->bgcol, LowColorCode(), 255  'slgrUPDATERECTCUSTOMSTYLE OR slgrPICKCOL
         caption_slice_color
         propkey "bg", "rect_bg", "bgcol"

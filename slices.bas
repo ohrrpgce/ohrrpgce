@@ -1407,7 +1407,6 @@ Sub UpdateRectangleSliceStyle(byval dat as RectangleSliceData ptr)
  ELSE
   debug "bad rect style " & dat->style
  END IF
- dat->style_loaded = YES
 end sub
 
 Sub DrawRectangleSlice(byval sl as Slice ptr, byval p as integer)
@@ -1415,10 +1414,6 @@ Sub DrawRectangleSlice(byval sl as Slice ptr, byval p as integer)
  if sl->SliceData = 0 then exit sub
  
  with *sl->RectData
-  if .style >= 0 and .style_loaded = NO then
-   UpdateRectangleSliceStyle sl->RectData
-  end if
-
   dim borderindex as RectBorderTypes
   if .use_raw_box_border then
    borderindex = .raw_box_border
@@ -1438,7 +1433,6 @@ Sub CloneRectangleSlice(byval sl as Slice ptr, byval cl as Slice ptr)
  dat = sl->RectData
  with *cl->RectData
   .style       = dat->style
-  .style_loaded= dat->style_loaded  'Doesn't matter
   .fgcol       = dat->fgcol
   .bgcol       = dat->bgcol
   .translucent = dat->translucent
@@ -1486,7 +1480,6 @@ Sub LoadRectangleSlice (byval sl as Slice ptr, byval node as Reload.Nodeptr)
  dat->fuzz_zoom = LoadProp(node, "fz_zoom", 1)
  dat->style = LoadProp(node, "style", -1)
  if dat->style >= 0 then
-  dat->style_loaded = NO
   UpdateRectangleSliceStyle dat
  else
   dat->fgcol = LoadProp(node, "fg")
@@ -1513,7 +1506,7 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  ret->Clone = @CloneRectangleSlice
  ret->Save = @SaveRectangleSlice
  ret->Load = @LoadRectangleSlice
- 
+
  return ret
 end function
 
@@ -1538,27 +1531,21 @@ Sub ChangeRectangleSlice(byval sl as Slice ptr,_
   if style > -2 then
    .use_raw_box_border = NO
    .style = style
-   .style_loaded = NO
-  end if
-  if .style >= 0 andalso .style_loaded = NO then
-   UpdateRectangleSliceStyle sl->RectData
+   if style >= 0 then UpdateRectangleSliceStyle sl->RectData
   end if
   'Then consider all other data as style overrides
   if bgcol <> colInvalid then
    .bgcol = bgcol
    .style = -1
-   .style_loaded = NO
   end if
   if fgcol <> colInvalid then
    .fgcol = fgcol
    .style = -1
-   .style_loaded = NO
   end if
   if raw_box_border >= 0 then
    .use_raw_box_border = YES
    .raw_box_border = raw_box_border
    .style = -1
-   .style_loaded = NO
   elseif raw_box_border > borderUndef then
    'This is a convenience (and to make this behave the same as the script commands)
    border = raw_box_border
@@ -1567,7 +1554,6 @@ Sub ChangeRectangleSlice(byval sl as Slice ptr,_
    .use_raw_box_border = NO
    .border = border
    .style = -1
-   .style_loaded = NO
   end if
   if translucent <> transUndef then .translucent = translucent
   if fuzzfactor > 0 then

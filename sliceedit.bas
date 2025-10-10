@@ -2286,12 +2286,11 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, b
    DIM dat as RectangleSliceData Ptr
    dat = sl->SliceData
    dat->style = -1
-   dat->style_loaded = NO
   END IF
  END IF
  IF rule.group AND slgrUPDATERECTSTYLE THEN
   IF state.need_update THEN
-   sl->RectData->style_loaded = NO
+   ChangeRectangleSlice sl, sl->RectData->style
   END IF
  END IF
  IF rule.group AND slgrEDITSWITCHINDEX THEN
