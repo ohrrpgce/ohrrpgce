@@ -851,7 +851,7 @@ define function, begin
 809,getcoverchildren,1,0      # Check the current cover children settings of a slice
 810,setcoverchildren,2,0,3    # Change a slice's cover children setting
 811,getfillparent,1,0         # Check the current fill settings on a slice
-812,setfillparent,2,0,0       # Change a slice's parent filling settings (same as fillparent)
+812,setfillparent,2,0,1       # Change a slice's parent filling settings (same as fillparent)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

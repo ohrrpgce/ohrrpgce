@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-10-07">
+<plotscript version="wip" datecode="2025-10-10">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -8394,7 +8394,7 @@ end
 			<canon>get fill parent (handle)</canon>
 			<shortname>get fill parent</shortname>
 			<description>
-				Checks a slice <p>handle</p> and returns a value to indicate how it is filling its parent. Return values will be the constants <p>fill:none</p>, <p>fill:horiz</p>, <p>fill:vert</p>, or <p>fill:all</p>.
+				Returns the Fill Parent setting of slice <p>handle</p>: one of the constants <p>fill:none</p>, <p>fill:horiz</p>, <p>fill:vert</p>, or <p>fill:all</p>.
 			</description>
 			<seealso>
 				<ref>isfillingparent</ref>
@@ -8407,7 +8407,7 @@ end
 			<description>
 				Makes a slice <p>handle</p> fill its parent, but only if this is a type of slice that can be resized. Use the constants <p>fill:none</p>, <p>fill:horiz</p>, <p>fill:vert</p>, or <p>fill:all</p>.
 				<note>
-					For backwards compatability you can also use the value <p>true</p> or <p>fill:enable</p> both of which will turn on filling but will not change the fill mode. The default fill-mode for a new slice is <p>fill:all</p>.
+					For backwards compatability you can also use the value <p>true</p> or <p>fill:enable</p> both of which will turn on filling but will not change the fill mode, returning to the previously set one (horiz, vert or all; the default fill-mode for a new slice is <p>fill:all</p>).
 				</note>
 			</description>
 			<seealso>
