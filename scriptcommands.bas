@@ -2657,7 +2657,7 @@ SUB script_commands(byval cmdid as integer)
   sl = get_arg_slice(0)
   within_sl = get_arg_slice(1)
   IF sl ANDALSO within_sl THEN
-   SliceClamp within_sl, sl  'Opposite arg order...
+   SliceClamp sl, within_sl
   END IF
  CASE 388 '--horiz flip sprite
   sl = get_arg_spritesl(0)

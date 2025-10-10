@@ -4840,32 +4840,30 @@ Function SliceDrawOpts(sl as Slice ptr, required as bool = YES) as DrawOptions p
  return NULL
 End Function
 
-
-Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
- 'Don't confuse this with a slice's .Fill member. This is a one-shot attempt
- 'to fit sl2 inside sl1 without doing any resizing.
- '(TODO: swap arg order, as it's needlessly the opposite to "clamp slice")
- 'NOTE: ignores padding. And doesn't work for Grid slices.
- if sl1 = 0 or sl2 = 0 then exit sub
- if sl2->Fill then reporterr "Cannot clamp/move slices set to Fill Parent" : exit sub
- RefreshSliceScreenPos(sl1)
- RefreshSliceScreenPos(sl2)
+'Don't confuse this with a slice's .ClampHoriz/ClampVert members. This is a one-shot attempt
+'to fit clamped_sl inside within_sl without doing any resizing.
+'NOTE: ignores padding. And doesn't work for Grid slices.
+Sub SliceClamp(clamp_sl as Slice ptr, within_sl as Slice ptr)
+ if within_sl = 0 or clamp_sl = 0 then exit sub
+ if clamp_sl->Fill then reporterr "Cannot clamp/move slices set to Fill Parent" : exit sub
+ RefreshSliceScreenPos(within_sl)
+ RefreshSliceScreenPos(clamp_sl)
  dim diff as integer
- diff = sl2->ScreenX - sl1->ScreenX
+ diff = clamp_sl->ScreenX - within_sl->ScreenX
  '--Horizontal clamp
  if diff < 0 then
-  sl2->X += abs(diff)
+  clamp_sl->X += abs(diff)
  else
-  diff = (sl2->ScreenX + sl2->Width) - (sl1->ScreenX + sl1->Width)
-  if diff > 0 then sl2->X -= abs(diff)
+  diff = (clamp_sl->ScreenX + clamp_sl->Width) - (within_sl->ScreenX + within_sl->Width)
+  if diff > 0 then clamp_sl->X -= abs(diff)
  end if
- '--Verical clamp
- diff = sl2->ScreenY - sl1->ScreenY
+ '--Vertical clamp
+ diff = clamp_sl->ScreenY - within_sl->ScreenY
  if diff < 0 then
-  sl2->Y += abs(diff)
+  clamp_sl->Y += abs(diff)
  else
-  diff = (sl2->ScreenY + sl2->Height) - (sl1->ScreenY + sl1->Height)
-  if diff > 0 then sl2->Y -= abs(diff)
+  diff = (clamp_sl->ScreenY + clamp_sl->Height) - (within_sl->ScreenY + within_sl->Height)
+  if diff > 0 then clamp_sl->Y -= abs(diff)
  end if
 end sub
 

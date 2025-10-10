@@ -749,7 +749,7 @@ DECLARE Function UpdateRootSliceSize(sl as slice ptr, page as integer) as bool
 DECLARE Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
 DECLARE Sub RefreshSliceTreeScreenPos(slc as Slice ptr)
-DECLARE Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
+DECLARE Sub SliceClamp(clamp_sl as Slice ptr, within_sl as Slice ptr)
 
 DECLARE Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
 DECLARE Function SlicePossiblyResizable(sl as Slice ptr) as bool
