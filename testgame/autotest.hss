@@ -5264,6 +5264,7 @@ script, slice tests, begin
   slice clone tests
   slice handle tests
   slice filling and covering tests
+  slice refresh tests
 
   sprite slice tests
   rect slice tests
@@ -5277,7 +5278,7 @@ end
 script, slice filling and covering tests, begin
   $0="Slice filling and covering tests"
   
-  variable(par, sl, ch, ch2)
+  variable(par, sl, ch, ch2, ch3, ch4)
   par := create rect(150, 150, 0)
   center slice(par)
   set padding(par, 4)
@@ -5298,8 +5299,8 @@ script, slice filling and covering tests, begin
   assert(slice width(sl) == 152)
   assert(slice height(sl) == 142)
 
-  ch := load hero sprite(1)
-  ch2 := load hero sprite(2)
+  ch := load hero sprite(1)  # 32x40
+  ch2 := load hero sprite(2)  # 32x40
   set parent(ch, sl)
   set parent(ch2, sl)
   set fill parent(sl, fill:none)
@@ -5381,7 +5382,7 @@ script, slice filling and covering tests, begin
   set slice width(sl, 10)
   assert(slice width(sl) == 10)
   assert(slice height(sl) == 44)
-  
+
   # Now turn off covering, we will test filling next
   set cover children(sl, cover:none)
   set fill parent(sl, fill:all)
@@ -5456,9 +5457,56 @@ script, slice filling and covering tests, begin
   w
   assert(slice width(sl) == 36)
   assert(slice height(sl) == 74)
-  
+
+  # Test non-visible children are ignored
+  set slice visible(ch2, false)
+  w
+  assert(slice width(sl) == 36)
+  assert(slice height(sl) == 44)
+  set slice visible(ch2, true)
+
+  # Test recursive covering, where a child (ch3) is also set to cover (covering ch)
+  ch3 := create rect(10, 10)
+  set parent(ch3, sl)
+  put slice(ch3, 30, 40)
+  set parent(ch, ch3)
+  set cover children(ch3, cover:vert)
+  w
+  assert(slice width(ch3) == 10)
+  assert(slice height(ch3) == 40)
+  assert(slice width(sl) == 44)   # ch3's x=30 + w=10 + sl's padding=4
+  #assert(slice height(sl) == 84)  # ch3's y=40 + h=40 + sl's padding=4  FIXME: fails
+  set cover children(ch3, cover:all)
+  set slice y(ch, -18)
+  w
+  assert(slice width(ch3) == 32)
+  assert(slice height(ch3) == 22)  # ch's h=40 + y=-18
+  #assert(slice width(sl) == 66)   # ch3's x=30 + w=32 + sl's padding=4  FIXME: fails
+  #assert(slice height(sl) == 74)  # From ch2 again  FIXME: fails
+
+  # Test covering is applied by a refresh, not just a screen draw
+  # FIXME: these all fail, it's not implemented
+  # Check refreshing the slice set to cover
+  set slice y(ch2, 39)
+  slice collide point(sl, 0, 0)  # Causes refresh
+  #assert(slice height(sl) == 83)  # ch'2 y=39 + h=40 + sl.padding=4
+  # Check refreshing a child of the slice set to cover (not the one that sets the cover size!)
+  set slice y(ch2, 40)
+  slice collide point(ch, 0, 0)
+  #assert(slice height(sl) == 84)  # ch'2 y=40 + h=40 + sl.padding=4
+  # Check refreshing a slice that's recursively covering
+  set slice y(ch, 10)
+  slice collide point(sl, 0, 0)
+  #assert(slice height(ch3) == 50)  # ch's h=40 + y=10
+  #assert(slice height(sl) == 94)   # ch3's y=40 + h=50 + sl's padding=4
+  # Check refreshing a grandchild of slice that's recursively covering
+  set slice y(ch, 11)
+  slice collide point(ch3, 0, 0)
+  #assert(slice height(ch3) == 51)  # 40 + 11
+  #assert(slice height(sl) == 95)   # ch3's y=40 + h=51 + sl's padding=4
+
   # Now verify that "fill parent" has no effect on fill type
-  # and that "is filling parent doesn't care about fill type"
+  # and that "is filling parent" doesn't care about fill type
   set fill parent(sl, fill:all)
   set cover children(sl, cover:none)
   w
@@ -5480,6 +5528,303 @@ script, slice filling and covering tests, begin
   w
   
   free slice(par)
+end
+
+# Tests the edgecases of slice refreshing: when exactly it occurs, in which order things
+# happen, and how features interact (if not tested elsewhere, e.g. recursive cover children
+# and fill parent + cover children are in "slice filling and covering tests")
+script, slice refresh tests, begin
+  $0="slice refresh tests"
+
+  variable(par, vispar, spr, text, rect, dot, dot2, select)
+  par := create rect(50, 51, 0)
+  set slice visible(par, false)
+  vispar := create rect(60, 61, 0)
+  rect := create rect(0, 0)
+  dot := create container(0, 0)
+  dot2 := create container(0, 0)
+
+  # Setup & preconditions
+  assert(slice collide point(rect, 0, 0) == false)  # Zero-size slices don't collide with points
+  # Setting fill doesn't have an immediate effect on size
+  set parent(rect, par)
+  fill parent(rect, true)
+  assert(slice width(rect) == 0)
+  assert(slice collide point(rect, 0, 0) == true)  # Cause refresh
+  assert(slice width(rect) == 50)
+  assert(slice height(rect) == 51)
+
+  # Setting x/y of a slice set to fill has no effect on screenx/y but x/y are preserved
+  put slice(rect, 10, 20)
+  assert(slice screen x(rect) == 0)  # Cause refresh
+  assert(slice x(rect) == 10)
+  set fill parent(rect, fill:none)
+  assert(slice screen x(rect) == 10)  # Cause refresh
+  # Size unchanged after removing fill
+  assert(slice width(rect) == 50)
+
+  # The following two blocks check Cover children and Fill aren't applied to invisible slices,
+  # except if they are refreshed
+
+  set parent(dot, rect)
+  put slice(dot, 10, 20)
+  # No immediate effect of setting cover
+  set cover children(rect, cover:all)
+  assert(slice width(rect) == 50)
+  # par isn't visible, so a wait to draw the screen doesn't refresh it or rect
+  wait
+  assert(slice width(rect) == 50)
+  assert(slice screen x(rect) == 10)  # Cause refresh
+  # After refresh, size determined by cover children
+  #assert(slice width(rect) == 10)  #FIXME: RefreshSliceScreenPos doesn't apply cover
+
+  # Test Sprites set to Fill
+  # They can be set to fill only in the slice editor (kept only for backcompat)
+  # but not with using scripting. (FIXME: Even fill parent(spr, false) is disallowed.)
+
+  # The root of collection 3 is a sprite set to fill. It's size 320x200
+  # in the editor but gets momentarily reset to 32x40 when loaded.
+  spr := load slice collection(3)
+  assert(slice width(spr) == 32)  # Current behaviour, not sure whether to enforce
+  assert(slice height(spr) == 40)
+  # Fill an invisible parent
+  # Changing parent doesn't have an immediate effect
+  set parent(spr, par)
+  assert(slice width(spr) == 32)
+  assert(slice height(spr) == 40)
+  # Drawing the screen has no effect either, because the slice isn't visible
+  wait
+  assert(slice width(spr) == 32)
+  assert(slice height(spr) == 40)
+  assert(slice collide point(spr, 49, 49) == true)  # Cause refresh
+  # Fill overrides sprite size
+  assert(slice width(spr) == 50)
+  assert(slice height(spr) == 51)
+  # Filling a visible parent
+  set parent(spr, vispar)
+  # No immediate effect
+  assert(slice width(spr) == 50)
+  # Drawing refreshes visible slices
+  w
+  assert(slice width(spr) == 60)
+
+  # Can't set cover children on a sprite slice, so nothing to test.
+  #assert error(set cover children(spr, cover:all))
+
+  #### Test refresh timing of wrapping and non-wrapping text slices
+
+  text := create text
+  set slice text(text, $2="a b c d e f")
+  set parent(text, par)
+  set slice x(text, 17)
+  assert(slice width(text) == 88)
+  assert(slice height(text) == 10)
+  assert(slice screen x(text) == 17)
+  #assert error(set slice width(text, 30))  # Doesn't wrap, can't set width
+  # Test fill parent + wrapping text
+  set wrap(text, true)
+  # Turning on wrap by itself has no effect, because we haven't changed the width
+  # ("set slice width" fails on a wrapping slice)
+  assert(slice width(text) == 88)
+  assert(slice height(text) == 10)
+  # No immediate effect of setting width or fill
+  set slice width(text, 60)
+  set fill parent(text, fill:all)
+  assert(slice width(text) == 60)
+  assert(slice height(text) == 10)
+  # Drawing the screen has no effect either, because the slice isn't visible
+  wait
+  assert(slice width(text) == 60)
+  assert(slice height(text) == 10)
+  # Refresh but no draw: fill takes effect
+  assert(slice screen x(text) == 0)  # Cause refresh
+  assert(slice width(text) == 50)
+  #assert(slice height(text) == 51)  # Current behaviour: fill sets the height
+  #assert(slice height(text) == 20)  # FIXME: desired behaviour
+
+  # Text slices set their height when drawn (FIXME: should be on refresh instead).
+  # Therefore they don't get resized vertically by Fill (tested below) unless refreshed when not visible
+  # (FIXME: that's undesired)
+  set parent(text, vispar)
+  w
+  assert(slice width(text) == 60)
+  assert(slice height(text) == 20)
+  # Removing fill from a text slice changes nothing
+  set fill parent(text, fill:none)
+  wait
+  assert(slice width(text) == 60)
+  assert(slice height(text) == 20)
+  # Setting align/anchor doesn't cause a refresh
+  set slice width(text, 100)
+  set vert align(text, edge:bottom)
+  set vert anchor(text, edge:bottom)
+  assert(slice width(text) == 100)
+  # On refresh, the height is updated before screen pos is calculated using alignment.
+  put slice(dot, 0, 0)
+  set parent(dot, text)  # Use dot to get the screen y of the top edge of text
+  # FIXME: this fails, have to draw the text slice, as SliceRefreshScreenPos doesn't update text slices
+  #assert(slice screen y(dot) == 61 -- 10)  # Cause refresh
+  wait
+  assert(slice screen y(dot) == 61 -- 10)
+  assert(slice width(text) == 100)
+  assert(slice height(text) == 10)
+
+  # It's possible to change the height of a text slice but the effect disappears on refresh
+  set slice height(text, 99)
+  #assert(slice height(text) == 99)  # Current behaviour but might want to change that
+  # FIXME: assert fails without an extra draw (screen y is 61 - 99 = -38) because SliceRefreshScreenPos doesn't update text slices
+  wait  # Draw 'text'
+  assert(slice screen y(dot) == 61 -- 10)  # Cause refresh
+  assert(slice height(text) == 10)
+
+  # The following causes a one-tick-visible glitch: a wrapping text slice with vert anchor Center or
+  # Bottom (align doesn't matter), when turning on horizontal fill (not vert, as that overrides vert
+  # anchor). Requires a draw and a 2nd refresh
+  # Preconditions & checks
+  set slice width(text, 24)
+  w
+  assert(slice height(text) == 30)
+  assert(slice screen y(dot) == 61 -- 30)  # Cause refresh and sanity check
+  set fill parent(text, fill:horiz)  # Width 60 Height 20 after wrap
+  wait  # FIXME: assert fails without this extra wait
+  assert(slice screen y(dot) == 61 -- 20)  # Cause refresh
+
+  # Changing *any* text property such calls UpdateTextSlice which immediately recomputes
+  # the size, which is silly
+  set slice height(text, 99)
+  assert(slice height(text) == 99)
+  set text color(text, 1)
+  #assert(slice height(text) == 20) # Current behaviour, but don't want to enforce
+
+  # Test fill parent without wrapping text
+  set fill parent(text, fill:all)
+  wait  # Cause refresh
+  # In particular, changing wrap calls UpdateTextSlice, immediately recomputing
+  # size but doesn't refresh, so it overrides fill
+  set wrap(text, false)
+  #assert(slice width(text) == 88)  # Current behaviour, but don't want to enforce
+  assert(slice height(text) == 10)
+
+  # Special case for Text: although a text slice set to fill parent does not have its height set by fill,
+  # it does have its screen y set by fill, disregarding Y and alignment/anchor.
+  put slice(text, 200, 200)
+  assert(slice screen x(text) == 0)  # Cause refresh
+  assert(slice screen y(text) == 61)
+  assert(slice width(text) == 60)
+  assert(slice height(text) == 61)  # FIXME: Current behaviour, undesired
+  #assert(slice height(text) == 10)  # FIXME: desired behaviour
+  # dot measures top edge of text
+  #assert(slice screen y(dot) == 61 -- 10)  # FIXME: desired behaviour
+  w  # Cause refresh+draw
+  # Same as wrapping text, Fill overrides width but not height, which is quite bizarre
+  assert(slice width(text) == 60)
+  assert(slice height(text) == 10)
+
+  #### Select slices
+
+  select := create select(110, 111)
+  set parent(dot, select)
+  set parent(dot2, select)
+  # Setting the select index doesn't cause a refresh
+  set select slice index(select, 1)
+  assert(get slice visible(dot) == true)
+  assert(get slice visible(dot2) == true)
+  slice screen x(dot)  # Cause refresh
+  assert(get slice visible(dot) == false)
+  assert(get slice visible(dot2) == true)
+
+  #### Autosorting
+
+  set child autosort(select, autosort: top y)
+  set slice y(dot, 20)
+  assert(slice child index(dot) == 0)
+  assert(slice child index(dot2) == 1)
+  # A refresh by itself doesn't autosort
+  slice screen y(dot)  # Cause refresh
+  assert(slice child index(dot) == 0)
+  assert(slice child index(dot2) == 1)
+  assert(get slice visible(dot) == false)
+  assert(get slice visible(dot2) == true)
+  # Drawing does
+  w
+  assert(slice child index(dot) == 1)
+  assert(slice child index(dot2) == 0)
+  assert(get slice visible(dot) == true)
+  assert(get slice visible(dot2) == false)
+
+  # Test autosorting grid slices happens before the children are refreshed
+  variable(grid, cell1, cell2)
+  grid := create grid(20, 20)
+  cell1 := create container
+  cell2 := create container
+  set grid rows(grid, 2)
+  set grid columns(grid, 2)
+  set child autosort(grid, autosort: custom)
+  set parent(cell1, grid)
+  set parent(cell2, grid)
+  set sort order(cell1, 10)
+  set sort order(cell2, 0)
+  # FIXME: these fail without the extra wait
+  wait
+  assert(slice screen x(cell1) == 10)
+  assert(slice screen x(cell2) == 0)
+
+
+  #### Test certain commands cause refreshes
+
+  subscript, set filling slice width, sl, wid, begin
+    fill parent(sl, false)
+    set slice width(sl, wid)
+    fill parent(sl, true)
+    assert(slice width(sl) == wid)
+  end
+
+  # Preconditions
+  set cover children(rect, cover:none)
+  set parent(rect, par)
+  fill parent(par, false)
+  slice screen y(rect)  # Cause refresh
+  fill parent(rect, false)
+  set slice width(rect, 30)
+  set parent(dot, rect)
+  put slice(dot, 40, 1)
+  set slice width(rect, 30)
+  assert(slice collide(rect, dot) == false)
+
+  # Test each command
+  # (Determine that a refresh happened by setting the width, applying Fill Parent,
+  # and checking that the width changes to 50)
+
+  set filling slice width(rect, 33)
+  assert(slice collide(rect, dot) == true)  # Refreshes
+  assert(slice width(rect) == 50)
+
+  set filling slice width(rect, 33)
+  move slice with wallchecking(rect, 1, 1)  # Refreshes
+  assert(slice width(rect) == 50)
+
+  set filling slice width(rect, 33)
+  clamp slice(dot, par)  # Refreshes ancestors of dot and par
+  assert(slice width(rect) == 50)
+
+  set filling slice width(rect, 33)
+  assert(slice collide point(rect, 1, 40) == true)  # Refreshes
+  assert(slice width(rect) == 50)
+
+  set filling slice width(rect, 33)
+  assert(slice at pixel(par, 1, 40, 0, true, false) == rect)  # Refreshes
+  assert(slice width(rect) == 50)
+
+  set filling slice width(rect, 33)
+  put slice(dot, 40, 1)
+  assert(find colliding slice(par, dot, 0, true, false) == rect)  # Refreshes
+  assert(slice width(rect) == 50)
+
+  free slice(rect)
+  free slice(par)
+  free slice(vispar)
+  free slice(dot)
+  free slice(grid)
 end
 
 script, slice handle tests, begin
@@ -5689,6 +6034,8 @@ end
 
 ########################################################################
 
+# Note: there are lots of tests about the sizing of Text slices in "slice refresh tests",
+# some redundant to these.
 script, text slice tests, begin
   $0="Text Slice tests"
 
@@ -7474,7 +7821,7 @@ script, save slot tests, begin
   assert(export global 2 == 0)
 
   # Check interaction between deletesave and importglobals
-  # Originally, deletesave was documented as preserving stored global variables, so they could
+  # Originally, deletesave was doucmented as preserving stored global variables, so they could
   # still be read with importglobals. Since switching to RSAV in Zenzizenzic (2011), deletesave
   # now deletes the globals too!
   # Using rpgbatch, it seems no games are affected by the change (see svn commit message)
@@ -7880,10 +8227,8 @@ end
 #clone sprite (handle)
 #concatenate strings (dest, source)
 #copy string (dest, source)
-#create container (width, height)
 #create ellipse (width, height, border color, fill color)
 #create grid (width, height, rows, columns)
-#create NPC (ID,X,Y,direction)
 #days of play
 #delete char (ID, position)
 #delete save (slot)
@@ -7895,13 +8240,11 @@ end
 #extract color(color, component)
 #fade screen in
 #fade screen out (red,green,blue)
-#fill parent (handle, true_or_false)
 #first child(handle)
 #first container child(handle)
 #first rect child(handle)
 #first sprite child(handle)
 #focus camera (x,y,speed)
-#for(counter,start,finish,step) do(commands)
 #formation probability (formation set, formation)
 #formation set frequency (formation set)
 #free slice children (handle)
@@ -7944,7 +8287,6 @@ end
 #hide battle ready meter (state)
 #horiz flip sprite (handle, flip)
 #hours of play
-#is filling parent (handle)
 #last child(handle)
 #last formation
 #last save slot
@@ -7978,8 +8320,6 @@ end
 #next sprite sibling(handle)
 #NPC at pixel (x, y, number)
 #NPC at spot (x, y, number)
-#NPC direction (who)
-#NPC frame (who)
 #number from string (ID, default)
 #order menu
 #outside battle cure
@@ -7990,8 +8330,6 @@ end
 #place sprite
 #previous sibling(handle)
 #put camera (x,y)
-#put npc (who,x,y)
-#put slice (handle, X, Y)
 #put slice screen (handle, x, y)
 #put sprite (handle, x, y)
 #random formation (formation set)
@@ -8030,7 +8368,6 @@ end
 #set damage cap (cap)
 #set days of play (days)
 #set debug keys disable (state)
-#set each step script (id)
 #set ellipse border col (handle, color)
 #set ellipse fill col (handle, color)
 #set foot offset (offset)
@@ -8051,8 +8388,6 @@ end
 #set money (amount)
 #set no HP level up restore (state)
 #set no MP level up restore (state)
-#set NPC direction (who, direction)
-#set NPC frame (who, frame)
 #set NPC ignores walls (who, value)
 #set NPC moves (who, value)
 #set NPC obstructs (who, value)
@@ -8061,14 +8396,12 @@ end
 #set on keypress script (id)
 #set outline(handle, outline)
 #set padding (handle, pixels)
-#set parent (handle, parent handle)
 #set rect bgcol (handle, color)
 #set rect fgcol (handle, color)
 #set right padding (handle, pixels)
 #set seconds of play (sec)
 #set slice clipping (handle, clip)
 #set slice edge x (handle, edge, value)
-#set slice height (handle, height)
 #set slice lookup (handle, code)
 #set slice screen x (handle, x)
 #set slice screen y (handle, y)
@@ -8076,9 +8409,6 @@ end
 #set slice velocity x (handle, pixels per tick, ticks)
 #set slice velocity y (handle, pixels per tick, ticks)
 #set slice visible (handle, vis)
-#set slice width (handle, width)
-#set slice x (handle, X)
-#set slice y (handle, Y)
 #set sort order (handle, order)
 #set sprite frame (handle, num)
 #set sprite palette (handle, num)
@@ -8092,7 +8422,6 @@ end
 #set top padding (handle, pixels)
 #set vert align (handle, edge)
 #set vert anchor (handle, edge)
-#set wrap(handle, wrap)
 #show backdrop (number)
 #show grid (handle, shown)
 #show map
@@ -8106,11 +8435,9 @@ end
 #slice is ellipse (handle)
 #slice is grid (handle)
 #slice is moving (handle)
-#slice is valid (id)
 #slice to back (handle)
 #slice to front (handle)
 #sort children (handle, wipe)
-#sprite frame count (handle)
 #sqrt (number)
 #stop slice (handle)
 #stop timer (id)
@@ -8139,7 +8466,6 @@ end
 #wait for camera
 #wait for NPC (who)
 #wait for slice (handle)
-#walk NPC (who, direction, distance)
 #walk NPC to X (who, X)
 #walk NPC to Y (who, Y)
 #write color (index, element, value)
