@@ -745,12 +745,12 @@ DECLARE Function FindRootSlice(slc as Slice ptr) as Slice ptr
 DECLARE Function NextDescendent(desc as Slice ptr, root_sl as Slice ptr, visit_children as bool = YES) as Slice ptr
 DECLARE Function IsAncestor(byval sl as slice ptr, byval ancestor as slice ptr) as bool
 DECLARE Function VerifySliceLineage(byval sl as slice ptr, parent as slice ptr) as bool
+
 DECLARE Function UpdateRootSliceSize(sl as slice ptr, page as integer) as bool
 DECLARE Function UpdateScreenSlice(clear_changed_flag as bool = YES) as bool
-DECLARE Sub RefreshSlice(sl as Slice ptr)
+DECLARE Sub RefreshSlice(sl as Slice ptr, autosort as bool = NO)
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
-DECLARE Sub RefreshSliceTree(sl as Slice ptr)
-DECLARE Sub SliceClamp(clamp_sl as Slice ptr, within_sl as Slice ptr)
+DECLARE Sub RefreshSliceTree(sl as Slice ptr, autosort as bool = NO)
 
 DECLARE Function SliceLegalCoverModes(sl as Slice ptr) as CoverModes
 DECLARE Function SlicePossiblyResizable(sl as Slice ptr) as bool
@@ -763,6 +763,7 @@ DECLARE Function SliceEdgeY(byval sl as Slice Ptr, byval edge as AlignType) as i
 DECLARE Sub RealignSlice(sl as Slice ptr, halign as AlignType = alignINVALID, valign as AlignType = alignINVALID, hanchor as AlignType = alignINVALID, vanchor as AlignType = alignINVALID)
 DECLARE Sub CenterSlice(sl as Slice ptr)
 
+DECLARE Sub SliceClamp(clamp_sl as Slice ptr, within_sl as Slice ptr)
 DECLARE Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as bool
 DECLARE Function SliceCollidePoint(byval sl as Slice Ptr, byval point as XYPair) as bool
 DECLARE Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as bool

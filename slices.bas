@@ -4604,12 +4604,14 @@ end sub
 'Doing so requires updating all ancestor slices too, for ScreenPos and Fill.
 'This is used if a slice needs to be refreshed even if it's invisible (e.g. in slice editor)
 'TODO: This is meant to apply Sprite and Text specific changes too
-Sub RefreshSlice(sl as Slice ptr)
+Sub RefreshSlice(sl as Slice ptr, autosort as bool = NO)
  if sl = 0 then exit sub
  dim par as Slice ptr = sl->Parent
  dim attach as Slice ptr
  if par then
-  RefreshSlice par
+  'Refresh from root down
+  RefreshSlice par, autosort
+  if autosort andalso sl->AutoSort then AutoSortChildren sl
   if par->ChildrenRefresh then par->ChildrenRefresh(par)
   attach = par
  else
@@ -4620,7 +4622,11 @@ end sub
 
 'Refresh all descendents of sl, even if not visible
 '(however templates won't normally be positioned/resized by Layout/Panel/etc parents)
-Local Sub SliceRefreshRecurse(sl as Slice ptr)
+Local Sub SliceRefreshRecurse(sl as Slice ptr, autosort as bool = NO)
+ 'This does not call SliceRefresh, because that sub recurses up the tree, we recurse down.
+
+ if autosort andalso sl->AutoSort then AutoSortChildren sl
+
  if sl->ChildrenRefresh then sl->ChildrenRefresh(sl)
 
  dim ch as Slice ptr = sl->FirstChild
@@ -4628,7 +4634,7 @@ Local Sub SliceRefreshRecurse(sl as Slice ptr)
  do while ch <> 0
   'Note that normally ChildRefresh isn't called on template slices, but make a best effort to update them.
   sl->ChildRefresh(sl, ch, childindex, NO)  'visibleonly=NO
-  SliceRefreshRecurse ch
+  SliceRefreshRecurse ch, autosort
   if ShouldSkipSlice(ch) = NO then
    childindex += 1
   end if
@@ -4642,13 +4648,13 @@ end sub
 'in the few places we need it.
 '(Probably most/all calls to this function only care about ScreenPos/Size,
 'but it's not worth adding a separate function for that.)
-Sub RefreshSliceTree(sl as Slice ptr)
+Sub RefreshSliceTree(sl as Slice ptr, autosort as bool = NO)
  if sl = 0 then exit sub
 
  'Update sl and ancestors
- RefreshSlice sl
+ RefreshSlice sl, autosort
  'Update descendents
- SliceRefreshRecurse sl
+ SliceRefreshRecurse sl, autosort
 end sub
 
 
