@@ -5278,7 +5278,7 @@ end
 script, slice filling and covering tests, begin
   $0="Slice filling and covering tests"
   
-  variable(par, sl, ch, ch2, ch3, ch4)
+  variable(par, sl, ch, ch2, grandch)
   par := create rect(150, 150, 0)
   center slice(par)
   set padding(par, 4)
@@ -5466,44 +5466,57 @@ script, slice filling and covering tests, begin
   set slice visible(ch2, true)
 
   # Test recursive covering, where a child (ch3) is also set to cover (covering ch)
-  ch3 := create rect(10, 10)
-  set parent(ch3, sl)
-  put slice(ch3, 30, 40)
-  set parent(ch, ch3)
-  set cover children(ch3, cover:vert)
+  # ch is a sprite, we need a resizable slice
+  grandch := ch
+  ch := create rect(10, 10)
+  set parent(ch, sl)
+  set parent(grandch, ch)
+  # Tree:
+  # par -> sl -> ch -> grandch
+  #          '-> ch2
+  put slice(ch, 30, 40)
+  set cover children(ch, cover:vert)
   w
-  assert(slice width(ch3) == 10)
-  assert(slice height(ch3) == 40)
-  assert(slice width(sl) == 44)   # ch3's x=30 + w=10 + sl's padding=4
-  assert(slice height(sl) == 84)  # ch3's y=40 + h=40 + sl's padding=4
-  set cover children(ch3, cover:all)
-  set slice y(ch, -18)
+  assert(slice width(ch) == 10)
+  assert(slice height(ch) == 40)
+  assert(slice width(sl) == 44)   # ch's x=30 + w=10 + sl's padding=4
+  assert(slice height(sl) == 84)  # ch's y=40 + h=40 + sl's padding=4
+  set cover children(ch, cover:all)
+  set slice y(grandch, -18)
   w
-  assert(slice width(ch3) == 32)
-  assert(slice height(ch3) == 22)  # ch's h=40 + y=-18
-  assert(slice width(sl) == 66)   # ch3's x=30 + w=32 + sl's padding=4
+  assert(slice width(ch) == 32)
+  assert(slice height(ch) == 22)  # grandch's h=40 + y=-18
+  assert(slice width(sl) == 66)   # ch's x=30 + w=32 + sl's padding=4
   assert(slice height(sl) == 74)  # From ch2 again
 
   # Test covering is applied by a refresh, not just a screen draw
-  # Check refreshing the slice set to cover
+  # Check refreshing the slice (sl) set to cover
   set slice y(ch2, 39)
   slice collide point(sl, 0, 0)  # Causes refresh
-  assert(slice height(sl) == 83)  # ch'2 y=39 + h=40 + sl.padding=4
-  # Check refreshing a child of the slice set to cover (not the one that sets the cover size!)
+  assert(slice height(sl) == 83)  # grandch'2 y=39 + h=40 + sl.padding=4
+  # Check refreshing a child (ch) & grandchild of the slice set to cover
+  # (not the one that determines the cover size, ch2)
   set slice y(ch2, 40)
-  slice collide point(ch, 0, 0)
-  assert(slice height(sl) == 84)  # ch'2 y=40 + h=40 + sl.padding=4
-  # Check refreshing a slice that's recursively covering
-  set slice y(ch, 10)
+  slice collide point(grandch, 0, 0)
+  assert(slice height(sl) == 84)  # grandch'2 y=40 + h=40 + sl.padding=4
+  # Check refreshing a slice (sl) that's recursively covering
+  set slice y(grandch, 10)
   slice collide point(sl, 0, 0)
   # FIXME: these fail because RefreshSliceAscend doesn't refresh children of covering slices
-  #assert(slice height(ch3) == 50)  # ch's h=40 + y=10
-  #assert(slice height(sl) == 94)   # ch3's y=40 + h=50 + sl's padding=4
-  # Check refreshing a grandchild of slice that's recursively covering
-  set slice y(ch, 11)
-  slice collide point(ch3, 0, 0)
-  assert(slice height(ch3) == 51)  # 40 + 11
-  assert(slice height(sl) == 95)   # ch3's y=40 + h=51 + sl's padding=4
+  #assert(slice height(ch) == 50)  # grandch's h=40 + y=10
+  #assert(slice height(sl) == 94)   # ch's y=40 + h=50 + sl's padding=4
+  # Check refreshing a grandchild of the slice that's recursively covering, the one actually determining the size
+  set slice y(grandch, 11)
+  slice collide point(ch, 0, 0)
+  assert(slice height(ch) == 51)  # granch's h=40 + y=11
+  assert(slice height(sl) == 95)   # ch's y=40 + h=51 + sl's padding=4
+  # Check refreshing a child (ch2) of the slice that's recursively covering, not one determining the size (ch+grandch)
+  set slice y(ch, 55)
+  set slice y(grandch, 12)
+  slice collide point(ch2, 0, 0)
+  # FIXME: these fail because RefreshSliceAscend doesn't refresh children of covering slices
+  #assert(slice height(ch) == 52)  # grandch's h=40 + y=12
+  #assert(slice height(sl) == 111)  # ch's y=55 + h=52 + sl's padding=4
 
   # Now verify that "fill parent" has no effect on fill type
   # and that "is filling parent" doesn't care about fill type
