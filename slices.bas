@@ -4,102 +4,67 @@
 
 
 '  ==== Explanation of how slice refreshing & drawing works ====
-'DrawSlice simply calls DrawSliceRecurse, which is the central drawing function.
+'DrawSlice first calls RefreshSliceTreeRecurse, then draws with DrawSliceRecurse.
 '
-'DrawSliceRecurse(sl):
+'RefreshSliceTreeRecurse has to figure out the correct order of these updates, and may have to loop:
+' -AutoSortChildren(sl)
+' -sl->ChildrenRefresh (Layout slice only)
+' -sl->ChildRefresh on each child
+' -UpdateCoverSize(sl)
 '
-'  parent->ChildRefresh(parent, sl)
-'   (For the root slice, use ScreenSlice instead of parent. This is called the 'attach' slice.)
-'   Calls RefreshChild() to recomputes sl->ScreenPos from sl->Pos.
-'   (Can also adjust sl->Size (if sl->Fill) and sl->Visible, see ChildRefresh details below.)
-'
-'  If sl->Visible:
-'
-'    If sl->CoverChildren: UpdateCoverSize(sl) and RefreshChild() again
-'
-'    If sl->Context: push onto context_stack
-'
-'    sl->Draw(): (eg DrawSpriteSlice)  [if present]
-'     -Type-specific drawing of a single slice
-'     (If something has to be drawn over the children instead, done in sl->ChildDraw)
-'
-'    AutoSortChildren(sl)
-'
-'    sl->ChildDraw() (eg GridChildDraw, DefaultChildDraw):
-'      (Called once to draw all children.)
-'      sl->ChildrenRefresh() [if present]
-'        (Recomputes Pos, Size and ScreenPos for each child)
-'      For each child:
-'        Skip if a template slice (and template_slices_shown=NO)
-'        shrinkclip if clipping; usually done once for all children
-'          (clip to parent size minus padding, or to child's support for Grid/Panel)
-'        If the cliprect isn't zero-size (but do continue if the child is totally clipped off):
-'          DrawSliceRecurse(child, page, childindex)
-'            ...draw the child recursively...
+'DrawSliceRecurse(sl) does:
+' -sl->Draw(): (eg DrawSpriteSlice)  [if present]
+'   Type-specific drawing of a single slice
+'   (If something has to be drawn over the children instead, done in sl->ChildDraw)
+' -sl->ChildDraw() once to draw all children:
+'    For each child:
+'      Skip if visible=NO or a hidden template slice
+'      shrinkclip to the support rect if clipping
+'        (except for Grid or Panel, all children share the same support so only shrinkclip once)
+'      If the cliprect isn't zero-size (but do continue if the child is totally clipped off):
+'        DrawSliceRecurse(child, page, childindex)
+'          ...draw the child recursively...
 '      Restore cliprect
-'      Possibly draw something over all children (Scroll slices)
-'
-'    Pop context_stack
-'
+'    Possibly draw something over all children (Scroll slices)
 '
 'So unrolling that, each slice `sl` is processed in this order:
 'Before DrawSlice called:
 ' -[NPC, hero, etc, slices] - positions & visibility updated based on in-game logic (done separately)
 ' -UpdateSliceDynamicProps() - update dynamic properties
 ' -AdvanceSlice() - update position based on movement (done separately - in-game wandering on map only!)
-'Before parent is drawn:
-' -If parent->CoverChildren sl->Size/sl->Pos are used to update the parent's size
-'After parent is drawn:
-' -AutoSortChildren() modifies order amongst siblings
+'RefreshSliceTreeRecurse:
+' -AutoSortChildren(parent) modifies order amongst siblings
 ' -parent->ChildrenRefresh() [if present] updates sl->ScreenPos/sl->Size
 ' -Skip sl if it's a template or parent sets a zero-size cliprect
 ' -parent->ChildRefresh() & RefreshChild() update sl->ScreenPos/sl->Size/sl->Visible
 ' -If sl->Visible:
-'   -If sl->CoverChildren, update sl->Size
-'     -and call parent->ChildRefresh() again
-'   -push sl->Context onto context_stack
-'   -sl->Draw()
-'   -children autosorted
-'   -sl->ChildDraw():
-'     -sl->ChildrenRefresh()
-'     -For each child:
-'       -Skip if a template slice (and template_slices_shown=NO)
-'       -shrinkclip if clipping; usually done once for all children
-'          (clip to parent size minus padding, or to child's support for Grid/Panel (not Layout!))
-'       -If the cliprect isn't zero-size:
-'         -DrawSliceRecurse(child)
-'           -sl->ChildRefresh(child)
-'     -draw scrollbars/etc over children
-'   -pop context_stack
-'
-'[[FIXME: the above reveals several problems
-' -parent->CoverChildren happens before most updates to children
-' -CoverChildren updates Size after Size has already been used to update ScreenPos
-' -it's really hard to see the order things happen from the code
-']]
+'   -AutoSortChildren(sl)
+'   -sl->ChildrenRefresh()
+'   -For each child:
+'     -Skip if a template slice (and template_slices_shown=NO)
+'     -sl->ChildRefresh(child)
+'       If child->Visible, recurse
+' -If sl->CoverChildren sl->Size/sl->Pos are used to update the parent's size
+'    -sl->ChildRefresh(child) on all the children again
+'DrawSliceRecurse:
+'  See above
 '
 '  ==== Slice refreshing details ====
 '
-'sl->ChildRefresh (called by the slice refresh functions like RefreshSliceScreenPos,
-'and called directly or indirectly in lots of places) is responsible for translating a slice's
-'.Pos to its .ScreenPos (including effects of clamping), and also applying .Fill (which
-'modifies .Size) -- this is probably in the wrong place!
+'Layout slices define sl->ChildrenRefresh to position all children at once. All other
+'types have a sl->ChildRefresh which can position one child at a time (which causes
+'double work for Panels).
+'
+'ChildRefresh/ChildrenRefresh is responsible for translating a slice's .Pos to its .ScreenPos
+'(including effects of clamping), and also applying .Fill (which modifies .Size).
 'As an exception, SelectChildRefresh also modifies .Visible. (Although this leads to unnecessary
 'refreshes there doesn't seem to a better place for it. See r7792.)
 'All sl->ChildRefresh methods calculate the 'support' rect for a child then call RefreshChild()
 'to do the actual update. Grid and Panel slices have non-standard supports (each child
 'gets its own instead of all sharing the same one).
-'As an exception, if sl->ChildrenRefresh is defined, sl->ChildRefresh isn't (this may be
-'a mistake, which should be changed). So Layout slices don't have a ChildRefresh, are
-'the only slices that don't call RefreshChild, and refresh in a completely different way.
 '
-'sl->ChildrenRefresh is used for recomputing child X,Y positions if they are determined
-'by the parent slice. Currently only LayoutChildrenRefresh exists. There are no
-'Panel/GridChildrenRefresh subs because X,Y positions of children of those aren't relative
-'to a certain point.
 'sl->ChildrenRefresh is called by slice refresh functions but not by collision detection
-'functions!
-
+'functions! Probably should change that.
 
 #include "config.bi"
 #include "allmodex.bi"
@@ -145,7 +110,8 @@ DECLARE Sub SaveDrawOpts(drawopts as DrawOptions, node as Reload.Nodeptr)
 DECLARE Sub LoadDrawOpts(drawopts as DrawOptions, node as Reload.Nodeptr)
 
 'Other local subs and functions
-DECLARE Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
+DECLARE Sub RefreshSliceTreeRecurse(sl as Slice ptr, autosort as bool, visibleonly as bool)
+DECLARE Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer)
 DECLARE Function SliceXAlign(sl as Slice Ptr, supportw as integer) as integer
 DECLARE Function SliceYAlign(sl as Slice Ptr, supporth as integer) as integer
 DECLARE Sub RefreshChild(ch as Slice ptr, support as RectType)
@@ -215,12 +181,12 @@ End Function
 'Whether this slice should be skipped for certain purposes (e.g. slice collisions, laying out or
 'covering children) because it's not visible (if visibleonly=YES), or it's a template.
 Private Function ShouldSkipSlice(sl as Slice ptr, visibleonly as bool = NO) as bool
- if sl->Template andalso template_slices_shown = NO then return YES
+ if template_slices_shown = NO andalso sl->Template then return YES
  return visibleonly andalso sl->Visible = NO
 end function
 
 'Stub functions.
-'These Null functions are used by Container, Root, and Special slices.
+'These Null functions are used by Container and Special slices.
 Sub DisposeNullSlice(byval s as Slice ptr) : end sub
 Sub CloneNullSlice(byval s as Slice ptr, byval cl as Slice ptr) : end sub
 Sub SaveNullSlice(byval s as Slice ptr, byval node as Reload.Nodeptr) : end sub
@@ -324,8 +290,6 @@ Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
  '      ever called from DrawSliceRecurse which does null check it.
  dim rememclip as ClipState = any
  with *s
-  if .ChildrenRefresh then .ChildrenRefresh(s)
-
   if .Clip then
    rememclip = get_cliprect()
    if shrinkclip(.ScreenX + .paddingLeft, _
@@ -339,13 +303,11 @@ Sub DefaultChildDraw(byval s as Slice Ptr, byval page as integer)
    end if
   end if
 
-  'draw the slice's children
+  'Draw visible children
   dim ch as Slice ptr = .FirstChild
-  dim childindex as integer = 0  'Index amongst not-template-skipped siblings
   do while ch <> 0
-   if ch->Template = NO orelse template_slices_shown then  'equiv to ShouldSkipSlice(ch) = NO
-    DrawSliceRecurse(ch, page, childindex)
-    childindex += 1
+   if ShouldSkipSlice(ch, YES) = NO then
+    DrawSliceRecurse(ch, page)
    end if
    ch = ch->NextSibling
   loop
@@ -2796,29 +2758,22 @@ Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
  '      is set to clip. It might seem the logical place to position the children
  '      too, but that's in GridChildRefresh. Drawing
  '      and calculating position are independent.
- 'NOTE: we don't bother to null check s here because this sub is only
- '      ever called from DrawSliceRecurse which does null check it.
 
  if s->SliceType <> slGrid then debug "GridChildDraw illegal slice type": exit sub
 
  if s->Clip = NO then
   'no special behaviour
-  'TODO: it would be better to call DefaultChildDraw in all cases, which we could do
-  'if it called a method to get the support of each child.
   DefaultChildDraw s, page
   exit sub
  end if
  
  with *s
-  'if .ChildrenRefresh then .ChildrenRefresh(s)  'Always NULL
-
   dim dat as GridSliceData ptr = .GridData
   dim w as integer = .Width \ large(1, dat->cols)
   dim h as integer = .Height \ large(1, dat->rows)
 
-  'draw the slice's children
   dim ch as Slice ptr = .FirstChild
-  dim childindex as integer = 0
+  'dim childindex as integer = 0
   for yslot as integer = 0 to dat->rows - 1
    for xslot as integer = 0 to dat->cols - 1
     while ch andalso ShouldSkipSlice(ch)  'Skip templates
@@ -2826,23 +2781,25 @@ Sub GridChildDraw(byval s as Slice Ptr, byval page as integer)
     wend
     if ch = 0 then exit for, for
 
-    dim clippos as XYPair
-    clippos.x = .ScreenX + xslot * w
-    clippos.y = .ScreenY + yslot * h
-    dim rememclip as ClipState = get_cliprect()
-    if shrinkclip(clippos.x + .paddingLeft, _
-                  clippos.y + .paddingTop, _
-                  clippos.x + w - .paddingRight - 1, _
-                  clippos.y + h - .paddingBottom - 1, _
-                  vpages(page)) then
-     'This child isn't clipped
-     DrawSliceRecurse(ch, page, childindex)
+    if ch->Visible then
+     dim clippos as XYPair
+     clippos.x = .ScreenX + xslot * w
+     clippos.y = .ScreenY + yslot * h
+     dim rememclip as ClipState = get_cliprect()
+     if shrinkclip(clippos.x + .paddingLeft, _
+                   clippos.y + .paddingTop, _
+                   clippos.x + w - .paddingRight - 1, _
+                   clippos.y + h - .paddingBottom - 1, _
+                   vpages(page)) then
+      'This child isn't clipped
+      DrawSliceRecurse(ch, page)
+     end if
+
+     get_cliprect() = rememclip
     end if
 
-    get_cliprect() = rememclip
-
     ch = ch->NextSibling
-    childindex += 1
+    'childindex += 1
    next
   next
  end with
@@ -3072,7 +3029,7 @@ Sub LayoutChildrenRefresh(byval par as Slice ptr)
     ' if dir0 = -1 then offset.n(axis0) += par->Size.n(axis0) - .Size.n(axis0)
 
     'The child's X/Y offsets it from its computed position,
-    'but doesn't affect the positioning out of anything else.
+    'but doesn't affect the positioning of anything else.
     'Anchor, align points, clamping and Fill are ignored. Probably none of these make sense
     'except clamp and fill, which should behave different from normal fill, but unimplemented.
     .ScreenX = par->ScreenX + offset.x + .X
@@ -3325,8 +3282,6 @@ End Sub
 Sub ScrollChildDraw(byval sl as Slice ptr, byval p as integer)
  'NOTE: draws the scrollbars *after* all children have drawn, which is in
  '      stark contrast to how most other slices are drawn.
- 'NOTE: we don't bother to null check s here because this sub is only
- '      ever called from DrawSliceRecurse which does null check it.
 
  'First draw the children normally
  DefaultChildDraw sl, p
@@ -3727,39 +3682,36 @@ Sub PanelChildRefresh(byval par as Slice ptr, byval ch as Slice ptr, childindex 
 End sub
 
 Sub PanelChildDraw(byval s as Slice Ptr, byval page as integer)
- 'NOTE: we don't bother to null check s here because this sub is only
- '      ever called from DrawSliceRecurse which does null check it.
-
  with *s
-  'if .ChildrenRefresh then .ChildrenRefresh(s)  'Always NULL
-
   dim cliprect as RectType = any
   dim rememclip as ClipState = any
 
-  'draw the slice's children
-  dim index as integer = 0
+  dim childindex as integer = 0
   dim ch as Slice ptr = .FirstChild
   do while ch <> 0
    if ShouldSkipSlice(ch) then  'Skip template slices
     ch = ch->NextSibling
     continue do
    end if
-   dim needdraw as bool = YES
-   if .Clip then
-    CalcPanelSupport cliprect, s, index
+   if ch->Visible then
+    dim needdraw as bool = YES
+    if .Clip then
+     CalcPanelSupport cliprect, s, childindex
 
-    rememclip = get_cliprect()
-    needdraw = shrinkclip(cliprect.x, cliprect.y, _
-                          cliprect.x + cliprect.wide - 1, _
-                          cliprect.y + cliprect.high - 1, vpages(page))
+     rememclip = get_cliprect()
+     needdraw = shrinkclip(cliprect.x, cliprect.y, _
+                           cliprect.x + cliprect.wide - 1, _
+                           cliprect.y + cliprect.high - 1, vpages(page))
+    end if
+
+    if needdraw then DrawSliceRecurse(ch, page)
+
+    if .Clip then get_cliprect() = rememclip
+
    end if
 
-   if needdraw then DrawSliceRecurse(ch, page, index)
-
-   if .Clip then get_cliprect() = rememclip
-
-   index += 1
-   if index > 1 then exit do ' Only ever draw the first 2 non-template children!
+   childindex += 1
+   if childindex > 1 then exit do ' Only ever draw the first 2 non-template children!
    ch = ch->NextSibling
   Loop
 
@@ -4463,59 +4415,39 @@ end sub
 
 'The central slice drawing function, called regardless of what slice-specific methods have been set.
 '(See comments at the top of this file for an overview of slice drawing.)
-'childindex is index of s among its siblings, ignoring templates (unless shown). Pass
-'childindex = -1 if not known which saves computing it if it's not needed.
-Local Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer, childindex as integer = -1)
+Local Sub DrawSliceRecurse(byval s as Slice ptr, byval page as integer)
  if s = 0 then debug "DrawSliceRecurse null ptr": exit sub
 
  'This function isn't called if s is a template (unless template_slices_shown),
  'so don't need to check that here.
 
- 'Refresh the slice: calc the size and screen X,Y and possibly visibility (select slices)
- 'or other properties. Refreshing is skipped if the slice isn't visible.
- '(Note: if ChildrenRefresh is set, it was already called from the parent's
- 'ChildDraw, and ChildRefresh will do nothing.)
- dim attach as Slice ptr = iif(s->Parent, s->Parent, ScreenSlice)
- attach->ChildRefresh(attach, s, childindex, YES)
-
- if s->Visible then
-  if s->CoverChildren then
-   UpdateCoverSize(s)
-   'Re-calculate ScreenPos after updating covering
-   attach->ChildRefresh(attach, s, childindex, YES)
+ if s->Draw then
+  NumDrawnSlices += 1
+  if s = benchmarking_slice then
+   benchmarking_draw_timer.start()
+   s->Draw(s, page)
+   benchmarking_draw_timer.stop()
+  else
+   s->Draw(s, page)
   end if
-
-  if s->Context then v_append context_stack, s->Context
-
-  if s->Draw then
-   NumDrawnSlices += 1
-   if s = benchmarking_slice then
-    benchmarking_draw_timer.start()
-    s->Draw(s, page)
-    benchmarking_draw_timer.stop()
-   else
-    s->Draw(s, page)
-   end if
-  end if
-
-  AutoSortChildren(s)
-
-  'ChildDraw normally calls ChildrenRefresh, if it exists, draws children by
-  'calling DrawSliceRecurse, and may also draw anything that appears above all
-  'children (eg scroll bars).
-  s->ChildDraw(s, page)
-
-  if s->Context then v_shrink context_stack
  end if
+
+ 'ChildDraw normally draws each child by calling DrawSliceRecurse, and may
+ 'also draw anything that appears above all children (eg scroll bars).
+ s->ChildDraw(s, page)
 end sub
 
-'Draw a slice tree
-Sub DrawSlice(byval s as Slice ptr, byval page as integer)
+'Draw a slice tree. sl may or may not have a Parent.
+Sub DrawSlice(byval sl as Slice ptr, byval page as integer)
  blend_algo = gen(gen8bitBlendAlgo)  'Bit kludgy, but easiest to set this here
  benchmarking_draw_timer.ran = NO
  v_new context_stack
- DrawSliceRecurse s, page
+ 'RefreshSliceTreeRecurse only refreshes descendents of the slice, so need RefreshSliceTree
+ RefreshSliceTree sl, YES, YES  'With autosorting, visibleonly
  v_free context_stack
+ if sl->Visible then
+  DrawSliceRecurse sl, page
+ end if
  if benchmarking_draw_timer.ran = NO then benchmarking_draw_timer.add_time(0.0)
 end sub
 
@@ -4579,7 +4511,7 @@ end function
 'It is called for the following purposes:
 '-To immediately update slice size after setting Fill (or in future, CoverChildren).
 ' (Common and probably necessary superstition in some places)
-'-If ScreenX/ScreenY are needed outside of DrawSliceRecurse, including ScreenPos
+'-If ScreenX/ScreenY are needed outside of DrawSlice, including ScreenPos
 ' used for slice collision/clamp/containment checks, and plankmenu functions
 Sub RefreshSliceScreenPos(sl as Slice ptr)
  ' In future we might have a leaner implementation.
@@ -4606,41 +4538,75 @@ Sub RefreshSlice(sl as Slice ptr, autosort as bool = NO)
  attach->ChildRefresh(attach, sl, -1, NO)  'visibleonly=NO
 end sub
 
-'Refresh all descendents of sl, even if not visible
-'(however templates won't normally be positioned/resized by Layout/Panel/etc parents)
-Local Sub SliceRefreshRecurse(sl as Slice ptr, autosort as bool = NO)
- 'This does not call SliceRefresh, because that sub recurses up the tree, we recurse down.
+'Refresh descendents of sl (not sl itself), possibly only visible ones.
+'Even with visibleonly=NO, templates won't be refreshed unless template_slices_shown=YES.
+'(Note: The sliceeditor normally sets template_slices_shown=YES but when that is turned
+'off it would probably be better if templates were refreshed. May cause small problems.)
+Local Sub RefreshSliceTreeRecurse(sl as Slice ptr, autosort as bool, visibleonly as bool)
+ 'This does not call RefreshSlice, because that sub recurses up the tree, we recurse down.
 
  if autosort andalso sl->AutoSort then AutoSortChildren sl
 
+ 'Layout slices don't support CoverChildren, so can do this first
  if sl->ChildrenRefresh then sl->ChildrenRefresh(sl)
 
  dim ch as Slice ptr = sl->FirstChild
- dim childindex as integer = 0
- do while ch <> 0
-  'Note that normally ChildRefresh isn't called on template slices, but make a best effort to update them.
-  sl->ChildRefresh(sl, ch, childindex, NO)  'visibleonly=NO
-  SliceRefreshRecurse ch, autosort
-  if ShouldSkipSlice(ch) = NO then
+ dim childindex as integer = 0  'Index excluding hidden templates
+ do while ch
+  if ch->Template = NO orelse template_slices_shown then  'equiv to ShouldSkipSlice(ch) = NO
+
+   'ChildRefresh calculates the size (if filling), screen X,Y and possibly visibility (Select slices)
+   'or other properties. Refreshing is skipped if the slice isn't visible
+   '(but we have to let ChildRefresh check visibleonly because of Select slices).
+   '(If ChildrenRefresh is set, ChildRefresh will be NullChildRefresh)
+   sl->ChildRefresh(sl, ch, childindex, visibleonly)
+
+   if ch->Visible orelse visibleonly = NO then
+    'if ch->Context then v_append context_stack, ch->Context
+
+    RefreshSliceTreeRecurse ch, autosort, visibleonly
+
+    'if ch->Context then v_shrink context_stack
+   end if
+
    childindex += 1
   end if
+
   ch = ch->NextSibling
  loop
+
+ if sl->CoverChildren then
+  dim as XYPair oldsize = sl->Size
+  UpdateCoverSize(sl)
+
+  if sl->Size <> oldsize then
+   'Have to loop again, but don't recurse.
+   'This might not be sufficient to finalise updates when there are circular dependencies,
+   'but probably otherwise works.
+   ch = sl->FirstChild
+   childindex = 0
+   do while ch
+    sl->ChildRefresh(sl, ch, childindex, visibleonly)
+    if ShouldSkipSlice(ch) = NO then childindex += 1
+    ch = ch->NextSibling
+   loop
+  end if
+ end if
 end sub
 
 'Refreshes all slices in a subtree, even if .Visible = NO
 '(however templates may not be fully updated by their parents).
-'DrawSliceRecurse skips refreshing nonvisible slices, so this is called
+'DrawSlice skips refreshing nonvisible slices, so this is called
 'in the few places we need it.
 '(Probably most/all calls to this function only care about ScreenPos/Size,
 'but it's not worth adding a separate function for that.)
-Sub RefreshSliceTree(sl as Slice ptr, autosort as bool = NO)
+Sub RefreshSliceTree(sl as Slice ptr, autosort as bool = NO, visibleonly as bool = NO)
  if sl = 0 then exit sub
 
  'Update sl and ancestors
  RefreshSlice sl, autosort
  'Update descendents
- SliceRefreshRecurse sl, autosort
+ RefreshSliceTreeRecurse sl, autosort, visibleonly
 end sub
 
 
@@ -4750,7 +4716,6 @@ Function FindSliceAtPoint(parent as Slice Ptr, point as XYPair, byref num as int
  'allowspecial: Don't ignore Special slices
  'num:         0 for bottommost matching slice, 1 for next, etc. Is decremented by the number of matching slices.
  'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that,
- '(because DrawSliceRecurse doesn't call ChildRefresh or recurse on invisible slices)
  'and we handle refreshing the descendents of parent (calling ChildRefresh on every slice we visit).
  if parent = 0 then debug "FindSliceAtPoint null ptr": return 0
  dim as Slice ptr s, temp

@@ -5475,14 +5475,14 @@ script, slice filling and covering tests, begin
   assert(slice width(ch3) == 10)
   assert(slice height(ch3) == 40)
   assert(slice width(sl) == 44)   # ch3's x=30 + w=10 + sl's padding=4
-  #assert(slice height(sl) == 84)  # ch3's y=40 + h=40 + sl's padding=4  FIXME: fails
+  assert(slice height(sl) == 84)  # ch3's y=40 + h=40 + sl's padding=4
   set cover children(ch3, cover:all)
   set slice y(ch, -18)
   w
   assert(slice width(ch3) == 32)
   assert(slice height(ch3) == 22)  # ch's h=40 + y=-18
-  #assert(slice width(sl) == 66)   # ch3's x=30 + w=32 + sl's padding=4  FIXME: fails
-  #assert(slice height(sl) == 74)  # From ch2 again  FIXME: fails
+  assert(slice width(sl) == 66)   # ch3's x=30 + w=32 + sl's padding=4
+  assert(slice height(sl) == 74)  # From ch2 again
 
   # Test covering is applied by a refresh, not just a screen draw
   # FIXME: these all fail, it's not implemented
@@ -5764,8 +5764,9 @@ script, slice refresh tests, begin
   set parent(cell2, grid)
   set sort order(cell1, 10)
   set sort order(cell2, 0)
-  # FIXME: these fail without the extra wait
-  wait
+  # TODO: uncomment once this command is implemented (untl then, need a wait)
+  #refresh slice tree(grid, true)  # Refresh with autosorting
+  wait # TODO: remove
   assert(slice screen x(cell1) == 10)
   assert(slice screen x(cell2) == 0)
 
