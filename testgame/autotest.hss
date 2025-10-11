@@ -5485,25 +5485,25 @@ script, slice filling and covering tests, begin
   assert(slice height(sl) == 74)  # From ch2 again
 
   # Test covering is applied by a refresh, not just a screen draw
-  # FIXME: these all fail, it's not implemented
   # Check refreshing the slice set to cover
   set slice y(ch2, 39)
   slice collide point(sl, 0, 0)  # Causes refresh
-  #assert(slice height(sl) == 83)  # ch'2 y=39 + h=40 + sl.padding=4
+  assert(slice height(sl) == 83)  # ch'2 y=39 + h=40 + sl.padding=4
   # Check refreshing a child of the slice set to cover (not the one that sets the cover size!)
   set slice y(ch2, 40)
   slice collide point(ch, 0, 0)
-  #assert(slice height(sl) == 84)  # ch'2 y=40 + h=40 + sl.padding=4
+  assert(slice height(sl) == 84)  # ch'2 y=40 + h=40 + sl.padding=4
   # Check refreshing a slice that's recursively covering
   set slice y(ch, 10)
   slice collide point(sl, 0, 0)
+  # FIXME: these fail because RefreshSliceAscend doesn't refresh children of covering slices
   #assert(slice height(ch3) == 50)  # ch's h=40 + y=10
   #assert(slice height(sl) == 94)   # ch3's y=40 + h=50 + sl's padding=4
   # Check refreshing a grandchild of slice that's recursively covering
   set slice y(ch, 11)
   slice collide point(ch3, 0, 0)
-  #assert(slice height(ch3) == 51)  # 40 + 11
-  #assert(slice height(sl) == 95)   # ch3's y=40 + h=51 + sl's padding=4
+  assert(slice height(ch3) == 51)  # 40 + 11
+  assert(slice height(sl) == 95)   # ch3's y=40 + h=51 + sl's padding=4
 
   # Now verify that "fill parent" has no effect on fill type
   # and that "is filling parent" doesn't care about fill type
@@ -5576,7 +5576,7 @@ script, slice refresh tests, begin
   assert(slice width(rect) == 50)
   assert(slice screen x(rect) == 10)  # Cause refresh
   # After refresh, size determined by cover children
-  #assert(slice width(rect) == 10)  #FIXME: RefreshSliceScreenPos doesn't apply cover
+  assert(slice width(rect) == 10)
 
   # Test Sprites set to Fill
   # They can be set to fill only in the slice editor (kept only for backcompat)

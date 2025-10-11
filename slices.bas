@@ -4518,24 +4518,52 @@ Sub RefreshSliceScreenPos(sl as Slice ptr)
  RefreshSlice sl
 end sub
 
-'Refresh *all* computed properties of a slice, (except autosorting is optional).
-'Doing so requires updating all ancestor slices too, for ScreenPos and Fill.
-'This is used if a slice needs to be refreshed even if it's invisible (e.g. in slice editor)
-'TODO: This is meant to apply Sprite and Text specific changes too
-Sub RefreshSlice(sl as Slice ptr, autosort as bool = NO)
- if sl = 0 then exit sub
- dim par as Slice ptr = sl->Parent
+'Refresh a single child of sl, ignoring CoverChildren
+Local Sub RefreshOneChild(sl as Slice ptr, ch as Slice ptr, autosort as bool)
+ if autosort andalso sl->AutoSort then AutoSortChildren sl
+
+ if sl->ChildrenRefresh then sl->ChildrenRefresh(sl)
+
+ 'ChildRefresh calculates the size (if filling), screen X,Y and possibly visibility (Select slices)
+ 'or other properties. Refreshing is skipped if the slice isn't visible
+ '(but we have to let ChildRefresh check visibleonly because of Select slices).
+ '(If ChildrenRefresh is set, ChildRefresh will be NullChildRefresh)
+ sl->ChildRefresh(sl, ch, -1, NO)  'visibleonly = NO
+end sub
+
+'Go up the tree refreshing each parent
+Local Sub RefreshSliceAscend(sl as Slice ptr, autosort as bool)
+ '---- Things RefreshSliceTreeRecurse does after children of sl are processed
+
+ 'FIXME: this is not very correct, but better than nothing.
+ 'The children (all of them not set to fill, which are ignored) might first need their sizes updated.
+ if sl->CoverChildren then
+  UpdateCoverSize(sl)
+ end if
+
+ '---- Recurse
+
  dim attach as Slice ptr
+ dim par as Slice ptr = sl->Parent
  if par then
   'Refresh from root down
-  RefreshSlice par, autosort
-  if autosort andalso sl->AutoSort then AutoSortChildren sl
-  if par->ChildrenRefresh then par->ChildrenRefresh(par)
+  RefreshSliceAscend par, autosort
   attach = par
  else
   attach = ScreenSlice
  end if
- attach->ChildRefresh(attach, sl, -1, NO)  'visibleonly=NO
+
+ '---- Things RefreshSliceTreeRecurse does before children of sl are processed
+
+ RefreshOneChild attach, sl, autosort
+end sub
+
+'Refresh *all* computed properties of a slice, (except autosorting is optional).
+'Doing so requires updating all ancestor slices too, for ScreenPos and Fill.
+'This is used if a slice needs to be refreshed even if it's invisible (e.g. in slice editor)
+'TODO: This is meant to apply Text specific changes too
+Sub RefreshSlice(sl as Slice ptr, autosort as bool = NO)
+ RefreshSliceAscend(sl, autosort)
 end sub
 
 'Refresh descendents of sl (not sl itself), possibly only visible ones.
