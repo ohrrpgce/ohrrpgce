@@ -547,7 +547,7 @@ SUB SlicePropertiesEditor.define_items()
     captions AutoSortCaptions()
     propkey "autosort"
     'DIM sortNA as string
-    'IF .Parent = NULL ORELSE .Parent->AutoSort <> slAutoSortCustom THEN caption " (N/A)"
+    'IF .Parent = NULL ORELSE (.Parent->AutoSort <> slAutoSortCustom ANDALSO .Parent->AutoSort <> slAutoSortCustomThenY) THEN caption " (N/A)"
     defint "Custom sort order:", .Sorter, INT_MIN, INT_MAX
     propkey "sort", "sortorder"
 

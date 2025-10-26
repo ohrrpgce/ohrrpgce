@@ -776,11 +776,15 @@ Sub AutoSortChildren(byval s as Slice Ptr)
   case slAutoSortCustom:
    CustomSortChildSlices s, NO
   case slAutoSortY:
-   YSortChildSlices s
+   YSortChildSlices s, NO
+  case slAutoSortCustomThenY:
+   YSortChildSlices s, YES
   case slAutoSortTopY:
    EdgeYSortChildSlices s, alignTop
   case slAutoSortCenterY:
    EdgeYSortChildSlices s, alignCenter
+  case slAutoSortBottomY:
+   EdgeYSortChildSlices s, alignBottom
   case slAutoSortBottomY:
    EdgeYSortChildSlices s, alignBottom
  end select
@@ -844,21 +848,28 @@ Sub SwapSiblingSlices(byval sl1 as Slice ptr, byval sl2 as Slice ptr)
  RelinkChildren parent, slice_list()
 end sub
 
-Sub YSortChildSlices(byval parent as Slice ptr)
+'with_custom: "Custom Then Y" sorting, otherwise just Y
+Sub YSortChildSlices(byval parent as Slice ptr, byval with_custom as bool = NO)
  if parent = 0 then debug "YSortChildSlices: null ptr" : exit sub
  if parent->NumChildren = 0 then exit sub
  dim slice_list(parent->NumChildren - 1) as Slice ptr
  UnlinkChildren parent, slice_list()
- 'Sort the siblings by Y
- dim temp as Slice ptr
+ 'Sort the siblings
+ dim as Slice ptr sl_i, sl_j
  dim i as integer
  for j as integer = 1 to ubound(slice_list)
-  temp = slice_list(j)
+  sl_j = slice_list(j)
   for i = j - 1 to 0 step -1
-   if slice_list(i)->Y <= temp->Y then exit for
-   slice_list(i + 1) = slice_list(i)
+   sl_i = slice_list(i)
+   if with_custom then
+    if sl_i->Sorter < sl_j->Sorter then exit for
+    if sl_i->Sorter = sl_j->Sorter andalso sl_i->Y <= sl_j->Y then exit for
+   else
+    if sl_i->Y <= sl_j->Y then exit for
+   end if
+   slice_list(i + 1) = sl_i
   next i
-  slice_list(i + 1) = temp
+  slice_list(i + 1) = sl_j
  next j
  RelinkChildren parent, slice_list()
 end sub

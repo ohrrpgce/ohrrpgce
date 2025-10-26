@@ -9924,7 +9924,12 @@ end
 						sorted according to the sort order value (<ref>setsortorder</ref>),
 						just like <ref>sortchildren</ref> (sort order not wiped after sorting)
 					</li>
-					<li><tt>autosort: Y</tt> - sorted by each child's Y (<ref>slicey</ref>), ignoring anchoring and alignment</li>
+					<li><tt>autosort: Y</tt> - sorted by each child's Y (<ref>slicey</ref>). That means anchoring and alignment are ignored</li>
+					<li><tt>autosort: Custom Then Y</tt> -
+						sort primarily by sort order (set by <ref>setsortorder</ref>),
+						breaking ties with equal sort order by each child's Y (<ref>slicey</ref>).
+						So all sortorder=1 children draw above all sortorder=0 ones.
+					</li>
 					<li><tt>autosort: Top Y</tt> - sorted by top edge position </li>
 					<li><tt>autosort: Center Y</tt> - sorted by center position</li>
 					<li><tt>autosort: Bottom Y</tt> - sorted by bottom edge position</li>

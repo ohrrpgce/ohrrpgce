@@ -16,6 +16,8 @@ Nov ?? 2025 [Lexiphanic]
      (so the other child gets the remaining space) [James]
    * Slices can be set to Cover Children, automatically resizing [Ralph, James]
    * Wrapping text slices support Left, Center, or Right text alignment [James]
+   * Slice autosort option "Custom, then Y" for Y sorting with overrides
+     (and autosort:CustomThenY constant) [Ralph]
 
    * Plotscripting Features
     * Commands to access rewards from the latest battle: "money reward",

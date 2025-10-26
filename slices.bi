@@ -220,7 +220,8 @@ Enum 'AutoSortModes
  slAutoSortTopY = 3
  slAutoSortCenterY = 4
  slAutoSortBottomY = 5
- slAutoSortLAST = 5
+ slAutoSortCustomThenY = 6
+ slAutoSortLAST = 6
 End Enum
 
 Type FillModes as ubyte
@@ -728,7 +729,7 @@ DECLARE Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
 DECLARE Sub InsertSliceAfter(byval sl as Slice ptr, byval newsl as Slice ptr)
 DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
 
-DECLARE Sub YSortChildSlices(byval parent as slice ptr)
+DECLARE Sub YSortChildSlices(byval parent as slice ptr, byval with_custom as bool = NO)
 DECLARE Sub EdgeYSortChildSlices(byval parent as slice ptr, byval edge as AlignType)
 DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as bool)
 DECLARE Sub AutoSortChildren(byval s as Slice Ptr)

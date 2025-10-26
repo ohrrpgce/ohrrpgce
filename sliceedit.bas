@@ -357,13 +357,14 @@ TransCaptions(0) = "Solid"       'transOpaque
 TransCaptions(1) = "Fuzzy"       'transFuzzy
 TransCaptions(2) = "Hollow"      'transHollow
 TransCaptions(3) = "Blend (transparent)" 'transBlend
-REDIM SHARED AutoSortCaptions(0 TO 5) as string
+REDIM SHARED AutoSortCaptions(0 TO 6) as string
 AutoSortCaptions(0) = "None"
 AutoSortCaptions(1) = "by custom order"
 AutoSortCaptions(2) = "by Y"
 AutoSortCaptions(3) = "by top edge"
 AutoSortCaptions(4) = "by center Y"
 AutoSortCaptions(5) = "by bottom edge"
+AutoSortCaptions(6) = "by custom then Y"
 REDIM SHARED FillModeCaptions(2) as string
 FillModeCaptions(0) = "Full"
 FillModeCaptions(1) = "Horizontal"
@@ -3038,7 +3039,8 @@ SUB SliceDetailMenu.refresh(byref ses as SliceEditState, byref state as MenuStat
   a_append menu(), " Auto-sort children: " & AutoSortCaptions(.AutoSort)
   sliceed_rule_ubyte rules(), "autosort", @.AutoSort, 0, slAutoSortLAST
   DIM sortNA as string
-  IF .Parent = NULL ORELSE .Parent->AutoSort <> slAutoSortCustom THEN sortNA = " (N/A)"
+  IF .Parent = NULL ORELSE (.Parent->AutoSort <> slAutoSortCustom ANDALSO _
+      .Parent->AutoSort <> slAutoSortCustomThenY) THEN sortNA = " (N/A)"
   a_append menu(), " Custom sort order" & sortNA & ": " & .Sorter
   sliceed_rule rules(), "sortorder", erIntgrabber, @.Sorter, INT_MIN, INT_MAX
  END IF

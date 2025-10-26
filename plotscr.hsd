@@ -2390,6 +2390,7 @@ define constant, begin
 3,autosort:TopY
 4,autosort:CenterY
 5,autosort:BottomY
+6,autosort:CustomThenY
 -1,border:line
 -2,border:none
 -99,border:raw
