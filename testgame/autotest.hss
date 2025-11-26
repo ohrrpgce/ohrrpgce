@@ -1566,6 +1566,12 @@ script, hero exp and levels tests, begin
   assert(hero levelled(0) == 3)
   set hero stat(0, 12, 20, 0)  # Reset
 
+  # Hero base stat by level
+  assert(hero base stat at level(hero:Freki, stat:hp, 0) == 10)
+  assert(hero base stat at level(hero:Freki, stat:hp, 10) == 46)
+  assert(hero base stat at level(hero:Freki, stat:hp, 50) == 334)
+  assert(hero base stat at level(hero:Freki, stat:hp, 99) == 1000)
+
   # reset
   set hero level(0, 0, true)
   set hero level(1, 0, true)

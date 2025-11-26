@@ -5589,6 +5589,14 @@ SUB script_commands(byval cmdid as integer)
    END IF
   END IF
  '812 is alias of "fill parent"
+ CASE 813 '--hero base stat at level
+  IF valid_hero_id(retvals(0)) THEN
+   IF valid_stat(retvals(1)) THEN
+    IF bound_arg(retvals(2), 0, current_max_level, "hero level") THEN
+     scriptret = hero_base_stat_at_level(retvals(0), retvals(1), retvals(2))
+    END IF
+   END IF
+  END IF
 
 
  CASE ELSE
@@ -6268,6 +6276,10 @@ FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=
   RETURN NO
  END IF
  RETURN YES
+END FUNCTION
+
+FUNCTION valid_hero_id(byval hero_id as integer) as bool
+ RETURN bound_arg(hero_id, 0, gen(genMaxHero), "hero ID")
 END FUNCTION
 
 FUNCTION valid_stat(byval statid as integer) as bool

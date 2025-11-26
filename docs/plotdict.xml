@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-10-10">
+<plotscript version="wip" datecode="2025-11-25">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -4787,6 +4787,27 @@ as returned by <ref>findhero</ref>.
 			<canon>hero uses level MP (who)</canon>
 			<shortname>hero uses level MP</shortname>
 			<description>Returns true if a hero makes use of level MP (FF1-style MP). The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. This will be true if the hero has at least one named spell list set to use level MP, and that spell list is included in their battle menu. This is the same logic that is used internall to decide if Level MP will be displayed on the Status screen.</description>
+		</command>
+		<command id="herobasestatatlevel">
+			<canon>hero base stat at level (hero id, stat name, level)</canon>
+			<shortname>hero base stat at level</shortname>
+			<description>
+				Returns what a hero's <ref>basestat</ref> (raw stat with no equipment bonuses) would be at a given level.<lb/>
+				<p>hero id</p> is the hero ID number or a hero constant in the form of <tt>hero:name</tt>.<lb/>
+				<p>stat name</p> is a constant in the form of <tt>stat:name</tt> such as <tt>stat:hp</tt>.<lb/>
+				<p>level</p> is the level number to look up the stat for.<lb/>
+				<note>This command takes hero ID. If you need to use the hero position in the party, use <ref>herobyslot</ref>. If you need to use the hero caterpillar rank, use <ref>herobyrank</ref></note>
+				<note>This command ignores stat caps. You will need to also use the <ref>getherostatcap</ref> command if you need to check that.</note>
+			</description>
+			<example>
+# Show what the base HP of the leader would be at level 99
+variable(hero id)
+hero id := hero by rank(me)
+show value(hero base stat at level(hero id, stat:hp, 99))
+</example>
+			<seealso>
+				<ref>getherostat</ref>
+			</seealso>
 		</command>
 
 		<command id="healparty">

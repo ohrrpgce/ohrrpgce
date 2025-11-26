@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-10-10)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-11-25)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1071,6 +1071,7 @@ function toggleContent(target) {
 		<a href="#about-harmtile" class="ref">harm tile</a><br>
 		<a href="#about-healparty" class="ref">heal party (revive dead heroes)</a><br>
 		<a href="#about-herobaseelementalresistasint" class="ref">hero base elemental resist as int (who, element)</a><br>
+		<a href="#about-herobasestatatlevel" class="ref">hero base stat at level (hero id, stat name, level)</a><br>
 		<a href="#about-herobyrank" class="ref">hero by rank (where)</a><br>
 		<a href="#about-herobyslot" class="ref">hero by slot (where)</a><br>
 		<a href="#about-herochasesnpc" class="ref">hero chases npc (who, npc, stop when reached, stuck ticks)</a><br>
@@ -8433,6 +8434,7 @@ fade screen in</pre>
 		<a href="#about-getlevelmp" class="ref">get level MP (who, mp level slot, type)</a><br>
 		<a href="#about-setlevelmp" class="ref">set level MP (who, mp level slot, new value)</a><br>
 		<a href="#about-herouseslevelmp" class="ref">hero uses level MP (who)</a><br>
+		<a href="#about-herobasestatatlevel" class="ref">hero base stat at level (hero id, stat name, level)</a><br>
 		<a href="#about-healparty" class="ref">heal party (revive dead heroes)</a><br>
 		<a href="#about-herobaseelementalresistasint" class="ref">hero base elemental resist as int (who, element)</a><br>
 		<a href="#about-setherobaseelementalresist" class="ref">set hero base elemental resist (who, element, percent)</a><br>
@@ -9015,6 +9017,30 @@ as returned by <a href="#about-findhero" class="ref">find hero</a>.
 			
 			
 			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-herobasestatatlevel"></a>
+				<h4>hero base stat at level (hero id, stat name, level)</h4>
+<p>
+			
+				Returns what a hero's <a href="#about-basestat" class="ref">base stat</a> would be at a given level.<br>
+				<span class="param">hero id</span> is the hero ID number or a hero constant in the form of <span class="code">hero:name</span>.<br>
+				<span class="param">stat name</span> is a constant in the form of <span class="code">stat:name</span> such as <span class="code">stat:hp</span>.<br>
+				<span class="param">level</span> is the level number to look up the stat for.<br>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">This command takes hero ID. If you need to use the hero position in the party, use <a href="#about-herobyslot" class="ref">hero by slot</a>. If you need to use the hero caterpillar rank, use <a href="#about-herobyrank" class="ref">hero by rank</a>
+</div>
+			
+			
+			<pre>
+# Show what the base HP of the leader would be at level 99
+variable(hero id)
+hero id := hero by rank(me)
+show value(hero base stat at level(hero id, stat:hp, 99))
+</pre>
+			<div class="seealso">See also: <ul><li><a href="#about-getherostat" class="ref">get hero stat</a></li></ul>
+</div>
 		</p>
 </div>
 		<div class="command">
@@ -17146,7 +17172,13 @@ end
 						just like <a href="#about-sortchildren" class="ref">sort children</a> (sort order not wiped after sorting)
 					</li>
 					<li>
-<span class="code">autosort: Y</span> - sorted by each child's Y (<a href="#about-slicey" class="ref">slice y</a>), ignoring anchoring and alignment</li>
+<span class="code">autosort: Y</span> - sorted by each child's Y (<a href="#about-slicey" class="ref">slice y</a>). That means anchoring and alignment are ignored</li>
+					<li>
+<span class="code">autosort: Custom Then Y</span> -
+						sort primarily by sort order (set by <a href="#about-setsortorder" class="ref">set sort order</a>),
+						breaking ties with equal sort order by each child's Y (<a href="#about-slicey" class="ref">slice y</a>).
+						So all sortorder=1 children draw above all sortorder=0 ones.
+					</li>
 					<li>
 <span class="code">autosort: Top Y</span> - sorted by top edge position </li>
 					<li>
@@ -24145,7 +24177,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 1004 commands (of which 16 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 1005 commands (of which 16 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

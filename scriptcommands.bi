@@ -147,6 +147,7 @@ DECLARE FUNCTION valid_item(byval itemid as integer) as bool
 DECLARE FUNCTION valid_hero_caterpillar_rank(who as integer) as bool
 DECLARE FUNCTION valid_hero_party(byval who as integer, byval minimum as integer=0) as bool
 DECLARE FUNCTION really_valid_hero_party(byval who as integer, byval maxslot as integer=40, byval errlvl as scriptErrEnum = serrBadOp) as bool
+DECLARE FUNCTION valid_hero_id(byval hero_id as integer) as bool
 DECLARE FUNCTION valid_stat(byval statid as integer) as bool
 DECLARE FUNCTION valid_plotstr(byval n as integer, byval errlvl as scriptErrEnum = serrBound) as bool
 DECLARE FUNCTION valid_enemy(byval id as integer) as bool

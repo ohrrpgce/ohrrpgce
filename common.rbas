@@ -8034,6 +8034,14 @@ FUNCTION atlevel_quadratic (byval lev as double, byval a0 as double, byval aMax 
   RETURN (a * x^2 + b * x) * (aMax - a0) + a0 + .1
 END FUNCTION
 
+FUNCTION hero_base_stat_at_level(byval hero_id as integer, byval statnum as integer, byval level as integer) as integer
+ DIM herodata as HeroDef
+ loadherodata herodata, hero_id
+ DIM base_stat as integer
+ base_stat = atlevel(level, herodata.lev0.sta(statnum), herodata.LevMax.sta(statnum))
+ RETURN base_stat
+END FUNCTION
+
 '==========================================================================================
 '                                     Animation rate
 '==========================================================================================

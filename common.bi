@@ -366,6 +366,8 @@ DECLARE FUNCTION total_exp_to_level (byval level as integer, byval curve as doub
 DECLARE FUNCTION current_max_level() as integer
 DECLARE FUNCTION atlevel (byval lev as integer, byval a0 as integer, byval aMax as integer) as integer
 DECLARE FUNCTION atlevel_quadratic (byval lev as double, byval a0 as double, byval aMax as double, byval midpercent as double) as double
+DECLARE FUNCTION hero_base_stat_at_level(byval hero_id as integer, byval statnum as integer, byval level as integer) as integer
+
 
 DECLARE FUNCTION ideal_ticks_per_second() as double
 DECLARE FUNCTION walkabout_walk_frames(fr as Frame ptr, direction as DirNum) as integer

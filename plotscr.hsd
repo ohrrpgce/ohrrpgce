@@ -852,6 +852,7 @@ define function, begin
 810,setcoverchildren,2,0,3    # Change a slice's cover children setting
 811,getfillparent,1,0         # Check the current fill settings on a slice
 812,setfillparent,2,0,1       # Change a slice's parent filling settings (same as fillparent)
+813,herobasestatatlevel,3,0,0,0 # Return what the base state of a hero would be at a specific level.
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

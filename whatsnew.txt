@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-Nov ?? 2025 [Lexiphanic]
+Jan 03 2026 [Lexiphanic]
 
   *** New Features
    * New general battle system option to not display rewards at the end of a
@@ -26,6 +26,7 @@ Nov ?? 2025 [Lexiphanic]
       "music is seekable" [Ralph]
     * "get/set panel sized by child" [James]
     * "get/set fill parent" "get/set cover children" [James]
+    * "hero base stat at level" [James]
 
   *** Changes
 
