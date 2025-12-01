@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-11-25)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2025-12-01)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1343,6 +1343,7 @@ function toggleContent(target) {
 		<a href="#about-resetformation" class="ref">reset formation (formation)</a><br>
 		<a href="#about-resetformationslot" class="ref">reset formation slot (formation, slot)</a><br>
 		<a href="#about-resetgame" class="ref">reset game(args...)</a><br>
+		<a href="#about-resetherobasestat" class="ref">reset hero base stat (who, stat name)</a><br>
 		<a href="#about-resetheropalette" class="ref">reset hero palette (who, type)</a><br>
 		<a href="#about-resetheropicture" class="ref">reset hero picture (who, type)</a><br>
 		<a href="#about-resetmapstate" class="ref">reset map state (whichdata)</a><br>
@@ -8435,6 +8436,7 @@ fade screen in</pre>
 		<a href="#about-setlevelmp" class="ref">set level MP (who, mp level slot, new value)</a><br>
 		<a href="#about-herouseslevelmp" class="ref">hero uses level MP (who)</a><br>
 		<a href="#about-herobasestatatlevel" class="ref">hero base stat at level (hero id, stat name, level)</a><br>
+		<a href="#about-resetherobasestat" class="ref">reset hero base stat (who, stat name)</a><br>
 		<a href="#about-healparty" class="ref">heal party (revive dead heroes)</a><br>
 		<a href="#about-herobaseelementalresistasint" class="ref">hero base elemental resist as int (who, element)</a><br>
 		<a href="#about-setherobaseelementalresist" class="ref">set hero base elemental resist (who, element, percent)</a><br>
@@ -9024,13 +9026,15 @@ as returned by <a href="#about-findhero" class="ref">find hero</a>.
 				<h4>hero base stat at level (hero id, stat name, level)</h4>
 <p>
 			
-				Returns what a hero's <a href="#about-basestat" class="ref">base stat</a> would be at a given level.<br>
+				Returns what a hero's <a href="#about-basestat" class="ref">base stat</a> (raw stat with no equipment bonuses) would be at a given level.<br>
 				<span class="param">hero id</span> is the hero ID number or a hero constant in the form of <span class="code">hero:name</span>.<br>
 				<span class="param">stat name</span> is a constant in the form of <span class="code">stat:name</span> such as <span class="code">stat:hp</span>.<br>
 				<span class="param">level</span> is the level number to look up the stat for.<br>
 				<div class="notice note">
 <img src="Plotnote.png" alt="[Notice]" class="icon">This command takes hero ID. If you need to use the hero position in the party, use <a href="#about-herobyslot" class="ref">hero by slot</a>. If you need to use the hero caterpillar rank, use <a href="#about-herobyrank" class="ref">hero by rank</a>
 </div>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">This command ignores stat caps. You will need to also use the <a href="#about-getherostatcap" class="ref">get hero stat cap</a> command if you need to check that.</div>
 			
 			
 			<pre>
@@ -9039,7 +9043,32 @@ variable(hero id)
 hero id := hero by rank(me)
 show value(hero base stat at level(hero id, stat:hp, 99))
 </pre>
-			<div class="seealso">See also: <ul><li><a href="#about-getherostat" class="ref">get hero stat</a></li></ul>
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-getherostat" class="ref">get hero stat</a>, </li>
+<li><a href="#about-resetherobasestat" class="ref">reset hero base stat</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-resetherobasestat"></a>
+				<h4>reset hero base stat (who, stat name)</h4>
+<p>
+			
+				Reset the <a href="#about-basestat" class="ref">base stat</a> (raw stat with no equipment bonuses) for a hero to whatever it should be for their current experience level. This discards any base stat or max stat changes that were done by <a href="#about-setherostat" class="ref">set hero stat</a> or by out-of-battle item attacks that target max hp<br>
+				<span class="param">who</span> is the hero slot in the part.  in a party slot (use <a href="#about-findhero" class="ref">find hero</a> if you want to refer to the hero by <span class="code">hero:name</span> constants).<br>
+				<span class="param">stat name</span> is a constant in the form of <span class="code">stat:name</span> such as <span class="code">stat:hp</span>.<br>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">This command respects stat caps. Stat caps will be re-applied after the base stat is reset.</div>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-setherostat" class="ref">set hero stat</a>, </li>
+<li><a href="#about-herobasestatatlevel" class="ref">hero base stat at level</a></li>
+</ul>
 </div>
 		</p>
 </div>
@@ -24177,7 +24206,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 1005 commands (of which 16 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 1006 commands (of which 16 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

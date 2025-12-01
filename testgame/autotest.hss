@@ -1571,6 +1571,30 @@ script, hero exp and levels tests, begin
   assert(hero base stat at level(hero:Freki, stat:hp, 10) == 46)
   assert(hero base stat at level(hero:Freki, stat:hp, 50) == 334)
   assert(hero base stat at level(hero:Freki, stat:hp, 99) == 1000)
+  
+  # Hero base stat resetting
+  freki slot := find hero(hero:freki)
+  assert(get hero stat(freki slot, stat:hp, base stat) == 96)
+  assert(get hero stat(freki slot, stat:hp, maximum stat) == 96)
+  assert(get hero level(freki slot) == 20)
+  assert(check equipment(freki slot, slot:head) == -1) # Head should start unequipped
+  force equip(freki slot, slot:head, item:mighty) # Wear a helmet that gives +100 max hp
+  assert(get hero stat(freki slot, stat:hp, base stat) == 96)
+  assert(get hero stat(freki slot, stat:hp, maximum stat) == 196)
+  # boost base stat +5
+  set hero stat(freki slot, stat:hp, get hero stat(freki slot, stat:hp, base stat) + 5, base stat)
+  assert(get hero stat(freki slot, stat:hp, base stat) == 101)
+  assert(get hero stat(freki slot, stat:hp, maximum stat) == 201)
+  # Reset base stat
+  reset hero base stat(freki slot, stat:hp)
+  assert(get hero stat(freki slot, stat:hp, base stat) == 96)
+  assert(get hero stat(freki slot, stat:hp, maximum stat) == 196)
+  
+  #clean up after base stat reset tests
+  unequip(freki slot, slot:head)
+  delete item(item:mighty)
+  assert(get hero stat(freki slot, stat:hp, base stat) == 96)
+  assert(get hero stat(freki slot, stat:hp, maximum stat) == 96)
 
   # reset
   set hero level(0, 0, true)

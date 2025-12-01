@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-11-25">
+<plotscript version="wip" datecode="2025-12-01">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -4807,6 +4807,21 @@ show value(hero base stat at level(hero id, stat:hp, 99))
 </example>
 			<seealso>
 				<ref>getherostat</ref>
+				<ref>resetherobasestat</ref>
+			</seealso>
+		</command>
+		<command id="resetherobasestat">
+			<canon>reset hero base stat (who, stat name)</canon>
+			<shortname>reset hero base stat</shortname>
+			<description>
+				Reset the <ref>basestat</ref> (raw stat with no equipment bonuses) for a hero to whatever it should be for their current experience level. This discards any base stat or max stat changes that were done by <ref>setherostat</ref> or by out-of-battle item attacks that target max hp<lb/>
+				<p>who</p> is the hero slot in the part.  in a party slot (use <ref>findhero</ref> if you want to refer to the hero by <tt>hero:name</tt> constants).<lb/>
+				<p>stat name</p> is a constant in the form of <tt>stat:name</tt> such as <tt>stat:hp</tt>.<lb/>
+				<note>This command respects stat caps. Stat caps will be re-applied after the base stat is reset.</note>
+			</description>
+			<seealso>
+				<ref>setherostat</ref>
+				<ref>herobasestatatlevel</ref>
 			</seealso>
 		</command>
 

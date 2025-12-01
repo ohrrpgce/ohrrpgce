@@ -98,6 +98,7 @@ define constant, begin
 15,item:SordPic
 16,item:AcksPic
 17,item:Tooth
+18,item:Mighty
 0,stat:HP
 1,stat:MP
 2,stat:Atk

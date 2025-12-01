@@ -2070,6 +2070,22 @@ script, lookup ancestor, hsd:code, hsd:sl, begin
   exit(0)
 end
 
+script, reset hero base stat, hsd:slot, hsd:stat, begin
+  if(hero by slot(hsd:slot) == -1) then(
+    variable(hsd:tmp)
+    hsd:tmp := hsd:save string(99)
+    script error(string sprintf(99, $99="reset hero base stat(%d, %d): No hero in slot %d", hsd:slot, hsd:stat, hsd:slot), true)
+    hsd:restore string(99, hsd:tmp)
+  )else(
+    variable(hsd:expected)
+    hsd:expected := hero base stat at level(hero by slot(hsd:slot), hsd:stat, get hero level(hsd:slot))
+    set hero stat(hsd:slot, hsd:stat, hsd:expected, base stat)
+    # re-apply caps
+    set capped hero stat(hsd:slot, hsd:stat, get hero stat(hsd:slot, hsd:stat, current stat), current stat)
+    set capped hero stat(hsd:slot, hsd:stat, get hero stat(hsd:slot, hsd:stat, maximum stat), maximum stat)
+  )
+end
+
 #--------------------------------------------------------------------------
 # helper scripts
 
