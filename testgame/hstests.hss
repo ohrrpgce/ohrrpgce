@@ -958,6 +958,13 @@ script, math tests, begin
   assert(multdiv(1 000 000, 1 000 000, -1 000) == -1 000 000 000)
   assert(multdiv(1 000 000, 1 000 000, 1) == 2147483647)
   assert(multdiv(1 000 000, -1 000 000, 1) == -2147483648)
+  
+  assert(min(10, 20) == 10)
+  assert(min(10, -20) == -20)
+  assert(min(9, 8, 7, 8, 9) == 7)
+  assert(max(10, 20) == 20)
+  assert(max(10, -20) == 10)
+  assert(max(9, 8, 7, 8, 9) == 9)
 end
 
 # Return number of bits in an integer. Does NOT work for negative numbers!

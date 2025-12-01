@@ -438,6 +438,16 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 			<shortname>^</shortname>
 			<description>Raises a number to a power and returns the result. (If the result is too large and overflows no error occurs: the value is simply wrapped around a 32 bit signed integer.) This can also be written as <p>exponent(number,power)</p></description>
 		</command>
+		<command id="min">
+			<canon>min (number, number, ...)</canon>
+			<shortname>min</shortname>
+			<description>Returns the smallest value from two or more arguments.</description>
+		</command>
+		<command id="max">
+			<canon>max (number, number, ...)</canon>
+			<shortname>max</shortname>
+			<description>Returns the largest value from two or more arguments.</description>
+		</command>
 		<command id="abs">
 			<canon>abs (number)</canon>
 			<shortname>abs</shortname>

@@ -27,6 +27,7 @@ Jan 03 2026 [Lexiphanic]
     * "get/set panel sized by child" [James]
     * "get/set fill parent" "get/set cover children" [James]
     * "hero base stat at level", "reset hero base stat" [James]
+    * "min" and "max" [James]
 
   *** Changes
 

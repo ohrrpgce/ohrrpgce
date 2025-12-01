@@ -853,6 +853,8 @@ define function, begin
 811,getfillparent,1,0         # Check the current fill settings on a slice
 812,setfillparent,2,0,1       # Change a slice's parent filling settings (same as fillparent)
 813,herobasestatatlevel,3,0,0,0 # Return what the base state of a hero would be at a specific level.
+814,min,-1                    # return the argument with the lowest value
+815,max,-1                    # return the argument with the highest value
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

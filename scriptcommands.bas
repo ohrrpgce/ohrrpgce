@@ -5597,7 +5597,24 @@ SUB script_commands(byval cmdid as integer)
     END IF
    END IF
   END IF
-
+ CASE 814 '--min
+  IF curcmd->argc < 2 THEN
+   scripterr current_command_name() &": requires two or more arguments, only had " & curcmd->argc, serrBadOp
+  ELSE
+   scriptret = retvals(0)
+   FOR i as integer = 1 TO curcmd->argc - 1
+    scriptret = small(scriptret, retvals(i))
+   NEXT i
+  END IF
+ CASE 815 '--max
+  IF curcmd->argc < 2 THEN
+   scripterr current_command_name() &": requires two or more arguments, only had " & curcmd->argc, serrBadOp
+  ELSE
+   scriptret = retvals(0)
+   FOR i as integer = 1 TO curcmd->argc - 1
+    scriptret = large(scriptret, retvals(i))
+   NEXT i
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands
