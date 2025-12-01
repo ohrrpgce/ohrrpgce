@@ -30,6 +30,8 @@ Jan 03 2026 [Lexiphanic]
     * "min" and "max" [James]
 
   *** Changes
+    Now that "min" and "max" are built-in script commands, if you used
+    those names for scripts or variables, you will need to rename them
 
   *** Bugfixes
     * Game/Custom now quit cleanly on a SIGTERM or SIGINT (and abort on SIGQUIT)
