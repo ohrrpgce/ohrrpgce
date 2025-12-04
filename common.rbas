@@ -7464,7 +7464,7 @@ FUNCTION sanitize_script_identifier (ident as string, allow_whitespace as bool =
  IF allow_whitespace = NO THEN to_exclude &= " "
  DIM tmp as string = exclude(ident, to_exclude)
  tmp = remove_nonprintable_ascii(tmp)
- IF LEN(tmp) ANDALSO isdigit(tmp[0]) THEN RETURN ""
+ IF LEN(tmp) ANDALSO allow_leading_number = NO ANDALSO isdigit(tmp[0]) THEN RETURN ""
  RETURN tmp
 END FUNCTION
 
