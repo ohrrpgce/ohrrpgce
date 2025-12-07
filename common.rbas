@@ -8183,15 +8183,15 @@ END FUNCTION
 FUNCTION default_arrowset() as ArrowSet
  DIM arr as ArrowSet
  WITH arr
-  .U = scUp
-  .R = scRight
-  .D = scDown
-  .L = scLeft
-  .confirm = scEnter
+  .U = ccUp
+  .R = ccRight
+  .D = ccDown
+  .L = ccLeft
+  .confirm = ccUse
   .confirm2 = scSpace
-  .confirm3 = scCTRL
-  .cancel = scESC
-  .cancel2 = scALT
+  .confirm3 = scEnter
+  .cancel = ccCancel
+  .cancel2 = scESC
  END WITH
  RETURN arr
 END FUNCTION
