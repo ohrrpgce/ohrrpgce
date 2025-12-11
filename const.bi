@@ -214,6 +214,7 @@ CONST gen8bitBlendAlgo = 233     ' Algorithm to use for palette lookups for blen
 CONST genPreviewBackdrop = 234   ' 0 or ID+1 of backdrop to use for enemy previews (and maybe more in future)
 CONST gen32bitMode = 235         ' 1 for 32-bit color mode, 0 for 8-bit
 CONST genDefaultBattleMenu = 236 ' 0 for default or Menu ID + 1
+CONST genInvDescFixedHeight = 237 ' 0 for auto-size, > 0 for fixed pixel height
 
 'Everything else up to 499 unused.
 'When adding more data to gen() consider whether it should be saved in .rsav.

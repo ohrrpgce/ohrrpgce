@@ -494,6 +494,7 @@ FUNCTION SliceLookupCodename (byval code as integer, use_default as bool = YES) 
   CASE SL_VIRTUAL_KEYBOARD_ENTER: RETURN "virtual keyboard enter"
   CASE SL_SHOP_BUY_INFO_PANEL: RETURN "shop buy info panel"
   CASE SL_STATUS_HIDE_IF_NO_HP: RETURN "status hide if no hp"
+  CASE SL_ITEM_DESCRIPTION_BOX: RETURN "item description box"
   CASE SL_PATHFIND_DEST_DISPLAY: RETURN "pathfind dest display"
   CASE SL_SINGLE_CAPTION_TEXT: RETURN "single caption text"
   CASE SL_BATTLE_UI_LAYER: RETURN "battle ui layer"

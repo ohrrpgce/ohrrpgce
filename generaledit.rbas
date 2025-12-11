@@ -12,6 +12,7 @@
 #include "custom.bi"
 #include "thingbrowser.bi"
 #include "editorkit.bi"
+#include "plankmenu.bi"
 
 #include "const.bi"
 #include "scrconst.bi"
@@ -2034,10 +2035,13 @@ TYPE GeneralSettingsMenu EXTENDS EditorKit
   aboutline as string
   titletext as string
   last_update as double  'For game stats
+  underlay as slice ptr
 
   DECLARE CONSTRUCTOR()
+  DECLARE DESTRUCTOR
   DECLARE SUB save()
   DECLARE VIRTUAL SUB define_items()
+  DECLARE SUB draw_underlays()
 END TYPE
 
 SUB general_data_editor()
@@ -2062,7 +2066,20 @@ CONSTRUCTOR GeneralSettingsMenu()
 
   exit_menu_text = "Return to Main Menu"
   helpkey = "general_game_data"
+  
+  'Set up the underlay
+  ' (Currently used only for the item screen preview, but there could be other underlays in the future)
+  'Underlay functions as a fake gameplay screen that we can load the inventory slices into
+  underlay = NewSliceOfType(slContainer)
+  RealignSlice underlay, alignRight, alignBottom, alignRight, alignBottom
+  underlay->Width = gen(genResolutionX)
+  underlay->Height = gen(genResolutionY)
+  SetSliceParent LoadSliceCollection(SL_COLLECT_ITEMSCREEN), underlay
 END CONSTRUCTOR
+
+DESTRUCTOR GeneralSettingsMenu()
+ DeleteSlice @underlay
+END DESTRUCTOR
 
 SUB GeneralSettingsMenu.save()
   save_gamename longname
@@ -2071,6 +2088,8 @@ SUB GeneralSettingsMenu.save()
 END SUB
 
 SUB GeneralSettingsMenu.define_items()
+  underlay->Visible = NO
+
   section "Game Title & Info"
   defstr "Long name:", longname
   defstr "About line:", aboutline
@@ -2188,6 +2207,22 @@ SUB GeneralSettingsMenu.define_items()
   defint "Default maximum item stack size:", gen(genItemStackSize), 1, 99
   defint "Display '" & CHR(1) & "1' in inventory:", gen(genInventSlotx1Display), 0, 2  'CHR(1) is the x symbol
   captions_list("always", "never", "only if stackable")
+  defint "Description box:", gen(genInvDescFixedHeight), 0, 999
+  IF selected THEN
+   'Preview will go here soon
+   underlay->Visible = NO
+   'expand_slice_text_insert_codes underlay, @ExpandTextItemScreenPreview
+  END IF
+  set_caption value &" pixels tall"
+  IF gen(genInvDescFixedHeight) = 0 THEN
+    set_caption "Auto-sized"
+  END IF
+  IF gen(genInvDescFixedHeight) > gen(genResolutionY) / 2 THEN
+    set_caption value & " (most of the screen!)"
+  END IF
+  IF gen(genInvDescFixedHeight) > gen(genResolutionY) THEN
+    set_caption value & " (that is just silly!)"
+  END IF
 
   '-------------------------
   section "Misc"
@@ -2221,4 +2256,8 @@ SUB GeneralSettingsMenu.define_items()
     state.need_update = YES
     last_update += 1.0
   END IF
+END SUB
+
+SUB GeneralSettingsMenu.draw_underlays ()
+ DrawSlice underlay, vpage
 END SUB

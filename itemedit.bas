@@ -460,3 +460,19 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
 END SUB
 
 '-----------------------------------------------------------------------
+
+SUB ExpandTextItemScreenPreview (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+debug "ExpandTextItemScreenPreview " & code
+ SELECT CASE UCASE(code)
+  CASE "EXIT": result = readglobalstring(35, "DONE", 10)
+  CASE "SORT": result = readglobalstring(36, "AUTOSORT", 10)
+  CASE "TRASH": result = readglobalstring(37, "TRASH", 10)
+  CASE "ITEM":
+   'Only support empty item right now. Later we might want to add a fake item stack with arg0
+   result = ""
+  CASE "DESC":
+   result = "Lorem ipsum dolor sit amet is the crest masterfully enscribed upon this beautiful sword. What magic does this forgotten encantation weave?"
+ END SELECT
+END SUB
+
+'-----------------------------------------------------------------------
