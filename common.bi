@@ -433,6 +433,8 @@ DECLARE SUB init_text_box_slices(byref txtsl as SliceFwd ptr, box as TextBox, pa
 
 DECLARE SUB refresh_inventory_description_box_sizing(parent as SliceFwd ptr)
 
+DECLARE FUNCTION embed_text_codes (text_in as string, byval saveslot as integer=-1, byval callback as FnEmbedCode=0, byval arg0 as any ptr=0, byval arg1 as any ptr=0, byval arg2 as any ptr=0) as string
+
 'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string
 EXTERN game as string

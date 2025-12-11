@@ -462,7 +462,6 @@ END SUB
 '-----------------------------------------------------------------------
 
 SUB ExpandTextItemScreenPreview (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
-debug "ExpandTextItemScreenPreview " & code
  SELECT CASE UCASE(code)
   CASE "EXIT": result = readglobalstring(35, "DONE", 10)
   CASE "SORT": result = readglobalstring(36, "AUTOSORT", 10)
@@ -471,7 +470,11 @@ debug "ExpandTextItemScreenPreview " & code
    'Only support empty item right now. Later we might want to add a fake item stack with arg0
    result = ""
   CASE "DESC":
-   result = "Lorem ipsum dolor sit amet is the crest masterfully enscribed upon this beautiful sword. What magic does this forgotten encantation weave?"
+   IF TIMER MOD 6 < 3 THEN
+    result = "Lorem ipsum dolor sit amet is the crest masterfully enscribed upon this beautiful sword."
+   ELSE
+    result = "A simple sword with no inscription."
+   END IF
  END SELECT
 END SUB
 

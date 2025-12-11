@@ -2211,7 +2211,7 @@ SUB GeneralSettingsMenu.define_items()
   IF selected THEN
    underlay->Visible = YES
    refresh_inventory_description_box_sizing underlay
-   'expand_slice_text_insert_codes underlay, @ExpandTextItemScreenPreview
+   expand_slice_text_insert_codes underlay, @ExpandTextItemScreenPreview
   END IF
   set_caption value &" pixels tall"
   IF gen(genInvDescFixedHeight) = 0 THEN

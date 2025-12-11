@@ -642,9 +642,7 @@ SUB expand_slice_text_insert_codes (byval sl as Slice ptr, byval callback as FnE
    IF ch->SliceType = slText THEN
     dat = ch->SliceData
     IF dat->text_orig = "" THEN dat->text_orig = dat->text
-#IFDEF IS_GAME
     ChangeTextSlice ch, embed_text_codes(dat->text_orig, -1, callback, arg0, arg1, arg2)
-#ENDIF
    END IF
    expand_slice_text_insert_codes ch, callback, arg0, arg1, arg2
   END IF
