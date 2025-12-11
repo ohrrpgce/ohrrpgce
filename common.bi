@@ -431,6 +431,7 @@ DECLARE SUB write_game_config OVERLOAD (key as zstring ptr, value as double)
 
 DECLARE SUB init_text_box_slices(byref txtsl as SliceFwd ptr, box as TextBox, parent as SliceFwd ptr, revealed as bool)
 
+DECLARE SUB refresh_inventory_description_box_sizing(parent as SliceFwd ptr)
 
 'Global variables  (See also common_base.bi)
 EXTERN sourcerpg as string

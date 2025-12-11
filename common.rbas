@@ -9112,6 +9112,26 @@ SUB init_text_box_slices(byref txtsl as Slice ptr, box as TextBox, parent as Sli
  END IF
 END SUB
 
+'==========================================================================================
+'                           Inventory (and inventory preview) stuff
+'==========================================================================================
+
+SUB refresh_inventory_description_box_sizing(parent as Slice ptr)
+ DIM sl as Slice ptr
+ sl = LookupSlice(SL_ITEM_DESCRIPTION_BOX, parent)
+ IF sl = 0 THEN
+  debuginfo "refresh_inventory_description_box_sizing: didn't find SL_ITEM_DESCRIPTION_BOX lookup code"
+  EXIT SUB
+ END IF
+ IF gen(genInvDescFixedHeight) = 0 THEN
+  sl->CoverChildren = coverVert
+  sl->Height = 0
+ ELSE
+  sl->CoverChildren = coverNone
+  sl->Height = gen(genInvDescFixedHeight)
+ END IF
+END SUB
+
 '----------------------------------------------------------------------
 
 #IFDEF __FB_MAIN__

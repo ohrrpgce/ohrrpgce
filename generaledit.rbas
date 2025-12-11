@@ -2209,8 +2209,8 @@ SUB GeneralSettingsMenu.define_items()
   captions_list("always", "never", "only if stackable")
   defint "Description box:", gen(genInvDescFixedHeight), 0, 999
   IF selected THEN
-   'Preview will go here soon
-   underlay->Visible = NO
+   underlay->Visible = YES
+   refresh_inventory_description_box_sizing underlay
    'expand_slice_text_insert_codes underlay, @ExpandTextItemScreenPreview
   END IF
   set_caption value &" pixels tall"

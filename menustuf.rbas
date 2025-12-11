@@ -2813,6 +2813,9 @@ FUNCTION item_screen () as integer
 
  st.ps.m = LoadSliceCollection(SL_COLLECT_ITEMSCREEN)
  ERROR_IF(st.ps.m = NULL, "Couldn't load slices!", 0)
+ 
+ 'This only needs to be called once after the collection loads because gen(genInvDescFixedHeight) won't change mid-inventory
+ refresh_inventory_description_box_sizing st.ps.m
 
  item_screen_refresh st
 
