@@ -4253,7 +4253,8 @@ SUB debug_compare_items(it1 as ItemDef, it2 as ItemDef, id as integer)
  DIM ok as bool = YES
  DIM msg as string = "ITEM MISMATCH " & id & " " & it1.name & ": "
  IF it1.name <> it2.name THEN debugerror msg & " on name " & it1.name & "<>" & it2.name : ok = NO
- IF it1.info <> it2.info THEN debugerror msg & " on info " & it1.info & "<>" & it2.info : ok = NO
+ 'Don't check description anymore
+ 'IF it1.info <> it2.info THEN debugerror msg & " on info " & it1.info & "<>" & it2.info : ok = NO
  IF it1.stacksize <> it2.stacksize THEN debugerror msg & " on stacksize " & it1.stacksize & "<>" & it2.stacksize : ok = NO
  IF it1.eqslots(0) THEN
   'Don't care about these unless it is equippable as a weapon. ITM kept around stale data fror non-weapons

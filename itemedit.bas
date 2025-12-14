@@ -188,8 +188,12 @@ SUB ItemEditor.define_items()
  
  defstr "Name:", item.name, 8
  IF selected THEN can_copy_and_paste = NO
- defstr "Info:", item.info, 36
+ defstr "Info:", item.info
  IF selected THEN can_copy_and_paste = NO
+ IF activate THEN
+  item.info = multiline_string_editor(item.info, "multiline_item_description_editor", NO)
+  state.need_update = YES
+ END IF
  defint "Value:", item.buy_price, 0, 32767
 
  defint "Maximum stack size:", item.stacksize, 0, 99

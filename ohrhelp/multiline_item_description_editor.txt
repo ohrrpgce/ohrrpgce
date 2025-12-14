@@ -1,0 +1,1 @@
+The description for the item can be as long as you want, but be aware that some screens that display the description may not have room to display the full description if it is too long.
