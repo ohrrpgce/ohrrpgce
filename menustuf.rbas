@@ -2488,17 +2488,6 @@ END SUB
 
 '-----------------------------------------------------------------------
 
-TYPE ItemScreenState
- ps as PlankState
- need_update as bool
- textbox as integer
- swapcur as Slice Ptr
- lastcur as Slice Ptr
- quit as bool
- refocus as bool
- re_use as bool
-END TYPE
-
 SUB set_item_plank_state (byval sl as Slice Ptr, byval state as PlankItemState)
  SELECT CASE sl->SliceType
   CASE slText:

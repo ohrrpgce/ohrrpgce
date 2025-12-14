@@ -10,6 +10,7 @@
 
 #INCLUDE "slices.bi"
 #INCLUDE "const.bi"
+#INCLUDE "plankmenu.bi"
 
 TYPE SliceTableType
   root as Slice Ptr
@@ -288,6 +289,19 @@ TYPE TextBoxState
   sl             as Slice Ptr
 
   Declare Destructor()
+END TYPE
+
+'This is used by the Inventory screen.
+'It is also used by the item screen in battle, but only a subset of the features are used there
+TYPE ItemScreenState
+ ps as PlankState
+ need_update as bool
+ textbox as integer
+ swapcur as Slice Ptr
+ lastcur as Slice Ptr
+ quit as bool
+ refocus as bool
+ re_use as bool
 END TYPE
 
 TYPE EquippableList

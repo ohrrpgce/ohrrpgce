@@ -526,6 +526,7 @@ FUNCTION SliceLookupCodename (byval code as integer, use_default as bool = YES) 
   CASE SL_BATTLE_TARGETTING_CURSOR: RETURN "battle targetting cursor"
   CASE SL_BATTLE_TARG_HOVER_CURSOR: RETURN "battle targ hover cursor"
   CASE SL_BATTLE_MENU_AREA: RETURN "battle menu area"
+  CASE SL_BATTLE_SUBMENU_AREA: RETURN "battle submenu area"
 '</SLICE LOOKUP NAMES>
   CASE IS > 0
    'TODO: cache slicelookup() in memory.
@@ -5427,6 +5428,7 @@ Function LoadSliceCollection(collection_kind as integer, collection_num as integ
    case SL_COLLECT_ITEMSCREEN:             collname = "item_screen"
    case SL_COLLECT_SPELLSCREEN:            collname = "spell_screen"
    case SL_COLLECT_VIRTUALKEYBOARDSCREEN:  collname = "virtual_keyboard_screen"
+   case SL_COLLECT_BATTLE_ITEMSCREEN:      collname = "battle_item_screen"
    case else
     showbug "Unknown slice collection kind " & collection_kind
     return null

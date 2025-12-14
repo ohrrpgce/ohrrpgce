@@ -326,9 +326,6 @@ TYPE BattleState
  listslot as integer   'currently active hero spell list slot
  sptr as integer       'menu cursor for hero spell list menu
  sptr_hover as integer 'menu cursor mouse hover for the spell list
- item as MenuState     'menu cursor for items menu
- item_drag_top as integer 'used for right-drag scrolling the item menu
- item_desc as string   'description of currently selected item in item menu
  caption as string          'Currently displaying caption
  caption_time as integer    'Remaining ticks before the caption is removed (0 if no caption)
  caption_delay as integer   'Remaining ticks to delay before .caption is actually made visible
@@ -357,9 +354,15 @@ TYPE BattleState
  vic as VictoryState
  rew as RewardsState
  spell as SpellMenuState
+ 'Legacy battle item menu
+ item as MenuState     'menu cursor for items menu
+ item_drag_top as integer 'used for right-drag scrolling the item menu
+ item_desc as string   'description of currently selected item in item menu
  inv_scroll as MenuState
  inv_scroll_rect as RectType
  iuse(inventoryMax / 16) as integer 'bitsets for whether items can be used by the current hero
+ 'Slice based item screen
+ itemst as ItemScreenState ' Same object that the inventory screen uses, but the battle item screen does not implement all features
  'For debug keys
  debug_show_info as integer    '0=nothing, 1=show_enemy_meters, 2=display_attack_queue
  debug_player_control as bool  'Set .under_player_control on all (new) enemies

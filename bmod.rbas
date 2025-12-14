@@ -121,6 +121,7 @@ DECLARE FUNCTION create_default_player_turn_overlay_area () as Slice Ptr
 DECLARE FUNCTION create_default_targetting_overlay_area () as Slice Ptr
 DECLARE FUNCTION create_default_targ_hover_overlay_area () as Slice Ptr
 DECLARE FUNCTION create_default_battle_menu_area() as Slice Ptr
+DECLARE FUNCTION create_default_battle_submenus_area() as Slice Ptr
 DECLARE SUB update_battle_hero_or_enemy_info_slice(sl as Slice Ptr, bat as BattleState, bspr as BattleSprite)
 DECLARE SUB update_indicator_slice (sl as Slice Ptr, lookup_code as integer, active as bool, indicator_string as string="", sort_index as integer=0)
 DECLARE SUB update_battle_toggle_bounce (bat as BattleState, sl as Slice Ptr)
@@ -131,6 +132,8 @@ DECLARE SUB instantiate_battle_targ_hover_slices (layer as Slice Ptr)
 DECLARE SUB ExpandTextBattleSprite (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 DECLARE SUB ExpandTextBattleState (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 DECLARE SUB force_retargetting_for_attacker (byref bat as BattleState, bslot() as BattleSprite, index as integer)
+DECLARE SUB create_battle_item_menu (bat as BattleState)
+
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
 
@@ -182,6 +185,8 @@ FUNCTION battle (byval form as integer) as bool
  queue_fade_in
 
  battle_loadall form, bat, bslot(), st(), formdata
+ 
+ create_battle_item_menu bat
 
  '--main battle loop
  setkeys
@@ -2021,6 +2026,8 @@ SUB create_default_battle_ui_layer(parent as Slice ptr)
  SetSliceParent area, layer
  area = create_default_targetting_overlay_area()
  SetSliceParent area, layer
+ area = create_default_battle_submenus_area()
+ SetSliceParent area, layer
 END SUB
 
 FUNCTION create_default_battle_menu_area() as Slice Ptr
@@ -2030,6 +2037,19 @@ FUNCTION create_default_battle_menu_area() as Slice Ptr
  menu_sl = NewClassSlice(0, menu_sl_cl)
  menu_sl->Lookup = SL_BATTLE_MENU_AREA
  RETURN menu_sl
+END FUNCTION
+
+FUNCTION create_default_battle_submenus_area() as Slice Ptr
+ 'This is the slice that makes the items menu will be drawn in the correct order
+ 'TODO: We could add the spells menu here too, when it gets converted
+ 
+ 'This is just a simple filling container. create_battle_item_menu() is where the
+ 'collection gets loaded into it.
+ DIM submenu_sl as Slice ptr
+ submenu_sl = NewSliceOfType(slContainer)
+ submenu_sl->Lookup = SL_BATTLE_SUBMENU_AREA
+ submenu_sl->Fill = sliceFillFull
+ RETURN submenu_sl
 END FUNCTION
 
 FUNCTION create_default_battle_ready_area() as Slice Ptr
@@ -4186,6 +4206,28 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
    clearkeys
   END IF
  END IF
+END SUB
+
+SUB create_battle_item_menu (bat as BattleState)
+ 'This is called once when the battle is first set up.
+ 'It loads the slices for the battle item menu, and prepares the state.
+ 'The slices start hidden, and the state is partly re-initialized each
+ 'time a hero actually uses the items menu.
+
+ bat.itemst.ps.is_plank_callback = @is_item_plank
+ bat.itemst.ps.state_callback = @set_item_plank_state
+
+ bat.itemst.ps.m = LoadSliceCollection(SL_COLLECT_BATTLE_ITEMSCREEN)
+ IF bat.itemst.ps.m = NULL THEN
+  debugc errShowError, "create_battle_item_menu : Couldn't load slices!"
+ END IF
+ 
+ 'Gets drawn along with all the other battle stuff
+ SetSliceParent bat.itemst.ps.m, LookupSliceSafe(SL_BATTLE_SUBMENU_AREA, bat.root_sl)
+
+ 'Hidden by default
+ bat.itemst.ps.m->Visible = NO
+
 END SUB
 
 '==============================================================================

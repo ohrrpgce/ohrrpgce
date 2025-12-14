@@ -9178,6 +9178,8 @@ END FUNCTION
 '==========================================================================================
 
 SUB refresh_inventory_description_box_sizing(parent as Slice ptr)
+ 'This only applies to the main inventory screen. We don't currently need an equivalent for
+ 'the battle item screen (and whe can add one later if/when we do)
  DIM sl as Slice ptr
  sl = LookupSlice(SL_ITEM_DESCRIPTION_BOX, parent)
  IF sl = 0 THEN
