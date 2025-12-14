@@ -220,6 +220,10 @@ FUNCTION battle (byval form as integer) as bool
    ' END SELECT
    'END IF
   END IF
+  
+  IF keyval(scTab) > 1 THEN
+   bat.itemsmode = NOT bat.itemsmode
+  END IF
 
   IF keyval(scPause) > 1 THEN battle_pause
   IF battle_run_away(bat, bslot()) THEN
@@ -1220,9 +1224,11 @@ SUB battle_display_menus (byref bat as BattleState, bslot() as BattleSprite, st(
      printstr cost_caption, 311 - LEN(cost_caption) * 8, 90, page
     END IF
    END IF
-   'if keyval(scS) > 1 then gen(genMaxInventory) += 3
-   'if keyval(scA) > 1 then gen(genMaxInventory) -= 3
    IF bat.menu_mode = batMENUITEM THEN '--draw item menu
+    IF bat.itemsmode THEN
+     bat.itemst.ps.m->Visible = YES
+    ELSE
+    '--legacy items display
     DIM inv_height as integer = small(78, 8 + ((last_inv_slot() + 1) \ 3) * 8)
     WITH bat.inv_scroll
      .top = INT(bat.item.top / 3)
@@ -1244,6 +1250,10 @@ SUB battle_display_menus (byref bat as BattleState, bslot() as BattleSprite, st(
     edgeboxstyle 8, 4 + inv_height, 304, 16, 0, page
     textcolor uilook(uiDescription), 0
     printstr bat.item_desc, 12, 8 + inv_height, page
+    END IF '--end legacy items display
+   ELSE
+    'Items menu is not displaying now
+    bat.itemst.ps.m->Visible = NO
    END IF
   END IF
  END IF'--end if bat.vic.state = vicNONE
