@@ -93,6 +93,7 @@ DECLARE SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite
 DECLARE SUB do_poison(byval who as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB do_regen(byval who as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+DECLARE SUB trigger_turnmode_poison_and_regen (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB calc_initiative_order (bslot() as BattleSprite, formdata as Formation)
 DECLARE SUB apply_initiative_order (bslot() as BattleSprite)
 DECLARE SUB turn_mode_time_passage (bat as BattleState, bslot() as battleSprite)
@@ -6022,7 +6023,15 @@ SUB turn_mode_state_machine (bat as BattleState, bslot() as BattleSprite, formda
   
  '--either start an attack, or go to the next round
  IF pending_attacks_for_this_turn(bat, bslot()) = NO THEN
-  start_next_turn bat, bslot(), formdata
+  IF NOT bat.turn.end_of_round_happened THEN
+   'At the end of the turn, make a single attempt to trigger poison and regen.
+   trigger_turnmode_poison_and_regen bat, bslot(), formdata
+   bat.turn.end_of_round_happened = YES
+  ELSE
+   'The next turn begins after all attacks are done, and after poison/regen are done, and after
+   'any on-death-bequest attacks from poison are done
+   start_next_turn bat, bslot(), formdata
+  END IF
  ELSE
   turn_mode_time_passage bat, bslot()
  END IF
@@ -6068,21 +6077,29 @@ SUB turn_mode_decrement_attack_queue_delays(bslot() as BattleSprite)
  NEXT i
 END SUB
 
-SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
-  'A new turn starts! (turnTURN mode only!)
-  
-  bat.turn.number += 1
-  bat.turn.choosing_attacks = YES
-
-  bat.next_hero = 0
-  bat.next_enemy = 4
-  ready_all_valid_units bslot(), formdata
-
+SUB trigger_turnmode_poison_and_regen (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
   FOR i as integer = 0 to 11
    '--update poison and regen
    WITH bslot(i).stat
     IF .cur.poison < .max.poison THEN do_poison i, bat, bslot(), formdata
     IF .cur.regen < .max.regen THEN do_regen i, bat, bslot(), formdata
+   END WITH
+  NEXT i
+END SUB
+
+SUB start_next_turn (bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+  'A new turn starts! (turnTURN mode only!)
+  
+  bat.turn.number += 1
+  bat.turn.choosing_attacks = YES
+  bat.turn.end_of_round_happened = NO
+  
+  bat.next_hero = 0
+  bat.next_enemy = 4
+  ready_all_valid_units bslot(), formdata
+
+  FOR i as integer = 0 to 11
+   WITH bslot(i).stat
     IF .cur.stun < .max.stun THEN
      '--note that stun and mute are updated after the attacks are chosen
      bslot(i).ready = NO

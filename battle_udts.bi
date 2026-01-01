@@ -301,6 +301,7 @@ TYPE TurnManager
  choosing_attacks as bool
  number as integer ' number of the current turn (merely debugging information)
  reverse as bool   ' bat.next_hero loops backwards, used to cancel and return to previous hero
+ end_of_round_happened as bool 'In turn mode, used to make sure that poison+regen only happen once at the end of the round (if poison triggers on on-death bequest, it can still happen in the same round)
 END TYPE
 
 'This type stores the state of the battle engine, for example,

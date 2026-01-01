@@ -44,6 +44,8 @@ Jan 03 2026 [Lexiphanic]
     * The "Provoke counterattacks:" setting in the attack editor has appeared
       blank since hróðvitnir so it looked like a section header. But pressing
       left/right there did modify it, so beware garbage data! [Ralph]
+    * Fixed some edge-cases with on-death-bequest attacks and poison in
+      turn-based battles that used to cause battle to get stuck [James]
 
   *** Stuff Only Developers Will Notice
     * Item data is now stored in a new lump, items.reld [James]
