@@ -3438,7 +3438,8 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
    IF .enemy.bequest_attack > 0 ANDALSO NOT already_bequested THEN
     'Trigger an on-death bequest attack, and defer dying until later.
     DIM beq_t(11) as integer
-    IF autotarget(deadguy, .enemy.bequest_attack - 1, bslot(), bat, beq_t()) THEN
+    'Target the bequest attack, but force it to be blocking
+    IF autotarget(deadguy, .enemy.bequest_attack - 1, bslot(), bat, beq_t(), , YES) THEN
      '--Bequest attack only happens if it has a valid target
      .bequesting = YES
      .self_bequesting = is_among_targets(deadguy, beq_t())
