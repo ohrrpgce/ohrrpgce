@@ -858,7 +858,15 @@ SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleS
  '--clean up .self_bequesting 
  ' (we don't have to clean up .bequesting here because it only stays on until the bequest attack is triggered)
  IF bat.acting >= 0 THEN
-  bslot(bat.acting).self_bequesting = NO
+  WITH bslot(bat.acting)
+   IF .self_bequesting THEN
+    .self_bequesting = NO
+    IF .stat.cur.hp > 0 THEN
+     'Death was cancelled, so bequesting should be allowed to happen again later
+     .already_bequested = NO
+    END IF
+   END IF
+  END WITH
  ELSE
   debuginfo "cleaning up attack " & attack.name & " with no attacker set"
  END IF
@@ -1456,7 +1464,7 @@ SUB show_enemy_meters(bat as BattleState, bslot() as BattleSprite, formdata as F
    c = uilook(uiSelectedDisabled)
    IF is_hero(i) THEN c = uilook(uiSelectedItem)
    rectangle 0, 80 + (i * 10), .ready_meter / 10, 4, c, page
-   info = "hp" & .stat.cur.hp & " tm" & bat.targ.mask(i) & " sr" & (.stat.cur.stun < .stat.max.stun) & " dz" & .dissolve & " a" & .attack & " r" & .ready & " v" & .vis & " h" & .hidden
+   info = "hp" & .stat.cur.hp & " tm" & bat.targ.mask(i) & " sr" & (.stat.cur.stun < .stat.max.stun) & " dz" & .dissolve & " a" & .attack & " r" & .ready & " v" & .vis & " h" & .hidden & " bq" & yesorno(.bequesting, "Y", "N") & yesorno(.self_bequesting, "Y", "N") & yesorno(.already_bequested, "Y", "N")
    IF is_enemy(i) THEN info &= " fm" & formdata.slots(i-4).id
    edgeprint info, 10, 80 + i * 10, c, page
   END WITH
@@ -2329,6 +2337,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
     .cursorpos.y = 0
     .bequesting = NO
     .self_bequesting = NO
+    .already_bequested = NO
     populate_battle_menu_menudef i, .batmenu, st(i)
     .menust.active = YES
     FOR o as integer = 0 TO maxElements - 1
@@ -3378,13 +3387,11 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
  IF is_enemy(deadguy) ANDALSO formdata.slots(deadguy - 4).id = -1 THEN EXIT SUB
 
  '--Check to see if this is an already-dead enemy doing a bequest attack
- DIM already_bequested as bool = NO
  IF bslot(deadguy).bequesting = YES THEN
   IF has_queued_attacks(deadguy) THEN
    EXIT SUB
   END IF
   bslot(deadguy).bequesting = NO
-  already_bequested = YES
   triggerfade deadguy, bslot()
  END IF
  IF bslot(deadguy).self_bequesting THEN
@@ -3435,7 +3442,7 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
  IF is_enemy(deadguy) THEN
   WITH bslot(deadguy)
 
-   IF .enemy.bequest_attack > 0 ANDALSO NOT already_bequested THEN
+   IF .enemy.bequest_attack > 0 ANDALSO NOT .already_bequested THEN
     'Trigger an on-death bequest attack, and defer dying until later.
     DIM beq_t(11) as integer
     'Target the bequest attack, but force it to be blocking
@@ -3443,6 +3450,7 @@ SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref
      '--Bequest attack only happens if it has a valid target
      .bequesting = YES
      .self_bequesting = is_among_targets(deadguy, beq_t())
+     .already_bequested = YES
      .vis = YES
      .dissolve = 0
      .fleeing = NO

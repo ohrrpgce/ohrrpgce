@@ -2093,6 +2093,7 @@ SUB reset_enemy_state(byref bspr as BattleSprite, byref bat as BattleState, tran
   .fleeing = NO
   .bequesting = NO
   .self_bequesting = NO
+  .already_bequested = NO
   IF NOT transmogging THEN
    .ready = NO
    .ready_meter = YES
