@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2025-12-01">
+<plotscript version="wip" datecode="2026-01-03">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -10435,9 +10435,9 @@ set horiz align(sl, edge:right)
 			</seealso>
 		</command>
 		<command id="setspritesetnumber">
-			<canon>set sprite set number (handle, record)</canon>
+			<canon>set sprite set number (handle, set number)</canon>
 			<shortname>set sprite set number</shortname>
-			<description>Changes the record number of the spriteset of a sprite slice <p>handle</p>.</description>
+			<description>Changes the sprite set of a sprite slice <p>handle</p>. <p>set number</p> is the spriteset ID.</description>
 			<seealso>
 				<ref>getspritesetnumber</ref>
 				<ref>setspritepalette</ref>
@@ -10447,7 +10447,7 @@ set horiz align(sl, edge:right)
 		<command id="getspritesetnumber">
 			<canon>get sprite set number (handle)</canon>
 			<shortname>get sprite set number</shortname>
-			<description>Gets the record number of the spriteset of a sprite slice <p>handle</p>.</description>
+			<description>Gets the sprite set ID of a sprite slice <p>handle</p>.</description>
 			<seealso>
 				<ref>getspritetype</ref>
 				<ref>getspritepalette</ref>
