@@ -95,7 +95,7 @@ rm -Rf "${SDLANDROID}"/project/obj/local/*
 touch .sconsign.dblite
 
 # Compile the source
-scons fbc="${FBCARM}" release=1 android-source=1 "${ARCHARGS}" game || exit 1
+scons fbc="${FBCARM}" release=1 v=1 android-source=1 "${ARCHARGS}" game || exit 1
 cd "${SDLANDROID}"/project/jni/application
 
 # Make sure we are on the ohrrpgce branch

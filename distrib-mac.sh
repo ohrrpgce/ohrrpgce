@@ -44,8 +44,8 @@ rm -f ohrrpgce-game ohrrpgce-custom
 
 # Note: lto=1 is used on Windows/Linux to reduce unlump/relump size, but currently
 # on Mac it causes an assembler error
-scons release=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH unlump relump hspeak || exit 1
-scons release=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH gfx=$GFX game custom || exit 1
+scons release=1 v=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH unlump relump hspeak || exit 1
+scons release=1 v=1 ${EXTRA_SCONS_OPTIONS} arch=$ARCH gfx=$GFX game custom || exit 1
 
 echo "Bundling apps"
 ./bundle-apps.sh $ARCH $SDL || exit 1

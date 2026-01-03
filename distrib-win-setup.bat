@@ -1,7 +1,7 @@
 @echo off
 REM This file is shared between distrib.bat and distrib-nightly-win.bat
 
-set SCONS_ARGS= release=1 pdb=1
+set SCONS_ARGS= release=1 pdb=1 v=1
 
 set SCPHOST=james_paige@motherhamster.org
 set SCPDEST=HamsterRepublic.com/ohrrpgce/nightly

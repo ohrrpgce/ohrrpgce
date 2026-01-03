@@ -2,7 +2,7 @@
 #
 # Build and package builds for linux
 
-SCONS_ARGS="release=1"
+SCONS_ARGS="release=1 v=1"
 FULLNAME=${1:-ohrrpgce-linux-\{DATE\}-\{BRANCH\}}
 PLAYERNAME=${2:-ohrrpgce-player-linux-\{DATE\}-\{BRANCH\}}
 

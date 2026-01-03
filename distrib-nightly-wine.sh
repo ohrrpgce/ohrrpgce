@@ -12,7 +12,7 @@ SCPDEST="HamsterRepublic.com/ohrrpgce/nightly"
 SCPDOCS="HamsterRepublic.com/ohrrpgce/nightly/docs"
 SCPSYMBOLS="HamsterRepublic.com/ohrrpgce/symbols-archive"
 
-SCONS_ARGS="release=1 pdb=1"
+SCONS_ARGS="release=1 pdb=1 v=1"
 
 #### Using wine
 export WINEDEBUG=fixme-all  # turn off wine's debug noise

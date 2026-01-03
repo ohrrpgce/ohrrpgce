@@ -9,7 +9,7 @@ echo "Building OHRRPGCE distribution for Windows from Linux"
 
 #-----------------------------------------------------------------------
 
-SCONS_ARGS="release=1 pdb=1"
+SCONS_ARGS="release=1 pdb=1 v=1"
 
 #### Using wine
 export WINEDEBUG=fixme-all  # turn off wine's debug noise
