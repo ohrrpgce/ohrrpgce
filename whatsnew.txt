@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-Jan 03 2026 [Lexiphanic]
+Jan 10 2026 [Lexiphanic]
 
   *** New Features
    * New general battle system option to not display rewards at the end of a
