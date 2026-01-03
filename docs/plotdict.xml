@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2026-01-03">
+<plotscript version="wip" datecode="2026-01-04">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -12365,6 +12365,60 @@ resize extra(get zone(10), 5)
 set extra(get zone(10), -1, 42) # Can also be written as  set zone extra(10, -1, 42)
 				</example>
 			</description>
+		</command>
+
+		<command id="nextzonetilex">
+			<canon>next zone tile x (zone id, current x, current y)</canon>
+			<shortname>next zone tile x</shortname>
+			<altcommand id="nextzonetiley" alias="hide">
+				<canon>next zone tile y (zone id, current x, current y)</canon>
+				<shortname>next zone tile y</shortname>
+			</altcommand>
+			<description>
+				Functions to find all tiles in a zone one by one, returning the x and y coordinate of the next tile
+				after the <p>current x</p>, <p>current y</p> position.
+				The map is scanned row-by-row from left to right, top to bottom.
+				<p>zone id</p> is a zone ID (from 1 to 9999 or a special ID) or zone handle.
+				<p>current x</p> and <p>current y</p> are optional, leave them out or pass -1 for both to get the first tile in the zone.
+				<lb/>
+				Returns -1 if there are no more tiles after the current position or if the zone is empty.
+				<example># Finds the shortest distance (simple X + Y distance) in tiles between the player and any
+# tile in the given zone, or returns 9999 if the zone is empty.
+# Note: doesn't consider distances over the edges of a wrapping map!
+script, hero distance to zone, zone, begin
+  # Where we measure from
+  variable (from x, from y)
+  from x := hero x (me)
+  from y := hero y (me)
+
+  # Iterate through all tiles in the zone
+  variable (x, y, current x, current y, closest distance, distance)
+  closest distance := 9999
+  x := next zone tile x (zone)
+  y := next zone tile y (zone)
+  while (x > -1) do (
+    # Do something with the tile at (x, y)
+    distance := abs(from x -- x) + abs(from y -- y)  # Manhatten distance formula
+    closest distance := min (closest distance, distance)
+
+    current x := x
+    current y := y
+    x := next zone tile x (zone, current x, current y)
+    y := next zone tile y (zone, current x, current y)
+  )
+  return (closest distance)
+end
+				</example>
+				<note>
+					Make sure you pass the *same* x,y values into both of <tt>next zone tile x</tt>
+					and <tt>next zone tile y</tt>, as shown in the example.
+				</note>
+			</description>
+			<seealso>
+				<ref>nextzonetiley</ref>
+				<ref>readzone</ref>
+				<ref>zonenumberoftiles</ref>
+			</seealso>
 		</command>
 
 		</section>		<!--Zone functions-->

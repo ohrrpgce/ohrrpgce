@@ -514,9 +514,8 @@ define function, begin
 482,zoneatspot,3,0,0,0        #get the nth zone set at a tile (x, y, n)
 483,zonenumberoftiles,1,0     #get the number of tiles in this zone (zone id)
 #484,drawwithzone,3,0,0,0      #write to map layer (zone id, layer num, tile)  (unimplemented)
-#485,zonenexttilex,3,0,-1,-1   #x coordinate of next tile in zone (zone id, current x, current y)  (unimplemented)
-#486,zonenexttiley,3,0,-1,-1   #y coordinate of next tile in zone (zone id, current x, current y)  (unimplemented)
-#
+#485 unused
+#486 unused
 487,getzonename,2,0,0         #read zone name (string, zone id)
 488,getzoneextra,2,0,0        #get zone extra data (zone id, extra field)
 489,setzoneextra,3,0,0,0      #set zone extra data (zone id, extra field, value)
@@ -855,6 +854,8 @@ define function, begin
 813,herobasestatatlevel,3,0,0,0 # Return what the base state of a hero would be at a specific level.
 814,min,-1                    # return the argument with the lowest value
 815,max,-1                    # return the argument with the highest value
+816,nextzonetilex,3,0,-1,-1   # X coordinate of next tile in zone (zone id, current x, current y)
+817,nextzonetiley,3,0,-1,-1   # Y coordinate of next tile in zone (zone id, current x, current y)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

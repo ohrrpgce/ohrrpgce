@@ -160,6 +160,7 @@ define constant, begin
 1,shop:Boring Shop
 2,shop:Empty Shop
 2,menu:Menu from menu
+3,menu:1st item unselectble
 4,menu:Nothing selectable
 0,enemy:Mushboom
 1,enemy:Run Forcer

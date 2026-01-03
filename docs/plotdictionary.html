@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2025-12-01)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2026-01-04)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1173,6 +1173,7 @@ function toggleContent(target) {
 		<a href="#about-mapheight" class="ref">map height (map)</a><br>
 		<a href="#about-mapmusicissuspended" class="ref">map music is suspended</a><br>
 		<a href="#about-mapwidth" class="ref">map width (map)</a><br>
+		<a href="#about-max" class="ref">max (number, number, ...)</a><br>
 		<a href="#about-maximumstat" class="ref">maximum stat</a><br>
 		<a href="#about-maxmapid" class="ref">max map id</a><br>
 		<a href="#about-me" class="ref">me</a><br>
@@ -1192,6 +1193,7 @@ function toggleContent(target) {
 		<a href="#about-microseconds" class="ref">microseconds</a><br>
 		<a href="#about-middlebutton" class="ref">middle button</a><br>
 		<a href="#about-milliseconds" class="ref">milliseconds</a><br>
+		<a href="#about-min" class="ref">min (number, number, ...)</a><br>
 		<a href="#about-minutesofplay" class="ref">minutes of play</a><br>
 		<a href="#about-modulus" class="ref">number,mod,number</a><br>
 		<a href="#about-moneyreward" class="ref">money reward</a><br>
@@ -1228,6 +1230,8 @@ function toggleContent(target) {
 		<a href="#about-nextsliceintree" class="ref">next slice in tree (current slice, root slice, visit children)</a><br>
 		<a href="#about-nextspritesibling" class="ref">next sprite sibling (handle)</a><br>
 		<a href="#about-nexttextsibling" class="ref">next text sibling (handle)</a><br>
+		<a href="#about-nextzonetilex" class="ref">next zone tile x (zone id, current x, current y)</a><br>
+		<a href="#about-nextzonetiley" class="ref">next zone tile y (zone id, current x, current y)</a><br>
 		<a href="#about-none" class="ref">none</a><br>
 		<a href="#about-north" class="ref">north</a><br>
 		<a href="#about-northwall" class="ref">north wall</a><br>
@@ -1559,7 +1563,7 @@ function toggleContent(target) {
 		<a href="#about-setspriteframe" class="ref">set sprite frame (handle, num)</a><br>
 		<a href="#about-setspriteframeid" class="ref">set sprite frame id (handle, id, exact)</a><br>
 		<a href="#about-setspritepalette" class="ref">set sprite palette (handle, num)</a><br>
-		<a href="#about-setspritesetnumber" class="ref">set sprite set number (handle, record)</a><br>
+		<a href="#about-setspritesetnumber" class="ref">set sprite set number (handle, set number)</a><br>
 		<a href="#about-setspritetrans" class="ref">set sprite trans (handle, drawtransparent)</a><br>
 		<a href="#about-setslicevisible" class="ref">set sprite visible</a><br>
 		<a href="#about-settag" class="ref">set tag (tag,value)</a><br>
@@ -1970,6 +1974,8 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 		<a href="#about-divide" class="ref">number / number</a><br>
 		<a href="#about-modulus" class="ref">number,mod,number</a><br>
 		<a href="#about-exponent" class="ref">number ^ power</a><br>
+		<a href="#about-min" class="ref">min (number, number, ...)</a><br>
+		<a href="#about-max" class="ref">max (number, number, ...)</a><br>
 		<a href="#about-abs" class="ref">abs (number)</a><br>
 		<a href="#about-sign" class="ref">sign (number)</a><br>
 		<a href="#about-sqrt" class="ref">sqrt (number)</a><br>
@@ -2061,6 +2067,26 @@ include, ..\utility scripts\math.hss  # A few useful scripts shared between mult
 				<h4>number ^ power</h4>
 <p>
 			Raises a number to a power and returns the result. (If the result is too large and overflows no error occurs: the value is simply wrapped around a 32 bit signed integer.) This can also be written as <span class="param">exponent(number,power)</span>
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-min"></a>
+				<h4>min (number, number, ...)</h4>
+<p>
+			Returns the smallest value from two or more arguments.
+			
+			
+			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-max"></a>
+				<h4>max (number, number, ...)</h4>
+<p>
+			Returns the largest value from two or more arguments.
 			
 			
 			
@@ -13798,7 +13824,7 @@ set menu on close script(m, @my menu exit handler)
 		<a href="#about-putsprite" class="ref">put sprite (handle, x, y)</a><br>
 		<a href="#about-putsprite" class="ref">place sprite</a><br>
 		<a href="#about-getspritetype" class="ref">get sprite type (handle)</a><br>
-		<a href="#about-setspritesetnumber" class="ref">set sprite set number (handle, record)</a><br>
+		<a href="#about-setspritesetnumber" class="ref">set sprite set number (handle, set number)</a><br>
 		<a href="#about-getspritesetnumber" class="ref">get sprite set number (handle)</a><br>
 		<a href="#about-setspritepalette" class="ref">set sprite palette (handle, num)</a><br>
 		<a href="#about-getspritepalette" class="ref">get sprite palette (handle)</a><br>
@@ -18021,9 +18047,9 @@ set horiz align(sl, edge:right)
 </div>
 		<div class="command">
 			<a name="about-setspritesetnumber"></a>
-				<h4>set sprite set number (handle, record)</h4>
+				<h4>set sprite set number (handle, set number)</h4>
 <p>
-			Changes the record number of the spriteset of a sprite slice <span class="param">handle</span>.
+			Changes the sprite set of a sprite slice <span class="param">handle</span>. <span class="param">set number</span> is the spriteset ID.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -18040,7 +18066,7 @@ set horiz align(sl, edge:right)
 			<a name="about-getspritesetnumber"></a>
 				<h4>get sprite set number (handle)</h4>
 <p>
-			Gets the record number of the spriteset of a sprite slice <span class="param">handle</span>.
+			Gets the sprite set ID of a sprite slice <span class="param">handle</span>.
 			
 			
 			<div class="seealso">See also: <ul>
@@ -20237,6 +20263,8 @@ end
 		<a href="#about-setzoneextra" class="ref">set zone extra (zone id, extra num, value)</a><br>
 		<a href="#about-zonenumberoftiles" class="ref">zone number of tiles (zone id)</a><br>
 		<a href="#about-getzone" class="ref">get zone (zone id)</a><br>
+		<a href="#about-nextzonetilex" class="ref">next zone tile x (zone id, current x, current y)</a><br>
+		<a href="#about-nextzonetiley" class="ref">next zone tile y (zone id, current x, current y)</a><br>
 </ul>
 <ul></ul>
 </li>
@@ -20963,6 +20991,65 @@ set extra(get zone(10), -1, 42) # Can also be written as  set zone extra(10, -1,
 			
 			
 			
+		</p>
+</div>
+		<div class="command">
+			<a name="about-nextzonetilex"></a>
+			<a name="about-nextzonetiley"></a>
+				<h4>next zone tile x (zone id, current x, current y)</h4>
+			<h4>next zone tile y (zone id, current x, current y)</h4>
+<p>
+			
+				Functions to find all tiles in a zone one by one, returning the x and y coordinate of the next tile
+				after the <span class="param">current x</span>, <span class="param">current y</span> position.
+				The map is scanned row-by-row from left to right, top to bottom.
+				<span class="param">zone id</span> is a zone ID (from 1 to 9999 or a special ID) or zone handle.
+				<span class="param">current x</span> and <span class="param">current y</span> are optional, leave them out or pass -1 for both to get the first tile in the zone.
+				<br>
+				Returns -1 if there are no more tiles after the current position or if the zone is empty.
+				<pre># Finds the shortest distance (simple X + Y distance) in tiles between the player and any
+# tile in the given zone, or returns 9999 if the zone is empty.
+# Note: doesn't consider distances over the edges of a wrapping map!
+script, hero distance to zone, zone, begin
+  # Where we measure from
+  variable (from x, from y)
+  from x := hero x (me)
+  from y := hero y (me)
+
+  # Iterate through all tiles in the zone
+  variable (x, y, current x, current y, closest distance, distance)
+  closest distance := 9999
+  x := next zone tile x (zone)
+  y := next zone tile y (zone)
+  while (x &gt; -1) do (
+    # Do something with the tile at (x, y)
+    distance := abs(from x -- x) + abs(from y -- y)  # Manhatten distance formula
+    closest distance := min (closest distance, distance)
+
+    current x := x
+    current y := y
+    x := next zone tile x (zone, current x, current y)
+    y := next zone tile y (zone, current x, current y)
+  )
+  return (closest distance)
+end
+				</pre>
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					Make sure you pass the *same* x,y values into both of <span class="code">next zone tile x</span>
+					and <span class="code">next zone tile y</span>, as shown in the example.
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-nextzonetiley" class="ref">next zone tile y</a>, </li>
+<li>
+<a href="#about-readzone" class="ref">read zone</a>, </li>
+<li><a href="#about-zonenumberoftiles" class="ref">zone number of tiles</a></li>
+</ul>
+</div>
 		</p>
 </div>
 		<hr>
@@ -24206,7 +24293,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 1006 commands (of which 16 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 1009 commands (of which 16 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

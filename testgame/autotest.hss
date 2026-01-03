@@ -7145,6 +7145,35 @@ script, zone tests, begin
   assert(check zone(6, 16, 14) == 1)
   assert(check zone(1003, 16, 14) == 1)
 
+  # Test next zone tile x/y
+  # Zone 8 (empty zone)
+  assert(next zone tile x(8, -1, -1) == -1)
+  assert(next zone tile y(8, -1, -1) == -1)
+  # Zone 5 (everywhere)
+  assert(next zone tile x(5, -1, -1) == 0)
+  assert(next zone tile y(5, -1, -1) == 0)
+  assert(next zone tile x(5, 0, 0) == 1)
+  assert(next zone tile y(5, 0, 0) == 0)
+  assert(next zone tile x(5, mapwidth -- 1, 0) == 0)
+  assert(next zone tile y(5, mapwidth -- 1, 0) == 1)
+  assert(next zone tile x(5, mapwidth -- 1, mapheight -- 1) == -1)
+  assert(next zone tile y(5, mapwidth -- 1, mapheight -- 1) == -1)
+  # An invalid coordinate over map edge: should just continue from the next row
+  assert(next zone tile x(5, mapwidth + 2, 3) == 0)
+  assert(next zone tile y(5, mapwidth + 2, 3) == 4)
+  assert(next zone tile x(5, 0, mapheight) == -1)
+  assert(next zone tile y(5, 0, mapheight) == -1)
+  # Test with zone:OneWayExit which contains (4,10), (5,10) only
+  assert(next zone tile x(zone:OneWayExit, -1, -1) == 4)
+  assert(next zone tile y(zone:OneWayExit, -1, -1) == 10)
+  assert(next zone tile x(zone:OneWayExit, 4, 10) == 5)
+  assert(next zone tile y(zone:OneWayExit, 4, 10) == 10)
+  assert(next zone tile x(zone:OneWayExit, 5, 10) == -1)
+  assert(next zone tile y(zone:OneWayExit, 5, 10) == -1)
+  # Test starting from position before the zone
+  assert(next zone tile x(zone:OneWayExit, 0, 0) == 4)
+  assert(next zone tile y(zone:OneWayExit, 0, 0) == 10)
+
   zones randomized test
 end
 

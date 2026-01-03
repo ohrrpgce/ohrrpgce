@@ -28,6 +28,7 @@ Jan 10 2026 [Lexiphanic]
     * "get/set fill parent" "get/set cover children" [James]
     * "hero base stat at level", "reset hero base stat" [James]
     * "min" and "max" [James]
+    * "next zone tile x/y" [Ralph]
 
   *** Changes
     Now that "min" and "max" are built-in script commands, if you used

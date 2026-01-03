@@ -3197,11 +3197,7 @@ SUB script_commands(byval cmdid as integer)
   IF id THEN
    scriptret = GetZoneInfo(zmap, id)->numtiles
   END IF
-/' Unimplemented
- CASE 484'--draw with zone (id, layer)
- CASE 485'--zone next tile x (id, x, y)
- CASE 486'--zone next tile y (id, x, y)
-'/
+ 'CASE 484'--draw with zone (id, layer) (unimplemented)
  CASE 487'--get zone name (string, id)
   id = get_arg_zoneid(1)
   IF id ANDALSO valid_plotstr(retvals(0)) THEN
@@ -5564,6 +5560,14 @@ SUB script_commands(byval cmdid as integer)
    FOR i as integer = 1 TO curcmd->argc - 1
     scriptret = large(scriptret, retvals(i))
    NEXT i
+  END IF
+ CASE 816, 817 '--next zone tile x, next zone tile y (id, x, y)
+  id = get_arg_zoneid(0)
+  IF id THEN
+   DIM result as XYPair = GetNextZoneTile(zmap, id, XY(retvals(1), retvals(2)))
+   scriptret = IIF(cmdid = 816, result.x, result.y)
+  ELSE
+   scriptret = -1
   END IF
 
  CASE ELSE

@@ -1049,6 +1049,27 @@ FUNCTION CheckZoneAtTile(zmap as ZoneMap, id as integer, x as integer, y as inte
   RETURN NO
 END FUNCTION
 
+'Find the next tile in a zone after the given position, scanning row-by-row, or XY(-1, -1) if no more tiles.
+FUNCTION GetNextZoneTile(zmap as ZoneMap, id as integer, byval pos as XYPair) as XYPair
+  WITH zmap
+    IF pos.x < 0 ORELSE pos.y < 0 THEN
+      pos = XY(0, 0)
+    ELSE
+      pos.x += 1
+    END IF
+
+    WHILE pos.y < .high
+      WHILE pos.x < .wide
+        IF CheckZoneAtTile(zmap, id, pos.x, pos.y) THEN RETURN pos
+        pos.x += 1
+      WEND
+      pos.x = 0
+      pos.y += 1
+    WEND
+  END WITH
+  RETURN XY(-1, -1)
+END FUNCTION
+
 'Print ZoneMap debug info, including data about a specific tile if specified
 SUB DebugZoneMap(zmap as ZoneMap, byval x as integer = -1, byval y as integer = -1)
   WITH zmap
