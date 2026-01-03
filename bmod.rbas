@@ -210,22 +210,18 @@ FUNCTION battle (byval form as integer) as bool
   IF always_enable_debug_keys <> 0 OR prefbit(8) = NO THEN '"Disable debugging keys" off
    check_battle_debug_keys bat, bslot(), formdata
 
-   ''--This will be disabled when it is no longer needed. If Ctrl/Shift+F10 is needed
-   ''--for something more important don't hesitate to claim it
-   'IF (keyval(scSHIFT) > 0 OR keyval(scCTRL) > 0) AND keyval(scF10) > 1 THEN
-   ' loopvar bat.test_view_mode, 0, 2
-   ' SELECT CASE bat.test_view_mode
-   '  CASE 0: bat.test_future = NO : notification "bat.test_view_mode Classic"
-   '  CASE 1: notification "bat.test_view_mode Flicker"
-   '  CASE 2: bat.test_future = YES : notification "bat.test_view_mode Future"
-   ' END SELECT
-   'END IF
+   '--This will be disabled when it is no longer needed. If Ctrl/Shift+F10 is needed
+   '--for something more important don't hesitate to claim it
+   IF (keyval(scSHIFT) > 0 OR keyval(scCTRL) > 0) AND keyval(scF10) > 1 THEN
+    loopvar bat.test_view_mode, 0, 2
+    SELECT CASE bat.test_view_mode
+     CASE 0: bat.test_future = NO : notification "bat.test_view_mode Classic"
+     CASE 1: notification "bat.test_view_mode Flicker"
+     CASE 2: bat.test_future = YES : notification "bat.test_view_mode Future"
+    END SELECT
+   END IF
   END IF
   
-  IF keyval(scTab) > 1 THEN
-   bat.itemsmode = NOT bat.itemsmode
-  END IF
-
   IF keyval(scPause) > 1 THEN battle_pause
   IF battle_run_away(bat, bslot()) THEN
    result = NO
@@ -1234,7 +1230,7 @@ SUB battle_display_menus (byref bat as BattleState, bslot() as BattleSprite, st(
     END IF
    END IF
    IF bat.menu_mode = batMENUITEM THEN '--draw item menu
-    IF bat.itemsmode THEN
+    IF bat.test_future THEN
      bat.itemst.ps.m->Visible = YES
     ELSE
     '--legacy items display

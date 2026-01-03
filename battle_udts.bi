@@ -366,13 +366,12 @@ TYPE BattleState
  iuse(inventoryMax / 16) as integer 'bitsets for whether items can be used by the current hero
  'Slice based item screen
  itemst as ItemScreenState ' Same object that the inventory screen uses, but the battle item screen does not implement all features
- itemsmode as bool ' NO=legacy YES=Plankmenu
  'For debug keys
  debug_show_info as integer    '0=nothing, 1=show_enemy_meters, 2=display_attack_queue
  debug_player_control as bool  'Set .under_player_control on all (new) enemies
  'The following don't do anything right now, but are handy to leave in
- test_view_mode as integer 'used for debugging new display stuff with F9
- test_future as integer    'used for debugging new display stuff with F9
+ test_view_mode as integer 'used for debugging new display stuff with Shift+F10
+ test_future as integer    'used for debugging new display stuff with Shift+F10
 END TYPE
 
 
