@@ -52,8 +52,8 @@ builddir = Dir('.').abspath + os.path.sep
 rootdir = Dir('#').abspath + os.path.sep
 
 release = int (ARGUMENTS.get ('release', False))
-verbose = int (ARGUMENTS.get ('v', False))
-if verbose:
+verbose = int (ARGUMENTS.get ('v', 0))
+if verbose >= 2:
     FBFLAGS += ['-v']
 if 'FBFLAGS' in os.environ:
     FBFLAGS += shlex.split (os.environ['FBFLAGS'])
@@ -502,6 +502,21 @@ for tool in ('FBC', 'CC', 'FBCC', 'CXX', 'MAKE', 'EUC', 'EUBIND'):
 
 FBFLAGS += ['-i', builddir]  # For backendinfo.bi
 
+def quieten(short_msg, cmd):
+    "Wrap a command to only display a short message in v=0 builds."
+    if verbose == 0:
+        return Action(cmd, short_msg + ' $TARGET')
+    return cmd
+
+if verbose == 0:
+    # Set short compile messages for builtin builders
+    env['CCCOMSTR'] = 'CC $TARGET'
+    env['CXXCOMSTR'] = 'CXX $TARGET'
+    env['SHCCCOMSTR'] = 'CC $TARGET'   # Building a shared object
+    env['SHCXXCOMSTR'] = 'CXX $TARGET'
+    env['LINKCOMSTR'] = 'Linking $TARGET'
+    env['SHLINKCOMSTR'] = 'Linking $TARGET'
+
 def prefix_targets(target, source, env):
     target = [File(env['VAR_PREFIX'] + str(a)) for a in target]
     return target, source
@@ -525,7 +540,7 @@ else:
 def bas_build_action(moreflags = ''):
     "Actions to compile .bas to .o/.obj or to .c"
     if transpile_dir:
-        return ['$FBC $FBFLAGS -r $SOURCE -o $TARGET ' + moreflags]
+        return [quieten('FBC', '$FBC $FBFLAGS -r $SOURCE -o $TARGET ' + moreflags)]
 
     if gengcc and FBCC.is_clang and not web:
         # fbc asks FBCC to produce assembly and then runs that through as,
@@ -534,12 +549,15 @@ def bas_build_action(moreflags = ''):
         # NOTE: $CFLAGS in the env = CFLAGS + NONFBC_CFLAGS in Python.
         # CFLAGS contains -Wall which overrides any -Wno-* args in FBC_CFLAGS,
         # so don't pass -Wall again.
-        return ['$FBC $FBFLAGS -r $SOURCE -o ${TARGET}.c ' + moreflags,
-                '$FBCC $FBC_CFLAGS ${list(set(CFLAGS).difference(FBC_CFLAGS))} $GENGCC_CFLAGS -c ${TARGET}.c -o $TARGET']
+        # Show only one "FBC" message for both steps
+        return quieten('FBC', [
+            '$FBC $FBFLAGS -r $SOURCE -o ${TARGET}.c ' + moreflags,
+            '$FBCC $FBC_CFLAGS ${list(set(CFLAGS).difference(FBC_CFLAGS))} $GENGCC_CFLAGS -c ${TARGET}.c -o $TARGET'
+        ])
     else:
         # In this case FBC_CFLAGS isn't needed (fbc passes them automatically),
         # and GENGCC_CFLAGS has already been added into FBFLAGS with -Wc.
-        return '$FBC $FBFLAGS -c $SOURCE -o $TARGET ' + moreflags
+        return quieten('FBC', '$FBC $FBFLAGS -c $SOURCE -o $TARGET ' + moreflags)
 
 def compile_bas_modules(target, source, env):
     """
@@ -603,8 +621,8 @@ if transpile_dir:
 if not linkgcc:
     # Linking with fbc.
     # Because fbc < 1.07 ignores all but the last -Wl flag, have to concatenate them.
-    basexe = Builder (action = ['$FBC $FBFLAGS -x $TARGET $SOURCES $FBLINKFLAGS ${FBLINKERFLAGS and "-Wl " + ",".join(FBLINKERFLAGS)}',
-                                check_binary],
+    fbc_link_action = '$FBC $FBFLAGS -x $TARGET $SOURCES $FBLINKFLAGS ${FBLINKERFLAGS and "-Wl " + ",".join(FBLINKERFLAGS)}'
+    basexe = Builder (action = [quieten('Linking', fbc_link_action), check_binary],
                       suffix = exe_suffix, src_suffix = '.bas',
                       source_factory = translate_rb)
 else:
@@ -615,12 +633,12 @@ else:
 def depend_on_reloadbasic_py(target, source, env):
     return (target, source + ['reloadbasic/reloadbasic.py'])
 
-rbasic_builder = Builder (action = [[python, File('reloadbasic/reloadbasic.py'), '--careful', '$SOURCE', '-o', '$TARGET']],
+rbasic_builder = Builder (action = quieten('RB', [[python, File('reloadbasic/reloadbasic.py'), '--careful', '$SOURCE', '-o', '$TARGET']]),
                           suffix = '.rbas.bas', src_suffix = '.rbas', emitter = depend_on_reloadbasic_py)
 
 # windres is part of mingw.
 # FB includes GoRC.exe, but finding that file is too much trouble...
-rc_builder = Builder (action = target_prefix + 'windres --input $SOURCE --output $TARGET',
+rc_builder = Builder (action = quieten('RC', target_prefix + 'windres --input $SOURCE --output $TARGET'),
                       suffix = '.obj', src_suffix = '.rc')
 
 bas_scanner = Scanner (function = ohrbuild.basfile_scan,
@@ -935,7 +953,7 @@ if linkgcc:
     else:
         CCLINKFLAGS += ['-Wl,-L' + libpath, os.path.join(libpath, 'fbrt0.o'), '-lfbmt']
 
-    if verbose:
+    if verbose >= 2:
         CCLINKFLAGS += ['-v']
     if linkgcc_strip:
         # Strip debug info but leave in the function (and unwanted global) symbols.
@@ -1019,8 +1037,8 @@ if linkgcc:
     else:
         basexe_gcc_action = '$CC -o $TARGET $SOURCES "-Wl,-(" $CCLINKFLAGS "-Wl,-)"'
 
-    basexe = Builder(action = [basexe_gcc_action, check_binary, handle_symbols], suffix = exe_suffix,
-                     src_suffix = '.bas', emitter = compile_bas_modules)
+    basexe = Builder(action = [quieten('Linking', basexe_gcc_action), check_binary, handle_symbols],
+                     suffix = exe_suffix, src_suffix = '.bas', emitter = compile_bas_modules)
 
     env['BUILDERS']['BASEXE'] = basexe
 
@@ -2030,7 +2048,10 @@ Options:
                       anything or reimporting scripts.
   headless=1          Affects test targets only: run Game/Custom with --nogfx
                       to not need a graphical desktop. Requires gfx_console/fb
-  v=1                 Verbose output from commands.
+  v=0|1|2             Verbosity level for compile commands:
+                       v=0: (Default) Show short messages like "FBC build/foo.o"
+                       v=1: Show full command lines
+                       v=2: Full command lines plus extra verbosity (-v to fbc)
   linkgcc=0           Link using fbc instead of gcc/clang. May not work.
   compiler=gcc|clang|...   Prefer to use clang/gcc/... for C, C++ and -gen gcc.
                       Defaults to gcc (and g++), or emcc for web builds.
