@@ -5321,11 +5321,11 @@ FUNCTION knows_attack(who as integer, atk as integer, bslot() as BattleSprite) a
  RETURN NO
 END FUNCTION
 
-SUB queue_attack(attack as integer, who as integer, targs() as integer, override_blocking as integer=-2, dont_retarget as bool = NO)
+SUB queue_attack(attack as integer, who as integer, targs() as integer, override_blocking as optbool=NONBOOL, dont_retarget as bool = NO)
  DIM atk as AttackData
  loadattackdata atk, attack
  DIM blocking as bool = (atk.nonblocking = NO)
- IF override_blocking > -2 THEN blocking = override_blocking
+ IF override_blocking <> NONBOOL THEN blocking = override_blocking
  queue_attack attack, who, atk.attack_delay, atk.turn_delay, targs(), blocking, dont_retarget
 END SUB
 

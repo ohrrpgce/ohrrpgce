@@ -3082,7 +3082,7 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
  enemy_id = small(enemy_id, gen(genMaxEnemy))
  DIM enemy as EnemyDef
  
- DIM reverse as integer = 0
+ DIM reverse as bool = NO
 
  DIM preview_box as Slice Ptr
  preview_box = NewSliceOfType(slRectangle)
@@ -3115,12 +3115,12 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
   setkeys YES
   IF state.need_update THEN
    state.need_update = NO
-   menu(1) = "Attack X Offset: " & xoff & IIF(reverse <> 0, "(mirrored)", "")
+   menu(1) = "Attack X Offset: " & xoff & IIF(reverse, "(mirrored)", "")
    menu(2) = "Attack Y Offset: " & yoff
-   menu(3) = "Horizontal Alignment: " & safe_caption(halign_cap(), halign, "alignment") & IIF(reverse <> 0, "(mirrored)", "")
+   menu(3) = "Horizontal Alignment: " & safe_caption(halign_cap(), halign, "alignment") & IIF(reverse, "(mirrored)", "")
    menu(4) = "Vertical Alignment: " & safe_caption(valign_cap(), valign, "alignment")
    menu(5) = "Preview on Enemy: " & enemy_id & " " & readenemyname(enemy_id)
-   menu(6) = "Attack done by " & IIF(reverse <> 0, "Enemy", "Hero")
+   menu(6) = "Attack done by " & IIF(reverse, "Enemy", "Hero")
    attack.targ_offset_x = xoff
    attack.targ_offset_y = yoff
    attack.targ_halign = halign
@@ -3147,9 +3147,6 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
     CASE 5:
      enemy_id = enemy_picker(enemy_id)
      state.need_update = YES
-    CASE 6:
-     reverse XOR= 1
-     state.need_update = YES
    END SELECT
   END IF
 
@@ -3166,7 +3163,7 @@ SUB attack_alignment_editor (byval attack_id as integer, byref xoff as integer, 
    CASE 5:
     IF intgrabber(enemy_id, 0, gen(genMaxEnemy)) THEN state.need_update = YES
    CASE 6:
-    IF intgrabber(reverse, 0, 1) THEN state.need_update = YES
+    IF boolgrabber(reverse, state) THEN state.need_update = YES
   END SELECT
 
   clearpage vpage

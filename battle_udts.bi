@@ -137,29 +137,29 @@ TYPE BattleSprite
   regen_repeat as integer
   '--Turn-taking
   ready_meter as integer '0-1000, fills based on speed. When 1000, set .ready=YES
-  ready  as integer  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
+  ready  as bool     ' Whether the hero or enemy can have a turn
   attack as integer  ' ID number +1 of the attack that this hero or enemy is going to do next
   '--Targetting
   revenge             as integer 'slot of last hero or enemy who damaged this hero or enemy, or -1 for none
   thankvenge          as integer 'slot of last hero or enemy who cured this hero or enemy, or -1 for none
-  revengemask(11)     as integer 'YES for each hero or enemy who has damaged this hero/enemy at least once, otherwise NO
-  thankvengemask(11)  as integer 'YES for each hero or enemy who has cured this hero/enemy at least once, otherwise NO
+  revengemask(11)     as bool    'each hero or enemy who has damaged this hero/enemy at least once
+  thankvengemask(11)  as bool    'each hero or enemy who has cured this hero/enemy at least once
   counter_target      as integer 'slot of the last attacker to target this hero/enemy with any attack, -1 for none
-  last_targs(11)      as integer 'YES for each target previously hit by this hero/enemy, otherwise NO
-  stored_targs(11)    as integer 'YES for each stored target for ths hero/enemy, otherwise NO
-  stored_targs_can_be_dead as integer
+  last_targs(11)      as bool    'targets previously hit by this hero/enemy
+  stored_targs(11)    as bool    'stored targets for this hero/enemy
+  stored_targs_can_be_dead as bool
   '--Bitsets
-  harmed_by_cure as integer 'YES/NO
-  mp_idiot       as integer 'YES/NO for turn loss when using MP-consuming attacks after MP runs out
-  is_boss        as integer 'YES/NO
-  unescapable    as integer 'YES/NO
-  die_without_boss    as integer 'YES/NO
-  flee_instead_of_die as integer 'YES/NO
-  enemy_untargetable  as integer 'YES/NO
-  hero_untargetable   as integer 'YES/NO
-  death_unneeded as integer 'YES/NO
-  never_flinch   as integer 'YES/NO
-  ignore_for_alone    as integer 'YES/NO
+  harmed_by_cure as bool
+  mp_idiot       as bool 'turn loss when using MP-consuming attacks after MP runs out
+  is_boss        as bool
+  unescapable    as bool
+  die_without_boss    as bool
+  flee_instead_of_die as bool
+  enemy_untargetable  as bool
+  hero_untargetable   as bool
+  death_unneeded as bool
+  never_flinch   as bool
+  ignore_for_alone    as bool
   give_rewards_even_if_alive as bool
   '--counterattacking
   elem_counter_attack(maxElements - 1) as integer
@@ -237,7 +237,7 @@ END ENUM
 'This type stores the visual state of the victory display
 TYPE VictoryState
  state as VictoryStateEnum
- showlearn as integer 'NO when not showing spell learning, YES when already showing a learned spell
+ showlearn as bool   'YES when showing a learned spell
  learnwho as integer 'battle slot of hero currently displaying learned spells
  learnlist as integer 'spell list of hero currently displaying learned spells
  learnslot as integer 'spell list slot of hero currently displaying learned spells
@@ -282,7 +282,7 @@ TYPE SpellMenuItem
  desc as string
  cost as string
  atk_id as integer
- enable as integer 'YES or NO
+ enable as bool
 END TYPE
 TYPE SpellMenuState
  slot(23) as SpellMenuItem

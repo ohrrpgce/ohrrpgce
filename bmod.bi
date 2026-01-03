@@ -70,7 +70,7 @@ DECLARE FUNCTION valid_statnum(byval statnum as integer, context as string) as b
 DECLARE FUNCTION knows_attack(byval who as integer, byval atk as integer, bslot() as BattleSprite) as bool
 DECLARE FUNCTION distribute_party_experience (byval exper as integer) as integer
 
-DECLARE SUB queue_attack OVERLOAD (attack as integer, who as integer, targs() as integer, override_blocking as integer=-2, dont_retarget as bool = NO)
+DECLARE SUB queue_attack OVERLOAD (attack as integer, who as integer, targs() as integer, override_blocking as optbool=NONBOOL, dont_retarget as bool = NO)
 DECLARE SUB queue_attack OVERLOAD (attack as integer, who as integer, delay as integer, turn_delay as integer, targs() as integer, blocking as bool=YES, dont_retarget as bool = NO)
 DECLARE SUB set_attack_queue_slot(slot as integer, attack as integer, who as integer, delay as integer, turn_delay as integer, targs() as integer, blocking as bool=YES, dont_retarget as bool = NO)
 DECLARE SUB clear_attack_queue()

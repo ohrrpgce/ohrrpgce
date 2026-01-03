@@ -1703,23 +1703,23 @@ FUNCTION attack_can_hit_dead(attack as AttackData, stored_targs_can_be_dead as b
  RETURN NO
 END FUNCTION
 
-FUNCTION autotarget (who as integer, atk_id as integer, bslot() as BattleSprite, bat as BattleState, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
+FUNCTION autotarget (who as integer, atk_id as integer, bslot() as BattleSprite, bat as BattleState, queue as bool=YES, override_blocking as optbool=NONBOOL, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
  DIM t(11) as integer
  RETURN autotarget(who, atk_id, bslot(), bat, t(), queue, override_blocking, dont_retarget, is_counterattack)
 END FUNCTION
 
-FUNCTION autotarget (who as integer, atk_id as integer, bslot() as BattleSprite, bat as BattleState, t() as integer, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
+FUNCTION autotarget (who as integer, atk_id as integer, bslot() as BattleSprite, bat as BattleState, t() as integer, queue as bool=YES, override_blocking as optbool=NONBOOL, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
  DIM attack as AttackData
  loadattackdata attack, atk_id
  RETURN autotarget(who, attack, bslot(), bat, t(), queue, override_blocking, dont_retarget, is_counterattack)
 END FUNCTION
 
-FUNCTION autotarget (who as integer, byref atk as AttackData, bslot() as BattleSprite, bat as BattleState, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
+FUNCTION autotarget (who as integer, byref atk as AttackData, bslot() as BattleSprite, bat as BattleState, queue as bool=YES, override_blocking as optbool=NONBOOL, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
  DIM t(11) as integer
  RETURN autotarget(who, atk, bslot(), bat, t(), queue, override_blocking, dont_retarget, is_counterattack)
 END FUNCTION
 
-FUNCTION autotarget (who as integer, byref atk as AttackData, bslot() as BattleSprite, bat as BattleState, t() as integer, queue as bool=YES, override_blocking as integer=-2, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
+FUNCTION autotarget (who as integer, byref atk as AttackData, bslot() as BattleSprite, bat as BattleState, t() as integer, queue as bool=YES, override_blocking as optbool=NONBOOL, dont_retarget as bool=NO, is_counterattack as bool=NO) as bool
  '--Returns true if the targetting was successful, or false if it failed for some reason
  ' such as no valid targets being available.
 
