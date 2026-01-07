@@ -24,7 +24,7 @@ if [ -n "True" ] ; then
 
   echo "Currently in dir:"
   pwd
-  OHRDIR="$(pwd)" docker/ohrrpgce-build-env-x86/lin32.sh -c '/src/ohr/distrib-linux.sh ohrrpgce-linux-wip ohrrpgce-player-linux-wip' || exit 1
+  OHRDIR="$(pwd)" docker/ohrrpgce-build-env-linux-x86/lin32.sh -c '/src/ohr/distrib-linux.sh ohrrpgce-linux-wip ohrrpgce-player-linux-wip' || exit 1
   echo "Currently in dir:"
   pwd
   

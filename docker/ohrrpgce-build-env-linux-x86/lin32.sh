@@ -20,7 +20,7 @@ export OHRDIR=${OHRDIR:-~/src/ohrrpgce} # /src/ohr
 echo "OHRDIR=${OHRDIR}"
 
 # The docker image name. This will be built locally, we won't pull it
-export DOCKERIMG=bobthehamster/ohrrpgce-build-env-x86
+export DOCKERIMG=bobthehamster/ohrrpgce-build-env-linux-x86
 
 #-----------------------------------------------------------------------
 # Command line arguments
