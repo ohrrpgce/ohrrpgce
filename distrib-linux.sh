@@ -6,15 +6,14 @@ SCONS_ARGS="release=1 v=1"
 FULLNAME=${1:-ohrrpgce-linux-\{DATE\}-\{BRANCH\}}
 PLAYERNAME=${2:-ohrrpgce-player-linux-\{DATE\}-\{BRANCH\}}
 
-if [ ! -f distrib-linux.sh ] ; then
-  echo You should only run this script from the ohrrpgce directory.
-  exit 1
-fi
+SCRIPT_DIR="${0%/*}"
+SCRIPT_DIR="$(realpath $SCRIPT_DIR)"
+cd "${SCRIPT_DIR}"
 
 echo Erasing old distribution files
 mkdir -p distrib
-rm -f distrib/$FULLNAME-*.tar.bz2  #this won't work
-rm -f distrib/$PLAYERNAME-*.zip    #this won't work
+rm -f distrib/$FULLNAME-*.tar.bz2  #this won't work with default variable value, but should work fine with the values used for nightlies
+rm -f distrib/$PLAYERNAME-*.zip    #this won't work with default variable value, but should work fine with the values used for nightlies
 rm -f distrib/*.deb
 
 package_for_arch() {

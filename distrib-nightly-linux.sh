@@ -1,5 +1,15 @@
 #!/bin/sh
 
+# IN-PROGRESS: I am working on splitting this script apart as I dockerize
+# the different parts of it. It will eventually be obsolete
+#
+# * Upload souce-only zip
+# * Linux 32 bit build [Moved to Docker, not removed here yet]
+# * Linux 64 bit build
+# * Deb package 64 bit
+# * Uploading plotscript docs
+# * Uploading IMPORTANT-nightly.txt
+
 # This script compiles and uploads linux nightly builds (both x86 and x86_64 by
 # default, unless skipped by $OHR_SKIP_X86 and $OHR_SKIP_X86_64) and also all
 # platform-independent nightly files, like the plotdict.

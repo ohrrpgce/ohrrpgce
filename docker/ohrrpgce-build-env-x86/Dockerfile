@@ -3,6 +3,7 @@
 FROM debian:11-slim
 
 ENV FBC_VERSION 1.08.1
+ENV OHR_SKIP_X86_64 Yes
 
 # Install the packages needed to compile the ohrrpgce.
 # We don't bother with timidity or freepats because those

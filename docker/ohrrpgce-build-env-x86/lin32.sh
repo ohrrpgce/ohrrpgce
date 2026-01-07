@@ -98,7 +98,7 @@ echo "--------------------------------------------------------------------------
 echo "Welcome to OHRRPGCE linux 32bit build env."
 echo "Source is mounted at /src/ohr and you can try running one of these in that folder"
 echo "  scons arch=x86"
-echo "  OHR_SKIP_X86_64=Yes ./distrib-linux.sh"
+echo "  ./distrib-linux.sh"
 docker run --rm ${INTERACTIVE_TERMINAL} \
   -v "${OHRDIR}":/src/ohr \
   -u $(id -u):$(id -g) \
