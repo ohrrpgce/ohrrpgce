@@ -8,6 +8,7 @@ ENV OHR_SKIP_X86_64 Yes
 # Install the packages needed to compile the ohrrpgce.
 # We don't bother with timidity or freepats because those
 # are really run-time requirements, not build-time.
+# Git and subversion are included so the build system can get revision numbers
 
 RUN dpkg --add-architecture i386
 
@@ -15,6 +16,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
       curl \
       git \
+      subversion \
       bzip2 \
       zip unzip \
       libx11-dev:i386 \
