@@ -27,7 +27,7 @@ if [ -n "True" ] ; then
   cat $SCRIPT_DIR/nightly-check.ini
 fi > ~/wrap-nightly-check-output.txt
 ~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-check-output.txt
-scp -p $SCRIPT_DIR/nightly-check.ini $UPLOAD_DEST
+scp -i ~/.ssh/ohrrpgce_upload -p $SCRIPT_DIR/nightly-check.ini $UPLOAD_DEST
 
 # list the remote directory
-ssh $UPLOAD_SERVER ls -l $UPLOAD_FOLDER | cut -d " " -f 5-
+ssh -i ~/.ssh/ohrrpgce_upload $UPLOAD_SERVER ls -l $UPLOAD_FOLDER | cut -d " " -f 5-
