@@ -1939,7 +1939,7 @@ test_srcs = test_exes[:] if buildtests else []
 test_srcs += [AUTOTEST, INTERTEST]  # These are Nodes so can't be used as actions
 
 quiet_flag = '' if showtests else ' -q'
-tests = [Action(exe.abspath + quiet_flag, "---- " + exe.relpath + " ----")
+tests = [Action(exe.abspath + quiet_flag, "---- " + str(exe) + " ----")
          for exe in test_exes]
 TESTS = Phony ('test', source = test_srcs, action = tests)
 Alias ('tests', TESTS)
