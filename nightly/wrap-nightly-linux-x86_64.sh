@@ -29,10 +29,15 @@ if [ -n "True" ] ; then
   pwd
   
   echo "Uploading 64-bit linux binaries..."
-  UPLOAD_DEST=james_paige@motherhamster.org:HamsterRepublic.com
+  UPLOAD_SERVER=james_paige@motherhamster.org
+  UPLOAD_FOLDER=HamsterRepublic.com
+  UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
   scp -i ~/.ssh/ohrrpgce_upload -p distrib/ohrrpgce-linux-wip-x86_64.tar.bz2 $UPLOAD_DEST/ohrrpgce/nightly/
   scp -i ~/.ssh/ohrrpgce_upload -p distrib/ohrrpgce-player-linux-wip-x86_64.zip $UPLOAD_DEST/ohrrpgce/nightly/
-  echo "Upload complete."
+  echo "Uploading 64-bit deb package..."
+  ssh -i ~/.ssh/ohrrpgce_upload "$UPLOAD_SERVER" rm "$UPLOAD_FOLDER/ohrrpgce/nightly/ohrrpgce_*.wip-*_$arch.deb"
+  scp -p distrib/ohrrpgce_*.wip-*_$arch.deb $UPLOAD_DEST/ohrrpgce/nightly/
+  echo "Uploads complete."
 
 fi 2>&1 | tee ~/wrap-nightly-linux-output.txt
 ~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-linux-output.txt
