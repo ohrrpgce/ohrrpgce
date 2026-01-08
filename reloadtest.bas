@@ -667,13 +667,11 @@ sub toXMLAndBack(byval debugging as integer)
 	close fh
 
 	safekill "unittest.rld"
-	if show_tests then
-		print
-		print
-	end if
+	testprint
+	testprint
 	'Windows cmd doesn't like ./
 	shell "." + SLASH + "xml2reload" + iif(show_tests, "", " -q") + " unittest.xml unittest.rld"
-	if show_tests then print
+	testprint
 end sub
 
 startTest(loadFromXML)
