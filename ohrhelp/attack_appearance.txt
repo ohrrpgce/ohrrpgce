@@ -131,6 +131,10 @@ Attacker Animation: This controls how the attacker moves when doing the attack.
   without stepping forward. Enemies
   do nothing, not even a twitch.
 
+* Standing SpinStrike - Like
+  SpinStrike but heroes don't step
+  forward. No difference for enemies.
+
 * Teleport - The attacker vanishes
   and reappears close to the target,
   attacks, and then disappears and

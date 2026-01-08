@@ -18,6 +18,7 @@ Jan 10 2026 [Lexiphanic]
    * Wrapping text slices support Left, Center, or Right text alignment [James]
    * Slice autosort option "Custom, then Y" for Y sorting with overrides
      (and autosort:CustomThenY constant) [Ralph]
+   * Standing SpinStrike attacker animation [Ralph]
 
    * Plotscripting Features
     * Commands to access rewards from the latest battle: "money reward",

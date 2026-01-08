@@ -1463,6 +1463,7 @@ FUNCTION should_enforce_untargetability(atk as AttackData) as bool
  RETURN YES
 END FUNCTION 
 
+' Generate animation for attacker moving forward before attacking
 ' Note: attack_placement_over_target has a special case for the walk-forward-20-pixels behaviour
 SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
  DIM d as integer
@@ -1504,13 +1505,14 @@ SUB anim_advance (byval who as integer, attack as AttackData, bslot() as BattleS
   END IF
 
  CASE atkrAnimLand, atkrAnimNull, atkrAnimStandingCast, atkrAnimStandingStrike, _
-      atkrAnimRunAndHide, atkrAnimRunInUnHide
+      atkrAnimStandingSpinStrike, atkrAnimRunAndHide, atkrAnimRunInUnHide
   ' Do nothing
 
  END SELECT
 END SUB
 
-'Generate attacker animation when hero attacks
+'Generate attacker animation when hero attacks (excludes
+'anim_advance and anim_retreat parts of the animation)
 SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
 
  SELECT CASE attack.attacker_anim
@@ -1547,7 +1549,7 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
    anim_setz 24, 16 - wepoff.y
    anim_setframe 24, 1
 
-  CASE atkrAnimSpinStrike
+  CASE atkrAnimSpinStrike, atkrAnimStandingSpinStrike
    FOR ii as integer = 0 TO 2
     anim_setdir who, 1
     anim_wait 1
@@ -1597,7 +1599,8 @@ SUB anim_hero (byval who as integer, attack as AttackData, bslot() as BattleSpri
 
 END SUB
 
-'Generate attacker animation when an enemy attacks
+'Generate attacker animation when an enemy attacks (excludes
+'anim_advance and anim_retreat parts of the animation)
 SUB anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSprite, t() as integer)
 
  SELECT CASE attack.attacker_anim
@@ -1605,7 +1608,7 @@ SUB anim_enemy (byval who as integer, attack as AttackData, bslot() as BattleSpr
   anim_setz who, 2
   anim_wait 1
   anim_setz who, 0
- CASE atkrAnimSpinStrike
+ CASE atkrAnimSpinStrike, atkrAnimStandingSpinStrike
   FOR ii as integer = 0 TO 2
    anim_setdir who, 1
    anim_wait 1
@@ -1668,7 +1671,7 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
    anim_absmove who, bslot(who).x, bslot(who).y, 6
    anim_waitforall
    anim_setframe who, frameSTAND
-  CASE atkrAnimStandingCast, atkrAnimStandingStrike
+  CASE atkrAnimStandingCast, atkrAnimStandingStrike, atkrAnimStandingSpinStrike
    anim_setframe who, frameSTAND
   CASE atkrAnimNull, atkrAnimJump, atkrAnimTeleport, atkrAnimRunAndHide, atkrAnimRunInUnHide
   ' Do nothing

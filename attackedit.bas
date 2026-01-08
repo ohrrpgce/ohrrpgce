@@ -553,7 +553,7 @@ max(AtkLimChainRate) = 100
 min(AtkLimChainRate) = 0
 
 CONST AtkLimAnimAttacker = 14
-max(AtkLimAnimAttacker) = 11
+max(AtkLimAnimAttacker) = 12
 menucapoff(AtkAnimAttacker) = capindex
 addcaption caption(), capindex, "Strike"
 addcaption caption(), capindex, "Cast"
@@ -567,6 +567,7 @@ addcaption caption(), capindex, "Teleport"
 addcaption caption(), capindex, "Standing Strike"
 addcaption caption(), capindex, "Run and Hide (hides)"
 addcaption caption(), capindex, "Run In (unhides)"
+addcaption caption(), capindex, "Standing SpinStrike"
 
 CONST AtkLimAnimAttack = 15
 max(AtkLimAnimAttack) = 11
