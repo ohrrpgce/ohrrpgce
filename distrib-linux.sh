@@ -23,7 +23,9 @@ package_for_arch() {
   echo "Building $ARCH binaries"
   scons $SCONS_ARGS arch=$ARCH unlump relump || return 1
   scons $SCONS_ARGS arch=$ARCH libs=linux/$ARCH game custom || return 1
-  scons $SCONS_ARGS release=0 arch=$ARCH libs=linux/$ARCH game custom hspeak || return 1
+  # Compiling hspeak with euc is currently not working in the docker image, see
+  # https://github.com/ohrrpgce/ohrrpgce/issues/1119, so fall back to eubind (release=0)
+  scons $SCONS_ARGS release=0 arch=$ARCH libs=linux/$ARCH hspeak || return 1
 
   echo "Packaging $ARCH binary distribution of CUSTOM"
   ./ohrpackage.py linux full "distrib/$FULLNAME-$ARCH.tar.bz2" || return 1
