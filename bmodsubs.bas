@@ -1653,10 +1653,12 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
 
  IF is_hero(who) THEN
   SELECT CASE attack.attacker_anim
-  CASE atkrAnimStrike, atkrAnimCast
+  CASE atkrAnimStrike, atkrAnimCast, atkrAnimSpinStrike
    ' Walk back 20 pixels
    anim_walktoggle who
-   anim_velocity who, 4, 0, 5
+   ' SpinStrike: step back faster, a compromise with the old teleport back to start
+   DIM ticks as integer = IIF(attack.attacker_anim = atkrAnimSpinStrike, 3, 5)
+   anim_relmove who, 20, 0, ticks
    anim_waitforall
    anim_setframe who, frameSTAND
   CASE atkrAnimDashIn, atkrAnimLand
@@ -1668,9 +1670,8 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
    anim_setframe who, frameSTAND
   CASE atkrAnimStandingCast, atkrAnimStandingStrike
    anim_setframe who, frameSTAND
-  CASE atkrAnimNull, atkrAnimSpinStrike, atkrAnimJump, atkrAnimTeleport, atkrAnimRunAndHide, atkrAnimRunInUnHide
+  CASE atkrAnimNull, atkrAnimJump, atkrAnimTeleport, atkrAnimRunAndHide, atkrAnimRunInUnHide
   ' Do nothing
-  ' NOTE: SpinStrike causes the hero to walk forward and teleport back!
   END SELECT
  END IF
 

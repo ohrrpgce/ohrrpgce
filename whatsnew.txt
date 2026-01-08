@@ -31,9 +31,10 @@ Jan 10 2026 [Lexiphanic]
     * "next zone tile x/y" [Ralph]
 
   *** Changes
-    Now that "min" and "max" are built-in script commands, if you used
-    those names for scripts or variables, you will need to rename them
-    before you can re-compile the scripts.
+    * Now that "min" and "max" are built-in script commands, if you used
+      those names for scripts or variables, you will need to rename them
+      before you can re-compile the scripts.
+    * After a Spin Strike attack heroes walk rather than teleporting back [Ralph]
 
   *** Bugfixes
     * Game/Custom now quit cleanly on a SIGTERM or SIGINT (and abort on SIGQUIT)
