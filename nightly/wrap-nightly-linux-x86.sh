@@ -10,7 +10,7 @@ cd "${SCRIPTDIR}"/..
 if [ -n "True" ] ; then
   echo "From: cron@rpg.hamsterrepublic.com"
   echo "To: cron@rpg.hamsterrepublic.com"
-  echo "Subject: OHRRPGCE Linux nightly build (32-bit)"
+  echo "Subject: OHRRPGCE Linux 32-bit nightly build ($(uname -n))"
   echo ""
 
   svn cleanup

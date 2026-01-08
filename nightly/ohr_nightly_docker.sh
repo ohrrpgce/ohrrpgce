@@ -13,6 +13,9 @@ UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
 # Run Linux 32 bit nightly build in docker
 ~/src/nightly/ohr-linux-32/nightly/wrap-nightly-linux-x86.sh > /dev/null 2>&1
 
+# Run Linux 64 bit nightly build in docker
+~/src/nightly/ohr-linux-64/nightly/wrap-nightly-linux-x86_64.sh > /dev/null 2>&1
+
 # After the nightly build finishes, generate nightly-check.ini listing the svn_rev
 # and build_date for the main builds, and upload and email it
 
