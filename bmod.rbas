@@ -524,6 +524,18 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
   act = popdw
   SELECT CASE act
    CASE 0 '--end()
+    'Wait for .sl slice moves to finish (but don't need to wait for .sprite slices). If we reset positions
+    'before the movement is finished, it would continue moving and end up in the wrong position.
+    'BTW, resetting to initial positions is probably entirely unnecessary. I think it was needed
+    'before r13666 & r13667 switched to slice velocity, fixing some possible rounding errors.
+    FOR i = 0 TO UBOUND(bslot)
+     'NULL slices are OK
+     IF SliceIsMoving(bslot(i).sl) THEN
+      'Re-push anim_end
+      pushdw 0
+      EXIT DO
+     END IF
+    NEXT
     FOR i = 0 TO 3
      enforce_weak_picture i, bslot(), bat
      '--re-enforce party's X/Y positions...
@@ -3259,6 +3271,11 @@ END SUB
 SUB anim_flinchstart(byval who as integer, bslot() as BattleSprite, byref attack as AttackData)
  '--If enemy can flinch and if attack allows flinching
  IF bslot(who).never_flinch = NO AND attack.targ_does_not_flinch = NO THEN
+  'Starting a new flinch while a movement is in progress would result in not returning to the intended position.
+  'Currently that never happens, this is future proofing for more customisable animations.
+  anim_waitformove who
+
+  'Move 6 pixels in 3 ticks
   DIM xvelocity as integer = IIF(is_enemy(who), -2, 2)
   anim_velocity who, xvelocity, 0, 3
   IF is_hero(who) THEN
@@ -3276,7 +3293,8 @@ END SUB
 
 SUB flinch_anim_eachtick(byval who as integer, bslot() as BattleSprite)
  WITH bslot(who)
-  'After 3 ticks we start the slide back to the initial position
+  .flinch_anim -= 1
+  'After 3 ticks of forward flinch, start the slide back to the initial position
   IF .flinch_anim = 3 THEN
    DIM xvelocity as integer = IIF(is_enemy(who), 2, -2)
    'anim_velocity who, xvelocity, 0, 3
@@ -3285,7 +3303,6 @@ SUB flinch_anim_eachtick(byval who as integer, bslot() as BattleSprite)
    .frame = frameSTAND
    IF is_hero(who) THEN .walk = 0
   END IF
-  .flinch_anim -= 1
  END WITH
 END SUB
 
@@ -4575,8 +4592,11 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   anim_skip_to_here
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
+   'I think this does nothing? flinch_anim_eachtick resets to frameSTAND
    anim_setframe t(i), frameSTAND
   NEXT i
+  'If there is no attacker retreat animation, then anim_end may need to wait one extra tick (6 total)
+  'for flinches to finish
   anim_end
  END IF
 
@@ -4604,6 +4624,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
     'make the projectile move to the target
     anim_absmove 12, targetpos.x, targetpos.y, 5
     anim_abszmove 12, targetpos.z, 5
+    'Wait for projectile and for flinch
     anim_waitforall
     'inflict damage
     anim_inflict t(i), tcount
@@ -4704,6 +4725,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   anim_skip_to_here
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
+   'Does nothing?
    anim_setframe t(i), frameSTAND
   NEXT i
   anim_end
@@ -4771,6 +4793,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   anim_skip_to_here
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
+   'Does nothing?
    anim_setframe t(i), frameSTAND
   NEXT i
   anim_end
@@ -4807,7 +4830,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    anim_checkpoint
    anim_disappear 24
    anim_setframe bat.acting, frameSTAND
-   FOR i = 0 TO tcount - 1  ' Note tcount = 1
+   FOR i = 0 TO tcount - 1  ' Note always tcount = 1
     anim_inflict t(i), tcount
     anim_flinchstart t(i), bslot(), attack
    NEXT i
@@ -4820,7 +4843,8 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   NEXT j
   anim_skip_to_here
   anim_retreat bat.acting, attack, bslot()
-  FOR i = 0 TO tcount - 1  ' Note tcount = 1
+  FOR i = 0 TO tcount - 1  ' Note always tcount = 1
+   'Does nothing?
    anim_setframe t(i), frameSTAND
   NEXT i
   anim_end
@@ -4878,6 +4902,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   anim_skip_to_here
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
+   'Does nothing?
    anim_setframe t(i), frameSTAND
   NEXT i
   anim_end
@@ -4913,6 +4938,7 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   anim_skip_to_here
   anim_retreat bat.acting, attack, bslot()
   FOR i = 0 TO tcount - 1
+   'Does nothing?
    anim_setframe t(i), frameSTAND
   NEXT i
   anim_end

@@ -50,6 +50,8 @@ Jan 10 2026 [Lexiphanic]
     * Fixed the bug that caused enemies to get stuck in a loop in
       active-time battles if they use a self-targetting bequest
       attack that does not heal or transmorify them [James]
+    * Heroes/enemies flinching from an attack could overshoot and end up 2-4 px
+      from the start, depending on attack + attacker animation combo [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Item data is now stored in a new lump, items.reld [James]

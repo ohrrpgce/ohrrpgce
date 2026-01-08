@@ -1670,6 +1670,7 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
    anim_setframe who, frameSTAND
   CASE atkrAnimNull, atkrAnimSpinStrike, atkrAnimJump, atkrAnimTeleport, atkrAnimRunAndHide, atkrAnimRunInUnHide
   ' Do nothing
+  ' NOTE: SpinStrike causes the hero to walk forward and teleport back!
   END SELECT
  END IF
 
