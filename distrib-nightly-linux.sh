@@ -3,10 +3,10 @@
 # IN-PROGRESS: I am working on splitting this script apart as I dockerize
 # the different parts of it. It will eventually be obsolete
 #
-# * Upload souce-only zip
+# * Upload source-only zip
 # * Linux 32 bit build [Moved to Docker, not removed here yet]
-# * Linux 64 bit build
-# * Deb package 64 bit
+# * Linux 64 bit build [Moved to Docker, not removed here yet]
+# * Deb package 64 bit [Moved to Docker, not removed here yet]
 # * Uploading plotscript docs
 # * Uploading IMPORTANT-nightly.txt
 
