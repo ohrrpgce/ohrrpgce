@@ -487,8 +487,11 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
  NEXT
 
  '--decrement the animation wait ticks, and don't proceed until they are zero
- IF bat.wait_frames > 0 THEN bat.wait_frames -= 1: IF bat.wait_frames > 0 THEN EXIT SUB
- 
+ IF bat.wait_frames > 0 THEN
+  bat.wait_frames -= 1
+  IF bat.wait_frames > 0 THEN EXIT SUB
+ END IF
+
  '--anim_waitforall called? We are waiting for all motion to stop
  IF bat.wait_frames = -1 THEN
   FOR i = 0 TO UBOUND(bslot)
@@ -508,6 +511,16 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
  DIM speed as XYPair
 
  DO: 'INTERPRET THE ANIMATION SCRIPT
+
+  '--anim_waitformove called? Waiting for a specific slot
+  '--Unlike anim_waitforall, check this inside the DO so that minimum wait is 0 ticks not 1.
+  IF bat.wait_for_slot <> -1 THEN
+   WITH bslot(bat.wait_for_slot)
+    IF SliceIsMoving(.sl) ORELSE SliceIsMoving(.sprite) THEN EXIT DO
+   END WITH
+   bat.wait_for_slot = -1
+  END IF
+
   act = popdw
   SELECT CASE act
    CASE 0 '--end()
@@ -521,12 +534,10 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
       (bslot(4 + i).pos) = bslot(4 + i).basepos
      END IF
     NEXT i
+    'Stops animation playback instantly
     bat.atk.id = -1
-   CASE 1 '??? Reset hero positions, I guess? FIXME: figure out when this is used
-    FOR i = 0 TO 3
-     formdata.slots(i).pos = bslot(4 + i).pos
-    NEXT i
-    bat.atk.id = -1
+   CASE 1
+    'unused
    CASE 2 'velocity(who,xstep,ystep,ticks)
     ww = popdw
     speed.x = popdw
@@ -539,8 +550,8 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
     bslot(ww).x = popdw
     bslot(ww).y = popdw
     bslot(ww).d = popdw
-   CASE 4 '???()
-    '--undefined
+   CASE 4
+    'unused
    CASE 5 'appear(who)
     ww = popdw
     bslot(ww).vis = YES
@@ -564,6 +575,7 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
      SetSliceTarg bslot(ww).sl, destpos.x, destpos.y, ticks
     END IF
    CASE 9 'waitforall()
+    'Breaks the DO, check next tick
     bat.wait_frames = -1
    CASE 10 'inflict(targ, target_count)
     DIM targ as integer = popdw
@@ -573,7 +585,7 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
     ww = popdw
     bslot(ww).z = popdw
    CASE 12
-    'unimplemented
+    'unused
    CASE 13 'wait(ticks)
     bat.wait_frames = popdw
    CASE 14 'walktoggle(who)
@@ -680,9 +692,11 @@ SUB battle_attack_anim_playback (byref attack as AttackData, byref bat as Battle
     'This command queues the end of the flinch 3 ticks later
     ww = popdw
     bslot(ww).flinch_anim = 6
+  CASE 29 'waitformove(who)
+    bat.wait_for_slot = popdw
 
   END SELECT
- LOOP UNTIL bat.wait_frames <> 0 OR bat.atk.id = -1
+ LOOP UNTIL bat.wait_frames <> 0 ORELSE bat.atk.id = -1
 
  IF bat.atk.id = -1 THEN
   battle_attack_anim_cleanup attack, bat, bslot(), formdata
@@ -843,7 +857,11 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
 END SUB
 
 SUB battle_attack_anim_cleanup (byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
- 
+
+ bat.wait_frames = 0
+ bat.wait_for_slot = -1
+ bat.anim_ready = NO
+
  '--hide the caption when the animation is done
  IF attack.caption_time = 0 THEN
   '--clear duration-timed caption
@@ -1300,7 +1318,7 @@ SUB battle_meters (byref bat as BattleState, bslot() as BattleSprite, formdata a
   IF ready_meter_may_grow(bat, bslot(), i) THEN
    '--increment ctr by speed
    bslot(i).ready_meter = small(1000, bslot(i).ready_meter + bslot(i).stat.cur.spd)
-   IF bslot(i).ready_meter = 1000 AND bat.wait_frames = 0 THEN
+   IF bslot(i).ready_meter = 1000 THEN
     make_ready_or_update_turn_delays bslot(i)
    END IF
   END IF
@@ -2901,6 +2919,7 @@ SUB reset_battle_state (byref bat as BattleState)
 
   .anim_ready = NO
   .wait_frames = 0
+  .wait_for_slot = -1
   .ticks = 0
 
   .level_mp_caption = readglobalstring(160, "Level MP", 20)
@@ -3187,8 +3206,15 @@ SUB anim_setframe(byval who as integer, byval frame as integer)
  pushdw 7: pushdw who: pushdw frame
 END SUB
 
+' Wait for all BattleSprite .sl and .sprite slices to stop moving
+' Causes a 1 tick wait even if nothing is moving
 SUB anim_waitforall()
  pushdw 9
+END SUB
+
+' Wait for a BattleSprite's .sl and .sprite slices to stop moving
+SUB anim_waitformove(byval who as integer)
+ pushdw 29: pushdw who
 END SUB
 
 SUB anim_walktoggle(byval who as integer)
@@ -5231,10 +5257,7 @@ FUNCTION spawn_chained_attack(byref ch as AttackDataChain, instead_chain as bool
   
  IF check_attack_chain(ch, bat, bslot()) THEN
   '--The conditions for this chain are passed
-  
-  bat.wait_frames = 0
-  bat.anim_ready = NO
-  
+
   DIM chained_attack as AttackData
   loadattackdata chained_attack, ch.atk_id - 1
 

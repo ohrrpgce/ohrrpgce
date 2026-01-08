@@ -343,7 +343,10 @@ TYPE BattleState
  backdrop_sl as Slice ptr
  curbg as integer      'Current background
  bg_tick as integer    'Number of ticks since last background frame change
- wait_frames as integer 'used by the attack animation
+ 'For battle animations
+ wait_frames as integer   '-1 to wait for all movement to stop, >0 is ticks to wait
+ wait_for_slot as integer = -1 'bslot slot to wait for movement to stop, or -1 for none
+
  level_mp_caption as string
  cannot_run_caption as string
  cancel_spell_caption as string
