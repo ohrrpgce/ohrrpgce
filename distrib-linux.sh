@@ -12,8 +12,8 @@ cd "${SCRIPT_DIR}"
 
 echo Erasing old distribution files
 mkdir -p distrib
-rm -f distrib/$FULLNAME-*.tar.bz2  #this won't work with default variable value, but should work fine with the values used for nightlies
-rm -f distrib/$PLAYERNAME-*.zip    #this won't work with default variable value, but should work fine with the values used for nightlies
+rm -f distrib/$FULLNAME-*.tar.bz2
+rm -f distrib/$PLAYERNAME-*.zip
 rm -f distrib/*.deb
 
 package_for_arch() {
@@ -22,7 +22,8 @@ package_for_arch() {
   echo
   echo "Building $ARCH binaries"
   scons $SCONS_ARGS arch=$ARCH unlump relump || return 1
-  scons $SCONS_ARGS arch=$ARCH libs=linux/$ARCH game custom hspeak || return 1
+  scons $SCONS_ARGS arch=$ARCH libs=linux/$ARCH game custom || return 1
+  scons $SCONS_ARGS release=0 arch=$ARCH libs=linux/$ARCH game custom hspeak || return 1
 
   echo "Packaging $ARCH binary distribution of CUSTOM"
   ./ohrpackage.py linux full "distrib/$FULLNAME-$ARCH.tar.bz2" || return 1
