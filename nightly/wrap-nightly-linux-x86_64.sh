@@ -36,7 +36,7 @@ if [ -n "True" ] ; then
   scp -i ~/.ssh/ohrrpgce_upload -p distrib/ohrrpgce-player-linux-wip-x86_64.zip $UPLOAD_DEST/ohrrpgce/nightly/
   echo "Uploading 64-bit deb package..."
   ssh -i ~/.ssh/ohrrpgce_upload "$UPLOAD_SERVER" rm "$UPLOAD_FOLDER/ohrrpgce/nightly/ohrrpgce_*.wip-*_$arch.deb"
-  scp -p distrib/ohrrpgce_*.wip-*_$arch.deb $UPLOAD_DEST/ohrrpgce/nightly/
+  scp -i ~/.ssh/ohrrpgce_upload -p distrib/ohrrpgce_*.wip-*_$arch.deb $UPLOAD_DEST/ohrrpgce/nightly/
   echo "Uploads complete."
 
 fi 2>&1 | tee ~/wrap-nightly-linux-output.txt
