@@ -4377,7 +4377,7 @@ startTest(str_intern_speed)
     strings(i) = str(i) & "token"
     zstrings(i) = strptr(strings(i))
   next
-  ?""
+  testprint
 
   dim strtable as StrHashTable
   strtable.construct(509, type_table(integer), NO)
@@ -4394,7 +4394,7 @@ startTest(str_intern_speed)
     next
   next
   runtime = timer - runtime
-  ?"StrHashTable in " & CINT(1e6 * runtime) & "us"
+  testprint "StrHashTable in " & CINT(1e6 * runtime) & "us"
 
   dim initkeys as integer = interned_strings.numitems
   runtime = timer
@@ -4405,7 +4405,7 @@ startTest(str_intern_speed)
     next
   next
   runtime = timer - runtime
-  ?"intern_string uninterned in " & CINT(1e6 * runtime) & "us"
+  testprint "intern_string uninterned in " & CINT(1e6 * runtime) & "us"
   if interned_fast_lookup.numitems <> initkeys + 1000 then fail
   if interned_strings.numitems <> initkeys + 1000 then fail
 
@@ -4417,7 +4417,7 @@ startTest(str_intern_speed)
     next
   next
   runtime = timer - runtime
-  ?"intern_string intern in " & CINT(1e6 * runtime) & "us"
+  testprint "intern_string intern in " & CINT(1e6 * runtime) & "us"
 
   for i as integer = 0 to 999
     if *zstrings(i) <> strings(i) then fail

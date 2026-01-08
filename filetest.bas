@@ -422,8 +422,8 @@ startTest(gzipWrite)
 	dim outdatasize as size_t
 	dim starttime as double = timer
 	if compress_gzip(strptr(indata), len(indata), @outdata, @outdatasize) then fail
-	? !"\n  lodepng compressed in " & cint((timer - starttime) * 1e3) & " ms"
-	? "  lodepng compressed size = " & outdatasize
+	testprint !"\n  lodepng compressed in " & cint((timer - starttime) * 1e3) & " ms"
+	testprint "  lodepng compressed size = " & outdatasize
 	'Write
 	dim fil as FILE ptr
 	fil = fopen(strptr(gz_outfile), "wb")
@@ -436,8 +436,8 @@ startTest(gzipWrite)
 	#else
 	'Decompress
 	starttime = timer
-	if safe_shell("gzip -d " & gz_outfile) then fail
-	? "  gzip decompressed in " & cint((timer - starttime) * 1e3) & " ms"
+	if safe_shell("gzip -d " & gz_outfile, , show_tests) then fail
+	testprint "  gzip decompressed in " & cint((timer - starttime) * 1e3) & " ms"
 	'Read result and check
 	dim indata2 as string = read_file(gz_outfile2)
 	if indata <> indata2 then fail
@@ -452,19 +452,20 @@ startTest(gzipRead)
 	#else
 	'Compress
 	starttime = timer
-	if safe_shell("gzip -9 -c " & gz_infile & " > " & gz_outfile) then fail
-	? "  gzip compressed in " & cint((timer - starttime) * 1e3) & " ms"
+	if safe_shell("gzip -9 -c " & gz_infile & " > " & gz_outfile, , show_tests) then fail
+	testprint "  gzip compressed in " & cint((timer - starttime) * 1e3) & " ms"
+	testprint "  gzip compressed in " & cint((timer - starttime) * 1e3) & " ms"
 	#endif
 	'Read
 	dim gzipdata as string = read_file(gz_outfile)
-	? "  gzip compressed size = " & len(gzipdata)
+	testprint "  gzip compressed size = " & len(gzipdata)
 	'Decompress
 	dim outdata as byte ptr
 	dim outdatasize as size_t
 	starttime = timer
 	if decompress_gzip(strptr(gzipdata), len(gzipdata), @outdata, @outdatasize) then fail
-	? "  lodepng decompressed in " & cint((timer - starttime) * 1e3) & " ms"
-	? "  original size = " & outdatasize
+	testprint "  lodepng decompressed in " & cint((timer - starttime) * 1e3) & " ms"
+	testprint "  original size = " & outdatasize
 	'Read original and result and check
 	dim indata as string = read_file(gz_infile)
 	if outdatasize <> len(indata) then fail
@@ -521,7 +522,7 @@ startTest(renameReplaceOpenFile)
         #endif
         dim ttt as double = timer
         if renamefile("_testfile2.tmp", "_testfile3.tmp") = NO then fail
-        print "renamefile took " & cint(1e3 * (timer - ttt)) & "ms"
+        testprint "renamefile took " & cint(1e3 * (timer - ttt)) & "ms"
 
         if filelen("_testfile3.tmp") <> 6 then fail
         if real_isfile("_testfile2.tmp") then fail
@@ -579,7 +580,7 @@ startTest(renameLockedFile)
         #endif
         dim ttt as double = timer
         if renamefile("_testfile5.tmp", "_testfile6.tmp") = NO then fail
-        print "renamefile took " & cint(1e3 * (timer - ttt)) & "ms"
+        testprint "renamefile took " & cint(1e3 * (timer - ttt)) & "ms"
 
         if filelen("_testfile6.tmp") <> 6 then fail
         if real_isfile("_testfile5.tmp") then fail
@@ -592,4 +593,4 @@ endTest
 
 #endif  ' ifndef MINIMAL_OS
 
-? "All tests passed."
+? "All passed."

@@ -20,21 +20,36 @@ extern errorpos as integer
 extern errorfile as string
 extern startTest_name as string
 extern startTest_line as integer
+extern show_tests as bool
 dim pauseTime as double
 dim errorpos as integer
 dim errorfile as string
 dim startTest_name as string
 dim startTest_line as integer
+dim show_tests as bool = YES
+
+' Parse command line arguments
+for argidx as integer = 1 to 255
+	dim arg as string = command(argidx)
+	if arg = "" then exit for
+	if arg = "-q" or arg = "--quiet" then
+		show_tests = NO
+	end if
+next
 
 Randomize 42
 
+sub testprint(msg as string = "")
+	if show_tests then print msg
+end sub
+
 sub doTest(byval theTest as testPtr)
 	static num as integer = 0
-	
+
 	num += 1
-	
-	print "Test #" & num & ": " & startTest_name & "... ";
-	
+
+	if show_tests then print "Test #" & num & ": " & startTest_name & "... ";
+
 	dim as double start, finish, diff
 	dim as integer ret
 	
@@ -54,23 +69,25 @@ sub doTest(byval theTest as testPtr)
 		close_lazy_files  'Avoid "double close" messages
 		end num
 	elseif ret = 0 then
-		print "Pass"
+		testprint "Pass"
 	else
-		print "SKIP"
+		testprint "SKIP"
 	end if
 
-	if diff < 1 then
-		diff *= 1000
-		if diff < 10 then
+	if show_tests then
+		if diff < 1 then
 			diff *= 1000
-			print "Took " & int(diff) & !" \u03BCs "
-		elseif diff < 100 then
-			print "Took " & format(diff, "0.0") & " ms "
+			if diff < 10 then
+				diff *= 1000
+				print "Took " & int(diff) & " us "
+			elseif diff < 100 then
+				print "Took " & format(diff, "0.0") & " ms "
+			else
+				print "Took " & int(diff) & " ms "
+			end if
 		else
-			print "Took " & int(diff) & " ms "
+			print "Took " & format(diff, "0.00") & " s "
 		end if
-	else
-		print "Took " & format(diff, "0.00") & " s "
 	end if
 	
 end sub

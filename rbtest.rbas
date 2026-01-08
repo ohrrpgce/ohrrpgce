@@ -390,7 +390,7 @@ startTest(testMoreReadNodeDefaulting)
 	set_warn = NO
 
 	for i as integer = 0 to 1
-		if i = 1 then print "..."; : root = NULL
+		if i = 1 then root = NULL
 
 		dim as integer should_be_zero = -1
 		readnode root

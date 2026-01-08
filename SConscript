@@ -65,6 +65,7 @@ prefix =  ARGUMENTS.get ('prefix', '/usr')
 dry_run = int(ARGUMENTS.get ('dry_run', '0'))  # Only used by uninstall
 buildname = ARGUMENTS.get('buildname', '')
 buildtests = int(ARGUMENTS.get ('buildtests', True))
+showtests = int(ARGUMENTS.get ('showtests', False))
 python = ARGUMENTS.get('python', os.environ.get('PYTHON'))
 if python == None:
     for name in ('python3', 'python', 'py'):
@@ -1911,8 +1912,9 @@ def test_rpg_actions(rpg, more_args = ''):
             else:
                 print(" * {0} FAILED, see g_debug.txt".format(rpg))
                 Exit(1)
-    return [GAME.abspath + run_args + ' --log . --runfast -z 2 ' + T+rpg + ' ' + more_args,
-            Action(check, "ohrrpgce-game {0} exited".format(rpg))]
+    return [Action('', '---- {0} ----'.format(rpg)),
+            GAME.abspath + run_args + ' --log . --runfast -z 2 ' + T+rpg + ' ' + more_args,
+            Action(check, "{0} exited".format(rpg))]
 
 AUTOTEST = Phony ('autotest_rpg',
                   source = [GAME, RPGWithScripts(T+'autotest.rpgdir', T+'autotest.hss')],
@@ -1932,9 +1934,13 @@ HSPEAKTEST = Phony ('hspeaktest', source = HSPEAK, action =
                     [[python, rootdir + 'hspeaktest.py', 'testgame/parser_tests.hss']])
 
 # Note: does not include hspeaktest, because it fails, and Euphoria may not be installed
-tests = [exe.abspath for exe in Flatten([RELOADTEST, RBTEST, VECTORTEST, UTILTEST, FILETEST, COMMONTEST])]
-test_srcs = tests[:] if buildtests else []
+test_exes = [RELOADTEST, RBTEST, VECTORTEST, UTILTEST, FILETEST, COMMONTEST]
+test_srcs = test_exes[:] if buildtests else []
 test_srcs += [AUTOTEST, INTERTEST]  # These are Nodes so can't be used as actions
+
+quiet_flag = '' if showtests else ' -q'
+tests = [Action(exe.abspath + quiet_flag, "---- " + exe.relpath + " ----")
+         for exe in test_exes]
 TESTS = Phony ('test', source = test_srcs, action = tests)
 Alias ('tests', TESTS)
 
@@ -2046,6 +2052,7 @@ Options:
   dry_run=1           For 'uninstall' only. Print files that would be deleted.
   buildtests=0        Affects test targets only: run tests without recompiling
                       anything or reimporting scripts.
+  showtests=1         Affects test programs only: show detailed output
   headless=1          Affects test targets only: run Game/Custom with --nogfx
                       to not need a graphical desktop. Requires gfx_console/fb
   v=0|1|2             Verbosity level for compile commands:

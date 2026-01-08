@@ -26,21 +26,26 @@ declare sub optimize(node as nodePtr)
 dim shared reloadns as xmlNsPtr
 
 dim as string infile, outfile
+dim as bool verbose = YES
 
 xmlCheckVersion(LIBXML_VERSION)
 
-infile = command(1)
-outfile = command(2)
+' Parse command line
+for argidx as integer = 1 to 255
+	dim arg as string = command(argidx)
+	if arg = "" then exit while
+	if arg = "-q" or arg = "--quiet" then
+		verbose = NO
+	elseif infile = "" then
+		infile = arg
+	elseif outfile = "" then
+		outfile = arg
+	end if
+next
 
-if infile = "" then
+if infile = "" or outfile = "" then
 	print "Usage:"
-	print command(0) & " infile.xml outfile.rld"
-	end
-end if
-
-if outfile = "" then
-	print "Usage:"
-	print command(0) & " infile.xml outfile.rld"
+	print command(0) & " [-q|--quiet] infile.xml outfile.rld"
 	end
 end if
 
@@ -54,13 +59,17 @@ if xmlDoc = null then
 	end
 end if
 
-print "Loaded XML document in " & int((timer - starttime) * 1000) & " ms"
+if verbose then
+	print "Loaded XML document in " & int((timer - starttime) * 1000000) & " us"
+end if
 starttime = timer
 
 dim rldDoc as Docptr
 rldDoc = CreateDocument()
 
-print "Memory usage: " & DocumentMemoryUsage(rldDoc)
+if verbose then
+	print "Memory usage: " & DocumentMemoryUsage(rldDoc)
+end if
 
 dim xmlRoot as xmlNodeptr
 xmlRoot = xmlDocGetRootElement(xmlDoc)
@@ -70,23 +79,29 @@ reloadns = xmlSearchNsByHref(xmlDoc, xmlRoot, @"http://hamsterrepublic.com/ohrrp
 dim rldRoot as NodePtr
 rldRoot = chug(xmlRoot, rldDoc, encNone)
 
-print "Parsed XML document in " & int((timer - starttime) * 1000) & " ms"
+if verbose then
+	print "Parsed XML document in " & int((timer - starttime) * 1000000) & " us"
 
-print "Memory usage: " & DocumentMemoryUsage(rldDoc)
+	print "Memory usage: " & DocumentMemoryUsage(rldDoc)
+end if
 
 starttime = timer
 
 xmlFreeDoc(xmlDoc)
 
-print "Freed XML document in " & int((timer - starttime) * 1000) & " ms"
+if verbose then
+	print "Freed XML document in " & int((timer - starttime) * 1000000) & " us"
+end if
 
 starttime = timer
 
 optimize(rldRoot)
 
-print "Optimised document in " & int((timer - starttime) * 1000) & " ms"
+if verbose then
+	print "Optimised document in " & int((timer - starttime) * 1000000) & " us"
 
-print "Memory usage: " & DocumentMemoryUsage(rldDoc)
+	print "Memory usage: " & DocumentMemoryUsage(rldDoc)
+end if
 
 starttime = timer
 
@@ -94,14 +109,18 @@ SetRootNode(rldDoc, rldRoot)
 
 SerializeBin(outfile, rldDoc)
 
-print "Serialized document in " & int((timer - starttime) * 1000) & " ms"
+if verbose then
+	print "Serialized document in " & int((timer - starttime) * 1000000) & " us"
+end if
 starttime = timer
 
 FreeDocument(rldDoc)
 
-print "Tore down memory in " & int((timer - starttime) * 1000) & " ms"
+if verbose then
+	print "Tore down memory in " & int((timer - starttime) * 1000000) & " us"
 
-print "Finished in " & int((timer - realStart) * 1000) & " ms"
+	print "Finished in " & int((timer - realStart) * 1000000) & " us"
+end if
 
 
 'This sub sets a node's content to binary data
