@@ -55,6 +55,8 @@ Jan 10 2026 [Lexiphanic]
 
   *** Stuff Only Developers Will Notice
     * Item data is now stored in a new lump, items.reld [James]
+    * Added docker images for building OHRRPGCE for Linux
+      (32bit and 64bit variants) [James]
 
 Aug 10 2025 [Kaleidophone+1]
 
