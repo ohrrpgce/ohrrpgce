@@ -82,25 +82,25 @@ Animation Pattern: This affects how the three frames of the attack's sprite set 
 Attacker Animation: This controls how the attacker moves when doing the attack.
 
 * Strike - When used by a hero, the
-  hero steps forward, swings its
+  hero steps forward, swings their
   weapon, and steps back. When used
   by an enemy, the enemy twitches.
 
 * Cast - When used by a hero, the
-  hero steps forward, shows its
+  hero steps forward, shows their
   casting animation frame, and steps
   back. When used by an enemy, the
-  enemy twitchs.
+  enemy twitches.
 
 * Dash in - Causes the attacker to
-  move close to the target, do the 
-  attack, and then return to its
-  starting point.
+  move close to the target, swing
+  their weapon (if a hero), and then
+  return to their starting point.
 
 * Spinstrike - Causes the attacker to
-  flip horizontally several times.
-  If used by a hero, the hero's
-  weapon will appear in its hand.
+  flip horizontally several times
+  quickly. Heroes will step forward
+  first.
 
 * Jump - Causes the attacker to leap
   off the top of the screen. The
@@ -114,31 +114,33 @@ Attacker Animation: This controls how the attacker moves when doing the attack.
   from the top of the screen and land
   on the target, then to return to
   its starting point. This removes
-  hidden status from the attacker
+  hidden status from the attacker.
 
 * Null - The attacker does not move
   at all.
 
-* Standing Cast - If used by a hero, 
-  the hero will show its casting
+* Standing Cast - If used by a hero,
+  the hero will show their casting
   animation frame without stepping
   forward. Does nothing if used by an
-  enemy.
+  enemy, not even a twitch.
+
+* Standing Strike - If used by a
+  hero, the hero will show their
+  strike animation (including weapon)
+  without stepping forward. Enemies
+  do nothing, not even a twitch.
 
 * Teleport - The attacker vanishes
   and reappears close to the target,
   attacks, and then disappears and
-  reappears in its starting point. If
-  this attack is used by a hero, the
-  hero's weapon will display.
-
-* Standing Strike - If used by a hero,
-  the hero will show its strike
-  animation without stepping forward.
+  reappears in their starting point.
+  If this attack is used by a hero,
+  the hero's weapon will display.
 
 * Run and Hide - The attacker will run
   away. This turns on "hidden" status
-  which can be reversed layer with an
+  which can be reversed later with an
   attacker animation such as "Run In"
   or "Land".
 

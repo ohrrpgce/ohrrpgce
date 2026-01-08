@@ -762,7 +762,7 @@ Enum AttackerAnimation
 	atkrAnimStrike = 0     ' (shows weapon)
 	atkrAnimCast = 1
 	atkrAnimDashIn = 2     ' (shows weapon)
-	atkrAnimSpinStrike = 3 ' (shows weapon)
+	atkrAnimSpinStrike = 3
 	atkrAnimJump = 4       ' (hides attacker)
 	atkrAnimLand = 5       ' (unhides attacker)
 	atkrAnimNull = 6
