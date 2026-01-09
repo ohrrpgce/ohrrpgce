@@ -134,6 +134,10 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
       debuginfo "Exactly 1 axis? That can't be a proper joystick or gamepad!"
       .ignore_joy = YES
     END IF
+    IF starts_with(strprintf("%s", joyname), "HID 256c:") THEN
+      debuginfo "Huion tablets should be ignored when they are mis-detected as gamepads"
+      .ignore_joy = YES
+    END IF
     IF .ignore_joy THEN
       debuginfo strprintf("joystick will be ignored (%d %s)", joynum, joyname)
     END IF
