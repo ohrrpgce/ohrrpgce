@@ -108,6 +108,7 @@ type JoystickInfo
 	num_hats as integer      'At most 4.
 	num_balls as integer     'I don't actually expect we will ever use this - backend should just report balls as axes
 	'joytype as integer       'SDL_JoystickType and SDL_GameControllerType
+	ignore_joy as bool       'For if a backend wishes to support ignoring certain detected joysticks under certain conditions
 end type
 #define JOYSTICKINFO_SZ 9
 

@@ -130,6 +130,13 @@ LOCAL FUNCTION get_joystick(byval joynum as integer) as integer
 
     debuginfo strprintf("Opened joystick %d %s (id %d) -- %d buttons %d axes %d hats %d balls", _
                         joynum, joyname, .instance_id, .num_buttons, .num_axes, .num_hats, .num_balls)
+    IF .num_axes = 1 THEN
+      debuginfo "Exactly 1 axis? That can't be a proper joystick or gamepad!"
+      .ignore_joy = YES
+    END IF
+    IF .ignore_joy THEN
+      debuginfo strprintf("joystick will be ignored (%d %s)", joynum, joyname)
+    END IF
 
     IF .have_bindings THEN
       .num_buttons = large(joyLASTGAMEPAD, .num_buttons)
@@ -151,6 +158,9 @@ FUNCTION IO_SDL(get_joystick_state)(byval joynum as integer, byval state as IOJo
 
   'Fixed joystick info
   state->info = @joystickinfo(joynum)
+  
+  'If a joystick has been previously marked to ignore, exit now
+  IF state->info->ignore_joy THEN RETURN 3
 
   'SDL1.2 (not SDL 2) reports joystick state even when the app isn't focused (under both
   'Linux and Windows), be consistent and ignore it

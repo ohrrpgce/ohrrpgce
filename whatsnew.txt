@@ -54,6 +54,8 @@ Jan 10 2026 [Lexiphanic]
       attack that does not heal or transmorify them [James]
     * Heroes/enemies flinching from an attack could overshoot and end up 2-4 px
       from the start, depending on attack + attacker animation combo [Ralph]
+    * Ignore gamepads/joysticks with only one axis because they can't be valid
+      (Keychron K5 Max Keyboard, I'm lookin' at you!) [James]
 
   *** Stuff Only Developers Will Notice
     * Item data is now stored in a new lump, items.reld [James]
