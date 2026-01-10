@@ -2088,6 +2088,7 @@ SUB reset_enemy_state(byref bspr as BattleSprite, byref bat as BattleState, tran
   .self_bequesting = NO
   .already_bequested = NO
   IF NOT transmogging THEN
+   .hidden = NO
    .ready = NO
    .ready_meter = YES
    .under_player_control = bspr.enemy.controlled_by_player
@@ -2118,6 +2119,7 @@ SUB setup_non_volatile_enemy_state(byref bspr as BattleSprite)
  END WITH
 END SUB
 
+'Transmogrify an enemy
 SUB changefoe(bat as BattleState, byval slot as integer, transmog as TransmogData, formdata as Formation, bslot() as BattleSprite)
  IF formdata.slots(slot).id = -1 THEN
   showbug "changefoe doesn't work on empty slot " & slot & " (enemy " & transmog.enemy & ")"
