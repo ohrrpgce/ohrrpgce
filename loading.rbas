@@ -3392,7 +3392,7 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .useable_inside_battle          = NOT xreadbit(buf(), 25, 65)
   .dont_display_miss              = xreadbit(buf(), 26, 65)
   .dont_display_fail              = xreadbit(buf(), 27, 65)
-  .always_hide_attacker           = xreadbit(buf(), 28, 65)
+  'bit 28 was the old broken always_hide_attacker
   .always_unhide_attacker         = xreadbit(buf(), 29, 65)
   .blocking_counterattack         = xreadbit(buf(), 30, 65)
   .empty_target_ready_meter       = xreadbit(buf(), 31, 65)
@@ -3400,6 +3400,7 @@ SUB convertattackdata(buf() as integer, byref atkdat as AttackData)
   .exclude_from_hero_auto_battle  = xreadbit(buf(), 33, 65)
   .ignore_damage_cap              = xreadbit(buf(), 34, 65)
   .replace_store_targ             = xreadbit(buf(), 35, 65)
+  .always_hide_attacker           = xreadbit(buf(), 36, 65)
 
 
   ' If didn't do a full upgrade, then these aren't initialised

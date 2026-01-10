@@ -1667,7 +1667,7 @@ SUB anim_retreat (byval who as integer, attack as AttackData, bslot() as BattleS
  END IF
 
  IF attack.always_hide_attacker THEN
-  anim_unhide who
+  anim_hide who
  END IF
 
 END SUB

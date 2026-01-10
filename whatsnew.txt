@@ -58,6 +58,8 @@ Jan 10 2026 [Lexiphanic]
       (Keychron K5 Max Keyboard, I'm lookin' at you!) [James]
     * Attacks targeting 'Self' failed if the attacker was hidden (aside from some
       allowed exceptions). Broken since Ichorescent [Ralph]
+    * Fixed "Always hide attacker" (it unhid instead) and turned it off in
+      existing games [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Item data is now stored in a new lump, items.reld [James]
