@@ -19,6 +19,7 @@ Jan 10 2026 [Lexiphanic]
    * Slice autosort option "Custom, then Y" for Y sorting with overrides
      (and autosort:CustomThenY constant) [Ralph]
    * Standing SpinStrike attacker animation [Ralph]
+   * F6 battle debug mode to show details for combatant under the mouse [Ralph]
 
    * Plotscripting Features
     * Commands to access rewards from the latest battle: "money reward",

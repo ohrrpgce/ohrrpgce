@@ -2209,3 +2209,157 @@ SUB try_to_reload_files_inbattle ()
 END SUB
 
 #ENDIF
+
+'==============================================================================
+
+' Returns bslot index or -1.
+' pixelpos is screen/mouse coords
+FUNCTION battler_at_pixel(pixelpos as XYPair, allow_invisible as bool=NO, bslot() as BattleSprite) as integer
+ FOR slot as integer = 0 TO 11
+  WITH bslot(slot)
+   IF (allow_invisible ORELSE .vis) ANDALSO (rect_collide_point(XYWH(.x, .y - .z, .w, .h), pixelpos)) THEN
+    RETURN slot
+   END IF
+  END WITH
+ NEXT slot
+ RETURN -1
+END FUNCTION
+
+FUNCTION describe_slot_num_short(slot as integer) as string
+ IF slot = -1 THEN RETURN "none"
+ IF is_hero(slot) THEN RETURN "h" & slot ELSE RETURN "e" & slot - 4
+END FUNCTION
+
+FUNCTION describe_slot_num(slot as integer) as string
+ IF slot = -1 THEN RETURN "none"
+ IF is_hero(slot) THEN RETURN "Hero" & slot ELSE RETURN "Enemy" & slot - 4
+END FUNCTION
+
+'Concisely format list of targets, and possibly one highlighted (which actually unhighlights it,
+'wrapping all in backticks)
+FUNCTION describe_targets(targs() as integer, highlight_slot as integer = -1) as string
+ DIM info as string
+ FOR i as integer = 0 TO UBOUND(targs)
+  IF targs(i) THEN
+   DIM slotname as string = describe_slot_num_short(i)
+   IF i = highlight_slot THEN slotname = "`" & slotname & "`"
+   info &= slotname
+  END IF
+ NEXT
+ IF info = "" THEN RETURN "none"
+ RETURN info
+END FUNCTION
+
+' Format info about a BattleSprite slot, for debug tooltip
+FUNCTION describe_bslot(byval slot as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation) as string
+ DIM info as string
+ WITH bslot(slot)
+  DIM empty as bool
+  IF is_hero(slot) THEN
+   empty = (gam.hero(slot).id = -1)
+  ELSE
+   empty = (formdata.slots(slot - 4).id = -1)
+  END IF
+
+  info = describe_slot_num(slot)
+  IF empty THEN
+   info &= !" [EMPTY], stale data:\n"
+  ELSE
+   IF .under_player_control THEN info &= " (`Player`)" ELSE info &= " (`AI`)"
+   IF is_enemy(slot) THEN
+    info &= " ID `" & formdata.slots(slot - 4).id & "`"
+   END IF
+   info &= " `" & .name & !"`\n"
+  END IF
+
+  FOR stat as integer = 0 TO UBOUND(.stat.cur.sta)
+   info &= battle_statnames(stat) & ":`" & .stat.cur.sta(stat) & "/" & .stat.max.sta(stat) & "` "
+  NEXT stat
+  replacestr info, " register", ""
+  IF bat.turn.mode = turnACTIVE THEN
+   info &= "ready:`" & .ready_meter & "`"
+   IF .ready THEN info &= " `Ready!`"
+  ELSE
+   info &= "TurnOrder:`" & .initiative_order & "`"
+  END IF
+  info &= !"\nTargs> Revenge:`" & describe_targets(.revengemask(), .revenge) & _
+          "` Thankvenge:`" & describe_targets(.thankvengemask(), .thankvenge) & _
+          "` Stored:`" & describe_targets(.stored_targs()) & _
+          "` Counter:`" & describe_slot_num_short(.counter_target) & _
+          "` Prev:`" & describe_targets(.last_targs()) & "`"
+
+  info &= !"\n> "
+  IF .bequesting THEN
+   info &= "`Bequesting`"
+  ELSEIF .vis THEN
+   info &= "`Alive`"
+  ELSE
+   info &= "`Dead`"
+  END IF
+  IF .dissolve THEN info &= " DeathDissolve:`" & .dissolve & "`"
+  IF .fleeing THEN info &= " `Fleeing`"
+  IF .hidden THEN info &= " `Hidden`"
+  IF .flipped THEN info &= " `Flipped`"
+  IF .unescapable THEN info &= " `Unescapable`"
+  IF .turncoat_attacker THEN info &= " `Turncoat`"
+  IF .defector_target THEN info &= " `Defector`"
+
+  IF is_enemy(slot) THEN
+   IF count_allies(slot, bslot()) = 0 THEN info &= " `Alone`"
+  END IF
+  IF .is_weak() THEN info &= " `Weak`"
+  IF .stat.cur.stun < .stat.max.stun THEN info &= " `Stun`"
+
+  IF blocked_by_attack(bat, slot) THEN info &= " `Waiting`"
+  'DIM blockedturns as integer = total_blocking_turn_delay(slot)
+  'IF blockedturns THEN info &= " Blocked `" & blockedturns & " turns`"
+  IF .attack THEN info &= !"\nAttack:`" & .attack - 1 & " " & readattackname(.attack - 1) & "`"
+
+  IF has_queued_attacks(slot) THEN
+   info &= !"\nAtkQueue>"
+   FOR i as integer = 0 TO UBOUND(atkq)
+    WITH atkq(i)
+     IF .used ANDALSO .attacker = slot THEN
+      info &= " `" & .attack & ":" & readattackname(.attack) & "`"
+      IF .blocking THEN info &= " blocks"
+      IF .turn_delay THEN info &= " " & .turn_delay & " turns"
+      IF bat.turn.mode = turnACTIVE ANDALSO .delay > 0 THEN info &= " " & .delay & " ticks"
+     END IF
+    END WITH
+   NEXT i
+  END IF
+
+ END WITH
+ RETURN ticklite(info, findrgb(160,210,160))
+END FUNCTION
+
+' Draw a tooltip with info about the battler under the mouse cursor
+SUB battle_debug_tooltips(bat as BattleState, bslot() as BattleSprite, formdata as Formation)
+ DIM info as string
+
+ DIM slot as integer = battler_at_pixel(readmouse.pos, YES, bslot())
+
+ 'Click any button to lock
+ IF readmouse.release /'ANDALSO readmouse.drag_dist < 10'/ THEN
+  bat.debug_tooltip_slot = slot
+ ELSEIF bat.debug_tooltip_slot > -1 THEN  'Locked
+  slot = bat.debug_tooltip_slot
+ END IF
+
+ IF slot = -1 THEN EXIT SUB
+
+ info = describe_bslot(slot, bat, bslot(), formdata)
+
+ CONST maxwidth = 320
+ DIM boxsize as XYPair = textsize(info, maxwidth, fontEdged)
+
+ DIM pos as XYPair = pick_tooltip_pos(boxsize)
+ IF readmouse.release THEN  'Lock
+  bat.debug_tooltip_pos = pos
+ ELSEIF bat.debug_tooltip_slot > -1 THEN  'Locked
+  pos = bat.debug_tooltip_pos
+ END IF
+
+ trans_rectangle vpages(vpage), XY_WH(pos, boxsize), curmasterpal(uilook(uiShadow)), .60
+ wrapprint info, pos.x, pos.y, uilook(uiText), vpage, maxwidth, , fontEdged
+END SUB

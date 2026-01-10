@@ -76,7 +76,10 @@ DECLARE SUB set_attack_queue_slot(slot as integer, attack as integer, who as int
 DECLARE SUB clear_attack_queue()
 DECLARE SUB clear_attack_queue_slot(byval slot as integer)
 DECLARE SUB display_attack_queue (bslot() as BattleSprite)
+DECLARE FUNCTION has_queued_attacks(byval who as integer) as bool
 DECLARE FUNCTION blocked_by_attack (bat as BattleState, byval who as integer) as bool
+DECLARE FUNCTION total_blocking_turn_delay(byval who as integer) as bool
+DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as bool
 DECLARE FUNCTION ready_meter_may_grow (bat as BattleState, bslot() as BattleSprite, byval who as integer) as bool
 
 DECLARE FUNCTION hero_attack_cost_info(byref atk as AttackData, byval hero_slot as integer, byval magic_list_type as integer=0, byval lmp_level as integer=-1) as string

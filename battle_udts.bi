@@ -372,6 +372,9 @@ TYPE BattleState
  'For debug keys
  debug_show_info as integer    '0=nothing, 1=show_enemy_meters, 2=display_attack_queue
  debug_player_control as bool  'Set .under_player_control on all (new) enemies
+ debug_tooltips as bool        'Show tooltip for battler under mouse
+ debug_tooltip_slot as integer 'Slot for locked tooltip
+ debug_tooltip_pos as XYPair   'Position for locked tooltip
  'The following don't do anything right now, but are handy to leave in
  test_view_mode as integer 'used for debugging new display stuff with Shift+F10
  test_future as integer    'used for debugging new display stuff with Shift+F10

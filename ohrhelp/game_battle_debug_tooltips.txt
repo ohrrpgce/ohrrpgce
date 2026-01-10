@@ -1,0 +1,25 @@
+Move the mouse over a combatant to see debug info, and left/right click to lock the tooltip (useful if they jump). The meaning is hopefully mostly clear, but here are hints:
+
+(Player)/(AI): Who is in control.
+
+[EMPTY]: An enemy died. For convenience shows the old state when it was deleted. 
+
+Stats:
+
+TurnOrder: (turn-based only) the order (0 is first) that combatants will act, if not using attacks that have a delay. Depends on relative Speed.
+
+Targs:
+The targets recorded for Stored, Revenge, etc attack target classes. h0 means Hero0, e0 is Enemy0. Revenge and Thankvenge have separate "last" and "whole battle" classes, the "last" target one will be UN-highlighted.
+
+Attack:
+Appears when either targeting or performing an attack.
+
+Status:
+
+Alive: Targetable, if nothing disallows it.
+
+Bequesting: Dead but is performing a on-death bequest attack. Not targetable.
+
+Hidden: Not targetable. E.g. due to Jump.
+
+Waiting: Can't act (and ready meter can't grow) because there is a delayed blocking queued attack, so waiting for the delay to end.

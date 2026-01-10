@@ -86,7 +86,6 @@ DECLARE SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat 
 DECLARE SUB battle_sort_away_dead_t_target(byval deadguy as integer, t() as integer)
 DECLARE SUB battle_counterattacks(bat as BattleState, byval h as integer, byval targstat as integer, byval who as integer, attack as AttackData, bslot() as BattleSprite, result as AttackResult)
 DECLARE SUB show_first_battle_timer (page as integer)
-DECLARE FUNCTION has_queued_attacks(byval who as integer) as bool
 DECLARE FUNCTION pending_attacks_for_this_turn(bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE SUB decrement_attack_queue_delays(bslot() as BattleSprite)
 DECLARE SUB turn_mode_decrement_attack_queue_delays(bslot() as BattleSprite)
@@ -103,7 +102,6 @@ DECLARE SUB turn_mode_time_passage (bat as BattleState, bslot() as battleSprite)
 DECLARE FUNCTION hero_or_enemy_can_take_a_turn (byval who as integer, bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE SUB cancel_blocking_attacks_for_hero_or_enemy(byval who as integer)
 DECLARE SUB update_turn_delays_in_attack_queue (byval who as integer)
-DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as bool
 DECLARE SUB update_battle_menu (bspr as BattleSprite, bslot() as BattleSprite, bat as BattleState, st() as HeroDef)
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE FUNCTION is_invalid_target(attacker as integer, target as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
@@ -362,6 +360,7 @@ FUNCTION battle (byval form as integer) as bool
   ELSEIF bat.debug_show_info = 2 THEN
    display_attack_queue bslot()
   END IF
+  IF bat.debug_tooltips THEN battle_debug_tooltips bat, bslot(), formdata
   IF gam.debug_timings THEN
    'main_timer.finish_timestep/begin_timestep called inside (switch to TimerIDs.Default)
    gam.cpu_usage_mode.display vpage
@@ -3667,7 +3666,7 @@ END SUB
 'Used for enemies, not the enemy team
 FUNCTION BattleSprite.is_weak() as bool
  DIM weakhp as integer
- weakhp = gen(IIF(is_hero(index, genHeroWeakHP, genEnemyWeakHP))
+ weakhp = gen(IIF(is_hero(index), genHeroWeakHP, genEnemyWeakHP))
  RETURN stat.cur.hp < 0.01 * stat.max.hp * weakhp - 1e-8
 END FUNCTION
 
@@ -5499,14 +5498,14 @@ SUB display_attack_queue (bslot() as BattleSprite)
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
-    s = .turn_delay & "/" & .delay & " " & bslot(.attacker).name & ":" & .attacker & " " & readattackname(.attack) & ":" & .attack & " "
+    s = .turn_delay & "/" & .delay & " " & describe_slot_num_short(.attacker) & ":" & bslot(.attacker).name & " " & .attack & ":" & readattackname(.attack) & " "
     targstr = ""
     FOR j as integer = 0 TO UBOUND(.t)
      IF .t(j) > -1 THEN
-      targstr &= CHR(24) & .t(j)
+      targstr &= describe_slot_num_short(.t(j))
      END IF
     NEXT j
-    s & = targstr & " " & yesorno(.blocking, "B", "N") & yesorno(.dont_retarget, "d", "")
+    s &= targstr & " " & IIF(.blocking, "Blk", "") & IIF(.dont_retarget, " d", "")
    ELSE
     s = "-"
    END IF
@@ -6313,15 +6312,21 @@ SUB update_turn_delays_in_attack_queue (byval who as integer)
  NEXT i
 END SUB
 
-FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as bool
+'The number of turns `who` will wait for a blocking attack
+FUNCTION total_blocking_turn_delay(byval who as integer) as bool
+ DIM turns as integer = 0
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
-   IF .used ANDALSO .attacker = who ANDALSO .turn_delay > 0 ANDALSO .blocking THEN
-    RETURN YES
+   IF .used ANDALSO .attacker = who ANDALSO .turn_delay > turns ANDALSO .blocking THEN
+    turns = .turn_delay
    END IF
   END WITH
  NEXT i
- RETURN NO
+ RETURN turns
+END FUNCTION
+
+FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as bool
+ RETURN total_blocking_turn_delay(who) > 0
 END FUNCTION
 
 '==========================================================================================
@@ -6333,7 +6338,9 @@ END FUNCTION
 ' See debug_menu_functions() for more info.
 SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 
- IF gam.debug_timings THEN
+ IF bat.debug_tooltips THEN
+  IF dbg.def(      , scF1, "Help for tooltips (F1)") THEN show_help "game_battle_debug_tooltips"
+ ELSEIF gam.debug_timings THEN
   IF dbg.def(      , scF1, "Help for CPU usage (F1)") THEN show_help "game_cpu_usage"
  END IF
 
@@ -6347,11 +6354,11 @@ SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot()
  IF dbg.def(      , scF5, "Give million experience (F5)") THEN bat.rew.exper = 1000000
  IF dbg.def(SftCtl, scF5, "Run instantly (Shft/Ctrl-F5)") THEN bat.away = 11
 
- DIM temp as string
- IF bat.turn.mode = 0 THEN temp = "Switch to turn-based battles" ELSE temp = "Switch to active-time battles"
- IF dbg.def(      , scF6, temp & " (F6)") THEN
-  bat.turn.mode XOR= 1
-  notification "bat.turn.mode=" & bat.turn.mode
+
+ IF dbg.def(      , scF6, "Mouse info tooltips (F6)") THEN
+  bat.debug_tooltips XOR= YES
+  IF bat.debug_tooltips THEN show_overlay_message "F1 help, L/R-Click to lock display", 1.2
+  bat.debug_tooltip_slot = -1
  END IF
 
  IF dbg.def(SftCtl, scF6, "Show CPU usage (Shft/Ctrl-F6)") THEN
@@ -6390,6 +6397,13 @@ SUB battle_debug_menu_functions(dbg as DebugMenuDef, bat as BattleState, bslot()
  DIM note as string
  IF num_logged_errors THEN note = ": " & num_logged_errors & " errors" ELSE note = " log"
  IF dbg.def(      ,     , "View g_debug.txt" & note & " (S/C-F8)") THEN open_document log_dir & *app_log_filename
+
+ DIM temp as string
+ IF bat.turn.mode = 0 THEN temp = "Switch to turn-based battles" ELSE temp = "Switch to active-time battles"
+ IF dbg.def(SftCtl, scF9, temp & " (S/C-F9)") THEN
+  bat.turn.mode XOR= 1
+  notification "bat.turn.mode=" & bat.turn.mode
+ END IF
 
  IF dbg.def(      , scF10, "Show enemy meters (F10)") THEN bat.debug_show_info = IIF(bat.debug_show_info = 1, 0, 1)
  IF dbg.def(      , scF11, "Show attack queue (F11)") THEN bat.debug_show_info = IIF(bat.debug_show_info = 2, 0, 2)

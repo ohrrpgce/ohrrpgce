@@ -79,6 +79,12 @@ declare function find_preferred_target (tmask() as integer, byval who as integer
 
 declare sub try_to_reload_files_inbattle ()
 
-declare function should_enforce_hidden_untargetability(atk as AttackData) as bool
+declare function battler_at_pixel(pixelpos as XYPair, allow_invisible as bool=NO, bslot() as BattleSprite) as integer
+declare function describe_slot_num(slot as integer) as string
+declare function describe_slot_num_short(slot as integer) as string
+declare function describe_targets(targs() as integer, highlight_slot as integer = -1) as string
+
+declare function describe_bslot(byval slot as integer, bat as BattleState, bslot() as BattleSprite, formdata as Formation) as string
+declare sub battle_debug_tooltips(bat as BattleState, bslot() as BattleSprite, formdata as Formation)
 
 #ENDIF
