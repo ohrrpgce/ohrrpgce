@@ -18,7 +18,9 @@ Status:
 
 Alive: Targetable, if nothing disallows it.
 
-Bequesting: Dead but is performing a on-death bequest attack. Not targetable.
+Bequesting: 0 HP, but is performing a on-death bequest attack. Not targetable.
+
+Dying: Enemy death dissolve animation.
 
 Hidden: Not targetable. E.g. due to Jump.
 

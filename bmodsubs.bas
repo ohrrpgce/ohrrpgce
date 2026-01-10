@@ -2294,10 +2294,16 @@ FUNCTION describe_bslot(byval slot as integer, bat as BattleState, bslot() as Ba
   ELSEIF .vis THEN
    info &= "`Alive`"
   ELSE
-   info &= "`Dead`"
+   IF .dissolve THEN  'Enemies only
+    IF .fleeing THEN  'Enemies only (we don't show anything for running heroes)
+     info &= "`Fleeing`"
+    ELSE
+     info &= "`Dying`"
+    END IF
+   ELSE
+    info &= "`Dead`"
+   END IF
   END IF
-  IF .dissolve THEN info &= " DeathDissolve:`" & .dissolve & "`"
-  IF .fleeing THEN info &= " `Fleeing`"
   IF .hidden THEN info &= " `Hidden`"
   IF .flipped THEN info &= " `Flipped`"
   IF .unescapable THEN info &= " `Unescapable`"
