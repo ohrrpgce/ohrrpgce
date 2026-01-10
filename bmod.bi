@@ -60,7 +60,6 @@ DECLARE SUB enemy_ai (byref bat as BattleState, bslot() as BattleSprite, formdat
 DECLARE SUB hero_ai (byref bat as BattleState, bspr as BattleSprite, byval attacker_id as integer, bslot() as BattleSprite, st() as HeroDef)
 DECLARE SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE SUB spellmenu (byref bat as BattleState, st() as HeroDef, bslot() as BattleSprite)
-DECLARE SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer)
 DECLARE SUB enforce_weak_picture(byval who as integer, bslot() as BattleSprite, byref bat as BattleState)
 DECLARE SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef, formdata as Formation)
 DECLARE SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)

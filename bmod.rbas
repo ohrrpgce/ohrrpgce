@@ -29,6 +29,9 @@
 DECLARE FUNCTION count_dissolving_enemies(bslot() as BattleSprite) as integer
 DECLARE FUNCTION find_empty_enemy_slot(formdata as Formation) as integer
 
+DECLARE SUB start_attack(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer)
+DECLARE SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer, tcount as integer)
+
 DECLARE SUB spawn_on_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, formdata as Formation, bslot() as BattleSprite)
 DECLARE SUB enemy_death_sfx(battler as BattleSprite)
 DECLARE SUB check_death(byval deadguy as integer, byval killing_attack as integer, byref bat as BattleState, bslot() as BattleSprite, formdata as Formation)
@@ -230,7 +233,7 @@ FUNCTION battle (byval form as integer) as bool
   
   '--An attack should happen, prepare its animation
   IF bat.atk.id >= 0 AND bat.anim_ready = NO AND bat.vic.state = vicNONE THEN
-   generate_atkscript attack, bat, bslot(), bat.anim_t()
+   start_attack attack, bat, bslot(), bat.anim_t()
   END IF
   
   '--Playback the current attack animation
@@ -4353,7 +4356,9 @@ FUNCTION is_invalid_target(attacker as integer, target as integer, byref attack 
  RETURN YES
 END FUNCTION
 
-SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer)
+'Setup and animate an attack. Loads 'attack' (initially contains garbage),
+'updates targets and considers cancel conditions, and generates the animation.
+SUB start_attack(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer)
  DIM i as integer
 
  '--check for item consumption
@@ -4396,19 +4401,11 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
    EXIT SUB
   END IF
  END IF
-
- '--setup attack sprite slots
- FOR i = 12 TO 23
-  'load battle sprites
-  setup_battlesprite_slice bslot(i), bat, sprTypeAttack, attack.picture, attack.pal
- NEXT i
  
  DIM tcount as integer = 0
- DIM pdir as integer = 0
  
  bat.atk.has_consumed_costs = NO
  bat.atk.has_spawned = NO
- IF is_enemy(bat.acting) THEN pdir = 1
 
  'Throw out any targets that have become invalid since targeting happened
  'Note: if a target dies it will already have been removed if needed by
@@ -4462,6 +4459,21 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
   bslot(bat.acting).stored_targs_can_be_dead = NO
  END IF
  
+ generate_atkscript attack, bat, bslot(), t(), tcount
+END SUB
+
+SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite, t() as integer, tcount as integer)
+
+ DIM i as integer
+ DIM pdir as integer = 0
+ IF is_enemy(bat.acting) THEN pdir = 1
+
+ '--setup attack sprite slots
+ FOR i = 12 TO 23
+  'load battle sprites
+  setup_battlesprite_slice bslot(i), bat, sprTypeAttack, attack.picture, attack.pal
+ NEXT i
+
  'BIG CRAZY SCRIPT CONSTRUCTION
  'DEBUG debug "begin script construction"
  IF attack.dramatic_pause > 0 THEN
@@ -5830,7 +5842,7 @@ SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as Battl
  '--check for queued attacks that target the dead target
  'NOTE: code here is partially duplicated with battle_check_delays!
  'TODO: it seems wrong to be treating dead dissimilarly to other invalid targets, which are only
- 'removed in generate_atkscript according to is_invalid_target, with no retargeting.
+ 'removed in start_attack according to is_invalid_target, with no retargeting.
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
