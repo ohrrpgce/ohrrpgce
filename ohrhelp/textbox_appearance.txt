@@ -28,16 +28,19 @@ Transparent Backdrop: This only matters if the text box has a backdrop. If YES, 
 
 Type: You can show a character portrait attached to the text box. Draw your portraits in the Graphics Editor first.
 
- * Fixed - Portrait ID will be the ID
-  number of the portrait. Use this if
-  you knkow who will be speaking.
+ * Fixed - Just pick a spriteset ID.
+
+ * Hero (by ID) - The spriteset will
+  be the portrait belonging to a fixed
+  hero ID. Use this if you know who
+  will be speaking.
 
  * Hero (by caterpillar order) -
-  Portrait ID will be a position in
+  The portrait spriteset will be
+  the portrait defined for a hero in
   the caterpillar party (0-3, empty
-  slots are skipped), and the
-  portrait will be that of the
-  corresponding hero at the time.
+  slots are skipped), at the time the
+  textbox is opened.
   Use this if you want a hero to
   speak but can't be sure which hero
   the player will be using.
@@ -47,6 +50,11 @@ Type: You can show a character portrait attached to the text box. Draw your port
   the party are NOT skipped, and you
   can choose heroes not in the
   current walkabout party.
+
+Frame ID: Which frame in the spriteset to display.
+This is NOT the frame number, each frame has an Frame ID displayed in the spriteset editor.
+Frames are arranged into groups, if you specify a frame ID that doesn't exist then the last frame in the same group is used, or the very first frame if that group is entirely missing.
+You could use groups for similar images to get reasonable fallbacks. For example, you can use frame 100 (1st frame in 2nd group) for 'Bored' and 101 for 'Sleepy', so that 100 is used if 101 is missing.
 
 Palette: "default" is the 16-color palette you used to draw the portrait, but you can change it with the arrow keys or by pressing ENTER or SPACE to browse your available palettes.
 

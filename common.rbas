@@ -1211,7 +1211,7 @@ FUNCTION curbinsize (byval id as integer) as integer
  IF id = binMENUS      THEN RETURN 56  'menus.bin
  IF id = binMENUITEM   THEN RETURN 68  'menuitem.bin
  IF id = binUICOLORS   THEN RETURN 126 'uicolors.bin
- IF id = binSAY        THEN RETURN 422 '.say
+ IF id = binSAY        THEN RETURN 424 '.say
  IF id = binN          THEN RETURN 38  '.n##
  IF id = binDT0        THEN RETURN 858 '.dt0
  IF id = binDT1        THEN RETURN 744 '.dt1
@@ -9072,6 +9072,7 @@ SUB init_text_box_slices(byref txtsl as Slice ptr, box as TextBox, parent as Sli
   DIM img_sl as Slice Ptr
   img_sl = NewSliceOfType(slSprite, img_box, SL_TEXTBOX_PORTRAIT)
   ChangeSpriteSlice img_sl, sprTypePortrait, img_id, pal_id
+  img_sl->SpriteData->set_frameid img_sl, box.portrait_frameid
   img_box->Width = img_sl->width
   img_box->Height = img_sl->height
  END IF

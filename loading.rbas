@@ -2996,6 +2996,7 @@ SUB LoadTextBox (byref box as TextBox, byval record as integer)
   .portrait_pal    = boxbuf(202)
   .portrait_pos.x  = boxbuf(203)
   .portrait_pos.y  = boxbuf(204)
+  .portrait_frameid = boxbuf(211)
  END WITH
 END SUB
 
@@ -3078,6 +3079,7 @@ SUB SaveTextBox (byref box as TextBox, byval record as integer)
   boxbuf(202) = .portrait_pal
   boxbuf(203) = .portrait_pos.x
   boxbuf(204) = .portrait_pos.y
+  boxbuf(211) = .portrait_frameid
  END WITH
 
  storerecord boxbuf(), filename, getbinsize(binSAY) \ 2, record

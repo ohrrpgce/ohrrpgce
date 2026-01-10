@@ -939,7 +939,14 @@ SUB TextboxAppearanceEditor.define_items()
  defint "Type:", box.portrait_type, 0, portraitLAST
  captionsz portrait_type_names(), "type"
  IF box.portrait_type <> portraitNONE THEN
-  defitem "ID:"
+  DIM idcaption as string
+  SELECT CASE box.portrait_type
+   CASE portraitSPRITESET: idcaption = "Spriteset ID:"
+   CASE portraitPARTYRANK: idcaption = "Party Rank:"
+   CASE portraitPARTYSLOT: idcaption = "Party Slot:"
+   CASE portraitHEROID:    idcaption = "Hero ID:"
+  END SELECT
+  defitem idcaption
   val_int box.portrait_id
   SELECT CASE box.portrait_type
    CASE portraitSPRITESET: edit_as_spriteset value, sprTypePortrait
@@ -952,6 +959,8 @@ SUB TextboxAppearanceEditor.define_items()
    CASE portraitPARTYSLOT: IF value >= sizeActiveParty THEN set_caption value & " (Reserve)"
    CASE portraitHEROID:    set_caption value & " (" & getheroname(value) & ")"
   END SELECT
+
+  defint "Frame ID:", box.portrait_frameid, 0, 9999
 
   defitem "Palette:"
   SELECT CASE box.portrait_type

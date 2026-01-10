@@ -1183,6 +1183,7 @@ TYPE TextBox
   portrait_id   as integer
   portrait_pal  as integer = -1
   portrait_pos  as XYPair
+  portrait_frameid as integer
 
   restore_music as bool
   music         as integer   ' +1, 0=none, -1=silence
