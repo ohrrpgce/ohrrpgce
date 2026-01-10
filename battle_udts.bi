@@ -83,6 +83,7 @@ TYPE BattleSprite
                 '  Gets set to YES while an enemy is performing an on-death attack.
                 '  Gets set to NO while it's dissolving or fleeing after death
                 'For other BattleSprites: is visible
+  showdead as bool '(Heroes only) Is dead, show Dead frame. (used only with .vis=NO)
   hidden as bool ' (Combatants only) Hidden (either invisible or off-screen) and not normally targetable
                  ' Set by e.g. "Jump" or "Always hides attacker".
   flipped as bool 
@@ -105,8 +106,7 @@ TYPE BattleSprite
   turncoat_attacker as bool
   defector_target as bool
   '--misc
-  dissolve as integer      'Ticks left in death dissolving animation (for enemies).
-                           'Set to 1 for dead heroes, to make them visible and use death frame, and does not count down (yuck)
+  dissolve as integer      'Ticks left in death dissolving animation (enemies only).
   dissolve_appear as integer 'Counts ticks *up* to appeartime while enemy appears
   fleeing as bool          'Sprite is animating running away (not to be confused with BattleState.flee)
   flinch_anim as integer   'Flinch animation ticks left to play (initially 6, reverse direction at 3, 0 for none)

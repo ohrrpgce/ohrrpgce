@@ -838,6 +838,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
  IF bslot(targ).stat.cur.hp > 0 THEN
   '---REVIVE---
   bslot(targ).vis = YES
+  bslot(targ).showdead = NO
   bslot(targ).dissolve = 0
  END IF
  IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_enemy_hit targ, bat, bslot(), formdata
@@ -1467,6 +1468,8 @@ SUB battle_animate(byref bat as BattleState, bslot() as BattleSprite, st() as He
       .vis = NO
      END IF
     END IF
+   END IF
+   IF .showdead THEN
     IF is_hero(i) THEN .frame = frameDEAD
    END IF
   END WITH
@@ -1630,7 +1633,7 @@ SUB update_battlesprite_slices(bat as BattleState, bslot() as BattleSprite)
   WITH bslot(i)
    IF .sl = NULL THEN CONTINUE FOR  'Empty slot
 
-   IF .vis OR .dissolve > 0 THEN
+   IF .vis OR .dissolve > 0 OR .showdead THEN
     .sl->Visible = YES
 
     DIM fliph as bool = .d <> 0
@@ -2418,7 +2421,7 @@ SUB battle_loadall(byval form as integer, byref bat as BattleState, bslot() as B
    enforce_weak_picture i, bslot(), bat
    IF gam.hero(i).id >= 0 AND .stat.cur.hp <= 0 THEN
     '--hero starts the battle dead
-    .dissolve = 1 'Keeps the dead hero from vanishing
+    .showdead = YES
     .frame = frameDEAD
    END IF
    .lifemeter = 100 * bound(.stat.cur.hp / large(.stat.max.hp, 1), 0., 1.)
@@ -3394,9 +3397,7 @@ SUB triggerfade(byval who as integer, bslot() as BattleSprite)
  'If the target is really dead...
  IF bslot(who).stat.cur.hp <= 0 THEN
   IF is_hero(who) THEN
-   '--for heroes, a .dissolve > 0 is used to trigger the animate code
-   '  to force the hero to use their death frame
-   bslot(who).dissolve = 1
+   bslot(who).showdead = YES
   END IF
   IF is_enemy(who) THEN
    'Don't restart the dissolve animation when hitting an enemy multiple times
@@ -5785,6 +5786,7 @@ FUNCTION ready_meter_may_grow (bat as BattleState, bslot() as BattleSprite, byva
  WITH bslot(who)
   IF .attack <> 0 THEN RETURN NO
   IF .dissolve <> 0 THEN RETURN NO
+  IF .showdead THEN RETURN NO
   IF .stat.cur.stun < .stat.max.stun THEN RETURN NO
   IF .ready = YES THEN RETURN NO
  END WITH
@@ -6448,8 +6450,12 @@ SUB dump_bslot(bat as BattleState, bslot() as BattleSprite, formdata as Formatio
  info = "----Dumping heroes & enemies bslot state----"
  FOR slot as integer = 0 TO 11
   WITH bslot(slot)
-   'I don't know whether this is the right way to exclude empty slots or not...
-   IF .vis = NO ANDALSO .dissolve = 0 ANDALSO .fleeing = NO ANDALSO .stat.cur.hp <= 0 ANDALSO .bequesting = NO THEN CONTINUE FOR
+   'Exclude empty slots
+   IF is_hero(slot) THEN
+    IF gam.hero(slot).id = -1 THEN CONTINUE FOR
+   ELSE
+    IF formdata.slots(slot - 4).id = -1 THEN CONTINUE FOR
+   END IF
 
    info &= !"\nSlot " & slot & IIF(is_hero(slot), " (hero)", " (enemy)")
    '(formdata is modified to contain the current enemy ID)

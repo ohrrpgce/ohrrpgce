@@ -2301,6 +2301,7 @@ FUNCTION describe_bslot(byval slot as integer, bat as BattleState, bslot() as Ba
      info &= "`Dying`"
     END IF
    ELSE
+    'Whether .showdead or not
     info &= "`Dead`"
    END IF
   END IF
