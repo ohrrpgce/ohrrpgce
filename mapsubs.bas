@@ -3731,7 +3731,9 @@ SUB mapedit_layers (st as MapEditState)
     IF layerno = 0 AND UBOUND(map.tiles) > 0 THEN
      'can't move npcs/heroes below layer 0, so swap with 2nd layer instead
      mapedit_swap_layers st, layerno, layerno + 1
-     layerno += 1     
+     layerno += 1
+     resetpt = YES
+     state.need_update = YES
     ELSEIF layerno > 0 THEN
      IF layerno = small(map.gmap(31) - 1, UBOUND(map.tiles)) THEN  'gmap(31) may be larger
       'swapping with NPC/Hero layers
@@ -3740,9 +3742,9 @@ SUB mapedit_layers (st as MapEditState)
       mapedit_swap_layers st, layerno, layerno + 1
       layerno += 1
      END IF
+     resetpt = YES
+     state.need_update = YES
     END IF
-    resetpt = YES
-    state.need_update = YES
    END IF
 
   ELSEIF state.need_update = NO THEN

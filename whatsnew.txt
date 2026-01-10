@@ -63,6 +63,7 @@ Jan 10 2026 [Lexiphanic]
       allowed exceptions). Broken since Ichorescent [Ralph]
     * Fixed "Always hide attacker" (it unhid instead) and turned it off in
       existing games [Ralph]
+    * Bug #1174, "BUG: Layer menu resetpt broken" error in layers menu [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Item data is now stored in a new lump, items.reld [James]
