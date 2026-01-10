@@ -1201,10 +1201,6 @@ SUB setheroexperience (byval who as integer, byval amount as integer, byval allo
  tag_updates
 END SUB
 
-FUNCTION visibleandalive (byval who as integer, bslot() as BattleSprite) as bool
- RETURN (bslot(who).vis ANDALSO bslot(who).stat.cur.hp > 0)
-END FUNCTION
-
 SUB export_battle_hero_stats (bslot() as BattleSprite)
  'Export a few specific hero battle stats to the out-of-battle party
  'This may be used frequently in battle
@@ -1411,6 +1407,10 @@ SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackDa
 
  END SELECT
 
+ 'Apply other restrictions
+
+ 'NOTE: When adding more restrictions you likely need to also add them to is_invalid_target
+
  'enforce attack's disabled enemy target slots
  FOR i = 0 TO 7
   IF atk.cannot_target_enemy_slot(i) THEN tmask(4 + i) = NO
@@ -1424,44 +1424,32 @@ SUB get_valid_targs(tmask() as bool, byval who as integer, byref atk as AttackDa
  FOR i = 0 TO 11
   'If a target is doing an on-death bequest attack,
   ' it cannot be targeted by anyone but itself
+  'FIXME: Should allow it to hit other targets though, this unintentionally prohibits that
   IF bslot(i).bequesting AND i <> who THEN
    tmask(i) = NO
   END IF
  NEXT i
 
- 'Some restrictions are only applied when the target class is not "self"
- FOR i = 0 TO 11
-  'Hidden targets can't be targetted
-  IF should_enforce_hidden_untargetability(atk) THEN
-   IF bslot(i).hidden THEN tmask(i) = NO
-  END IF
+ 'Some untargetability restrictions are only applied when the target class is not "self"
+ IF atk.targ_class <> 2 THEN
+  FOR i = 0 TO 11
 
-  IF should_enforce_untargetability(atk) THEN
-  'enforce untargetability
+   'Hidden targets can't be targetted
+   IF bslot(i).hidden THEN tmask(i) = NO
+
    IF attacker_as_hero THEN
     IF bslot(i).hero_untargetable = YES THEN tmask(i) = NO
    ELSEIF attacker_as_enemy THEN
     IF bslot(i).enemy_untargetable = YES THEN tmask(i) = NO
    END IF
-  END IF
-
- NEXT i
+  NEXT i
+ END IF
 
 END SUB
 
-FUNCTION should_enforce_hidden_untargetability(atk as AttackData) as bool
- IF atk.always_unhide_attacker ORELSE atk.attacker_anim = 5 ORELSE atk.attacker_anim = 11 THEN
-  'Any attack that does "Unhide" is likely to need to ignore untargetability
-  'This fixes jump-land chains when they jump on self, or jump on another jumper
-  RETURN NO
- END IF
- RETURN YES
-END FUNCTION 
-
-FUNCTION should_enforce_untargetability(atk as AttackData) as bool
- IF atk.targ_class = 2 THEN RETURN NO 'Self-targetting attacks should override untargetability
- RETURN YES
-END FUNCTION 
+FUNCTION attack_unhides_attacker(atk as AttackData) as bool
+ RETURN atk.always_unhide_attacker ORELSE atk.attacker_anim = atkrAnimLand ORELSE atk.attacker_anim = atkrAnimRunInUnHide
+END FUNCTION
 
 ' Generate animation for attacker moving forward before attacking
 ' Note: attack_placement_over_target has a special case for the walk-forward-20-pixels behaviour

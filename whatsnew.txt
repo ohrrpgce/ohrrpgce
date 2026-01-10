@@ -51,11 +51,13 @@ Jan 10 2026 [Lexiphanic]
       turn-based battles that used to cause battle to get stuck [James]
     * Fixed the bug that caused enemies to get stuck in a loop in
       active-time battles if they use a self-targetting bequest
-      attack that does not heal or transmorify them [James]
+      attack that does not heal or transmogrify them [James]
     * Heroes/enemies flinching from an attack could overshoot and end up 2-4 px
       from the start, depending on attack + attacker animation combo [Ralph]
     * Ignore gamepads/joysticks with only one axis because they can't be valid
       (Keychron K5 Max Keyboard, I'm lookin' at you!) [James]
+    * Attacks targeting 'Self' failed if the attacker was hidden (aside from some
+      allowed exceptions). Broken since Ichorescent [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Item data is now stored in a new lump, items.reld [James]

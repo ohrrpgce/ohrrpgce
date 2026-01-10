@@ -104,7 +104,7 @@ DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as bool
 DECLARE SUB update_battle_menu (bspr as BattleSprite, bslot() as BattleSprite, bat as BattleState, st() as HeroDef)
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
 DECLARE FUNCTION enemy_is_weak(byref bspr as BattleSprite) as bool
-DECLARE FUNCTION check_for_unhittable_invisible_foe(attacker as integer, target as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
+DECLARE FUNCTION is_invalid_target(attacker as integer, target as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE FUNCTION is_among_targets(byval slot as integer, t() as integer) as bool
 DECLARE FUNCTION should_victory_advance(byref bat as BattleState) as bool
 DECLARE SUB append_enemy_attacks_to_battle_menu(ai_attack_list() as integer, byref bspr as BattleSprite)
@@ -964,6 +964,7 @@ SUB battle_spawn_on_first_hit(atk as AttackData, byref bat as BattleState, bslot
 END SUB
 
 SUB battle_targetting(byref bat as BattleState, bslot() as BattleSprite)
+ 'Player controls for selecting target. Called each tick while in targeting mode.
  'Not just for heroes anymore!
 
  DIM do_cancel as bool = NO
@@ -4321,18 +4322,33 @@ FUNCTION projectile_start_position(attack as AttackData, attacker as integer, ba
  RETURN ret
 END FUNCTION
 
-'Return true if target is unhittable and invisible
-FUNCTION check_for_unhittable_invisible_foe(attacker as integer, target as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
+'Return true if a previously selected target has become invalid.
+'This is a subset of the restrictions applied in get_valid_targs. (Target classes
+'are ignored, because e.g. last-attacker might have changed.)
+'TODO: this may need to track get_valid_targs more closely, for example we
+'don't prevent hitting a bequesting enemy
+FUNCTION is_invalid_target(attacker as integer, target as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
+ 'Always valid if hidden=NO and vis=YES
  IF bslot(target).hidden THEN
-  IF should_enforce_hidden_untargetability(attack) THEN
-   RETURN YES
+  'Hidden attackers allowed to target themselves with Self (but not with All) attacks
+  IF attack.targ_class <> 2 THEN
+   'Exception: when the target of a chained unhiding attack has hidden (eg, a
+   'group of enemies that jump and target each other) then we shouldn't cancel
+   'the attack as that will leave the attacker hidden.
+   'TODO: so unhiding attacks may need exceptions for other invalid targets
+   'too. The common case of dead targets is already handled by retargeting in
+   'battle_reevaluate_dead_targets.
+   IF attack_unhides_attacker(attack) = NO THEN
+    RETURN YES
+   END IF
   END IF
  END IF
  IF bslot(target).vis THEN RETURN NO
- IF bslot(target).stat.cur.hp <= 0 ANDALSO attack_can_hit_dead(attack, bslot(attacker).stored_targs_can_be_dead) THEN RETURN NO 'Attack can hit dead targets
+
+ IF bslot(target).stat.cur.hp <= 0 ANDALSO attack_can_hit_dead(attack, bslot(attacker).stored_targs_can_be_dead) THEN RETURN NO
  IF bslot(attacker).self_bequesting THEN
   'This is a self-bequest attack
-  IF attacker = target THEN RETURN NO 'Bequesting attacker is always allowed to hit self
+  IF attacker = target THEN RETURN NO 'Bequesting attacker is always allowed to hit self (includes All targ_class)
  END IF
  RETURN YES
 END FUNCTION
@@ -4393,22 +4409,25 @@ SUB generate_atkscript(byref attack as AttackData, byref bat as BattleState, bsl
  bat.atk.has_consumed_costs = NO
  bat.atk.has_spawned = NO
  IF is_enemy(bat.acting) THEN pdir = 1
- 
- 'CANNOT HIT INVISIBLE FOES
+
+ 'Throw out any targets that have become invalid since targeting happened
+ 'Note: if a target dies it will already have been removed if needed by
+ 'battle_reevaluate_dead_targets, and the attack possibly retargeted or
+ 'cancelled earlier. It seems wrong to treat other invalid targets differently.
  FOR i = 0 TO 11
   IF t(i) > -1 THEN
-   IF check_for_unhittable_invisible_foe(bat.acting, t(i), attack, bat, bslot()) THEN
+   IF is_invalid_target(bat.acting, t(i), attack, bat, bslot()) THEN
     t(i) = -1
    END IF
   END IF
  NEXT i
- 'MOVE EMPTY TARGET SLOTS TO THE BACK
+ 'Move empty target slots to the back
  FOR o as integer = 0 TO UBOUND(t) - 1
   FOR i = 0 TO 10
    IF t(i) = -1 THEN SWAP t(i), t(i + 1)
   NEXT i
  NEXT o
- 'COUNT TARGETS
+ 'Count targets
  FOR i = 0 TO 11
   IF t(i) > -1 THEN tcount += 1
  NEXT i
@@ -4996,7 +5015,6 @@ SUB setup_targetting (byref bat as BattleState, bslot() as BattleSprite)
  FOR i = 0 TO 11
   bat.targ.selected(i) = NO ' clear list of selected targets
  NEXT i
-
  bat.targ.hit_dead = NO
 
  'load attack
@@ -5811,6 +5829,8 @@ END FUNCTION
 SUB battle_reevaluate_dead_targets (byval deadguy as integer, byref bat as BattleState, bslot() as BattleSprite)
  '--check for queued attacks that target the dead target
  'NOTE: code here is partially duplicated with battle_check_delays!
+ 'TODO: it seems wrong to be treating dead dissimilarly to other invalid targets, which are only
+ 'removed in generate_atkscript according to is_invalid_target, with no retargeting.
  FOR i as integer = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN

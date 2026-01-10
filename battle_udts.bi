@@ -76,16 +76,15 @@ TYPE BattleSprite
 
   basepos as XYPair
   d as integer
+  ' A combatant is normally targetable if vis=YES and hidden=NO, aside from exceptions such as attacks that can
+  ' hit dead or hidden.
   vis as bool   'Roughly, but not exactly, liveness:
                 'For combatants: Is alive (or dying interruptted).
                 '  Gets set to YES while an enemy is performing an on-death attack.
                 '  Gets set to NO while it's dissolving or fleeing after death
-                '  If true, treated as a valid target for attacks that can't hit dead.
                 'For other BattleSprites: is visible
-  hidden as bool ' For combatants, has been hidden by an attacker animation like "Jump" or "Run and Hide"
-                 ' or any attack with "always hides attacker" bitset. Not targetable until unhidden
-                 ' if true, excluded from all targetting except for attacks with attBaacker animation
-                 ' "Land" or "Run In" or any attack with the "always unhide attacker" bit
+  hidden as bool ' (Combatants only) Hidden (either invisible or off-screen) and not normally targetable
+                 ' Set by e.g. "Jump" or "Always hides attacker".
   flipped as bool 
 
   '--stats
