@@ -1331,6 +1331,7 @@ DIM displaylines as integer = (vpages(page)->h - menubar_height - 12) \ 9
 
 selectedscript = bound(selectedscript, 0, nowscript)
 IF selectedscript = lastscript THEN selectedscript = nowscript
+IF nowscript < 0 THEN selectedscript = -1
 lastscript = nowscript
 
 /'

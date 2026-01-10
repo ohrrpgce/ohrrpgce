@@ -64,6 +64,7 @@ Jan 10 2026 [Lexiphanic]
     * Fixed "Always hide attacker" (it unhid instead) and turned it off in
       existing games [Ralph]
     * Bug #1174, "BUG: Layer menu resetpt broken" error in layers menu [Ralph]
+    * A crash in the script debugger if there were no scripts running [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Item data is now stored in a new lump, items.reld [James]
