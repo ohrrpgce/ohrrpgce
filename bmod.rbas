@@ -106,7 +106,6 @@ DECLARE SUB update_turn_delays_in_attack_queue (byval who as integer)
 DECLARE FUNCTION has_blocking_turn_delayed_attacks(byval who as integer) as bool
 DECLARE SUB update_battle_menu (bspr as BattleSprite, bslot() as BattleSprite, bat as BattleState, st() as HeroDef)
 DECLARE SUB init_spell_menu (bat as BattleState, bslot() as BattleSprite, st() as HeroDef)
-DECLARE FUNCTION enemy_is_weak(byref bspr as BattleSprite) as bool
 DECLARE FUNCTION is_invalid_target(attacker as integer, target as integer, byref attack as AttackData, byref bat as BattleState, bslot() as BattleSprite) as bool
 DECLARE FUNCTION is_among_targets(byval slot as integer, t() as integer) as bool
 DECLARE FUNCTION should_victory_advance(byref bat as BattleState) as bool
@@ -3666,10 +3665,10 @@ END SUB
 '                                   Enemy AI
 
 'Used for enemies, not the enemy team
-FUNCTION enemy_is_weak(byref bspr as BattleSprite) as bool
- DIM weakhp as integer = gen(genEnemyWeakHP)
- IF bspr.stat.cur.hp < 0.01 * bspr.stat.max.hp * weakhp THEN RETURN YES
- RETURN NO
+FUNCTION BattleSprite.is_weak() as bool
+ DIM weakhp as integer
+ weakhp = gen(IIF(is_hero(index, genHeroWeakHP, genEnemyWeakHP))
+ RETURN stat.cur.hp < 0.01 * stat.max.hp * weakhp - 1e-8
 END FUNCTION
 
 'Figure out which enemy attack list should be used.
@@ -3677,7 +3676,7 @@ FUNCTION pick_enemy_attack_list(slot as integer, bslot() as BattleSprite) as Ene
  DIM ai as EnemyAIEnum = aiNormal
 
  'if HP is less than the threshold, go into desperation mode
- IF enemy_is_weak(bslot(slot)) THEN ai = aiWeak
+ IF bslot(slot).is_weak() THEN ai = aiWeak
 
  'Go into alone mode if no allies without "Ignored for "Alone" status" bit
  IF count_allies(slot, bslot()) = 0 THEN ai = aiAlone
@@ -3687,7 +3686,7 @@ FUNCTION pick_enemy_attack_list(slot as integer, bslot() as BattleSprite) as Ene
  'normally have wasted their turn, however the player might be in control.
  IF count_available_attacks_in_ai_list(ai, slot, bslot()) = 0 THEN
   ai = aiNormal
-  IF enemy_is_weak(bslot(slot)) THEN
+  IF bslot(slot).is_weak() THEN
    ai = aiWeak
    IF count_available_attacks_in_ai_list(ai, slot, bslot()) = 0 THEN ai = aiNormal
   END IF
@@ -5005,10 +5004,7 @@ END SUB
 SUB enforce_weak_picture(byval who as integer, bslot() as BattleSprite, byref bat as BattleState)
  '--Heroes only, since enemies don't currently have a weak frame
  IF is_hero(who) THEN
-  '--enforce weak picture
-  DIM weakhp as integer = 0
-  weakhp = gen(genHeroWeakHP)
-  IF bslot(who).stat.cur.hp < 0.01 * bslot(who).stat.max.hp * weakhp - 1e-8 AND bat.vic.state = vicNONE THEN bslot(who).frame = frameWEAK
+  IF bslot(who).is_weak() ANDALSO bat.vic.state = vicNONE THEN bslot(who).frame = frameWEAK
  END IF
 END SUB
 
@@ -6442,7 +6438,8 @@ SUB dump_bslot(bat as BattleState, bslot() as BattleSprite, formdata as Formatio
    IF .vis = NO ANDALSO .dissolve = 0 ANDALSO .fleeing = NO ANDALSO .stat.cur.hp <= 0 ANDALSO .bequesting = NO THEN CONTINUE FOR
 
    info &= !"\nSlot " & slot & IIF(is_hero(slot), " (hero)", " (enemy)")
-   IF is_enemy(slot) THEN info &= !"\n orig. formation enemy = " & formdata.slots(slot - 4).id
+   '(formdata is modified to contain the current enemy ID)
+   IF is_enemy(slot) THEN info &= !"\n enemy ID " & formdata.slots(slot - 4).id
    info &= !"\n name = " & .name & _
            !"\n vis = " & .vis & _
            !"\n dissolve = " & .dissolve & _

@@ -89,6 +89,7 @@ TYPE BattleSprite
 
   '--stats
   stat as BattleStats
+  DECLARE FUNCTION is_weak() as bool
   elementaldmg(maxElements - 1) as single
   '--level-mp
   consume_lmp as integer '-1 for no LMP consumption, >= 0 to indicate which level of MP should be deducted
@@ -128,7 +129,7 @@ TYPE BattleSprite
   hand(1) as XYPair ' For weapons = handle pos. For heroes, intended as hand position but not used yet (it's read directly from HeroState)
   '--used only for turnTURN mode
   initiative_order as integer
-  no_attack_this_turn as integer
+  no_attack_this_turn as bool
   '--used only for turnACTIVE mode
   active_turn_num as integer
   '--affliction state
