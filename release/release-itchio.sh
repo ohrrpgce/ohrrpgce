@@ -17,7 +17,7 @@ cd itch_upload_dir
 
 if [ ! -f butler ] ; then
   echo "Installing itch.io butler..."
-  curl -L -s -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+  curl -L -s -o butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
   unzip butler.zip
   rm butler.zip
   chmod +x butler
