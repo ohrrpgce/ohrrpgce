@@ -65,6 +65,7 @@ Jan 10 2026 [Lexiphanic]
       existing games [Ralph]
     * Bug #1174, "BUG: Layer menu resetpt broken" error in layers menu [Ralph]
     * A crash in the script debugger if there were no scripts running [Ralph]
+    * Bug #1227 Setting hero speed to 0 can cause "BUG: interpolatecat... [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Item data is now stored in a new lump, items.reld [James]

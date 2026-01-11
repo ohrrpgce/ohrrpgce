@@ -1329,6 +1329,7 @@ END SUB
 '                                      Hero movement
 '==========================================================================================
 
+'Always returns >= 1
 FUNCTION catleaderspeed() as integer
  IF prefbit(41) = NO THEN
   '"Keep caterpillar length the same when speed changes" bitset is off
@@ -1423,7 +1424,10 @@ SUB interpolatecat (byval old_speed as integer = -1)
  DIM sp as integer = catleaderspeed()
 
  IF old_speed = -1 THEN old_speed = sp
- 
+
+ 'If the old herow(0).speed was 0 then was treated as 1 by catleaderspeed.
+ 'IF old_speed <= 0 THEN old_speed = 1
+
  IF prefbit(41) = NO THEN
   '"Keep caterpillar length the same when speed changes" bitset is off
   'so we never actually remap hero indexes when speed changes
@@ -1434,7 +1438,7 @@ SUB interpolatecat (byval old_speed as integer = -1)
   'Remap the hero positions from the old speed to the new speed
   DIM cattemp(3) as CaterpillarHistory
   DIM temp_index as integer
-  FOR i as integer = 0 to 3
+  FOR i as integer = 0 TO 3
    temp_index = i * CEIL(20 / old_speed)
    IF temp_index >= 0 ANDALSO temp_index <= UBOUND(cats) THEN
     cattemp(i) = cats(temp_index)
@@ -1442,8 +1446,8 @@ SUB interpolatecat (byval old_speed as integer = -1)
     showbug "interpolatecat: cats() array access out of bounds (" & temp_index & ")"
    END IF
   NEXT i
-  FOR i as integer = 0 to 3
-   cats(i * CEIL(20 / sp)) = cattemp(i)
+  FOR i as integer = 0 TO 3
+   cats(i * CEIL(20 / sp)) = cattemp(i)  'sp is always >= 1
   NEXT i
  END IF
 
