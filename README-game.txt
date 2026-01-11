@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Game Player         (WIP version)
+ O.H.R.RPG.C.E Game Player         (2026-01-10 Lexiphanic)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
