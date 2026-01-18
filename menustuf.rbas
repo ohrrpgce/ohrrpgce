@@ -745,7 +745,7 @@ FUNCTION buystuff_can_buy(byval thing as NodePtr, buyst as ShopBuyState, byval s
  ELSEIF thing_kind = "item" THEN
   buy = thing."buy".ptr
   'debug "item=" & readitemname(thing_id)
-  IF NOT room_for_item(thing_id) THEN
+  IF room_for_item(thing_id) = 0 THEN
    IF sound_and_alert THEN
     menusound gen(genCantBuySFX)
     buystuff_set_alert buyst, readglobalstring(305, "No room in inventory", 30)

@@ -483,6 +483,24 @@ script, inventory tests, begin
   delete item(item:overflow, 1)
   assert(inventory(item:overflow) == 0)
   # We also test a full inventory in test battle rewards
+
+  # Test room for item
+  # inventory begins empty (30 slots)
+  assert(room for item(item:Boots) == 2970) # 30 slots * 99 stack size
+  assert(room for item(item:Bulky) == 90)   # 30 slots * 3 stack size
+  get item(item:Boots, 200)
+  assert(room for item(item:Boots) == 2970 -- 200)
+  delete item(item:Boots, 198)  # Two left
+  # Test with two partial stacks
+  set item in slot(1, item:Bulky)
+  set item count in slot(1, 2)
+  set item in slot(29, item:Bulky)
+  set item count in slot(29, 1)
+  # One inventory slot contains Boots, 3 Bulky already
+  assert(room for item(item:Bulky) == 29*3 -- 3)
+  # Clean up
+  delete item(item:Boots, inventory(item:Boots))
+  delete item(item:Bulky, inventory(item:Bulky))
 end
 
 ########################################################################

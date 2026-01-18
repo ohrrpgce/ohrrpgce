@@ -26,7 +26,7 @@ DECLARE FUNCTION countitem (byval item_id as integer) as integer
 DECLARE FUNCTION count_equipped_item(byval item_id as integer) as integer
 DECLARE FUNCTION getitem (byval item_id as integer, byval num as integer=1, byval ok_to_fail as bool=NO) as bool
 DECLARE SUB delitem (byval item_id as integer, byval amount as integer=1)
-DECLARE FUNCTION room_for_item (byval itemid as integer, byval num as integer = 1) as bool
+DECLARE FUNCTION room_for_item (byval itemid as integer) as integer
 
 DECLARE SUB update_textbox ()
 DECLARE SUB choicebox_controls()

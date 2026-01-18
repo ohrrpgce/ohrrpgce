@@ -5565,6 +5565,10 @@ SUB script_commands(byval cmdid as integer)
   ELSE
    scriptret = -1
   END IF
+ CASE 819'--room for item (item)
+  IF valid_item(retvals(0)) THEN
+   scriptret = room_for_item(retvals(0))
+  END IF
 
  CASE ELSE
   'We also check the HSP header at load time to check there aren't unsupported commands

@@ -1375,6 +1375,7 @@ function toggleContent(target) {
 		<a href="#about-right" class="ref">right</a><br>
 		<a href="#about-rightbutton" class="ref">right button</a><br>
 		<a href="#about-rightkey" class="ref">right key</a><br>
+		<a href="#about-roomforitem" class="ref">room for item (item)</a><br>
 		<a href="#about-roominactiveparty" class="ref">room in active party</a><br>
 		<a href="#about-rungame" class="ref">run game(file string id)</a><br>
 		<a href="#about-runkey" class="ref">run key</a><br>
@@ -7005,6 +7006,7 @@ end</pre>
 		<a href="#about-setitemcountinslot" class="ref">set item count in slot (slot, count)</a><br>
 		<a href="#about-useiteminslot" class="ref">use item in slot (slot)</a><br>
 		<a href="#about-inventory" class="ref">inventory (item)</a><br>
+		<a href="#about-roomforitem" class="ref">room for item (item)</a><br>
 		<a href="#about-getinventorysize" class="ref">get inventory size</a><br>
 		<a href="#about-setinventorysize" class="ref">set inventory size (new size)</a><br>
 		<a href="#about-sortinventory" class="ref">sort inventory</a><br>
@@ -7417,6 +7419,26 @@ end</pre>
 		</p>
 </div>
 		<div class="command">
+			<a name="about-roomforitem"></a>
+				<h4>room for item (item)</h4>
+<p>
+			
+				Returns the maximum number of the specified item that can be added to your inventory, taking into account the item's max stack size and existing stacks of the item in the inventory. (<a href="#about-getitem" class="ref">get item</a><span class="code">(item, 999999)</span> would return the same number.)
+				<br>
+				<span class="param">item</span> is an ID number; you can use constants of the form of <span class="code">item:itemname</span>.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					<a href="#about-sortinventory" class="ref">sort inventory</a> will combine partial stacks of items, which might create some empty slots to allow
+					fitting in more of other items.
+				</div>
+			
+			
+			
+			<div class="seealso">See also: <ul><li><a href="#about-getitemmaximumstacksize" class="ref">get item maximum stack size</a></li></ul>
+</div>
+		</p>
+</div>
+		<div class="command">
 			<a name="about-getinventorysize"></a>
 				<h4>get inventory size</h4>
 <p>
@@ -7512,7 +7534,7 @@ end</pre>
 			
 				Similar to (and used together with) <a href="#about-itemsreward" class="ref">items reward</a>, except it returns the quantities of corresponding
 				items actually gained in the last battle, which is less than the number dropped
-				(as told by <a href="#about-itemsquantityreward" class="ref">items quantity reward</a> if the items didn't all fit.
+				(as told by <a href="#about-itemsquantityreward" class="ref">items quantity reward</a>) if the items didn't all fit.
 				<pre># Set this as the after-battle script. If there was an overflow it opens the
 # Items menu to give the player the ability to drop something else to make room
 #tplotscript, handle battle item overflow, begin
@@ -24340,7 +24362,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 1010 commands (of which 16 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 1011 commands (of which 16 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

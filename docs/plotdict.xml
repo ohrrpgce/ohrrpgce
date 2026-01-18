@@ -3803,6 +3803,22 @@ end</example>
 			<shortname>inventory</shortname>
 			<description>Returns a count of how many of the specified item are in your inventory. If you do not have the item, it returns zero or <ref>false</ref>. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name</description>
 		</command>
+		<command id="roomforitem">
+			<canon>room for item (item)</canon>
+			<shortname>room for item</shortname>
+			<description>
+				Returns the maximum number of the specified item that can be added to your inventory, taking into account the item's max stack size and existing stacks of the item in the inventory. (<ref>getitem</ref><tt>(item, 999999)</tt> would return the same number.)
+				<lb/>
+				<p>item</p> is an ID number; you can use constants of the form of <tt>item:itemname</tt>.
+				<note>
+					<ref>sortinventory</ref> will combine partial stacks of items, which might create some empty slots to allow
+					fitting in more of other items.
+				</note>
+			</description>
+			<seealso>
+				<ref>getitemmaximumstacksize</ref>
+			</seealso>
+		</command>
 		<command id="getinventorysize">
 			<canon>get inventory size</canon>
 			<shortname>get inventory size</shortname>
@@ -3880,7 +3896,7 @@ end</example>
 			<description>
 				Similar to (and used together with) <ref>itemsreward</ref>, except it returns the quantities of corresponding
 				items actually gained in the last battle, which is less than the number dropped
-				(as told by <ref>itemsquantityreward</ref> if the items didn't all fit.
+				(as told by <ref>itemsquantityreward</ref>) if the items didn't all fit.
 				<example># Set this as the after-battle script. If there was an overflow it opens the
 # Items menu to give the player the ability to drop something else to make room
 #tplotscript, handle battle item overflow, begin

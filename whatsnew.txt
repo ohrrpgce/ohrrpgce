@@ -5,7 +5,8 @@ WHAT IS NEW?
   *** New Features
 
    * Plotscripting Features
-    * "items gained reward" (to handle a full inventory after battle) [Ralph]
+    * "items gained reward" (to handle a full inventory after battle),
+      "room for item" [Ralph]
 
   *** Changes
 

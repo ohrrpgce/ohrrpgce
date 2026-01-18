@@ -857,6 +857,7 @@ define function, begin
 816,nextzonetilex,3,0,-1,-1   # X coordinate of next tile in zone (zone id, current x, current y)
 817,nextzonetiley,3,0,-1,-1   # Y coordinate of next tile in zone (zone id, current x, current y)
 818,itemsgainedreward,1,0     # Number of items actually gained as rewards in last battle (reward index)
+819,roomforitem,1,0           # Maximum number of item that can fit in inventory (item)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
