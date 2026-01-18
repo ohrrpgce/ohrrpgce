@@ -2712,9 +2712,8 @@ SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
  import_battle_hero_stats bslot() 'Needed because we will likely be calling export_battle_hero_stats() again later
 
  '--Give items
- DIM i as integer = 0
- FOR i = 0 TO UBOUND(bat.rew.found)
-  IF bat.rew.found(i).num > 0 THEN getitem bat.rew.found(i).id, bat.rew.found(i).num
+ FOR i as integer = 0 TO UBOUND(bat.rew.found)
+  getitem bat.rew.found(i).id, bat.rew.found(i).num
  NEXT
 
  '-- Record rewards for after-battle usage
@@ -2771,18 +2770,20 @@ FUNCTION distribute_party_experience (byval exper as integer) as integer
 END FUNCTION
 
 'Found an item, add to list of rewards
-'TODO: convert found() to a variable length array
 SUB RewardsState.add_item(itemid as integer, count as integer = 1)
- FOR j as integer = 0 TO UBOUND(found)
+ DIM j as integer
+ FOR j = 0 TO UBOUND(found)
   WITH found(j)
-   IF .num = 0 THEN .id = itemid
    IF .id = itemid THEN
     .num += count
     EXIT SUB
    END IF
   END WITH
  NEXT j
- debug "Found items array full!"
+ j = UBOUND(found) + 1
+ REDIM PRESERVE found(j)
+ found(j).id = itemid
+ found(j).num = count
 END SUB
 
 FUNCTION should_victory_advance(byref bat as BattleState) as bool
@@ -2880,20 +2881,19 @@ SUB show_victory (byref bat as BattleState, bslot() as BattleSprite, page as int
     END IF
    CASE vicITEMS
     '--print found items, one at a time
+    IF .found_index > UBOUND(bat.rew.found) THEN
+     'This happens only when there are no reward items at all
+     .state = vicEXITDELAY
+     .display_ticks = 0
+     EXIT SUB
+    END IF
     DIM byref pickedup as RewardsStateItem = bat.rew.found(.found_index)
     '--check to see if we are currently displaying a gotten item
     IF .item_name = "" THEN
-     '--if not, check to see if there are any more gotten items to display
-     IF pickedup.num = 0 THEN
-      .state = vicEXITDELAY
-      .display_ticks = 0
-      EXIT SUB
-     END IF
-     '--get the item name
      .item_name = readitemname(pickedup.id)
      'tag_updates called when exiting battle() to handle all at once
     END IF
-    '--if the present item is gotten, show the caption
+    '--build caption
     IF pickedup.num = 1 THEN
      tempstr = .item_caption & " " & .item_name
     ELSE

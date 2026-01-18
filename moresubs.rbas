@@ -1550,10 +1550,7 @@ SUB reset_rewards_state (byref rew as RewardsState)
  WITH rew
   .plunder = 0
   .exper = 0
-  FOR i = 0 TO UBOUND(.found)
-   .found(i).id = 0   'Note: id is not offset; num=0 indicates slot not used
-   .found(i).num = 0
-  NEXT i
+  ERASE .found
  END WITH
 END SUB
 
