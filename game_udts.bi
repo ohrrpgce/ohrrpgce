@@ -112,6 +112,7 @@ END TYPE
 TYPE RewardsStateItem
  id as integer      'Item ID, not offset
  num as integer     'Number dropped
+ gained as integer  'Number actually gained
 END TYPE
 
 'The rewards gathered in a battle

@@ -3121,7 +3121,7 @@ FUNCTION unequip (who as integer, where as integer, resetdefwep as bool = YES, f
   '--return item to inventory (if not the default weapon)
   IF where = 0 AND .equip(where).id = .def_wep - 1 THEN
   ELSE
-   IF getitem(.equip(where).id, , YES) = NO THEN  'ok_to_fail=YES
+   IF getitem(.equip(where).id, , YES) = 0 THEN  'ok_to_fail=YES
     debug "Returning " & readitemname(.equip(where).id) & " to inventory failed (force=" & force & ")"
     IF force = NO THEN RETURN NO
    END IF

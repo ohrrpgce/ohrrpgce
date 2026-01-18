@@ -1,5 +1,18 @@
 WHAT IS NEW?
 
+??? ?? 2026 [Magniloquent]
+
+  *** New Features
+
+   * Plotscripting Features
+    * "items gained reward" (to handle a full inventory after battle) [Ralph]
+
+  *** Changes
+
+  *** Bugfixes
+
+  *** Stuff Only Developers Will Notice
+
 Jan 10 2026 [Lexiphanic]
 
   *** New Features

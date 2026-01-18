@@ -2713,7 +2713,9 @@ SUB trigger_victory(byref bat as BattleState, bslot() as BattleSprite)
 
  '--Give items
  FOR i as integer = 0 TO UBOUND(bat.rew.found)
-  getitem bat.rew.found(i).id, bat.rew.found(i).num
+  WITH bat.rew.found(i)
+   .gained = getitem(.id, .num)
+  END WITH
  NEXT
 
  '-- Record rewards for after-battle usage

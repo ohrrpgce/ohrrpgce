@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2026-01-04)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2026-01-18)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -1116,6 +1116,7 @@ function toggleContent(target) {
 		<a href="#about-isshophiremenuempty" class="ref">is shop hire menu empty (shop id)</a><br>
 		<a href="#about-itemcountinslot" class="ref">item count in slot (slot)</a><br>
 		<a href="#about-iteminslot" class="ref">item in slot (slot)</a><br>
+		<a href="#about-itemsgainedreward" class="ref">items gained reward (number)</a><br>
 		<a href="#about-itemsmenu" class="ref">items menu</a><br>
 		<a href="#about-itemsquantityreward" class="ref">items quantity reward (number)</a><br>
 		<a href="#about-itemsreward" class="ref">items reward (number)</a><br>
@@ -7009,6 +7010,7 @@ end</pre>
 		<a href="#about-sortinventory" class="ref">sort inventory</a><br>
 		<a href="#about-itemsreward" class="ref">items reward (number)</a><br>
 		<a href="#about-itemsquantityreward" class="ref">items quantity reward (number)</a><br>
+		<a href="#about-itemsgainedreward" class="ref">items gained reward (number)</a><br>
 </ul>
 <ul></ul>
 </li>
@@ -7455,12 +7457,12 @@ end</pre>
 				<h4>items reward (number)</h4>
 <p>
 			
-				Returns the id numbers of the items dropped by enemies in the last battle
+				Returns the ID numbers of the items dropped by enemies in the last battle
 				(-1 if item reward <span class="param">number</span> is not present).
 				<span class="param">number</span> counts from 0 up, where <span class="code">items reward(0)</span> is the ID of
 				the first gained item, etc.
 				If the argument is <a href="#about-getcount" class="ref">get count</a>, then it returns the number of distinct
-				items acquired at the end of the battle.
+				item types acquired at the end of the battle.
 				You can use it in a loop in order to display all item rewards (for example, in
 				an after battle script), usually in tandem with <a href="#about-itemsquantityreward" class="ref">items quantity reward</a>.
 				<pre>plotscript, print items gained, begin
@@ -7474,7 +7476,6 @@ end</pre>
     wait for text box
   )
 end</pre>
-
 			
 			
 			
@@ -7487,13 +7488,59 @@ end</pre>
 				<h4>items quantity reward (number)</h4>
 <p>
 			
-				Similar to <a href="#about-itemsreward" class="ref">items reward</a>, except it returns the quantities of corresponding
-				items acquired in the last battle.
+				Similar to (and used together with) <a href="#about-itemsreward" class="ref">items reward</a>, except it returns the quantities of corresponding
+				items dropped in the last battle.
+				<div class="notice note">
+<img src="Plotnote.png" alt="[Notice]" class="icon">
+					This commands returns the number of items that were dropped by enemies
+					(the number stated in the victory display at the end of battle),
+					which is less than the number the player actually gained
+					(<a href="#about-itemsgainedreward" class="ref">items gained reward</a> tells that) if there wasn't enough
+					room for them in the inventory.
+				</div>
 			
 			
 			
 			<div class="seealso">See also: <ul><li><a href="#about-itemsreward" class="ref">items reward</a></li></ul>
 </div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-itemsgainedreward"></a>
+				<h4>items gained reward (number)</h4>
+<p>
+			
+				Similar to (and used together with) <a href="#about-itemsreward" class="ref">items reward</a>, except it returns the quantities of corresponding
+				items actually gained in the last battle, which is less than the number dropped
+				(as told by <a href="#about-itemsquantityreward" class="ref">items quantity reward</a> if the items didn't all fit.
+				<pre># Set this as the after-battle script. If there was an overflow it opens the
+# Items menu to give the player the ability to drop something else to make room
+#tplotscript, handle battle item overflow, begin
+  # Assume text box 123 contains text "Found ${S0}x ${S1} but could only pickup ${S2}. Make some room."
+  variable (idx, item, dropped, gained)
+  for (idx, 0, items reward (get count) -- 1) do (
+    item := items reward (idx)
+    dropped := items quantity reward (idx)
+    gained := items gained reward (idx)
+    clear string (0)
+    append number (0, dropped)
+    get item name (1, item)
+    clear string (2)
+    append number (2, gained)
+
+    show text box (123) # Displays e.g. "Found 3x Herb but could only pickup 1. ..."
+    wait for text box
+
+    items menu
+
+    # You can check the return value to see whether it fitted
+    get item (item, dropped -- gained)
+  )
+end</pre>
+			
+			
+			
+			
 		</p>
 </div>
 		<hr>
@@ -24293,7 +24340,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 1009 commands (of which 16 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 1010 commands (of which 16 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

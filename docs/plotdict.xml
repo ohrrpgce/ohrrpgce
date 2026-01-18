@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2026-01-04">
+<plotscript version="wip" datecode="2026-01-18">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -3832,12 +3832,12 @@ end</example>
 			<canon>items reward (number)</canon>
 			<shortname>items reward</shortname>
 			<description>
-				Returns the id numbers of the items dropped by enemies in the last battle
+				Returns the ID numbers of the items dropped by enemies in the last battle
 				(-1 if item reward <p>number</p> is not present).
 				<p>number</p> counts from 0 up, where <tt>items reward(0)</tt> is the ID of
 				the first gained item, etc.
 				If the argument is <ref>getcount</ref>, then it returns the number of distinct
-				items acquired at the end of the battle.
+				item types acquired at the end of the battle.
 				You can use it in a loop in order to display all item rewards (for example, in
 				an after battle script), usually in tandem with <ref>itemsquantityreward</ref>.
 				<example>plotscript, print items gained, begin
@@ -3851,7 +3851,6 @@ end</example>
     wait for text box
   )
 end</example>
-
 			</description>
 			<seealso>
 				<ref>itemsquantityreward</ref>
@@ -3861,12 +3860,52 @@ end</example>
 			<canon>items quantity reward (number)</canon>
 			<shortname>items quantity reward</shortname>
 			<description>
-				Similar to <ref>itemsreward</ref>, except it returns the quantities of corresponding
-				items acquired in the last battle.
+				Similar to (and used together with) <ref>itemsreward</ref>, except it returns the quantities of corresponding
+				items dropped in the last battle.
+				<note>
+					This commands returns the number of items that were dropped by enemies
+					(the number stated in the victory display at the end of battle),
+					which is less than the number the player actually gained
+					(<ref>itemsgainedreward</ref> tells that) if there wasn't enough
+					room for them in the inventory.
+				</note>
 			</description>
 			<seealso>
 				<ref>itemsreward</ref>
 			</seealso>
+		</command>
+		<command id="itemsgainedreward">
+			<canon>items gained reward (number)</canon>
+			<shortname>items gained reward</shortname>
+			<description>
+				Similar to (and used together with) <ref>itemsreward</ref>, except it returns the quantities of corresponding
+				items actually gained in the last battle, which is less than the number dropped
+				(as told by <ref>itemsquantityreward</ref> if the items didn't all fit.
+				<example># Set this as the after-battle script. If there was an overflow it opens the
+# Items menu to give the player the ability to drop something else to make room
+#tplotscript, handle battle item overflow, begin
+  # Assume text box 123 contains text "Found ${S0}x ${S1} but could only pickup ${S2}. Make some room."
+  variable (idx, item, dropped, gained)
+  for (idx, 0, items reward (get count) -- 1) do (
+    item := items reward (idx)
+    dropped := items quantity reward (idx)
+    gained := items gained reward (idx)
+    clear string (0)
+    append number (0, dropped)
+    get item name (1, item)
+    clear string (2)
+    append number (2, gained)
+
+    show text box (123) # Displays e.g. "Found 3x Herb but could only pickup 1. ..."
+    wait for text box
+
+    items menu
+
+    # You can check the return value to see whether it fitted
+    get item (item, dropped -- gained)
+  )
+end</example>
+			</description>
 		</command>
 
 		</section>		<!--Inventory-->

@@ -482,7 +482,7 @@ script, inventory tests, begin
   assert(inventory(item:overflow) == 1)
   delete item(item:overflow, 1)
   assert(inventory(item:overflow) == 0)
-  
+  # We also test a full inventory in test battle rewards
 end
 
 ########################################################################
@@ -3880,12 +3880,15 @@ script, test battle rewards, begin
   assert(money reward == 4)
   assert(experience reward == 2)
   assert(items reward (get count) == 1)
+  assert(items quantity reward (get count) == 1)
+  assert(items gained reward (get count) == 1)
   variable (i, item, qty)
   for (i, 0, items reward (get count) -- 1) do (
     item := items reward(i)
     qty := items quantity reward(i)
     assert(item == item:tooth)
     assert(qty == 2)
+    assert(qty == items quantity reward(i))
     get item name(3, item)
     string sprintf(1, $2="Got %s x %d", 3, qty)
     show string(1)
@@ -3895,6 +3898,23 @@ script, test battle rewards, begin
   clear string(1)
   clear string(2)
   clear string(3)
+
+  # Now test with a full inventory
+  # Fill the inventory with room for 1 tooth only (there are 30 inventory slots)
+  delete item(item:tooth, 9999)
+  assert(get item(item:spamknif, 3000) < 3000)
+  delete item(item:spamknif, 99)
+  assert(inventory(item:tooth) == 0)
+  assert(get item(item:tooth, 98) == 98)
+
+  fight formation(11), w
+  assert(items reward (get count) == 1)
+  assert(items reward (0) == item:tooth)
+  assert(items quantity reward (0) == 2)
+  assert(items gained reward (0) == 1)
+  # Cleanup
+  delete item(item:tooth, 99)
+  delete item(item:spamknif, 9999)
 end
 
 ########################################################################

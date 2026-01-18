@@ -30,7 +30,7 @@
 '--Local subs and functions
 DECLARE SUB teleporttool_load_map (map as integer, maptiles2() as TileMap, pass2 as TileMap, tilesets2() as TilesetData ptr)
 DECLARE SUB teleporttool_generate_minimap(byref mini as Frame Ptr, maptilesX() as TileMap, passX as TileMap, tilesetsX() as TilesetData ptr, byref zoom as integer, byref maxzoom as integer, byref mapsize as XYPair, byref minisize as XYPair, byref offset as XYPair, byref camera as XYPair, dest as XYPair)
-DECLARE SUB inventory_overflow_handler(byval item_id as integer, byval numitems as integer)
+DECLARE FUNCTION inventory_overflow_handler(byval item_id as integer, byval numitems as integer) as integer
 DECLARE SUB hero_swap_menu_init(st as OrderTeamState)
 DECLARE SUB hero_swap_menu_display (st as OrderTeamState)
 DECLARE SUB hero_swap_menu_mouse_control (st as OrderTeamState)
@@ -222,11 +222,11 @@ FUNCTION count_equipped_item(byval item_id as integer) as integer
 END FUNCTION
 
 'Add to inventory. item_id is not offset.
-'Returns true if all items fitted in inventory (may fit just some in and return false!)
+'Returns the number of items that actually fit in inventory.
 'ok_to_fail is intended for when the caller wants to handle overflow itself.
-FUNCTION getitem (byval item_id as integer, byval num as integer=1, byval ok_to_fail as bool=NO) as bool
+FUNCTION getitem (byval item_id as integer, byval num as integer=1, byval ok_to_fail as bool=NO) as integer
 
- DIM numitems as integer = num
+ DIM numitems as integer = num  'Number left
  DIM room as integer
  DIM stacksize as integer = get_item_stack_size(item_id)
 
@@ -242,7 +242,7 @@ FUNCTION getitem (byval item_id as integer, byval num as integer=1, byval ok_to_
    ELSE
     inventory(i).num += numitems
     update_inventory_caption i
-    RETURN YES
+    RETURN num
    END IF
   END IF
  NEXT i
@@ -255,20 +255,22 @@ FUNCTION getitem (byval item_id as integer, byval num as integer=1, byval ok_to_
    inventory(i).num = small(numitems, stacksize)
    numitems -= inventory(i).num
    update_inventory_caption i
-   IF numitems = 0 THEN RETURN YES
+   IF numitems = 0 THEN RETURN num
   END IF
  NEXT
  
  'No slot was found to put this item into!
  IF ok_to_fail = NO THEN
-  inventory_overflow_handler item_id, numitems
+  numitems -= inventory_overflow_handler(item_id, numitems)
  END IF
- RETURN NO
+ RETURN num - numitems
 END FUNCTION
 
-SUB inventory_overflow_handler(byval item_id as integer, byval numitems as integer)
+'Returns number of items inserted in the inventory
+FUNCTION inventory_overflow_handler(byval item_id as integer, byval numitems as integer) as integer
  debug "Didn't have room for " & readitemname(item_id) & "x" & numitems
-END SUB
+ RETURN 0
+END FUNCTION
 
 FUNCTION room_for_item (byval item_id as integer, byval num as integer = 1) as bool
  DIM room as integer

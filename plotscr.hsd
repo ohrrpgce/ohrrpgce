@@ -835,8 +835,8 @@ define function, begin
 798,getitemweaponpal,1,0      # get the weapon sprite palette number of an item or -1 for default
 799,moneyreward,0             # Return money gained from the last battle, or 0 if N/A
 800,experiencereward,0        # Return experience reward from the last battle, or 0 if N/A
-801,itemsreward,1,0           # Number ids of items gained as rewards in last battle (-1 for N/A)
-802,itemsquantityreward,1,0   # Number quantities of items gained as rewards in last battle (0 for N/A)
+801,itemsreward,1,0           # ID of the nth type of item dropped as rewards in last battle, -1 for N/A (reward index)
+802,itemsquantityreward,1,0   # Quantity of the nth type of item dropped as rewards in last battle (reward index)
 803,musicisseekable,0         # True if "set music position ms" should work
 803,songisseekable,0          # Alias
 804,getmusictimems,0          # Current position in milliseconds, -1 on failure
@@ -856,6 +856,7 @@ define function, begin
 815,max,-1                    # return the argument with the highest value
 816,nextzonetilex,3,0,-1,-1   # X coordinate of next tile in zone (zone id, current x, current y)
 817,nextzonetiley,3,0,-1,-1   # Y coordinate of next tile in zone (zone id, current x, current y)
+818,itemsgainedreward,1,0     # Number of items actually gained as rewards in last battle (reward index)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end

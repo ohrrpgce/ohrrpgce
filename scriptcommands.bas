@@ -1370,11 +1370,9 @@ SUB script_commands(byval cmdid as integer)
  CASE 17'--get item
   IF valid_item(retvals(0)) THEN
    IF retvals(1) >= 1 THEN
-    DIM old_count as integer = countitem(retvals(0))
-    getitem retvals(0), retvals(1)
+    scriptret = getitem(retvals(0), retvals(1))
     evalitemtags
     tag_updates
-    scriptret = countitem(retvals(0)) - old_count
    END IF
   END IF
  CASE 18'--delete item
@@ -5455,7 +5453,7 @@ SUB script_commands(byval cmdid as integer)
   scriptret = gam.rew.plunder
  CASE 800 '--experience reward
   scriptret = gam.rew.exper
- CASE 801, /'--items reward idx'/ 802 /'--items quantity reward itx'/
+ CASE 801 /'--items reward (idx)'/, 802 /'--items quantity reward (idx)'/,  818 /'--items gained reward (idx)'/
   DIM i as integer = retvals(0)
   WITH gam.rew
    IF i = -1 THEN 'getcount
@@ -5465,8 +5463,10 @@ SUB script_commands(byval cmdid as integer)
     IF 0 <= i AND i <= UBOUND(.found) THEN
      IF cmdid = 801 THEN
       scriptret = .found(i).id
-     ELSE
+     ELSEIF cmdid = 802 THEN
       scriptret = .found(i).num
+     ELSE
+      scriptret = .found(i).gained
      END IF
     END IF
    END IF
