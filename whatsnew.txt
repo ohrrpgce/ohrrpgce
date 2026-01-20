@@ -74,6 +74,8 @@ Jan 10 2026 [Lexiphanic]
       from the start, depending on attack + attacker animation combo [Ralph]
     * Ignore gamepads/joysticks with only one axis because they can't be valid
       (Keychron K5 Max Keyboard, I'm lookin' at you!) [James]
+    * Bug #1276 Ignore Huion tablets, because SDL treats them as gamepads with
+      stuck buttons [James]
     * Attacks targeting 'Self' failed if the attacker was hidden (aside from some
       allowed exceptions). Broken since Ichorescent [Ralph]
     * Fixed "Always hide attacker" (it unhid instead) and turned it off in
