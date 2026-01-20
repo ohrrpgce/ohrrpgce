@@ -1060,7 +1060,7 @@ end function
 ' Only supports 32-bit values because 'value' is a 32-bit int, andI see no use for 64-bit ones
 function EditorKit.val_int(byref datum as longint) as integer
 	if value < INT_MIN orelse value > INT_MAX then
-		showerror "Editorkit: encountered unsupported 64-bit (larger than 32-bit) value, " & datum
+		showerror "Editorkit: encountered unsupported 64-bit (larger than 32-bit) value, " & datum & " (INT_MIN=" & INT_MIN & ", INT_MAX=" & INT_MAX & ")"
 		return 0
 	end if
 	value = cast(integer, datum)
