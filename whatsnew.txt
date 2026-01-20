@@ -11,6 +11,7 @@ WHAT IS NEW?
   *** Changes
 
   *** Bugfixes
+    * "encountered unsupported 64-bit value" error in a couple editors [Ralph]
 
   *** Stuff Only Developers Will Notice
 
