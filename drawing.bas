@@ -4493,7 +4493,7 @@ FUNCTION spriteset_resize_menu(sprtype as SpriteType, setnum as integer, pal as 
   menu.menuopts.edged = YES
   menu.helpkey = "resize_spriteset"
   menu.title = "Resize each frame to:"
-  menu.menuopts.wide = 90
+  menu.menuopts.wide = 98
   menu.original = frame_load(sprtype, setnum)
   menu.framesize = menu.original->size
   menu.pal = pal
