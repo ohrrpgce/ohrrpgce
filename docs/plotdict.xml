@@ -191,7 +191,7 @@ same level.)
 	~ Monorail guy, Simpsons
 
 -->
-<plotscript version="wip" datecode="2026-01-18">
+<plotscript version="wip" datecode="2026-02-16">
 	<title>
 		Dictionary of Plotscripting Commands
 	</title>
@@ -11994,6 +11994,58 @@ end
 			<seealso>
 				<ref>lastlayerid</ref>
 				<ref>layertileset</ref>
+			</seealso>
+		</command>
+		<command id="getlayername">
+			<canon>get layer name(string id, layer)</canon>
+			<shortname>get layer name</shortname>
+			<description>
+				Get the name of a layer on the current map and put it into the <p>string id</p>. The <p>layer</p> number is in the range of 0 to <ref>lastlayerid</ref>.
+			</description>
+			<seealso>
+				<ref>lastlayerid</ref>
+				<ref>findlayerbyname</ref>
+				<ref>findlayerslicebyname</ref>
+				<ref>maplayerslicebyid</ref>
+			</seealso>
+		</command>
+		<command id="findlayerbyname">
+			<canon>find layer by name(string id)</canon>
+			<shortname>find layer by name</shortname>
+			<description>
+				Search for a named layer on the current map with a name that matches <p>string id</p>. Returns the layer id number, or -1 if no match is found. If more than one layer has the same matching name, the lowest id will be returned.
+			</description>
+			<seealso>
+				<ref>lastlayerid</ref>
+				<ref>getlayername</ref>
+				<ref>findlayerslicebyname</ref>
+				<ref>maplayerslicebyid</ref>
+			</seealso>
+		</command>
+		<command id="findlayerslicebyname">
+			<canon>find layer slice by name(string id)</canon>
+			<shortname>find layer slice by name</shortname>
+			<description>
+				Search for a named layer on the current map with a name that matches <p>string id</p>. Returns the layer's slice handle, or 0 if no match is found. If more than one layer has the same matching name, the slice handle of the match with the lowest id will be returned.
+			</description>
+			<seealso>
+				<ref>lastlayerid</ref>
+				<ref>getlayername</ref>
+				<ref>findlayerbyname</ref>
+				<ref>maplayerslicebyid</ref>
+			</seealso>
+		</command>
+		<command id="maplayerslicebyid">
+			<canon>map layer slice by id(layer id)</canon>
+			<shortname>map layer slice by id</shortname>
+			<description>
+				Given a <p>layer id</p> number, Returns the layer's slice handle for the current map. This is equivalent to <ref>lookupslice</ref> with the lookup codes such as <p>sli:Map layer 0</p>, <p>sli:Map layer 1</p>, etc... but it may be more convenient if you need to loop through the layers.
+			</description>
+			<seealso>
+				<ref>lastlayerid</ref>
+				<ref>getlayername</ref>
+				<ref>findlayerbyname</ref>
+				<ref>findlayerslicebyname</ref>
 			</seealso>
 		</command>
 

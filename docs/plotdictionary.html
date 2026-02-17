@@ -213,7 +213,7 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2026-01-18)</h2>
+<h2>For the next WIP OHRRPGCE version (nightly build 2026-02-16)</h2>
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -838,6 +838,8 @@ function toggleContent(target) {
 		<a href="#about-findenemyinformation" class="ref">find enemy in formation (formation, enemy id, copy number)</a><br>
 		<a href="#about-findextra" class="ref">find extra (handle, value, start index)</a><br>
 		<a href="#about-findhero" class="ref">find hero (who)</a><br>
+		<a href="#about-findlayerbyname" class="ref">find layer by name(string id)</a><br>
+		<a href="#about-findlayerslicebyname" class="ref">find layer slice by name(string id)</a><br>
 		<a href="#about-findmenuid" class="ref">find menu ID(menu ID)</a><br>
 		<a href="#about-findmenuitemcaption" class="ref">find menu item caption(menu handle, string ID, search after handle, visible only)</a><br>
 		<a href="#about-findspriteframeid" class="ref">find sprite frame id (handle, id)</a><br>
@@ -949,6 +951,7 @@ function toggleContent(target) {
 		<a href="#about-getitemvalue" class="ref">get item value (item)</a><br>
 		<a href="#about-getitemweaponpal" class="ref">get item weapon pal (item)</a><br>
 		<a href="#about-getitemweaponpic" class="ref">get item weapon pic (item)</a><br>
+		<a href="#about-getlayername" class="ref">get layer name(string id, layer)</a><br>
 		<a href="#about-getleftpadding" class="ref">get left padding (handle)</a><br>
 		<a href="#about-getlevelcap" class="ref">get level cap</a><br>
 		<a href="#about-getlevelmp" class="ref">get level MP (who, mp level slot, type)</a><br>
@@ -1172,6 +1175,7 @@ function toggleContent(target) {
 		<a href="#about-mainmenu" class="ref">main menu</a><br>
 		<a href="#about-mapcure" class="ref">map cure (attack, target, attacker)</a><br>
 		<a href="#about-mapheight" class="ref">map height (map)</a><br>
+		<a href="#about-maplayerslicebyid" class="ref">map layer slice by id(layer id)</a><br>
 		<a href="#about-mapmusicissuspended" class="ref">map music is suspended</a><br>
 		<a href="#about-mapwidth" class="ref">map width (map)</a><br>
 		<a href="#about-max" class="ref">max (number, number, ...)</a><br>
@@ -20288,6 +20292,10 @@ end
 		<a href="#about-changetileset" class="ref">change tileset (tileset, layer)</a><br>
 		<a href="#about-lastlayerid" class="ref">last layer id</a><br>
 		<a href="#about-layeridunderwalkabouts" class="ref">layer id under walkabouts</a><br>
+		<a href="#about-getlayername" class="ref">get layer name(string id, layer)</a><br>
+		<a href="#about-findlayerbyname" class="ref">find layer by name(string id)</a><br>
+		<a href="#about-findlayerslicebyname" class="ref">find layer slice by name(string id)</a><br>
+		<a href="#about-maplayerslicebyid" class="ref">map layer slice by id(layer id)</a><br>
 </div>
 		<li>
 <a href="#Tilemap,%20Wallmap%20and%20Foemap">Tilemap, Wallmap and Foemap</a><br>
@@ -20503,6 +20511,90 @@ end
 <li>
 <a href="#about-lastlayerid" class="ref">last layer id</a>, </li>
 <li><a href="#about-layertileset" class="ref">layer tileset</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-getlayername"></a>
+				<h4>get layer name(string id, layer)</h4>
+<p>
+			
+				Get the name of a layer on the current map and put it into the <span class="param">string id</span>. The <span class="param">layer</span> number is in the range of 0 to <a href="#about-lastlayerid" class="ref">last layer id</a>.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-lastlayerid" class="ref">last layer id</a>, </li>
+<li>
+<a href="#about-findlayerbyname" class="ref">find layer by name</a>, </li>
+<li>
+<a href="#about-findlayerslicebyname" class="ref">find layer slice by name</a>, </li>
+<li><a href="#about-maplayerslicebyid" class="ref">map layer slice by id</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-findlayerbyname"></a>
+				<h4>find layer by name(string id)</h4>
+<p>
+			
+				Search for a named layer on the current map with a name that matches <span class="param">string id</span>. Returns the layer id number, or -1 if no match is found. If more than one layer has the same matching name, the lowest id will be returned.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-lastlayerid" class="ref">last layer id</a>, </li>
+<li>
+<a href="#about-getlayername" class="ref">get layer name</a>, </li>
+<li>
+<a href="#about-findlayerslicebyname" class="ref">find layer slice by name</a>, </li>
+<li><a href="#about-maplayerslicebyid" class="ref">map layer slice by id</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-findlayerslicebyname"></a>
+				<h4>find layer slice by name(string id)</h4>
+<p>
+			
+				Search for a named layer on the current map with a name that matches <span class="param">string id</span>. Returns the layer's slice handle, or 0 if no match is found. If more than one layer has the same matching name, the slice handle of the match with the lowest id will be returned.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-lastlayerid" class="ref">last layer id</a>, </li>
+<li>
+<a href="#about-getlayername" class="ref">get layer name</a>, </li>
+<li>
+<a href="#about-findlayerbyname" class="ref">find layer by name</a>, </li>
+<li><a href="#about-maplayerslicebyid" class="ref">map layer slice by id</a></li>
+</ul>
+</div>
+		</p>
+</div>
+		<div class="command">
+			<a name="about-maplayerslicebyid"></a>
+				<h4>map layer slice by id(layer id)</h4>
+<p>
+			
+				Given a <span class="param">layer id</span> number, Returns the layer's slice handle for the current map. This is equivalent to <a href="#about-lookupslice" class="ref">lookup slice</a> with the lookup codes such as <span class="param">sli:Map layer 0</span>, <span class="param">sli:Map layer 1</span>, etc... but it may be more convenient if you need to loop through the layers.
+			
+			
+			
+			<div class="seealso">See also: <ul>
+<li>
+<a href="#about-lastlayerid" class="ref">last layer id</a>, </li>
+<li>
+<a href="#about-getlayername" class="ref">get layer name</a>, </li>
+<li>
+<a href="#about-findlayerbyname" class="ref">find layer by name</a>, </li>
+<li><a href="#about-findlayerslicebyname" class="ref">find layer slice by name</a></li>
 </ul>
 </div>
 		</p>
@@ -24362,7 +24454,7 @@ run key            # Alias for 'flee key'
 </div>
 		<hr>
 		</div>
-<p>Stats: There are 1011 commands (of which 16 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
+<p>Stats: There are 1015 commands (of which 16 are aliases), 27 constants and 19 definitions of types and other terms in this file.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

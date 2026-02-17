@@ -135,6 +135,7 @@ script, run tests 1, begin
   save slot tests
   slice tests
   master palette tests
+  map layer tests
   maptile tests
   wallchecking tests
   zone tests
@@ -7361,6 +7362,31 @@ script, master palette tests, begin
 end
 
 ########################################################################
+
+script, map layer tests, begin
+  $0="map layer tests"
+  assert(current map == 0)
+  assert(last layer id == 2)
+  $1=""
+  $2=""
+  assert(string compare($1="(Don't give layer 1 a name)", get layer name(2, 0)))
+  assert(string compare($1="", get layer name(2, 1)))
+  assert(string compare($1="Rooftops (do not rename)", get layer name(2, 2)))
+  w
+  assert(find layer by name($1="Rooftops (do not rename)") == 2)
+  assert(find layer by name($1="") == 1) # first nameless layer
+  assert(find layer by name($1="No layer has this name, nope!") == -1)
+  w
+  assert(map layer slice by id(0) == lookup slice(sl:Map layer 0))
+  assert(map layer slice by id(1) == lookup slice(sl:Map layer 1))
+  assert(map layer slice by id(2) == lookup slice(sl:Map layer 2))
+  w
+  assert(find layer slice by name($1="Rooftops (do not rename)") == lookup slice(sl:Map layer 2))
+  assert(find layer slice by name($1="No layer has this name, nope!") == 0)
+  w
+  $1=""
+  $2=""
+end
 
 script, maptile tests, begin
   $0="maptile tests"

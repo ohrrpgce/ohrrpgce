@@ -858,6 +858,10 @@ define function, begin
 817,nextzonetiley,3,0,-1,-1   # Y coordinate of next tile in zone (zone id, current x, current y)
 818,itemsgainedreward,1,0     # Number of items actually gained as rewards in last battle (reward index)
 819,roomforitem,1,0           # Maximum number of item that can fit in inventory (item)
+820,getlayername,2,0,0        # Read the name of a map layer for the current map and store it into a string (string id, map layer id)
+821,findlayerbyname,1,0       # Search to see if the current map has a layer with the given name, return id (string id)
+822,maplayerslicebyid,1,0     # given a map layer id, return the map layer slice that goes with it (map layer id)
+823,findlayerslicebyname,1,0  # Search to see if the current map has a layer with the given name, return slice (string id)
 
 # Don't forget to update maxScriptCmdID in const.bi when adding new commands
 end
