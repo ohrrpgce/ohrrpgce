@@ -76,11 +76,6 @@ call scons debug=2 pdb=1 buildname=sdl2-debug && (
 
 ECHO     Packaging other utilities
 
-REM Note that this is duplicated in distrib-nightly-linux.sh
-pscp -q docs\*.png %SCPHOST%:%SCPDOCS%
-pscp -q docs\plotdict.xml %SCPHOST%:%SCPDOCS%
-pscp -q docs\htmlplot.xsl %SCPHOST%:%SCPDOCS%
-
 support\rm -f distrib\ohrrpgce-util.zip
 IF NOT EXIST unlump.exe GOTO NOUTIL
 IF NOT EXIST relump.exe GOTO NOUTIL

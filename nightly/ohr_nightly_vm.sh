@@ -4,7 +4,7 @@ UPLOAD_SERVER="james_paige@motherhamster.org"
 UPLOAD_FOLDER="HamsterRepublic.com/ohrrpgce/nightly/"
 UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
 
-for VMNAME in "Debian 64bit" "Windows 7" "Mac OS X" ; do
+for VMNAME in "Windows 7" "Mac OS X" ; do
   echo "===Starting ${VMNAME}==="
   vboxmanage startvm "${VMNAME}" --type headless
   RUNNING="True"

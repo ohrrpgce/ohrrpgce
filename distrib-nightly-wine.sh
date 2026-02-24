@@ -128,15 +128,6 @@ $BUILD debug=2 pdb=1 buildname=sdl2-debug &&
 
 echo "    Packaging other utilities"
 
-# Note that this is duplicated in distrib-nightly-linux.sh
-echo "uploading plotscripting docs"
-scp docs/*.png "${SCPHOST}":"${SCPDOCS}"
-scp docs/plotdict.xml "${SCPHOST}":"${SCPDOCS}"
-scp docs/htmlplot.xsl "${SCPHOST}":"${SCPDOCS}"
-# distrib-nightly-win.bat doesn't do this
-docs/update-html.sh
-scp docs/plotdictionary.html "${SCPHOST}":"${SCPDOCS}"
-
 rm -f distrib/ohrrpgce-util.zip
 zip distrib/ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt svninfo.txt
 scp distrib/ohrrpgce-util.zip "${SCPHOST}":"${SCPDEST}"

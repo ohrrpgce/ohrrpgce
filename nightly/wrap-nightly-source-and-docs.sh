@@ -37,8 +37,6 @@ if [ -n "True" ] ; then
     echo "Uploading nightly source snapshot..." &&
     scp -p ./distrib/ohrrpgce-source-nightly.zip $UPLOAD_DEST/ohrrpgce/nightly/
   
-  # This is duplicated in distrib-nightly-win[-wine].sh except plotdictionary.html
-  # We will remove those soon
   echo "Uploading plotscripting docs..."
   cd docs
   ./update-html.sh
@@ -51,7 +49,7 @@ if [ -n "True" ] ; then
   echo "Uploading IMPORTANT-nightly.txt..."
   scp -p IMPORTANT-nightly.txt $UPLOAD_DEST/ohrrpgce/nightly/
   
-  echo "distrib-nightly-linux.sh is done."
+  echo "Uploading nightly source-and-docs is done."
 
 fi 2>&1 | tee ~/wrap-nightly-source-and-docs-output.txt
 ~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-source-and-docs-output.txt
