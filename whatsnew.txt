@@ -16,6 +16,9 @@ WHAT IS NEW?
     * "encountered unsupported 64-bit value" error in a couple editors [Ralph]
 
   *** Stuff Only Developers Will Notice
+    * Nightly source and docs now has its own script rather than piggybacking
+      on both linux and windows nightly scripts [James]
+      
 
 Jan 10 2026 [Lexiphanic]
 

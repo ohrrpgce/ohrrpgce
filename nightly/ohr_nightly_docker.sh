@@ -4,6 +4,9 @@ UPLOAD_SERVER="james_paige@motherhamster.org"
 UPLOAD_FOLDER="HamsterRepublic.com/ohrrpgce/nightly/"
 UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
 
+# Run nightly source-and-docs (doesn't need to be in docker right now)
+~/src/nightly/ohr-source-and-docs/wrap-nightly-source-and-docs.sh > /dev/null 2>&1
+
 # Run Android nightly build in docker
 ~/src/nightly/ohr-android/nightly/wrap-nightly-android.sh > /dev/null 2>&1
 
