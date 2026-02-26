@@ -2518,15 +2518,15 @@ SUB set_item_plank_state (byval sl as Slice Ptr, byval state as PlankItemState)
  END SELECT
 END SUB
 
-SUB update_item_plank (byval pl as Slice Ptr, byref st as ItemScreenState)
+SUB ItemScreenState.update_item_plank (byval pl as Slice Ptr)
  IF pl = 0 THEN debug "update_item_plank: null ptr" : EXIT SUB
 
  DIM slot as integer = pl->Extra(0)
 
- DIM sel as bool = (st.ps.cur = pl)
+ DIM sel as bool = (this.ps.cur = pl)
  DIM special as bool = NO
  DIM usable as bool = NO
- DIM swapsel as bool = (st.swapcur = pl)
+ DIM swapsel as bool = (this.swapcur = pl)
 
  IF slot < 0 THEN
   usable = YES
@@ -2558,7 +2558,7 @@ SUB update_item_plank (byval pl as Slice Ptr, byref st as ItemScreenState)
   IF special = YES THEN state = plankITEMSWAPSPECIAL
  END IF
  
- set_plank_state st.ps, pl, state
+ set_plank_state this.ps, pl, state
 END SUB
 
 SUB ItemScreenState.item_screen_refresh()
@@ -2574,18 +2574,18 @@ SUB ItemScreenState.item_screen_refresh()
   pl = plank_menu_append(this.ps.m, SL_ITEM_ITEMLIST, , @ExpandTextItemSlot, @i)
   IF pl THEN
    pl->Extra(0) = i
-   update_item_plank pl, this
+   this.update_item_plank pl
   ELSE
    debug "Failed to load item plank for slot " & i
   END IF
  NEXT i
 
  pl = LookupSlice(SL_ITEM_EXITBUTTON, this.ps.m)
- IF pl THEN pl->Extra(0) = -1 : update_item_plank pl, this
+ IF pl THEN pl->Extra(0) = -1 : this.update_item_plank pl
  pl = LookupSlice(SL_ITEM_SORTBUTTON, this.ps.m)
- IF pl THEN pl->Extra(0) = -1 : update_item_plank pl, this
+ IF pl THEN pl->Extra(0) = -1 : this.update_item_plank pl
  pl = LookupSlice(SL_ITEM_TRASHBUTTON, this.ps.m)
- IF pl THEN pl->Extra(0) = -1 :update_item_plank pl, this
+ IF pl THEN pl->Extra(0) = -1 : this.update_item_plank pl
 
  'Force update of slice positions
  RefreshSliceTree this.ps.m
@@ -2596,7 +2596,7 @@ SUB ItemScreenState.item_screen_refresh()
  ELSE
   this.ps.cur = top_left_plank(this.ps)
  END IF
- update_item_plank this.ps.cur, this
+ this.update_item_plank this.ps.cur
 
  this.swapcur = 0
  expand_slice_text_insert_codes this.ps.m, @ExpandTextItemScreen, this.ps.cur, this.swapcur
@@ -2641,7 +2641,7 @@ SUB item_screen_cancel_action (byref st as ItemScreenState)
   '--De-select the currently selected item
   DIM last as slice ptr = st.swapcur
   st.swapcur = 0
-  update_item_plank last, st
+  st.update_item_plank last
  ELSE
   st.quit = YES
  END IF
@@ -2686,7 +2686,7 @@ SUB item_screen_use_action (byref st as ItemScreenState)
   CASE SL_ITEM_SORTBUTTON:
    IF st.swapcur THEN
     st.swapcur = 0
-    update_item_plank lastswap, st
+    st.update_item_plank lastswap
    ELSE
     inventory_autosort()
     st.need_update = YES
@@ -2728,10 +2728,10 @@ SUB item_screen_use_action (byref st as ItemScreenState)
    st.refocus = YES
   END IF
   st.swapcur = 0
-  update_item_plank lastswap, st
+  st.update_item_plank lastswap
  ELSE
   st.swapcur = st.ps.cur
-  update_item_plank st.swapcur, st
+  st.update_item_plank st.swapcur
  END IF
  
 END SUB
@@ -2739,15 +2739,15 @@ END SUB
 SUB item_screen_mouse_handler(byref st as ItemScreenState)
  DIM oldhover as Slice Ptr = st.ps.hover
  IF plank_menu_update_hover(st.ps) THEN
-  IF oldhover THEN update_item_plank oldhover, st
-  IF st.ps.hover THEN update_item_plank st.ps.hover, st
+  IF oldhover THEN st.update_item_plank oldhover
+  IF st.ps.hover THEN st.update_item_plank st.ps.hover
  END IF
  
  DIM oldswap as Slice Ptr = st.swapcur
  IF st.swapcur ANDALSO (readmouse.buttons AND mouseRight) THEN
   'Cancel swap cursor selection if you right-click
   st.swapcur = 0
-  IF oldswap THEN update_item_plank oldswap, st
+  IF oldswap THEN st.update_item_plank oldswap
  END IF
   
  DIM oldcur as Slice Ptr = st.ps.cur
@@ -2756,8 +2756,8 @@ SUB item_screen_mouse_handler(byref st as ItemScreenState)
    'Selecting the hovered plank
    'and deselect the old selection
    st.ps.cur = st.ps.hover
-   IF oldcur THEN update_item_plank oldcur, st
-   IF st.ps.cur THEN update_item_plank st.ps.cur, st
+   IF oldcur THEN st.update_item_plank oldcur
+   IF st.ps.cur THEN st.update_item_plank st.ps.cur
   END IF
  END IF
  IF st.ps.cur THEN
@@ -2831,8 +2831,8 @@ FUNCTION item_screen () as integer
 
   st.lastcur = st.ps.cur
   IF plank_menu_arrows(st.ps) THEN
-   update_item_plank st.lastcur, st
-   update_item_plank st.ps.cur, st
+   st.update_item_plank st.lastcur
+   st.update_item_plank st.ps.cur
    menusound gen(genCursorSFX)
    expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, st.ps.cur, st.swapcur
   END IF
@@ -2974,39 +2974,7 @@ SUB spell_screen_refresh(byref st as SpellScreenState)
  plank_menu_clear st.ps.m, SL_SPELL_LISTLIST
  plank_menu_clear st.ps.m, SL_SPELL_SPELLLIST
 
- 'expand_slice_text_insert_codes st.ps.m, @ExpandTextSpellScreen, st.ps.cur
 
-' DIM pl as Slice Ptr
-' FOR i as integer = 0 TO last_inv_slot()
-'  pl = plank_menu_append(st.ps.m, SL_ITEM_ITEMLIST, , @ExpandTextItemSlot, @i)
-'  IF pl THEN
-'   pl->Extra(0) = i
-'   update_item_plank pl, st
-'  ELSE
-'   debug "Failed to load item plank for slot " & i
-'  END IF
-' NEXT i
-'
-' pl = LookupSlice(SL_ITEM_EXITBUTTON, st.ps.m)
-' IF pl THEN pl->Extra(0) = -1 : update_item_plank pl, st
-' pl = LookupSlice(SL_ITEM_SORTBUTTON, st.ps.m)
-' IF pl THEN pl->Extra(0) = -1 : update_item_plank pl, st
-' pl = LookupSlice(SL_ITEM_TRASHBUTTON, st.ps.m)
-' IF pl THEN pl->Extra(0) = -1 :update_item_plank pl, st
-'
-' 'Early draw to force update of slice positions 
-' DrawSlice st.ps.m, vpage
-' 
-' IF st.refocus THEN
-'  restore_plank_selection st.ps
-'  st.refocus = NO
-' ELSE
-'  st.ps.cur = top_left_plank(st.ps)
-' END IF
-' update_item_plank st.ps.cur, st
-'
-' st.swapcur = 0
-' update_plank_scrolling st.ps
  
 END SUB
 
