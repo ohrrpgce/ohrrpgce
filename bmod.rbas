@@ -134,6 +134,7 @@ DECLARE SUB ExpandTextBattleSprite (code as string, result as string, byval arg0
 DECLARE SUB ExpandTextBattleState (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 DECLARE SUB force_retargetting_for_attacker (byref bat as BattleState, bslot() as BattleSprite, index as integer)
 DECLARE SUB create_battle_item_menu (bat as BattleState)
+DECLARE SUB re_init_battle_item_menu (bat as BattleState, bslot() as BattleSprite)
 
 
 CONST ANIM_SKIP_SENTINEL = &h6EEFDEEF
@@ -3866,6 +3867,9 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
        init_spell_menu bat, bslot(), st()
       CASE batmenu_ITEMS:
        bat.menu_mode = batMENUITEM
+       '--Re-init new battle item menu
+       re_init_battle_item_menu bat, bslot()
+       '--init legacy battle item menu
        bat.item.pt = 0
        bat.item.top = 0
        checkitemusability bat.iuse(), bslot(), bat.player_turn
@@ -4292,6 +4296,23 @@ SUB create_battle_item_menu (bat as BattleState)
  'Hidden by default
  bat.itemst.ps.m->Visible = NO
 
+END SUB
+
+SUB re_init_battle_item_menu (bat as BattleState, bslot() as BattleSprite)
+ ' The slice-based battle item menu is already created. This sub
+ ' initializes it it because it is about to be displayed so the player can use it.
+
+ 'Refresh usability for the items
+ checkitemusability bat.iuse(), bslot(), bat.player_turn
+
+ 'Re-init the list of items based on inventory()
+ item_screen_refresh bat.itemst
+ 
+
+ 'Re-init cursor to the top left (If we add cursor memory, it will need support here)
+
+ 'Refresh the description for the selected item (it will get updated again later as the cursor moves)
+ 
 END SUB
 
 '==============================================================================

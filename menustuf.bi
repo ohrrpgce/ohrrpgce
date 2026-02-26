@@ -36,6 +36,7 @@ DECLARE FUNCTION hero_uses_lmp (byval hero_slot as integer) as bool
 DECLARE FUNCTION is_shop_empty(byval shop_id as integer, byval shoptype as integer) as bool
 DECLARE FUNCTION is_item_plank(byval sl as Slice Ptr) as bool
 DECLARE SUB set_item_plank_state (byval sl as Slice Ptr, byval state as PlankItemState)
+DECLARE SUB item_screen_refresh(byref st as ItemScreenState)
 
 DECLARE FUNCTION game_check_use_key() as bool
 DECLARE FUNCTION game_battle_check_use_key() as bool
