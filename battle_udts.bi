@@ -306,6 +306,11 @@ TYPE TurnManager
  end_of_round_happened as bool 'In turn mode, used to make sure that poison+regen only happen once at the end of the round (if poison triggers on on-death bequest, it can still happen in the same round)
 END TYPE
 
+TYPE BattleItemScreenState EXTENDS ItemScreenState
+ iuse(inventoryMax / 16) as integer 'bitsets for whether items can be used by the current hero
+ DECLARE VIRTUAL SUB update_item_plank(byval pl as Slice Ptr)
+END TYPE
+
 'This type stores the state of the battle engine, for example,
 'who's turn it is, what each character is doing, and targetting information
 TYPE BattleState
@@ -368,7 +373,7 @@ TYPE BattleState
  inv_scroll_rect as RectType
  iuse(inventoryMax / 16) as integer 'bitsets for whether items can be used by the current hero
  'Slice based item screen
- itemst as ItemScreenState ' Same object that the inventory screen uses, but the battle item screen does not implement all features
+ itemst as BattleItemScreenState ' Subclass of the object that the inventory screen uses.
  'For debug keys
  debug_show_info as integer    '0=nothing, 1=show_enemy_meters, 2=display_attack_queue
  debug_player_control as bool  'Set .under_player_control on all (new) enemies

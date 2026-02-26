@@ -294,7 +294,7 @@ END TYPE
 
 'This is used by the Inventory screen.
 'It is also used by the item screen in battle, but only a subset of the features are used there
-TYPE ItemScreenState
+TYPE ItemScreenState EXTENDS Object
  ps as PlankState
  need_update as bool
  textbox as integer
@@ -303,8 +303,8 @@ TYPE ItemScreenState
  quit as bool
  refocus as bool
  re_use as bool
- DECLARE SUB item_screen_refresh()
- DECLARE SUB update_item_plank(byval pl as Slice Ptr)
+ DECLARE VIRTUAL SUB item_screen_refresh()
+ DECLARE VIRTUAL SUB update_item_plank(byval pl as Slice Ptr)
 END TYPE
 
 TYPE EquippableList

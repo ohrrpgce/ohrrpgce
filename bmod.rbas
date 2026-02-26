@@ -4303,16 +4303,43 @@ SUB re_init_battle_item_menu (bat as BattleState, bslot() as BattleSprite)
  ' initializes it it because it is about to be displayed so the player can use it.
 
  'Refresh usability for the items
- checkitemusability bat.iuse(), bslot(), bat.player_turn
+ checkitemusability bat.itemst.iuse(), bslot(), bat.player_turn
 
  'Re-init the list of items based on inventory()
  bat.itemst.item_screen_refresh()
- 
 
  'Re-init cursor to the top left (If we add cursor memory, it will need support here)
 
  'Refresh the description for the selected item (it will get updated again later as the cursor moves)
  
+END SUB
+
+SUB BattleItemScreenState.update_item_plank(byval pl as Slice Ptr)
+ IF pl = 0 THEN debug "update_item_plank: null ptr" : EXIT SUB
+
+ DIM slot as integer = pl->Extra(0)
+
+ DIM sel as bool = (this.ps.cur = pl)
+ DIM usable as bool = NO
+
+ IF slot >= 0 ANDALSO slot <= UBOUND(inventory) THEN
+  IF inventory(slot).used THEN
+   'DIM item as ItemDef
+   'loaditemdata item, inventory(slot).id
+   IF readbit(this.iuse(), 0, slot) THEN usable = YES
+  END IF
+ ELSE
+  debug "update_item_plank: out of bounds slot " & slot
+ END IF
+
+ DIM state as PlankItemState = plankNORMAL
+
+ IF sel = NO  ANDALSO usable = YES THEN state = plankNORMAL
+ IF sel = YES ANDALSO usable = YES THEN state = plankSEL
+ IF sel = NO  ANDALSO usable = NO  THEN state = plankDISABLE
+ IF sel = YES ANDALSO usable = NO  THEN state = plankSELDISABLE
+ 
+ set_plank_state this.ps, pl, state 
 END SUB
 
 '==============================================================================
