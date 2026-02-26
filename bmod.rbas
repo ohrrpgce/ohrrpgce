@@ -4306,7 +4306,7 @@ SUB re_init_battle_item_menu (bat as BattleState, bslot() as BattleSprite)
  checkitemusability bat.iuse(), bslot(), bat.player_turn
 
  'Re-init the list of items based on inventory()
- item_screen_refresh bat.itemst
+ bat.itemst.item_screen_refresh()
  
 
  'Re-init cursor to the top left (If we add cursor memory, it will need support here)

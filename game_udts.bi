@@ -303,6 +303,8 @@ TYPE ItemScreenState
  quit as bool
  refocus as bool
  re_use as bool
+ DECLARE SUB item_screen_refresh()
+ 'DECLARE SUB update_item_plank(byval pl as Slice Ptr)
 END TYPE
 
 TYPE EquippableList
