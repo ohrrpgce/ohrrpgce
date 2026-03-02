@@ -289,11 +289,18 @@ SUB edit_general_bitsets()
  a_append bits(), 44, "Hide empty save slots at the bottom of the save/load menus"
 
  a_append bits(), -1, ""
- a_append bits(), -1, " Misc"
- a_append bits(), 8,  "!Enable debugging keys"
+ a_append bits(), -1, " Maps"
+ a_append bits(), 15, "Default passability disabled by default in map editor"
+ a_append bits(), 37, "Wrap map layers over edge of Crop maps"
+
+ a_append bits(), -1, ""
+ a_append bits(), -1, " Scripts"
  a_append bits(), 10, "Permit double-triggering of scripts"
  a_append bits(), 18, "!Save gameover/loadgame script IDs"
- a_append bits(), 15, "Default passability disabled by default"
+
+ a_append bits(), -1, ""
+ a_append bits(), -1, " Controls"
+ a_append bits(), 8,  "!Enable debugging keys"
  a_append bits(), 47, "!Map joystick controls to keyboard keys for scripts"
  a_append bits(), 53, "!Map joystick (left) stick to dpad"
 
@@ -312,6 +319,7 @@ SUB edit_backcompat_bitsets()
  bitname(33) = "Simulate Bug #430 script wait skips"
  bitname(34) = "!showtextbox is delayed"
  bitname(36) = "Old attack positioning at bottom-left of target"
+ '37 is duplicated here, its original location, in case anyone looks for it
  bitname(37) = "Wrap map layers over edge of Crop maps"
  bitname(39) = "Draw Backdrop slice above Script Layer"
  IF gen(genBattleMode) = 1 THEN  'turn-based

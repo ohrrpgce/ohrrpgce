@@ -33,17 +33,25 @@ Turning this on is equivalent to setting the "Ignore attacker's extra hits" atta
 "Stop music before starting/loading game" means that when loading a game or starting a new game, if the map is set to "Music: -same as previous map-", it should be silent. Otherwise it will use the music from the title screen or whatever was playing on the Load menu, possibly from the previous game.
 
 
- Misc
+ Maps
 
-The "debugging keys" are special keys that help with testing a game, but could be used to cheat (like allowing the player to walk through walls). Press F8 in-game to see the Debug Menu with all the debug options. You can then press F1 to see help on what they do. Pressing F8 during a battle shows the Battle Debug Menu.
-Note: when you export your game with the Distribute Game debug keys are always automatically disabled in the exported game.
+"Default passability disabled by default in map editor" changes the default Default Passability setting in the map tilemap editor; set to your preference, it doesn't affect the game.
+
+"Wrap map layers over edge of Crop maps" affects maps set to Map Edge Mode: Crop. Normally on a cropping map you can't see past the map edge and this bitset has no effect. When this is ON, if you view an off-map position then the map layers continue forever by wrapping around. This is only possible if you use scripting to move map layers, or if the map is smaller than the game window. This is useful for creating a scrolling cloud or water map layer.
+
+
+ Scripts
 
 "Permit double-triggering of scripts" turns off a check that a prevents a script from being triggered if it is already the current active/"topmost" script. This check doesn't work if the triggered script calls another; it is often better to check manually. Be aware that if you allow double triggering of scripts, any scripts called by NPC activation will require manual checking to prevent double activation, otherwise it will be extremely easy to get stuck in endless loops.
 
 "Save gameover/loadgame script IDs" exists so that it's possible to change the gameover and loadgame scripts with the "set load script" and "set death script" commands - if it's OFF, "set load script" does nothing!
 On the other hand, if you turn this ON, then changing the Load and Death scripts in the editor won't affect existing saved games! So keep it off unless you need it.
 
-"Default passability disabled by default" changes the default Default Passability setting in the map tilemap editor; set to your preference, it doesn't affect the game.
+
+ Controls
+
+The "debugging keys" are special keys that help with testing a game, but could be used to cheat (like allowing the player to walk through walls). Press F8 in-game to see the Debug Menu with all the debug options. You can then press F1 to see help on what they do. Pressing F8 during a battle shows the Battle Debug Menu.
+Note: when you export your game with the Distribute Game debug keys are always automatically disabled in the exported game.
 
 "Map joystick controls to keyboard keys for scripts", ON by default, makes it easy for scripts to support joysticks without giving them any thought. When ON, up/down/left/right/use/cancel buttons on all joysticks are mapped to the keyboard keys key:up, key:down, key:left, key:right, key:esc and key:enter.
 This only affects the script commands for checking keyboard keys, not built-in controls for moving the hero and using menus, which always support keyboard, mouse and joysticks.
