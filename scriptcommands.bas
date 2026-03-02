@@ -5571,10 +5571,12 @@ SUB script_commands(byval cmdid as integer)
   END IF
  CASE 820'--get layer name (string id, layer id)
   IF valid_plotstr(retvals(0), serrBadOp) THEN
-   IF valid_map_layer(retvals(1), serrBadOp) THEN
+   IF valid_map_layer(retvals(1), serrIgnore) THEN
     plotstr(retvals(0)).s = read_map_layer_name(gmap(), retvals(1))
-    scriptret = retvals(0) 'return the string ID that we filled
+   ELSE
+    plotstr(retvals(0)).s = ""
    END IF
+   scriptret = retvals(0) 'return the string ID that we filled
   END IF
  CASE 821'--find layer by name (string id)
   IF valid_plotstr(retvals(0), serrBadOp) THEN
@@ -5587,7 +5589,7 @@ SUB script_commands(byval cmdid as integer)
    NEXT i
   END IF
  CASE 822'--map layer slice by id
-  IF valid_map_layer(retvals(0), serrBadOp) THEN
+  IF valid_map_layer(retvals(0), serrIgnore) THEN
    scriptret = find_plotslice_handle(SliceTable.MapLayer(retvals(0)))
   END IF
  CASE 823'--find layer slice by name (string id)

@@ -12000,7 +12000,8 @@ end
 			<canon>get layer name(string id, layer)</canon>
 			<shortname>get layer name</shortname>
 			<description>
-				Get the name of a layer on the current map and put it into the <p>string id</p>. The <p>layer</p> number is in the range of 0 to <ref>lastlayerid</ref>.
+				Get the name of a layer on the current map and put it into the <p>string id</p>. If the <p>layer</p> number is not in the range of 0 to <ref>lastlayerid</ref> then the string is set to <tt>""</tt> (without an error).
+				Returns <p>string id</p>.
 			</description>
 			<seealso>
 				<ref>lastlayerid</ref>
@@ -12039,7 +12040,9 @@ end
 			<canon>map layer slice by id(layer id)</canon>
 			<shortname>map layer slice by id</shortname>
 			<description>
-				Given a <p>layer id</p> number, Returns the layer's slice handle for the current map. This is equivalent to <ref>lookupslice</ref> with the lookup codes such as <p>sli:Map layer 0</p>, <p>sli:Map layer 1</p>, etc... but it may be more convenient if you need to loop through the layers.
+				Given <p>layer id</p>, which is just the layer number starting from 0 and counting upwards, returns the layer's slice handle on the current map. This is equivalent to <ref>lookupslice</ref> with the lookup codes such as <p>sli:Map layer 0</p>, <p>sli:Map layer 1</p>, etc. but it may be more convenient if you need to loop through the layers.
+				<lb/>
+				If the layer doesn't exist (<tt>layer id > last layer id</tt>), returns 0/false without an error.
 			</description>
 			<seealso>
 				<ref>lastlayerid</ref>

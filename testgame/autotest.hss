@@ -7372,6 +7372,7 @@ script, map layer tests, begin
   assert(string compare($1="(Don't give layer 1 a name)", get layer name(2, 0)))
   assert(string compare($1="", get layer name(2, 1)))
   assert(string compare($1="Rooftops (do not rename)", get layer name(2, 2)))
+  assert(string compare($1="", get layer name(2, 20)))
   w
   assert(find layer by name($1="Rooftops (do not rename)") == 2)
   assert(find layer by name($1="") == 1) # first nameless layer
@@ -7380,6 +7381,7 @@ script, map layer tests, begin
   assert(map layer slice by id(0) == lookup slice(sl:Map layer 0))
   assert(map layer slice by id(1) == lookup slice(sl:Map layer 1))
   assert(map layer slice by id(2) == lookup slice(sl:Map layer 2))
+  assert(map layer slice by id(20) == 0)
   w
   assert(find layer slice by name($1="Rooftops (do not rename)") == lookup slice(sl:Map layer 2))
   assert(find layer slice by name($1="No layer has this name, nope!") == 0)
