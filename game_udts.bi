@@ -305,6 +305,7 @@ TYPE ItemScreenState EXTENDS Object
  re_use as bool
  DECLARE VIRTUAL SUB item_screen_refresh()
  DECLARE VIRTUAL SUB update_item_plank(byval pl as Slice Ptr)
+ DECLARE VIRTUAL SUB item_screen_mouse_handler()
 END TYPE
 
 TYPE EquippableList

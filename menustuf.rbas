@@ -2736,59 +2736,59 @@ SUB item_screen_use_action (byref st as ItemScreenState)
  
 END SUB
 
-SUB item_screen_mouse_handler(byref st as ItemScreenState)
- DIM oldhover as Slice Ptr = st.ps.hover
- IF plank_menu_update_hover(st.ps) THEN
-  IF oldhover THEN st.update_item_plank oldhover
-  IF st.ps.hover THEN st.update_item_plank st.ps.hover
+SUB ItemScreenState.item_screen_mouse_handler()
+ DIM oldhover as Slice Ptr = this.ps.hover
+ IF plank_menu_update_hover(this.ps) THEN
+  IF oldhover THEN this.update_item_plank oldhover
+  IF this.ps.hover THEN this.update_item_plank this.ps.hover
  END IF
  
- DIM oldswap as Slice Ptr = st.swapcur
- IF st.swapcur ANDALSO (readmouse.buttons AND mouseRight) THEN
+ DIM oldswap as Slice Ptr = this.swapcur
+ IF this.swapcur ANDALSO (readmouse.buttons AND mouseRight) THEN
   'Cancel swap cursor selection if you right-click
-  st.swapcur = 0
-  IF oldswap THEN st.update_item_plank oldswap
+  this.swapcur = 0
+  IF oldswap THEN this.update_item_plank oldswap
  END IF
   
- DIM oldcur as Slice Ptr = st.ps.cur
- IF st.ps.hover THEN
+ DIM oldcur as Slice Ptr = this.ps.cur
+ IF this.ps.hover THEN
   IF ((readmouse.release AND mouseLeft) ORELSE (readmouse.clicks AND mouseRight)) ANDALSO readmouse.drag_dist < 10 THEN
    'Selecting the hovered plank
    'and deselect the old selection
-   st.ps.cur = st.ps.hover
-   IF oldcur THEN st.update_item_plank oldcur
-   IF st.ps.cur THEN st.update_item_plank st.ps.cur
+   this.ps.cur = this.ps.hover
+   IF oldcur THEN this.update_item_plank oldcur
+   IF this.ps.cur THEN this.update_item_plank this.ps.cur
   END IF
  END IF
- IF st.ps.cur THEN
-  IF st.ps.cur <> oldcur THEN
+ IF this.ps.cur THEN
+  IF this.ps.cur <> oldcur THEN
    'Cursor just changed
    menusound gen(genCursorSFX)
-   update_plank_scrolling st.ps
-   expand_slice_text_insert_codes st.ps.m, @ExpandTextItemScreen, st.ps.cur, st.swapcur
-   IF st.ps.cur ANDALSO st.swapcur ANDALSO st.ps.cur <> st.swapcur THEN
+   update_plank_scrolling this.ps
+   expand_slice_text_insert_codes this.ps.m, @ExpandTextItemScreen, this.ps.cur, this.swapcur
+   IF this.ps.cur ANDALSO this.swapcur ANDALSO this.ps.cur <> this.swapcur THEN
     'Confirming a swap, so it is okay to to activate now
     IF (readmouse.release AND mouseLeft) THEN
-     item_screen_use_action st
+     item_screen_use_action this
     END IF
    END IF
-   IF st.ps.cur ANDALSO (st.ps.cur->Lookup = SL_ITEM_EXITBUTTON ORELSE st.ps.cur->Lookup = SL_ITEM_SORTBUTTON) THEN
+   IF this.ps.cur ANDALSO (this.ps.cur->Lookup = SL_ITEM_EXITBUTTON ORELSE this.ps.cur->Lookup = SL_ITEM_SORTBUTTON) THEN
     'the exit button and the sort buttons don't need to be pre-focused, we can activate them now
     IF (readmouse.release AND mouseLeft) THEN
-     item_screen_use_action st
+     item_screen_use_action this
     END IF
    END IF
-  ELSEIF st.ps.hover = st.ps.cur THEN
+  ELSEIF this.ps.hover = this.ps.cur THEN
    'Cursor did not change, so a second click can activate it
    IF (readmouse.release AND mouseLeft) THEN
     menusound gen(genCursorSFX)
-    item_screen_use_action st
+    item_screen_use_action this
    END IF
   END IF
  END IF
  
- plank_menu_drag_scroll st.ps
- plank_menu_mouse_wheel st.ps
+ plank_menu_drag_scroll this.ps
+ plank_menu_mouse_wheel this.ps
 END SUB
 
 FUNCTION item_screen () as integer
@@ -2826,7 +2826,7 @@ FUNCTION item_screen () as integer
   END IF
 
   IF get_gen_bool("/mouse/mouse_menus") ANDALSO NOT st.re_use THEN
-   item_screen_mouse_handler(st) 
+   st.item_screen_mouse_handler()
   END IF
 
   st.lastcur = st.ps.cur

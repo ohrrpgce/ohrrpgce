@@ -4167,7 +4167,7 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
   'END IF
   '
   IF get_gen_bool("/mouse/mouse_menus") ANDALSO NOT .re_use THEN
-   item_screen_mouse_handler(bat.itemst)
+   bat.itemst.item_screen_mouse_handler()
   END IF
 
   .lastcur = .ps.cur
