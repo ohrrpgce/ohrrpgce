@@ -2670,31 +2670,31 @@ SUB item_screen_usable_item_action (byref st as ItemScreenState)
 END SUB
 
 'Updates autoset tags
-SUB item_screen_use_action (byref st as ItemScreenState)
- IF st.ps.cur = 0 THEN debug "item_screen_use_action: no cursor ptr" : EXIT SUB
- DIM slot as integer = st.ps.cur->Extra(0)
+SUB ItemScreenState.item_screen_use_action ()
+ IF this.ps.cur = 0 THEN debug "item_screen_use_action: no cursor ptr" : EXIT SUB
+ DIM slot as integer = this.ps.cur->Extra(0)
  DIM swapslot as integer = -1
- IF st.swapcur THEN swapslot = st.swapcur->Extra(0)
+ IF this.swapcur THEN swapslot = this.swapcur->Extra(0)
  
- DIM lastcur as slice ptr = st.ps.cur
- DIM lastswap as slice ptr = st.swapcur
+ DIM lastcur as slice ptr = this.ps.cur
+ DIM lastswap as slice ptr = this.swapcur
  
- SELECT CASE st.ps.cur->Lookup
+ SELECT CASE this.ps.cur->Lookup
   CASE SL_ITEM_EXITBUTTON:
-   st.quit = YES
+   this.quit = YES
    EXIT SUB
   CASE SL_ITEM_SORTBUTTON:
-   IF st.swapcur THEN
-    st.swapcur = 0
-    st.update_item_plank lastswap
+   IF this.swapcur THEN
+    this.swapcur = 0
+    this.update_item_plank lastswap
    ELSE
     inventory_autosort()
-    st.need_update = YES
-    st.refocus = YES
+    this.need_update = YES
+    this.refocus = YES
    END IF
    EXIT SUB
   CASE SL_ITEM_TRASHBUTTON:
-   IF st.swapcur THEN
+   IF this.swapcur THEN
     IF inventory(swapslot).used ANDALSO item_can_be_discarded(inventory(swapslot).id) THEN
      MenuSound gen(genAcceptSFX)
      WITH inventory(swapslot)
@@ -2706,32 +2706,32 @@ SUB item_screen_use_action (byref st as ItemScreenState)
      tag_updates
     END IF
     update_inventory_caption swapslot
-    st.need_update = YES
-    st.refocus = YES
+    this.need_update = YES
+    this.refocus = YES
    END IF
    EXIT SUB
  END SELECT
  
- IF st.re_use THEN
-  st.re_use = NO
-  item_screen_usable_item_action st
+ IF this.re_use THEN
+  this.re_use = NO
+  item_screen_usable_item_action this
   EXIT SUB
  END IF
 
- IF st.swapcur THEN
-  IF st.swapcur = st.ps.cur THEN
-   item_screen_usable_item_action st
+ IF this.swapcur THEN
+  IF this.swapcur = this.ps.cur THEN
+   item_screen_usable_item_action this
    EXIT SUB
   ELSE
    SWAP inventory(slot), inventory(swapslot)
-   st.need_update = YES
-   st.refocus = YES
+   this.need_update = YES
+   this.refocus = YES
   END IF
-  st.swapcur = 0
-  st.update_item_plank lastswap
+  this.swapcur = 0
+  this.update_item_plank lastswap
  ELSE
-  st.swapcur = st.ps.cur
-  st.update_item_plank st.swapcur
+  this.swapcur = this.ps.cur
+  this.update_item_plank this.swapcur
  END IF
  
 END SUB
@@ -2769,20 +2769,20 @@ SUB ItemScreenState.item_screen_mouse_handler()
    IF this.ps.cur ANDALSO this.swapcur ANDALSO this.ps.cur <> this.swapcur THEN
     'Confirming a swap, so it is okay to to activate now
     IF (readmouse.release AND mouseLeft) THEN
-     item_screen_use_action this
+     this.item_screen_use_action
     END IF
    END IF
    IF this.ps.cur ANDALSO (this.ps.cur->Lookup = SL_ITEM_EXITBUTTON ORELSE this.ps.cur->Lookup = SL_ITEM_SORTBUTTON) THEN
     'the exit button and the sort buttons don't need to be pre-focused, we can activate them now
     IF (readmouse.release AND mouseLeft) THEN
-     item_screen_use_action this
+     this.item_screen_use_action
     END IF
    END IF
   ELSEIF this.ps.hover = this.ps.cur THEN
    'Cursor did not change, so a second click can activate it
    IF (readmouse.release AND mouseLeft) THEN
     menusound gen(genCursorSFX)
-    item_screen_use_action this
+    this.item_screen_use_action
    END IF
   END IF
  END IF
@@ -2822,7 +2822,7 @@ FUNCTION item_screen () as integer
   END IF
 
   IF game_check_use_key() ORELSE st.re_use THEN
-   item_screen_use_action st
+   st.item_screen_use_action
   END IF
 
   IF get_gen_bool("/mouse/mouse_menus") ANDALSO NOT st.re_use THEN

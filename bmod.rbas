@@ -4162,10 +4162,11 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
   ' item_screen_cancel_action st
   'END IF
   '
-  'IF game_check_use_key() ORELSE st.re_use THEN
-  ' item_screen_use_action st
-  'END IF
-  '
+  IF game_battle_check_use_key() THEN
+   '.item_screen_use_action
+   do_pick = YES
+  END IF
+
   IF get_gen_bool("/mouse/mouse_menus") ANDALSO NOT .re_use THEN
    bat.itemst.item_screen_mouse_handler()
   END IF
@@ -4184,8 +4185,6 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
   END IF
   
   IF .quit THEN do_cancel = YES
-
-  IF game_battle_check_use_key() THEN do_pick = YES
  
   IF UpdateScreenSlice() THEN .need_update = YES
 
