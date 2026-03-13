@@ -303,12 +303,12 @@ TYPE ItemScreenState EXTENDS Object
  quit as bool
  refocus as bool
  re_use as bool
- DECLARE VIRTUAL SUB item_screen_refresh()
+ DECLARE VIRTUAL SUB refresh()
  DECLARE VIRTUAL SUB update_item_plank(byval pl as Slice Ptr)
- DECLARE VIRTUAL SUB item_screen_mouse_handler()
- DECLARE VIRTUAL SUB item_screen_use_action ()
- DECLARE VIRTUAL SUB item_screen_cancel_action ()
- DECLARE VIRTUAL SUB item_screen_usable_item_action ()
+ DECLARE VIRTUAL SUB mouse_handler()
+ DECLARE VIRTUAL SUB use_action ()
+ DECLARE VIRTUAL SUB cancel_action ()
+ DECLARE VIRTUAL SUB usable_item_action ()
  DECLARE VIRTUAL FUNCTION item_is_usable(byval item_id as integer) as bool
 END TYPE
 

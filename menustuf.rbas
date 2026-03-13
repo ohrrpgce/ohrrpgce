@@ -2678,7 +2678,7 @@ SUB ItemScreenState.update_item_plank (byval pl as Slice Ptr)
  set_plank_state this.ps, pl, state
 END SUB
 
-SUB ItemScreenState.item_screen_refresh()
+SUB ItemScreenState.refresh()
 
  IF this.refocus THEN save_plank_selection this.ps
  this.ps.cur = 0
@@ -2727,7 +2727,7 @@ FUNCTION ItemScreenState.item_is_usable(byval item_id as integer) as bool
  RETURN NO
 END FUNCTION
 
-SUB ItemScreenState.item_screen_cancel_action ()
+SUB ItemScreenState.cancel_action ()
  menusound gen(genCancelSFX)
  IF this.swapcur THEN
   '--De-select the currently selected item
@@ -2740,8 +2740,8 @@ SUB ItemScreenState.item_screen_cancel_action ()
 END SUB
 
 'Updates autoset tags
-SUB ItemScreenState.item_screen_usable_item_action ()
- IF this.ps.cur = 0 THEN debug "item_screen_usable_item_action: no cursor ptr" : EXIT SUB
+SUB ItemScreenState.usable_item_action ()
+ IF this.ps.cur = 0 THEN debug "ItemScreenState.usable_item_action: no cursor ptr" : EXIT SUB
  DIM slot as integer = this.ps.cur->Extra(0)
  
  IF inventory(slot).used ANDALSO inventory(slot).num > 0 THEN
@@ -2762,8 +2762,8 @@ SUB ItemScreenState.item_screen_usable_item_action ()
 END SUB
 
 'Updates autoset tags
-SUB ItemScreenState.item_screen_use_action ()
- IF this.ps.cur = 0 THEN debug "item_screen_use_action: no cursor ptr" : EXIT SUB
+SUB ItemScreenState.use_action ()
+ IF this.ps.cur = 0 THEN debug "ItemScreenState.use_action: no cursor ptr" : EXIT SUB
  DIM slot as integer = this.ps.cur->Extra(0)
  DIM swapslot as integer = -1
  IF this.swapcur THEN swapslot = this.swapcur->Extra(0)
@@ -2806,13 +2806,13 @@ SUB ItemScreenState.item_screen_use_action ()
  
  IF this.re_use THEN
   this.re_use = NO
-  this.item_screen_usable_item_action
+  this.usable_item_action
   EXIT SUB
  END IF
 
  IF this.swapcur THEN
   IF this.swapcur = this.ps.cur THEN
-   this.item_screen_usable_item_action
+   this.usable_item_action
    EXIT SUB
   ELSE
    SWAP inventory(slot), inventory(swapslot)
@@ -2828,7 +2828,7 @@ SUB ItemScreenState.item_screen_use_action ()
  
 END SUB
 
-SUB ItemScreenState.item_screen_mouse_handler()
+SUB ItemScreenState.mouse_handler()
  DIM oldhover as Slice Ptr = this.ps.hover
  IF plank_menu_update_hover(this.ps) THEN
   IF oldhover THEN this.update_item_plank oldhover
@@ -2861,20 +2861,20 @@ SUB ItemScreenState.item_screen_mouse_handler()
    IF this.ps.cur ANDALSO this.swapcur ANDALSO this.ps.cur <> this.swapcur THEN
     'Confirming a swap, so it is okay to to activate now
     IF (readmouse.release AND mouseLeft) THEN
-     this.item_screen_use_action
+     this.use_action
     END IF
    END IF
    IF this.ps.cur ANDALSO (this.ps.cur->Lookup = SL_ITEM_EXITBUTTON ORELSE this.ps.cur->Lookup = SL_ITEM_SORTBUTTON) THEN
     'the exit button and the sort buttons don't need to be pre-focused, we can activate them now
     IF (readmouse.release AND mouseLeft) THEN
-     this.item_screen_use_action
+     this.use_action
     END IF
    END IF
   ELSEIF this.ps.hover = this.ps.cur THEN
    'Cursor did not change, so a second click can activate it
    IF (readmouse.release AND mouseLeft) THEN
     menusound gen(genCursorSFX)
-    this.item_screen_use_action
+    this.use_action
    END IF
   END IF
  END IF
@@ -2901,7 +2901,7 @@ FUNCTION item_screen () as integer
  'This only needs to be called once after the collection loads because gen(genInvDescFixedHeight) won't change mid-inventory
  refresh_inventory_description_box_sizing st.ps.m
 
- st.item_screen_refresh()
+ st.refresh()
 
  show_virtual_gamepad()
  
@@ -2913,15 +2913,15 @@ FUNCTION item_screen () as integer
   playtimer
   
   IF game_check_cancel_key() THEN
-   st.item_screen_cancel_action
+   st.cancel_action
   END IF
 
   IF game_check_use_key() ORELSE st.re_use THEN
-   st.item_screen_use_action
+   st.use_action
   END IF
 
   IF get_gen_bool("/mouse/mouse_menus") ANDALSO NOT st.re_use THEN
-   st.item_screen_mouse_handler()
+   st.mouse_handler()
   END IF
 
   st.lastcur = st.ps.cur
@@ -2949,7 +2949,7 @@ FUNCTION item_screen () as integer
   IF UpdateScreenSlice() THEN st.need_update = YES
  
   IF st.need_update THEN
-   st.item_screen_refresh()
+   st.refresh()
    st.need_update = NO
   END IF
 

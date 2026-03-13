@@ -4159,15 +4159,15 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
 
  WITH bat.itemst
   'IF game_check_cancel_key() THEN
-  ' .item_screen_cancel_action
+  ' .cancel_action
   'END IF
   '
   IF get_gen_bool("/mouse/mouse_menus") THEN
-   bat.itemst.item_screen_mouse_handler()
+   .mouse_handler()
   END IF
 
   IF game_battle_check_use_key() THEN
-   '.item_screen_use_action
+   '.use_action
    do_pick = YES
   END IF
 
@@ -4353,7 +4353,7 @@ SUB re_init_battle_item_menu (bat as BattleState, bslot() as BattleSprite)
  checkitemusability bat.itemst.iuse(), bslot(), bat.player_turn
 
  'Re-init the list of items based on inventory()
- bat.itemst.item_screen_refresh()
+ bat.itemst.refresh()
  
 END SUB
 
