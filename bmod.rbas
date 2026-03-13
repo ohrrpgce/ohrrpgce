@@ -4159,16 +4159,16 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
 
  WITH bat.itemst
   'IF game_check_cancel_key() THEN
-  ' item_screen_cancel_action st
+  ' .item_screen_cancel_action
   'END IF
   '
+  IF get_gen_bool("/mouse/mouse_menus") THEN
+   bat.itemst.item_screen_mouse_handler()
+  END IF
+
   IF game_battle_check_use_key() THEN
    '.item_screen_use_action
    do_pick = YES
-  END IF
-
-  IF get_gen_bool("/mouse/mouse_menus") ANDALSO NOT .re_use THEN
-   bat.itemst.item_screen_mouse_handler()
   END IF
 
   .lastcur = .ps.cur
@@ -4189,7 +4189,7 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
   IF UpdateScreenSlice() THEN .need_update = YES
 
   IF .need_update THEN
-   .item_screen_refresh()
+   re_init_battle_item_menu bat, bslot()
    .need_update = NO
   END IF
 
@@ -4354,10 +4354,6 @@ SUB re_init_battle_item_menu (bat as BattleState, bslot() as BattleSprite)
 
  'Re-init the list of items based on inventory()
  bat.itemst.item_screen_refresh()
-
- 'Re-init cursor to the top left (If we add cursor memory, it will need support here)
-
- 'Refresh the description for the selected item (it will get updated again later as the cursor moves)
  
 END SUB
 

@@ -2635,15 +2635,15 @@ FUNCTION item_can_be_used_bits (byval item_id as integer) as integer
  RETURN ret
 END FUNCTION
 
-SUB item_screen_cancel_action (byref st as ItemScreenState)
+SUB ItemScreenState.item_screen_cancel_action ()
  menusound gen(genCancelSFX)
- IF st.swapcur THEN
+ IF this.swapcur THEN
   '--De-select the currently selected item
-  DIM last as slice ptr = st.swapcur
-  st.swapcur = 0
-  st.update_item_plank last
+  DIM last as slice ptr = this.swapcur
+  this.swapcur = 0
+  this.update_item_plank last
  ELSE
-  st.quit = YES
+  this.quit = YES
  END IF
 END SUB
 
@@ -2818,7 +2818,7 @@ FUNCTION item_screen () as integer
   playtimer
   
   IF game_check_cancel_key() THEN
-   item_screen_cancel_action st
+   st.item_screen_cancel_action
   END IF
 
   IF game_check_use_key() ORELSE st.re_use THEN
