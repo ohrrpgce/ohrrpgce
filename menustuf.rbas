@@ -2488,6 +2488,8 @@ END SUB
 
 '-----------------------------------------------------------------------
 
+'Item-screen related functions
+
 SUB set_item_plank_state (byval sl as Slice Ptr, byval state as PlankItemState)
  SELECT CASE sl->SliceType
   CASE slText:
@@ -2517,6 +2519,124 @@ SUB set_item_plank_state (byval sl as Slice Ptr, byval state as PlankItemState)
    END SELECT
  END SELECT
 END SUB
+
+FUNCTION is_item_plank(byval sl as Slice Ptr) as bool
+ IF sl = 0 THEN debug "is_item_plank: null slice ptr" : RETURN NO
+ IF sl->Lookup = SL_PLANK_HOLDER THEN RETURN YES
+ IF sl->Lookup = SL_ITEM_EXITBUTTON THEN RETURN YES
+ IF sl->Lookup = SL_ITEM_SORTBUTTON THEN RETURN YES
+ IF sl->Lookup = SL_ITEM_TRASHBUTTON THEN RETURN YES
+ RETURN NO 
+END FUNCTION
+
+FUNCTION item_can_be_discarded (byval item_id as integer) as bool
+ DIM item as ItemDef
+ loaditemdata item, item_id
+ IF item.cannot_be_sold_or_dropped THEN RETURN NO 'Cannot be sold/dropped
+ RETURN YES
+END FUNCTION
+
+'Returns a length two bitvector (values 0-3), a combination of:
+'1: can be used in-battle
+'2: can be used out of battle
+FUNCTION item_can_be_used_bits (byval item_id as integer) as integer
+ DIM item as ItemDef
+ loaditemdata item, item_id
+ DIM ret as integer
+ IF item.teach_spell >= 0 THEN ret OR= 2 'Teaches a spell
+ IF item.oob_attack >= 0 THEN ret OR= 2 'Triggers an attack (cure) out-of-battle
+ IF item.text_box >= 0 THEN ret OR= 2 'Triggers a text box out-of-battle
+ IF item.battle_items_menu_attack >= 0 THEN ret OR= 1 'Triggers an attack in battle
+ RETURN ret
+END FUNCTION
+
+
+SUB inventory_autosort()
+ DIM autosort_changed as bool = NO
+ 'First sort all items to the top
+ DIM numitems as integer = 0
+ FOR i as integer = 0 TO last_inv_slot() - 1
+  IF inventory(i).used THEN numitems += 1 : CONTINUE FOR
+  FOR o as integer = i + 1 TO last_inv_slot()
+   IF inventory(o).used THEN
+    SWAP inventory(i), inventory(o)
+    numitems += 1
+    autosort_changed = YES
+    EXIT FOR
+   END IF
+  NEXT o
+ NEXT i
+
+ IF gen(genAutosortScheme) = 0 THEN
+  'Sorting by type: cache the sort order of the items, or the cost of repeatedly loading
+  'item data might go out of control
+  DIM item as ItemDef
+  FOR slot as integer = 0 TO numitems - 1
+   loaditemdata item, inventory(slot).id
+
+   IF item.battle_items_menu_attack >= 0 THEN  'Usable in-battle
+    inventory(slot).sortorder = 0
+   ELSEIF item.oob_attack >= 0 THEN  'Usable out-of-battle (attack)
+    inventory(slot).sortorder = 10
+   ELSEIF item.text_box >= 0 THEN  'Usable out-of-battle (textbox)
+    inventory(slot).sortorder = 20
+   ELSEIF item.teach_spell >= 0 THEN  'Teach spell
+    inventory(slot).sortorder = 30
+   ELSEIF item_is_equippable(item) THEN  'Equippable
+    FOR i as integer = 0 to 4
+     IF item.eqslots(i) THEN
+      inventory(slot).sortorder = 40 + i
+      EXIT FOR
+     END IF
+    NEXT i
+   ELSE
+    inventory(slot).sortorder = 50
+   END IF
+   IF item.cannot_be_sold_or_dropped THEN
+    inventory(slot).sortorder += 0  'Can not be sold/dropped
+   ELSEIF item.consumed_by_use THEN
+    inventory(slot).sortorder += 1  'Consumed by use
+   ELSE
+    inventory(slot).sortorder += 2  'Unlimited use
+   END IF
+  NEXT
+ ELSEIF gen(genAutosortScheme) = 1 THEN
+  'Sorting by usable (into four groups, depending on whether usable in battle and out of battle):
+  'Usable in-and-out of battle, usable out of battle, usable in battle, not usable
+  FOR slot as integer = 0 TO numitems - 1
+   inventory(slot).sortorder = 3 - item_can_be_used_bits(inventory(slot).id)
+  NEXT
+ END IF
+
+ 'Then sort by the autosort criterion (use bubble sort because it's stable)
+ FOR i as integer = 0 TO numitems - 1
+  FOR slot as integer = numitems - 2 TO i STEP -1
+   DIM disordered as bool = NO
+   SELECT CASE gen(genAutosortScheme)
+    CASE 0 'type
+     IF inventory(slot).sortorder > inventory(slot + 1).sortorder THEN disordered = YES
+    CASE 1 'use
+     IF inventory(slot).sortorder > inventory(slot + 1).sortorder THEN disordered = YES
+    CASE 2 'alphabetical
+     IF string_compare(inventory(slot).text, inventory(slot + 1).text) > 0 THEN disordered = YES
+    CASE 3 'id
+     IF inventory(slot).id > inventory(slot + 1).id THEN disordered = YES
+    CASE 4 'nothing
+   END SELECT
+   IF disordered THEN
+    SWAP inventory(slot), inventory(slot + 1)
+    autosort_changed = YES
+   END IF
+  NEXT slot
+ NEXT i
+ IF autosort_changed THEN
+  menusound gen(genAcceptSFX)
+ ELSE
+  menusound gen(genCancelSFX)
+ END IF
+END SUB
+
+'--- ItemScreenState methods
 
 SUB ItemScreenState.update_item_plank (byval pl as Slice Ptr)
  IF pl = 0 THEN debug "update_item_plank: null ptr" : EXIT SUB
@@ -2602,39 +2722,9 @@ SUB ItemScreenState.item_screen_refresh()
  
 END SUB
 
-FUNCTION is_item_plank(byval sl as Slice Ptr) as bool
- IF sl = 0 THEN debug "is_item_plank: null slice ptr" : RETURN NO
- IF sl->Lookup = SL_PLANK_HOLDER THEN RETURN YES
- IF sl->Lookup = SL_ITEM_EXITBUTTON THEN RETURN YES
- IF sl->Lookup = SL_ITEM_SORTBUTTON THEN RETURN YES
- IF sl->Lookup = SL_ITEM_TRASHBUTTON THEN RETURN YES
- RETURN NO 
-END FUNCTION
-
-FUNCTION item_can_be_discarded (byval item_id as integer) as bool
- DIM item as ItemDef
- loaditemdata item, item_id
- IF item.cannot_be_sold_or_dropped THEN RETURN NO 'Cannot be sold/dropped
- RETURN YES
-END FUNCTION
-
 FUNCTION ItemScreenState.item_is_usable(byval item_id as integer) as bool
  IF item_can_be_used_bits(item_id) AND 2 THEN RETURN YES
  RETURN NO
-END FUNCTION
-
-'Returns a length two bitvector (values 0-3), a combination of:
-'1: can be used in-battle
-'2: can be used out of battle
-FUNCTION item_can_be_used_bits (byval item_id as integer) as integer
- DIM item as ItemDef
- loaditemdata item, item_id
- DIM ret as integer
- IF item.teach_spell >= 0 THEN ret OR= 2 'Teaches a spell
- IF item.oob_attack >= 0 THEN ret OR= 2 'Triggers an attack (cure) out-of-battle
- IF item.text_box >= 0 THEN ret OR= 2 'Triggers a text box out-of-battle
- IF item.battle_items_menu_attack >= 0 THEN ret OR= 1 'Triggers an attack in battle
- RETURN ret
 END FUNCTION
 
 SUB ItemScreenState.item_screen_cancel_action ()
@@ -2793,6 +2883,9 @@ SUB ItemScreenState.item_screen_mouse_handler()
  plank_menu_mouse_wheel this.ps
 END SUB
 
+'--- Top level item screen
+' (maybe this could become a method of ItemScreenState, but it doen't have to be)
+
 FUNCTION item_screen () as integer
 'Returns 0, or ID of textbox to open (box 0 can't be opened)
 
@@ -2876,91 +2969,6 @@ FUNCTION item_screen () as integer
 
  RETURN st.textbox
 END FUNCTION
-
-SUB inventory_autosort()
- DIM autosort_changed as bool = NO
- 'First sort all items to the top
- DIM numitems as integer = 0
- FOR i as integer = 0 TO last_inv_slot() - 1
-  IF inventory(i).used THEN numitems += 1 : CONTINUE FOR
-  FOR o as integer = i + 1 TO last_inv_slot()
-   IF inventory(o).used THEN
-    SWAP inventory(i), inventory(o)
-    numitems += 1
-    autosort_changed = YES
-    EXIT FOR
-   END IF
-  NEXT o
- NEXT i
-
- IF gen(genAutosortScheme) = 0 THEN
-  'Sorting by type: cache the sort order of the items, or the cost of repeatedly loading
-  'item data might go out of control
-  DIM item as ItemDef
-  FOR slot as integer = 0 TO numitems - 1
-   loaditemdata item, inventory(slot).id
-
-   IF item.battle_items_menu_attack >= 0 THEN  'Usable in-battle
-    inventory(slot).sortorder = 0
-   ELSEIF item.oob_attack >= 0 THEN  'Usable out-of-battle (attack)
-    inventory(slot).sortorder = 10
-   ELSEIF item.text_box >= 0 THEN  'Usable out-of-battle (textbox)
-    inventory(slot).sortorder = 20
-   ELSEIF item.teach_spell >= 0 THEN  'Teach spell
-    inventory(slot).sortorder = 30
-   ELSEIF item_is_equippable(item) THEN  'Equippable
-    FOR i as integer = 0 to 4
-     IF item.eqslots(i) THEN
-      inventory(slot).sortorder = 40 + i
-      EXIT FOR
-     END IF
-    NEXT i
-   ELSE
-    inventory(slot).sortorder = 50
-   END IF
-   IF item.cannot_be_sold_or_dropped THEN
-    inventory(slot).sortorder += 0  'Can not be sold/dropped
-   ELSEIF item.consumed_by_use THEN
-    inventory(slot).sortorder += 1  'Consumed by use
-   ELSE
-    inventory(slot).sortorder += 2  'Unlimited use
-   END IF
-  NEXT
- ELSEIF gen(genAutosortScheme) = 1 THEN
-  'Sorting by usable (into four groups, depending on whether usable in battle and out of battle):
-  'Usable in-and-out of battle, usable out of battle, usable in battle, not usable
-  FOR slot as integer = 0 TO numitems - 1
-   inventory(slot).sortorder = 3 - item_can_be_used_bits(inventory(slot).id)
-  NEXT
- END IF
-
- 'Then sort by the autosort criterion (use bubble sort because it's stable)
- FOR i as integer = 0 TO numitems - 1
-  FOR slot as integer = numitems - 2 TO i STEP -1
-   DIM disordered as bool = NO
-   SELECT CASE gen(genAutosortScheme)
-    CASE 0 'type
-     IF inventory(slot).sortorder > inventory(slot + 1).sortorder THEN disordered = YES
-    CASE 1 'use
-     IF inventory(slot).sortorder > inventory(slot + 1).sortorder THEN disordered = YES
-    CASE 2 'alphabetical
-     IF string_compare(inventory(slot).text, inventory(slot + 1).text) > 0 THEN disordered = YES
-    CASE 3 'id
-     IF inventory(slot).id > inventory(slot + 1).id THEN disordered = YES
-    CASE 4 'nothing
-   END SELECT
-   IF disordered THEN
-    SWAP inventory(slot), inventory(slot + 1)
-    autosort_changed = YES
-   END IF
-  NEXT slot
- NEXT i
- IF autosort_changed THEN
-  menusound gen(genAcceptSFX)
- ELSE
-  menusound gen(genCancelSFX)
- END IF
-END SUB
 
 '-----------------------------------------------------------------------
 
