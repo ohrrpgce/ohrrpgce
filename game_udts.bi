@@ -309,6 +309,7 @@ TYPE ItemScreenState EXTENDS Object
  DECLARE VIRTUAL SUB item_screen_use_action ()
  DECLARE VIRTUAL SUB item_screen_cancel_action ()
  DECLARE VIRTUAL SUB item_screen_usable_item_action ()
+ DECLARE VIRTUAL FUNCTION item_is_usable(byval item_id as integer) as bool
 END TYPE
 
 TYPE EquippableList

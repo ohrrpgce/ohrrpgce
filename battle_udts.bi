@@ -309,6 +309,7 @@ END TYPE
 TYPE BattleItemScreenState EXTENDS ItemScreenState
  iuse(inventoryMax / 16) as integer 'bitsets for whether items can be used by the current hero
  DECLARE VIRTUAL SUB update_item_plank(byval pl as Slice Ptr)
+ DECLARE VIRTUAL FUNCTION item_is_usable(byval item_id as integer) as bool
 END TYPE
 
 'This type stores the state of the battle engine, for example,

@@ -4385,6 +4385,14 @@ SUB BattleItemScreenState.update_item_plank(byval pl as Slice Ptr)
  set_plank_state this.ps, pl, state 
 END SUB
 
+FUNCTION BattleItemScreenState.item_is_usable(byval item_id as integer) as bool
+ 'Not used yet, but we may want this later.
+
+ 'Must be implemented to support atkallowed() logic with a hero slot number,
+ 'same as checkitemusability() 
+ RETURN NO
+END FUNCTION
+
 '==============================================================================
 '                               Animation system
 

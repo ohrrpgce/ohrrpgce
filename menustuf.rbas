@@ -2535,10 +2535,7 @@ SUB ItemScreenState.update_item_plank (byval pl as Slice Ptr)
    DIM item as ItemDef
    loaditemdata item, inventory(slot).id
    IF item.cannot_be_sold_or_dropped THEN special = YES 'Cannot be sold/dropped
-   'TODO: call item_can_be_used_bits instead
-   IF item.teach_spell >= 0 THEN usable = YES 'Teaches a spell
-   IF item.oob_attack >= 0 THEN usable = YES 'Triggers an attack (cure)
-   IF item.text_box >= 0 THEN usable = YES 'Triggers a text box
+   IF this.item_is_usable(inventory(slot).id) THEN usable = YES
   END IF
  ELSE
   debug "update_item_plank: out of bounds slot " & slot
@@ -2621,6 +2618,11 @@ FUNCTION item_can_be_discarded (byval item_id as integer) as bool
  RETURN YES
 END FUNCTION
 
+FUNCTION ItemScreenState.item_is_usable(byval item_id as integer) as bool
+ IF item_can_be_used_bits(item_id) AND 2 THEN RETURN YES
+ RETURN NO
+END FUNCTION
+
 'Returns a length two bitvector (values 0-3), a combination of:
 '1: can be used in-battle
 '2: can be used out of battle
@@ -2654,7 +2656,7 @@ SUB ItemScreenState.item_screen_usable_item_action ()
  
  IF inventory(slot).used ANDALSO inventory(slot).num > 0 THEN
   DIM item_id as integer = inventory(slot).id
-  IF item_can_be_used_bits(item_id) AND 2 THEN
+  IF this.item_is_usable(item_id) THEN
    DIM consumed as bool = NO ' FIXME: can probably get rid of this later
    IF use_item_in_slot(slot, this.textbox, consumed) THEN
     this.re_use = YES
