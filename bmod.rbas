@@ -4155,6 +4155,52 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
  DIM do_pick as bool = NO
  DIM do_cancel as bool = NO
 
+'-----------New-style controls
+
+ WITH bat.itemst
+  'IF game_check_cancel_key() THEN
+  ' item_screen_cancel_action st
+  'END IF
+  '
+  'IF game_check_use_key() ORELSE st.re_use THEN
+  ' item_screen_use_action st
+  'END IF
+  '
+  IF get_gen_bool("/mouse/mouse_menus") ANDALSO NOT .re_use THEN
+   item_screen_mouse_handler(bat.itemst)
+  END IF
+
+  .lastcur = .ps.cur
+  IF plank_menu_arrows(.ps) THEN
+   .update_item_plank .lastcur
+   .update_item_plank .ps.cur
+   menusound gen(genCursorSFX)
+   expand_slice_text_insert_codes .ps.m, @ExpandTextItemScreen, .ps.cur, .swapcur
+  END IF
+
+  IF keyval(scF8) > 1 THEN
+   slice_editor .ps.m
+   .need_update = YES
+  END IF
+  
+  IF .quit THEN do_cancel = YES
+
+  IF game_battle_check_use_key() THEN do_pick = YES
+ 
+  IF UpdateScreenSlice() THEN .need_update = YES
+
+  IF .need_update THEN
+   .item_screen_refresh()
+   .need_update = NO
+  END IF
+
+  'Always refresh the scrolling
+  update_plank_scrolling .ps
+
+ END WITH
+
+'-----------Legacy controls
+
  DIM remember_pt as integer = bat.item.pt
  usemenusounds
  IF carray(ccUp) > 1 AND bat.item.pt > 2 THEN bat.item.pt = bat.item.pt - 3
@@ -4252,6 +4298,8 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
    bat.item_desc = ""
   END IF
  END IF
+
+ '---END LEGACY
 
  IF do_cancel THEN
   bat.menu_mode = batMENUHERO

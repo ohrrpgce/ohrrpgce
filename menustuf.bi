@@ -37,6 +37,8 @@ DECLARE FUNCTION is_shop_empty(byval shop_id as integer, byval shoptype as integ
 DECLARE FUNCTION is_item_plank(byval sl as Slice Ptr) as bool
 DECLARE SUB set_item_plank_state (byval sl as Slice Ptr, byval state as PlankItemState)
 DECLARE SUB item_screen_refresh(byref st as ItemScreenState)
+DECLARE SUB ExpandTextItemScreen (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
+DECLARE SUB item_screen_mouse_handler(byref st as ItemScreenState)
 
 DECLARE FUNCTION game_check_use_key() as bool
 DECLARE FUNCTION game_battle_check_use_key() as bool
