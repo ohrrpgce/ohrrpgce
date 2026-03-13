@@ -2683,7 +2683,7 @@ SUB ItemScreenState.refresh()
  IF this.refocus THEN save_plank_selection this.ps
  this.ps.cur = 0
  this.ps.hover = 0
-
+ 
  plank_menu_clear this.ps.m, SL_ITEM_ITEMLIST
 
  DIM pl as Slice Ptr
@@ -2730,13 +2730,17 @@ END FUNCTION
 SUB ItemScreenState.cancel_action ()
  menusound gen(genCancelSFX)
  IF this.swapcur THEN
-  '--De-select the currently selected item
-  DIM last as slice ptr = this.swapcur
-  this.swapcur = 0
-  this.update_item_plank last
+  this.deselect_current_selection()
  ELSE
   this.quit = YES
  END IF
+END SUB
+
+SUB ItemScreenState.deselect_current_selection()
+ '--De-select the currently selected item
+ DIM last as slice ptr = this.swapcur
+ this.swapcur = 0
+ this.update_item_plank last
 END SUB
 
 'Updates autoset tags
@@ -2767,18 +2771,14 @@ SUB ItemScreenState.use_action ()
  DIM slot as integer = this.ps.cur->Extra(0)
  DIM swapslot as integer = -1
  IF this.swapcur THEN swapslot = this.swapcur->Extra(0)
- 
- DIM lastcur as slice ptr = this.ps.cur
- DIM lastswap as slice ptr = this.swapcur
- 
+
  SELECT CASE this.ps.cur->Lookup
   CASE SL_ITEM_EXITBUTTON:
    this.quit = YES
    EXIT SUB
   CASE SL_ITEM_SORTBUTTON:
    IF this.swapcur THEN
-    this.swapcur = 0
-    this.update_item_plank lastswap
+    this.deselect_current_selection()
    ELSE
     inventory_autosort()
     this.need_update = YES
@@ -2810,18 +2810,30 @@ SUB ItemScreenState.use_action ()
   EXIT SUB
  END IF
 
- IF this.swapcur THEN
-  IF this.swapcur = this.ps.cur THEN
+ IF this.swapcur ORELSE this.single_activate_no_reordering THEN
+  'Handle Activation...
+  
+  IF this.single_activate_no_reordering THEN
+   'Single activation
+   IF this.swapcur THEN
+    'Clean up stale swap selection if single activate mode was toggled mid-runtime
+    this.deselect_current_selection
+   END IF
    this.usable_item_action
    EXIT SUB
-  ELSE
-   SWAP inventory(slot), inventory(swapslot)
-   this.need_update = YES
-   this.refocus = YES
+  ELSE 'Double activation and manual swapping...
+   IF this.swapcur = this.ps.cur THEN
+    this.usable_item_action
+    EXIT SUB
+   ELSE
+    SWAP inventory(slot), inventory(swapslot)
+    this.need_update = YES
+    this.refocus = YES
+   END IF
+   this.deselect_current_selection
   END IF
-  this.swapcur = 0
-  this.update_item_plank lastswap
  ELSE
+  'Handle first-selection in normal double-activate mode
   this.swapcur = this.ps.cur
   this.update_item_plank this.swapcur
  END IF
@@ -2829,17 +2841,16 @@ SUB ItemScreenState.use_action ()
 END SUB
 
 SUB ItemScreenState.mouse_handler()
+
  DIM oldhover as Slice Ptr = this.ps.hover
  IF plank_menu_update_hover(this.ps) THEN
   IF oldhover THEN this.update_item_plank oldhover
   IF this.ps.hover THEN this.update_item_plank this.ps.hover
  END IF
  
- DIM oldswap as Slice Ptr = this.swapcur
  IF this.swapcur ANDALSO (readmouse.buttons AND mouseRight) THEN
   'Cancel swap cursor selection if you right-click
-  this.swapcur = 0
-  IF oldswap THEN this.update_item_plank oldswap
+  this.deselect_current_selection
  END IF
   
  DIM oldcur as Slice Ptr = this.ps.cur
@@ -2856,6 +2867,8 @@ SUB ItemScreenState.mouse_handler()
   IF this.ps.cur <> oldcur THEN
    'Cursor just changed
    menusound gen(genCursorSFX)
+   this.update_item_plank oldcur
+   this.update_item_plank this.ps.cur
    update_plank_scrolling this.ps
    expand_slice_text_insert_codes this.ps.m, @ExpandTextItemScreen, this.ps.cur, this.swapcur
    IF this.ps.cur ANDALSO this.swapcur ANDALSO this.ps.cur <> this.swapcur THEN
@@ -2871,7 +2884,14 @@ SUB ItemScreenState.mouse_handler()
     END IF
    END IF
   ELSEIF this.ps.hover = this.ps.cur THEN
-   'Cursor did not change, so a second click can activate it
+   'Cursor did not change, so this second click can activate it
+   IF (readmouse.release AND mouseLeft) THEN
+    menusound gen(genCursorSFX)
+    this.use_action
+   END IF
+  END IF
+  IF this.single_activate_no_reordering THEN
+   'We have a special case here for single activation mode.
    IF (readmouse.release AND mouseLeft) THEN
     menusound gen(genCursorSFX)
     this.use_action
@@ -2936,6 +2956,14 @@ FUNCTION item_screen () as integer
    slice_editor st.ps.m
    st.need_update = YES
   END IF
+  
+  ''--Temporary, just for testing
+  'IF keyval(scTAB) > 1 THEN
+  ' st.single_activate_no_reordering = NOT st.single_activate_no_reordering
+  ' IF st.single_activate_no_reordering THEN
+  '  st.deselect_current_selection()
+  ' END IF
+  'END IF
   
   IF st.quit THEN
    menusound gen(genCancelSFX)

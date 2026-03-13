@@ -4349,6 +4349,8 @@ SUB re_init_battle_item_menu (bat as BattleState, bslot() as BattleSprite)
  ' The slice-based battle item menu is already created. This sub
  ' initializes it it because it is about to be displayed so the player can use it.
 
+ bat.itemst.single_activate_no_reordering = YES
+ 
  'Refresh usability for the items
  checkitemusability bat.itemst.iuse(), bslot(), bat.player_turn
 
