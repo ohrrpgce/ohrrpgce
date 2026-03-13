@@ -308,6 +308,7 @@ TYPE ItemScreenState EXTENDS Object
  DECLARE VIRTUAL SUB item_screen_mouse_handler()
  DECLARE VIRTUAL SUB item_screen_use_action ()
  DECLARE VIRTUAL SUB item_screen_cancel_action ()
+ DECLARE VIRTUAL SUB item_screen_usable_item_action ()
 END TYPE
 
 TYPE EquippableList

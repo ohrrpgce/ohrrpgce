@@ -2648,24 +2648,24 @@ SUB ItemScreenState.item_screen_cancel_action ()
 END SUB
 
 'Updates autoset tags
-SUB item_screen_usable_item_action (byref st as ItemScreenState)
- IF st.ps.cur = 0 THEN debug "item_screen_usable_item_action: no cursor ptr" : EXIT SUB
- DIM slot as integer = st.ps.cur->Extra(0)
+SUB ItemScreenState.item_screen_usable_item_action ()
+ IF this.ps.cur = 0 THEN debug "item_screen_usable_item_action: no cursor ptr" : EXIT SUB
+ DIM slot as integer = this.ps.cur->Extra(0)
  
  IF inventory(slot).used ANDALSO inventory(slot).num > 0 THEN
   DIM item_id as integer = inventory(slot).id
   IF item_can_be_used_bits(item_id) AND 2 THEN
    DIM consumed as bool = NO ' FIXME: can probably get rid of this later
-   IF use_item_in_slot(slot, st.textbox, consumed) THEN
-    st.re_use = YES
+   IF use_item_in_slot(slot, this.textbox, consumed) THEN
+    this.re_use = YES
     evalitemtags
     evalherotags
     tag_updates
    END IF
   END IF
-  st.need_update = YES
-  st.refocus = YES
-  st.swapcur = 0
+  this.need_update = YES
+  this.refocus = YES
+  this.swapcur = 0
  END IF
 END SUB
 
@@ -2714,13 +2714,13 @@ SUB ItemScreenState.item_screen_use_action ()
  
  IF this.re_use THEN
   this.re_use = NO
-  item_screen_usable_item_action this
+  this.item_screen_usable_item_action
   EXIT SUB
  END IF
 
  IF this.swapcur THEN
   IF this.swapcur = this.ps.cur THEN
-   item_screen_usable_item_action this
+   this.item_screen_usable_item_action
    EXIT SUB
   ELSE
    SWAP inventory(slot), inventory(swapslot)
