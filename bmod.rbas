@@ -856,7 +856,7 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
     IF consumeitem(.consume_item) THEN
      'Finished the item stack
      setbit bat.iuse(), 0, .consume_item, 0  'Update this in case Items menu happens to be open
-     setbit bat.batst.iuse(), 0, .consume_item, 0  'Update this in case Items menu happens to be open
+     setbit bat.itemst.iuse(), 0, .consume_item, 0  'Update this in case Items menu happens to be open
      'Note that subtract_attack_costs already updated tags, so we only do it again in this case
      evalitemtags
      tag_updates
@@ -4154,23 +4154,20 @@ END SUB
 'The menu is setup in heromenu and actually drawn in battle_display_menus.
 SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
 
- DIM do_pick as bool = NO
- DIM do_cancel as bool = NO
-
+IF bat.test_future THEN
 '-----------New-style controls
 
  WITH bat.itemst
-  'IF game_check_cancel_key() THEN
-  ' .cancel_action
-  'END IF
-  '
+  IF game_check_cancel_key() THEN
+   .cancel_action
+  END IF
+  
   IF get_gen_bool("/mouse/mouse_menus") THEN
    .mouse_handler()
   END IF
 
   IF game_battle_check_use_key() THEN
-   '.use_action
-   do_pick = YES
+   .use_action
   END IF
 
   .lastcur = .ps.cur
@@ -4186,7 +4183,7 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
    .need_update = YES
   END IF
   
-  IF .quit THEN do_cancel = YES
+  IF .quit THEN .do_cancel = YES
  
   IF UpdateScreenSlice() THEN .need_update = YES
 
@@ -4198,9 +4195,38 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
   'Always refresh the scrolling
   update_plank_scrolling .ps
 
+  IF .do_cancel THEN
+   bat.menu_mode = batMENUHERO
+   clearkeys
+   bslot(bat.player_turn).consume_item = -1 ' -1 here indicates that this hero will not consume any item
+   'menusound gen(genCancelSFX)
+   .do_cancel = NO
+   EXIT SUB
+  END IF
+  
+  IF .do_pick THEN
+   DIM slot as integer = .ps.cur->Extra(0)
+   IF readbit(.iuse(), 0, slot) = 1 THEN
+    'menusound gen(genAcceptSFX)
+  
+    DIM item as ItemDef
+    loaditemdata item, inventory(slot).id
+    bslot(bat.player_turn).consume_item = IIF(item.consumed_by_use, slot, -1)
+    bslot(bat.player_turn).attack = item.battle_items_menu_attack + 1
+    bat.targ.mode = targSETUP
+    bat.menu_mode = batMENUHERO
+    clearkeys
+    .do_pick = NO
+   END IF
+  END IF
+
  END WITH
 
+ELSE
 '-----------Legacy controls
+
+ DIM do_pick as bool = NO
+ DIM do_cancel as bool = NO
 
  DIM remember_pt as integer = bat.item.pt
  usemenusounds
@@ -4300,8 +4326,6 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
   END IF
  END IF
 
- '---END LEGACY
-
  IF do_cancel THEN
   bat.menu_mode = batMENUHERO
   clearkeys
@@ -4323,7 +4347,12 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
    clearkeys
   END IF
  END IF
+
+ '---END LEGACY
+END IF
+
 END SUB
+
 
 SUB create_battle_item_menu (bat as BattleState)
  'This is called once when the battle is first set up.
@@ -4350,14 +4379,15 @@ END SUB
 SUB re_init_battle_item_menu (bat as BattleState, bslot() as BattleSprite)
  ' The slice-based battle item menu is already created. This sub
  ' initializes it it because it is about to be displayed so the player can use it.
-
- bat.itemst.single_activate_no_reordering = YES
+ WITH bat.itemst
+  .single_activate_no_reordering = YES
  
- 'Refresh usability for the items
- checkitemusability bat.itemst.iuse(), bslot(), bat.player_turn
+  'Refresh usability for the items
+  checkitemusability .iuse(), bslot(), bat.player_turn
 
- 'Re-init the list of items based on inventory()
- bat.itemst.refresh()
+  'Re-init the list of items based on inventory()
+  .refresh()
+ END WITH
  
 END SUB
 
@@ -4389,13 +4419,17 @@ SUB BattleItemScreenState.update_item_plank(byval pl as Slice Ptr)
  set_plank_state this.ps, pl, state 
 END SUB
 
-FUNCTION BattleItemScreenState.item_is_usable(byval item_id as integer) as bool
- 'Not used yet, but we may want this later.
-
- 'Must be implemented to support atkallowed() logic with a hero slot number,
- 'same as checkitemusability() 
- RETURN NO
-END FUNCTION
+SUB BattleItemScreenState.usable_item_action ()
+ IF this.ps.cur = 0 THEN debug "BattleItemScreenState.usable_item_action: no cursor ptr" : EXIT SUB
+ DIM slot as integer = this.ps.cur->Extra(0)
+ 
+ IF inventory(slot).used ANDALSO inventory(slot).num > 0 THEN
+  IF readbit(this.iuse(), 0, slot) = 1 THEN this.do_pick = YES
+  this.need_update = YES
+  this.refocus = YES
+  this.swapcur = 0
+ END IF
+END SUB
 
 '==============================================================================
 '                               Animation system
