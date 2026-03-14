@@ -2873,19 +2873,19 @@ SUB ItemScreenState.mouse_handler()
    expand_slice_text_insert_codes this.ps.m, @ExpandTextItemScreen, this.ps.cur, this.swapcur
    IF this.ps.cur ANDALSO this.swapcur ANDALSO this.ps.cur <> this.swapcur THEN
     'Confirming a swap, so it is okay to to activate now
-    IF (readmouse.release AND mouseLeft) THEN
+    IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
      this.use_action
     END IF
    END IF
    IF this.ps.cur ANDALSO (this.ps.cur->Lookup = SL_ITEM_EXITBUTTON ORELSE this.ps.cur->Lookup = SL_ITEM_SORTBUTTON) THEN
     'the exit button and the sort buttons don't need to be pre-focused, we can activate them now
-    IF (readmouse.release AND mouseLeft) THEN
+    IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
      this.use_action
     END IF
    END IF
   ELSEIF this.ps.hover = this.ps.cur THEN
    'Cursor did not change, so this second click can activate it
-   IF (readmouse.release AND mouseLeft) THEN
+   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
     menusound gen(genCursorSFX)
     this.use_action
    END IF
@@ -2898,9 +2898,18 @@ SUB ItemScreenState.mouse_handler()
    END IF
   END IF
  END IF
- 
- plank_menu_drag_scroll this.ps
- plank_menu_mouse_wheel this.ps
+
+  
+ DIM scroll_select as bool = NO
+ IF plank_menu_drag_scroll(this.ps) THEN scroll_select = YES
+ IF plank_menu_mouse_wheel(this.ps) ANDALSO readmouse.wheel_delta <> 0 THEN scroll_select = YES
+ IF scroll_select THEN
+  DIM oldcur as Slice Ptr = this.ps.cur
+  IF this.ps.hover THEN this.ps.cur = this.ps.hover
+  this.update_item_plank oldcur
+  this.update_item_plank this.ps.cur
+  expand_slice_text_insert_codes this.ps.m, @ExpandTextItemScreen, this.ps.cur, this.swapcur
+ END IF
 END SUB
 
 '--- Top level item screen
