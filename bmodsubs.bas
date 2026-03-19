@@ -2214,7 +2214,10 @@ END SUB
 
 ' Returns bslot index or -1.
 ' pixelpos is screen/mouse coords
-FUNCTION battler_at_pixel(pixelpos as XYPair, allow_invisible as bool=NO, bslot() as BattleSprite) as integer
+FUNCTION battler_at_pixel(pixelpos as XYPair, battlefield_sl as Slice ptr, bslot() as BattleSprite, allow_invisible as bool=NO) as integer
+ 'BattleSprite coords are relative to battlefield_sl.
+ IF battlefield_sl THEN pixelpos -= battlefield_sl->ScreenPos
+
  FOR slot as integer = 0 TO 11
   WITH bslot(slot)
    IF (allow_invisible ORELSE .vis) ANDALSO (rect_collide_point(XYWH(.x, .y - .z, .w, .h), pixelpos)) THEN
@@ -2344,7 +2347,7 @@ END FUNCTION
 SUB battle_debug_tooltips(bat as BattleState, bslot() as BattleSprite, formdata as Formation)
  DIM info as string
 
- DIM slot as integer = battler_at_pixel(readmouse.pos, YES, bslot())
+ DIM slot as integer = battler_at_pixel(readmouse.pos, bat.battlefield_sl, bslot(), YES)
 
  'Click any button to lock
  IF readmouse.release /'ANDALSO readmouse.drag_dist < 10'/ THEN

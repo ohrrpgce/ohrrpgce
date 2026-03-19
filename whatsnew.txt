@@ -14,11 +14,13 @@ WHAT IS NEW?
 
   *** Bugfixes
     * "encountered unsupported 64-bit value" error in a couple editors [Ralph]
+    * At resolutions above 320x200, clicking on battlers and some menu items
+      was broken (offset) [Ralph]
 
   *** Stuff Only Developers Will Notice
     * Nightly source and docs now has its own script rather than piggybacking
       on both linux and windows nightly scripts [James]
-      
+
 
 Jan 10 2026 [Lexiphanic]
 

@@ -79,7 +79,7 @@ declare function find_preferred_target (tmask() as integer, byval who as integer
 
 declare sub try_to_reload_files_inbattle ()
 
-declare function battler_at_pixel(pixelpos as XYPair, allow_invisible as bool=NO, bslot() as BattleSprite) as integer
+declare function battler_at_pixel(pixelpos as XYPair, battlefield_sl as Slice ptr, bslot() as BattleSprite, allow_invisible as bool=NO) as integer
 declare function describe_slot_num(slot as integer) as string
 declare function describe_slot_num_short(slot as integer) as string
 declare function describe_targets(targs() as integer, highlight_slot as integer = -1) as string
