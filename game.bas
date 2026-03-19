@@ -93,6 +93,7 @@ REDIM tag(1000) as integer '16000 bitsets
 REDIM onetime(1000) as integer '16000 bitsets
 
 'Party stuff
+'inventory() is not resized, it's left at inventoryMax regardless of actual size limit
 REDIM inventory(inventoryMax) as InventSlot
 DIM gold as integer
 

@@ -4783,7 +4783,7 @@ end</example>
 				the stat should be updated.
 				If <tt>false</tt> (which is the default), the current value will be set so that it's the
 				same percentage of the max before and after.
-				For example, 8/10 HP become 12/15 HP.
+				For example, 8/10 HP becomes 12/15 HP.
 				If <tt>reset to max</tt> is <tt>true</tt>, then the current value is set equal to the max.
 				<lb/>
 				The maximum and current stat values are capped to the stat cap, if any.
@@ -12040,7 +12040,7 @@ end
 			<canon>map layer slice by id(layer id)</canon>
 			<shortname>map layer slice by id</shortname>
 			<description>
-				Given <p>layer id</p>, which is just the layer number starting from 0 and counting upwards, returns the layer's slice handle on the current map. This is equivalent to <ref>lookupslice</ref> with the lookup codes such as <p>sli:Map layer 0</p>, <p>sli:Map layer 1</p>, etc. but it may be more convenient if you need to loop through the layers.
+				Given <p>layer id</p>, which is just the layer number starting from 0 and counting upwards, returns the layer's slice handle on the current map. This is equivalent to <ref>lookupslice</ref> with the lookup codes such as <p>sl:Map layer 0</p>, <p>sl:Map layer 1</p>, etc. but it may be more convenient if you need to loop through the layers.
 				<lb/>
 				If the layer doesn't exist (<tt>layer id > last layer id</tt>), returns 0/false without an error.
 			</description>
