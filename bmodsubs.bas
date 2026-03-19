@@ -2212,20 +2212,26 @@ END SUB
 
 '==============================================================================
 
+' Return the topmost (highest on screen) battler at a point
 ' Returns bslot index or -1.
 ' pixelpos is screen/mouse coords
 FUNCTION battler_at_pixel(pixelpos as XYPair, battlefield_sl as Slice ptr, bslot() as BattleSprite, allow_invisible as bool=NO) as integer
  'BattleSprite coords are relative to battlefield_sl.
  IF battlefield_sl THEN pixelpos -= battlefield_sl->ScreenPos
 
+ DIM best as integer = -1
+ DIM best_y as integer = -1
  FOR slot as integer = 0 TO 11
   WITH bslot(slot)
-   IF (allow_invisible ORELSE .vis) ANDALSO (rect_collide_point(XYWH(.x, .y - .z, .w, .h), pixelpos)) THEN
-    RETURN slot
+   IF (allow_invisible ORELSE .vis) ANDALSO rect_collide_point(XYWH(.x, .y - .z, .w, .h), pixelpos) THEN
+    IF .y >= best_y THEN  'Ties broken by bslot order
+     best_y = .y
+     best = slot
+    END IF
    END IF
   END WITH
  NEXT slot
- RETURN -1
+ RETURN best
 END FUNCTION
 
 FUNCTION describe_slot_num_short(slot as integer) as string
