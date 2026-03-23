@@ -2901,7 +2901,10 @@ SUB ItemScreenState.mouse_handler()
 
   
  DIM scroll_select as bool = NO
- IF plank_menu_drag_scroll(this.ps) THEN scroll_select = YES
+ 'Scroll by dragging either button
+ IF plank_menu_drag_scroll(this.ps, mouseLeft) THEN scroll_select = YES
+ IF plank_menu_drag_scroll(this.ps, mouseRight) THEN scroll_select = YES
+ 'Scroll with wheel
  IF plank_menu_mouse_wheel(this.ps) ANDALSO readmouse.wheel_delta <> 0 THEN scroll_select = YES
  IF scroll_select THEN
   DIM oldcur as Slice Ptr = this.ps.cur
