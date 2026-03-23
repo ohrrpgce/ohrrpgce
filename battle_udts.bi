@@ -368,13 +368,6 @@ TYPE BattleState
  vic as VictoryState
  rew as RewardsState
  spell as SpellMenuState
- 'Legacy battle item menu
- item as MenuState     'menu cursor for items menu
- item_drag_top as integer 'used for right-drag scrolling the item menu
- item_desc as string   'description of currently selected item in item menu
- inv_scroll as MenuState
- inv_scroll_rect as RectType
- iuse(inventoryMax / 16) as integer 'bitsets for whether items can be used by the current hero
  'Slice based item screen
  itemst as BattleItemScreenState ' Subclass of the object that the inventory screen uses.
  'For debug keys

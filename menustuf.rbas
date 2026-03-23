@@ -2969,14 +2969,6 @@ FUNCTION item_screen () as integer
    st.need_update = YES
   END IF
   
-  '--Temporary, just for testing
-  IF keyval(scTAB) > 1 THEN
-   st.single_activate_no_reordering = NOT st.single_activate_no_reordering
-   IF st.single_activate_no_reordering THEN
-    st.deselect_current_selection()
-   END IF
-  END IF
-  
   IF st.quit THEN
    menusound gen(genCancelSFX)
    EXIT DO

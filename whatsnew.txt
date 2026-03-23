@@ -11,6 +11,14 @@ WHAT IS NEW?
       "map layer slice by id" [James]
 
   *** Changes
+    * In-battle items menu has been rewritten to be more consistent with the
+      out-of-battle item screen. There are some small differences in the name
+      of consistency:
+      * Long item descriptions now wrap, instead of being cut off.
+      * The selection cursor and description now respect the same UI
+        colors as the main item screen.
+      * The count of items in a stack is shifted over one pixel.
+      * You can now scroll by dragging either right or left mouse buttons.
 
   *** Bugfixes
     * "encountered unsupported 64-bit value" error in a couple editors [Ralph]

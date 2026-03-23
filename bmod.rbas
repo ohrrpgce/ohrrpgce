@@ -211,16 +211,16 @@ FUNCTION battle (byval form as integer) as bool
   IF always_enable_debug_keys <> 0 OR prefbit(8) = NO THEN '"Disable debugging keys" off
    check_battle_debug_keys bat, bslot(), formdata
 
-   '--This will be disabled when it is no longer needed. If Ctrl/Shift+F10 is needed
-   '--for something more important don't hesitate to claim it
-   IF (keyval(scSHIFT) > 0 OR keyval(scCTRL) > 0) AND keyval(scF10) > 1 THEN
-    loopvar bat.test_view_mode, 0, 2
-    SELECT CASE bat.test_view_mode
-     CASE 0: bat.test_future = NO : notification "bat.test_view_mode Classic"
-     CASE 1: notification "bat.test_view_mode Flicker"
-     CASE 2: bat.test_future = YES : notification "bat.test_view_mode Future"
-    END SELECT
-   END IF
+   ''--This will be disabled when it is no longer needed. If Ctrl/Shift+F10 is needed
+   ''--for something more important don't hesitate to claim it
+   'IF (keyval(scSHIFT) > 0 OR keyval(scCTRL) > 0) AND keyval(scF10) > 1 THEN
+   ' loopvar bat.test_view_mode, 0, 2
+   ' SELECT CASE bat.test_view_mode
+   '  CASE 0: bat.test_future = NO : notification "bat.test_view_mode Classic"
+   '  CASE 1: notification "bat.test_view_mode Flicker"
+   '  CASE 2: bat.test_future = YES : notification "bat.test_view_mode Future"
+   ' END SELECT
+   'END IF
   END IF
   
   IF keyval(scPause) > 1 THEN battle_pause
@@ -764,7 +764,6 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
 
   IF trytheft(bat, bat.acting, targ, attack, bslot()) THEN
    IF is_hero(bat.player_turn) THEN
-    checkitemusability bat.iuse(), bslot(), bat.player_turn
     checkitemusability bat.itemst.iuse(), bslot(), bat.player_turn
    END IF
   END IF
@@ -855,7 +854,6 @@ SUB battle_attack_do_inflict(byval targ as integer, byval tcount as integer, byr
    IF .consume_item >= 0 THEN
     IF consumeitem(.consume_item) THEN
      'Finished the item stack
-     setbit bat.iuse(), 0, .consume_item, 0  'Update this in case Items menu happens to be open
      setbit bat.itemst.iuse(), 0, .consume_item, 0  'Update this in case Items menu happens to be open
      'Note that subtract_attack_costs already updated tags, so we only do it again in this case
      evalitemtags
@@ -1260,32 +1258,7 @@ SUB battle_display_menus (byref bat as BattleState, bslot() as BattleSprite, st(
     END IF
    END IF
    IF bat.menu_mode = batMENUITEM THEN '--draw item menu
-    IF bat.test_future THEN
-     bat.itemst.ps.m->Visible = YES
-    ELSE
-    '--legacy items display
-    DIM inv_height as integer = small(78, 8 + ((last_inv_slot() + 1) \ 3) * 8)
-    WITH bat.inv_scroll
-     .top = INT(bat.item.top / 3)
-     .pt = INT(bat.item.pt / 3)
-     .last = INT(last_inv_slot() / 3)
-    END WITH
-    bat.inv_scroll_rect.high = inv_height - 2
-    edgeboxstyle 8, 4, 304, inv_height, 0, page
-    draw_scrollbar bat.inv_scroll, bat.inv_scroll_rect, , page
-    FOR i = bat.item.top TO small(bat.item.top + 26, last_inv_slot())
-     if i < lbound(inventory) or i > ubound(inventory) then continue for
-     col = uilook(uiDisabledItem - readbit(bat.iuse(), 0, i))
-     bgcol = 0
-     IF bat.item.pt = i THEN col = uilook(uiSelectedDisabled - (2 * readbit(bat.iuse(), 0, i)) + bat.tog) : bgcol = uilook(uiHighlight)
-     IF bat.item.hover = i THEN col = mouse_hover_tinted_color(col)
-     textcolor col, bgcol
-     printstr inventory(i).text, 20 + 96 * (i MOD 3), 8 + 8 * ((i - bat.item.top) \ 3), page
-    NEXT i
-    edgeboxstyle 8, 4 + inv_height, 304, 16, 0, page
-    textcolor uilook(uiDescription), 0
-    printstr bat.item_desc, 12, 8 + inv_height, page
-    END IF '--end legacy items display
+    bat.itemst.ps.m->Visible = YES
    ELSE
     'Items menu is not displaying now
     bat.itemst.ps.m->Visible = NO
@@ -2921,18 +2894,6 @@ SUB reset_battle_state (byref bat as BattleState)
 
   setup_battle_slices bat
 
-  WITH .inv_scroll
-   .first = 0
-   .last = INT(last_inv_slot() / 3)
-   .size = 8
-  END WITH
-  WITH .inv_scroll_rect
-   .x = 20
-   .y = 5
-   .wide = 292
-   '.high set later
-  END WITH
-
   .anim_ready = NO
   .wait_frames = 0
   .wait_for_slot = -1
@@ -3865,14 +3826,6 @@ SUB heromenu (byref bat as BattleState, bslot() as BattleSprite, st() as HeroDef
        bat.menu_mode = batMENUITEM
        '--Re-init new battle item menu
        re_init_battle_item_menu bat, bslot()
-       '--init legacy battle item menu
-       bat.item.pt = 0
-       bat.item.top = 0
-       checkitemusability bat.iuse(), bslot(), bat.player_turn
-       bat.item_desc = ""
-       IF inventory(bat.item.pt).used THEN
-        bat.item_desc = readitemdescription(inventory(bat.item.pt).id)
-       END IF
       CASE batmenu_SKIPTURN:
        player_attack_targetting_done bat, bslot()
      END SELECT
@@ -4149,9 +4102,6 @@ END SUB
 'The menu is setup in heromenu and actually drawn in battle_display_menus.
 SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
 
-IF bat.test_future THEN
-'-----------New-style controls
-
  WITH bat.itemst
   IF game_check_cancel_key() THEN
    .cancel_action
@@ -4216,136 +4166,6 @@ IF bat.test_future THEN
   END IF
 
  END WITH
-
-ELSE
-'-----------Legacy controls
-
- DIM do_pick as bool = NO
- DIM do_cancel as bool = NO
-
- DIM remember_pt as integer = bat.item.pt
- usemenusounds
- IF carray(ccUp) > 1 AND bat.item.pt > 2 THEN bat.item.pt = bat.item.pt - 3
- IF carray(ccDown) > 1 AND bat.item.pt <= last_inv_slot() - 3 THEN bat.item.pt = bat.item.pt + 3
- IF keyval(scPageUp) > 1 THEN
-  bat.item.pt -= (bat.inv_scroll.size) * 3
-  WHILE bat.item.pt < 0: bat.item.pt += 3: WEND
- END IF
- IF keyval(scPageDown) > 1 THEN
-  bat.item.pt += (bat.inv_scroll.size) * 3
-  WHILE bat.item.pt > last_inv_slot(): bat.item.pt -= 3: WEND
- END IF
- IF keyval(scHome) > 1 THEN
-  bat.item.pt = 0
- END IF
- IF keyval(scEnd) > 1 THEN
-  bat.item.pt = last_inv_slot()
- END IF
- IF carray(ccLeft) > 1 AND bat.item.pt > 0 THEN
-  bat.item.pt = bat.item.pt - 1
- END IF
- IF carray(ccRight) > 1 AND bat.item.pt < last_inv_slot() THEN
-  bat.item.pt = bat.item.pt + 1
- END IF
-
- IF game_check_cancel_key() THEN do_cancel = YES
- IF game_battle_check_use_key() THEN do_pick = YES
-
- bat.item.hover = -1
- IF get_gen_bool("/mouse/mouse_battles") THEN
-  DIM mpos as XYPair = readmouse.pos - bat.view_sl->ScreenPos
-  DIM inv_height as integer = small(78, 8 + ((last_inv_slot() + 1) \ 3) * 8)
-  IF rect_collide_point(Type(8, 4, 304, inv_height), mpos) THEN
-   FOR i as integer = bat.item.top TO small(bat.item.top + 26, last_inv_slot())
-    if i < lbound(inventory) or i > ubound(inventory) then continue for
-    IF rect_collide_point(XYWH(20 + 96 * (i MOD 3), 8 + 8 * ((i - bat.item.top) \ 3), 96, 8), mpos) THEN bat.item.hover = i
-   NEXT i
-   IF bat.item.hover >= 0 THEN
-    IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN
-     IF bat.item.hover = bat.item.pt THEN do_pick = YES
-     bat.item.pt = bat.item.hover
-    END IF
-   END IF
-  ELSE
-   'outside the item box
-   IF (readmouse.release AND mouseLeft) ANDALSO readmouse.drag_dist < 10 THEN do_cancel = YES
-  END IF
-  IF (readmouse.release AND mouseRight) ANDALSO readmouse.drag_dist < 10 THEN
-   IF bat.item.hover >= 0 THEN
-    bat.item.pt = bat.item.hover
-   ELSE
-    do_cancel = YES
-   END IF
-  END IF
-  'Scrolling
-  DIM old_top as integer = bat.item.top
-  IF (readmouse.dragging AND mouseRight) THEN
-   IF bat.item_drag_top = -1 THEN bat.item_drag_top = bat.item.top
-   IF readmouse.drag_dist > 10 THEN
-    DIM dist as integer = (readmouse.clickstart.y - readmouse.pos.y) / 8
-    bat.item.top = bat.item_drag_top + dist * 9
-   END IF
-  ELSE
-   bat.item_drag_top = -1
-  END IF
-  bat.item.top += readmouse.wheel_clicks * 9
-  IF old_top <> bat.item.top THEN
-   'Scrolling moved top, bound top and fix pt
-   bat.item.top = bound(bat.item.top, 0, last_inv_slot() - ((bat.inv_scroll.size + 1) * 3 - 1))
-   WHILE bat.item.pt < bat.item.top : bat.item.pt += 3: WEND
-   WHILE bat.item.pt > bat.item.top + (bat.inv_scroll.size) * 3: bat.item.pt -= 3: WEND
-  END IF
-  
-  IF do_cancel ORELSE do_pick THEN
-   'Cancel the mouse click because further input such as targetting could happen on this tick
-   readmouse.clearclick(mouseLeft)
-   readmouse.clearclick(mouseRight)
-  END IF
-
- END IF '--done with mouse
-
- '--scroll when past top or bottom
- WHILE bat.item.pt < bat.item.top : bat.item.top = bat.item.top - 3 : WEND
- WHILE bat.item.pt >= bat.item.top + (bat.inv_scroll.size+1) * 3 : bat.item.top = bat.item.top + 3 : WEND
-
- IF bat.item.pt > UBOUND(inventory) THEN
-  debuginfo "battle item cursor out of range " & bat.item.pt & " > " & UBOUND(inventory)
-  bat.item.pt = UBOUND(inventory)
- END IF
-
- IF remember_pt <> bat.item.pt THEN
-  menusound gen(genCursorSFX)
-  IF inventory(bat.item.pt).used THEN
-   bat.item_desc = readitemdescription(inventory(bat.item.pt).id)
-  ELSE
-   bat.item_desc = ""
-  END IF
- END IF
-
- IF do_cancel THEN
-  bat.menu_mode = batMENUHERO
-  clearkeys
-  bslot(bat.player_turn).consume_item = -1 ' -1 here indicates that this hero will not consume any item
-  menusound gen(genCancelSFX)
-  EXIT SUB
- END IF
-
- IF do_pick THEN
-  IF readbit(bat.iuse(), 0, bat.item.pt) = 1 THEN
-   menusound gen(genAcceptSFX)
-
-   DIM item as ItemDef
-   loaditemdata item, inventory(bat.item.pt).id
-   bslot(bat.player_turn).consume_item = IIF(item.consumed_by_use, bat.item.pt, -1)
-   bslot(bat.player_turn).attack = item.battle_items_menu_attack + 1
-   bat.targ.mode = targSETUP
-   bat.menu_mode = batMENUHERO
-   clearkeys
-  END IF
- END IF
-
- '---END LEGACY
-END IF
 
 END SUB
 

@@ -2666,7 +2666,7 @@ FUNCTION UiColorCaption(byval n as integer) as string
   CASE uiHealthBarFlash: RETURN "Health bar overfull"
   CASE uiText: RETURN "Text"
   CASE uiOutline: RETURN "Text outline"
-  CASE uiDescription: RETURN "Spell description"
+  CASE uiDescription: RETURN "Description (items, spells)"
   CASE uiGold: RETURN "Money"
   CASE uiShadow: RETURN "Vehicle shadow"
   CASE uiSpecialItem: RETURN "Special menu item"
