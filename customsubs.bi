@@ -39,8 +39,11 @@ DECLARE FUNCTION formationgrabber (byref datum as integer, state as MenuState, o
 DECLARE FUNCTION textboxgrabber (byref datum as integer, state as MenuState, offset as integer = 0, min as integer = 0, intgrab as bool = YES) as integer
 
 DECLARE SUB ui_color_editor(palnum as integer)
-DECLARE SUB make_ui_color_editor_menu(m() as string, colors() as integer)
+DECLARE SUB remake_ui_color_editor_menu(byref menu as SimpleMenuItem vector, colors() as integer)
+DECLARE SUB append_uicolor_menu_item (byref menu as SimpleMenuItem vector, colors() as integer, byval uicol_index as integer)
+DECLARE SUB append_uicolor_menu_section (byref menu as SimpleMenuItem vector, section_name as string)
 DECLARE SUB ui_boxstyle_editor(palnum as integer)
+DECLARE FUNCTION ui_color_editor_index_from_menu(byref menu as SimpleMenuItem vector, byval menu_index as integer) as integer
 DECLARE SUB make_ui_boxstyle_editor_menu(m() as string, boxes() as BoxStyle)
 
 TYPE FnRecordName as FUNCTION(idx as integer) as string

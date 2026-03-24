@@ -1117,15 +1117,14 @@ SUB ui_color_editor(palnum as integer)
  DIM sample_state as MenuState
  make_ui_editor_sample_menu sample_menu, sample_state
 
-
- DIM color_menu(-1 TO uiColorLast) as string
- make_ui_color_editor_menu color_menu(), uilook()
+ DIM menu as SimpleMenuItem vector 'use .dat as ui color index
+ remake_ui_color_editor_menu menu, uilook()
 
  DIM state as MenuState
- state.first = -1
- state.top = -1
- state.pt = -1
- state.last = UBOUND(color_menu)
+ state.first = 0
+ state.top = 0
+ state.pt = 0
+ state.last = v_len(menu) - 1
  state.autosize = YES
  state.autosize_ignore_pixels = 18
 
@@ -1135,7 +1134,7 @@ SUB ui_color_editor(palnum as integer)
   setkeys
   IF keyval(ccCancel) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "ui_color_editor"
-  IF usemenu(state) THEN
+  IF usemenu(state, menu) THEN
    IF uilook(uiShadow) = 0 THEN
     'This is a hack. Unfortunately ellipse slice border and fill colors can't be 0 as that
     'counts as transparent. This is a design mistake in ellipse slices, but is too much trouble to fix
@@ -1145,21 +1144,22 @@ SUB ui_color_editor(palnum as integer)
   END IF
   mouse_update_hover sample_state
 
-  index = state.pt
+  index = ui_color_editor_index_from_menu(menu, state.pt)
 
   IF enter_space_click(state) THEN
-   IF state.pt = -1 THEN
+   IF state.pt = 0 THEN
     EXIT DO
    ELSE
     'Color browser
-    uilook(index) = color_browser_256(uilook(index))
+    IF index >= 0 THEN
+     uilook(index) = color_browser_256(uilook(index))
+    END IF
     state.need_update = YES
    END IF
   END IF
 
   IF index >= 0 THEN
    state.need_update OR= intgrabber(uilook(index), 0, 255)
-
    IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN ' Ctrl+D
     uilook(index) = default_colors(index)
     state.need_update = YES
@@ -1168,7 +1168,7 @@ SUB ui_color_editor(palnum as integer)
 
   IF state.need_update THEN
    state.need_update = NO
-   make_ui_color_editor_menu color_menu(), uilook()
+   remake_ui_color_editor_menu menu, uilook()
    SaveUIColors uilook(), boxlook(), palnum
   END IF
 
@@ -1186,9 +1186,12 @@ SUB ui_color_editor(palnum as integer)
   '--draw screen
   clearpage dpage
   IF draw_sample THEN draw_menu sample_menu, sample_state, dpage
-  standardmenu color_menu(), state, 10, pMenuY, dpage
+  standardmenu menu, state, 10, pMenuY, dpage
   FOR i as integer = large(state.top, 0) TO small(state.top + state.size, state.last)
-   rectangle 0, pMenuY + 9 * (i - state.top), 9, 9, uilook(i), dpage
+   DIM i_col as integer = ui_color_editor_index_from_menu(menu, i)
+   IF i_col >= 0 THEN
+    rectangle 0, pMenuY + 9 * (i - state.top), 9, 9, uilook(i_col), dpage
+   END IF
   NEXT i
   DIM msg as string = "Ctrl+D to revert to default"
   edgeprint msg, pCentered, pInfoY, uilook(uiText), dpage
@@ -1199,11 +1202,124 @@ SUB ui_color_editor(palnum as integer)
  LOOP
 END SUB
 
-SUB make_ui_color_editor_menu(m() as string, colors() as integer)
- m(-1) = "Previous Menu"
- FOR i as integer = 0 TO uiColorLast
-  m(i) = UiColorCaption(i) & ": " & colors(i)
- NEXT i
+FUNCTION ui_color_editor_index_from_menu(byref menu as SimpleMenuItem vector, byval menu_index as integer) as integer
+ 'Given an index into a ui color menu, get the uicolor index
+ 'or -1 if none
+ IF menu_index >= 0 ANDALSO menu_index < v_len(menu) THEN
+  WITH *v_at(menu, menu_index)
+   IF NOT .unselectable ANDALSO .dat >= 0 ANDALSO .dat <= uiColorLast THEN
+    RETURN .dat
+   END IF
+  END WITH
+ END IF
+ RETURN -1
+END FUNCTION
+
+SUB append_uicolor_menu_item (byref menu as SimpleMenuItem vector, colors() as integer, byval uicol_index as integer)
+ append_simplemenu_item menu, UiColorCaption(uicol_index) & ": " & colors(uicol_index), , , uicol_index
+END SUB
+
+SUB append_uicolor_menu_section (byref menu as SimpleMenuItem vector, section_name as string)
+ append_simplemenu_item menu, "", YES
+ append_simplemenu_item menu, " " & section_name, YES, uilook(uiText)
+END SUB
+
+SUB remake_ui_color_editor_menu(byref menu as SimpleMenuItem vector, colors() as integer)
+ v_new menu
+ append_simplemenu_item menu, "Previous Menu", , , -1
+ append_uicolor_menu_item menu, colors(), uiBackground
+ append_uicolor_menu_item menu, colors(), uiMenuItem
+ append_uicolor_menu_item menu, colors(), uiDisabledItem
+ append_uicolor_menu_item menu, colors(), uiSelectedItem
+ append_uicolor_menu_item menu, colors(), uiSelectedItem2
+ append_uicolor_menu_item menu, colors(), uiSelectedDisabled
+ append_uicolor_menu_item menu, colors(), uiSelectedDisabled2
+ append_uicolor_menu_item menu, colors(), uiHighlight
+ append_uicolor_menu_item menu, colors(), uiHighlight2
+ append_uicolor_menu_item menu, colors(), uiText
+ append_uicolor_menu_item menu, colors(), uiOutline
+ append_uicolor_menu_item menu, colors(), uiDescription
+ append_uicolor_menu_item menu, colors(), uiGold
+ append_uicolor_menu_item menu, colors(), uiShadow
+ append_uicolor_menu_item menu, colors(), uiMouseHoverItem
+ 
+ append_uicolor_menu_section menu, "Item Screen"
+ append_uicolor_menu_item menu, colors(), uiItemScreenSwap
+ append_uicolor_menu_item menu, colors(), uiItemScreenSwapDisabled
+ append_uicolor_menu_item menu, colors(), uiItemScreenSwapSpecial
+ append_uicolor_menu_item menu, colors(), uiItemScreenItem
+ append_uicolor_menu_item menu, colors(), uiItemScreenDisabled
+ append_uicolor_menu_item menu, colors(), uiItemScreenSpecial
+ append_uicolor_menu_item menu, colors(), uiItemScreenSelected
+ append_uicolor_menu_item menu, colors(), uiItemScreenSelected2
+ append_uicolor_menu_item menu, colors(), uiItemScreenSelectedDisabled
+ append_uicolor_menu_item menu, colors(), uiItemScreenSelectedDisabled2
+ append_uicolor_menu_item menu, colors(), uiItemScreenSelectedSpecial
+ append_uicolor_menu_item menu, colors(), uiItemScreenSelectedSpecial2
+ append_uicolor_menu_item menu, colors(), uiItemScreenHighlight
+ append_uicolor_menu_item menu, colors(), uiItemScreenHighlight2
+ append_uicolor_menu_item menu, colors(), uiItemScreenSwapHighlight
+ append_uicolor_menu_item menu, colors(), uiItemScreenSwapHighlight2
+
+ append_uicolor_menu_section menu, "Battle"
+ append_uicolor_menu_item menu, colors(), uiTimeBar
+ append_uicolor_menu_item menu, colors(), uiTimeBarFull
+ append_uicolor_menu_item menu, colors(), uiHealthBar
+ append_uicolor_menu_item menu, colors(), uiHealthBarFlash
+ append_uicolor_menu_item menu, colors(), uiBattleDamage
+ append_uicolor_menu_item menu, colors(), uiBattleHeal
+ append_uicolor_menu_item menu, colors(), uiBattleAbsorb
+ append_uicolor_menu_item menu, colors(), uiBattlePoison
+ append_uicolor_menu_item menu, colors(), uiBattleRegen
+ append_uicolor_menu_item menu, colors(), uiMPBar
+ append_uicolor_menu_item menu, colors(), uiMPBarFlash
+
+ append_uicolor_menu_section menu, "Fades"
+ append_uicolor_menu_item menu, colors(), uiFadeOutNewGame
+ append_uicolor_menu_item menu, colors(), uiFadeOutLoadGame
+ append_uicolor_menu_item menu, colors(), uiFadeOutDeath
+ append_uicolor_menu_item menu, colors(), uiFadeOutQuit
+ append_uicolor_menu_item menu, colors(), uiFadeOutDoor
+ append_uicolor_menu_item menu, colors(), uiFadeOutInn
+ append_uicolor_menu_item menu, colors(), uiFadeOutEnterBattle
+ append_uicolor_menu_item menu, colors(), uiFadeOutWonBattle
+ append_uicolor_menu_item menu, colors(), uiFadeOutExitBattle
+
+ append_uicolor_menu_section menu, "Shop Screens"
+ append_uicolor_menu_item menu, colors(), uiBuyItemDescription
+ append_uicolor_menu_item menu, colors(), uiBuyBonusUp
+ append_uicolor_menu_item menu, colors(), uiBuyBonusDown
+
+ append_uicolor_menu_section menu, "Equip Screen"
+ append_uicolor_menu_item menu, colors(), uiEquipCursorBg
+ append_uicolor_menu_item menu, colors(), uiEquipSlotBg
+ append_uicolor_menu_item menu, colors(), uiEquipDisabledSlotBg
+
+ append_uicolor_menu_section menu, "Obsolete/Unused"
+ append_uicolor_menu_item menu, colors(), uiSpecialItem
+ append_uicolor_menu_item menu, colors(), uiSelectedSpecial
+ append_uicolor_menu_item menu, colors(), uiSelectedSpecial2
+
+ 'Check for any missing uncategorized colors
+ DIM last_normal as integer = v_len(menu) - 1
+ DIM uncat as bool = NO
+ FOR c as integer = 0 to uiColorLast
+  DIM found as bool = NO
+  FOR i as integer = 0 to last_normal
+   IF ui_color_editor_index_from_menu(menu, i) = c THEN
+    found = YES
+    EXIT FOR
+   END IF
+  NEXT i
+  IF NOT found THEN
+   IF NOT uncat THEN
+    append_uicolor_menu_section menu, "Uncategorized"
+    uncat = YES
+   END IF
+   append_uicolor_menu_item menu, colors(), c
+  END IF
+ NEXT c
+
 END SUB
 
 CONST NUM_BOXSTYLE_OPTIONS = 3
