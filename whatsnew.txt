@@ -19,7 +19,7 @@ WHAT IS NEW?
         colors as the main item screen.
       * The count of items in a stack is shifted over one pixel.
       * You can now scroll by dragging either right or left mouse buttons.
-
+ 
   *** Bugfixes
     * "encountered unsupported 64-bit value" error in a couple editors [Ralph]
     * At resolutions above 320x200, clicking on battlers and some menu items
