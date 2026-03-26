@@ -79,7 +79,7 @@ CONST colInvalid = -999
 'and UiColorCaption, and possibly FillMissingUIColor, in loading.rbas.
 'And don't forget to update uiColorLast above.
 
-'You should also categorize the new color in remake_ui_color_editor_menu()
+'You should also categorize the new color in ui_color_menu_by_categories()
 ' (if you forget, it will show up in the "Uncategorized" section)
 
 'If you add any new colors that need to auto-flash when used by slices,

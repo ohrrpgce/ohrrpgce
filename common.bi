@@ -357,6 +357,12 @@ DECLARE FUNCTION xy_from_int(byval n as integer, byval wide as integer, byval hi
 
 DECLARE FUNCTION color_browser_256(byval start_color as integer=0) as integer
 
+DECLARE FUNCTION ui_color_picker(byval start_val as integer=-1) as integer
+DECLARE SUB ui_color_menu_by_categories(byref menu as SimpleMenuItem vector, colors() as integer, byref show_index as bool)
+DECLARE SUB append_uicolor_menu_item (byref menu as SimpleMenuItem vector, colors() as integer, byval show_index as bool, byval uicol_index as integer)
+DECLARE SUB append_uicolor_menu_section (byref menu as SimpleMenuItem vector, section_name as string)
+DECLARE FUNCTION ui_color_editor_index_from_menu(byref menu as SimpleMenuItem vector, byval menu_index as integer) as integer
+
 'Sprite loading convenience functions
 DECLARE SUB load_sprite_and_pal (byref img as GraphicPair, byval spritetype as SpriteType, byval index as integer, byval palnum as integer=-1)
 DECLARE SUB unload_sprite_and_pal (byref img as GraphicPair)

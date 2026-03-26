@@ -2230,7 +2230,15 @@ SUB slice_edit_detail_keys (byref ses as SliceEditState, edslice as Slice ptr, b
  IF rule.group AND slgrPICKCOL THEN
   IF enter_space_click(state) THEN
    DIM n as integer ptr = rule.dataptr
-   *n = color_browser_256(*n)
+   DIM choices(1) as string = {"from the palette", "from user interface colors"}
+   SELECT CASE popup_choice("Pick a color", choices(), IIF(*n >= 0, 0, 1))
+    CASE 0
+     DIM start_color as integer = *n
+     IF start_color < 0 THEN start_color = uilook(*n * -1 -1)
+     *n = color_browser_256(start_color)
+    CASE 1
+     *n = ui_color_picker(*n * -1 - 1) * -1 - 1
+   END SELECT
    state.need_update = YES
   END IF
  END IF
