@@ -32,6 +32,8 @@ WHAT IS NEW?
   *** Stuff Only Developers Will Notice
     * Nightly source and docs now has its own script rather than piggybacking
       on both linux and windows nightly scripts [James]
+    * Docker build environments have been improved, and are also better
+      documented than they used to be.
 
 
 Jan 10 2026 [Lexiphanic]
