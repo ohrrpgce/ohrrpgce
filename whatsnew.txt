@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-??? ?? 2026 [Magniloquent]
+May 18 2026 [Magniloquent]
 
   *** New Features
     * The "Change User Interface Colors" menu now has colors grouped into
