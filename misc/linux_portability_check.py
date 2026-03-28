@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Utility to check and print which versions of glibc, libstdc++/libsupc++ and gcc
-dependency libraries (libgcc_s) that an ELF binary requires, and when those
-versions were released.
+dependency libraries (libgcc_s) that an ELF binary requires, when those
+versions were released, and which symbols are to blame.
 
 Python 2.7 or 3.x
 
@@ -16,9 +16,13 @@ import subprocess
 import re
 
 
+# Symbols which have only been added since this year will be printed
+PRINT_SYMS_SINCE = 2014
+
+
 def check_deps(binary):
     """Check and print which versions of glibc and gcc dependency libraries (including libstdc++.so)
-    that an ELF binary requires.
+    that an ELF binary requires. Also print versioned relocations from objdump -R.
 
     Note that libstdc++ version requirements are reported as GCC requirements,
     because each libstdc++ version is tied to a specific GCC version.
@@ -219,6 +223,20 @@ def check_deps(binary):
             return table[version_tuple]
         return "unknown"
 
+    def release_date(versioned, version):
+        if versioned == 'GLIBC':
+            return lookup_version(version, glibc_release_dates)
+        gcc_version = None
+        if versioned == 'GCC':
+            gcc_version = version
+        if versioned == 'GLIBCXX':
+            gcc_version = GLIBCXX_to_gcc.get(version)
+        if versioned == 'CXXABI':
+            gcc_version = CXXABI_to_gcc.get(version)
+        if gcc_version:
+            return lookup_version(gcc_version, gcc_release_dates)
+        return None
+
     gcc_ver_reqs = []
     gcc_req = ''
 
@@ -246,6 +264,16 @@ def check_deps(binary):
     glibc_release = lookup_version(req['GLIBC'], glibc_release_dates)
     print(">>  %s requires glibc %s (released %s) %s" % (
         binary, verstring(req['GLIBC']), glibc_release, gcc_req))
+
+    # Print recent versions symbols
+    for line in subprocess.check_output(["objdump", "-R", binary]).decode().split('\n'):
+        match = re.search(r'\b((\S+)@(CXXABI|GCC|GLIBC|GLIBCXX)_([0-9.]+))\b', line)
+        if not match:
+            continue
+        version = tuple(map(int, match.group(4).split('.')))
+        released = release_date(match.group(3), version)
+        if released and released[:4].isdigit() and int(released[:4]) >= PRINT_SYMS_SINCE:
+            print(">>  - %s  (since %s)" % (match.group(1), released))
 
 
 ##############################################################################
