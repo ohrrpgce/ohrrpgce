@@ -38,14 +38,42 @@ RUN apt-get update \
       nano \
     && rm -rf /var/lib/apt/lists/*
 
-# First install the 64 bit version
+# Compile and install Euphoria 4.2.0-pre
+WORKDIR /euphoria-install/
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+      curl \
+      git \
+      ca-certificates \
+      g++ \
+      make \
+    && curl -sS -O http://mirror.motherhamster.org/dependencies/euphoria-4.1.0-Linux-x86-57179171dbed.tar.gz \
+    && tar -xzf euphoria-4.1.0-Linux-x86-57179171dbed.tar.gz -C /usr/local \
+    && cd /usr/local/bin \
+    && find /usr/local/euphoria-4.1.0-Linux-x86/bin -type f -executable -exec ln -s {} ';' \
+    && eui --version
+# Warning, the "make" command in this step is very slow!
+# We checkout a specific commit to make sure the build is repeatable
+RUN git clone https://github.com/OpenEuphoria/euphoria \
+    && cd euphoria/source \
+    && git checkout 5f3a0628287bea23b2e16ca3d388c37bc57df2f8 \
+    && ./configure --arch x86 \
+    && make
+RUN cd euphoria/source \
+    && build/eui --version \
+    && make install
+WORKDIR /
+RUN rm -rf /euphoria-install
+
+
+# Install the 64 bit version of Freebasic
 WORKDIR /freebasic-installer/
 RUN curl -sS http://mirror.motherhamster.org/dependencies/FreeBASIC-${FBC_VERSION}-linux-x86_64.tar.gz \
   | tar -zx
 WORKDIR /freebasic-installer/FreeBASIC-${FBC_VERSION}-linux-x86_64/
 RUN ./install.sh -i
 
-# Also add in the 32 bit libraries for multilib support
+# Also add in the 32 bit Freebasic libraries for multilib support
 WORKDIR /freebasic-installer/
 RUN curl -sS http://mirror.motherhamster.org/dependencies/FreeBASIC-${FBC_VERSION}-linux-x86.tar.gz \
   | tar -zx
@@ -54,14 +82,6 @@ RUN cp -r ./lib/freebasic/linux-x86 /usr/local/lib/freebasic/
 
 WORKDIR /
 RUN rm -rf /freebasic-installer
-
-# Install the euphoria compiler.
-
-WORKDIR /euphoria-install/
-RUN curl -sS -O http://mirror.motherhamster.org/dependencies/euphoria_4.0.5_i386.deb
-RUN dpkg -i /euphoria-install/euphoria_4.0.5_i386.deb
-WORKDIR /
-RUN rm -rf /euphoria-install
 
 # Creating this and allowing non-root users to use it allows us to do basic command-line testing of ohrrpgce-game and ohrrpgce-custom
 # like --help or --version
