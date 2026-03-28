@@ -1725,8 +1725,8 @@ def setup_eu_vars(compiling):
                 linker += ' -Wl,' + ','.join('--wrap=' + x for x in glibc_wrap_syms)
             # The official Euphoria 4.1.0 build's eu.a calls __powl_finite and __log_finite,
             # missing since glibc 2.31. .a files are not meant to be portable between systems!
-            linker += ' glibc_compat.o'
-            hspeak_objects.append(env.Object(hspeak_builddir + '/glibc_compat.o', 'lib/glibc_compat.c'))
+            linker += ' ../lib/glibc_compat.o'
+            hspeak_objects.append(env.Object('lib/glibc_compat.c'))
         env['EUCMAKEFLAGS'] = ['CC=' + str(CC), 'LINKER=' + linker]
 
     env['EUFLAGS'] = euc_extra_args
