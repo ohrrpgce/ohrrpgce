@@ -119,3 +119,18 @@ double __wrap_log(double x)
 {
     return log(x);
 }
+
+// The official Euphoria 4.1.0 build's eu.a calls __powl_finite and __log_finite, which are internal
+// glibc optimisation stubs removed from libm in glibc 2.31 (.a files are not meant to be portable
+// between systems!)
+// They're just powl/log restricted to finite arguments.
+
+long double __powl_finite(long double x, long double y)
+{
+    return powl(x, y);
+}
+
+double __log_finite(double x)
+{
+    return log(x);
+}

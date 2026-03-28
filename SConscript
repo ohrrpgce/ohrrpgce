@@ -1717,11 +1717,14 @@ def setup_eu_vars(compiling):
             else:  # unix
                 euc_extra_args += ['-plat', 'linux']   # FIXME: not quite right
         linker = str(CC)
-        if glibc_wrap_syms:
-            # portable=1 unix glibc builds. Pass flags to linker via the LINKER make variable.
-            # (hspeak.mak invokes $(LINKER) directly, so args appended here are passed to ld)
-            # If we require Euphoria 4.1.0+ then can instead use -extra-lflags
-            linker += ' -Wl,' + ','.join('--wrap=' + x for x in glibc_wrap_syms)
+        if glibc:
+            if glibc_wrap_syms:
+                # portable=1 unix builds. Pass flags to linker via the LINKER make variable.
+                # (hspeak.mak invokes $(LINKER) directly, so args appended here are passed to ld)
+                # If we require Euphoria 4.1.0+ then can instead use -extra-lflags
+                linker += ' -Wl,' + ','.join('--wrap=' + x for x in glibc_wrap_syms)
+            # The official Euphoria 4.1.0 build's eu.a calls __powl_finite and __log_finite,
+            # missing since glibc 2.31. .a files are not meant to be portable between systems!
             linker += ' glibc_compat.o'
             hspeak_objects.append(env.Object(hspeak_builddir + '/glibc_compat.o', 'lib/glibc_compat.c'))
         env['EUCMAKEFLAGS'] = ['CC=' + str(CC), 'LINKER=' + linker]
