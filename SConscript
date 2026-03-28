@@ -1061,6 +1061,8 @@ if not linkgcc:
         print("WARNING: portable=1 probably won't work in combination with linkgcc=0")
         # E.g. fbc will link to libtinfo/libncurses.
 
+glibc_wrap_syms = []  # Symbols to --wrap when linking, for glibc compat
+
 if portable and (unix and not mac):
     # For compatibility with libstdc++ before GCC 5
     # See https://bugzilla.mozilla.org/show_bug.cgi?id=1153109
@@ -1072,6 +1074,7 @@ if portable and (unix and not mac):
         # are defined in lib/glibc_compat.c.
         # See https://rpg.hamsterrepublic.com/ohrrpgce/Portable_GNU-Linux_binaries
         syms = "fcntl", "fcntl64", "stat64", "pow", "exp", "log"
+        glibc_wrap_syms = syms
         CCLINKFLAGS.append ("-Wl," + ",".join("--wrap=" + x for x in syms))
         FBLINKERFLAGS += ["--wrap=" + x for x in syms]
 
@@ -1669,6 +1672,8 @@ env_exe ('imageconv', env = allmodexenv, source = ['imageconv.bas'] + allmodex_o
 
 ####################  Compiling Euphoria (HSpeak)
 
+hspeak_objects = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e')
+
 def check_have_euc(target, source, env):
     if not EUC:
         print("Error: Euphoria is required to compile HSpeak but is not installed (euc is not in the PATH)")
@@ -1711,7 +1716,15 @@ def setup_eu_vars(compiling):
                 euc_extra_args += ['-plat', 'osx']
             else:  # unix
                 euc_extra_args += ['-plat', 'linux']   # FIXME: not quite right
-        env['EUCMAKEFLAGS'] = ['CC=' + str(CC), 'LINKER=' + str(CC)]
+        linker = str(CC)
+        if glibc_wrap_syms:
+            # portable=1 unix glibc builds. Pass flags to linker via the LINKER make variable.
+            # (hspeak.mak invokes $(LINKER) directly, so args appended here are passed to ld)
+            # If we require Euphoria 4.1.0+ then can instead use -extra-lflags
+            linker += ' -Wl,' + ','.join('--wrap=' + x for x in glibc_wrap_syms)
+            linker += ' glibc_compat.o'
+            hspeak_objects.append(env.Object(hspeak_builddir + '/glibc_compat.o', 'lib/glibc_compat.c'))
+        env['EUCMAKEFLAGS'] = ['CC=' + str(CC), 'LINKER=' + linker]
 
     env['EUFLAGS'] = euc_extra_args
     env['EUBUILDDIR'] = Dir(hspeak_builddir)  # Ensures spaces are escaped
@@ -1727,7 +1740,8 @@ if optimisations > 1 or cross_compiling:
     # HSpeak is built by translating to C, generating a Makefile, and running make.
     euexe = Builder(action = [Action(check_have_euc, None),
                               '$EUC -con -gcc $SOURCES $EUFLAGS -verbose -maxsize 5000 -makefile -build-dir $EUBUILDDIR',
-                              '$MAKE -j%d -C $EUBUILDDIR -f hspeak.mak $EUCMAKEFLAGS' % (GetOption('num_jobs'),)],
+                              '$MAKE -j%d -C $EUBUILDDIR -f hspeak.mak $EUCMAKEFLAGS' % (GetOption('num_jobs'),),
+                              check_binary],
                     suffix = exe_suffix, src_suffix = '.exw')
 else:
     setup_eu_vars(False)
@@ -1740,7 +1754,7 @@ env.Append(BUILDERS = {'EUEXE': euexe})
 
 ####################
 
-HSPEAK = env_exe('hspeak', builder = env.EUEXE, source = ['hspeak.exw', 'hsspiffy.e'] + Glob('euphoria/*.e'))
+HSPEAK = env_exe('hspeak', builder = env.EUEXE, source = hspeak_objects)
 RELOADTEST = env_exe ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
 x2rsrc = ['xml2reload.bas'] + reload_objects
 if win32:
