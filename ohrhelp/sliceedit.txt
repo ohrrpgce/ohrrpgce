@@ -9,7 +9,7 @@ You can also press F3 to "Edit separately" a slice collection that has been expo
 
 When you switch to an empty slice collection you will see a Container slice marked "[root]" (unless hidden in Settings). All other slices are children/descendents of the root. The root is the slice you get a handle to when using "load slice collection". Note that it's set to Fill Parent by default!
 
-Press + to add a new slice to the current collection.
+Press + to add a new slice to the current collection. (INSERT also does the same)
 
 Once you have added a slice it will be added to the list. You should add several slices so you can get a feel for how they interact with each other in terms of layering and positioning.
 

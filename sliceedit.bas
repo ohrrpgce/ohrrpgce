@@ -983,7 +983,7 @@ SUB slice_editor_main (byref ses as SliceEditState, byref edslice as Slice ptr, 
    slice_editor_import_prompt ses, edslice
   END IF
 #ENDIF
-  IF state.need_update = NO ANDALSO (keyval(scPlus) > 1 OR keyval(scNumpadPlus)) THEN
+  IF state.need_update = NO ANDALSO (keyval(scPlus) > 1 ORELSE keyval(scNumpadPlus) > 1 ORELSE keyval(scInsert) > 1) THEN
    ses.picker.close(ses)
    DIM slice_type as SliceTypes
    DIM newsl as Slice ptr
