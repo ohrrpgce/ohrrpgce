@@ -75,6 +75,8 @@ int __wrap_fcntl64(int fd, int cmd, ...)
 #ifdef _STAT_VER
 // Compiling on an system with pre-glibc-2.33 headers. Don't have to do anything:
 // should be no calls to stat64().
+// ...but for some reason there is one inside eu.a regardless of which glibc it's
+// compiled against!
 
 #else
 
@@ -93,12 +95,13 @@ struct stat64;
 
 extern int __xstat64(int __ver, const char *__filename, struct stat64 *__stat_buf);
 
+#endif
+
+// Unlike stat64 in glibc-2.33+, this doesn't support 64-bit timestamps
 int __wrap_stat64(const char *file, struct stat64 *buf)
 {
     return __xstat64(_STAT_VER, file, buf);
 }
-
-#endif
 
 
 // I couldn't figure out what has changed in pow, exp, log in glibc 2.29.
