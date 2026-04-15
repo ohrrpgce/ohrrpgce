@@ -2147,29 +2147,20 @@ FUNCTION itch_butler_platform_version() as string
  DIM prefix as string
  DIM suffix as string
 
- #IFNDEF __FB_X86__
- dist_info "Unfortunately, butler is only available for x86 and x86_64."
- RETURN ""
- #ENDIF
+ 'NOTE: It looks like butler now supports arm64 also, but I haven't enabled
+ ' that here yet because I don't currently have a way to test it.
+
+ suffix = "amd64"
 
  #IFDEF __FB_WIN32__
  prefix = "windows"
  #ELSEIF DEFINED(__FB_DARWIN__)
  prefix = "darwin"
- #IFNDEF __FB_64BIT__
- IF dist_yesno("No butler download for 32-bit Mac is available. Download the 64-bit version instead?") = NO THEN RETURN ""
- #ENDIF
  #ELSEIF DEFINED(__GNU_LINUX__)
  prefix = "linux"
  #ELSE
- dist_info "Unfortunately, butler is only available for Windows, Mac and GNU/Linux."
+ dist_info "Unfortunately, butler is only available for Windows, Mac and GNU/Linux. If you know a version of butler exists for your OS, try installing it manually, and make sure it is in your PATH environment variable."
  RETURN ""
- #ENDIF
-
- #IF defined(__FB_64BIT__) or defined(__FB_DARWIN__)
- suffix = "amd64"
- #ELSE
- suffix = "386"
  #ENDIF
 
  RETURN prefix & "-" & suffix
@@ -2189,7 +2180,7 @@ FUNCTION itch_butler_download() as bool
  
  DIM destzip as string = support_dir & SLASH & "butler.zip"
  '--Actually download the dang file
- DIM url as string = "https://broth.itch.ovh/butler/" & butler_platform & "/LATEST/archive/default"
+ DIM url as string = "https://broth.itch.zone/butler/" & butler_platform & "/LATEST/archive/default"
  IF NOT download_file(url, destzip) THEN
   dist_info "ERROR: Failed to download itch.io butler.zip" : RETURN NO
  END IF

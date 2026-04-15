@@ -28,6 +28,7 @@ May 18 2026 [Magniloquent]
     * "encountered unsupported 64-bit value" error in a couple editors [Ralph]
     * At resolutions above 320x200, clicking on battlers and some menu items
       was broken (offset) [Ralph]
+    * Fix downloading itch.io butler tool. They moved it to a new URL. [James]
 
   *** Stuff Only Developers Will Notice
     * Nightly source and docs now has its own script rather than piggybacking
