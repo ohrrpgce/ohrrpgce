@@ -4146,6 +4146,7 @@ SUB itemmenu (byref bat as BattleState, bslot() as BattleSprite)
    bslot(bat.player_turn).consume_item = -1 ' -1 here indicates that this hero will not consume any item
    'menusound gen(genCancelSFX)
    .do_cancel = NO
+   .quit = NO
    EXIT SUB
   END IF
   
