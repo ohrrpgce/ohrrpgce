@@ -2041,21 +2041,24 @@ fuzzyrect pRight, pTop, helpbox.w, helpbox.h, uilook(uiOutline), page
 wrapprint helpmsg, pRight, 0, uilook(uiMenuItem), page
 'This fuzzy box is exactly wide enough for the max tag name length
 fuzzyrect 0, 0, 208, (st.size + 1) * lineh, uilook(uiOutline), page
-DIM as integer col0 = findrgb(140,140,140), col1 = findrgb(230,230,230)
+DIM black as integer = findrgb(0,0,0)
 FOR i as integer = st.top TO st.top + st.size
- DIM temp as string = i & IIF(istag(i, 0), " +", " -")
+ DIM tagstate as bool = istag(i, 0)
+ DIM temp as string = STR(i)
  SELECT CASE i
   CASE 0, 1
-   temp += "Reserved Tag"
+   temp += " Unchangeable"
   CASE IS > 1
-   temp += load_tag_name(i)
+   temp += " " & load_tag_name(i)
    IF tag_is_autoset(i) THEN temp &= " [AUTOSET]"
    IF i = gen(genMaxTagName) + 1 THEN temp &= "[NO MORE NAMED TAGS]"
  END SELECT
- DIM col as integer
- IF istag(i, 0) THEN col = col1 ELSE col = col0
+ DIM textcol as integer = IIF(tagstate, uilook(uiText), uilook(uiDisabledItem))
+ DIM fillcol as integer = IIF(tagstate, uilook(uiSelectedItem), uilook(uiDisabledItem))
  DIM y as integer = (i - st.top) * lineh
- edgeprint temp, 8, y, col, page
+ ellipse vpages(page), 12, y + 4, 3, black, fillcol
+ edgeprint temp, 16, y, textcol, page
+ 'Cursor
  IF i = st.pt THEN edgeprint CHR(26), 0, y, uilook(uiText), page
 NEXT i
 
