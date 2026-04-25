@@ -174,7 +174,7 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as bool=NO, byval
   END IF
  NEXT i
 
- DIM int_browsing as bool = NO
+ DIM int_browsing as bool = NO  'True to type a tag ID, false to edit tag names
  DIM uninterrupted_alt_press as bool = NO
  DIM alt_pt as integer 
  
@@ -186,7 +186,13 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as bool=NO, byval
  DO
   setwait 55
   setkeys YES
-  IF keyval(ccCancel) > 1 THEN EXIT DO
+  IF keyval(ccCancel) > 1 THEN
+   IF int_browsing = NO THEN
+    EXIT DO
+   ELSE
+    int_browsing = NO
+   END IF
+  END IF
   IF keyval(scF1) > 1 THEN show_help "tagnames"
   IF keyval(scCTRL) > 0 ANDALSO keyval(scF) > 1 THEN
    IF prompt_for_string(searchstring, "Search") THEN
@@ -306,17 +312,19 @@ FUNCTION tags_menu (byval starttag as integer=0, byval picktag as bool=NO, byval
   clearpage dpage
   standardmenu menu, state, , , dpage, menuopts
   DIM tmpstr as string
+  textcolor uilook(uiDisabledItem), 0
   IF int_browsing THEN
+   tmpstr = "Alt: Edit name"
+   printstr tmpstr, pInfoRight, pMenuY, dpage
+
    textcolor uilook(uiText), uilook(uiHighlight)
    tmpstr = "Tag " & alt_pt
+   printstr tmpstr, pInfoRight, pMenuY + 10, dpage
   ELSE
-   textcolor uilook(uiDisabledItem), 0
-   tmpstr = "Alt:Tag #"
-  END IF
-  printstr tmpstr, pInfoRight, pMenuY, dpage
+   tmpstr = "Alt: Type ID  "
+   printstr tmpstr, pInfoRight, pMenuY, dpage
 
-  IF NOT int_browsing THEN
-   tmpstr = "CTRL+F Search"
+   tmpstr = "CTRL+F Search "
    printstr tmpstr, pInfoRight, pMenuY + 10, dpage
    IF LEN(searchstring) > 0 THEN
     tmpstr = "F3 Again"
