@@ -3692,6 +3692,10 @@ script, battle tests, begin
   w(5)
   fight formation(5)
   w(5)
+  # Test enemy transmogrify, set HP to new max
+  fight formation(12)
+  assert(inventory(item:timeout)==0)
+  w(5)
   # Test attacks setting tags.
   set tag(4, false)
   set tag(5, false)

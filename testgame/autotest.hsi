@@ -99,6 +99,7 @@ define constant, begin
 16,item:AcksPic
 17,item:Tooth
 18,item:Mighty
+19,item:TimeOut
 0,stat:HP
 1,stat:MP
 2,stat:Atk
@@ -157,6 +158,9 @@ define constant, begin
 11,atk:Self3End
 12,atk:PotionAtk
 13,atk:DullSword
+14,atk:1DmgAllies
+15,atk:TmogCtr
+16,atk:Timeout20
 1,shop:Boring Shop
 2,shop:Empty Shop
 2,menu:Menu from menu
@@ -173,6 +177,10 @@ define constant, begin
 8,enemy:Ogreboom
 9,enemy:IceAttacker
 11,enemy:Dogwolf
+12,enemy:TmogHP9999
+13,enemy:TmogHP1
+14,enemy:TmogKiller
+15,enemy:Timeout20
 1,sli:Some lookup
 2,sli:my root slice
 3,sli:no extras
