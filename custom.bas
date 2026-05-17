@@ -187,8 +187,13 @@ showmousecursor
 
 setupmusic
 
-'Cleanups/recovers any working.tmp for any crashed copies of Custom; requires graphics up and running
-check_for_crashed_workingdirs
+IF nogfx_mode = NO ANDALSO UBOUND(cmdline_args) + 1 <= 1 THEN
+ 'Cleanups/recovers any working.tmp for any crashed copies of Custom; requires graphics up and running,
+ 'so skip in --nogfx mode, and also if Custom is called as a utility (e.g. importing scripts during `scons test`);
+ 'in that case there will be at least two args, one being the .rpg.
+ 'It's safe to skip this because check_ok_to_open will scan all working dirs for the game we edit anyway.
+ check_for_crashed_workingdirs
+END IF
 
 'This also calls write_session_info
 setup_workingdir
@@ -1138,7 +1143,8 @@ FUNCTION check_ok_to_open (filename as string) as bool
 
   IF paths_equal(sessinfo.sourcerpg, filename) THEN
    IF NOT sessinfo.running THEN
-    ' Apparently this crashed between when we launched, and when the .rpg was selected in the browser.
+    ' Either we skipped check_for_crashed_workingdirs, or this crashed between when we launched
+    ' and when the .rpg was selected in the browser.
     ' Return true if we managed to delete it.
     RETURN check_a_crashed_workingdir(sessinfo)
    ELSE
@@ -1146,6 +1152,10 @@ FUNCTION check_ok_to_open (filename as string) as bool
     msg = "Another copy of " CUSTOMEXE " seems to be already editing " & decode_filename(sourcerpg) & _
           !".\nYou can't open the same game twice at once! " _
           "(Make a copy first if you really want to.)"
+    IF nogfx_mode THEN
+     PRINT msg
+     RETURN NO
+    END IF
     'IF is_windows_9x() THEN
      'sessinfo.running is not reliable on Win9x, so provide a bypass ... maybe it's not 100% reliable anyway
      IF twochoice(msg, "OK, quit", "No! I swear it's crashed! Continue") = 1 THEN
