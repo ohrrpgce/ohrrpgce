@@ -2564,6 +2564,7 @@ end function
 'If wait_for_resize = YES, also returns scResize if the window was resized.
 'By default waits for a new keypress, adjust with trigger_level
 function waitforanykey (wait_for_resize as bool = NO, trigger_level as KeyBits = 4, clearkeypress as bool = YES) as KBScancode
+	if nogfx_mode then return 0
 	dim key as KBScancode
 	dim sleepjoymouse as integer = 5
 	dim remem_speed_control as bool = use_speed_control
