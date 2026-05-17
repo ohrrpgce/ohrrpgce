@@ -113,7 +113,8 @@ DECLARE FUNCTION prompt_for_scancode () as KBScancode
 
 DECLARE SUB ExpandTextItemScreenPreview (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 
-DECLARE FUNCTION check_for_updates (always_show as bool = NO) as string
+DECLARE FUNCTION check_for_updates (download_visual as bool = NO, always_report as bool = NO, days_cache as double = 0.1) as string
+
 
 'Note: Custom-specific global variables are in cglobals.bi
 

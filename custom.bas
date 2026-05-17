@@ -203,12 +203,15 @@ setup_workingdir
 '============== Commandline args / Title menu / Select a game =================
 
 IF option_check_update THEN
- DIM message as string
  DIM took as double = timer
- message = check_for_updates(YES)
- ?"update check " & (timer - took)
+ DIM message as string = check_for_updates(YES, YES, 0.0)  'Download and report always
  notification message
  cleanup_and_terminate NO
+ELSEIF read_config_bool("update_checks.auto_check", NO) THEN
+ DIM message as string = check_for_updates(NO, NO, 1.0)  'Once a day
+ IF LEN(message) THEN
+  notification message
+ END IF
 END IF
 
 DIM scriptfile as string

@@ -78,16 +78,21 @@ sub parse_releases(content as string, releases() as ReleaseInfo)
 	next
 end sub
 
-' always_show: show the update even if it's been shown in the past
-function check_for_updates (always_show as bool = NO) as string
+' Downloads release list from hamsterrepublic.com, unless there is a recent cached copy.
+' Returns a string telling whether a release is available.
+' download_visual: Displays 'downloading' message.
+' always_report: report the update even if it's been shown in the past, and report if there's no release. Otherwise returns "".
+' days_cache: how often in days to re-download
+function check_for_updates (download_visual as bool = NO, always_report as bool = NO, days_cache as double = 0.1) as string
 	dim releases_file as string = settings_dir & SLASH & "releases.txt"
 	dim content as string
 	dim success as bool
 
 	if isfile(releases_file) then
-		' How old the cached file is, in minutes
-		dim cache_age as double = 24 * 60 * (now - filedatetime(releases_file))
-		if cache_age < 0.1 then
+		' How old the cached file is, in days
+		dim cache_age as double = (now - filedatetime(releases_file))
+		if cache_age < days_cache then
+			debuginfo "check_for_updates: Reading cached " & releases_file
 			content = string_from_file(releases_file, YES, success)
 			if not success then
 				return "Failed to read cached releases.txt"
@@ -101,8 +106,14 @@ function check_for_updates (always_show as bool = NO) as string
 	if content = "" then
 		dim req as HTTPRequest
 		dim url as string = "http://hamsterrepublic.com/ohrrpgce/archive/releases_test.txt"
-		debuginfo "Downloading " & url
-		if nogfx_mode then print "Downloading " & url
+		dim msg as string = "Downloading " & url
+		debuginfo msg
+		if nogfx_mode then
+			print msg
+		elseif download_visual then
+			basic_textbox msg, uilook(uiText), vpage
+			setvispage vpage
+		end if
 		if HTTP_request(@req, url, "GET") = NO then
 			HTTP_Request_destroy(@req)
 			return "Failed to download release list."
@@ -129,7 +140,7 @@ function check_for_updates (always_show as bool = NO) as string
 	dim last_minor_desc as string
 	dim last_notice as string
 
-	if always_show = NO then
+	if always_report = NO then
 		last_major_date = read_config_int("update_checks.next_major.date")
 		last_major_desc = read_config_str("update_checks.next_major.description")
 		last_minor_date = read_config_int("update_checks.next_minor.date")
@@ -166,7 +177,7 @@ function check_for_updates (always_show as bool = NO) as string
 			if .date > current_date then ' Newer
 
 				if .update_for = "" then ' Major release
-					if always_show or .date > last_major_date or (.date = last_major_date and .description <> last_major_desc) then
+					if always_report or .date > last_major_date or (.date = last_major_date and .description <> last_major_desc) then
 						last_major_date = .date
 						message &= !"New major release available!\n"
 						message &= .display_name & " released " & .datestr & !"\n"
@@ -177,7 +188,7 @@ function check_for_updates (always_show as bool = NO) as string
 						write_config "update_checks.next_major.description", .description
 					end if
 				elseif .update_for = current_major then ' Minor release for current version
-					if always_show or .date > last_minor_date or (.date = last_minor_date and .description <> last_minor_desc) then
+					if always_report or .date > last_minor_date or (.date = last_minor_date and .description <> last_minor_desc) then
 						last_minor_date = .date
 						message &= !"New minor release available for your version!\n"
 						message &= .display_name & " released " & .datestr & !"\n"
@@ -198,7 +209,7 @@ function check_for_updates (always_show as bool = NO) as string
 		end with
 	next
 
-	if message = "" andalso always_show then
+	if message = "" andalso always_report then
 		return "No OHRRPGCE updates found; you're using the latest."
 	end if
 

@@ -299,7 +299,7 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 	}
 	hdrptr += snprintf(hdrptr, hdrend - hdrptr, "\r\n");
 	int hdrlen = hdrptr - hdrbuf;
-	debuginfo("<header>%s</header>", hdrbuf);
+	//debuginfo("<header>%s</header>", hdrbuf);
 
 	// Send the data
 	if (!send_on_socket(sock, hdrbuf, hdrlen, req, server))
@@ -330,7 +330,7 @@ boolint HTTP_request(HTTPRequest *req, const char *url, const char *verb, const 
 	req->response_buf[received] = '\0';
 	req->response_len = received;
 
-	debugc(errInfo, req->response_buf);
+	//debugc(errInfo, req->response_buf);
 	parse_HTTP_response(req);
 
 	closesocket(sock);
