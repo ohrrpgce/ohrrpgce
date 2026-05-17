@@ -2234,6 +2234,16 @@ SUB GeneralSettingsMenu.define_items()
   captions_yesno "YES (recommended)", "NO (for slow computers)"
 
   '-------------------------
+  section "OHRRPGCE Update Checks"
+  defitem "Daily auto-check for updates:"
+  edit_config_bool "update_checks.auto_check", NO
+  IF defitem_act("Check for updates now...") THEN
+    write_config "update_checks.pending_message", ""  'Wipe any unreported message
+    DIM message as string = check_for_updates(YES, YES, 0.0)  'Download and report always
+    notification message
+  END IF
+
+  '-------------------------
   section "Stats"
   defunselectable "Time spent editing..."
   defunselectable " this session:"

@@ -7,6 +7,7 @@
 #include "common.bi"
 #include "os.bi"
 #include "datetime.bi"
+#include once "fbthread.bi"
 
 
 type ReleaseInfo
@@ -20,6 +21,8 @@ type ReleaseInfo
 end type
 
 declare sub parse_releases(content as string, releases() as ReleaseInfo)
+
+dim shared bg_update_check_done as bool  'Set by thread when finished
 
 
 ' Parse releases.txt, returning list of releases. Ignores other metadata.
@@ -214,4 +217,26 @@ function check_for_updates (download_visual as bool = NO, always_report as bool 
 	end if
 
 	return message
+end function
+
+' Thread proc for background update check.
+' Signals done and writes pending_message if there's a result, so can pick it up some other time.
+private sub update_check_thread_proc(param as any ptr)
+	dim msg as string = check_for_updates(NO, NO, 1.0)  'Once a day, no visuals
+	if len(msg) then write_config "update_checks.pending_message", msg
+	bg_update_check_done = YES
+end sub
+
+' Start a once-daily background update check; resets the done flag.
+' Returns YES on success.
+function start_update_check_in_bg() as bool
+	bg_update_check_done = NO
+	dim t as any ptr = ThreadCreate(@update_check_thread_proc, 0)
+	if t = 0 then return NO
+	ThreadDetach t
+	return YES
+end function
+
+function update_check_is_done() as bool
+	return bg_update_check_done
 end function

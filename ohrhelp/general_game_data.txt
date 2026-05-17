@@ -98,6 +98,12 @@ Display 'x1' in inventory: If an inventory slot contains one item, e.g. Boots, t
 Password for Editing: Set a password to be required to open the game with custom.exe (people will still be able to play the game with game.exe, obviously).
 
 
+  OHRRPGCE Update Checks
+
+(This is an editor setting, not game-specific.)
+
+Daily auto-check: Whether to contact HamsterRepublic.com (at most) once a day, when you launch Custom, to check for new engine releases, or notices for the version you're using. Notices might be used, for example, if a serious bug is discovered that you should know about.
+
   Stats
 
 These aren't editable settings.

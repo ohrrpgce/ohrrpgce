@@ -203,15 +203,9 @@ setup_workingdir
 '============== Commandline args / Title menu / Select a game =================
 
 IF option_check_update THEN
- DIM took as double = timer
  DIM message as string = check_for_updates(YES, YES, 0.0)  'Download and report always
  notification message
  cleanup_and_terminate NO
-ELSEIF read_config_bool("update_checks.auto_check", NO) THEN
- DIM message as string = check_for_updates(NO, NO, 1.0)  'Once a day
- IF LEN(message) THEN
-  notification message
- END IF
 END IF
 
 DIM scriptfile as string
@@ -585,6 +579,18 @@ SUB choose_rpg_to_create_or_load (rpg_browse_default as string)
  DIM opts as MenuOptions
  opts.edged = YES
 
+ ' Update checks
+ DIM bg_check_running as bool = NO
+ ' Show any update message saved from a previous interrupted run
+ DIM pending_message as string = read_config_str("update_checks.pending_message")
+ IF LEN(pending_message) THEN
+  write_config "update_checks.pending_message", ""
+  notification pending_message
+ ELSEIF read_config_bool("update_checks.auto_check", NO) THEN
+  ' Start a daily background update check, if enabled
+  bg_check_running = start_update_check_in_bg()
+ END IF
+
  setkeys
  DO
   setwait 55
@@ -613,7 +619,16 @@ SUB choose_rpg_to_create_or_load (rpg_browse_default as string)
      cleanup_and_terminate
    END SELECT
   END IF
- 
+
+  IF bg_check_running ANDALSO update_check_is_done() THEN
+   bg_check_running = NO
+   DIM update_msg as string = read_config_str("update_checks.pending_message")
+   IF LEN(update_msg) THEN
+    write_config "update_checks.pending_message", ""
+    notification update_msg
+   END IF
+  END IF
+
   clearpage dpage
   DrawSlice root, dpage
   standardmenu chooserpg_menu(), state, menusl->ScreenX, menusl->ScreenY, dpage, opts

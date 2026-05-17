@@ -114,6 +114,8 @@ DECLARE FUNCTION prompt_for_scancode () as KBScancode
 DECLARE SUB ExpandTextItemScreenPreview (code as string, result as string, byval arg0 as ANY ptr=0, byval arg1 as ANY ptr=0, byval arg2 as ANY ptr=0)
 
 DECLARE FUNCTION check_for_updates (download_visual as bool = NO, always_report as bool = NO, days_cache as double = 0.1) as string
+DECLARE FUNCTION start_update_check_in_bg() as bool
+DECLARE FUNCTION update_check_is_done() as bool
 
 
 'Note: Custom-specific global variables are in cglobals.bi

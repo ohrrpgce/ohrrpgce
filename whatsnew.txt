@@ -7,8 +7,9 @@ May 18 2026 [Magniloquent]
       categories. [James]
     * You now have the option to browse for UI colors when picking a
       color in the slice collection editor [James]
-    * --check-update commandline option to check for new OHRRPGCE releases
-      [Ralph]
+    * Automatic checking for new OHRRPGCE releases (or warning notices for
+      your current version) on startup, off by default. Toggle or manual check
+      in General Game Settings. Also --check-update commandline option [Ralph]
 
    * Plotscripting Features
     * "items gained reward" (to handle a full inventory after battle),
