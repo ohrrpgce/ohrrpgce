@@ -547,6 +547,7 @@ SUB debugc_internal (callsite as any ptr, errorlevel as errorLevelEnum, s as con
   CASE errError      'aka debugerror
    debugerror *s
   CASE errBug
+   PRINT "(BUG) " & *s
    debug "(BUG) " & *s
   CASE errShowError  'aka showerror
    showerror_internal callsite, *s
@@ -734,6 +735,10 @@ FUNCTION notification (msg as zstring ptr, shrink as bool = NO) as KBScancode
  IF entered >= 5 THEN
   showbug !"notification() reentered excessively, with message:\n" & *msg
   RETURN 0
+ END IF
+ IF nogfx_mode THEN
+  PRINT *msg
+  RETURN scNone
  END IF
  entered += 1
 
@@ -1313,6 +1318,7 @@ END SUB
 
 SUB debugerror (msg as const zstring ptr)
  'equivalent to: debugc errError, msg
+ PRINT "Error: " & *msg
  debug "Error: " & *msg
 END SUB
 
