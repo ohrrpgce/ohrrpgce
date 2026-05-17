@@ -12,6 +12,7 @@ EXTERN cleanup_workingdir_on_error as bool
 EXTERN auto_distrib as string
 EXTERN option_nowait as bool
 EXTERN option_hsflags as string
+EXTERN option_check_update as bool
 EXTERN editing_a_game as bool
 EXTERN inside_importscripts as bool
 EXTERN counter_provoke_captions(provokeLAST) as zstring * 24

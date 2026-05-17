@@ -7,6 +7,8 @@ May 18 2026 [Magniloquent]
       categories. [James]
     * You now have the option to browse for UI colors when picking a
       color in the slice collection editor [James]
+    * --check-update commandline option to check for new OHRRPGCE releases
+      [Ralph]
 
    * Plotscripting Features
     * "items gained reward" (to handle a full inventory after battle),

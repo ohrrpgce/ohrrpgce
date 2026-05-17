@@ -80,6 +80,7 @@ function global_setoption(opt as string, arg as string) as integer
 		help = help & "                    format. mac/tarball/debian are aliases for mac64/tarball64/debian64." & LINE_END
 		help = help & "                    Not all formats are available on all platforms." & LINE_END
 		help = help & "                    See c_debug.txt for error messages" & LINE_END
+		help = help & "-update-check       Check HamsterRepublic.com for new OHRRPGCE versions" & LINE_END
 		help = help & "-nowait             When importing scripts (ignored otherwise) quit immediately on success" & LINE_END
 		help = help & "-hsflags            When importing scripts (ignored otherwise), extra arguments to pass to hspeak" & LINE_END
 		help = help & "                    which should be NOT preceded with -, e.g. ""--hsflags w"" to skip warnings" & LINE_END

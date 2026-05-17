@@ -2612,7 +2612,10 @@ FUNCTION npc_preview_text(byref npc as NPCType) as string
 END FUNCTION
 
 FUNCTION custom_setoption(opt as string, arg as string) as integer
- IF opt = "distrib" THEN
+ IF opt = "check-update" OR opt = "check-updates" THEN
+  option_check_update = YES
+  RETURN 1
+ ELSEIF opt = "distrib" THEN
   SELECT CASE arg
    CASE "zip", "win", "mac", "mac32", "mac64", "tarball", "tarball64", "tarball32", "debian", "debian64", "debian32", "web", "all"
     auto_distrib = arg

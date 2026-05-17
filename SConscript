@@ -1472,8 +1472,9 @@ common_modules += ['blit.cpp',
 if web:
     common_modules += ['web.cpp']
 
-# The following are compiled up to three times, for Game, Custom and other
-# other utilities using allmodex, with IS_GAME, IS_CUSTOM or neither defined.
+# The following modules are linked into graphical programs (those using the
+# allmodex library).
+# These are compiled three times, for Game, Custom and all others, with IS_GAME, IS_CUSTOM or neither defined.
 # (All Game/Custom shared FB files are here instead of common_modules so we
 # don't have to remember where using IS_GAME/IS_CUSTOM is allowed.)
 # (.bas files only)
@@ -1498,6 +1499,7 @@ shared_modules += ['achievements.rbas',
                    'steam',
                    'thingbrowser',
                    'plankmenu']
+
 # (.bas files only)
 edit_modules = ['custom',
                 'customsubs.rbas',
@@ -1521,7 +1523,8 @@ edit_modules = ['custom',
                 'editedit',
                 'editrunner',
                 'editorkit',
-                'distribmenu']
+                'distribmenu',
+                'updatecheck']
 
 # (.bas files only)
 game_modules = ['game',

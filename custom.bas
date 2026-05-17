@@ -1,5 +1,5 @@
 'OHRRPGCE CUSTOM - Main module
-'(C) Copyright 1997-2020 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
+'(C) Copyright 1997-2025 James Paige, Ralph Versteegen, and the OHRRPGCE Developers
 'Dual licensed under the GNU GPL v2+ and MIT Licenses. Read LICENSE.txt for terms and disclaimer of liability.
 '
 #include "config.bi"
@@ -84,6 +84,7 @@ DIM activepalette as integer = -1
 DIM auto_distrib as string 'Which distribution option to package automatically
 DIM option_nowait as bool  'Currently only used when importing scripts from the commandline: don't wait
 DIM option_hsflags as string  'Used when importing scripts from the commandline: extra args to pass
+DIM option_check_update as bool '--update-check
 DIM export_translations_to as string
 
 DIM editing_a_game as bool
@@ -199,7 +200,16 @@ END IF
 setup_workingdir
 
 
-'=============================== Select a game ================================
+'============== Commandline args / Title menu / Select a game =================
+
+IF option_check_update THEN
+ DIM message as string
+ DIM took as double = timer
+ message = check_for_updates(YES)
+ ?"update check " & (timer - took)
+ notification message
+ cleanup_and_terminate NO
+END IF
 
 DIM scriptfile as string
 DIM rpg_browse_default as string
