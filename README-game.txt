@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Game Player         (WIP version)
+ O.H.R.RPG.C.E Game Player        (2026-05-18 Magniloquent)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 

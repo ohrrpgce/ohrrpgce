@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Editor              (WIP version)
+ O.H.R.RPG.C.E Editor             (2026-05-18 Magniloquent)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
