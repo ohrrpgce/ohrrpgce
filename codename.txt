@@ -1,10 +1,10 @@
 # The first non-commented line in this file is the name of the release. 'wip' means
 # not a stable release (which does change engine behaviour in a few places).
-wip
+magniloquent
 # The second line is the name of the SVN branch. This is nearly always the same as
 # the codename, but should be ASCII only. If this is a + release, you should still add
 # the +1 or +2 here even though the branch name does not need to change
-wip
+magniloquent
 # The third line should be either 0 for a wip build, or the SVN revision number at which this
 # release was branched from wip, or other appropriate 'nearest match' wip revision
-0
+14304
