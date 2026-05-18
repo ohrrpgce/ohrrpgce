@@ -213,7 +213,9 @@ function toggleContent(target) {
 <h1>
 		Dictionary of Plotscripting Commands
 	</h1>
-<h2>For the next WIP OHRRPGCE version (nightly build 2026-02-16)</h2>
+<h2>For OHRRPGCE version magniloquent</h2>
+					(Generated on 2026-05-18)
+				
 		This is the documentation for all <a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting">plotscripting</a> commands.
 		In addition to reading this document, we also recommend you check out the
 		<a href="https://rpg.hamsterrepublic.com/ohrrpgce/Plotscripting_Tutorial">Plotscripting Tutorial</a>
@@ -9010,7 +9012,7 @@ end</pre>
 				the stat should be updated.
 				If <span class="code">false</span> (which is the default), the current value will be set so that it's the
 				same percentage of the max before and after.
-				For example, 8/10 HP become 12/15 HP.
+				For example, 8/10 HP becomes 12/15 HP.
 				If <span class="code">reset to max</span> is <span class="code">true</span>, then the current value is set equal to the max.
 				<br>
 				The maximum and current stat values are capped to the stat cap, if any.
@@ -20520,7 +20522,8 @@ end
 				<h4>get layer name(string id, layer)</h4>
 <p>
 			
-				Get the name of a layer on the current map and put it into the <span class="param">string id</span>. The <span class="param">layer</span> number is in the range of 0 to <a href="#about-lastlayerid" class="ref">last layer id</a>.
+				Get the name of a layer on the current map and put it into the <span class="param">string id</span>. If the <span class="param">layer</span> number is not in the range of 0 to <a href="#about-lastlayerid" class="ref">last layer id</a> then the string is set to <span class="code">""</span> (without an error).
+				Returns <span class="param">string id</span>.
 			
 			
 			
@@ -20583,7 +20586,9 @@ end
 				<h4>map layer slice by id(layer id)</h4>
 <p>
 			
-				Given a <span class="param">layer id</span> number, Returns the layer's slice handle for the current map. This is equivalent to <a href="#about-lookupslice" class="ref">lookup slice</a> with the lookup codes such as <span class="param">sli:Map layer 0</span>, <span class="param">sli:Map layer 1</span>, etc... but it may be more convenient if you need to loop through the layers.
+				Given <span class="param">layer id</span>, which is just the layer number starting from 0 and counting upwards, returns the layer's slice handle on the current map. This is equivalent to <a href="#about-lookupslice" class="ref">lookup slice</a> with the lookup codes such as <span class="param">sl:Map layer 0</span>, <span class="param">sl:Map layer 1</span>, etc. but it may be more convenient if you need to loop through the layers.
+				<br>
+				If the layer doesn't exist (<span class="code">layer id &gt; last layer id</span>), returns 0/false without an error.
 			
 			
 			
