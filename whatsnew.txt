@@ -1,5 +1,15 @@
 WHAT IS NEW?
 
+Sept ??? 2026 [Naricorn]
+
+  *** New Features
+
+  *** Changes
+
+  *** Bugfixes
+
+  *** Stuff Only Developers Will Notice
+
 May 18 2026 [Magniloquent]
 
   *** New Features
