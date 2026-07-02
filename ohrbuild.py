@@ -151,7 +151,7 @@ def query_revision (rootdir):
     print("Couldn't find revision.txt, giving up and using revision 0")
     return 0
 
-def query_svn_rev_and_date(rootdir):
+def query_rev_and_date(rootdir):
     """Determine revision and date (datetime.date object)
 
     Historically this was the SVN revision, but now we calculate it by counting commits since
@@ -383,7 +383,7 @@ def verprint(mod, builddir, rootdir):
         with openw(rootdir, filename) as f:
             f.write(text.encode('latin-1'))
 
-    rev, build_date = query_svn_rev_and_date(rootdir)
+    rev, build_date = query_rev_and_date(rootdir)
     date = build_date.strftime('%Y%m%d')
 
     codename, branch_name, branch_rev = read_codename_and_branch(rootdir)

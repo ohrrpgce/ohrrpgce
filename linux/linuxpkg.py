@@ -145,7 +145,7 @@ def calculate_size(files):
 
 def read_version():
     codename, branch_name, branch_rev = ohrbuild.read_codename_and_branch(rootdir)
-    rev, build_date = ohrbuild.query_svn_rev_and_date(rootdir)
+    rev, build_date = ohrbuild.query_rev_and_date(rootdir)
     date = build_date.strftime('%Y.%m.%d')
     return "%s.%s-%s" % (date, branch_name, rev)
 

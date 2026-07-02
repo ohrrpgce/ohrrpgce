@@ -369,7 +369,7 @@ def engine_files(target, config, srcdir = ''):
             ]
 
     if os.path.isfile(files.abspath("svninfo.txt")):
-        # Created by distrib-nightly-win.bat. We could also generate it here. See ohrbuild.query_svn_rev_and_date()
+        # Created by distrib-nightly-win.bat. We could also generate it here. See ohrbuild.query_rev_and_date()
         files.datafiles += ["svninfo.txt"]
 
     if config == "full":
@@ -514,7 +514,7 @@ def create_win_installer(outfile, iscc = "iscc", srcdir = "."):
     "Generate Windows installer from the contents of ohrrpgce/"
 
     # Generate iver.txt include for ohrrpgce.iss
-    rev, date = ohrbuild.query_svn_rev_and_date(srcdir)
+    rev, date = ohrbuild.query_rev_and_date(srcdir)
     codename, branch_name, branch_rev = ohrbuild.read_codename_and_branch(srcdir)
     with open("iver.txt", "wb") as f:
         text = 'AppVerName=OHRRPGCE %s %s\n' % (codename, date.strftime('%Y%m%d'))
@@ -568,7 +568,7 @@ def prepare_player(files, target):
 
 def format_output_filename(template, buildinfo, srcdir = '.'):
     "Expand replacements"
-    #rev, date = ohrbuild.query_svn_rev_and_date(srcdir)
+    #rev, date = ohrbuild.query_rev_and_date(srcdir)
     #codename, branch_name, branch_rev = ohrbuild.read_codename_and_branch(srcdir)
     builddate = 'xxxx-xx-xx'.replace('x','%s') % tuple(buildinfo['build_date'])
     today = time.strftime('%Y-%m-%d')
