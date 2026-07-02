@@ -118,80 +118,58 @@ def hssfile_scan(node, env, path):
 def missing (name, message):
     print("%r executable not found. It may not be in the PATH, or simply not installed.\n%s" % (name, message))
 
-def query_revision (rootdir, revision_regex, date_regex, ignore_error, *command):
-    "Get the SVN revision and date (YYYYMMDD format) from the output of a command using regexps"
-    # Note: this is reimplemented in linux/ohr_debian.py
-    rev = 0
-    date = ''
+def query_revision (rootdir):
+    """
+    Get the revision.
+    based on the count of commits that are present on HEAD,
+    but were not present in the last commit where we used subversion
+    """
+    last_svn_rev = 14308
+    command = ["git", "rev-list", "--count", "18b01b80f..HEAD"]
     output = None
     try:
         f = subprocess.Popen (command, stdout = subprocess.PIPE, stderr = subprocess.PIPE, cwd = rootdir)
         output = f.stdout.read().decode()
         errmsg = f.stderr.read().decode()
-        if errmsg and not ignore_error:
+        if errmsg:
             print(errmsg)
     except OSError:
         missing (command[0], '')
         output = ''
-    date_match = re.search (date_regex, output)
-    if date_match:
-       date = date_match.expand ('\\1\\2\\3')
-    rev_match = re.search (revision_regex, output)
+
+    rev_match = re.search (r'(\d+)', output)
     if rev_match:
-        rev = int (rev_match.group(1))
-    return date, rev
+        return int (rev_match.group(1)) + last_svn_rev
 
-def query_svn (rootdir, command):
-    """Call with either 'svn info' or 'git svn info'
-    Returns a (rev,date) pair, or (0, '') if not an svn working copy"""
-    return query_revision (rootdir, r'Revision: (\d+)', r'Last Changed Date: (\d+)-(\d+)-(\d+)', True, *command.split())
-
-def query_git (rootdir):
-    """Figure out last svn commit revision and date from a git repo
-    which is a git-svn mirror of an svn repo.
-    Returns a (rev,date) pair, or (0, '') if not a git repo"""
-    if os.path.isdir (os.path.join (rootdir, '.git')):
-        # git svn info is terribly slow on Windows, and slow elsewhere, so we don't use it.
-        if False and not host_win32 and os.path.isdir (os.path.join (rootdir, '.git', 'svn', 'refs', 'remotes')):
-            # If git config settings for git-svn haven't been set up yet, or git-svn hasn't been
-            # told to initialise yet, this will take a long time before failing
-            date, rev = query_svn (rootdir, 'git svn info')
-        else:
-            # Try to determine SVN revision ourselves, otherwise doing
-            # a plain git clone won't have the SVN revision info
-            date, rev = query_revision (rootdir, r'git-svn-id.*@(\d+)', r'Date:\s*(\d+)-(\d+)-(\d+)', False,
-                                        *'git log --grep git-svn-id --date short -n 1'.split())
-    else:
-        date, rev = '', 0
-    return date, rev
+    print("Couldn't find revision using git rev-list. Try to fall back on revision.txt")
+    with open(os.path.join(rootdir, "revision.txt"), "r") as f:
+        revision_txt = f.read()
+    rev_match = re.search (r'Revision: (\d+)', revision_txt)
+    if rev_match:
+        return int (rev_match.group(1))
+    
+    print("Couldn't find revision.txt, giving up and using revision 0")
+    return 0
 
 def query_svn_rev_and_date(rootdir):
-    """Determine svn revision and date (datetime.date object), from svn, git, or svninfo.txt
-    NOTE: Actually, we return current date instead of svn last-modified date,
-    as the source might be locally modified"""
-    date, rev = query_git (rootdir)
-    if rev == 0:
-        date, rev = query_svn (rootdir, 'svn info')
-    if rev == 0:
-        print("Falling back to reading svninfo.txt")
-        date, rev = query_svn (rootdir, 'cat svninfo.txt')
-    if rev == 0:
-        print()
-        print(""" WARNING!!
-Could not determine SVN revision, which will result in RPG files without full
-version info and could lead to mistakes when upgrading .rpg files. A file called
-svninfo.txt should have been included with the source code if you downloaded a
-.zip instead of using svn or git.""")
-        print()
+    """Determine revision and date (datetime.date object)
 
-    # Discard git/svn date and use current date instead because it doesn't reflect when
-    # the source was actually last modified.
+    Historically this was the SVN revision, but now we calculate it by counting commits since
+    the time when git took over for svn as the main repo
+
+    Historically we used the date of the last commit, but since the source
+    might be locally modified, it makes much better sense to return the current date
+    unless specifically overriden with the SOURCE_DATE_EPOCH env var.
+    """
+    rev = query_revision(rootdir)
+
+    # We don't care about the last commit date.
+    # We use current date instead.
     # Unless overridden: https://reproducible-builds.org/specs/source-date-epoch/
     if 'SOURCE_DATE_EPOCH' in os.environ:
         build_date = datetime.datetime.utcfromtimestamp(int(os.environ['SOURCE_DATE_EPOCH']))
     else:
         build_date = datetime.date.today()
-    #date = build_date.strftime('%Y%m%d')
 
     return rev, build_date
 
