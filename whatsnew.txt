@@ -9,6 +9,9 @@ Sept ??? 2026 [Naricorn]
   *** Bugfixes
 
   *** Stuff Only Developers Will Notice
+    * Subversion has been retired. The main upstream repo is now
+      https://github.com/ohrrpgce/ohrrpgce
+      (Still in-progress)
 
 May 18 2026 [Magniloquent]
 
