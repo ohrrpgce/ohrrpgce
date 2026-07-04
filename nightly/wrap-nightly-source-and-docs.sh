@@ -13,17 +13,19 @@ if [ -n "True" ] ; then
   echo "Subject: OHRRPGCE souce-and-docs nightly build ($(uname -n))"
   echo ""
 
-  svn cleanup
-  # Plotdict gets modified by update-html.sh, remove any modifications or conflicts
-  svn resolve --accept theirs-full --recursive ./docs
-  svn revert --recursive ./docs
-  svn update --trust-server-cert --non-interactive | tee nightly-temp.txt || exit 1
-  UPDATE=`grep "Updated to revision" nightly-temp.txt`
-  rm nightly-temp.txt
-  if [ -z "$UPDATE" ] ; then
+  git fetch origin
+  CHANGES=$(git rev-list --count wip..origin/wip)
+  echo "$CHANGES new commits..."
+  if [ "$CHANGES" -le 0 ] ; then
     echo No changes, no need to update nightly.
     exit 2
   fi
+  # Plotdict gets modified by update-html.sh, remove any modifications or conflicts
+  git checkout -- ./docs
+  echo "If any local changes are present, they will be stashed..."
+  git stash
+  git checkout wip
+  git rebase origin/wip
 
   echo "Currently in dir: $(pwd)"
 

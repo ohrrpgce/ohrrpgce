@@ -13,31 +13,27 @@ TODAY=`date "+%Y-%m-%d"`
 cd ~/src/nightly
 
 if [ ! -d ohrrpgce ] ; then
-  echo nightly snapshot not found, checking out from svn...
-  svn checkout https://rpg.hamsterrepublic.com/source ./ohrrpgce || exit 1
+  echo nightly snapshot not found, cloning from git...
+  git clone https://github.com/ohrrpgce/ohrrpgce.git || exit 1
 fi
 
 cd ohrrpgce
 
-svn cleanup
-# Plotdict gets modified by update-html.sh, remove any modifications or conflicts
-svn resolve --accept theirs-full --recursive docs
-svn revert --recursive docs
-
-svn update --trust-server-cert-failures=unknown-ca --non-interactive | tee ../nightly-temp.txt || exit 1
-UPDATE=`grep "Updated to revision" ../nightly-temp.txt`
-rm ../nightly-temp.txt
-
-if [ -z "$UPDATE" ] ; then
-  echo no changes, no need to update nightly.
-  exit
+git fetch origin
+CHANGES=$(git rev-list --count wip..origin/wip)
+echo "$CHANGES new commits..."
+if [ "$CHANGES" -le 0 ] ; then
+  echo No changes, no need to update nightly.
+  exit 2
 fi
+# Plotdict gets modified by update-html.sh, remove any modifications or conflicts
+git checkout -- ./docs
+echo "If any local changes are present, they will be stashed..."
+git stash
+git checkout wip
+git rebase origin/wip
 
 echo Now we go to build the Mac nightlies
-
-svn update --trust-server-cert-failures=unknown-ca --non-interactive || exit 1
-
-cd wip
 
 build_package() {
   # distrib-mac.sh reads these envvars
