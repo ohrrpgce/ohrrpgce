@@ -2,7 +2,7 @@
 echo "ABOUT TO DO A NIGHTLY WIP BUILD"
 echo "-------------------------------"
 sleep 10
-cd ~/src/ohrrpgce
+cd ~/src/nightly/ohrrpgce
 
 if [ -n "True" ] ; then
   echo "From: cron@rpg.hamsterrepublic.com"
@@ -28,7 +28,7 @@ if [ -n "True" ] ; then
   CC=clang GCC=/opt/local/bin/gcc-mp-4.7 EUDIR=~james/misc/euphoria/ ./distrib-nightly-mac.sh
 fi 2>&1 | tee ~/wrap-nightly-mac-output.txt
 
-~/src/ohr/wip/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-mac-output.txt
+~/src/nightly/ohrrpgce/nightly/curl_smtp_wrapper.sh ~/wrap-nightly-mac-output.txt
 
 echo "------------------"
 echo "WILL SHUT DOWN NOW"
