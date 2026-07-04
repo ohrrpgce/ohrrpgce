@@ -89,7 +89,7 @@ class Options(object):
             def format_description(self, description):
                 return "\n".join([textwrap.fill(line, self.width) for line in description.split("\n")])
 
-        parser = optparse.OptionParser(formatter=BetterHelpFormatter(), usage="%prog [options] filename.rpg", description="""This tool runs OHRRPGCE rpg files in autotest mode. It requires either an svn or git working copy of the OHRRPGCE source. The rpg will be run twice, once for the current local working copy, and once for the revision you want to compare with. You will be alerted of any differences. The purpose of this tool is to detect regressions and unintended side-effects of bugfixes. it is not useful for validating new features or bugfixes that legitimately involve a visible change in behavior. It is only useful for rpg files that run deterministically with no user input.
+        parser = optparse.OptionParser(formatter=BetterHelpFormatter(), usage="%prog [options] filename.rpg", description="""This tool runs OHRRPGCE rpg files in autotest mode. It requires a git working copy of the OHRRPGCE source. The rpg will be run twice, once for the current local working copy, and once for the revision you want to compare with. You will be alerted of any differences. The purpose of this tool is to detect regressions and unintended side-effects of bugfixes. it is not useful for validating new features or bugfixes that legitimately involve a visible change in behavior. It is only useful for rpg files that run deterministically with no user input.
 
 This script can be used with 'git bisect run': it returns 0 on pass, 1 on fail or error while running Game, and 125 for other errors. For example:
   ./autotest.py testgame/autotest.rpgdir -r abc123
@@ -123,18 +123,7 @@ class Context(object):
     def __init__(self, autotester):
         self._autotester = autotester # needed only for quithelp()
         self.remember_dir = os.getcwd()
-        if os.path.isdir(".svn") or os.path.isdir(os.path.join("..", ".svn")):
-            self.using_svn = True
-            lines = get_run_command("svn info")
-            for line in lines:
-                match = re.match(r"^URL: (.*)$", line)
-                if match:
-                    self.url = match.group(1)
-                match = re.match(r"^Revision: (.*)$", line)
-                if match:
-                    self.rev = match.group(1)
-        elif os.path.isdir(".git"):
-            self.using_svn = False
+        if os.path.isdir(".git"):
             self.absolute_rev = get_run_command("git rev-parse HEAD")[0]
             # Determine what branch we're on by partially rev-parsing 'HEAD'
             # (Will this work correctly? Maybe should just read .git/HEAD)
@@ -143,7 +132,7 @@ class Context(object):
                 # Not on a branch
                 self.rev = self.absolute_rev
         else:
-            self._autotester.quithelp("This is neither an svn nor a git (root) directory. This script should be run from an svn or git working copy of the OHRRPGCE source")
+            self._autotester.quithelp("This is not a git (root) directory. This script should be run from a git working copy of the OHRRPGCE source")
 
 ########################################################################
 
@@ -177,9 +166,6 @@ class AutoTest(object):
             self.quithelp("Can't use -a and -r at the same time.")
         if self.opt.rev is None:
             self.opt.rev = self.context.rev
-        # I think David had some snippet for converting from git to svn rev, could add git support later
-        if self.context.using_svn and self.opt.rev < 4491:
-            self.quithelp("autotesting was not available before revision 4491")
 
     def againfail(self, rpg):
         if self.opt.again:
@@ -215,14 +201,13 @@ class AutoTest(object):
         if not os.path.isdir(newdir):
             os.mkdir(newdir)
         self.prepare_rev(self.opt.rev, rpg, against)
-        if not self.context.using_svn:
-            # Copy rpg to workdir because otherwise if it's checked into git, it
-            # could change during a bisect.
-            if not self.opt.again:
-                shutil.copy(rpg, workdir)
-            rpg = os.path.join(workdir, os.path.split(rpg)[1])
-            if not os.path.isfile(rpg):
-                self.againfail(rpg)
+        # Copy rpg to workdir because otherwise if it's checked into git, it
+        # could change during a bisect.
+        if not self.opt.again:
+            shutil.copy(rpg, workdir)
+        rpg = os.path.join(workdir, os.path.split(rpg)[1])
+        if not os.path.isfile(rpg):
+            self.againfail(rpg)
         if not self.opt.again:
             os.chdir(against)
             self.run_rpg(rpg, olddir)
@@ -235,23 +220,8 @@ class AutoTest(object):
         if not os.path.isdir(d):
             self.againfail(rpg)
             os.mkdir(d)
-        if self.context.using_svn:
-            self.prepare_rev_svn(rev, rpg, d)
-        else:
-            self.prepare_rev_git(rev, rpg, d)
+        self.prepare_rev_git(rev, rpg, d)
 
-    def prepare_rev_svn(self, rev, rpg, d):
-        os.chdir(d)
-        if not os.path.isdir(".svn"):
-            self.againfail(rpg)
-            run_command("svn checkout -r %s %s ." % (rev, self.context.url))
-        else:
-            if not self.opt.again:
-                run_command("svn update -r %s" % (rev))
-        if not self.opt.again:
-            run_command("scons game")
-        os.chdir(self.context.remember_dir)
-    
     def prepare_rev_git(self, rev, rpg, d):
         if not self.opt.again:
             absolute_rev = get_run_command("git rev-parse %s" % rev)[0]
