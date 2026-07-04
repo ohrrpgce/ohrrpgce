@@ -118,7 +118,7 @@ def hssfile_scan(node, env, path):
 def missing (name, message):
     print("%r executable not found. It may not be in the PATH, or simply not installed.\n%s" % (name, message))
 
-def query_revision (rootdir):
+def query_revision (rootdir, fallback_to_txt=True):
     """
     Get the revision.
     based on the count of commits that are present on HEAD,
@@ -141,14 +141,17 @@ def query_revision (rootdir):
     if rev_match:
         return int (rev_match.group(1)) + last_svn_rev
 
-    print("Couldn't find revision using git rev-list. Try to fall back on revision.txt")
-    with open(os.path.join(rootdir, "revision.txt"), "r") as f:
-        revision_txt = f.read()
-    rev_match = re.search (r'Revision: (\d+)', revision_txt)
-    if rev_match:
-        return int (rev_match.group(1))
-    
-    print("Couldn't find revision.txt, giving up and using revision 0")
+    if fallback_to_txt:
+        print("Couldn't find revision using git rev-list. Try to fall back on revision.txt")
+        with open(os.path.join(rootdir, "revision.txt"), "r") as f:
+            revision_txt = f.read()
+        rev_match = re.search (r'Revision: (\d+)', revision_txt)
+        if rev_match:
+            return int (rev_match.group(1))
+        print("Couldn't find revision.txt, giving up and using revision 0")
+    else:
+        print("Couldn't find revision using git rev-list.")
+
     return 0
 
 def query_rev_and_date(rootdir):

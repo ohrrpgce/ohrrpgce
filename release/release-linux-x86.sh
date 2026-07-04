@@ -4,7 +4,6 @@ SCRIPTDIR="${0%/*}"
 cd "${SCRIPTDIR}"
 cd ..
 
-svn info > svninfo.txt
 OHRDIR="$(pwd)" "./docker/ohrrpgce-build-env-linux-x86/lin32.sh" -c /src/ohr/distrib-linux.sh
 
 SCPDEST="james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce"

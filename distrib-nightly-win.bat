@@ -23,8 +23,6 @@ TYPE nightly-temp.txt | FIND "At revision" > NUL && (
 )
 del nightly-temp.txt
 
-svn info > svninfo.txt
-
 REM -----------------------------------------------------------------------
 
 REM Build all utilities once
@@ -79,7 +77,7 @@ ECHO     Packaging other utilities
 support\rm -f distrib\ohrrpgce-util.zip
 IF NOT EXIST unlump.exe GOTO NOUTIL
 IF NOT EXIST relump.exe GOTO NOUTIL
-support\zip -q distrib\ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt svninfo.txt
+support\zip -q distrib\ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt revision.txt
 pscp -q distrib\ohrrpgce-util.zip %SCPHOST%:%SCPDEST%
 :NOUTIL
 
@@ -92,7 +90,7 @@ pscp -q distrib\hspeak-win-nightly.zip %SCPHOST%:%SCPDEST%
 support\rm -f distrib\bam2mid.zip bam2mid.exe
 call scons bam2mid.exe
 IF NOT EXIST bam2mid.exe GOTO NOBAM2MID
-support\zip -q distrib\bam2mid.zip bam2mid.exe bam2mid.txt LICENSE.txt svninfo.txt
+support\zip -q distrib\bam2mid.zip bam2mid.exe bam2mid.txt LICENSE.txt revision.txt
 pscp -q distrib\bam2mid.zip %SCPHOST%:%SCPDEST%
 :NOBAM2MID
 
@@ -101,4 +99,4 @@ support\zip -q distrib\madplay+oggenc.zip support\madplay.exe support\oggenc.exe
 pscp -q distrib\madplay+oggenc.zip %SCPHOST%:%SCPDEST%
 
 REM For some weird reason, the following upload only works once every few months
-pscp -q svninfo.txt %SCPHOST%:%SCPDEST%
+pscp -q revision.txt %SCPHOST%:%SCPDEST%

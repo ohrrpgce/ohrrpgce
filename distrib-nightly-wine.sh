@@ -79,8 +79,6 @@ if [ -z "$UPDATE" ] ; then
   exit
 fi
 
-svn info > svninfo.txt
-
 #-----------------------------------------------------------------------
 
 
@@ -129,7 +127,7 @@ $BUILD debug=2 pdb=1 buildname=sdl2-debug &&
 echo "    Packaging other utilities"
 
 rm -f distrib/ohrrpgce-util.zip
-zip distrib/ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt svninfo.txt
+zip distrib/ohrrpgce-util.zip unlump.exe relump.exe LICENSE-binary.txt revision.txt
 scp distrib/ohrrpgce-util.zip "${SCPHOST}":"${SCPDEST}"
 
 rm -f distrib/hspeak-win-nightly.zip
@@ -139,7 +137,7 @@ scp distrib/hspeak-win-nightly.zip "${SCPHOST}":"${SCPDEST}"
 rm -f distrib/bam2mid.zip
 rm -f bam2mid.exe
 ${BUILD} bam2mid.exe $SCONS_ARGS && {
-  zip distrib/bam2mid.zip bam2mid.exe bam2mid.txt LICENSE.txt svninfo.txt
+  zip distrib/bam2mid.zip bam2mid.exe bam2mid.txt LICENSE.txt revision.txt
   scp distrib/bam2mid.zip "${SCPHOST}":"${SCPDEST}"
 }
 
@@ -147,4 +145,4 @@ rm -f distrib/madplay+oggenc.zip
 zip distrib/madplay+oggenc.zip support/madplay.exe support/oggenc.exe support/LICENSE-{madplay,oggenc}.txt
 scp distrib/madplay+oggenc.zip "${SCPHOST}":"${SCPDEST}"
 
-scp svninfo.txt "${SCPHOST}":"${SCPDEST}"
+scp revision.txt "${SCPHOST}":"${SCPDEST}"

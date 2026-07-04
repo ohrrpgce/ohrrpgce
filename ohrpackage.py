@@ -368,9 +368,9 @@ def engine_files(target, config, srcdir = ''):
                 "docs/htmlplot.xsl",
             ]
 
-    if os.path.isfile(files.abspath("svninfo.txt")):
-        # Created by distrib-nightly-win.bat. We could also generate it here. See ohrbuild.query_rev_and_date()
-        files.datafiles += ["svninfo.txt"]
+    # Create and include revision.txt
+    create_revision_txt(srcdir)
+    files.datafiles += ["revision.txt"]
 
     if config == "full":
         # NOTE: import/ is specially excluded from .deb and linux/unix "scons install"
@@ -469,26 +469,22 @@ def add_vikings_files(files):
     ]
 
 def source_files(srcdir = "."):
-    "List of all files checked into git/svn (under wip/), except for vikings/"
+    "List of all files checked into git, except for vikings/"
     files = PackageContents(srcdir)
 
     with temp_chdir(srcdir):
         if os.path.isdir(".git"):
-            print_system("git svn info > svninfo.txt")
             filelist = print_check_output(*"git ls-tree -r --full-tree --name-only HEAD".split())
-        elif os.path.isdir(".svn") or os.path.isdir("../.svn") or os.path.isdir("../../.svn"):
-            # We're in a checkout of wip/ or of the whole svn repo or a rel/codename branch
-            print_system("svn info > svninfo.txt")
-            filelist = print_check_output("svn", "list", "-R")
         else:
-            raise PackageError("Neither a git nor svn working copy")
+            raise PackageError("Not in a git working copy")
 
         for f in filelist.split("\n"):
-            # Remove directories, which appear in svn's filelist
-            if f and not f.startswith("vikings") and not f.endswith(os.path.sep):
+            # Remove vikings
+            if f and not f.startswith("vikings"):
                 files.datafiles.append(f)
 
-    files.datafiles += ["svninfo.txt"]
+    create_revision_txt(srcdir)
+    files.datafiles += ["revision.txt"]
 
     return files
 
@@ -507,6 +503,15 @@ def crashrpt_files(target, srcdir = ''):
     ]
 
     return files
+
+def create_revision_txt(srcdir):
+    rev = ohrbuild.query_revision(srcdir, False)
+    if rev == 0:
+        print("Couldn't calculate revision number using git, failed to write revision.txt")
+    else:
+        with open("revision.txt", "w") as f:
+            f.write("Revision: {}\n".format(rev)
+
 
 ############################################################################
 
