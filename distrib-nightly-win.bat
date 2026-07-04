@@ -7,21 +7,25 @@ CALL distrib-win-setup.bat || exit /b 1
 set SCONS_CACHE_SIZE=200
 
 cd c:\nightly\ohrrpgce
-svn cleanup
-svn update > nightly-temp.txt
+git fetch origin
 IF errorlevel 1 (
-    TYPE nightly-temp.txt
+    echo "Couldn't fetch git origin"
     exit /b 1
 )
-TYPE nightly-temp.txt
 
-REM "At revision" means no change, vs "Updated to revision"
-TYPE nightly-temp.txt | FIND "At revision" > NUL && (
-  echo No changes, no need to update nightly.
-  del nightly-temp.txt
-  exit /b 0
-)
-del nightly-temp.txt
+git rev-list --count wip..origin/wip > new_rev_count.txt
+SET /p CHANGES=<new_rev_count.txt
+echo "New revisions: %CHANGES%"
+
+REM "0" means no change, any positive number means there are changes
+IF %CHANGES% GTR 0 GOTO HAVECHANGES
+echo No changes, no need to update nightly.
+exit /b 0
+:HAVECHANGES
+
+REM if there are any local changes (there shouldn't be on a nightly build machine) rebase them
+git checkout wip
+git rebase origin/wip
 
 REM -----------------------------------------------------------------------
 
