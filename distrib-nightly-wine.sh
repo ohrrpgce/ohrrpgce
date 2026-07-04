@@ -38,15 +38,15 @@ if ! [ -f "$(winepath "$ISCC")" ]; then
     fi
 fi
 
-OHRVERDATE=`svn info | grep "^Last Changed Date:" | cut -d ":" -f 2 | cut -d " " -f 2`
-SVNREV=`svn info | grep "^Revision:" | cut -d " " -f 2`
+OHRVERDATE=$(date "+%Y-%m-%d")
+REV=$(misc/revision_number.sh)
 
 #-----------------------------------------------------------------------
 
 function zip_and_upload {
   BUILDNAME="${1}"
   ZIPFILE="ohrrpgce-win-wip-${BUILDNAME}.zip"
-  SYMBFILE="ohrrpgce-symbols-win-${BUILDNAME}-r${SVNREV}-${OHRVERDATE}-wip.7z"
+  SYMBFILE="ohrrpgce-symbols-win-${BUILDNAME}-r${REV}-${OHRVERDATE}-wip.7z"
   echo "    Packaging $BUILDNAME nightly"
 
   ./ohrpackage.py win nightly "distrib/$ZIPFILE" -- "${@:2}" && {
@@ -65,19 +65,19 @@ function zip_and_upload {
 
 #-----------------------------------------------------------------------
 
-svn cleanup
-# Plotdict gets modified by update-html.sh, remove any modifications or conflicts
-svn resolve --accept theirs-full --recursive docs
-svn revert --recursive docs
-
-svn update | tee nightly-temp.txt || exit 1
-UPDATE=`grep "Updated to revision" nightly-temp.txt`
-rm nightly-temp.txt
-
-if [ -z "$UPDATE" ] ; then
-  echo no changes, no need to update nightly.
-  exit
+git fetch origin
+CHANGES=$(git rev-list --count wip..origin/wip)
+echo "$CHANGES new commits..."
+if [ "$CHANGES" -le 0 ] ; then
+  echo No changes, no need to update nightly.
+  exit 2
 fi
+# Plotdict gets modified by update-html.sh, remove any modifications or conflicts
+git checkout -- ./docs
+echo "If any local changes are present, they will be stashed..."
+git stash
+git checkout wip
+git rebase origin/wip
 
 #-----------------------------------------------------------------------
 
