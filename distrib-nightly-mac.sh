@@ -10,28 +10,8 @@ UPLOAD_FOLDER="HamsterRepublic.com"
 UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
 TODAY=`date "+%Y-%m-%d"`
 
-cd ~/src/nightly
-
-if [ ! -d ohrrpgce ] ; then
-  echo nightly snapshot not found, cloning from git...
-  git clone https://github.com/ohrrpgce/ohrrpgce.git || exit 1
-fi
-
-cd ohrrpgce
-
-git fetch origin
-CHANGES=$(git rev-list --count wip..origin/wip)
-echo "$CHANGES new commits..."
-if [ "$CHANGES" -le 0 ] ; then
-  echo No changes, no need to update nightly.
-  exit 2
-fi
-# Plotdict gets modified by update-html.sh, remove any modifications or conflicts
-git checkout -- ./docs
-echo "If any local changes are present, they will be stashed..."
-git stash
-git checkout wip
-git rebase origin/wip
+# We will already be in this dir if called from wrap-nightly-mac.sh
+cd ~/src/nightly/ohrrpgce
 
 echo Now we go to build the Mac nightlies
 

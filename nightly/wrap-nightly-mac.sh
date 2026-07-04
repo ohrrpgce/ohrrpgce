@@ -19,6 +19,8 @@ if [ -n "True" ] ; then
     echo No changes, no need to update nightly.
     exit 2
   fi
+  # Plotdict gets modified by update-html.sh, remove any modifications or conflicts
+  git checkout -- ./docs
   echo "If any local changes are present, they will be stashed..."
   git stash
   git checkout wip
