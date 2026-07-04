@@ -2,7 +2,7 @@ CALL distver.bat
 REM BUILDNAME must be the same as the buildname arg to scons
 set BUILDNAME=%1
 set ZIPFILE=ohrrpgce-win-%OHRVERCODE%-%BUILDNAME%.zip
-set SYMBFILE=ohrrpgce-symbols-win-%BUILDNAME%-r%SVNREV%-%OHRVERDATE%-%OHRVERCODE%.7z
+set SYMBFILE=ohrrpgce-symbols-win-%BUILDNAME%-r%REV%-%OHRVERDATE%-%OHRVERCODE%.7z
 echo     Packaging %BUILDNAME% nightly
 
 python ohrpackage.py win nightly distrib\%ZIPFILE% -- %2 %3 %4 %5 %6 %7 %8 %9 && (

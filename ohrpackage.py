@@ -53,8 +53,6 @@ def copy_file_or_dir(src, dest):
     elif os.path.isdir(src):
         quiet_mkdir(dest)
         for filename in os.listdir(src):
-            if filename == ".svn":
-                continue
             srcpath = os.path.join(src, filename)
             destpath = os.path.join(dest, filename)
             copy_file_or_dir(srcpath, destpath)
@@ -657,7 +655,7 @@ nightly:      Slightly leaner, excludes import/ and some utilities
 minimal:      Excludes import/, plotdict.xml and unnecessary support utilities
 player:       Just Game, for distributing games
 symbols:      Windows .pdb debug symbols, for process_crashrpt_report.py
-source:       Copy of all files (with any modifications) checked into git or svn,
+source:       Copy of all files (with any modifications) checked into git,
               except vikings/*. Target OS ignored.)
 
 Other packages:

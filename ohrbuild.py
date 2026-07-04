@@ -113,7 +113,7 @@ def hssfile_scan(node, env, path):
     return env.File(included)
 
 ########################################################################
-# Querying svn, git
+# Querying git
 
 def missing (name, message):
     print("%r executable not found. It may not be in the PATH, or simply not installed.\n%s" % (name, message))
@@ -311,8 +311,8 @@ def get_fb_info(fbc):
 ########################################################################
 
 def read_codename_and_branch(rootdir):
-    """Retrieve codename, branch name and svn revision.
-    Note: if branch_rev is -1, the current svn revision should be used."""
+    """Retrieve codename, branch name and revision.
+    Note: if branch_rev is -1, the current revision should be used."""
     f = open(os.path.join(rootdir, 'codename.txt'), 'rb')
     lines = []
     for line in f:
@@ -495,7 +495,7 @@ def verprint(mod, builddir, rootdir):
         'SET OHRVERCODE=%(codename)s',
         'SET OHRVERBRANCH=%(branch_name)s',
         'SET OHRVERDATE=%(dash_date)s',
-        'SET SVNREV=%(rev)s',
+        'SET REV=%(rev)s',
     ]
 
     write_file(builddir + 'backendinfo.bi',
