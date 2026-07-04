@@ -48,7 +48,7 @@ ERROR_LINES = 4  # Number of initial, and also number of final errors in c/g_deb
 SYMS_CACHE_DIR = 'symbols_cache'
 
 # Location of a git repo of the OHRRPGCE source code.
-# Define this to print out the git hash for the svn commit that the executables in a report
+# Define this to print out the git hash for the revision number that the executables in a report
 # were built with, or leave blank if you don't care.
 GIT_DIR = pathjoin(os.path.dirname(__file__), '..')
 
@@ -80,17 +80,33 @@ HOST_WIN32 = platform.system() == 'Windows'
 
 @functools.lru_cache(maxsize = None)
 def svn_to_git_rev(rev):
-    print('Querying git for svn rev...  ', file=sys.stderr, end='\r')
-    # Unfortunately git svn find-rev only searches the current branch by default
-    # and we have to explicitly provide a list of branches to search...
-    #gitrev = subprocess.check_output(['git', '-C', GIT_DIR, 'svn', 'find-rev', 'r' + rev]).decode('utf8').strip()
-    # ...so use git log --grep instead
-    gitrev = subprocess.check_output(
-        ['git', '-C', GIT_DIR, 'log', '--all', '--format=%H', '--grep', 'git-svn-id:.*@' + rev + ' ']
-      ).decode('utf8').strip()
-    if not gitrev:
-        raise Exception('Could not find svn revision %s. Check that git-svn is up-to-date (e.g. "git svn fetch")' % rev)
-    return gitrev
+    print('Querying git for revision...  ', file=sys.stderr, end='\r')
+    last_svn_rev = 14308
+    last_svn_commit = "18b01b80f"
+    if rev <= last_svn_rev:
+        # Unfortunately git svn find-rev only searches the current branch by default
+        # and we have to explicitly provide a list of branches to search...
+        #gitrev = subprocess.check_output(['git', '-C', GIT_DIR, 'svn', 'find-rev', 'r' + rev]).decode('utf8').strip()
+        # ...so use git log --grep instead
+        gitrev = subprocess.check_output(
+            ['git', '-C', GIT_DIR, 'log', '--all', '--format=%H', '--grep', 'git-svn-id:.*@' + rev + ' ']
+          ).decode('utf8').strip()
+        if not gitrev:
+            raise Exception('Could not find svn revision %s. Check that git-svn is up-to-date (e.g. "git svn fetch")' % rev)
+        return gitrev
+    else:
+        # For newer revisions, we calculate them with git rev-list
+        # First figure out how many revs there are from the last SVN rev to HEAD
+        revcount = subprocess.check_output(
+            ['git', '-C', GIT_DIR, 'rev-list', '--count', last_svn_commit + '..HEAD']
+          ).decode('utf8').strip()
+        # Then extract the commit hash for the revision we want to see
+        gitrev = subprocess.check_output(
+            ['git', '-C', GIT_DIR, 'rev-list', last_svn_commit + '..HEAD~' + str(revcount - (rev - last_svn_rev)), "-n", "1"]
+          ).decode('utf8').strip()
+        if not gitrev:
+            raise Exception('Could not find revision %s.' % rev)
+        return gitrev
 
 @functools.lru_cache(maxsize = None)
 def file_lastchange_git_rev(git_dir, path, as_of_commit = None):
