@@ -508,7 +508,7 @@ def create_revision_txt(srcdir):
         print("Couldn't calculate revision number using git, failed to write revision.txt")
     else:
         with open("revision.txt", "w") as f:
-            f.write("Revision: {}\n".format(rev)
+            f.write("Revision: {}\n".format(rev))
 
 
 ############################################################################
