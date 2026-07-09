@@ -503,6 +503,8 @@ def crashrpt_files(target, srcdir = ''):
     return files
 
 def create_revision_txt(srcdir):
+    if srcdir == "":
+        srcdir = "."
     rev = ohrbuild.query_revision(srcdir, False)
     if rev == 0:
         print("Couldn't calculate revision number using git, failed to write revision.txt")
