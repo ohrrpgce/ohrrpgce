@@ -103,6 +103,11 @@ function check_for_updates (download_visual as bool = NO, always_report as bool 
 		end if
 	end if
 
+	'Web emscripten doesn't support HTTP_request so skip it on that platform
+#IFDEF __FB_JS__
+    return "Web port doesn't currently support version checking."
+#ELSE
+
 	' Fetch the file directly rather than using wget or curl, because popping up a window is quite awful.
 	' However this might cause Windows to prompt the user to allow it.
 
@@ -217,6 +222,8 @@ function check_for_updates (download_visual as bool = NO, always_report as bool 
 	end if
 
 	return message
+	'End of implementation for platforms that support this
+#ENDIF
 end function
 
 ' Thread proc for background update check.
