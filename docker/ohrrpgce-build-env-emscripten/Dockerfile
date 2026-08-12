@@ -30,6 +30,7 @@ RUN apt-get update \
       libtinfo5 \
       less \
       nano \
+      python3-requests \
     && rm -rf /var/lib/apt/lists/*
 
 #
