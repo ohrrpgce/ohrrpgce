@@ -13,7 +13,8 @@ cd "${SCRIPTDIR}"
 # Show current emscripten version
 /emsdk/upstream/emscripten/emcc --version | head -1
 
-mkdir ./games
+mkdir -p ./distrib
+mkdir -p ./games
 cp -p testgame/inputtest.rpg ./games
 cp -p testgame/collider.rpg ./games
 cp -p testgame/turntest.rpg ./games
