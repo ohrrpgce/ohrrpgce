@@ -1,0 +1,17 @@
+If you compile on windows with scons pdb=1 you should
+get pdb symbol files created in the win32 folder.
+
+If you see an error like:
+ "C:\nightly\ohrrpgce\win32\custom.pdb: cannot load PDB helper DLL"
+that is because the support\cv2pdb.exe tool can't find the
+Visual Studio files it needs. We can't redistribute these,
+but you can install Visual Studio yourself.
+The specific files it is looking for are:
+
+mspdbsrv.exe
+msobj100.dll
+mspdb100.dll
+mspdbcore.dll
+msvcr100.dll
+
+You can copy them to the support folder if you don't want to put them in your PATH 
