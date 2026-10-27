@@ -1,8 +1,10 @@
 WHAT IS NEW?
 
-Sept ??? 2026 [Naricorn]
+Feb ??? 2027 [Naricorn]
 
   *** New Features
+    * In the map editor, in tilemap mode, press L to switch to the topmost
+      layer containing a non-zero tile at the current cursor position [James]
 
   *** Changes
 

@@ -30,6 +30,7 @@ DECLARE SUB make_map_picker_menu (topmenu() as string, state as MenuState)
 DECLARE SUB mapeditor_mapping(st as MapEditState, mode as MapEditMode)
 DECLARE SUB mapedit_load_settings (st as MapEditState)
 DECLARE SUB mapedit_settings_menu (st as MapEditState)
+DECLARE FUNCTION mapedit_topmost_non_zero_enabled_layer(st as MapEditState, x as integer, y as integer) as integer
 
 DECLARE SUB mapedit_window_size_updates(st as MapEditState)
 
@@ -1099,6 +1100,13 @@ DO
     set_usetile st, st.usetile(st.layer) + mouse.wheel_clicks
    ELSE
     set_layer st, st.layer + mouse.wheel_clicks
+   END IF
+   
+   'Jump to the topmost non-zero enabled layer under the cursor
+   IF keyval(scCtrl) = 0 ANDALSO keyval(scL) > 1 THEN
+    st.layer = mapedit_topmost_non_zero_enabled_layer(st, st.x, st.y)
+    update_tilepicker st
+    mapedit_update_layer_palettes st
    END IF
 
    st.tool_value = st.usetile(st.layer)
@@ -2853,6 +2861,16 @@ SUB drawwall(walldir as DirNum, byval pos as XYPair, offset as integer, thicknes
  rectangle pos.x, pos.y, size.w, size.h, col, dpage
 END SUB
 
+FUNCTION mapedit_topmost_non_zero_enabled_layer(st as MapEditState, x as integer, y as integer) as integer
+ FOR i as integer = UBOUND(st.map.tiles) TO 0 STEP -1
+  IF layerisenabled(st.map.gmap(), i) THEN
+   IF readblock(st.map.tiles(i), x, y) > 0 THEN
+    RETURN i
+   END IF
+  END IF
+ NEXT i
+ RETURN 0
+END FUNCTION
 
 '==========================================================================================
 '                                     Layer palettes
