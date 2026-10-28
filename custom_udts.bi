@@ -333,6 +333,8 @@ TYPE MapEditState
   layer as integer
   visible(maplayerMax \ 16) as integer  'Bitsets: layers which are visible
   jiggle(maplayerMax \ 16) as integer   'Bitsets: layers which are jiggling
+  indicate_layer_switch as integer 'Number of ticks to invert current jiggle setting on the current layer to indicate a switch 
+  selected_layer_on_previous_tick as integer
   layer_display_mode as LayerDisplayMode  'What effect to apply to layers
   layerpals(maplayerMax + 1) as Palette16 ptr  '+1 for overhead layer
   shadowpal as Palette16 ptr 'Palette used for things in shadow

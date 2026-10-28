@@ -46,6 +46,7 @@ DECLARE SUB fill_with_other_area(st as MapEditState, byval x as integer, byval y
 DECLARE FUNCTION mapedit_layer_offset(st as MapEditState, layernum as integer, i as integer) as XYPair
 DECLARE SUB mapedit_draw_layer(st as MapEditState, layernum as integer, height as integer, overhead as bool = NO, pal as Palette16 ptr = NULL)
 DECLARE SUB drawwall(walldir as DirNum, byval pos as XYPair, offset as integer, thickness as integer, col as integer)
+DECLARE FUNCTION mapedit_layer_should_jiggle(st as MapEditState, layernum as integer) as bool
 
 DECLARE FUNCTION mapedit_npc_at_spot(st as MapEditState, pos as XYPair) as NPCIndex
 DECLARE FUNCTION mapedit_npcs_at_spot(st as MapEditState, pos as XYPair) as NPCIndex vector
@@ -1105,6 +1106,7 @@ DO
    'Jump to the topmost non-zero enabled layer under the cursor
    IF keyval(scCtrl) = 0 ANDALSO keyval(scL) > 1 THEN
     st.layer = mapedit_topmost_non_zero_enabled_layer(st, st.x, st.y)
+    st.selected_layer_on_previous_tick = -1 'Force a selection jiggle any time you press L, even if the layer hasn't changed
     update_tilepicker st
     mapedit_update_layer_palettes st
    END IF
@@ -1873,6 +1875,14 @@ DO
   END IF
   draw_conditional_npcs = (st.show_npcs_all_modes = showNpcsAll)
  END IF
+ 
+ 'Update the status of temporary layer jiggling to indicate when we switch layers
+ IF st.layer <> st.selected_layer_on_previous_tick THEN
+  'Just changed layers
+  st.indicate_layer_switch = 5
+ END IF
+ st.indicate_layer_switch = large(0, st.indicate_layer_switch - 1)
+ st.selected_layer_on_previous_tick = st.layer
 
  clearpage dpage
 
@@ -2326,9 +2336,12 @@ DO
    col = uilook(uiSelectedItem + tog)
   END IF
   DIM layername as string
-  layername = "Layer " & st.layer
+  layername = "Layer"
+  layername &= IIF(st.indicate_layer_switch, "(", " ")
+  layername &= st.layer
   IF layerisvisible(st.visible(), st.layer) = NO THEN layername &= " (invisible)"
-  layername &= " " & read_map_layer_name(st.map.gmap(), st.layer)
+  layername &= IIF(st.indicate_layer_switch, ")", " ")
+  layername &= read_map_layer_name(st.map.gmap(), st.layer)
   layername = RIGHT(layername, 40)
   edgeprint layername, 0, st.viewport_p2.y - 20, col, dpage
  END IF
@@ -2816,11 +2829,23 @@ END SUB
 
 '==========================================================================================
 
+FUNCTION mapedit_layer_should_jiggle(st as MapEditState, layernum as integer) as bool
+ DIM jiggle as bool = NO
+ IF readbit(st.jiggle(), 0, layernum) THEN
+  'Layer is configured to jiggle
+  jiggle = YES
+ END IF
+ IF st.indicate_layer_switch > 0 ANDALSO layernum = st.layer THEN
+  'We just switched to this layer and wish to invert the current jiggle config briefly
+  jiggle = NOT jiggle
+ END IF
+ RETURN jiggle
+END FUNCTION
 
 'The amount to offset the position of a map layer due to jiggling and other cues
 FUNCTION mapedit_layer_offset(st as MapEditState, layernum as integer, i as integer) as XYPair
  DIM offset as XYPair
- IF readbit(st.jiggle(), 0, layernum) ANDALSO global_tog THEN
+ IF mapedit_layer_should_jiggle(st, layernum) ANDALSO global_tog THEN
   IF (i mod 8) >= 1 AND (i mod 8) <= 3 THEN offset.x = 1
   IF (i mod 8) >= 5 THEN offset.x = -1
   IF (i mod 8) <= 1 OR (i mod 8) = 7 THEN offset.y = -1
