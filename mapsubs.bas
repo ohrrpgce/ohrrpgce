@@ -1104,7 +1104,7 @@ DO
    END IF
    
    'Jump to the topmost non-zero enabled layer under the cursor
-   IF keyval(scCtrl) = 0 ANDALSO keyval(scL) > 1 THEN
+   IF keyval(scCtrl) = 0 ANDALSO (keyval(scL) > 1 ORELSE (mouse.release AND mouseMiddle ANDALSO mouse.drag_dist < 5)) THEN
     st.layer = mapedit_topmost_non_zero_enabled_layer(st, st.x, st.y)
     st.selected_layer_on_previous_tick = -1 'Force a selection jiggle any time you press L, even if the layer hasn't changed
     update_tilepicker st
