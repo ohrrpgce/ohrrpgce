@@ -194,7 +194,7 @@ END FUNCTION
 
 FUNCTION describe_formation_by_id(byval form_id as integer) as string
  DIM form as Formation
- LoadFormation form, game & ".for", form_id
+ LoadFormation form, form_id
  RETURN describe_formation(form)
 END FUNCTION
 

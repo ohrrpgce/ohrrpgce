@@ -5000,16 +5000,16 @@ END SUB
 
 SUB LoadFormation (form as Formation, byval index as integer)
  #IFDEF IS_GAME
-  LoadFormation form, tmpdir & "for.tmp", index
+  LoadFormationLump form, tmpdir & "for.tmp", index
  #ELSE
-  LoadFormation form, game & ".for", index
+  LoadFormationLump form, game & ".for", index
  #ENDIF
 END SUB
 
-SUB LoadFormation (form as Formation, filename as string, byval index as integer)
+SUB LoadFormationLump (form as Formation, filename as string, byval index as integer)
  DIM formdata(39) as integer
  IF loadrecord(formdata(), filename, 40, index) = NO THEN
-  debug "LoadFormation: invalid index " & index
+  debug "LoadFormationLump: invalid index " & index
   ClearFormation form
   EXIT SUB
  END IF

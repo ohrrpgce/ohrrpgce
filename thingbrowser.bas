@@ -784,10 +784,8 @@ Function FormationBrowser.thing_text_for_id(byval id as integer) as string
  if id = none_id then
   return SPACE(digits) & " " & rpad("NOTHING", " ", 16)
  end if
- dim form as Formation
- LoadFormation form, game & ".for", id
  dim cap as string
- cap = lpad(str(id), " ", digits) & " " & describe_formation(form)
+ cap = lpad(str(id), " ", digits) & " " & describe_formation_by_id(id)
  'Make a guess of about how many characters to padd the string to so they are all single-screen sized
  dim w_chars as integer = (vpages(vpage)->w - 16) / 8
  return rpad(cap, " ", w_chars)

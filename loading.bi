@@ -215,8 +215,8 @@ DECLARE SUB saveenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, b
 DECLARE SUB convertenemydata (buf() as integer, enemy as EnemyDef)
 
 DECLARE SUB ClearFormation (form as Formation)
-DECLARE SUB LoadFormation OVERLOAD (form as Formation, byval index as integer)
-DECLARE SUB LoadFormation OVERLOAD (form as Formation, filename as string, byval index as integer)
+DECLARE SUB LoadFormation (form as Formation, byval index as integer)
+DECLARE SUB LoadFormationLump (form as Formation, filename as string, byval index as integer)
 DECLARE SUB SaveFormation OVERLOAD (form as Formation, byval index as integer)
 DECLARE SUB SaveFormation OVERLOAD (form as Formation, filename as string, byval index as integer)
 'index is formation set number, starting from 1!

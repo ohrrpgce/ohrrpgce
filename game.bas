@@ -4929,9 +4929,7 @@ END SUB
 
 LOCAL SUB battle_formation_testing_menu_add(menu as MenuDef, form_num as integer)
  IF form_num >= 0 THEN
-  DIM formdata as Formation
-  LoadFormation formdata, form_num
-  DIM desc as string = describe_formation(formdata)
+  DIM desc as string = describe_formation_by_id(form_num)
   append_menu_item(menu, form_num & ": " & LEFT(desc, 35))
   menu.last->extra(0) = form_num
  END IF
