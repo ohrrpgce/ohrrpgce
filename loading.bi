@@ -213,6 +213,7 @@ DECLARE SUB loadenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, b
 DECLARE SUB saveenemydata OVERLOAD (array() as integer, byval index as integer, byval altfile as bool = USE_DT1_TMP)
 DECLARE SUB saveenemydata OVERLOAD (enemy as EnemyDef, byval index as integer, byval altfile as bool = USE_DT1_TMP)
 DECLARE SUB convertenemydata (buf() as integer, enemy as EnemyDef)
+DECLARE FUNCTION get_enemy_sprite_size(index as integer) as XYPair
 
 DECLARE SUB ClearFormation (form as Formation)
 DECLARE SUB LoadFormation (form as Formation, byval index as integer)

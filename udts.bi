@@ -1095,6 +1095,8 @@ END TYPE
 TYPE FormationSlot
   id as integer = -1  '-1: none
   pos as XYPair
+  AnchorHoriz as AlignType
+  AnchorVert as AlignType
 END TYPE
 
 TYPE Formation
