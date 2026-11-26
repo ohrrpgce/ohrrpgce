@@ -4980,6 +4980,15 @@ SUB saveenemydata (enemy as EnemyDef, byval index as integer, byval altfile as b
  saveenemydata buf(), index, altfile
 END SUB
 
+FUNCTION get_enemy_sprite_size(index as integer) as XYPair
+ DIM szindex as integer = ReadShort(tmpdir & "dt1.tmp", index * getbinsize(binDT1) + 111) 'picture size
+ DIM sprset as integer = ReadShort(tmpdir & "dt1.tmp", index * getbinsize(binDT1) + 107) 'sprite set
+ DIM spr as Frame ptr = frame_load(sprTypeSmallEnemy + szindex, sprset)
+ DIM size as XYPair
+ IF spr THEN size = spr->Size
+ frame_unload @spr
+ RETURN size
+END FUNCTION
 
 '==========================================================================================
 '                                Formations & Formation Sets
@@ -5019,6 +5028,8 @@ SUB LoadFormationLump (form as Formation, filename as string, byval index as int
    .slots(i).id = formdata(i * 4) - 1
    .slots(i).pos.x = formdata(i * 4 + 1)
    .slots(i).pos.y = formdata(i * 4 + 2)
+   .slots(i).AnchorHoriz = alignLeft
+   .slots(i).AnchorVert = alignTop
   NEXT
   .background = formdata(32)
   .music = formdata(33) - 1

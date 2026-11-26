@@ -35,7 +35,6 @@ DECLARE FUNCTION get_door_on_map(byref thisdoor as Door, byval door_id as intege
 DECLARE FUNCTION allow_gmap_idx(gmap_idx as integer) as bool
 DECLARE FUNCTION load_sprite_plotslice(byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2) as integer
 DECLARE SUB replace_sprite_plotslice(byval slice_argno as integer, byval spritetype as SpriteType, byval record as integer, byval pal as integer=-2)
-DECLARE FUNCTION get_enemy_sprite_size(index as integer) as XYPair
 DECLARE FUNCTION bulk_append_extra(extravec_ptr as integer vector ptr, count_to_add as integer) as integer
 DECLARE FUNCTION bulk_append_or_replace(extravec_ptr as integer vector ptr, count_to_add as integer, append_extra as bool) as integer
 DECLARE FUNCTION copy_path_data_into_extra(extravec_ptr as integer vector ptr, byref pf as AStarPathfinder, destpos as XYPair, append_extra as bool, skip_start as bool) as bool
@@ -6505,16 +6504,6 @@ FUNCTION allow_gmap_idx(gmap_idx as integer) as bool
   CASE 378:       RETURN YES
  END SELECT
  RETURN NO
-END FUNCTION
-
-FUNCTION get_enemy_sprite_size(index as integer) as XYPair
- DIM szindex as integer = ReadShort(tmpdir & "dt1.tmp", index * getbinsize(binDT1) + 111) 'picture size
- DIM sprset as integer = ReadShort(tmpdir & "dt1.tmp", index * getbinsize(binDT1) + 107) 'sprite set
- DIM spr as Frame ptr = frame_load(sprTypeSmallEnemy + szindex, sprset)
- DIM size as XYPair
- IF spr THEN size = spr->Size
- frame_unload @spr
- RETURN size
 END FUNCTION
 
 FUNCTION bulk_append_extra(extravec_ptr as integer vector ptr, count_to_add as integer) as integer
