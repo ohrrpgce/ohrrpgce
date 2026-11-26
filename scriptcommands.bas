@@ -4647,7 +4647,7 @@ SUB script_commands(byval cmdid as integer)
   IF valid_formation(retvals(0)) THEN
    DIM form as Formation
    LoadFormationLump form, game & ".for", retvals(0)
-   SaveFormation form, tmpdir & "for.tmp", retvals(0)
+   SaveFormationLump form, tmpdir & "for.tmp", retvals(0)
   END IF
  CASE 654 '--reset formation slot
   IF valid_formation_slot(retvals(0), retvals(1)) THEN
@@ -4656,7 +4656,7 @@ SUB script_commands(byval cmdid as integer)
    DIM cur_form as Formation
    LoadFormationLump cur_form, tmpdir & "for.tmp", retvals(0)
    cur_form.slots(retvals(1)) = orig_form.slots(retvals(1))
-   SaveFormation cur_form, tmpdir & "for.tmp", retvals(0)
+   SaveFormationLump cur_form, tmpdir & "for.tmp", retvals(0)
   END IF
  CASE 655 '--slice is map layer
   sl = get_arg_slice(0)
