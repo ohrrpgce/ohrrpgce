@@ -5032,13 +5032,13 @@ END SUB
 
 SUB SaveFormation (form as Formation, byval index as integer)
  #IFDEF IS_GAME
-  SaveFormation form, tmpdir & "for.tmp", index
+  SaveFormationLump form, tmpdir & "for.tmp", index
  #ELSE
-  SaveFormation form, game & ".for", index
+  SaveFormationLump form, game & ".for", index
  #ENDIF
 END SUB
 
-SUB SaveFormation (form as Formation, filename as string, byval index as integer)
+SUB SaveFormationLump (form as Formation, filename as string, byval index as integer)
  DIM formdata(39) as integer
 
  WITH form
