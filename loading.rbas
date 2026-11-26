@@ -4338,13 +4338,13 @@ SUB loaditemdata (item as ItemDef, item_id as integer, doc as DocPtr = NULL)
   IF item_node THEN
    'debuginfo "Item ID " & item_id & " was found in items.reld"
    load_item_from_reload item, item_node, item_id
-''Temporarily triple the item description
-'item.info = item.info & " " & item.info & " " & item.info
    loaded = YES
-   'FIXME: Remove this section soon! It is just a migration sanity test and it is slow and debug noisy
-   DIM olditem as ItemDef
-   loaditemdata_old_itm_format olditem, item_id
-   debug_compare_items olditem, item, item_id
+   '--The only reason to uncomment the check below is if you are
+   '-- troubleshooting a problem with the migration of items from
+   '-- ITM format to items.reld
+   'DIM olditem as ItemDef
+   'loaditemdata_old_itm_format olditem, item_id
+   'debug_compare_items olditem, item, item_id
   END IF
 
   IF closedoc THEN FreeDocument doc
