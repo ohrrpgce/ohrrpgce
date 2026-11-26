@@ -233,13 +233,11 @@ SUB formation_set_editor_load_preview(state as MenuState, form_id as integer, fo
   DeleteSlice @rootslice
  END IF
  'Also reload the formation descriptions for the menu
- DIM each_form as Formation
  FOR i as integer = 0 TO UBOUND(formset.formations)
   IF formset.formations(i) = -1 THEN
    menu(4 + i) = "Empty"
   ELSE
-   LoadFormation each_form, game & ".for", formset.formations(i)
-   menu(4 + i) = "Form " & formset.formations(i) & " " & describe_formation(each_form)
+   menu(4 + i) = "Form " & formset.formations(i) & " " & describe_formation_by_id(i)
   END IF
  NEXT i
 END SUB

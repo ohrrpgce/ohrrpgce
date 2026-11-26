@@ -4646,15 +4646,15 @@ SUB script_commands(byval cmdid as integer)
  CASE 653 '--reset formation
   IF valid_formation(retvals(0)) THEN
    DIM form as Formation
-   LoadFormation form, game & ".for", retvals(0)
+   LoadFormationLump form, game & ".for", retvals(0)
    SaveFormation form, tmpdir & "for.tmp", retvals(0)
   END IF
  CASE 654 '--reset formation slot
   IF valid_formation_slot(retvals(0), retvals(1)) THEN
    DIM orig_form as Formation
-   LoadFormation orig_form, game & ".for", retvals(0)
+   LoadFormationLump orig_form, game & ".for", retvals(0)
    DIM cur_form as Formation
-   LoadFormation cur_form, tmpdir & "for.tmp", retvals(0)
+   LoadFormationLump cur_form, tmpdir & "for.tmp", retvals(0)
    cur_form.slots(retvals(1)) = orig_form.slots(retvals(1))
    SaveFormation cur_form, tmpdir & "for.tmp", retvals(0)
   END IF
