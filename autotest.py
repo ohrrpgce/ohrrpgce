@@ -78,6 +78,11 @@ def move_pattern(filename_pattern, dest_dir):
     if moved == 0:
         print('NOTICE: No files moved using move_pattern("%s", "%s")' % (filename_pattern, dest_dir))
 
+def remove_string_prefix(s, prefix):
+    if s.startswith(prefix):
+        return s[len(prefix):]
+    return s
+    
 ########################################################################
 
 class Options(object):
@@ -89,7 +94,7 @@ class Options(object):
             def format_description(self, description):
                 return "\n".join([textwrap.fill(line, self.width) for line in description.split("\n")])
 
-        parser = optparse.OptionParser(formatter=BetterHelpFormatter(), usage="%prog [options] filename.rpg", description="""This tool runs OHRRPGCE rpg files in autotest mode. It requires a git working copy of the OHRRPGCE source. The rpg will be run twice, once for the current local working copy, and once for the revision you want to compare with. You will be alerted of any differences. The purpose of this tool is to detect regressions and unintended side-effects of bugfixes. it is not useful for validating new features or bugfixes that legitimately involve a visible change in behavior. It is only useful for rpg files that run deterministically with no user input.
+        parser = optparse.OptionParser(formatter=BetterHelpFormatter(), usage="%prog [options] filename.rpg", description="""This tool runs OHRRPGCE rpg files in autotest mode. It requires a git working copy of the OHRRPGCE source. The rpg will be run twice, once for the current revision with any uncomitted changes, and once for the revision you want to compare with. You will be alerted of any differences. The purpose of this tool is to detect regressions and unintended side-effects of bugfixes. it is not useful for validating new features or bugfixes that legitimately involve a visible change in behavior. It is only useful for rpg files that run deterministically with no user input.
 
 This script can be used with 'git bisect run': it returns 0 on pass, 1 on fail or error while running Game, and 125 for other errors. For example:
   ./autotest.py testgame/autotest.rpgdir -r abc123
@@ -98,7 +103,7 @@ This script can be used with 'git bisect run': it returns 0 on pass, 1 on fail o
   git run autotest.py testgame/autotest.rpgdir -a
 """)
         parser.add_option("-r", dest="rev",
-                  help="Revision to test the current working copy against. If you leave this out, it assumes that you want to compare local changes against a clean copy of the currently checked out revision.", default=None)
+                  help="Revision to test the current working copy against. If you leave this out, it assumes that you want to compare uncomitted changes against a clean copy of the currently checked out head revision.", default=None)
         parser.add_option("-a", "--again",
                   action="store_true", dest="again", default=False,
                   help="Compare again against the last revision you compared against. This is much faster than testing against a specific revision. ")
@@ -108,11 +113,15 @@ This script can be used with 'git bisect run': it returns 0 on pass, 1 on fail o
         parser.add_option("-p", "--replay",
                   action="store_true", dest="replay", default=False,
                   help="If a .ohrkey recorded playthrough exists with the same name as the rpg file, it will be played back.")
+        parser.add_option("--use-gdb",
+                  action="store_true", dest="use_gdb", default=False,
+                  help="Run with GDB instead of running the ohrrpgce binary directly")
         (options, args) = parser.parse_args()
         self.rev = options.rev
         self.again = options.again
         self.anim = options.anim
         self.replay = options.replay
+        self.use_gdb = options.use_gdb
         self.rpgs = args
         self.parser = parser
 
@@ -127,7 +136,9 @@ class Context(object):
             self.absolute_rev = get_run_command("git rev-parse HEAD")[0]
             # Determine what branch we're on by partially rev-parsing 'HEAD'
             # (Will this work correctly? Maybe should just read .git/HEAD)
+            # ...yeah, it works if we remove the refs/heads/ prefix
             self.rev = get_run_command("git rev-parse --symbolic-full-name HEAD")[0]
+            self.rev = remove_string_prefix(self.rev, "refs/heads/")
             if self.rev == "HEAD":
                 # Not on a branch
                 self.rev = self.absolute_rev
@@ -138,14 +149,20 @@ class Context(object):
 
 class Platform(object):
     
-    def __init__(self):
-        self.gamefiles = ["misc/gdbscripts", "misc/gdbcmds1.txt"]
+    def __init__(self, use_gdb=False):
+        self.gamefiles = ["misc/gdbscripts", "misc/gdbcmds1.txt", "data"]
         if sys.platform == "win32":
             self.gamefiles += ["game.exe", "gdbgame.bat"]
-            self.game = "./gdbgame.bat"
+            if use_gdb:
+                self.game = "./gdbgame.bat"
+            else:
+                self.game = "./game.exe"
         else:
             self.gamefiles += ["ohrrpgce-game", "gdbgame.sh"]
-            self.game = "./gdbgame.sh"
+            if use_gdb:
+                self.game = "./gdbgame.sh"
+            else:
+                self.game = "./ohrrpgce-game"
 
 ########################################################################
 
@@ -154,7 +171,7 @@ class AutoTest(object):
     def __init__(self):
         self.opt = Options()
         self.context = Context(self)
-        self.plat = Platform()
+        self.plat = Platform(use_gdb=self.opt.use_gdb)
         self.validate()
 
     def validate(self):
@@ -201,19 +218,40 @@ class AutoTest(object):
         if not os.path.isdir(newdir):
             os.mkdir(newdir)
         self.prepare_rev(self.opt.rev, rpg, against)
+        # Find the ohrkey file if we need one
+        ohrkey = None
+        if self.opt.replay:
+            (prefix, ext) = os.path.splitext(rpg)
+            ohrkey = prefix + ".ohrkey"
+            print("Will replay input from " + ohrkey)
         # Copy rpg to workdir because otherwise if it's checked into git, it
         # could change during a bisect.
+        destrpg = os.path.join(workdir, os.path.split(rpg)[1])
         if not self.opt.again:
-            shutil.copy(rpg, workdir)
-        rpg = os.path.join(workdir, os.path.split(rpg)[1])
-        if not os.path.isfile(rpg):
+            if os.path.isdir(rpg):
+                shutil.rmtree(destrpg, ignore_errors=True)
+                shutil.copytree(rpg, destrpg)
+            else:
+                shutil.copy(rpg, workdir)
+        # Also copy the saves folder because a replay might rely on it
+        # (We don't attempt to handle the case where a replay creates/updates a save)
+        saves = os.path.splitext(rpg)[0] + ".saves"
+        if os.path.isdir(saves):
+            destsaves = os.path.splitext(destrpg)[0] + ".saves"
+            shutil.rmtree(destsaves, ignore_errors=True)
+            shutil.copytree(saves, destsaves)
+        # Next we run using the old version of game
+        rpg = destrpg
+        if not os.path.exists(rpg):
             self.againfail(rpg)
         if not self.opt.again:
             os.chdir(against)
-            self.run_rpg(rpg, olddir)
+            self.run_rpg(rpg, olddir, ohrkey)
             os.chdir(self.context.remember_dir)
+        # Now run against the current version
         self.prepare_current(newdir)
-        self.run_rpg(rpg, newdir)
+        self.run_rpg(rpg, newdir, ohrkey)
+        # Check for differences
         self.compare_output(shortname, olddir, newdir)
         
     def prepare_rev(self, rev, rpg, d):
@@ -242,7 +280,12 @@ class AutoTest(object):
                         dest = os.path.join(d, os.path.dirname(f))
                         if not os.path.isdir(dest):
                             os.mkdir(dest)
-                        shutil.copy(f, dest)
+                        if os.path.isdir(f):
+                            destdir = os.path.join(dest, f)
+                            shutil.rmtree(destdir, ignore_errors=True)
+                            shutil.copytree(f, destdir)
+                        else:
+                            shutil.copy(f, dest)
                     revfile.seek(0)
                     revfile.write("%s" % absolute_rev)
                 finally:
@@ -255,17 +298,14 @@ class AutoTest(object):
     def prepare_current(self, d):
         run_command("scons game")
     
-    def run_rpg(self, rpg, dump_dir):
+    def run_rpg(self, rpg, dump_dir, ohrkey=None):
         print("======")
         print("running %s in %s and putting checkpoints in %s" % (rpg, os.getcwd(), dump_dir))
         print("------")
         delete_pattern(os.path.join(dump_dir, "checkpoint*.bmp"))
         replay = ''
-        if self.opt.replay:
-            (prefix, ext) = os.path.splitext(rpg)
-            ohrkey = prefix + ".ohrkey"
-            if os.path.isfile(ohrkey):
-                replay = "-autosnap 1 -replayinput '%s'" % (ohrkey)
+        if ohrkey and os.path.isfile(ohrkey):
+            replay = "-autosnap 1 -replayinput '%s'" % (ohrkey)
         cmd = "%s -z 1 -autotest %s '%s'" % (self.plat.game, replay, rpg)
         run_command(cmd, 1)
         move_pattern("checkpoint*.bmp", dump_dir)
